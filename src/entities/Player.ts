@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import { PLAYER_TUNING, type AttackMode } from "../config";
+import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../config/assets";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
+import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
 
 export type AttackPhase = "idle" | "windup" | "active" | "recovery";
 
@@ -10,6 +12,7 @@ export class Player {
   readonly sprite: Phaser.Physics.Arcade.Sprite;
   readonly damageable: Damageable;
   private facing = 0;
+  private cardinalFacing: PlayerCardinal = "s";
   private attackPhase: AttackPhase = "idle";
   private phaseElapsed = 0;
   private hitEnemyIds = new Set<string>();
@@ -17,7 +20,8 @@ export class Player {
   private rangedShotPending = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, hpMax: number) {
-    this.sprite = scene.physics.add.sprite(x, y, "player");
+    this.sprite = scene.physics.add.sprite(x, y, PLAYER_TEXTURE.s);
+    this.sprite.setDisplaySize(SPRITE_DISPLAY.player, SPRITE_DISPLAY.player);
     this.sprite.setCircle(14);
     this.sprite.setCollideWorldBounds(true);
     this.sprite.setDepth(10);
@@ -57,7 +61,11 @@ export class Player {
   }
 
   faceToward(x: number, y: number): void {
-    this.facing = Math.atan2(y - this.sprite.y, x - this.sprite.x);
+    const dx = x - this.sprite.x;
+    const dy = y - this.sprite.y;
+    this.facing = Math.atan2(dy, dx);
+    const card = cardinalFromDelta(dx, dy) ?? cardinalFromAngle(this.facing);
+    this.setCardinalTexture(card);
   }
 
   setVelocityFromStick(dx: number, dy: number, speed: number): void {
@@ -70,9 +78,23 @@ export class Player {
     }
     if (dx !== 0 || dy !== 0) {
       this.facing = Math.atan2(dy, dx);
+      const card = cardinalFromDelta(dx, dy);
+      if (card) this.setCardinalTexture(card);
+    } else {
+      this.setCardinalTexture("s");
     }
     const moveScale = this.attackPhase === "active" && this.attackMode === "melee" ? 0.35 : 1;
     body.setVelocity(dx * speed * moveScale, dy * speed * moveScale);
+  }
+
+  private setCardinalTexture(card: PlayerCardinal): void {
+    if (card === this.cardinalFacing) return;
+    this.cardinalFacing = card;
+    const key = PLAYER_TEXTURE[card];
+    if (this.sprite.texture.key !== key) {
+      this.sprite.setTexture(key);
+      this.sprite.setDisplaySize(SPRITE_DISPLAY.player, SPRITE_DISPLAY.player);
+    }
   }
 
   tryStartAttack(): boolean {

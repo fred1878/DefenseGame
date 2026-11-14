@@ -1,8 +1,11 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
+import { GROUND_TILE_KEYS } from "../config/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
+
+const ASSET_ROOT = "assets";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -14,7 +17,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    createPlaceholderTextures(this);
+    await this.loadGameAssets();
     const store = new DataStore();
     try {
       await store.loadAll(import.meta.env.BASE_URL);
@@ -34,22 +37,41 @@ export class BootScene extends Phaser.Scene {
     this.registry.set("save", save);
     this.scene.start("Town");
   }
+
+  private loadGameAssets(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const base = import.meta.env.BASE_URL;
+      const loader = this.load.setBaseURL(base);
+      loader.image("player_s", `${ASSET_ROOT}/sprites/player_s.png`);
+      loader.image("player_e", `${ASSET_ROOT}/sprites/player_e.png`);
+      loader.image("player_n", `${ASSET_ROOT}/sprites/player_n.png`);
+      loader.image("player_w", `${ASSET_ROOT}/sprites/player_w.png`);
+      loader.image("enemy_grunt", `${ASSET_ROOT}/sprites/enemy_grunt.png`);
+      for (let i = 0; i < GROUND_TILE_KEYS.length; i++) {
+        const file = `tile_${String(i).padStart(2, "0")}.png`;
+        const key = GROUND_TILE_KEYS[i]!;
+        loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
+      }
+      createProjectileTexture(this);
+      loader.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+      loader.once(
+        Phaser.Loader.Events.FILE_LOAD_ERROR,
+        (file: { key: string }) => {
+          reject(new Error(`Failed to load asset: ${file.key}`));
+        },
+      );
+      if (loader.list.size === 0) {
+        resolve();
+        return;
+      }
+      loader.start();
+    });
+  }
 }
 
-function createPlaceholderTextures(scene: Phaser.Scene): void {
+function createProjectileTexture(scene: Phaser.Scene): void {
+  if (scene.textures.exists("projectile")) return;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
-  g.fillStyle(0x5eead4, 1);
-  g.fillCircle(16, 16, 14);
-  g.generateTexture("player", 32, 32);
-  g.clear();
-  g.fillStyle(0xf87171, 1);
-  g.fillCircle(14, 14, 12);
-  g.generateTexture("enemy_grunt", 28, 28);
-  g.clear();
-  g.fillStyle(0x3d4451, 1);
-  g.fillRect(0, 0, 64, 64);
-  g.generateTexture("ground", 64, 64);
-  g.clear();
   g.fillStyle(0xfde047, 1);
   g.fillCircle(6, 6, 5);
   g.generateTexture("projectile", 12, 12);
