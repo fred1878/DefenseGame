@@ -12,7 +12,7 @@ describe("inputTuning", () => {
   });
 
   it("uses a movement threshold above tap jitter", () => {
-    expect(VIRTUAL_STICK_DRAG_THRESHOLD_PX).toBeGreaterThanOrEqual(14);
+    expect(VIRTUAL_STICK_DRAG_THRESHOLD_PX).toBeGreaterThanOrEqual(18);
   });
 
   it("shortens focus re-tap lock vs legacy 220ms", () => {

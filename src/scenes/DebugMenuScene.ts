@@ -7,6 +7,7 @@ import {
   showTouchInput,
 } from "../debug/DebugState";
 import { configureSceneInput } from "../input/inputTuning";
+import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { createTouchButton } from "../ui/touchButton";
 import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
@@ -19,6 +20,7 @@ export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
   private touchToggle!: ReturnType<typeof createTouchButton>;
   private fullscreenToggle!: ReturnType<typeof createTouchButton>;
+  private touchDebug!: TouchInputDebugDraw;
 
   constructor() {
     super({ key: "DebugMenu" });
@@ -106,6 +108,39 @@ export class DebugMenuScene extends Phaser.Scene {
         fontSize: `${scaleUiX(18)}px`,
       },
     );
+
+    this.touchDebug = new TouchInputDebugDraw(this);
+    this.events.on("shutdown", () => this.touchDebug.destroy());
+  }
+
+  update(_time: number, _delta: number): void {
+    if (!showTouchInput(this.registry)) {
+      this.touchDebug.clear();
+      return;
+    }
+    this.touchDebug.draw({
+      pointerUiBlocked: (pointer) => this.isPointerOverInteractive(pointer),
+    });
+  }
+
+  private isPointerOverInteractive(pointer: Phaser.Input.Pointer): boolean {
+    const hits = this.input.hitTestPointer(pointer);
+    for (const hit of hits) {
+      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject)) return true;
+    }
+    return false;
+  }
+
+  private hasInteractiveInput(obj: Phaser.GameObjects.GameObject): boolean {
+    let node: Phaser.GameObjects.GameObject | null = obj;
+    while (node) {
+      if (node.input?.enabled) return true;
+      const parent: Phaser.GameObjects.Container | null =
+        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
+          .parentContainer ?? null;
+      node = parent;
+    }
+    return false;
   }
 
   private closeMenu(): void {

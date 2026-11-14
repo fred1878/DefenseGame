@@ -1,0 +1,19 @@
+import { describe, expect, it } from "vitest";
+import { releaseOnSameButton } from "./touchButtonGesture";
+
+describe("releaseOnSameButton", () => {
+  const bounds = { x: 100, y: 200, width: 80, height: 40 };
+
+  it("accepts release inside bounds", () => {
+    expect(releaseOnSameButton(bounds, 140, 220, 0)).toBe(true);
+  });
+
+  it("accepts release within slop outside bounds", () => {
+    expect(releaseOnSameButton(bounds, 95, 220, 28)).toBe(true);
+    expect(releaseOnSameButton(bounds, 185, 220, 28)).toBe(true);
+  });
+
+  it("rejects release far outside slop", () => {
+    expect(releaseOnSameButton(bounds, 50, 220, 10)).toBe(false);
+  });
+});
