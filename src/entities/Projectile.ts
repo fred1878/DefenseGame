@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
+import { applyKnockbackFrom } from "../combat/Knockback";
 
 export type PlayerProjectile = {
   id: string;
@@ -46,7 +47,9 @@ export function updateProjectile(
     y: number;
     radius: number;
     damageable: Damageable;
+    sprite: Phaser.Physics.Arcade.Sprite;
   }>,
+  knockback: number,
 ): boolean {
   if (!projectile.sprite.active) return false;
   const body = projectile.sprite.body as Phaser.Physics.Arcade.Body;
@@ -68,6 +71,12 @@ export function updateProjectile(
     if (d <= e.radius + 6) {
       projectile.hitIds.add(e.id);
       applyDamage(e.damageable, projectile.damage);
+      applyKnockbackFrom(
+        e.sprite,
+        projectile.sprite.x,
+        projectile.sprite.y,
+        knockback,
+      );
     }
   }
 

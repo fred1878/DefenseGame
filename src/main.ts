@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { GAME } from "./config";
 import { ensureFreshBuild } from "./ensureFreshBuild";
 import { BootScene } from "./scenes/BootScene";
+import { DebugMenuScene } from "./scenes/DebugMenuScene";
 import { DefenseScene } from "./scenes/DefenseScene";
 import { TownScene } from "./scenes/TownScene";
 
@@ -27,7 +28,7 @@ const config: Phaser.Types.Core.GameConfig = {
   input: {
     activePointers: 2,
   },
-  scene: [BootScene, TownScene, DefenseScene],
+  scene: [BootScene, TownScene, DefenseScene, DebugMenuScene],
 };
 
 async function start(): Promise<void> {

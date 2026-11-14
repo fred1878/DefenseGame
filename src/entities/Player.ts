@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { PLAYER_TUNING, type AttackMode } from "../config";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
+import { applyKnockbackFrom } from "../combat/Knockback";
 
 export type AttackPhase = "idle" | "windup" | "active" | "recovery";
 
@@ -118,8 +119,10 @@ export class Player {
       y: number;
       radius: number;
       damageable: Damageable;
+      sprite: Phaser.Physics.Arcade.Sprite;
     }>,
     damage: number,
+    knockback: number,
   ): void {
     if (this.attackMode !== "melee" || this.attackPhase !== "active") return;
     const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
@@ -138,6 +141,12 @@ export class Player {
       if (hit) {
         this.hitEnemyIds.add(e.id);
         e.damageable.hp -= damage;
+        applyKnockbackFrom(
+          e.sprite,
+          this.sprite.x,
+          this.sprite.y,
+          knockback,
+        );
         if (e.damageable.hp <= 0) {
           e.damageable.alive = false;
           e.damageable.onDeath?.();

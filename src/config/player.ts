@@ -14,6 +14,8 @@ export const PLAYER_TUNING = {
   rangedDamage: 12,
   rangedMaxRange: 340,
   projectileSpeed: 420,
+  meleeKnockback: 320,
+  rangedKnockback: 110,
   maxHp: 100,
   autoAttackMeleeRange: 52,
   autoAttackRangedRange: 300,

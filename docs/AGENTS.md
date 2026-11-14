@@ -33,12 +33,13 @@ src/
   config/              # game, player, enemy, spells, save (+ config.ts barrel)
   core/                # GameState, DataStore, EventBus
   input/               # VirtualStick, ActionButtons
-  combat/              # Hitbox, DamageSystem, CombatEntity
-  entities/            # Player, Enemy, Projectile
+  combat/              # Hitbox, DamageSystem, Knockback
+  debug/               # DebugState registry flags, HitboxDebugDraw
+  entities/            # Player, Enemy, EnemyCombat, Projectile
   ai/                  # EnemyBrain + behavior modules
-  scenes/              # Boot, Town, Defense
+  scenes/              # Boot, Town, Defense, DebugMenu
   systems/             # WaveSpawner, TownBuildings
-  ui/                  # HUD + building panels
+  ui/                  # SpellBar, CastBar, touch buttons, HUD
 public/data/           # JSON content (fetched at runtime)
 assets/ or public/     # Sprites/audio (placeholders OK early)
 docs/                  # This file, CI_RELEASES.md
@@ -168,7 +169,9 @@ npm run preview      # serve dist locally
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** touch buttons scale on press; **Town → Reset save** (tap twice) calls `resetSaveAndReload()` — clears `localStorage` and reloads with `?fresh=` (no hard refresh needed).
 5. **Config:** tuning lives under `src/config/` (`game`, `player`, `enemy`, `spells`, `save`); `src/config.ts` re-exports for existing imports. Spell bar: `config/spells.ts` + `save.spellBar.slots`.
-6. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
+6. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`; **Hitboxes: ON** sets `registry` `debugFlags.showHitboxes`. `DefenseScene` redraws player/enemy melee arcs and projectile circles via `HitboxDebugDraw`.
+7. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
+8. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ---
 
