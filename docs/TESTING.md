@@ -40,6 +40,7 @@ Save in e2e mode uses `localStorage` key **`defensegame-e2e-save`** (cleared in 
 - `getSave()` / `setSave(partial)`
 - `spawnTestEnemy()`, `setGodMode()`, `damagePlayer()`, `killAllEnemies()`, `forceWinNight()`
 - `textureLoaded(key)`, `getAttackPhase()`, `getProjectileCount()`, `sampleFps(seconds?)`
+- `getUiTapTargets()` / `isUiButtonPressed(testId)` — canvas tap centers and press-scale state
 
 DOM mirror for Playwright: hidden `[data-testid="start-night"]` button (e2e only).
 
@@ -63,7 +64,8 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | Hitbox / damage / knockback | `src/combat/*.test.ts` |
 | GameState / DataStore | `src/core/*.test.ts` |
 | Layout math | `src/ui/screenLayout.test.ts` |
-| Stick UI mask | `src/input/VirtualStick.test.ts` |
+| Stick mask + gesture FSM | `src/input/VirtualStick.test.ts` |
+| Night-end guards | `src/scenes/defenseNightLogic.test.ts` |
 | Touch slop | `src/ui/touchButtonGesture.test.ts`, `touchButton.test.ts` |
 
 ## Playwright suites
@@ -72,10 +74,10 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 |------|--------|
 | `smoke.spec.ts` | Boot, assets, enter Defense |
 | `golden-path.spec.ts` | API cheats: movement, melee/ranged FX, spells, win/lose |
-| `touch-input.spec.ts` | Real `canvas.tap()` on ATK, mode, spells; stick vs ATK cluster |
+| `touch-input.spec.ts` | Real `canvas.tap()` / `dragCanvas()` on ATK, mode, spells; drag-off press clear |
 | `combat-real.spec.ts` | Spawn + kill enemies, wall HP drop (no god mode) |
 | `night-end.spec.ts` | Return button + manual town transition |
-| `town-touch.spec.ts` | Start night via `[data-testid=start-night]` |
+| `town-touch.spec.ts` | Start night tap; drag-off cancel on Start night |
 | `visual.spec.ts` / `fps.spec.ts` | Screenshots, FPS hook |
 
 ## Adding a Playwright spec
@@ -95,3 +97,7 @@ npx playwright test --project=chromium
 ```
 
 Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `playwright.config.ts`).
+
+## Coverage notes
+
+Vitest thresholds apply to included `src/**` modules (scenes and Phaser boot stay excluded). `npm run test:coverage` enforces modest line/branch floors in CI.

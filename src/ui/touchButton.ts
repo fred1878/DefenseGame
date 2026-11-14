@@ -411,6 +411,13 @@ export function containerScreenRect(
   };
 }
 
+/** True while press-scale tween holds the button visually down (e2e assertions). */
+export function isTouchButtonVisuallyPressed(
+  container: Phaser.GameObjects.Container,
+): boolean {
+  return container.scaleX < 0.94 || container.scaleY < 0.94;
+}
+
 /** Screen-space hit test for UI that must block the movement stick. */
 export function pointerInScreenRect(
   x: number,

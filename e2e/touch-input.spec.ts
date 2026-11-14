@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
-import { getTapTarget, tapCanvas, waitForTapTargets } from "./helpers/touch";
+import {
+  dragCanvas,
+  getTapTarget,
+  tapCanvas,
+  waitForTapTargets,
+} from "./helpers/touch";
 
 test.describe("real pointer / touch input", () => {
   test.beforeEach(async ({ page }) => {
@@ -68,6 +73,32 @@ test.describe("real pointer / touch input", () => {
     expect(Math.hypot(after!.x - before!.x, after!.y - before!.y)).toBeLessThan(
       5,
     );
+  });
+
+  test("drag-off ATK release clears pressed visual and does not attack", async ({
+    page,
+  }) => {
+    const atk = await getTapTarget(page, "combat-atk");
+    await dragCanvas(page, atk.x, atk.y, atk.x, atk.y - 160);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () =>
+              window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-atk"),
+          ),
+        { timeout: 5_000 },
+      )
+      .toBe(false);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () => window.__DEFENSEGAME_E2E__?.flags.attackPhase ?? "idle",
+          ),
+        { timeout: 3_000 },
+      )
+      .toBe("idle");
   });
 
   test("DOM mirror ATK button", async ({ page }) => {

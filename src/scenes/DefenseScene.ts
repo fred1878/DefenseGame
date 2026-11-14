@@ -55,7 +55,9 @@ import {
   createTouchCircleButton,
   createTouchToggleButton,
   interactiveObjectScreenRect,
+  isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
+import { evaluateNightEnd } from "./defenseNightLogic";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
@@ -475,14 +477,15 @@ export class DefenseScene extends Phaser.Scene {
       );
     }
 
-    if (!this.nightEnded) {
-      if (this.wallHp <= 0) {
-        this.endNight(false);
-      } else if (this.player.damageable.hp <= 0) {
-        this.endNight(false);
-      } else if (this.spawnPlanComplete && living === 0) {
-        this.endNight(true);
-      }
+    const nightEnd = evaluateNightEnd({
+      nightEnded: this.nightEnded,
+      wallHp: this.wallHp,
+      playerHp: this.player.damageable.hp,
+      spawnPlanComplete: this.spawnPlanComplete,
+      livingEnemies: living,
+    });
+    if (nightEnd) {
+      this.endNight(nightEnd.won);
     }
 
     if (isE2EEnabled()) {
@@ -1135,5 +1138,19 @@ export class DefenseScene extends Phaser.Scene {
       if (ret) out["defense-return-to-town"] = ret;
     }
     return out;
+  }
+
+  e2eIsTouchButtonPressed(testId: string): boolean {
+    const map: Record<string, Phaser.GameObjects.Container | undefined> = {
+      "combat-atk": this.attackButton,
+      "combat-mode": this.modeToggle.container,
+      "combat-auto": this.autoToggle.container,
+    };
+    const direct = map[testId];
+    if (direct) return isTouchButtonVisuallyPressed(direct);
+    if (testId === "defense-return-to-town" && this.returnToTownBtn) {
+      return isTouchButtonVisuallyPressed(this.returnToTownBtn.container);
+    }
+    return false;
   }
 }

@@ -32,6 +32,7 @@ export type DefenseGameE2EApi = {
   nightEnded(): boolean;
   hasReturnButton(): boolean;
   getUiTapTargets(): Record<string, { x: number; y: number }>;
+  isUiButtonPressed(testId: string): boolean;
   syncDomMirrors(): void;
   tapDomMirror(testId: string): void;
   simulateScreenTap(x: number, y: number): void;

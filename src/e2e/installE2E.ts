@@ -1,9 +1,9 @@
 import Phaser from "phaser";
 import { GAME, type SaveGame } from "../config";
-import { readSafeInsets, townActionButtonY } from "../ui/screenLayout";
 import { COMBAT_FX_ASSETS } from "../config/assets";
 import { persistSave } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
+import type { TownScene } from "../scenes/TownScene";
 import { isE2EEnabled } from "./e2eMode";
 import {
   defaultE2EState,
@@ -126,13 +126,8 @@ export function attachE2EGame(game: Phaser.Game): void {
       ready,
     };
     if (key === "Town" && ready) {
-      const safe = readSafeInsets();
-      const y = townActionButtonY(
-        active as Phaser.Scene,
-        safe,
-        0,
-      );
-      positionDomMirrors({ "start-night": { x: GAME.width / 2, y } });
+      const town = active as TownScene;
+      positionDomMirrors(town.e2eGetUiTapTargets());
     }
     if (key === "Defense") {
       const defense = game.scene.getScene("Defense") as DefenseScene | null;
@@ -260,7 +255,18 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       return activeDefense(game)?.e2eHasReturnButton() ?? false;
     },
     getUiTapTargets() {
-      return activeDefense(game)?.e2eGetUiTapTargets() ?? {};
+      const defense = activeDefense(game);
+      if (defense) return defense.e2eGetUiTapTargets();
+      const town = game.scene.getScene("Town") as TownScene | null;
+      if (town?.scene.isActive()) return town.e2eGetUiTapTargets();
+      return {};
+    },
+    isUiButtonPressed(testId: string) {
+      const defense = activeDefense(game);
+      if (defense) return defense.e2eIsTouchButtonPressed(testId);
+      const town = game.scene.getScene("Town") as TownScene | null;
+      if (town?.scene.isActive()) return town.e2eIsTouchButtonPressed(testId);
+      return false;
     },
     syncDomMirrors() {
       const defense = activeDefense(game);
@@ -268,11 +274,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         positionDomMirrors(defense.e2eGetUiTapTargets());
         return;
       }
-      const town = game.scene.getScene("Town");
+      const town = game.scene.getScene("Town") as TownScene | null;
       if (town?.scene.isActive()) {
-        const safe = readSafeInsets();
-        const y = townActionButtonY(town as Phaser.Scene, safe, 0);
-        positionDomMirrors({ "start-night": { x: GAME.width / 2, y } });
+        positionDomMirrors(town.e2eGetUiTapTargets());
       }
     },
     tapDomMirror(testId: string) {
