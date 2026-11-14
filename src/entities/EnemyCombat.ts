@@ -11,6 +11,8 @@ export type EnemyCombatState = {
   phaseMs: number;
   cooldownMs: number;
   hitThisSwing: boolean;
+  /** Set when DefenseScene spawns grunt melee swipe FX for this swing. */
+  slashFxShown: boolean;
   facing: number;
 };
 
@@ -20,6 +22,7 @@ export function createEnemyCombat(): EnemyCombatState {
     phaseMs: 0,
     cooldownMs: 0,
     hitThisSwing: false,
+    slashFxShown: false,
     facing: 0,
   };
 }
@@ -43,6 +46,7 @@ export function updateEnemyCombat(
     c.phase = "windup";
     c.phaseMs = 0;
     c.hitThisSwing = false;
+    c.slashFxShown = false;
   }
 
   if (c.phase === "idle") return false;

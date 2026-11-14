@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import {
+  COMBAT_FX_ASSETS,
   GROUND_TILE_ASSETS,
   GROUND_TILE_TEXTURE,
   PLAYER_TEXTURE,
@@ -8,7 +9,7 @@ import {
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
   "enemy_grunt",
-  "projectile",
+  ...COMBAT_FX_ASSETS.map((a) => a.key),
 ];
 
 /** Nearest-neighbor sampling for world sprites/tiles; UI stays vector (Graphics/Text). */

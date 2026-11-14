@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { PLAYER_TUNING, type SpellDefinition } from "../config";
+import { COMBAT_FX_TEXTURE } from "../config/assets";
 import { applyDamage } from "./DamageSystem";
 import type { Damageable } from "./DamageSystem";
 import {
@@ -50,6 +51,7 @@ export function spawnChanneledFireball(
     damage,
     PLAYER_TUNING.rangedMaxRange,
     id,
+    COMBAT_FX_TEXTURE.fireBolt,
   );
 }
 

@@ -1,0 +1,78 @@
+import Phaser from "phaser";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../config/assets";
+
+/** Peter pick: v1 `slash-arc-v2` at 48px source, scaled for on-screen melee read. */
+const PLAYER_SLASH_OFFSET = 14;
+
+/** Locked grunt v2 mirror at 32px source. */
+const GRUNT_SLASH_OFFSET = 12;
+
+export function showPlayerMeleeSwipe(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  facingRad: number,
+  activeMs: number,
+): void {
+  spawnSlashFade(
+    scene,
+    x,
+    y,
+    facingRad,
+    PLAYER_SLASH_OFFSET,
+    COMBAT_FX_TEXTURE.playerMelee,
+    SPRITE_DISPLAY.playerMeleeSlash,
+    activeMs,
+    9,
+  );
+}
+
+export function showGruntMeleeSwipe(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  facingRad: number,
+  activeMs: number,
+): void {
+  spawnSlashFade(
+    scene,
+    x,
+    y,
+    facingRad,
+    GRUNT_SLASH_OFFSET,
+    COMBAT_FX_TEXTURE.gruntMelee,
+    SPRITE_DISPLAY.gruntMeleeSlash,
+    activeMs,
+    8,
+  );
+}
+
+function spawnSlashFade(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  facingRad: number,
+  offset: number,
+  textureKey: string,
+  displaySize: number,
+  holdMs: number,
+  depth: number,
+): void {
+  const ox = x + Math.cos(facingRad) * offset;
+  const oy = y + Math.sin(facingRad) * offset;
+  const img = scene.add.image(ox, oy, textureKey);
+  img.setDisplaySize(displaySize, displaySize);
+  img.setOrigin(0.5, 0.5);
+  img.setRotation(facingRad);
+  img.setDepth(depth);
+  img.setAlpha(0.92);
+  const fadeMs = Math.max(80, holdMs - 40);
+  scene.tweens.add({
+    targets: img,
+    alpha: 0,
+    duration: fadeMs,
+    delay: Math.min(40, holdMs * 0.25),
+    ease: "Quad.easeOut",
+    onComplete: () => img.destroy(),
+  });
+}
