@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "./config";
+import { ensureFreshBuild } from "./ensureFreshBuild";
 import { BootScene } from "./scenes/BootScene";
 import { DefenseScene } from "./scenes/DefenseScene";
 import { TownScene } from "./scenes/TownScene";
@@ -29,4 +30,9 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BootScene, TownScene, DefenseScene],
 };
 
-new Phaser.Game(config);
+async function start(): Promise<void> {
+  await ensureFreshBuild();
+  new Phaser.Game(config);
+}
+
+void start();
