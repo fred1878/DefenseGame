@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { SPRITE_DISPLAY } from "../config/assets";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
@@ -23,6 +24,7 @@ export function spawnPlayerProjectile(
   id: string,
 ): PlayerProjectile {
   const sprite = scene.physics.add.sprite(x, y, "projectile");
+  sprite.setDisplaySize(SPRITE_DISPLAY.projectile, SPRITE_DISPLAY.projectile);
   sprite.setCircle(4);
   sprite.setDepth(8);
   const vx = Math.cos(angleRad) * speed;

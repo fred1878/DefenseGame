@@ -29,7 +29,7 @@ flowchart LR
 
 ```text
 src/
-  main.ts              # Phaser.Game config (portrait, FIT scale)
+  main.ts              # Phaser.Game config (portrait 540×1200, FIT + autoRound)
   config/              # game, player, enemy, spells, save (+ config.ts barrel)
   core/                # GameState, DataStore, EventBus
   input/               # VirtualStick, ActionButtons
@@ -173,6 +173,14 @@ npm run preview      # serve dist locally
 7. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
 8. **Spells:** Defense HUD spell row (`SpellBar`); **Nova** instant AoE, **Fireball** / **Heal** channeled. Channeling zeroes movement; stick input interrupts. Whitish-yellow `CastBar` under the player shows channel progress.
 9. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
+
+### Display / mobile sharpness (`main.ts`, `src/ui/screenLayout.ts`)
+
+- **Design canvas:** `GAME.width` × `GAME.height` is **540×1200** (9:20). On **1080×2400** panels, Phaser `Scale.FIT` lands on an **integer 2×** upscale (less fractional blur than the old 390×844 base).
+- **`scale.autoRound`** and **`render.roundPixels`** snap canvas CSS size and texture draws. UI Text uses `registry.renderResolution` (capped DPR via `clampRenderResolution`) for extra sharpness on 3× browsers.
+- **`bindViewportToScale(game)`** (in `main.ts`) sizes the parent from `visualViewport` and calls `updateBounds()` so pointers and `cameraWorldPoint()` stay aligned under FIT + mobile browser chrome.
+- **Pixel art:** `configurePixelArtTextures` in Boot sets **nearest-neighbor** on sprite/ground keys; `SPRITE_DISPLAY` is **64px** on-screen (2×). UI buttons/text remain vector.
+- **Fullscreen:** Town (top-left) and Debug menu toggle via `pointerup`. **iOS Safari** often lacks Fullscreen API — button shows **“Fullscreen: N/A (iOS)”** and no-ops.
 
 ---
 

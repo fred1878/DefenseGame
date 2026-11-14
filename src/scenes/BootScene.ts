@@ -4,6 +4,7 @@ import { GROUND_TILE_ASSETS } from "../config/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
+import { configurePixelArtTextures } from "../core/pixelArtTextures";
 
 const ASSET_ROOT = "assets";
 
@@ -51,7 +52,10 @@ export class BootScene extends Phaser.Scene {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
       }
       createProjectileTexture(this);
-      loader.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+      loader.once(Phaser.Loader.Events.COMPLETE, () => {
+        configurePixelArtTextures(this);
+        resolve();
+      });
       loader.once(
         Phaser.Loader.Events.FILE_LOAD_ERROR,
         (file: { key: string }) => {
@@ -74,4 +78,5 @@ function createProjectileTexture(scene: Phaser.Scene): void {
   g.fillCircle(6, 6, 5);
   g.generateTexture("projectile", 12, 12);
   g.destroy();
+  configurePixelArtTextures(scene);
 }

@@ -21,7 +21,9 @@ export const GROUND_TILE_ASSETS = [
   { key: "ground_7", file: "tile_07.png" },
 ] as const;
 
+/** On-screen size in world units (2× source pixels, nearest-neighbor filtered in Boot). */
 export const SPRITE_DISPLAY = {
-  player: 32,
-  enemy: 32,
+  player: 64,
+  enemy: 64,
+  projectile: 16,
 } as const;
