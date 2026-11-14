@@ -130,9 +130,15 @@ export class DefenseScene extends Phaser.Scene {
       this.autoToggle.container,
     ];
 
+    const w = this.scale.width;
+    const h = this.scale.height;
     this.stick = new VirtualStick(this, {
       blockers: this.uiBlockers,
-      excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 110 }],
+      excludeZones: [{ x: 0, y: 0, width: w, height: 110 }],
+      uiScreenRects: [
+        { x: 0, y: 0, width: w, height: 110 },
+        { x: w - 230, y: h - 270, width: 230, height: 270 },
+      ],
       dragThresholdPx: 18,
     });
 
