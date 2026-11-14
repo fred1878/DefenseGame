@@ -33,12 +33,13 @@ src/
   config.ts            # Dimensions + tuning constants
   core/                # GameState, DataStore, EventBus
   input/               # VirtualStick, ActionButtons
-  combat/              # Hitbox, DamageSystem, CombatEntity
+  combat/              # Hitbox, DamageSystem, SpellCastController, SpellEffects
+  config/spells.ts     # Spell catalog, spell bar + cast bar tuning
   entities/            # Player, Enemy, Projectile
   ai/                  # EnemyBrain + behavior modules
   scenes/              # Boot, Town, Defense
   systems/             # WaveSpawner, TownBuildings
-  ui/                  # HUD + building panels
+  ui/                  # SpellBar, CastBar, touch buttons, HUD
 public/data/           # JSON content (fetched at runtime)
 assets/ or public/     # Sprites/audio (placeholders OK early)
 docs/                  # This file, CI_RELEASES.md

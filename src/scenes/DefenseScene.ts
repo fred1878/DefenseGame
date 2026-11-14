@@ -5,7 +5,9 @@ import {
   PLAYER_TUNING,
   type AttackMode,
   type NightResult,
+  createDefaultSpellBarSlots,
   type SaveGame,
+  type SpellDefinition,
 } from "../config";
 import { DataStore } from "../core/DataStore";
 import {
@@ -14,6 +16,12 @@ import {
   playerDamageMult,
 } from "../core/GameState";
 import { applyDamage } from "../combat/DamageSystem";
+import { SpellCastController } from "../combat/SpellCastController";
+import {
+  applyChanneledHeal,
+  applyNova,
+  spawnChanneledFireball,
+} from "../combat/SpellEffects";
 import { chasePlayer, spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import {
   spawnPlayerProjectile,
@@ -27,6 +35,8 @@ import {
   createTouchCircleButton,
   createTouchToggleButton,
 } from "../ui/touchButton";
+import { CastBar } from "../ui/CastBar";
+import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 
 export class DefenseScene extends Phaser.Scene {
@@ -51,6 +61,9 @@ export class DefenseScene extends Phaser.Scene {
   private nightEnded = false;
   private focusEnemyId: string | null = null;
   private targetIndicator!: TargetIndicator;
+  private spellCaster = new SpellCastController();
+  private spellBar!: SpellBar;
+  private castBar!: CastBar;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
 
   constructor() {
@@ -60,6 +73,9 @@ export class DefenseScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
+    if (!this.save.spellBar?.slots?.length) {
+      this.save.spellBar = { slots: createDefaultSpellBarSlots() };
+    }
     this.wallHp = Math.max(1, this.save.townWallHp);
     const store = this.registry.get("dataStore") as DataStore;
     const wave = store.getWaveForNight(this.save.night);
@@ -124,20 +140,32 @@ export class DefenseScene extends Phaser.Scene {
       200,
     );
 
+    this.spellCaster = new SpellCastController();
+    this.castBar = new CastBar(this);
+    this.spellBar = new SpellBar(
+      this,
+      this.save.spellBar.slots,
+      this.spellCaster,
+      { onCastRequest: (id) => this.onSpellCastRequest(id) },
+    );
+
     this.uiBlockers = [
       this.attackButton,
       this.modeToggle.container,
       this.autoToggle.container,
+      ...this.spellBar.getUiContainers(),
     ];
 
     const w = this.scale.width;
     const h = this.scale.height;
+    const spellRect = this.spellBar.getScreenRect();
     this.stick = new VirtualStick(this, {
       blockers: this.uiBlockers,
       excludeZones: [{ x: 0, y: 0, width: w, height: 110 }],
       uiScreenRects: [
         { x: 0, y: 0, width: w, height: 110 },
         { x: w - 230, y: h - 270, width: 230, height: 270 },
+        spellRect,
       ],
       dragThresholdPx: 18,
     });
@@ -167,16 +195,40 @@ export class DefenseScene extends Phaser.Scene {
       this.input.off("pointerup", this.onPointerUpBound);
       this.stick.destroy(this);
       this.targetIndicator.destroy();
+      this.castBar.destroy();
+      this.spellBar.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
     });
   }
 
   update(_time: number, delta: number): void {
+    this.spellCaster.tickCooldowns(delta);
     const dir = this.stick.getDirection();
-    this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed);
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
 
-    this.tryAutoAttack();
+    if (this.spellCaster.isChanneling()) {
+      this.player.sprite.setVelocity(0, 0);
+      const channel = this.spellCaster.updateChannel(delta, dir.x, dir.y);
+      if (channel.type === "channeling") {
+        this.castBar.setVisible(true);
+        this.castBar.setWorldPosition(px, py);
+        this.castBar.setProgress(channel.progress);
+      } else if (channel.type === "interrupted") {
+        this.castBar.setVisible(false);
+      } else if (channel.type === "completed") {
+        this.castBar.setVisible(false);
+        this.resolveSpellEffect(channel.def);
+      }
+    } else {
+      this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed);
+      this.castBar.setVisible(false);
+    }
+
+    if (!this.spellCaster.isChanneling()) {
+      this.tryAutoAttack();
+    }
     this.player.updateAttack(delta);
 
     const mult = playerDamageMult(this.save.buildings);
@@ -190,8 +242,6 @@ export class DefenseScene extends Phaser.Scene {
       updateProjectile(p, delta, this.enemyTargets()),
     );
 
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       chasePlayer(e, px, py, ENEMY_TUNING.gruntSpeed);
@@ -228,14 +278,18 @@ export class DefenseScene extends Phaser.Scene {
         : "";
     const mode = this.player.mode === "melee" ? "Melee" : "Ranged";
     const auto = this.autoAttackEnabled ? "ON" : "OFF";
+    const casting = this.spellCaster.isChanneling();
+    this.spellBar.refreshCooldownOverlays();
     this.hudText.setText(
       [
         `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
         `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
         `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
-        this.player.attackPhaseNow !== "idle"
-          ? `ATK: ${this.player.attackPhaseNow}`
-          : "Tap enemy to focus · drag to move",
+        casting
+          ? `Channeling… ${Math.floor(this.spellCaster.getChannelProgress() * 100)}%`
+          : this.player.attackPhaseNow !== "idle"
+            ? `ATK: ${this.player.attackPhaseNow}`
+            : "Spells · tap enemy to focus · drag to move",
       ].join("\n"),
     );
 
@@ -248,13 +302,66 @@ export class DefenseScene extends Phaser.Scene {
     }
   }
 
+  private onSpellCastRequest(spellId: string): void {
+    if (this.spellCaster.isChanneling()) return;
+    const begun = this.spellCaster.tryBeginCast(spellId);
+    if (begun === false) return;
+    if (begun === "channel") {
+      this.player.sprite.setVelocity(0, 0);
+      const target = this.facingTarget("ranged", true);
+      if (target) this.player.faceToward(target.x, target.y);
+      return;
+    }
+    this.resolveSpellEffect(begun);
+  }
+
+  private resolveSpellEffect(def: SpellDefinition): void {
+    const mult = playerDamageMult(this.save.buildings);
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    switch (def.id) {
+      case "nova":
+        applyNova(px, py, def, this.enemyTargets(), mult);
+        this.flashNova(px, py, def.novaRadius ?? 80);
+        break;
+      case "fireball": {
+        const angle = this.player.getFacingAngle();
+        const id = `spell_fb_${this.projectileSerial++}`;
+        this.projectiles.push(
+          spawnChanneledFireball(this, px, py, angle, def, mult, id),
+        );
+        break;
+      }
+      case "heal":
+        applyChanneledHeal(this.player.damageable, def);
+        break;
+    }
+    this.enemies = this.enemies.filter((e) => e.damageable.alive);
+  }
+
+  private flashNova(x: number, y: number, radius: number): void {
+    const ring = this.add
+      .circle(x, y, radius, 0xfef08a, 0.35)
+      .setDepth(7);
+    this.tweens.add({
+      targets: ring,
+      alpha: 0,
+      scale: 1.15,
+      duration: 280,
+      ease: "Quad.easeOut",
+      onComplete: () => ring.destroy(),
+    });
+  }
+
   private manualAttack(): void {
+    if (this.spellCaster.isChanneling()) return;
     const target = this.facingTarget(this.player.mode, true);
     if (target) this.player.faceToward(target.x, target.y);
     this.player.tryStartAttack();
   }
 
   private tryAutoAttack(): void {
+    if (this.spellCaster.isChanneling()) return;
     if (!this.autoAttackEnabled || !this.player.canAttack()) return;
     const mode = this.player.mode;
     const target = this.facingTarget(mode, false);

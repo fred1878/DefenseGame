@@ -35,6 +35,10 @@ export const ENEMY_TUNING = {
   touchCooldownMs: 600,
 } as const;
 
+export type SaveSpellBar = {
+  slots: string[];
+};
+
 export type SaveGame = {
   night: number;
   gold: number;
@@ -47,8 +51,11 @@ export type SaveGame = {
     weaponId: string;
     moveSpeed: number;
   };
+  spellBar: SaveSpellBar;
   flags: string[];
 };
+
+export * from "./config/spells";
 
 export type NightResult = {
   won: boolean;
