@@ -16,4 +16,8 @@ describe("releaseOnSameButton", () => {
   it("rejects release far outside slop", () => {
     expect(releaseOnSameButton(bounds, 50, 220, 10)).toBe(false);
   });
+
+  it("rejects vertical drift beyond slop (drag-off cancel path)", () => {
+    expect(releaseOnSameButton(bounds, 140, 160, 20)).toBe(false);
+  });
 });

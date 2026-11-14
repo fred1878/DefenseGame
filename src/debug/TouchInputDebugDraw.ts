@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { ScreenRect } from "../input/VirtualStick";
 import type { VirtualStick } from "../input/VirtualStick";
+import { interactiveObjectScreenRect } from "../ui/touchButton";
 
 const SCREEN_DEPTH = 248;
 const WORLD_DEPTH = 29;
@@ -145,6 +146,10 @@ export class TouchInputDebugDraw {
   private boundsForHit(
     obj: Phaser.GameObjects.GameObject,
   ): { x: number; y: number; width: number; height: number } | null {
+    const fromInput = interactiveObjectScreenRect(obj);
+    if (fromInput && fromInput.width > 0 && fromInput.height > 0) {
+      return fromInput;
+    }
     const go = obj as Phaser.GameObjects.Components.Transform &
       Phaser.GameObjects.Components.GetBounds &
       Phaser.GameObjects.GameObject;
