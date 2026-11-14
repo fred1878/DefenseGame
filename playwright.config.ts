@@ -15,6 +15,9 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.02,
+      // Playwright treats unset maxDiffPixels as 0 (any mismatch fails). Set to the
+      // 2% pixel budget so maxDiffPixelRatio is the real gate (see GAME 540×1200).
+      maxDiffPixels: Math.ceil(540 * 1200 * 0.02),
     },
   },
   use: {
