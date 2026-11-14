@@ -4,7 +4,6 @@ export const SPELL_BAR = {
   slotCount: 3,
   slotSizePx: scaleUiX(56),
   slotGapPx: scaleUiX(10),
-  bottomInsetPx: scaleUiY(200),
   tapPaddingPx: scaleUiX(6),
   cooldownRingWidthPx: scaleUiX(3),
   fontSize: `${scaleUiX(12)}px`,

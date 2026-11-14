@@ -7,7 +7,7 @@ import {
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
 import { createTouchButton } from "./touchButton";
-import { readSafeInsets } from "./screenLayout";
+import { readSafeInsets, spellBarCenterY } from "./screenLayout";
 
 export type SpellBarCallbacks = {
   onCastRequest: (spellId: SpellId) => void;
@@ -38,7 +38,7 @@ export class SpellBar {
       (this.slots.length - 1) * SPELL_BAR.slotGapPx;
     const safe = readSafeInsets();
     const startX = (scene.scale.width - totalWidth) / 2 + SPELL_BAR.slotSizePx / 2;
-    const y = scene.scale.height - SPELL_BAR.bottomInsetPx - safe.bottom;
+    const y = spellBarCenterY(scene, safe, SPELL_BAR.slotSizePx);
 
     for (let i = 0; i < this.slots.length; i++) {
       const spellId = this.slots[i] ?? "";
@@ -74,15 +74,15 @@ export class SpellBar {
 
   /** Screen rect covering the spell row for virtual-stick exclusion. */
   getScreenRect(): { x: number; y: number; width: number; height: number } {
-    const h = this.scene.scale.height;
-    const safeBottom = readSafeInsets().bottom;
-    const top =
-      h - SPELL_BAR.bottomInsetPx - safeBottom - SPELL_BAR.slotSizePx / 2 - scaleUiY(24);
+    const safe = readSafeInsets();
+    const centerY = spellBarCenterY(this.scene, safe, SPELL_BAR.slotSizePx);
+    const pad = scaleUiY(24);
+    const half = SPELL_BAR.slotSizePx / 2 + pad;
     return {
       x: 0,
-      y: Math.max(0, top),
+      y: Math.max(0, centerY - half),
       width: this.scene.scale.width,
-      height: scaleUiY(120),
+      height: half * 2,
     };
   }
 
