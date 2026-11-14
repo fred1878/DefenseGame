@@ -1,7 +1,8 @@
 export { GAME } from "./game";
 export {
-  GROUND_TILE_KEYS,
+  GROUND_TILE_ASSETS,
   GROUND_TILE_SIZE,
+  GROUND_TILE_TEXTURE,
   PLAYER_TEXTURE,
   SPRITE_DISPLAY,
   type PlayerCardinal,

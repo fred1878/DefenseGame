@@ -9,19 +9,17 @@ export const PLAYER_TEXTURE: Record<PlayerCardinal, string> = {
   w: "player_w",
 };
 
-/** Ordered keys for multi-tile ground (`ground_0` → `tile_00.png`, …). */
-export const GROUND_TILE_KEYS = [
-  "ground_0",
-  "ground_1",
-  "ground_2",
-  "ground_3",
-  "ground_4",
-  "ground_5",
-  "ground_6",
-  "ground_7",
-] as const;
+/** Combat ground layer uses this texture only (`tile_00.png`). */
+export const GROUND_TILE_TEXTURE = "ground_0";
 
 export const GROUND_TILE_SIZE = 64;
+
+/** Ground tiles kept in repo for later; only index 0 is used in combat. */
+export const GROUND_TILE_ASSETS = [
+  { key: "ground_0", file: "tile_00.png" },
+  { key: "ground_3", file: "tile_03.png" },
+  { key: "ground_7", file: "tile_07.png" },
+] as const;
 
 export const SPRITE_DISPLAY = {
   player: 32,

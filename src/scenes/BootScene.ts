@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
-import { GROUND_TILE_KEYS } from "../config/assets";
+import { GROUND_TILE_ASSETS } from "../config/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
@@ -47,9 +47,7 @@ export class BootScene extends Phaser.Scene {
       loader.image("player_n", `${ASSET_ROOT}/sprites/player_n.png`);
       loader.image("player_w", `${ASSET_ROOT}/sprites/player_w.png`);
       loader.image("enemy_grunt", `${ASSET_ROOT}/sprites/enemy_grunt.png`);
-      for (let i = 0; i < GROUND_TILE_KEYS.length; i++) {
-        const file = `tile_${String(i).padStart(2, "0")}.png`;
-        const key = GROUND_TILE_KEYS[i]!;
+      for (const { key, file } of GROUND_TILE_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
       }
       createProjectileTexture(this);
