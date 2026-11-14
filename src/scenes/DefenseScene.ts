@@ -16,6 +16,10 @@ import {
   playerDamageMult,
 } from "../core/GameState";
 import { applyDamage } from "../combat/DamageSystem";
+import {
+  showGruntMeleeSwipe,
+  showPlayerMeleeSwipe,
+} from "../combat/MeleeSwipeFx";
 import { SpellCastController } from "../combat/SpellCastController";
 import {
   applyChanneledHeal,
@@ -35,7 +39,7 @@ import {
   updateProjectile,
   type PlayerProjectile,
 } from "../entities/Projectile";
-import { Player } from "../entities/Player";
+import { Player, type AttackPhase } from "../entities/Player";
 import {
   configureSceneInput,
   FOCUS_SELECT_LOCK_MS,
@@ -94,6 +98,7 @@ export class DefenseScene extends Phaser.Scene {
   private safe!: SafeInsets;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
   private onDebugMenuClose = (): void => this.setHudChromeVisible(true);
+  private prevPlayerAttackPhase: AttackPhase = "idle";
 
   constructor() {
     super({ key: "Defense" });
@@ -287,6 +292,7 @@ export class DefenseScene extends Phaser.Scene {
       this.tryAutoAttack();
     }
     this.player.updateAttack(delta);
+    this.syncMeleeSwipeFx();
 
     const mult = playerDamageMult(this.save.buildings);
     this.player.damageEnemiesInArc(
@@ -321,6 +327,19 @@ export class DefenseScene extends Phaser.Scene {
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       const hitPlayer = updateEnemyCombat(e, playerHurtbox, delta);
+      if (
+        e.combat.phase === "active" &&
+        !e.combat.slashFxShown
+      ) {
+        e.combat.slashFxShown = true;
+        showGruntMeleeSwipe(
+          this,
+          e.sprite.x,
+          e.sprite.y,
+          e.combat.facing,
+          ENEMY_TUNING.attackActiveMs,
+        );
+      }
       if (hitPlayer && this.playerInvulnMs <= 0) {
         applyDamage(this.player.damageable, ENEMY_TUNING.attackDamage);
         if (this.player.damageable.hp <= 0) {
@@ -605,6 +624,24 @@ export class DefenseScene extends Phaser.Scene {
       }
     }
     return best ? { x: best.x, y: best.y } : null;
+  }
+
+  private syncMeleeSwipeFx(): void {
+    const phase = this.player.attackPhaseNow;
+    if (
+      phase === "active" &&
+      this.prevPlayerAttackPhase !== "active" &&
+      this.player.mode === "melee"
+    ) {
+      showPlayerMeleeSwipe(
+        this,
+        this.player.sprite.x,
+        this.player.sprite.y,
+        this.player.getFacingAngle(),
+        PLAYER_TUNING.meleeActiveMs,
+      );
+    }
+    this.prevPlayerAttackPhase = phase;
   }
 
   private fireProjectile(damage: number): void {

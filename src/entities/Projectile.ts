@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SPRITE_DISPLAY } from "../config/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../config/assets";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
@@ -22,9 +22,15 @@ export function spawnPlayerProjectile(
   damage: number,
   maxTravel: number,
   id: string,
+  textureKey: string = COMBAT_FX_TEXTURE.stoneThrow,
 ): PlayerProjectile {
-  const sprite = scene.physics.add.sprite(x, y, "projectile");
-  sprite.setDisplaySize(SPRITE_DISPLAY.projectile, SPRITE_DISPLAY.projectile);
+  const sprite = scene.physics.add.sprite(x, y, textureKey);
+  const display =
+    textureKey === COMBAT_FX_TEXTURE.fireBolt
+      ? SPRITE_DISPLAY.fireBolt
+      : SPRITE_DISPLAY.stoneThrow;
+  sprite.setDisplaySize(display, display);
+  sprite.setRotation(angleRad);
   sprite.setCircle(4);
   sprite.setDepth(8);
   const vx = Math.cos(angleRad) * speed;

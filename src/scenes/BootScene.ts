@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
-import { GROUND_TILE_ASSETS } from "../config/assets";
+import { COMBAT_FX_ASSETS, GROUND_TILE_ASSETS } from "../config/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
@@ -51,7 +51,9 @@ export class BootScene extends Phaser.Scene {
       for (const { key, file } of GROUND_TILE_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
       }
-      createProjectileTexture(this);
+      for (const { key, file } of COMBAT_FX_ASSETS) {
+        loader.image(key, `${ASSET_ROOT}/combat/fx/${file}`);
+      }
       loader.once(Phaser.Loader.Events.COMPLETE, () => {
         configurePixelArtTextures(this);
         resolve();
@@ -69,14 +71,4 @@ export class BootScene extends Phaser.Scene {
       loader.start();
     });
   }
-}
-
-function createProjectileTexture(scene: Phaser.Scene): void {
-  if (scene.textures.exists("projectile")) return;
-  const g = scene.make.graphics({ x: 0, y: 0 }, false);
-  g.fillStyle(0xfde047, 1);
-  g.fillCircle(6, 6, 5);
-  g.generateTexture("projectile", 12, 12);
-  g.destroy();
-  configurePixelArtTextures(scene);
 }
