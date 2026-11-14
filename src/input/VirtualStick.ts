@@ -4,15 +4,17 @@ export type ScreenRect = { x: number; y: number; width: number; height: number }
 
 export type VirtualStickOptions = {
   radius?: number;
-  /** Interactive UI objects: touches on these do not start the stick. */
+  /** Extra objects that always block stick start (in addition to any interactive UI). */
   blockers?: Phaser.GameObjects.GameObject[];
   /** Non-interactive screen regions (e.g. HUD) that reject stick start. */
   excludeZones?: ScreenRect[];
+  /** Pixels before stick appears — avoids stealing taps. */
+  dragThresholdPx?: number;
 };
 
 /**
- * Floating virtual stick: touch anywhere (except blockers) to spawn the pad at
- * your finger and drag. Hidden until active.
+ * Floating virtual stick: drag from most of the screen after a small movement
+ * threshold. Ignores interactive UI (buttons, zones).
  */
 export class VirtualStick {
   private readonly scene: Phaser.Scene;
@@ -21,9 +23,13 @@ export class VirtualStick {
   private readonly radius: number;
   private readonly blockers: Phaser.GameObjects.GameObject[];
   private readonly excludeZones: ScreenRect[];
+  private readonly dragThreshold: number;
   private originX = 0;
   private originY = 0;
+  private downX = 0;
+  private downY = 0;
   private pointerId: number | null = null;
+  private pending = false;
   private active = false;
   private dir = new Phaser.Math.Vector2(0, 0);
 
@@ -32,16 +38,17 @@ export class VirtualStick {
     this.radius = options.radius ?? 56;
     this.blockers = options.blockers ?? [];
     this.excludeZones = options.excludeZones ?? [];
+    this.dragThreshold = options.dragThresholdPx ?? 12;
 
     this.base = scene.add
       .circle(0, 0, this.radius, 0x2a2d38, 0.55)
       .setScrollFactor(0)
-      .setDepth(100)
+      .setDepth(50)
       .setVisible(false);
     this.knob = scene.add
       .circle(0, 0, this.radius * 0.42, 0x7db8ff, 0.85)
       .setScrollFactor(0)
-      .setDepth(101)
+      .setDepth(51)
       .setVisible(false);
 
     scene.input.on("pointerdown", this.onDown, this);
@@ -73,26 +80,47 @@ export class VirtualStick {
     if (this.shouldBlock(pointer)) return;
 
     this.pointerId = pointer.id;
-    this.active = true;
-    this.originX = pointer.x;
-    this.originY = pointer.y;
-    this.base.setPosition(this.originX, this.originY).setVisible(true);
-    this.knob.setPosition(this.originX, this.originY).setVisible(true);
-    this.updateFromPointer(pointer);
+    this.pending = true;
+    this.active = false;
+    this.downX = pointer.x;
+    this.downY = pointer.y;
+    this.dir.set(0, 0);
   }
 
   private onMove(pointer: Phaser.Input.Pointer): void {
     if (pointer.id !== this.pointerId) return;
-    this.updateFromPointer(pointer);
+
+    if (this.pending && !this.active) {
+      if (this.shouldBlock(pointer)) {
+        this.cancelTouch();
+        return;
+      }
+      const dist = Phaser.Math.Distance.Between(
+        this.downX,
+        this.downY,
+        pointer.x,
+        pointer.y,
+      );
+      if (dist < this.dragThreshold) return;
+      this.pending = false;
+      this.active = true;
+      this.originX = this.downX;
+      this.originY = this.downY;
+      this.base.setPosition(this.originX, this.originY).setVisible(true);
+      this.knob.setPosition(this.originX, this.originY).setVisible(true);
+    }
+
+    if (this.active) this.updateFromPointer(pointer);
   }
 
   private onUp(pointer: Phaser.Input.Pointer): void {
     if (pointer.id !== this.pointerId) return;
-    this.endTouch();
+    this.cancelTouch();
   }
 
-  private endTouch(): void {
+  private cancelTouch(): void {
     this.pointerId = null;
+    this.pending = false;
     this.active = false;
     this.dir.set(0, 0);
     this.base.setVisible(false);
@@ -101,10 +129,28 @@ export class VirtualStick {
 
   private shouldBlock(pointer: Phaser.Input.Pointer): boolean {
     if (this.isInExcludeZone(pointer.x, pointer.y)) return true;
+    if (this.pointerOverInteractiveUI(pointer)) return true;
+    return false;
+  }
 
+  private pointerOverInteractiveUI(pointer: Phaser.Input.Pointer): boolean {
     const hits = this.scene.input.hitTestPointer(pointer);
     for (const hit of hits) {
-      if (this.isBlockedObject(hit)) return true;
+      if (hit === this.base || hit === this.knob) continue;
+      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject)) return true;
+    }
+    return false;
+  }
+
+  private hasInteractiveInput(obj: Phaser.GameObjects.GameObject): boolean {
+    let node: Phaser.GameObjects.GameObject | null = obj;
+    while (node) {
+      if (this.blockers.includes(node)) return true;
+      if (node.input?.enabled) return true;
+      const parent: Phaser.GameObjects.Container | null =
+        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
+          .parentContainer ?? null;
+      node = parent;
     }
     return false;
   }
@@ -119,18 +165,7 @@ export class VirtualStick {
     );
   }
 
-  private isBlockedObject(obj: Phaser.GameObjects.GameObject): boolean {
-    for (const blocker of this.blockers) {
-      if (obj === blocker) return true;
-      if (blocker instanceof Phaser.GameObjects.Container) {
-        if (blocker.list.includes(obj as Phaser.GameObjects.GameObject)) return true;
-      }
-    }
-    return false;
-  }
-
   private updateFromPointer(pointer: Phaser.Input.Pointer): void {
-    if (!this.active) return;
     const dx = pointer.x - this.originX;
     const dy = pointer.y - this.originY;
     const len = Math.hypot(dx, dy);

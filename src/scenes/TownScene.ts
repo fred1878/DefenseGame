@@ -6,6 +6,8 @@ import {
   persistSave,
   wallHpBonusFromBuildings,
 } from "../core/GameState";
+import { configureSceneInput } from "../input/inputTuning";
+import { createTouchButton } from "../ui/touchButton";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -16,6 +18,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   create(): void {
+    configureSceneInput(this);
     this.save = this.registry.get("save") as SaveGame;
     const store = this.registry.get("dataStore") as DataStore;
 
@@ -41,21 +44,17 @@ export class TownScene extends Phaser.Scene {
 
     this.refreshStatus(store);
 
-    const startBtn = makeButton(this, GAME.width / 2, GAME.height - 120, "Start night", () => {
+    createTouchButton(this, GAME.width / 2, GAME.height - 120, "Start night", () => {
       this.scene.start("Defense");
-    });
+    }, { width: 260, height: 48, depth: 200 });
 
-    const upgradeWall = makeButton(this, GAME.width / 2, GAME.height - 210, "Upgrade wall", () => {
+    createTouchButton(this, GAME.width / 2, GAME.height - 210, "Upgrade wall", () => {
       this.tryUpgrade(store, "wall");
-    });
+    }, { width: 260, height: 48, depth: 200 });
 
-    const upgradeSmith = makeButton(this, GAME.width / 2, GAME.height - 290, "Upgrade blacksmith", () => {
+    createTouchButton(this, GAME.width / 2, GAME.height - 290, "Upgrade blacksmith", () => {
       this.tryUpgrade(store, "blacksmith");
-    });
-
-    startBtn.setDepth(20);
-    upgradeWall.setDepth(20);
-    upgradeSmith.setDepth(20);
+    }, { width: 260, height: 48, depth: 200 });
   }
 
   private tryUpgrade(store: DataStore, id: string): void {
@@ -95,23 +94,4 @@ export class TownScene extends Phaser.Scene {
       ].join("\n"),
     );
   }
-}
-
-function makeButton(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  label: string,
-  onClick: () => void,
-): Phaser.GameObjects.Container {
-  const bg = scene.add.rectangle(0, 0, 260, 48, 0x3b82f6, 1).setStrokeStyle(2, 0x60a5fa);
-  const text = scene.add.text(0, 0, label, { fontSize: "20px" }).setOrigin(0.5);
-  const container = scene.add.container(x, y, [bg, text]);
-  container.setSize(260, 48);
-  container.setInteractive(
-    new Phaser.Geom.Rectangle(-130, -24, 260, 48),
-    Phaser.Geom.Rectangle.Contains,
-  );
-  container.on("pointerup", onClick);
-  return container;
 }
