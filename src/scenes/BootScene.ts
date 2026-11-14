@@ -1,6 +1,12 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
-import { COMBAT_FX_ASSETS, GROUND_TILE_ASSETS, UI_ASSET_ROOT, UI_ASSETS } from "../config/assets";
+import {
+  COMBAT_FX_ASSETS,
+  DEFENSE_OBSTACLE_ASSETS,
+  GROUND_TILE_ASSETS,
+  UI_ASSET_ROOT,
+  UI_ASSETS,
+} from "../config/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
@@ -55,6 +61,9 @@ export class BootScene extends Phaser.Scene {
       loader.image("player_n", `${ASSET_ROOT}/sprites/player_n.png`);
       loader.image("player_w", `${ASSET_ROOT}/sprites/player_w.png`);
       loader.image("enemy_grunt", `${ASSET_ROOT}/sprites/enemy_grunt.png`);
+      for (const { key, file } of DEFENSE_OBSTACLE_ASSETS) {
+        loader.image(key, `${ASSET_ROOT}/sprites/obstacles/${file}`);
+      }
       for (const { key, file } of GROUND_TILE_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
       }

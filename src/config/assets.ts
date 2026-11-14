@@ -111,3 +111,20 @@ export const UI_NINE_SLICE = {
 } as const;
 
 export const UI_ASSET_ROOT = "assets/ui/medieval";
+
+/** Gothic defense field obstacles (`public/assets/sprites/obstacles/`). */
+export const DEFENSE_OBSTACLE_ASSETS = [
+  { key: "obstacle_wide_slab", file: "obstacle_wide_slab.png" },
+  { key: "obstacle_tall_rock", file: "obstacle_tall_rock.png" },
+  { key: "obstacle_boulder_med", file: "obstacle_boulder_med.png" },
+  { key: "obstacle_rubble_low", file: "obstacle_rubble_low.png" },
+  { key: "obstacle_boulder_sm", file: "obstacle_boulder_sm.png" },
+] as const;
+
+export const OBSTACLE_TEXTURE = {
+  wideSlab: "obstacle_wide_slab",
+  tallRock: "obstacle_tall_rock",
+  boulderMed: "obstacle_boulder_med",
+  rubbleLow: "obstacle_rubble_low",
+  boulderSm: "obstacle_boulder_sm",
+} as const;
