@@ -931,6 +931,12 @@ export class DefenseScene extends Phaser.Scene {
     persistSave(next);
     this.registry.set("save", next);
 
+    if (isE2EEnabled()) {
+      this.transitionToTown();
+      publishE2E({ scene: "Town", ready: true, player: null });
+      return;
+    }
+
     const headline = won ? "Night defended!" : "You fell — night lost";
     this.hudText.setText(
       [
