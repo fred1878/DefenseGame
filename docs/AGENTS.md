@@ -30,14 +30,14 @@ flowchart LR
 ```text
 src/
   main.ts              # Phaser.Game config (portrait, FIT scale)
-  config.ts            # Dimensions + tuning constants
+  config/              # game, player, enemy, spells, save (+ config.ts barrel)
   core/                # GameState, DataStore, EventBus
   input/               # VirtualStick, ActionButtons
-  combat/              # Hitbox, DamageSystem, SpellCastController, SpellEffects
-  config/spells.ts     # Spell catalog, spell bar + cast bar tuning
-  entities/            # Player, Enemy, Projectile
+  combat/              # Hitbox, DamageSystem, Knockback, SpellCastController, SpellEffects
+  debug/               # DebugState registry flags, HitboxDebugDraw
+  entities/            # Player, Enemy, EnemyCombat, Projectile
   ai/                  # EnemyBrain + behavior modules
-  scenes/              # Boot, Town, Defense
+  scenes/              # Boot, Town, Defense, DebugMenu
   systems/             # WaveSpawner, TownBuildings
   ui/                  # SpellBar, CastBar, touch buttons, HUD
 public/data/           # JSON content (fetched at runtime)
@@ -49,7 +49,7 @@ docs/                  # This file, CI_RELEASES.md
 
 ---
 
-## Core types (source of truth: `src/config.ts`)
+## Core types (source of truth: `src/config/`, especially `save.ts` and `spells.ts`)
 
 ```ts
 export type SaveGame = {
@@ -168,7 +168,11 @@ npm run preview      # serve dist locally
 2. **Content vs code:** new enemy = row in `enemies.json` + behavior if needed, not a new scene.
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** touch buttons scale on press; **Town → Reset save** (tap twice) calls `resetSaveAndReload()` — clears `localStorage` and reloads with `?fresh=` (no hard refresh needed).
-5. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
+5. **Config:** tuning lives under `src/config/` (`game`, `player`, `enemy`, `spells`, `save`); `src/config.ts` re-exports for existing imports. Spell bar: `config/spells.ts` + `save.spellBar.slots`.
+6. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`; **Hitboxes: ON** sets `registry` `debugFlags.showHitboxes`. `DefenseScene` redraws player/enemy melee arcs and projectile circles via `HitboxDebugDraw`.
+7. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
+8. **Spells:** Defense HUD spell row (`SpellBar`); **Nova** instant AoE, **Fireball** / **Heal** channeled. Channeling zeroes movement; stick input interrupts. Whitish-yellow `CastBar` under the player shows channel progress.
+9. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ---
 

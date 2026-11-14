@@ -22,7 +22,10 @@ import {
   applyNova,
   spawnChanneledFireball,
 } from "../combat/SpellEffects";
+import { showHitboxes } from "../debug/DebugState";
+import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import { chasePlayer, spawnEnemy, type EnemyInstance } from "../entities/Enemy";
+import { updateEnemyCombat } from "../entities/EnemyCombat";
 import {
   spawnPlayerProjectile,
   updateProjectile,
@@ -32,6 +35,7 @@ import { Player } from "../entities/Player";
 import { configureSceneInput } from "../input/inputTuning";
 import { VirtualStick } from "../input/VirtualStick";
 import {
+  createTouchButton,
   createTouchCircleButton,
   createTouchToggleButton,
 } from "../ui/touchButton";
@@ -53,8 +57,8 @@ export class DefenseScene extends Phaser.Scene {
   private modeToggle!: ReturnType<typeof createTouchToggleButton>;
   private uiBlockers: Phaser.GameObjects.GameObject[] = [];
   private wallHp = 0;
-  private touchCooldown = 0;
   private playerInvulnMs = 0;
+  private hitboxDebug!: HitboxDebugDraw;
   private focusSelectLockMs = 0;
   private rewardGold = 40;
   private spawnPlanComplete = false;
@@ -171,6 +175,7 @@ export class DefenseScene extends Phaser.Scene {
     });
 
     this.targetIndicator = new TargetIndicator(this);
+    this.hitboxDebug = new HitboxDebugDraw(this);
     this.input.on("pointerup", this.onPointerUpBound);
 
     this.hudText = this.add
@@ -180,6 +185,23 @@ export class DefenseScene extends Phaser.Scene {
       })
       .setScrollFactor(0)
       .setDepth(200);
+
+    const debugBtn = createTouchButton(
+      this,
+      58,
+      44,
+      "Debug",
+      () => this.scene.launch("DebugMenu"),
+      {
+        width: 88,
+        height: 36,
+        depth: 200,
+        fontSize: "14px",
+        fillColor: 0x3f3f46,
+        strokeColor: 0xa1a1aa,
+      },
+    );
+    this.uiBlockers.push(debugBtn.container);
 
     this.refreshModeToggle(this.player.mode);
     this.refreshAutoToggle();
@@ -197,6 +219,7 @@ export class DefenseScene extends Phaser.Scene {
       this.targetIndicator.destroy();
       this.castBar.destroy();
       this.spellBar.destroy();
+      this.hitboxDebug.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
     });
@@ -232,41 +255,51 @@ export class DefenseScene extends Phaser.Scene {
     this.player.updateAttack(delta);
 
     const mult = playerDamageMult(this.save.buildings);
-    this.player.damageEnemiesInArc(this.enemyTargets(), PLAYER_TUNING.meleeDamage * mult);
+    this.player.damageEnemiesInArc(
+      this.enemyTargets(),
+      PLAYER_TUNING.meleeDamage * mult,
+      PLAYER_TUNING.meleeKnockback,
+    );
 
     if (this.player.consumeRangedShot()) {
       this.fireProjectile(PLAYER_TUNING.rangedDamage * mult);
     }
 
     this.projectiles = this.projectiles.filter((p) =>
-      updateProjectile(p, delta, this.enemyTargets()),
+      updateProjectile(
+        p,
+        delta,
+        this.enemyTargets(),
+        PLAYER_TUNING.rangedKnockback,
+      ),
     );
 
-    for (const e of this.enemies) {
-      if (!e.damageable.alive) continue;
-      chasePlayer(e, px, py, ENEMY_TUNING.gruntSpeed);
-    }
+    const playerHurtbox = {
+      x: px,
+      y: py,
+      radius: 14,
+      damageable: this.player.damageable,
+    };
 
     this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
     this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
-    this.touchCooldown -= delta;
-    if (this.touchCooldown <= 0 && this.playerInvulnMs <= 0) {
-      for (const e of this.enemies) {
-        if (!e.damageable.alive) continue;
-        const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-        if (d < 28) {
-          applyDamage(this.player.damageable, ENEMY_TUNING.touchDamage);
-          if (this.player.damageable.hp <= 0) {
-            this.player.damageable.alive = false;
-          } else {
-            this.player.damageable.alive = true;
-          }
-          this.touchCooldown = ENEMY_TUNING.touchCooldownMs;
-          this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
-          break;
+
+    for (const e of this.enemies) {
+      if (!e.damageable.alive) continue;
+      const hitPlayer = updateEnemyCombat(e, playerHurtbox, delta);
+      if (hitPlayer && this.playerInvulnMs <= 0) {
+        applyDamage(this.player.damageable, ENEMY_TUNING.attackDamage);
+        if (this.player.damageable.hp <= 0) {
+          this.player.damageable.alive = false;
+        } else {
+          this.player.damageable.alive = true;
         }
+        this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
       }
+      chasePlayer(e, px, py, ENEMY_TUNING.gruntSpeed);
     }
+
+    this.drawDebugHitboxes();
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
     this.syncFocusTarget();
@@ -540,7 +573,54 @@ export class DefenseScene extends Phaser.Scene {
       y: e.sprite.y,
       radius: 12,
       damageable: e.damageable,
+      sprite: e.sprite,
     }));
+  }
+
+  private drawDebugHitboxes(): void {
+    if (!showHitboxes(this.registry)) {
+      this.hitboxDebug.clear();
+      return;
+    }
+    this.hitboxDebug.clear();
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    this.hitboxDebug.drawCircle(px, py, 14);
+
+    if (
+      this.player.mode === "melee" &&
+      this.player.attackPhaseNow === "active"
+    ) {
+      const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
+      this.hitboxDebug.drawMeleeArc(
+        px,
+        py,
+        this.player.getFacingAngle(),
+        PLAYER_TUNING.meleeRange,
+        arcHalf,
+      );
+    }
+
+    for (const e of this.enemies) {
+      if (!e.damageable.alive) continue;
+      this.hitboxDebug.drawCircle(e.sprite.x, e.sprite.y, 12);
+      if (e.combat.phase === "active") {
+        const arcHalf = Phaser.Math.DegToRad(ENEMY_TUNING.attackArcDeg / 2);
+        this.hitboxDebug.drawMeleeArc(
+          e.sprite.x,
+          e.sprite.y,
+          e.combat.facing,
+          ENEMY_TUNING.attackRange,
+          arcHalf,
+        );
+      }
+    }
+
+    for (const p of this.projectiles) {
+      if (p.sprite.active) {
+        this.hitboxDebug.drawCircle(p.sprite.x, p.sprite.y, 10);
+      }
+    }
   }
 
   private refreshModeToggle(mode: AttackMode): void {
