@@ -15,6 +15,9 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.02,
+      // Playwright defaults maxDiffPixels to 0 (any mismatch fails). Linux CI can
+      // differ by a handful of antialiased pixels vs local baselines.
+      maxDiffPixels: 32,
     },
   },
   use: {
