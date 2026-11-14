@@ -42,6 +42,7 @@ import {
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
+import { buildGroundGrid } from "../world/groundTiles";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -87,7 +88,7 @@ export class DefenseScene extends Phaser.Scene {
 
     const half = GAME.worldHalfSize;
     this.physics.world.setBounds(-half, -half, half * 2, half * 2);
-    this.add.tileSprite(0, 0, half * 2, half * 2, "ground").setOrigin(0.5);
+    buildGroundGrid(this, this.save.night);
 
     this.add
       .rectangle(-half + 20, 0, 40, half * 2, 0x52525b)
@@ -277,7 +278,7 @@ export class DefenseScene extends Phaser.Scene {
     const playerHurtbox = {
       x: px,
       y: py,
-      radius: 14,
+      radius: 20,
       damageable: this.player.damageable,
     };
 

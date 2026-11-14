@@ -3,13 +3,19 @@ import { PLAYER_TUNING, type AttackMode } from "../config";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
+import {
+  facing4FromAngle,
+  playerTextureForFacing,
+  type PlayerFacing4,
+} from "./playerFacing";
 
 export type AttackPhase = "idle" | "windup" | "active" | "recovery";
 
 export class Player {
   readonly sprite: Phaser.Physics.Arcade.Sprite;
   readonly damageable: Damageable;
-  private facing = 0;
+  private facing = Math.PI / 2;
+  private facingDir: PlayerFacing4 = "south";
   private attackPhase: AttackPhase = "idle";
   private phaseElapsed = 0;
   private hitEnemyIds = new Set<string>();
@@ -17,8 +23,8 @@ export class Player {
   private rangedShotPending = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, hpMax: number) {
-    this.sprite = scene.physics.add.sprite(x, y, "player");
-    this.sprite.setCircle(14);
+    this.sprite = scene.physics.add.sprite(x, y, playerTextureForFacing("south"));
+    this.sprite.setCircle(20);
     this.sprite.setCollideWorldBounds(true);
     this.sprite.setDepth(10);
 
@@ -57,7 +63,7 @@ export class Player {
   }
 
   faceToward(x: number, y: number): void {
-    this.facing = Math.atan2(y - this.sprite.y, x - this.sprite.x);
+    this.setFacingAngle(Math.atan2(y - this.sprite.y, x - this.sprite.x));
   }
 
   setVelocityFromStick(dx: number, dy: number, speed: number): void {
@@ -69,10 +75,18 @@ export class Player {
       return;
     }
     if (dx !== 0 || dy !== 0) {
-      this.facing = Math.atan2(dy, dx);
+      this.setFacingAngle(Math.atan2(dy, dx));
     }
     const moveScale = this.attackPhase === "active" && this.attackMode === "melee" ? 0.35 : 1;
     body.setVelocity(dx * speed * moveScale, dy * speed * moveScale);
+  }
+
+  private setFacingAngle(angle: number): void {
+    this.facing = angle;
+    const dir = facing4FromAngle(angle);
+    if (dir === this.facingDir) return;
+    this.facingDir = dir;
+    this.sprite.setTexture(playerTextureForFacing(dir));
   }
 
   tryStartAttack(): boolean {

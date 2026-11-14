@@ -19,7 +19,7 @@ export function spawnEnemy(
   onTap?: () => void,
 ): EnemyInstance {
   const sprite = scene.physics.add.sprite(x, y, "enemy_grunt");
-  sprite.setCircle(12);
+  sprite.setCircle(18);
   sprite.setDepth(5);
   sprite.setInteractive(
     new Phaser.Geom.Circle(0, 0, 26),
