@@ -2,7 +2,9 @@ import Phaser from "phaser";
 import {
   getDebugFlags,
   setShowHitboxes,
+  setShowTouchInput,
   showHitboxes,
+  showTouchInput,
 } from "../debug/DebugState";
 import { configureSceneInput } from "../input/inputTuning";
 import { createTouchButton } from "../ui/touchButton";
@@ -10,6 +12,7 @@ import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
 
 export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
+  private touchToggle!: ReturnType<typeof createTouchButton>;
 
   constructor() {
     super({ key: "DebugMenu" });
@@ -43,12 +46,25 @@ export class DebugMenuScene extends Phaser.Scene {
     this.hitboxToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 - 20,
+      h / 2 - 60,
       flags.showHitboxes ? "Hitboxes: ON" : "Hitboxes: OFF",
       () => {
         const next = !showHitboxes(this.registry);
         setShowHitboxes(this.registry, next);
         this.hitboxToggle.setLabel(next ? "Hitboxes: ON" : "Hitboxes: OFF");
+      },
+      { width: 240, height: 48, depth: 402 },
+    );
+
+    this.touchToggle = createTouchButton(
+      this,
+      w / 2,
+      h / 2 + 5,
+      flags.showTouchInput ? "Touch input: ON" : "Touch input: OFF",
+      () => {
+        const next = !showTouchInput(this.registry);
+        setShowTouchInput(this.registry, next);
+        this.touchToggle.setLabel(next ? "Touch input: ON" : "Touch input: OFF");
       },
       { width: 240, height: 48, depth: 402 },
     );

@@ -22,8 +22,12 @@ import {
   applyNova,
   spawnChanneledFireball,
 } from "../combat/SpellEffects";
-import { showHitboxes } from "../debug/DebugState";
+import { showHitboxes, showTouchInput } from "../debug/DebugState";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
+import {
+  TouchInputDebugDraw,
+  type FocusTapFlash,
+} from "../debug/TouchInputDebugDraw";
 import { chasePlayer, spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
 import {
@@ -69,6 +73,8 @@ export class DefenseScene extends Phaser.Scene {
   private wallHp = 0;
   private playerInvulnMs = 0;
   private hitboxDebug!: HitboxDebugDraw;
+  private touchDebug!: TouchInputDebugDraw;
+  private focusTapFlash: FocusTapFlash | null = null;
   private focusSelectLockMs = 0;
   private rewardGold = 40;
   private spawnPlanComplete = false;
@@ -196,6 +202,7 @@ export class DefenseScene extends Phaser.Scene {
 
     this.targetIndicator = new TargetIndicator(this);
     this.hitboxDebug = new HitboxDebugDraw(this);
+    this.touchDebug = new TouchInputDebugDraw(this);
     this.input.on("pointerup", this.onPointerUpBound);
 
     const hudPos = hudTextPosition(this.safe);
@@ -245,6 +252,7 @@ export class DefenseScene extends Phaser.Scene {
       this.castBar.destroy();
       this.spellBar.destroy();
       this.hitboxDebug.destroy();
+      this.touchDebug.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
     });
@@ -325,6 +333,7 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.drawDebugHitboxes();
+    this.drawTouchDebug(delta);
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
     this.syncFocusTarget();
@@ -429,7 +438,8 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private onScreenTap(pointer: Phaser.Input.Pointer): void {
-    if (this.isPointerOverUi(pointer)) return;
+    const overUi = this.isPointerOverUi(pointer);
+    if (overUi) return;
     if (this.focusSelectLockMs > 0) return;
 
     const tapResult = this.stick.tryConsumeTap(pointer);
@@ -439,6 +449,18 @@ export class DefenseScene extends Phaser.Scene {
     const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
 
     const world = cameraWorldPoint(this.cameras.main, screenX, screenY);
+    const pick = this.findEnemyNearWorldPoint(world.x, world.y);
+    if (showTouchInput(this.registry)) {
+      this.focusTapFlash = {
+        screenX,
+        screenY,
+        worldX: world.x,
+        worldY: world.y,
+        picked: pick !== null,
+        pickRadiusWorld: PLAYER_TUNING.targetTapRadiusWorld,
+        ageMs: 0,
+      };
+    }
     this.trySelectEnemyAt(world.x, world.y);
   }
 
@@ -611,6 +633,26 @@ export class DefenseScene extends Phaser.Scene {
       damageable: e.damageable,
       sprite: e.sprite,
     }));
+  }
+
+  private drawTouchDebug(delta: number): void {
+    if (!showTouchInput(this.registry)) {
+      this.touchDebug.clear();
+      this.focusTapFlash = null;
+      return;
+    }
+    if (this.focusTapFlash) {
+      this.focusTapFlash = {
+        ...this.focusTapFlash,
+        ageMs: this.focusTapFlash.ageMs + delta,
+      };
+      if (this.focusTapFlash.ageMs >= 900) this.focusTapFlash = null;
+    }
+    this.touchDebug.draw({
+      stick: this.stick,
+      pointerUiBlocked: (p) => this.isPointerOverUi(p),
+      focusFlash: this.focusTapFlash,
+    });
   }
 
   private drawDebugHitboxes(): void {
