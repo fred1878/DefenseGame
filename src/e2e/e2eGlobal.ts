@@ -27,6 +27,16 @@ export type DefenseGameE2EApi = {
   sampleFps(seconds?: number): Promise<number>;
   getAttackPhase(): string;
   getProjectileCount(): number;
+  getEnemyCount(): number;
+  setManualReturnToTown(on: boolean): void;
+  nightEnded(): boolean;
+  hasReturnButton(): boolean;
+  getUiTapTargets(): Record<string, { x: number; y: number }>;
+  syncDomMirrors(): void;
+  tapDomMirror(testId: string): void;
+  simulateScreenTap(x: number, y: number): void;
+  getDefenseWallHp(): number;
+  setSpawnPlanComplete(): void;
 };
 
 declare global {

@@ -3,6 +3,20 @@ import { STICK_POST_DRAG_TAP_SUPPRESS_MS } from "./inputTuning";
 
 export type ScreenRect = { x: number; y: number; width: number; height: number };
 
+export function pointInScreenRects(
+  x: number,
+  y: number,
+  rects: ScreenRect[],
+): boolean {
+  return rects.some(
+    (z) =>
+      x >= z.x &&
+      x <= z.x + z.width &&
+      y >= z.y &&
+      y <= z.y + z.height,
+  );
+}
+
 export type VirtualStickOptions = {
   radius?: number;
   /** Extra objects that always block stick start (in addition to any interactive UI). */
@@ -241,13 +255,7 @@ export class VirtualStick {
   }
 
   private isInUiScreenRect(x: number, y: number): boolean {
-    return this.uiScreenRects.some(
-      (z) =>
-        x >= z.x &&
-        x <= z.x + z.width &&
-        y >= z.y &&
-        y <= z.y + z.height,
-    );
+    return pointInScreenRects(x, y, this.uiScreenRects);
   }
 
   private pointerOverInteractiveUI(pointer: Phaser.Input.Pointer): boolean {
@@ -273,13 +281,7 @@ export class VirtualStick {
   }
 
   private isInExcludeZone(x: number, y: number): boolean {
-    return this.excludeZones.some(
-      (z) =>
-        x >= z.x &&
-        x <= z.x + z.width &&
-        y >= z.y &&
-        y <= z.y + z.height,
-    );
+    return pointInScreenRects(x, y, this.excludeZones);
   }
 
   private updateFromPointer(pointer: Phaser.Input.Pointer): void {
