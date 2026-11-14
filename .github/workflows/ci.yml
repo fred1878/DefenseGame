@@ -63,6 +63,14 @@ jobs:
           VITE_E2E: "true"
           VITE_BUILD_ID: e2e-ci
           VITE_BASE: /
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
       - run: npx playwright install --with-deps chromium
       - name: Playwright e2e
         run: npm run test:e2e -- --project=chromium

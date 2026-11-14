@@ -66,6 +66,7 @@ import {
   cameraWorldPoint,
   buildCombatStickUiMask,
   combatChromeLayout,
+  bottomHudStripLayout,
   debugButtonPosition,
   hudBandHeight,
   hudTextPosition,
@@ -73,11 +74,11 @@ import {
   readSafeInsets,
   type SafeInsets,
 } from "../ui/screenLayout";
-import { scaleUiX } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { spellById } from "../config/spells";
+import { SPELL_BAR, spellById } from "../config/spells";
 import { UI_TEXTURE } from "../config/assets";
 import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
 
@@ -192,6 +193,16 @@ export class DefenseScene extends Phaser.Scene {
     const chrome = combatChromeLayout(this, this.safe);
     this.hudChrome = createCombatHudChrome(this);
 
+    const bottomStrip = bottomHudStripLayout(this, this.safe);
+    if (isE2EEnabled() && typeof window !== "undefined") {
+      (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
+        {
+          bottomChromeTextureKey: null,
+          stripCenterY: bottomStrip.stripCenterY,
+          stripH: bottomStrip.stripH,
+        };
+    }
+
     this.attackButton = createTouchCircleButton(
       this,
       chrome.atkX,
@@ -199,14 +210,14 @@ export class DefenseScene extends Phaser.Scene {
       "ATK",
       chrome.atkRadius,
       () => this.manualAttack(),
-      200,
+      210,
       UI_TEXTURE.atkCircle,
     );
 
     this.modeToggle = createTouchToggleButton(
       this,
-      chrome.atkX - chrome.modeOffsetX,
-      chrome.btnY,
+      chrome.modeX,
+      chrome.modeY,
       "MEL",
       chrome.toggleW,
       chrome.toggleH,
@@ -214,14 +225,14 @@ export class DefenseScene extends Phaser.Scene {
         const mode = this.player.toggleAttackMode();
         this.refreshModeToggle(mode);
       },
-      200,
+      210,
       { frameTextureKey: UI_TEXTURE.modeRect },
     );
 
     this.autoToggle = createTouchToggleButton(
       this,
-      chrome.atkX,
-      chrome.btnY - chrome.autoOffsetY,
+      chrome.autoX,
+      chrome.autoY,
       "AUTO",
       chrome.toggleW,
       chrome.toggleH,
@@ -229,7 +240,7 @@ export class DefenseScene extends Phaser.Scene {
         this.autoAttackEnabled = !this.autoAttackEnabled;
         this.refreshAutoToggle();
       },
-      200,
+      210,
       { frameTextureKey: UI_TEXTURE.autoRect },
     );
 
@@ -241,6 +252,15 @@ export class DefenseScene extends Phaser.Scene {
       this.spellCaster,
       { onCastRequest: (id) => this.onSpellCastRequest(id) },
     );
+
+    if (isE2EEnabled() && typeof window !== "undefined") {
+      const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
+        .__HUD_DEBUG__;
+      const spell0 = this.spellBar.e2eSlotTapCenters()[0];
+      if (dbg) {
+        dbg.spellSlot0CanvasY = spell0?.y ?? null;
+      }
+    }
 
     this.uiBlockers = [
       this.attackButton,
@@ -266,6 +286,13 @@ export class DefenseScene extends Phaser.Scene {
       .setDepth(200);
 
     const dbgPos = debugButtonPosition(this, this.safe);
+    const strip = bottomHudStripLayout(this, this.safe);
+    const spellClearY =
+      strip.stripCenterY +
+      SPELL_BAR.slotSizePx / 2 +
+      scaleUiY(14) +
+      scaleUiX(36) / 2;
+    dbgPos.y = Math.max(dbgPos.y, spellClearY);
     this.debugBtn = createTouchButton(
       this,
       dbgPos.x,
@@ -277,7 +304,8 @@ export class DefenseScene extends Phaser.Scene {
         height: scaleUiX(36),
         depth: 200,
         fontSize: `${scaleUiX(14)}px`,
-        frameTextureKey: UI_TEXTURE.iconBacking,
+        fillColor: 0x3f3f46,
+        strokeColor: 0xa1a1aa,
       },
     );
     this.uiBlockers.push(this.debugBtn.container);
@@ -1011,6 +1039,10 @@ export class DefenseScene extends Phaser.Scene {
     return Boolean(this.player?.sprite);
   }
 
+  e2eBottomChromeTextureKey(): string | null {
+    return null;
+  }
+
   e2eSetStick(dx: number, dy: number): void {
     this.stick.setE2eOverride(dx, dy);
   }
@@ -1142,6 +1174,8 @@ export class DefenseScene extends Phaser.Scene {
     for (const slot of this.spellBar.e2eSlotTapCenters()) {
       out[`spell-slot-${slot.index}`] = { x: slot.x, y: slot.y };
     }
+    const dbg = centerOf(this.debugBtn.container);
+    if (dbg) out["defense-debug"] = dbg;
     if (this.returnToTownBtn) {
       const ret = centerOf(this.returnToTownBtn.container);
       if (ret) out["defense-return-to-town"] = ret;

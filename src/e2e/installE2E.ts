@@ -293,6 +293,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getDefenseWallHp() {
       return activeDefense(game)?.e2eWallHp() ?? 0;
     },
+    e2eBottomChromeTextureKey() {
+      return activeDefense(game)?.e2eBottomChromeTextureKey() ?? null;
+    },
     setSpawnPlanComplete() {
       activeDefense(game)?.e2eSetSpawnPlanComplete();
     },

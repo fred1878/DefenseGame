@@ -25,9 +25,9 @@ export type DefenseObstacleRect = {
 
 /** Static rock/wall blocks on the defense field (world coords, center origin). */
 export const DEFENSE_OBSTACLES: DefenseObstacleRect[] = [
-  { x: 80, y: -140, w: 90, h: 55, textureKey: OBSTACLE_TEXTURE.wideSlab },
-  { x: 160, y: 60, w: 70, h: 90, textureKey: OBSTACLE_TEXTURE.tallRock },
-  { x: 240, y: -40, w: 60, h: 60, textureKey: OBSTACLE_TEXTURE.boulderMed },
-  { x: -40, y: 180, w: 100, h: 50, textureKey: OBSTACLE_TEXTURE.rubbleLow },
-  { x: 60, y: 200, w: 55, h: 55, textureKey: OBSTACLE_TEXTURE.boulderSm },
+  { x: -300, y: -200, w: 90, h: 55, textureKey: OBSTACLE_TEXTURE.wideSlab },
+  { x: 320, y: -160, w: 70, h: 90, textureKey: OBSTACLE_TEXTURE.tallRock },
+  { x: -260, y: 220, w: 100, h: 50, textureKey: OBSTACLE_TEXTURE.rubbleLow },
+  { x: 300, y: 260, w: 55, h: 55, textureKey: OBSTACLE_TEXTURE.boulderSm },
+  { x: -150, y: -320, w: 60, h: 60, textureKey: OBSTACLE_TEXTURE.boulderMed },
 ];

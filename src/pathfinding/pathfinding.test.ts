@@ -16,7 +16,7 @@ describe("nav grid", () => {
 });
 
 describe("A*", () => {
-  it("finds a route around a rock cluster", () => {
+  it("finds a route around spread obstacles to the north wall", () => {
     const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
     const northY = -GAME.worldHalfSize + 40;
     const path = findPath(grid, 200, -200, 200, northY);

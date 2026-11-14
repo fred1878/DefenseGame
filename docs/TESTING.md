@@ -91,12 +91,26 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | `town-touch.spec.ts` | Start night tap; drag-off cancel on Start night |
 | `visual.spec.ts` / `fps.spec.ts` | Screenshots, FPS hook |
 
+## Visual regression baselines
+
+`e2e/visual.spec.ts` uses Playwright `toHaveScreenshot()`; PNGs live next to the spec in **`e2e/visual.spec.ts-snapshots/`** and are the **source of truth** for CI. Do not rely on Agent Store or manual PNG copies in `media/`—those are review artifacts only and are not compared in CI.
+
+**CI runs Chromium only** (`npm run test:e2e -- --project=chromium` in `.github/workflows/ci.yml`). The `mobile-chrome` project is for optional local checks; updating only mobile snapshots will not refresh what CI compares.
+
+When a PR changes pixels (sprites, HUD chrome, layout, debug overlays):
+
+1. `npm run build:e2e`
+2. `npx playwright test e2e/visual.spec.ts --project=chromium --update-snapshots`
+3. Commit the changed files under `e2e/visual.spec.ts-snapshots/` in the same PR.
+
+On intentional UI PRs (not on `main`/CI), you can set `VISUAL_EXPECT_UI_CHANGE=1` when running the visual spec locally; `e2e/helpers/visualSnapshot.ts` logs each baseline path and **warns** if the capture is byte-identical to the committed PNG (a sign the Chromium baselines were not refreshed).
+
 ## Adding a Playwright spec
 
 1. `gotoE2E(page)` — waits for Town + `ready`.
 2. Prefer `api` over canvas coordinates.
 3. Wait on `__DEFENSEGAME_E2E__` fields, not fixed `sleep`.
-4. Put screenshots under `e2e/` with `toHaveScreenshot()`; update snapshots only intentionally.
+4. Put screenshots under `e2e/` with `toHaveScreenshot()`; see **Visual regression baselines** above when updating PNGs.
 
 ## Local workflow
 

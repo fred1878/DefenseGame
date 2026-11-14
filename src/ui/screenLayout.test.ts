@@ -6,8 +6,11 @@ import {
   hudTextPosition,
   nightReturnButtonPosition,
   spellBarCenterY,
+  spellBarSlotOrigin,
+  expectedSpellBarCenterY,
   townActionButtonY,
 } from "./screenLayout";
+import { SPELL_BAR } from "../config/spells";
 
 function mockScene(
   width = GAME.width,
@@ -39,10 +42,30 @@ describe("screenLayout", () => {
     expect(chrome.hudBand).toBe(hudBandHeight(0));
   });
 
-  it("spellBarCenterY sits above combat buttons", () => {
+  it("spellBarCenterY aligns with bottom HUD strip", () => {
     const y = spellBarCenterY(scene, safe, 52);
     const chrome = combatChromeLayout(scene, safe);
-    expect(y).toBeLessThan(chrome.btnY - chrome.atkRadius);
+    expect(y).toBe(chrome.bottomStrip.stripCenterY);
+    expect(chrome.btnY).toBeGreaterThanOrEqual(chrome.bottomStrip.stripTop);
+    expect(chrome.autoY).toBeLessThan(chrome.btnY);
+  });
+
+  it("spell slots target bottom 15% of portrait canvas", () => {
+    const chrome = combatChromeLayout(scene, safe);
+    const { centerY, firstSlotCenterX } = spellBarSlotOrigin(
+      scene,
+      safe,
+      SPELL_BAR.slotCount,
+      SPELL_BAR.slotSizePx,
+      SPELL_BAR.slotGapPx,
+    );
+    expect(centerY).toBe(expectedSpellBarCenterY(scene, safe));
+    expect(centerY).toBeGreaterThan(GAME.height * 0.85);
+    expect(centerY).toBeGreaterThan(1000);
+    const lastCenterX =
+      firstSlotCenterX + (SPELL_BAR.slotCount - 1) * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+    const rowRight = lastCenterX + SPELL_BAR.slotSizePx / 2;
+    expect(rowRight).toBeLessThan(chrome.modeX - chrome.toggleW / 2);
   });
 
   it("nightReturnButtonPosition is below HUD band", () => {
