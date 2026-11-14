@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { westWallAttackX } from "../config";
+import { northWallAttackY } from "../config/defense";
 import type { EnemyInstance } from "./Enemy";
 import {
   createEnemyCombat,
@@ -29,15 +29,15 @@ function mockEnemy(
 
 describe("updateEnemyCombat wall target", () => {
   it("damages wall when in wall attack range during active phase", () => {
-    const wx = westWallAttackX();
-    const enemy = mockEnemy(wx + 20, 0);
+    const wy = northWallAttackY();
+    const enemy = mockEnemy(0, wy + 20);
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     enemy.combat.hitThisSwing = false;
     const onWallHit = vi.fn();
     const hitPlayer = updateEnemyCombat(
       enemy,
-      { kind: "wall", x: wx, y: 0 },
+      { kind: "wall", x: 0, y: wy },
       0,
       onWallHit,
     );

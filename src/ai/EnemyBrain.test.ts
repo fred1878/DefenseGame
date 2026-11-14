@@ -31,10 +31,10 @@ describe("pickEnemyTarget", () => {
 });
 
 describe("wallTargetPoint", () => {
-  it("returns west wall x with enemy y", () => {
+  it("returns north wall y with enemy x", () => {
     const pt = wallTargetPoint(100, -40);
-    expect(pt.x).toBeLessThan(0);
-    expect(pt.y).toBe(-40);
+    expect(pt.x).toBe(100);
+    expect(pt.y).toBeLessThan(-40);
   });
 });
 
