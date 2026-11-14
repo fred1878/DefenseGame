@@ -23,6 +23,7 @@ export const PLAYER_TUNING = {
   maxHp: 100,
   autoAttackMeleeRange: 52,
   autoAttackRangedRange: 300,
+  targetTapRadiusWorld: 40,
 } as const;
 
 export const ENEMY_TUNING = {

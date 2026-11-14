@@ -31,6 +31,9 @@ export class VirtualStick {
   private pointerId: number | null = null;
   private pending = false;
   private active = false;
+  private gestureHadDrag = false;
+  private pendingTap: { x: number; y: number; pointerId: number } | null = null;
+  private dragEndPointerId: number | null = null;
   private dir = new Phaser.Math.Vector2(0, 0);
 
   constructor(scene: Phaser.Scene, options: VirtualStickOptions = {}) {
@@ -61,6 +64,24 @@ export class VirtualStick {
     return this.dir;
   }
 
+  /**
+   * After pointerup: `tap` with screen coords, `drag` if stick was used, else `none`.
+   */
+  tryConsumeTap(
+    pointer: Phaser.Input.Pointer,
+  ): { kind: "tap"; x: number; y: number } | { kind: "drag" } | { kind: "none" } {
+    if (this.dragEndPointerId === pointer.id) {
+      this.dragEndPointerId = null;
+      return { kind: "drag" };
+    }
+    const tap = this.pendingTap;
+    this.pendingTap = null;
+    if (tap && tap.pointerId === pointer.id) {
+      return { kind: "tap", x: tap.x, y: tap.y };
+    }
+    return { kind: "none" };
+  }
+
   setBlockers(blockers: Phaser.GameObjects.GameObject[]): void {
     this.blockers.length = 0;
     this.blockers.push(...blockers);
@@ -82,6 +103,7 @@ export class VirtualStick {
     this.pointerId = pointer.id;
     this.pending = true;
     this.active = false;
+    this.gestureHadDrag = false;
     this.downX = pointer.x;
     this.downY = pointer.y;
     this.dir.set(0, 0);
@@ -104,6 +126,7 @@ export class VirtualStick {
       if (dist < this.dragThreshold) return;
       this.pending = false;
       this.active = true;
+      this.gestureHadDrag = true;
       this.originX = this.downX;
       this.originY = this.downY;
       this.base.setPosition(this.originX, this.originY).setVisible(true);
@@ -115,6 +138,11 @@ export class VirtualStick {
 
   private onUp(pointer: Phaser.Input.Pointer): void {
     if (pointer.id !== this.pointerId) return;
+    if (this.gestureHadDrag) {
+      this.dragEndPointerId = pointer.id;
+    } else if (this.pending) {
+      this.pendingTap = { x: pointer.x, y: pointer.y, pointerId: pointer.id };
+    }
     this.cancelTouch();
   }
 
@@ -122,6 +150,7 @@ export class VirtualStick {
     this.pointerId = null;
     this.pending = false;
     this.active = false;
+    this.gestureHadDrag = false;
     this.dir.set(0, 0);
     this.base.setVisible(false);
     this.knob.setVisible(false);

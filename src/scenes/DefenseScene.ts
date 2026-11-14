@@ -27,6 +27,7 @@ import {
   createTouchCircleButton,
   createTouchToggleButton,
 } from "../ui/touchButton";
+import { TargetIndicator } from "../ui/TargetIndicator";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -46,6 +47,9 @@ export class DefenseScene extends Phaser.Scene {
   private rewardGold = 40;
   private spawnPlanComplete = false;
   private nightEnded = false;
+  private focusEnemyId: string | null = null;
+  private targetIndicator!: TargetIndicator;
+  private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
 
   constructor() {
     super({ key: "Defense" });
@@ -127,6 +131,9 @@ export class DefenseScene extends Phaser.Scene {
       excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 110 }],
     });
 
+    this.targetIndicator = new TargetIndicator(this);
+    this.input.on("pointerup", this.onPointerUpBound);
+
     this.hudText = this.add
       .text(12, 12, "", {
         fontSize: "16px",
@@ -146,7 +153,9 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.events.on("shutdown", () => {
+      this.input.off("pointerup", this.onPointerUpBound);
       this.stick.destroy(this);
+      this.targetIndicator.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
     });
@@ -191,18 +200,23 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
+    this.syncFocusTarget();
 
     const living = this.enemies.filter((e) => e.damageable.alive).length;
+    const focus =
+      this.focusEnemyId && this.getEnemyById(this.focusEnemyId)?.damageable.alive
+        ? " (focus)"
+        : "";
     const mode = this.player.mode === "melee" ? "Melee" : "Ranged";
     const auto = this.autoAttackEnabled ? "ON" : "OFF";
     this.hudText.setText(
       [
         `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
         `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}`,
-        `Enemies ${living} · ${mode} · Auto ${auto}`,
+        `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
         this.player.attackPhaseNow !== "idle"
           ? `ATK: ${this.player.attackPhaseNow}`
-          : "Drag · ATK · toggle MEL/RNG / AUTO",
+          : "Tap enemy to focus · drag to move",
       ].join("\n"),
     );
 
@@ -216,20 +230,144 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private manualAttack(): void {
-    const target = this.nearestEnemyForMode(this.player.mode);
-    if (target) {
-      this.player.faceToward(target.x, target.y);
-    }
+    const target = this.facingTarget(this.player.mode, true);
+    if (target) this.player.faceToward(target.x, target.y);
     this.player.tryStartAttack();
   }
 
   private tryAutoAttack(): void {
     if (!this.autoAttackEnabled || !this.player.canAttack()) return;
     const mode = this.player.mode;
-    const target = this.nearestEnemyForMode(mode);
+    const target = this.facingTarget(mode, false);
     if (!target) return;
     this.player.faceToward(target.x, target.y);
     this.player.tryStartAttack();
+  }
+
+  private onScreenTap(pointer: Phaser.Input.Pointer): void {
+    if (this.isPointerOverUi(pointer)) return;
+
+    const tapResult = this.stick.tryConsumeTap(pointer);
+    if (tapResult.kind === "drag") return;
+
+    const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
+    const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
+
+    const world = this.cameras.main.getWorldPoint(screenX, screenY);
+    this.trySelectEnemyAt(world.x, world.y);
+  }
+
+  private trySelectEnemyAt(worldX: number, worldY: number): void {
+    const pick = this.findEnemyNearWorldPoint(worldX, worldY);
+    if (pick) {
+      this.setFocusEnemy(pick.id);
+      return;
+    }
+    this.setFocusEnemy(null);
+  }
+
+  private findEnemyNearWorldPoint(worldX: number, worldY: number): EnemyInstance | null {
+    const r = PLAYER_TUNING.targetTapRadiusWorld;
+    let best: { e: EnemyInstance; d: number } | null = null;
+    for (const e of this.enemies) {
+      if (!e.damageable.alive) continue;
+      const d = Phaser.Math.Distance.Between(worldX, worldY, e.sprite.x, e.sprite.y);
+      if (d > r) continue;
+      if (!best || d < best.d) best = { e, d };
+    }
+    return best?.e ?? null;
+  }
+
+  private setFocusEnemy(id: string | null): void {
+    this.focusEnemyId = id;
+    if (!id) {
+      this.targetIndicator.detach();
+      return;
+    }
+    const enemy = this.getEnemyById(id);
+    if (!enemy || !enemy.damageable.alive) {
+      this.focusEnemyId = null;
+      this.targetIndicator.detach();
+      return;
+    }
+    this.targetIndicator.attachTo(enemy.sprite);
+    this.targetIndicator.updateWorldPosition();
+  }
+
+  private syncFocusTarget(): void {
+    if (!this.focusEnemyId) return;
+    const enemy = this.getEnemyById(this.focusEnemyId);
+    if (!enemy || !enemy.damageable.alive) {
+      this.setFocusEnemy(null);
+      return;
+    }
+    this.targetIndicator.updateWorldPosition();
+  }
+
+  private getEnemyById(id: string): EnemyInstance | undefined {
+    return this.enemies.find((e) => e.id === id);
+  }
+
+  /** Selected enemy if alive; else nearest in range. Manual allows focus out of range for facing. */
+  private facingTarget(
+    mode: AttackMode,
+    manual: boolean,
+  ): { x: number; y: number } | null {
+    const focused = this.focusedEnemyPosition(mode, manual);
+    if (focused) return focused;
+    return this.nearestEnemyForMode(mode);
+  }
+
+  private focusedEnemyPosition(
+    mode: AttackMode,
+    manual: boolean,
+  ): { x: number; y: number } | null {
+    if (!this.focusEnemyId) return null;
+    const e = this.getEnemyById(this.focusEnemyId);
+    if (!e || !e.damageable.alive) return null;
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
+    const maxR =
+      mode === "melee"
+        ? PLAYER_TUNING.autoAttackMeleeRange
+        : PLAYER_TUNING.autoAttackRangedRange;
+    if (!manual && d > maxR) return null;
+    return { x: e.sprite.x, y: e.sprite.y };
+  }
+
+  private isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
+    if (
+      pointer.y <= 110 &&
+      pointer.x >= 0 &&
+      pointer.x <= GAME.width
+    ) {
+      return true;
+    }
+    const hits = this.input.hitTestPointer(pointer);
+    for (const hit of hits) {
+      if (this.uiBlockers.some((b) => this.isSameOrChild(hit, b))) return true;
+    }
+    return false;
+  }
+
+  private isSameOrChild(
+    hit: Phaser.GameObjects.GameObject,
+    blocker: Phaser.GameObjects.GameObject,
+  ): boolean {
+    if (hit === blocker) return true;
+    if (blocker instanceof Phaser.GameObjects.Container) {
+      if (blocker.list.includes(hit)) return true;
+    }
+    let node: Phaser.GameObjects.GameObject | null = hit;
+    while (node) {
+      if (node === blocker) return true;
+      const parent: Phaser.GameObjects.Container | null =
+        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
+          .parentContainer ?? null;
+      node = parent;
+    }
+    return false;
   }
 
   private nearestEnemyForMode(mode: AttackMode): { x: number; y: number } | null {
