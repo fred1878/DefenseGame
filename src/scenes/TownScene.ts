@@ -131,15 +131,9 @@ export class TownScene extends Phaser.Scene {
     const btnW = scaleUiX(260);
     const btnH = scaleUiY(48);
     const yStart = townActionButtonY(this, safe, 0);
+    const yWall = townActionButtonY(this, safe, 1);
     const ySmith = townActionButtonY(this, safe, 2);
-    const stackMetrics = townActionStackMetrics(
-      this,
-      safe,
-      btnH,
-      btnW,
-      yStart,
-      ySmith,
-    );
+    const stackMetrics = townActionStackMetrics(btnH, btnW, ySmith, yStart);
     createTownHudChrome(
       this,
       safe,
@@ -168,7 +162,7 @@ export class TownScene extends Phaser.Scene {
     createTouchButton(
       this,
       GAME.width / 2,
-      townActionButtonY(this, safe, 1),
+      yWall,
       "Upgrade wall",
       () => this.tryUpgrade(store, "wall"),
       townBtnStyle,

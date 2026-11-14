@@ -7,7 +7,7 @@ export type CombatHudChrome = {
   setVisible: (visible: boolean) => void;
 };
 
-/** Gothic bottom HUD strip — spell slots and combat controls sit above this layer. */
+/** Gothic bottom HUD (tall panel art, 9-sliced to strip geometry). */
 export function createCombatHudChrome(
   scene: Phaser.Scene,
   depth = 45,
@@ -15,26 +15,26 @@ export function createCombatHudChrome(
   const safe = readSafeInsets();
   const w = scene.scale.width;
   const { stripH, stripCenterY } = bottomHudStripLayout(scene, safe);
-  const strip = UI_NINE_SLICE.bottomStrip;
+  const slice = UI_NINE_SLICE.panelTallBottomBar;
 
-  const bottomStrip = scene.add.nineslice(
+  const bottomPanel = scene.add.nineslice(
     w / 2,
     stripCenterY,
-    UI_TEXTURE.bottomStrip,
+    UI_TEXTURE.panelTall,
     undefined,
     w,
     stripH,
-    strip.left,
-    strip.right,
-    strip.top,
-    strip.bottom,
+    slice.left,
+    slice.right,
+    slice.top,
+    slice.bottom,
   );
-  bottomStrip.setScrollFactor(0).setDepth(depth);
+  bottomPanel.setScrollFactor(0).setDepth(depth);
 
   return {
-    roots: [bottomStrip],
+    roots: [bottomPanel],
     setVisible: (visible) => {
-      bottomStrip.setVisible(visible);
+      bottomPanel.setVisible(visible);
     },
   };
 }

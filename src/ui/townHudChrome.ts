@@ -34,18 +34,20 @@ export function createTownHudChrome(
 }
 
 export function townActionStackMetrics(
-  _scene: Phaser.Scene,
-  _safe: SafeInsets,
   buttonHeight: number,
   buttonWidth: number,
-  yTop: number,
-  yBottom: number,
+  /** Center Y of topmost action (smallest screen Y). */
+  yTopAction: number,
+  /** Center Y of bottommost action (largest screen Y). */
+  yBottomAction: number,
 ): { centerY: number; panelHeight: number; panelWidth: number } {
-  const padY = scaleUiY(20);
-  const padX = scaleUiX(28);
+  const padY = scaleUiY(8);
+  const padX = scaleUiX(12);
+  const topEdge = yTopAction - buttonHeight / 2 - padY;
+  const bottomEdge = yBottomAction + buttonHeight / 2 + padY;
   return {
-    centerY: (yTop + yBottom) / 2,
-    panelHeight: yTop - yBottom + buttonHeight + padY,
+    centerY: (topEdge + bottomEdge) / 2,
+    panelHeight: bottomEdge - topEdge,
     panelWidth: buttonWidth + padX,
   };
 }

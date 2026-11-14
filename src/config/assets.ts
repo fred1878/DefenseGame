@@ -60,7 +60,7 @@ export const SPRITE_DISPLAY = {
 export const UI_ASSETS = [
   {
     key: "ui_atk_circle",
-    file: "buttons/action-attack-circle-v01-64x64.png",
+    file: "buttons/action-attack-circle-v02-64x64.png",
   },
   {
     key: "ui_mode_rect_v01",
@@ -98,7 +98,8 @@ export const UI_ASSETS = [
 
 export const UI_TEXTURE = {
   atkCircle: "ui_atk_circle",
-  modeRect: "ui_mode_rect_v01",
+  /** Ashlar slab — no baked labels (v01 pill had sample text). */
+  modeRect: "ui_mode_rect_v02",
   autoRect: "ui_mode_rect_v02",
   spellSlot: "ui_spell_slot",
   iconBacking: "ui_icon_backing",
@@ -114,6 +115,8 @@ export const UI_NINE_SLICE = {
   panelCompact: { left: 48, right: 48, top: 40, bottom: 40 },
   panelSquare: { left: 56, right: 56, top: 56, bottom: 56 },
   panelTall: { left: 56, right: 56, top: 72, bottom: 72 },
+  /** Full-width bottom HUD using tall panel art (short height). */
+  panelTallBottomBar: { left: 52, right: 52, top: 200, bottom: 56 },
 } as const;
 
 export const UI_ASSET_ROOT = "assets/ui/gothic";
