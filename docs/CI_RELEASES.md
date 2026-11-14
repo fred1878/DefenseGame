@@ -13,6 +13,13 @@ This is a **web game** — players open a link in the browser (phone or desktop)
 
 Every merge to `main` runs **`pages.yml`**, which builds and publishes `dist/` to GitHub Pages. Share that single link; it always reflects the latest `main` build.
 
+### Browser cache on each deploy
+
+- JS/CSS files use **content hashes** in filenames (Vite default).
+- Each CI/Pages build sets **`VITE_BUILD_ID`** to the git commit SHA and writes **`version.json`**.
+- On load, the game fetches `version.json` with `cache: 'no-store'`; if it differs from the embedded id, it **reloads once** with `?b=<sha>` so players pick up the new bundle without a manual hard refresh.
+- `index.html` includes **no-cache** meta tags to reduce stale HTML shell caching (GitHub Pages does not allow custom `Cache-Control` headers).
+
 Tagged releases (`v*.*.*`) also deploy the same way and add an optional zip on the GitHub Release page for archival only — normal play is still the Pages URL.
 
 ---
