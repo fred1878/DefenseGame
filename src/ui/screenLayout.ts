@@ -102,7 +102,9 @@ export function spellBarCenterY(
   slotSizePx: number,
 ): number {
   const chrome = combatChromeLayout(scene, safe);
-  const gap = scaleUiY(8);
+  // Visual gap plus spell + ATK tap slops (createTouchCircleButton pad) so hit rects do not overlap.
+  const gap =
+    scaleUiY(8) + scaleUiX(6) * 2 + scaleUiX(16);
   return chrome.btnY - chrome.atkRadius - gap - slotSizePx / 2;
 }
 
