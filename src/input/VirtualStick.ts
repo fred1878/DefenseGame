@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { STICK_POST_DRAG_TAP_SUPPRESS_MS } from "./inputTuning";
 
 export type ScreenRect = { x: number; y: number; width: number; height: number };
 
@@ -37,6 +38,7 @@ export class VirtualStick {
   private gestureHadDrag = false;
   private pendingTap: { x: number; y: number; pointerId: number } | null = null;
   private dragEndPointerId: number | null = null;
+  private dragSuppressUntilMs = 0;
   private dir = new Phaser.Math.Vector2(0, 0);
 
   constructor(scene: Phaser.Scene, options: VirtualStickOptions = {}) {
@@ -75,8 +77,11 @@ export class VirtualStick {
     pointer: Phaser.Input.Pointer,
   ): { kind: "tap"; x: number; y: number } | { kind: "drag" } | { kind: "none" } {
     if (this.dragEndPointerId === pointer.id) {
+      const suppressing =
+        performance.now() < this.dragSuppressUntilMs;
       this.dragEndPointerId = null;
-      return { kind: "drag" };
+      this.dragSuppressUntilMs = 0;
+      if (suppressing) return { kind: "drag" };
     }
     const tap = this.pendingTap;
     this.pendingTap = null;
@@ -89,6 +94,11 @@ export class VirtualStick {
   setBlockers(blockers: Phaser.GameObjects.GameObject[]): void {
     this.blockers.length = 0;
     this.blockers.push(...blockers);
+  }
+
+  setUiScreenRects(rects: ScreenRect[]): void {
+    this.uiScreenRects.length = 0;
+    this.uiScreenRects.push(...rects);
   }
 
   /** Exposed for touch-debug overlay (same rules as stick capture). */
@@ -145,6 +155,8 @@ export class VirtualStick {
 
   private onDown(pointer: Phaser.Input.Pointer): void {
     if (this.pointerId !== null) return;
+    this.clearDragEndSuppression();
+
     if (this.shouldBlock(pointer)) return;
 
     this.pointerId = pointer.id;
@@ -160,10 +172,6 @@ export class VirtualStick {
     if (pointer.id !== this.pointerId) return;
 
     if (this.pending && !this.active) {
-      if (this.shouldBlock(pointer)) {
-        this.cancelTouch();
-        return;
-      }
       const dist = Phaser.Math.Distance.Between(
         this.downX,
         this.downY,
@@ -187,6 +195,8 @@ export class VirtualStick {
     if (pointer.id !== this.pointerId) return;
     if (this.gestureHadDrag) {
       this.dragEndPointerId = pointer.id;
+      this.dragSuppressUntilMs =
+        performance.now() + STICK_POST_DRAG_TAP_SUPPRESS_MS;
     } else if (this.pending) {
       this.pendingTap = { x: pointer.x, y: pointer.y, pointerId: pointer.id };
     }
@@ -201,6 +211,11 @@ export class VirtualStick {
     this.dir.set(0, 0);
     this.base.setVisible(false);
     this.knob.setVisible(false);
+  }
+
+  private clearDragEndSuppression(): void {
+    this.dragEndPointerId = null;
+    this.dragSuppressUntilMs = 0;
   }
 
   private shouldBlock(pointer: Phaser.Input.Pointer): boolean {

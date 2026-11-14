@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { containerScreenRect } from "./touchButton";
+import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";
 
 export type SafeInsets = {
   top: number;
@@ -100,7 +102,7 @@ export function combatChromeLayout(
     autoOffsetY: scaleUiY(96),
     hudBand,
     stickRadius: scaleUiX(56),
-    stickDragThreshold: scaleUiX(18),
+    stickDragThreshold: scaleUiX(VIRTUAL_STICK_DRAG_THRESHOLD_PX),
     rightCluster: {
       x: w - clusterW,
       y: h - clusterH - safe.bottom,
@@ -150,4 +152,22 @@ export function cameraWorldPoint(
   screenY: number,
 ): Phaser.Math.Vector2 {
   return camera.getWorldPoint(screenX, screenY);
+}
+
+/** HUD + combat button clusters the virtual stick must never start inside. */
+export function buildCombatStickUiMask(
+  scene: Phaser.Scene,
+  chrome: CombatChromeLayout,
+  spellRect: ScreenRect,
+  debugContainer: Phaser.GameObjects.Container,
+): ScreenRect[] {
+  const w = scene.scale.width;
+  const pad = scaleUiX(6);
+  const debugRect = containerScreenRect(debugContainer, pad);
+  return [
+    { x: 0, y: 0, width: w, height: chrome.hudBand },
+    chrome.rightCluster,
+    spellRect,
+    debugRect,
+  ];
 }

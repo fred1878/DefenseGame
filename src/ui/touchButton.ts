@@ -238,6 +238,20 @@ export function createTouchCircleButton(
   return container;
 }
 
+/** Screen-space bounds for stick masking (container hit box in canvas coords). */
+export function containerScreenRect(
+  container: Phaser.GameObjects.Container,
+  pad = 0,
+): { x: number; y: number; width: number; height: number } {
+  const b = container.getBounds();
+  return {
+    x: b.x - pad,
+    y: b.y - pad,
+    width: b.width + pad * 2,
+    height: b.height + pad * 2,
+  };
+}
+
 /** Screen-space hit test for UI that must block the movement stick. */
 export function pointerInScreenRect(
   x: number,

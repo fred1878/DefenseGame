@@ -36,7 +36,10 @@ import {
   type PlayerProjectile,
 } from "../entities/Projectile";
 import { Player } from "../entities/Player";
-import { configureSceneInput } from "../input/inputTuning";
+import {
+  configureSceneInput,
+  FOCUS_SELECT_LOCK_MS,
+} from "../input/inputTuning";
 import { VirtualStick } from "../input/VirtualStick";
 import {
   createTouchButton,
@@ -49,6 +52,7 @@ import { TargetIndicator } from "../ui/TargetIndicator";
 import { buildGroundLayer } from "../world/buildGroundLayer";
 import {
   cameraWorldPoint,
+  buildCombatStickUiMask,
   combatChromeLayout,
   debugButtonPosition,
   hudBandHeight,
@@ -180,20 +184,6 @@ export class DefenseScene extends Phaser.Scene {
       ...this.spellBar.getUiContainers(),
     ];
 
-    const w = this.scale.width;
-    const spellRect = this.spellBar.getScreenRect();
-    this.stick = new VirtualStick(this, {
-      blockers: this.uiBlockers,
-      excludeZones: [{ x: 0, y: 0, width: w, height: chrome.hudBand }],
-      uiScreenRects: [
-        { x: 0, y: 0, width: w, height: chrome.hudBand },
-        chrome.rightCluster,
-        spellRect,
-      ],
-      dragThresholdPx: chrome.stickDragThreshold,
-      radius: chrome.stickRadius,
-    });
-
     this.targetIndicator = new TargetIndicator(this);
     this.hitboxDebug = new HitboxDebugDraw(this);
     this.touchDebug = new TouchInputDebugDraw(this);
@@ -226,6 +216,22 @@ export class DefenseScene extends Phaser.Scene {
       },
     );
     this.uiBlockers.push(this.debugBtn.container);
+
+    const w = this.scale.width;
+    const spellRect = this.spellBar.getScreenRect();
+    const uiMask = buildCombatStickUiMask(
+      this,
+      chrome,
+      spellRect,
+      this.debugBtn.container,
+    );
+    this.stick = new VirtualStick(this, {
+      blockers: this.uiBlockers,
+      excludeZones: [{ x: 0, y: 0, width: w, height: chrome.hudBand }],
+      uiScreenRects: uiMask,
+      dragThresholdPx: chrome.stickDragThreshold,
+      radius: chrome.stickRadius,
+    });
 
     this.game.events.on("debug-menu-close", this.onDebugMenuClose);
 
@@ -433,11 +439,9 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private onScreenTap(pointer: Phaser.Input.Pointer): void {
-    const overUi = this.isPointerOverUi(pointer);
-    if (overUi) return;
-    if (this.focusSelectLockMs > 0) return;
-
     const tapResult = this.stick.tryConsumeTap(pointer);
+    if (this.isPointerOverUi(pointer)) return;
+    if (this.focusSelectLockMs > 0) return;
     if (tapResult.kind === "drag") return;
 
     const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
@@ -491,7 +495,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private setFocusEnemy(id: string | null): void {
-    if (id) this.focusSelectLockMs = 220;
+    if (id) this.focusSelectLockMs = FOCUS_SELECT_LOCK_MS;
     this.focusEnemyId = id;
     if (!id) {
       this.targetIndicator.detach();
