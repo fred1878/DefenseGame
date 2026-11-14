@@ -95,6 +95,17 @@ export type CombatChromeLayout = {
   rightCluster: ScreenRect;
 };
 
+/** Vertical center for the spell hotbar — snug above ATK / stick row. */
+export function spellBarCenterY(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+  slotSizePx: number,
+): number {
+  const chrome = combatChromeLayout(scene, safe);
+  const gap = scaleUiY(8);
+  return chrome.btnY - chrome.atkRadius - gap - slotSizePx / 2;
+}
+
 export function combatChromeLayout(
   scene: Phaser.Scene,
   safe: SafeInsets,
