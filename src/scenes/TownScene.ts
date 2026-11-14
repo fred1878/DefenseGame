@@ -7,6 +7,8 @@ import {
   resetSaveAndReload,
   wallHpBonusFromBuildings,
 } from "../core/GameState";
+import { showTouchInput } from "../debug/DebugState";
+import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import { createTouchButton } from "../ui/touchButton";
 
@@ -15,6 +17,7 @@ export class TownScene extends Phaser.Scene {
   private statusText!: Phaser.GameObjects.Text;
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
+  private touchDebug!: TouchInputDebugDraw;
 
   constructor() {
     super({ key: "Town" });
@@ -90,6 +93,39 @@ export class TownScene extends Phaser.Scene {
     createTouchButton(this, GAME.width / 2, GAME.height - 290, "Upgrade blacksmith", () => {
       this.tryUpgrade(store, "blacksmith");
     }, { width: 260, height: 48, depth: 200 });
+
+    this.touchDebug = new TouchInputDebugDraw(this);
+    this.events.on("shutdown", () => this.touchDebug.destroy());
+  }
+
+  update(_time: number, _delta: number): void {
+    if (!showTouchInput(this.registry)) {
+      this.touchDebug.clear();
+      return;
+    }
+    this.touchDebug.draw({
+      pointerUiBlocked: (pointer) => this.isPointerOverInteractive(pointer),
+    });
+  }
+
+  private isPointerOverInteractive(pointer: Phaser.Input.Pointer): boolean {
+    const hits = this.input.hitTestPointer(pointer);
+    for (const hit of hits) {
+      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject)) return true;
+    }
+    return false;
+  }
+
+  private hasInteractiveInput(obj: Phaser.GameObjects.GameObject): boolean {
+    let node: Phaser.GameObjects.GameObject | null = obj;
+    while (node) {
+      if (node.input?.enabled) return true;
+      const parent: Phaser.GameObjects.Container | null =
+        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
+          .parentContainer ?? null;
+      node = parent;
+    }
+    return false;
   }
 
   private onResetTap(): void {

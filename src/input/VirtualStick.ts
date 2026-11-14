@@ -91,6 +91,49 @@ export class VirtualStick {
     this.blockers.push(...blockers);
   }
 
+  /** Exposed for touch-debug overlay (same rules as stick capture). */
+  wouldBlockPointer(pointer: Phaser.Input.Pointer): boolean {
+    return this.shouldBlock(pointer);
+  }
+
+  getDebugLayout(): {
+    radius: number;
+    dragThreshold: number;
+    excludeZones: ScreenRect[];
+    uiScreenRects: ScreenRect[];
+  } {
+    return {
+      radius: this.radius,
+      dragThreshold: this.dragThreshold,
+      excludeZones: this.excludeZones,
+      uiScreenRects: this.uiScreenRects,
+    };
+  }
+
+  getDebugState(): {
+    pointerId: number | null;
+    pending: boolean;
+    active: boolean;
+    originX: number;
+    originY: number;
+    knobX: number;
+    knobY: number;
+    downX: number;
+    downY: number;
+  } {
+    return {
+      pointerId: this.pointerId,
+      pending: this.pending,
+      active: this.active,
+      originX: this.originX,
+      originY: this.originY,
+      knobX: this.knob.x,
+      knobY: this.knob.y,
+      downX: this.downX,
+      downY: this.downY,
+    };
+  }
+
   destroy(scene: Phaser.Scene): void {
     scene.input.off("pointerdown", this.onDown, this);
     scene.input.off("pointermove", this.onMove, this);

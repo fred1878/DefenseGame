@@ -3,13 +3,16 @@ import { GAME } from "../config";
 import {
   getDebugFlags,
   setShowHitboxes,
+  setShowTouchInput,
   showHitboxes,
+  showTouchInput,
 } from "../debug/DebugState";
 import { configureSceneInput } from "../input/inputTuning";
 import { createTouchButton } from "../ui/touchButton";
 
 export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
+  private touchToggle!: ReturnType<typeof createTouchButton>;
 
   constructor() {
     super({ key: "DebugMenu" });
@@ -38,12 +41,25 @@ export class DebugMenuScene extends Phaser.Scene {
     this.hitboxToggle = createTouchButton(
       this,
       GAME.width / 2,
-      GAME.height / 2 - 20,
+      GAME.height / 2 - 60,
       flags.showHitboxes ? "Hitboxes: ON" : "Hitboxes: OFF",
       () => {
         const next = !showHitboxes(this.registry);
         setShowHitboxes(this.registry, next);
         this.hitboxToggle.setLabel(next ? "Hitboxes: ON" : "Hitboxes: OFF");
+      },
+      { width: 240, height: 48, depth: 402 },
+    );
+
+    this.touchToggle = createTouchButton(
+      this,
+      GAME.width / 2,
+      GAME.height / 2,
+      flags.showTouchInput ? "Touch input: ON" : "Touch input: OFF",
+      () => {
+        const next = !showTouchInput(this.registry);
+        setShowTouchInput(this.registry, next);
+        this.touchToggle.setLabel(next ? "Touch input: ON" : "Touch input: OFF");
       },
       { width: 240, height: 48, depth: 402 },
     );
