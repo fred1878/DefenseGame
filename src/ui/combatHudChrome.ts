@@ -7,7 +7,7 @@ export type CombatHudChrome = {
   setVisible: (visible: boolean) => void;
 };
 
-/** Gothic bottom HUD (tall panel art, 9-sliced to strip geometry). */
+/** Horizontal Gothic bottom strip (defense) — not the tall town column asset. */
 export function createCombatHudChrome(
   scene: Phaser.Scene,
   depth = 45,
@@ -15,12 +15,12 @@ export function createCombatHudChrome(
   const safe = readSafeInsets();
   const w = scene.scale.width;
   const { stripH, stripCenterY } = bottomHudStripLayout(scene, safe);
-  const slice = UI_NINE_SLICE.panelTallBottomBar;
+  const slice = UI_NINE_SLICE.bottomStrip;
 
-  const bottomPanel = scene.add.nineslice(
+  const bottomStrip = scene.add.nineslice(
     w / 2,
     stripCenterY,
-    UI_TEXTURE.panelTall,
+    UI_TEXTURE.bottomStrip,
     undefined,
     w,
     stripH,
@@ -29,12 +29,12 @@ export function createCombatHudChrome(
     slice.top,
     slice.bottom,
   );
-  bottomPanel.setScrollFactor(0).setDepth(depth);
+  bottomStrip.setScrollFactor(0).setDepth(depth);
 
   return {
-    roots: [bottomPanel],
+    roots: [bottomStrip],
     setVisible: (visible) => {
-      bottomPanel.setVisible(visible);
+      bottomStrip.setVisible(visible);
     },
   };
 }

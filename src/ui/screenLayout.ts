@@ -68,7 +68,7 @@ export function nightReturnButtonPosition(
   };
 }
 
-/** Bottom-left debug control — keeps the top HUD readable. */
+/** Town: bottom-left debug (away from action stack). */
 export function debugButtonPosition(
   scene: Phaser.Scene,
   safe: SafeInsets,
@@ -77,6 +77,18 @@ export function debugButtonPosition(
   return {
     x: margin + safe.left + scaleUiX(44),
     y: scene.scale.height - margin - safe.bottom - scaleUiY(22),
+  };
+}
+
+/** Defense: compact debug under top HUD text — not on bottom chrome. */
+export function combatDebugButtonPosition(
+  _scene: Phaser.Scene,
+  safe: SafeInsets,
+): { x: number; y: number } {
+  const hud = hudTextPosition(safe);
+  return {
+    x: hud.x + scaleUiX(52),
+    y: hud.y + scaleUiY(72),
   };
 }
 
@@ -143,21 +155,24 @@ export type SpellBarOrigin = {
 export function spellBarSlotOrigin(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  slotCount: number,
+  _slotCount: number,
   slotSizePx: number,
-  slotGapPx: number,
+  _slotGapPx: number,
 ): SpellBarOrigin {
-  const chrome = combatChromeLayout(scene, safe);
-  const rowWidth = slotCount * slotSizePx + (slotCount - 1) * slotGapPx;
-  const leftPad = scaleUiX(20) + safe.left;
-  const clusterPad = scaleUiX(10);
-  const availW = Math.max(rowWidth, chrome.combatClusterLeft - clusterPad - leftPad);
-  const firstSlotCenterX =
-    leftPad + availW / 2 - rowWidth / 2 + slotSizePx / 2;
+  const strip = bottomHudStripLayout(scene, safe);
+  const leftPad = scaleUiX(14) + safe.left;
   return {
-    centerY: chrome.bottomStrip.stripCenterY,
-    firstSlotCenterX,
+    centerY: strip.stripCenterY,
+    firstSlotCenterX: leftPad + slotSizePx / 2,
   };
+}
+
+/** Game-space Y of spell row center (for tests). */
+export function expectedSpellBarCenterY(
+  scene: Phaser.Scene,
+  safe: SafeInsets = { top: 0, right: 0, bottom: 0, left: 0 },
+): number {
+  return bottomHudStripLayout(scene, safe).stripCenterY;
 }
 
 export function combatChromeLayout(
@@ -165,21 +180,20 @@ export function combatChromeLayout(
   safe: SafeInsets,
 ): CombatChromeLayout {
   const bottomStrip = bottomHudStripLayout(scene, safe);
-  const sideMargin = scaleUiX(14);
-  const atkRadius = scaleUiX(38);
-  const toggleW = scaleUiX(64);
-  const toggleH = scaleUiY(34);
+  const sideMargin = scaleUiX(12);
+  const atkRadius = scaleUiX(36);
+  const toggleW = scaleUiX(58);
+  const toggleH = scaleUiY(32);
+  const rowY = bottomStrip.stripCenterY;
   const atkX = scene.scale.width - sideMargin - safe.right - atkRadius;
-  const modeX = atkX - atkRadius - scaleUiX(6) - toggleW / 2;
-  const rowY = bottomStrip.stripCenterY + scaleUiY(10);
+  const modeX = atkX - atkRadius - scaleUiX(4) - toggleW / 2;
+  const autoX = modeX - toggleW - scaleUiX(6);
   const btnY = rowY;
   const modeY = rowY;
-  const autoX = atkX;
-  const autoY =
-    bottomStrip.stripTop + toggleH / 2 + scaleUiY(10);
-  const autoOffsetY = btnY - autoY;
+  const autoY = rowY;
+  const autoOffsetY = 0;
   const modeOffsetX = atkX - modeX;
-  const combatClusterLeft = modeX - toggleW / 2;
+  const combatClusterLeft = autoX - toggleW / 2 - scaleUiX(6);
   const hudBand = hudBandHeight(safe.top);
   const w = scene.scale.width;
   const clusterW = w - combatClusterLeft + safe.right;

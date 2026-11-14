@@ -66,7 +66,7 @@ import {
   cameraWorldPoint,
   buildCombatStickUiMask,
   combatChromeLayout,
-  debugButtonPosition,
+  combatDebugButtonPosition,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
@@ -263,7 +263,7 @@ export class DefenseScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(200);
 
-    const dbgPos = debugButtonPosition(this, this.safe);
+    const dbgPos = combatDebugButtonPosition(this, this.safe);
     this.debugBtn = createTouchButton(
       this,
       dbgPos.x,
