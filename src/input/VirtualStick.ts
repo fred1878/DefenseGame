@@ -10,6 +10,8 @@ export type VirtualStickOptions = {
   excludeZones?: ScreenRect[];
   /** Pixels before stick appears — avoids stealing taps (default 16). */
   dragThresholdPx?: number;
+  /** Screen rects that always block the stick (button clusters). */
+  uiScreenRects?: ScreenRect[];
 };
 
 /**
@@ -24,6 +26,7 @@ export class VirtualStick {
   private readonly blockers: Phaser.GameObjects.GameObject[];
   private readonly excludeZones: ScreenRect[];
   private readonly dragThreshold: number;
+  private readonly uiScreenRects: ScreenRect[];
   private originX = 0;
   private originY = 0;
   private downX = 0;
@@ -42,6 +45,7 @@ export class VirtualStick {
     this.blockers = options.blockers ?? [];
     this.excludeZones = options.excludeZones ?? [];
     this.dragThreshold = options.dragThresholdPx ?? 16;
+    this.uiScreenRects = options.uiScreenRects ?? [];
 
     this.base = scene.add
       .circle(0, 0, this.radius, 0x2a2d38, 0.55)
@@ -157,9 +161,20 @@ export class VirtualStick {
   }
 
   private shouldBlock(pointer: Phaser.Input.Pointer): boolean {
+    if (this.isInUiScreenRect(pointer.x, pointer.y)) return true;
     if (this.isInExcludeZone(pointer.x, pointer.y)) return true;
     if (this.pointerOverInteractiveUI(pointer)) return true;
     return false;
+  }
+
+  private isInUiScreenRect(x: number, y: number): boolean {
+    return this.uiScreenRects.some(
+      (z) =>
+        x >= z.x &&
+        x <= z.x + z.width &&
+        y >= z.y &&
+        y <= z.y + z.height,
+    );
   }
 
   private pointerOverInteractiveUI(pointer: Phaser.Input.Pointer): boolean {

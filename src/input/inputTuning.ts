@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
-/** Prefer topmost interactive; improves tap reliability on mobile web. */
+/** Mobile Phaser input defaults — topOnly off so container buttons reliably receive hits. */
 export function configureSceneInput(scene: Phaser.Scene): void {
-  scene.input.setTopOnly(true);
+  scene.input.setTopOnly(false);
+  scene.input.mouse?.disableContextMenu();
 }
