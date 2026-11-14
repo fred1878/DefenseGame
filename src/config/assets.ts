@@ -9,16 +9,14 @@ export const PLAYER_TEXTURE: Record<PlayerCardinal, string> = {
   w: "player_w",
 };
 
-/** Combat ground layer uses this texture only (`tile_00.png`). */
+/** Combat ground fill texture (`tile_00.png` — ArtGenerationPipeline `ground-sparse-grass-night` wang_15). */
 export const GROUND_TILE_TEXTURE = "ground_0";
 
 export const GROUND_TILE_SIZE = 64;
 
-/** Ground tiles kept in repo for later; only index 0 is used in combat. */
+/** Loaded ground tiles; combat uses `GROUND_TILE_TEXTURE` only. Add more Wang indices here for random fill later. */
 export const GROUND_TILE_ASSETS = [
   { key: "ground_0", file: "tile_00.png" },
-  { key: "ground_3", file: "tile_03.png" },
-  { key: "ground_7", file: "tile_07.png" },
 ] as const;
 
 /** On-screen size in world units (2× source pixels, nearest-neighbor filtered in Boot). */
