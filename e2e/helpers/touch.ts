@@ -21,6 +21,29 @@ export async function gameToCanvasPosition(
   };
 }
 
+/** Press at game coords, drag to another point, release (Phaser pointer events). */
+export async function dragCanvas(
+  page: Page,
+  fromGameX: number,
+  fromGameY: number,
+  toGameX: number,
+  toGameY: number,
+): Promise<void> {
+  const canvas = await canvasLocator(page);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("Canvas bounding box missing");
+  const from = await gameToCanvasPosition(page, fromGameX, fromGameY);
+  const to = await gameToCanvasPosition(page, toGameX, toGameY);
+  const startX = box.x + from.x;
+  const startY = box.y + from.y;
+  const endX = box.x + to.x;
+  const endY = box.y + to.y;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(endX, endY, { steps: 8 });
+  await page.mouse.up();
+}
+
 export async function tapCanvas(
   page: Page,
   gameX: number,

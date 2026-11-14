@@ -22,10 +22,10 @@ export default defineConfig({
         "src/world/**",
       ],
       thresholds: {
-        lines: 28,
+        lines: 30,
         functions: 30,
-        branches: 28,
-        statements: 28,
+        branches: 30,
+        statements: 30,
       },
     },
   },

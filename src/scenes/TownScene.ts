@@ -11,7 +11,11 @@ import {
 import { showTouchInput } from "../debug/DebugState";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
-import { createTouchButton } from "../ui/touchButton";
+import {
+  createTouchButton,
+  interactiveObjectScreenRect,
+  isTouchButtonVisuallyPressed,
+} from "../ui/touchButton";
 import {
   debugButtonPosition,
   readSafeInsets,
@@ -30,6 +34,7 @@ export class TownScene extends Phaser.Scene {
   private statusText!: Phaser.GameObjects.Text;
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
+  private startNightButton!: ReturnType<typeof createTouchButton>;
   private touchDebug!: TouchInputDebugDraw;
 
   constructor() {
@@ -120,7 +125,7 @@ export class TownScene extends Phaser.Scene {
 
     const btnW = scaleUiX(260);
     const btnH = scaleUiY(48);
-    createTouchButton(
+    this.startNightButton = createTouchButton(
       this,
       GAME.width / 2,
       townActionButtonY(this, safe, 0),
@@ -157,6 +162,24 @@ export class TownScene extends Phaser.Scene {
 
   e2eStartNight(): void {
     this.beginDefenseNight();
+  }
+
+  e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
+    const r = interactiveObjectScreenRect(this.startNightButton.container);
+    if (!r) return {};
+    return {
+      "start-night": {
+        x: r.x + r.width / 2,
+        y: r.y + r.height / 2,
+      },
+    };
+  }
+
+  e2eIsTouchButtonPressed(testId: string): boolean {
+    if (testId === "start-night") {
+      return isTouchButtonVisuallyPressed(this.startNightButton.container);
+    }
+    return false;
   }
 
   private beginDefenseNight(): void {
