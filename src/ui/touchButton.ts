@@ -45,6 +45,45 @@ export function createTouchButton(
   return container;
 }
 
+/** Pill toggle — label updated via `setLabel`. */
+export function createTouchToggleButton(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  initialLabel: string,
+  width: number,
+  height: number,
+  onPress: () => void,
+  depth = 200,
+): { container: Phaser.GameObjects.Container; setLabel: (text: string) => void; setOn: (on: boolean) => void } {
+  const container = scene.add.container(x, y).setDepth(depth).setScrollFactor(0);
+  const bg = scene.add
+    .rectangle(0, 0, width, height, 0x3f3f46, 1)
+    .setStrokeStyle(2, 0x71717a);
+  const text = scene.add.text(0, 0, initialLabel, { fontSize: "14px" }).setOrigin(0.5);
+  container.add([bg, text]);
+
+  const pad = 10;
+  const hitW = width + pad * 2;
+  const hitH = height + pad * 2;
+  const zone = scene.add.zone(0, 0, hitW, hitH);
+  zone.setInteractive(
+    new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
+    Phaser.Geom.Rectangle.Contains,
+  );
+  container.add(zone);
+  bindTouchPress(zone, onPress);
+
+  return {
+    container,
+    setLabel: (label: string) => text.setText(label),
+    setOn: (on: boolean) => {
+      bg.setFillStyle(on ? 0x15803d : 0x3f3f46, 1);
+      bg.setStrokeStyle(2, on ? 0x4ade80 : 0x71717a);
+    },
+  };
+}
+
 export function createTouchCircleButton(
   scene: Phaser.Scene,
   x: number,

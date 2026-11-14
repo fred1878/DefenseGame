@@ -1,5 +1,12 @@
 import Phaser from "phaser";
-import { ENEMY_TUNING, GAME, PLAYER_TUNING, type NightResult, type SaveGame } from "../config";
+import {
+  ENEMY_TUNING,
+  GAME,
+  PLAYER_TUNING,
+  type AttackMode,
+  type NightResult,
+  type SaveGame,
+} from "../config";
 import { DataStore } from "../core/DataStore";
 import {
   applyNightResult,
@@ -8,18 +15,32 @@ import {
 } from "../core/GameState";
 import { applyDamage } from "../combat/DamageSystem";
 import { chasePlayer, spawnEnemy, type EnemyInstance } from "../entities/Enemy";
+import {
+  spawnPlayerProjectile,
+  updateProjectile,
+  type PlayerProjectile,
+} from "../entities/Projectile";
 import { Player } from "../entities/Player";
 import { configureSceneInput } from "../input/inputTuning";
 import { VirtualStick } from "../input/VirtualStick";
-import { createTouchCircleButton } from "../ui/touchButton";
+import {
+  createTouchCircleButton,
+  createTouchToggleButton,
+} from "../ui/touchButton";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
   private player!: Player;
   private stick!: VirtualStick;
   private enemies: EnemyInstance[] = [];
+  private projectiles: PlayerProjectile[] = [];
+  private projectileSerial = 0;
   private hudText!: Phaser.GameObjects.Text;
   private attackButton!: Phaser.GameObjects.Container;
+  private autoAttackEnabled = false;
+  private autoToggle!: ReturnType<typeof createTouchToggleButton>;
+  private modeToggle!: ReturnType<typeof createTouchToggleButton>;
+  private uiBlockers: Phaser.GameObjects.GameObject[] = [];
   private wallHp = 0;
   private touchCooldown = 0;
   private rewardGold = 40;
@@ -49,29 +70,61 @@ export class DefenseScene extends Phaser.Scene {
     this.cameras.main.setBounds(-half, -half, half * 2, half * 2);
     this.cameras.main.setZoom(1);
 
-    this.player = new Player(
-      this,
-      0,
-      0,
-      this.save.player.hpMax,
-    );
+    this.player = new Player(this, 0, 0, this.save.player.hpMax);
     this.player.damageable.hp = this.save.player.hp;
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     const margin = 48;
+    const btnY = this.scale.height - margin - 44;
+    const atkX = this.scale.width - margin - 44;
+
     this.attackButton = createTouchCircleButton(
       this,
-      this.scale.width - margin - 44,
-      this.scale.height - margin - 44,
+      atkX,
+      btnY,
       "ATK",
       44,
-      () => this.player.tryStartAttack(),
+      () => this.manualAttack(),
       200,
     );
 
+    this.modeToggle = createTouchToggleButton(
+      this,
+      atkX - 100,
+      btnY,
+      "MEL",
+      72,
+      40,
+      () => {
+        const mode = this.player.toggleAttackMode();
+        this.refreshModeToggle(mode);
+      },
+      200,
+    );
+
+    this.autoToggle = createTouchToggleButton(
+      this,
+      atkX,
+      btnY - 96,
+      "AUTO",
+      72,
+      40,
+      () => {
+        this.autoAttackEnabled = !this.autoAttackEnabled;
+        this.refreshAutoToggle();
+      },
+      200,
+    );
+
+    this.uiBlockers = [
+      this.attackButton,
+      this.modeToggle.container,
+      this.autoToggle.container,
+    ];
+
     this.stick = new VirtualStick(this, {
-      blockers: [this.attackButton],
-      excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 96 }],
+      blockers: this.uiBlockers,
+      excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 110 }],
     });
 
     this.hudText = this.add
@@ -82,6 +135,9 @@ export class DefenseScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(200);
 
+    this.refreshModeToggle(this.player.mode);
+    this.refreshAutoToggle();
+
     if (wave) {
       this.scheduleWave(store, wave);
     } else {
@@ -91,27 +147,27 @@ export class DefenseScene extends Phaser.Scene {
 
     this.events.on("shutdown", () => {
       this.stick.destroy(this);
+      for (const p of this.projectiles) p.sprite.destroy();
+      this.projectiles = [];
     });
   }
 
   update(_time: number, delta: number): void {
     const dir = this.stick.getDirection();
-    this.player.setVelocityFromStick(
-      dir.x,
-      dir.y,
-      this.save.player.moveSpeed,
-    );
+    this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed);
+
+    this.tryAutoAttack();
     this.player.updateAttack(delta);
-    const damage = PLAYER_TUNING.attackDamage * playerDamageMult(this.save.buildings);
-    this.player.damageEnemiesInArc(
-      this.enemies.map((e) => ({
-        id: e.id,
-        x: e.sprite.x,
-        y: e.sprite.y,
-        radius: 12,
-        damageable: e.damageable,
-      })),
-      damage,
+
+    const mult = playerDamageMult(this.save.buildings);
+    this.player.damageEnemiesInArc(this.enemyTargets(), PLAYER_TUNING.meleeDamage * mult);
+
+    if (this.player.consumeRangedShot()) {
+      this.fireProjectile(PLAYER_TUNING.rangedDamage * mult);
+    }
+
+    this.projectiles = this.projectiles.filter((p) =>
+      updateProjectile(p, delta, this.enemyTargets()),
     );
 
     const px = this.player.sprite.x;
@@ -135,22 +191,18 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
-    if (this.player.sprite.body) {
-      const scale = this.player.attackPhaseNow === "active" ? 0.35 : 1;
-      if (scale !== 1) {
-        const body = this.player.sprite.body;
-        body.velocity.x *= scale;
-        body.velocity.y *= scale;
-      }
-    }
 
     const living = this.enemies.filter((e) => e.damageable.alive).length;
+    const mode = this.player.mode === "melee" ? "Melee" : "Ranged";
+    const auto = this.autoAttackEnabled ? "ON" : "OFF";
     this.hudText.setText(
       [
         `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
         `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}`,
-        `Enemies ${living}`,
-        this.player.attackPhaseNow !== "idle" ? `ATK: ${this.player.attackPhaseNow}` : "Drag to move · ATK to swing",
+        `Enemies ${living} · ${mode} · Auto ${auto}`,
+        this.player.attackPhaseNow !== "idle"
+          ? `ATK: ${this.player.attackPhaseNow}`
+          : "Drag · ATK · toggle MEL/RNG / AUTO",
       ].join("\n"),
     );
 
@@ -161,6 +213,78 @@ export class DefenseScene extends Phaser.Scene {
     if (this.spawnPlanComplete && living === 0) {
       this.endNight(true);
     }
+  }
+
+  private manualAttack(): void {
+    const target = this.nearestEnemyForMode(this.player.mode);
+    if (target) {
+      this.player.faceToward(target.x, target.y);
+    }
+    this.player.tryStartAttack();
+  }
+
+  private tryAutoAttack(): void {
+    if (!this.autoAttackEnabled || !this.player.canAttack()) return;
+    const mode = this.player.mode;
+    const target = this.nearestEnemyForMode(mode);
+    if (!target) return;
+    this.player.faceToward(target.x, target.y);
+    this.player.tryStartAttack();
+  }
+
+  private nearestEnemyForMode(mode: AttackMode): { x: number; y: number } | null {
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const maxR =
+      mode === "melee"
+        ? PLAYER_TUNING.autoAttackMeleeRange
+        : PLAYER_TUNING.autoAttackRangedRange;
+    let best: { x: number; y: number; d: number } | null = null;
+    for (const e of this.enemies) {
+      if (!e.damageable.alive) continue;
+      const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
+      if (d > maxR) continue;
+      if (!best || d < best.d) {
+        best = { x: e.sprite.x, y: e.sprite.y, d };
+      }
+    }
+    return best ? { x: best.x, y: best.y } : null;
+  }
+
+  private fireProjectile(damage: number): void {
+    const angle = this.player.getFacingAngle();
+    const id = `p_${this.projectileSerial++}`;
+    const p = spawnPlayerProjectile(
+      this,
+      this.player.sprite.x,
+      this.player.sprite.y,
+      angle,
+      PLAYER_TUNING.projectileSpeed,
+      damage,
+      PLAYER_TUNING.rangedMaxRange,
+      id,
+    );
+    this.projectiles.push(p);
+  }
+
+  private enemyTargets() {
+    return this.enemies.map((e) => ({
+      id: e.id,
+      x: e.sprite.x,
+      y: e.sprite.y,
+      radius: 12,
+      damageable: e.damageable,
+    }));
+  }
+
+  private refreshModeToggle(mode: AttackMode): void {
+    this.modeToggle.setLabel(mode === "melee" ? "MEL" : "RNG");
+    this.modeToggle.setOn(mode === "ranged");
+  }
+
+  private refreshAutoToggle(): void {
+    this.autoToggle.setOn(this.autoAttackEnabled);
+    this.autoToggle.setLabel(this.autoAttackEnabled ? "AUTO" : "AUTO");
   }
 
   private scheduleWave(

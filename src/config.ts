@@ -4,15 +4,25 @@ export const GAME = {
   worldHalfSize: 520,
 } as const;
 
+export type AttackMode = "melee" | "ranged";
+
 export const PLAYER_TUNING = {
   moveSpeed: 220,
-  attackWindupMs: 120,
-  attackActiveMs: 100,
-  attackRecoveryMs: 280,
-  attackRange: 42,
-  attackArcDeg: 90,
-  attackDamage: 15,
+  meleeWindupMs: 120,
+  meleeActiveMs: 100,
+  meleeRecoveryMs: 280,
+  meleeRange: 42,
+  meleeArcDeg: 90,
+  meleeDamage: 15,
+  rangedWindupMs: 100,
+  rangedActiveMs: 50,
+  rangedRecoveryMs: 380,
+  rangedDamage: 12,
+  rangedMaxRange: 340,
+  projectileSpeed: 420,
   maxHp: 100,
+  autoAttackMeleeRange: 52,
+  autoAttackRangedRange: 300,
 } as const;
 
 export const ENEMY_TUNING = {

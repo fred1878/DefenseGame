@@ -166,7 +166,7 @@ npm run preview      # serve dist locally
 1. **Scope files:** e.g. “only edit `DefenseScene.ts` and `WaveSpawner.ts`”.
 2. **Content vs code:** new enemy = row in `enemies.json` + behavior if needed, not a new scene.
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
-4. **Mobile:** `configureSceneInput` + **`createTouchButton`** (`pointerdown`, padded hit zones). **Floating stick** only after a small drag; any interactive UI under the finger blocks it.
+4. **Mobile:** `configureSceneInput` + touch buttons. **Defense HUD:** `MEL`/`RNG` mode toggle, **AUTO** auto-attack, **ATK** manual; ranged uses `Projectile.ts`, melee uses arc hitbox on `Player`.
 5. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ---
