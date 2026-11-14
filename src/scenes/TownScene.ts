@@ -4,6 +4,7 @@ import { DataStore } from "../core/DataStore";
 import {
   playerDamageMult,
   persistSave,
+  resetSaveAndReload,
   wallHpBonusFromBuildings,
 } from "../core/GameState";
 import { configureSceneInput } from "../input/inputTuning";
@@ -12,6 +13,8 @@ import { createTouchButton } from "../ui/touchButton";
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
+  private resetArmed = false;
+  private resetButton!: ReturnType<typeof createTouchButton>;
 
   constructor() {
     super({ key: "Town" });
@@ -44,6 +47,22 @@ export class TownScene extends Phaser.Scene {
 
     this.refreshStatus(store);
 
+    this.resetButton = createTouchButton(
+      this,
+      GAME.width - 70,
+      44,
+      "Reset save",
+      () => this.onResetTap(),
+      {
+        width: 118,
+        height: 36,
+        depth: 200,
+        fontSize: "14px",
+        fillColor: 0x7f1d1d,
+        strokeColor: 0xf87171,
+      },
+    );
+
     createTouchButton(this, GAME.width / 2, GAME.height - 120, "Start night", () => {
       this.scene.start("Defense");
     }, { width: 260, height: 48, depth: 200 });
@@ -55,6 +74,19 @@ export class TownScene extends Phaser.Scene {
     createTouchButton(this, GAME.width / 2, GAME.height - 290, "Upgrade blacksmith", () => {
       this.tryUpgrade(store, "blacksmith");
     }, { width: 260, height: 48, depth: 200 });
+  }
+
+  private onResetTap(): void {
+    if (!this.resetArmed) {
+      this.resetArmed = true;
+      this.resetButton.setLabel("Confirm reset");
+      this.time.delayedCall(4000, () => {
+        this.resetArmed = false;
+        this.resetButton.setLabel("Reset save");
+      });
+      return;
+    }
+    resetSaveAndReload();
   }
 
   private tryUpgrade(store: DataStore, id: string): void {
@@ -91,6 +123,7 @@ export class TownScene extends Phaser.Scene {
         `Night ${this.save.night} · Gold ${this.save.gold}`,
         `Wall L${wall} (HP ${this.save.townWallHp}/${this.save.townWallHpMax})${wallCost !== undefined ? ` — next ${wallCost}g` : ""}`,
         `Blacksmith L${smith} (damage x${dmg})`,
+        "Reset save: fresh start + latest build",
       ].join("\n"),
     );
   }

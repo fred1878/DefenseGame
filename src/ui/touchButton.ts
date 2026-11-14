@@ -7,16 +7,56 @@ export type TouchButtonRectOptions = {
   scrollFactor?: number;
   tapPadding?: number;
   fontSize?: string;
+  fillColor?: number;
+  strokeColor?: number;
 };
 
+export type TouchButtonHandle = {
+  container: Phaser.GameObjects.Container;
+  setLabel: (text: string) => void;
+};
+
+function addPressFeedback(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+): void {
+  const bounceBack = () => {
+    scene.tweens.add({
+      targets: container,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 110,
+      ease: "Back.easeOut",
+    });
+  };
+
+  container.on("pointerdown", () => {
+    scene.tweens.killTweensOf(container);
+    scene.tweens.add({
+      targets: container,
+      scaleX: 0.9,
+      scaleY: 0.9,
+      duration: 50,
+      ease: "Quad.easeOut",
+    });
+  });
+  container.on("pointerup", bounceBack);
+  container.on("pointerupoutside", bounceBack);
+  container.on("pointerout", bounceBack);
+}
+
 function bindPress(
+  scene: Phaser.Scene,
   obj: Phaser.GameObjects.GameObject,
   onPress: () => void,
 ): void {
   const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
   if (go.input) go.input.alwaysEnabled = true;
 
-  const fire = () => onPress();
+  if (obj instanceof Phaser.GameObjects.Container) {
+    addPressFeedback(scene, obj);
+  }
+
   obj.on(
     "pointerdown",
     (
@@ -26,7 +66,7 @@ function bindPress(
       event: Phaser.Types.Input.EventData,
     ) => {
       event.stopPropagation();
-      fire();
+      onPress();
     },
   );
 }
@@ -41,18 +81,20 @@ export function createTouchButton(
   label: string,
   onPress: () => void,
   options: TouchButtonRectOptions,
-): Phaser.GameObjects.Container {
+): TouchButtonHandle {
   const depth = options.depth ?? 100;
   const sf = options.scrollFactor ?? 0;
   const pad = options.tapPadding ?? 16;
   const hitW = options.width + pad * 2;
   const hitH = options.height + pad * 2;
   const fontSize = options.fontSize ?? "20px";
+  const fill = options.fillColor ?? 0x3b82f6;
+  const stroke = options.strokeColor ?? 0x60a5fa;
 
   const container = scene.add.container(x, y).setDepth(depth).setScrollFactor(sf);
   const bg = scene.add
-    .rectangle(0, 0, options.width, options.height, 0x3b82f6, 1)
-    .setStrokeStyle(2, 0x60a5fa);
+    .rectangle(0, 0, options.width, options.height, fill, 1)
+    .setStrokeStyle(2, stroke);
   const text = scene.add.text(0, 0, label, { fontSize }).setOrigin(0.5);
   container.add([bg, text]);
 
@@ -61,8 +103,12 @@ export function createTouchButton(
     new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
-  bindPress(container, onPress);
-  return container;
+  bindPress(scene, container, onPress);
+
+  return {
+    container,
+    setLabel: (next: string) => text.setText(next),
+  };
 }
 
 export function createTouchToggleButton(
@@ -91,7 +137,7 @@ export function createTouchToggleButton(
     new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
-  bindPress(container, onPress);
+  bindPress(scene, container, onPress);
 
   return {
     container,
@@ -124,7 +170,7 @@ export function createTouchCircleButton(
     new Phaser.Geom.Circle(0, 0, hitR),
     Phaser.Geom.Circle.Contains,
   );
-  bindPress(container, onPress);
+  bindPress(scene, container, onPress);
   return container;
 }
 

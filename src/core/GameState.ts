@@ -60,6 +60,17 @@ export function persistSave(save: SaveGame): void {
   );
 }
 
+/** Wipes save and reloads (mobile-friendly substitute for hard refresh). */
+export function resetSaveAndReload(): void {
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  url.searchParams.set("fresh", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
 export function applyNightResult(save: SaveGame, result: NightResult): SaveGame {
   const next = { ...save, night: save.night + (result.won ? 1 : 0) };
   next.gold = save.gold + result.goldEarned;
