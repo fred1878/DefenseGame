@@ -61,6 +61,7 @@ import {
   debugButtonPosition,
   hudBandHeight,
   hudTextPosition,
+  nightReturnButtonPosition,
   readSafeInsets,
   type SafeInsets,
 } from "../ui/screenLayout";
@@ -89,6 +90,7 @@ export class DefenseScene extends Phaser.Scene {
   private rewardGold = 40;
   private spawnPlanComplete = false;
   private nightEnded = false;
+  private returnToTownBtn: TouchButtonHandle | null = null;
   private focusEnemyId: string | null = null;
   private targetIndicator!: TargetIndicator;
   private spellCaster = new SpellCastController();
@@ -265,6 +267,8 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
+    if (this.nightEnded) return;
+
     this.spellCaster.tickCooldowns(delta);
     const dir = this.stick.getDirection();
     const px = this.player.sprite.x;
@@ -490,6 +494,22 @@ export class DefenseScene extends Phaser.Scene {
   private setHudChromeVisible(visible: boolean): void {
     this.hudText.setVisible(visible);
     this.debugBtn.container.setVisible(visible);
+  }
+
+  private setCombatChromeVisible(visible: boolean): void {
+    this.attackButton.setVisible(visible);
+    this.modeToggle.container.setVisible(visible);
+    this.autoToggle.container.setVisible(visible);
+    this.castBar.setVisible(visible);
+    this.debugBtn.container.setVisible(visible);
+    for (const c of this.spellBar.getUiContainers()) {
+      c.setVisible(visible);
+    }
+  }
+
+  private transitionToTown(): void {
+    this.scene.stop();
+    this.scene.start("Town");
   }
 
   private trySelectEnemyAt(worldX: number, worldY: number): void {
@@ -800,7 +820,7 @@ export class DefenseScene extends Phaser.Scene {
   private endNight(won: boolean): void {
     if (this.nightEnded) return;
     this.nightEnded = true;
-    this.scene.pause();
+
     const wallDamage = won ? 2 : 12;
     const baseGold = this.rewardGold;
     const result: NightResult = {
@@ -816,7 +836,37 @@ export class DefenseScene extends Phaser.Scene {
     if (won) next.townWallHp = Math.max(0, this.wallHp - wallDamage);
     persistSave(next);
     this.registry.set("save", next);
-    this.scene.stop();
-    this.scene.start("Town");
+
+    this.player.sprite.setVelocity(0, 0);
+    this.setCombatChromeVisible(false);
+
+    const headline = won ? "Night defended!" : "You fell — night lost";
+    this.hudText.setText(
+      [
+        headline,
+        `Night ${result.night} · +${result.goldEarned} gold`,
+        `Wall damage ${result.wallDamage} · Wall ${next.townWallHp} HP`,
+        won ? "Dawn breaks over the settlement." : "Scouts recover what they can.",
+      ].join("\n"),
+    );
+    this.hudText.setColor(won ? "#fbbf24" : "#fca5a5");
+
+    const btn = nightReturnButtonPosition(this, this.safe);
+    this.returnToTownBtn = createTouchButton(
+      this,
+      btn.x,
+      btn.y,
+      "Return to town",
+      () => this.transitionToTown(),
+      {
+        width: btn.width,
+        height: btn.height,
+        depth: 260,
+        fontSize: `${scaleUiX(14)}px`,
+        fillColor: 0x15803d,
+        strokeColor: 0x4ade80,
+      },
+    );
+    this.returnToTownBtn.container.setData("testid", "defense-return-to-town");
   }
 }
