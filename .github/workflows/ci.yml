@@ -7,12 +7,13 @@ on:
     branches: [main]
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # PRs: one active run per PR; superseded pushes cancel. Main: let each push finish
+  # (rapid merges should not kill an in-flight e2e).
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   verify:
@@ -37,16 +38,6 @@ jobs:
         run: npm run build
         env:
           VITE_BUILD_ID: ${{ github.sha }}
-      - name: Fail fast — cancel in-flight jobs
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.cancelWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId,
-            });
 
   e2e:
     runs-on: ubuntu-24.04
@@ -81,13 +72,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-      - name: Fail fast — cancel in-flight jobs
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.cancelWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId,
-            });
