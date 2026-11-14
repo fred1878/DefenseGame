@@ -1,0 +1,12 @@
+{
+  "wall": {
+    "maxLevel": 5,
+    "costByLevel": [50, 80, 120, 180, 250],
+    "effect": "wallHpMax"
+  },
+  "blacksmith": {
+    "maxLevel": 3,
+    "costByLevel": [100, 200, 350],
+    "effect": "playerDamage"
+  }
+}
