@@ -51,7 +51,8 @@ describe("screenLayout", () => {
   });
 
   it("spell slots target bottom 15% of portrait canvas", () => {
-    const { centerY } = spellBarSlotOrigin(
+    const chrome = combatChromeLayout(scene, safe);
+    const { centerY, firstSlotCenterX } = spellBarSlotOrigin(
       scene,
       safe,
       SPELL_BAR.slotCount,
@@ -61,6 +62,10 @@ describe("screenLayout", () => {
     expect(centerY).toBe(expectedSpellBarCenterY(scene, safe));
     expect(centerY).toBeGreaterThan(GAME.height * 0.85);
     expect(centerY).toBeGreaterThan(1000);
+    const lastCenterX =
+      firstSlotCenterX + (SPELL_BAR.slotCount - 1) * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+    const rowRight = lastCenterX + SPELL_BAR.slotSizePx / 2;
+    expect(rowRight).toBeLessThan(chrome.modeX - chrome.toggleW / 2);
   });
 
   it("nightReturnButtonPosition is below HUD band", () => {

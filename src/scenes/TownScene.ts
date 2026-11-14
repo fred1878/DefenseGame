@@ -28,11 +28,6 @@ import {
 } from "../ui/fullscreen";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import {
-  createTownHudChrome,
-  townActionStackMetrics,
-} from "../ui/townHudChrome";
-
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
@@ -127,55 +122,33 @@ export class TownScene extends Phaser.Scene {
       },
     );
 
-    const btnW = scaleUiX(300);
-    const btnH = scaleUiY(56);
-    const yStart = townActionButtonY(this, safe, 0);
-    const yWall = townActionButtonY(this, safe, 1);
-    const ySmith = townActionButtonY(this, safe, 2);
-    const stackMetrics = townActionStackMetrics(btnH, btnW, ySmith, yStart);
-    createTownHudChrome(
-      this,
-      safe,
-      stackMetrics.centerY,
-      stackMetrics.panelHeight,
-      stackMetrics.panelWidth,
-    );
-
-    /** Vector slab only — no scaled sprite (avoids baked center art in mode-rect). */
-    const townBtnStyle = {
-      width: btnW,
-      height: btnH,
-      depth: 200,
-      fontSize: `${scaleUiX(20)}px`,
-      fillColor: 0x2a2520,
-      strokeColor: 0x8a8a8c,
-    } as const;
-
+    const btnW = scaleUiX(260);
+    const btnH = scaleUiY(48);
     this.startNightButton = createTouchButton(
       this,
       GAME.width / 2,
-      yStart,
+      townActionButtonY(this, safe, 0),
       "Start night",
       () => this.beginDefenseNight(),
-      townBtnStyle,
+      { width: btnW, height: btnH, depth: 200 },
     );
 
     createTouchButton(
       this,
       GAME.width / 2,
-      yWall,
+      townActionButtonY(this, safe, 1),
       "Upgrade wall",
       () => this.tryUpgrade(store, "wall"),
-      townBtnStyle,
+      { width: btnW, height: btnH, depth: 200 },
     );
 
     createTouchButton(
       this,
       GAME.width / 2,
-      ySmith,
+      townActionButtonY(this, safe, 2),
       "Upgrade blacksmith",
       () => this.tryUpgrade(store, "blacksmith"),
-      townBtnStyle,
+      { width: btnW, height: btnH, depth: 200 },
     );
 
     this.touchDebug = new TouchInputDebugDraw(this);

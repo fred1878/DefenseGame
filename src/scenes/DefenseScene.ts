@@ -67,18 +67,18 @@ import {
   buildCombatStickUiMask,
   combatChromeLayout,
   bottomHudStripLayout,
-  combatDebugButtonPosition,
+  debugButtonPosition,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
   readSafeInsets,
   type SafeInsets,
 } from "../ui/screenLayout";
-import { scaleUiX } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { spellById } from "../config/spells";
+import { SPELL_BAR, spellById } from "../config/spells";
 import { UI_TEXTURE } from "../config/assets";
 import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
 
@@ -195,7 +195,7 @@ export class DefenseScene extends Phaser.Scene {
     if (isE2EEnabled() && typeof window !== "undefined") {
       (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
         {
-          bottomChromeTextureKey: UI_TEXTURE.panelTall,
+          bottomChromeTextureKey: null,
           stripCenterY: bottomStrip.stripCenterY,
           stripH: bottomStrip.stripH,
         };
@@ -283,7 +283,14 @@ export class DefenseScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(200);
 
-    const dbgPos = combatDebugButtonPosition(this, this.safe);
+    const dbgPos = debugButtonPosition(this, this.safe);
+    const strip = bottomHudStripLayout(this, this.safe);
+    const spellClearY =
+      strip.stripCenterY +
+      SPELL_BAR.slotSizePx / 2 +
+      scaleUiY(14) +
+      scaleUiX(36) / 2;
+    dbgPos.y = Math.max(dbgPos.y, spellClearY);
     this.debugBtn = createTouchButton(
       this,
       dbgPos.x,
@@ -1030,8 +1037,8 @@ export class DefenseScene extends Phaser.Scene {
     return Boolean(this.player?.sprite);
   }
 
-  e2eBottomChromeTextureKey(): string {
-    return UI_TEXTURE.panelTall;
+  e2eBottomChromeTextureKey(): string | null {
+    return null;
   }
 
   e2eSetStick(dx: number, dy: number): void {

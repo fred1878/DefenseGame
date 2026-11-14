@@ -8,26 +8,18 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 
-const BOTTOM_PANEL_TEXTURE = "ui_hud_panel_tall";
-
 test.describe("defense HUD layout", () => {
-  test("bottom panel chrome, spell row in strip band", async ({ page }) => {
+  test("no bottom panel chrome, spell row left of MEL", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);
     await page.evaluate(async () => {
       await window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(120, 0);
     });
 
-    const stripLoaded = await page.evaluate(
-      (key) => window.__DEFENSEGAME_E2E__?.api?.textureLoaded(key),
-      BOTTOM_PANEL_TEXTURE,
-    );
-    expect(stripLoaded).toBe(true);
-
     const chromeKey = await page.evaluate(() =>
       window.__DEFENSEGAME_E2E__?.api?.e2eBottomChromeTextureKey(),
     );
-    expect(chromeKey).toBe(BOTTOM_PANEL_TEXTURE);
+    expect(chromeKey).toBeNull();
 
     const { targets, stripCenterY, stripH } = await page.evaluate(() => {
       const hud = window.__HUD_DEBUG__ as
@@ -52,27 +44,36 @@ test.describe("defense HUD layout", () => {
       expect(pt!.y).toBeLessThanOrEqual(stripCenterY + bandHalf);
     }
 
-    const rects = await page.evaluate(() => {
+    const overlap = await page.evaluate(() => {
       const targets = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
-      const spell0 = targets["spell-slot-0"];
-      const debug = targets["defense-debug"];
-      if (!spell0 || !debug) return null;
       const pad = 28;
-      const spellR = {
-        x: spell0.x - pad,
-        y: spell0.y - pad,
-        w: pad * 2,
-        h: pad * 2,
+      const rects = (id: string) => {
+        const pt = targets[id];
+        if (!pt) return null;
+        return { x: pt.x - pad, y: pt.y - pad, w: pad * 2, h: pad * 2 };
       };
-      const debugR = { x: debug.x - pad, y: debug.y - pad, w: pad * 2, h: pad * 2 };
-      const hit =
-        debugR.x < spellR.x + spellR.w &&
-        debugR.x + debugR.w > spellR.x &&
-        debugR.y < spellR.y + spellR.h &&
-        debugR.y + debugR.h > spellR.y;
-      return { spell0, debug, hit };
+      const hits = (a: NonNullable<ReturnType<typeof rects>>, b: NonNullable<ReturnType<typeof rects>>) =>
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y;
+
+      const spell2 = rects("spell-slot-2");
+      const mel = rects("combat-mode");
+      const spell0 = rects("spell-slot-0");
+      const debug = rects("defense-debug");
+      if (!spell2 || !mel || !spell0 || !debug) return null;
+      return {
+        spellMel: hits(spell2, mel),
+        debugSpell: hits(debug, spell0),
+        spell2,
+        mel,
+        spell0,
+        debug,
+      };
     });
-    expect(rects).not.toBeNull();
-    expect(rects!.hit, JSON.stringify(rects)).toBe(false);
+    expect(overlap).not.toBeNull();
+    expect(overlap!.spellMel, JSON.stringify(overlap)).toBe(false);
+    expect(overlap!.debugSpell, JSON.stringify(overlap)).toBe(false);
   });
 });

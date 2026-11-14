@@ -152,7 +152,7 @@ export type SpellBarOrigin = {
   firstSlotCenterX: number;
 };
 
-/** First spell slot center X, packed left of the combat cluster inside the bottom strip. */
+/** First spell slot center X — left-packed, ends before MEL hit box (combat cluster locked). */
 export function spellBarSlotOrigin(
   scene: Phaser.Scene,
   safe: SafeInsets,
@@ -161,13 +161,14 @@ export function spellBarSlotOrigin(
   slotGapPx: number,
 ): SpellBarOrigin {
   const chrome = combatChromeLayout(scene, safe);
+  const leftPad = scaleUiX(16) + safe.left;
+  const tapPad = scaleUiX(4);
   const rowWidth = slotCount * slotSizePx + (slotCount - 1) * slotGapPx;
-  const debugReserve = scaleUiX(108) + safe.left;
-  const leftPad = Math.max(scaleUiX(16) + safe.left, debugReserve);
-  const clusterPad = scaleUiX(10);
-  const availW = Math.max(rowWidth, chrome.combatClusterLeft - clusterPad - leftPad);
-  const firstSlotCenterX =
-    leftPad + availW / 2 - rowWidth / 2 + slotSizePx / 2;
+  const melGuard = scaleUiX(12) + chrome.toggleW / 2 + scaleUiX(10);
+  const rowEndMax = chrome.modeX - melGuard;
+  const packedFirst = leftPad + tapPad + slotSizePx / 2;
+  const fitFirst = rowEndMax - rowWidth + slotSizePx / 2;
+  const firstSlotCenterX = Math.max(packedFirst, fitFirst);
   return {
     centerY: chrome.bottomStrip.stripCenterY,
     firstSlotCenterX,
