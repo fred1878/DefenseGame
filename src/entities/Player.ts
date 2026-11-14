@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { PLAYER_TUNING } from "../config";
+import { PLAYER_TUNING, type AttackMode } from "../config";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 
@@ -12,6 +12,8 @@ export class Player {
   private attackPhase: AttackPhase = "idle";
   private phaseElapsed = 0;
   private hitEnemyIds = new Set<string>();
+  private attackMode: AttackMode = "melee";
+  private rangedShotPending = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, hpMax: number) {
     this.sprite = scene.physics.add.sprite(x, y, "player");
@@ -32,47 +34,78 @@ export class Player {
     return this.attackPhase;
   }
 
+  get mode(): AttackMode {
+    return this.attackMode;
+  }
+
   getFacingAngle(): number {
     return this.facing;
   }
 
+  canAttack(): boolean {
+    return this.attackPhase === "idle";
+  }
+
+  setAttackMode(mode: AttackMode): void {
+    this.attackMode = mode;
+  }
+
+  toggleAttackMode(): AttackMode {
+    this.attackMode = this.attackMode === "melee" ? "ranged" : "melee";
+    return this.attackMode;
+  }
+
+  faceToward(x: number, y: number): void {
+    this.facing = Math.atan2(y - this.sprite.y, x - this.sprite.x);
+  }
+
   setVelocityFromStick(dx: number, dy: number, speed: number): void {
-    if (this.attackPhase === "windup" || this.attackPhase === "recovery") {
+    const slowed =
+      this.attackPhase === "windup" || this.attackPhase === "recovery";
+    const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+    if (slowed) {
       this.sprite.setVelocity(0, 0);
       return;
     }
-    const body = this.sprite.body as Phaser.Physics.Arcade.Body;
     if (dx !== 0 || dy !== 0) {
       this.facing = Math.atan2(dy, dx);
     }
-    body.setVelocity(dx * speed, dy * speed);
+    const moveScale = this.attackPhase === "active" && this.attackMode === "melee" ? 0.35 : 1;
+    body.setVelocity(dx * speed * moveScale, dy * speed * moveScale);
   }
 
-  tryStartAttack(): void {
-    if (this.attackPhase !== "idle") return;
+  tryStartAttack(): boolean {
+    if (this.attackPhase !== "idle") return false;
     this.attackPhase = "windup";
     this.phaseElapsed = 0;
     this.hitEnemyIds.clear();
+    this.rangedShotPending = false;
+    return true;
+  }
+
+  consumeRangedShot(): boolean {
+    if (!this.rangedShotPending) return false;
+    this.rangedShotPending = false;
+    return true;
   }
 
   updateAttack(deltaMs: number): void {
     if (this.attackPhase === "idle") return;
     this.phaseElapsed += deltaMs;
-    const { attackWindupMs, attackActiveMs, attackRecoveryMs } = PLAYER_TUNING;
 
-    if (this.attackPhase === "windup" && this.phaseElapsed >= attackWindupMs) {
+    const isRanged = this.attackMode === "ranged";
+    const windup = isRanged ? PLAYER_TUNING.rangedWindupMs : PLAYER_TUNING.meleeWindupMs;
+    const active = isRanged ? PLAYER_TUNING.rangedActiveMs : PLAYER_TUNING.meleeActiveMs;
+    const recovery = isRanged ? PLAYER_TUNING.rangedRecoveryMs : PLAYER_TUNING.meleeRecoveryMs;
+
+    if (this.attackPhase === "windup" && this.phaseElapsed >= windup) {
       this.attackPhase = "active";
       this.phaseElapsed = 0;
-    } else if (
-      this.attackPhase === "active" &&
-      this.phaseElapsed >= attackActiveMs
-    ) {
+      if (isRanged) this.rangedShotPending = true;
+    } else if (this.attackPhase === "active" && this.phaseElapsed >= active) {
       this.attackPhase = "recovery";
       this.phaseElapsed = 0;
-    } else if (
-      this.attackPhase === "recovery" &&
-      this.phaseElapsed >= attackRecoveryMs
-    ) {
+    } else if (this.attackPhase === "recovery" && this.phaseElapsed >= recovery) {
       this.attackPhase = "idle";
       this.phaseElapsed = 0;
     }
@@ -88,15 +121,15 @@ export class Player {
     }>,
     damage: number,
   ): void {
-    if (this.attackPhase !== "active") return;
-    const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.attackArcDeg / 2);
+    if (this.attackMode !== "melee" || this.attackPhase !== "active") return;
+    const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
     for (const e of enemies) {
       if (!e.damageable.alive || this.hitEnemyIds.has(e.id)) continue;
       const hit = arcHitboxHitsTarget(
         this.sprite.x,
         this.sprite.y,
         this.facing,
-        PLAYER_TUNING.attackRange,
+        PLAYER_TUNING.meleeRange,
         arcHalf,
         e.x,
         e.y,

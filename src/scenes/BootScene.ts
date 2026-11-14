@@ -47,5 +47,9 @@ function createPlaceholderTextures(scene: Phaser.Scene): void {
   g.fillStyle(0x3d4451, 1);
   g.fillRect(0, 0, 64, 64);
   g.generateTexture("ground", 64, 64);
+  g.clear();
+  g.fillStyle(0xfde047, 1);
+  g.fillCircle(6, 6, 5);
+  g.generateTexture("projectile", 12, 12);
   g.destroy();
 }
