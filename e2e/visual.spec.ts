@@ -5,6 +5,7 @@ import { expectViewportScreenshot } from "./helpers/visualSnapshot";
 /** CI: `npm run test:e2e -- --project=chromium` (see `.github/workflows/ci.yml`). */
 const VIEWPORT_CLIP = { x: 0, y: 0, width: 540, height: 1200 } as const;
 
+/** CI: `npm run test:e2e -- --project=chromium` (see `.github/workflows/ci.yml`). */
 test.describe("visual regression", () => {
   test("town viewport", async ({ page }, testInfo) => {
     await gotoE2E(page);

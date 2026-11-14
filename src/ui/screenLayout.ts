@@ -68,7 +68,7 @@ export function nightReturnButtonPosition(
   };
 }
 
-/** Bottom-left debug control — keeps the top HUD readable. */
+/** Town: bottom-left debug (away from action stack). */
 export function debugButtonPosition(
   scene: Phaser.Scene,
   safe: SafeInsets,
@@ -80,11 +80,22 @@ export function debugButtonPosition(
   };
 }
 
+export type BottomHudStrip = {
+  stripH: number;
+  stripCenterY: number;
+  stripTop: number;
+  stripBottom: number;
+};
+
 export type CombatChromeLayout = {
   margin: number;
   atkX: number;
   btnY: number;
   atkRadius: number;
+  modeX: number;
+  modeY: number;
+  autoX: number;
+  autoY: number;
   modeOffsetX: number;
   toggleW: number;
   toggleH: number;
@@ -92,52 +103,117 @@ export type CombatChromeLayout = {
   hudBand: number;
   stickRadius: number;
   stickDragThreshold: number;
+  bottomStrip: BottomHudStrip;
+  combatClusterLeft: number;
   rightCluster: ScreenRect;
 };
 
-/** Vertical center for the spell hotbar — snug above ATK / stick row. */
+export const BOTTOM_HUD_STRIP_H = scaleUiY(140);
+
+/** Shared bottom HUD strip geometry (spell row + combat controls sit inside). */
+export function bottomHudStripLayout(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): BottomHudStrip {
+  const stripH = BOTTOM_HUD_STRIP_H;
+  const stripCenterY = scene.scale.height - safe.bottom - stripH / 2;
+  return {
+    stripH,
+    stripCenterY,
+    stripTop: stripCenterY - stripH / 2,
+    stripBottom: stripCenterY + stripH / 2,
+  };
+}
+
+/** Vertical center for spell slots — centered in the bottom HUD strip. */
 export function spellBarCenterY(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  slotSizePx: number,
+  _slotSizePx: number,
 ): number {
+  return bottomHudStripLayout(scene, safe).stripCenterY;
+}
+
+export type SpellBarOrigin = {
+  centerY: number;
+  firstSlotCenterX: number;
+};
+
+/** First spell slot center X, packed left of the combat cluster inside the bottom strip. */
+export function spellBarSlotOrigin(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+  slotCount: number,
+  slotSizePx: number,
+  slotGapPx: number,
+): SpellBarOrigin {
   const chrome = combatChromeLayout(scene, safe);
-  // Visual gap plus spell + ATK tap slops (createTouchCircleButton pad) so hit rects do not overlap.
-  const gap =
-    scaleUiY(8) + scaleUiX(6) * 2 + scaleUiX(16);
-  return chrome.btnY - chrome.atkRadius - gap - slotSizePx / 2;
+  const rowWidth = slotCount * slotSizePx + (slotCount - 1) * slotGapPx;
+  const leftPad = scaleUiX(20) + safe.left;
+  const clusterPad = scaleUiX(10);
+  const availW = Math.max(rowWidth, chrome.combatClusterLeft - clusterPad - leftPad);
+  const firstSlotCenterX =
+    leftPad + availW / 2 - rowWidth / 2 + slotSizePx / 2;
+  return {
+    centerY: chrome.bottomStrip.stripCenterY,
+    firstSlotCenterX,
+  };
+}
+
+/** Game-space Y of spell row center (for tests). */
+export function expectedSpellBarCenterY(
+  scene: Phaser.Scene,
+  safe: SafeInsets = { top: 0, right: 0, bottom: 0, left: 0 },
+): number {
+  return bottomHudStripLayout(scene, safe).stripCenterY;
 }
 
 export function combatChromeLayout(
   scene: Phaser.Scene,
   safe: SafeInsets,
 ): CombatChromeLayout {
-  const margin = scaleUiX(48);
-  const atkRadius = scaleUiX(44);
-  const btnY = scene.scale.height - margin - safe.bottom - atkRadius;
-  const atkX = scene.scale.width - margin - safe.right - atkRadius;
+  const bottomStrip = bottomHudStripLayout(scene, safe);
+  const sideMargin = scaleUiX(14);
+  const atkRadius = scaleUiX(38);
+  const toggleW = scaleUiX(64);
+  const toggleH = scaleUiY(34);
+  const atkX = scene.scale.width - sideMargin - safe.right - atkRadius;
+  const modeX = atkX - atkRadius - scaleUiX(6) - toggleW / 2;
+  const rowY = bottomStrip.stripCenterY + scaleUiY(10);
+  const btnY = rowY;
+  const modeY = rowY;
+  const autoX = atkX;
+  const autoY = bottomStrip.stripTop + toggleH / 2 + scaleUiY(10);
+  const autoOffsetY = btnY - autoY;
+  const modeOffsetX = atkX - modeX;
+  const combatClusterLeft = modeX - toggleW / 2;
   const hudBand = hudBandHeight(safe.top);
   const w = scene.scale.width;
-  const h = scene.scale.height;
-  const clusterW = scaleUiX(230);
-  const clusterH = scaleUiY(270);
+  const clusterW = w - combatClusterLeft + safe.right;
+  const clusterH = bottomStrip.stripH + scaleUiY(8);
   return {
-    margin,
+    margin: sideMargin,
     atkX,
     btnY,
     atkRadius,
-    modeOffsetX: scaleUiX(100),
-    toggleW: scaleUiX(72),
-    toggleH: scaleUiY(40),
-    autoOffsetY: scaleUiY(96),
+    modeX,
+    modeY,
+    autoX,
+    autoY,
+    modeOffsetX,
+    toggleW,
+    toggleH,
+    autoOffsetY,
     hudBand,
     stickRadius: scaleUiX(56),
     stickDragThreshold: scaleUiX(VIRTUAL_STICK_DRAG_THRESHOLD_PX),
+    bottomStrip,
+    combatClusterLeft,
     rightCluster: {
-      x: w - clusterW,
-      y: h - clusterH - safe.bottom,
-      width: clusterW,
-      height: clusterH + safe.bottom,
+      x: combatClusterLeft - scaleUiX(8),
+      y: bottomStrip.stripTop - scaleUiY(4),
+      width: clusterW + scaleUiX(8),
+      height: clusterH,
     },
   };
 }
@@ -202,16 +278,23 @@ export function cameraWorldPoint(
 export function buildCombatStickUiMask(
   scene: Phaser.Scene,
   chrome: CombatChromeLayout,
-  spellRect: ScreenRect,
+  _spellRect: ScreenRect,
   debugContainer: Phaser.GameObjects.Container,
 ): ScreenRect[] {
   const w = scene.scale.width;
+  const h = scene.scale.height;
   const pad = scaleUiX(6);
   const debugRect = containerScreenRect(debugContainer, pad);
+  const strip = chrome.bottomStrip;
+  const bottomBand: ScreenRect = {
+    x: 0,
+    y: Math.max(0, strip.stripTop - scaleUiY(6)),
+    width: w,
+    height: h - strip.stripTop + scaleUiY(6),
+  };
   return [
     { x: 0, y: 0, width: w, height: chrome.hudBand },
-    chrome.rightCluster,
-    spellRect,
+    bottomBand,
     debugRect,
   ];
 }

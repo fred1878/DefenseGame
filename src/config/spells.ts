@@ -3,8 +3,8 @@ import { scaleUiX, scaleUiY } from "../core/displayScale";
 export const SPELL_BAR = {
   slotCount: 3,
   slotSizePx: scaleUiX(56),
-  slotGapPx: scaleUiX(10),
-  tapPaddingPx: scaleUiX(6),
+  slotGapPx: scaleUiX(4),
+  tapPaddingPx: scaleUiX(4),
   cooldownRingWidthPx: scaleUiX(3),
   fontSize: `${scaleUiX(12)}px`,
 } as const;

@@ -56,7 +56,7 @@ export const SPRITE_DISPLAY = {
   gruntMeleeSlash: 40,
 } as const;
 
-/** Medieval fantasy HUD under `public/assets/ui/medieval/` (UI-REVIEW v01 picks). */
+/** Gothic fantasy HUD under `public/assets/ui/gothic/` (UI-REVIEW v01 picks). */
 export const UI_ASSETS = [
   {
     key: "ui_atk_circle",
@@ -90,17 +90,23 @@ export const UI_ASSETS = [
     key: "ui_hud_panel_square",
     file: "panels/hud-panel-square-v01-256x256.png",
   },
+  {
+    key: "ui_hud_panel_tall",
+    file: "panels/hud-panel-tall-v01-256x384.png",
+  },
 ] as const;
 
 export const UI_TEXTURE = {
   atkCircle: "ui_atk_circle",
-  modeRect: "ui_mode_rect_v01",
+  /** Ashlar slab — no baked labels (v01 pill had sample text). */
+  modeRect: "ui_mode_rect_v02",
   autoRect: "ui_mode_rect_v02",
   spellSlot: "ui_spell_slot",
   iconBacking: "ui_icon_backing",
   bottomStrip: "ui_hud_bottom_strip",
   panelCompact: "ui_hud_panel_compact",
   panelSquare: "ui_hud_panel_square",
+  panelTall: "ui_hud_panel_tall",
 } as const;
 
 /** 9-slice insets (source pixels) for scalable HUD panels. */
@@ -108,6 +114,9 @@ export const UI_NINE_SLICE = {
   bottomStrip: { left: 64, right: 64, top: 56, bottom: 56 },
   panelCompact: { left: 48, right: 48, top: 40, bottom: 40 },
   panelSquare: { left: 56, right: 56, top: 56, bottom: 56 },
+  panelTall: { left: 56, right: 56, top: 72, bottom: 72 },
+  /** Full-width bottom HUD using tall panel art (short height). */
+  panelTallBottomBar: { left: 52, right: 52, top: 200, bottom: 56 },
 } as const;
 
-export const UI_ASSET_ROOT = "assets/ui/medieval";
+export const UI_ASSET_ROOT = "assets/ui/gothic";

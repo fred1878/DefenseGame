@@ -38,6 +38,7 @@ export type DefenseGameE2EApi = {
   simulateScreenTap(x: number, y: number): void;
   getDefenseWallHp(): number;
   setSpawnPlanComplete(): void;
+  e2eBottomChromeTextureKey(): string | null;
 };
 
 declare global {
