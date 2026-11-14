@@ -54,6 +54,7 @@ import {
   createTouchButton,
   createTouchCircleButton,
   createTouchToggleButton,
+  interactiveObjectScreenRect,
 } from "../ui/touchButton";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
@@ -953,7 +954,7 @@ export class DefenseScene extends Phaser.Scene {
     persistSave(next);
     this.registry.set("save", next);
 
-    if (isE2EEnabled()) {
+    if (isE2EEnabled() && !this.registry.get("e2eManualReturn")) {
       this.transitionToTown();
       publishE2E({ scene: "Town", ready: true, player: null });
       return;
@@ -987,6 +988,11 @@ export class DefenseScene extends Phaser.Scene {
       },
     );
     this.returnToTownBtn.container.setData("testid", "defense-return-to-town");
+    if (isE2EEnabled()) {
+      publishE2E({
+        flags: { nightEnded: true, hasReturnButton: true },
+      });
+    }
   }
 
   e2eIsReady(): boolean {
@@ -1011,6 +1017,10 @@ export class DefenseScene extends Phaser.Scene {
 
   e2eEnemyCount(): number {
     return this.enemies.filter((e) => e.damageable.alive).length;
+  }
+
+  e2eWallHp(): number {
+    return Math.max(0, Math.floor(this.wallHp));
   }
 
   e2eTapMelee(): void {
@@ -1062,6 +1072,10 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies = [];
   }
 
+  e2eSetSpawnPlanComplete(): void {
+    this.spawnPlanComplete = true;
+  }
+
   e2eForceWinNight(): void {
     this.e2eKillAllEnemies();
     this.spawnPlanComplete = true;
@@ -1069,5 +1083,57 @@ export class DefenseScene extends Phaser.Scene {
     if (living === 0 && !this.nightEnded) {
       this.endNight(true);
     }
+  }
+
+  e2eSetManualReturn(on: boolean): void {
+    this.registry.set("e2eManualReturn", on);
+  }
+
+  e2eNightEnded(): boolean {
+    return this.nightEnded;
+  }
+
+  e2eHasReturnButton(): boolean {
+    return this.returnToTownBtn !== null;
+  }
+
+  /** Inject a screen-space tap through the scene input manager (e2e / DOM mirrors). */
+  e2eSimulateScreenTap(x: number, y: number): void {
+    const pointer = this.input.pointer1;
+    pointer.x = x;
+    pointer.y = y;
+    pointer.downTime = performance.now();
+    pointer.isDown = true;
+    this.input.emit("pointerdown", pointer, []);
+    pointer.isDown = false;
+    pointer.upTime = performance.now();
+    this.input.emit("pointerup", pointer, []);
+    this.onScreenTap(pointer);
+  }
+
+  /** Canvas-space tap centers for Playwright pointer tests (matches pointer.x/y). */
+  e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
+    const centerOf = (
+      obj: Phaser.GameObjects.GameObject,
+    ): { x: number; y: number } | null => {
+      const r = interactiveObjectScreenRect(obj);
+      if (!r) return null;
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    };
+    const out: Record<string, { x: number; y: number }> = {};
+    const atk = centerOf(this.attackButton);
+    if (atk) out["combat-atk"] = atk;
+    const mode = centerOf(this.modeToggle.container);
+    if (mode) out["combat-mode"] = mode;
+    const auto = centerOf(this.autoToggle.container);
+    if (auto) out["combat-auto"] = auto;
+    for (const slot of this.spellBar.e2eSlotTapCenters()) {
+      out[`spell-slot-${slot.index}`] = { x: slot.x, y: slot.y };
+    }
+    if (this.returnToTownBtn) {
+      const ret = centerOf(this.returnToTownBtn.container);
+      if (ret) out["defense-return-to-town"] = ret;
+    }
+    return out;
   }
 }

@@ -6,7 +6,7 @@ import {
 } from "../config";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
-import { createTouchButton } from "./touchButton";
+import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { readSafeInsets, spellBarCenterY } from "./screenLayout";
 
 export type SpellBarCallbacks = {
@@ -84,6 +84,20 @@ export class SpellBar {
       width: this.scene.scale.width,
       height: half * 2,
     };
+  }
+
+  e2eSlotTapCenters(): { index: number; x: number; y: number }[] {
+    const centers: { index: number; x: number; y: number }[] = [];
+    for (let i = 0; i < this.buttons.length; i++) {
+      const r = interactiveObjectScreenRect(this.buttons[i]!.container);
+      if (!r) continue;
+      centers.push({
+        index: i,
+        x: r.x + r.width / 2,
+        y: r.y + r.height / 2,
+      });
+    }
+    return centers;
   }
 
   refreshCooldownOverlays(): void {

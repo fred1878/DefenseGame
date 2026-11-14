@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "./config";
-import { isE2EEnabled } from "./e2e/e2eMode";
+import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
 import { publishE2E } from "./e2e/e2eGlobal";
 import { clampRenderResolution } from "./core/displayScale";
@@ -59,6 +59,9 @@ async function start(): Promise<void> {
     };
     game.events.on(Phaser.Scenes.Events.CREATE, e2eTimeScale);
     e2eTimeScale();
+    if (e2eManualReturnFromQuery()) {
+      game.registry.set("e2eManualReturn", true);
+    }
     attachE2EGame(game);
     publishE2E({ scene: "Boot", ready: false });
   }

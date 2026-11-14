@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import type { SaveGame } from "../config";
+import { GAME, type SaveGame } from "../config";
+import { readSafeInsets, townActionButtonY } from "../ui/screenLayout";
 import { COMBAT_FX_ASSETS } from "../config/assets";
 import { persistSave } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
@@ -11,6 +12,38 @@ import {
   type DefenseGameE2EApi,
 } from "./e2eGlobal";
 
+const DOM_MIRROR_IDS = [
+  "start-night",
+  "combat-atk",
+  "combat-mode",
+  "combat-auto",
+  "spell-slot-0",
+  "spell-slot-1",
+  "spell-slot-2",
+  "defense-return-to-town",
+] as const;
+
+function ensureDomMirrorButton(
+  host: HTMLElement,
+  testId: string,
+  onClick: () => void,
+): HTMLButtonElement {
+  let btn = host.querySelector<HTMLButtonElement>(
+    `[data-testid="${testId}"]`,
+  );
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("data-testid", testId);
+    btn.textContent = testId;
+    btn.style.cssText =
+      "position:fixed;width:44px;height:44px;opacity:0.01;pointer-events:auto;z-index:99999";
+    host.appendChild(btn);
+    btn.addEventListener("click", onClick);
+  }
+  return btn;
+}
+
 function ensureDomTestActions(api: DefenseGameE2EApi): void {
   if (!isE2EEnabled() || typeof document === "undefined") return;
   let host = document.getElementById("defensegame-e2e-dom");
@@ -18,17 +51,54 @@ function ensureDomTestActions(api: DefenseGameE2EApi): void {
     host = document.createElement("div");
     host.id = "defensegame-e2e-dom";
     host.setAttribute("data-testid", "e2e-dom-root");
-    host.style.cssText =
-      "position:fixed;left:0;top:0;width:1px;height:1px;overflow:hidden;opacity:0";
+    host.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:99998";
     document.body.appendChild(host);
   }
-  if (!host.querySelector("[data-testid='start-night']")) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.setAttribute("data-testid", "start-night");
-    btn.textContent = "Start night";
-    btn.addEventListener("click", () => api.startNight());
-    host.appendChild(btn);
+  ensureDomMirrorButton(host, "start-night", () => api.startNight());
+  for (const id of DOM_MIRROR_IDS) {
+    if (id === "start-night") continue;
+    ensureDomMirrorButton(host, id, () => api.tapDomMirror(id));
+  }
+}
+
+function canvasGameToPage(
+  gameX: number,
+  gameY: number,
+): { left: number; top: number } | null {
+  const canvas = document.querySelector<HTMLCanvasElement>("#game canvas");
+  if (!canvas) return null;
+  const rect = canvas.getBoundingClientRect();
+  const sx = rect.width / GAME.width;
+  const sy = rect.height / GAME.height;
+  return {
+    left: rect.left + gameX * sx,
+    top: rect.top + gameY * sy,
+  };
+}
+
+function positionDomMirrors(
+  targets: Record<string, { x: number; y: number }>,
+): void {
+  if (!isE2EEnabled() || typeof document === "undefined") return;
+  const host = document.getElementById("defensegame-e2e-dom");
+  if (!host) return;
+  for (const [testId, pt] of Object.entries(targets)) {
+    const btn = host.querySelector<HTMLButtonElement>(
+      `[data-testid="${testId}"]`,
+    );
+    if (!btn) continue;
+    const pagePt = canvasGameToPage(pt.x, pt.y);
+    if (!pagePt) continue;
+    btn.style.left = `${pagePt.left - 22}px`;
+    btn.style.top = `${pagePt.top - 22}px`;
+    btn.style.display = "block";
+  }
+  for (const id of DOM_MIRROR_IDS) {
+    if (targets[id]) continue;
+    const btn = host.querySelector<HTMLButtonElement>(
+      `[data-testid="${id}"]`,
+    );
+    if (btn && id !== "start-night") btn.style.display = "none";
   }
 }
 
@@ -55,6 +125,15 @@ export function attachE2EGame(game: Phaser.Game): void {
       scene: key,
       ready,
     };
+    if (key === "Town" && ready) {
+      const safe = readSafeInsets();
+      const y = townActionButtonY(
+        active as Phaser.Scene,
+        safe,
+        0,
+      );
+      positionDomMirrors({ "start-night": { x: GAME.width / 2, y } });
+    }
     if (key === "Defense") {
       const defense = game.scene.getScene("Defense") as DefenseScene | null;
       if (defense?.scene.isActive() && defense.e2eIsReady()) {
@@ -63,7 +142,11 @@ export function attachE2EGame(game: Phaser.Game): void {
           attackPhase: defense.e2eAttackPhase(),
           projectileCount: defense.e2eProjectileCount(),
           enemyCount: defense.e2eEnemyCount(),
+          nightEnded: defense.e2eNightEnded(),
+          hasReturnButton: defense.e2eHasReturnButton(),
+          defenseWallHp: defense.e2eWallHp(),
         };
+        positionDomMirrors(defense.e2eGetUiTapTargets());
       }
     }
     publishE2E(patch);
@@ -162,6 +245,52 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getProjectileCount() {
       return activeDefense(game)?.e2eProjectileCount() ?? 0;
+    },
+    getEnemyCount() {
+      return activeDefense(game)?.e2eEnemyCount() ?? 0;
+    },
+    setManualReturnToTown(on: boolean) {
+      game.registry.set("e2eManualReturn", on);
+      activeDefense(game)?.e2eSetManualReturn(on);
+    },
+    nightEnded() {
+      return activeDefense(game)?.e2eNightEnded() ?? false;
+    },
+    hasReturnButton() {
+      return activeDefense(game)?.e2eHasReturnButton() ?? false;
+    },
+    getUiTapTargets() {
+      return activeDefense(game)?.e2eGetUiTapTargets() ?? {};
+    },
+    syncDomMirrors() {
+      const defense = activeDefense(game);
+      if (defense) {
+        positionDomMirrors(defense.e2eGetUiTapTargets());
+        return;
+      }
+      const town = game.scene.getScene("Town");
+      if (town?.scene.isActive()) {
+        const safe = readSafeInsets();
+        const y = townActionButtonY(town as Phaser.Scene, safe, 0);
+        positionDomMirrors({ "start-night": { x: GAME.width / 2, y } });
+      }
+    },
+    tapDomMirror(testId: string) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const targets = defense.e2eGetUiTapTargets();
+      const pt = targets[testId];
+      if (!pt) return;
+      defense.e2eSimulateScreenTap(pt.x, pt.y);
+    },
+    simulateScreenTap(x: number, y: number) {
+      activeDefense(game)?.e2eSimulateScreenTap(x, y);
+    },
+    getDefenseWallHp() {
+      return activeDefense(game)?.e2eWallHp() ?? 0;
+    },
+    setSpawnPlanComplete() {
+      activeDefense(game)?.e2eSetSpawnPlanComplete();
     },
   };
 }
