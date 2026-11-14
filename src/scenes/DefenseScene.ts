@@ -76,6 +76,8 @@ import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { spellById } from "../config/spells";
+import { UI_TEXTURE } from "../config/assets";
+import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -118,6 +120,7 @@ export class DefenseScene extends Phaser.Scene {
   private onDebugMenuClose = (): void => this.setHudChromeVisible(true);
   private prevPlayerAttackPhase: AttackPhase = "idle";
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private hudChrome!: CombatHudChrome;
 
   constructor() {
     super({ key: "Defense" });
@@ -183,6 +186,7 @@ export class DefenseScene extends Phaser.Scene {
 
     this.safe = readSafeInsets();
     const chrome = combatChromeLayout(this, this.safe);
+    this.hudChrome = createCombatHudChrome(this);
 
     this.attackButton = createTouchCircleButton(
       this,
@@ -192,6 +196,7 @@ export class DefenseScene extends Phaser.Scene {
       chrome.atkRadius,
       () => this.manualAttack(),
       200,
+      UI_TEXTURE.atkCircle,
     );
 
     this.modeToggle = createTouchToggleButton(
@@ -206,6 +211,7 @@ export class DefenseScene extends Phaser.Scene {
         this.refreshModeToggle(mode);
       },
       200,
+      { frameTextureKey: UI_TEXTURE.modeRect },
     );
 
     this.autoToggle = createTouchToggleButton(
@@ -220,6 +226,7 @@ export class DefenseScene extends Phaser.Scene {
         this.refreshAutoToggle();
       },
       200,
+      { frameTextureKey: UI_TEXTURE.autoRect },
     );
 
     this.spellCaster = new SpellCastController();
@@ -266,8 +273,7 @@ export class DefenseScene extends Phaser.Scene {
         height: scaleUiX(36),
         depth: 200,
         fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x3f3f46,
-        strokeColor: 0xa1a1aa,
+        frameTextureKey: UI_TEXTURE.iconBacking,
       },
     );
     this.uiBlockers.push(this.debugBtn.container);
@@ -600,6 +606,7 @@ export class DefenseScene extends Phaser.Scene {
   private setHudChromeVisible(visible: boolean): void {
     this.hudText.setVisible(visible);
     this.debugBtn.container.setVisible(visible);
+    this.hudChrome?.setVisible(visible);
   }
 
   private transitionToTown(): void {

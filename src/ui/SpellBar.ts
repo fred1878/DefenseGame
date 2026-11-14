@@ -4,6 +4,7 @@ import {
   spellById,
   type SpellId,
 } from "../config";
+import { UI_TEXTURE } from "../config/assets";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
@@ -53,8 +54,7 @@ export class SpellBar {
         height: SPELL_BAR.slotSizePx,
         depth,
         fontSize: SPELL_BAR.fontSize,
-        fillColor: 0x4c1d95,
-        strokeColor: 0xa78bfa,
+        frameTextureKey: UI_TEXTURE.spellSlot,
         tapPadding: SPELL_BAR.tapPaddingPx,
       });
       this.buttons.push(btn);

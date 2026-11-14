@@ -12,8 +12,14 @@ export type TouchButtonRectOptions = {
   fontSize?: string;
   fillColor?: number;
   strokeColor?: number;
+  /** Pixel-art frame texture (nearest filtered in Boot). */
+  frameTextureKey?: string;
   /** Use `pointerup` for actions that require it (e.g. Fullscreen API). */
   activateOn?: "pointerdown" | "pointerup";
+};
+
+export type TouchToggleOptions = {
+  frameTextureKey?: string;
 };
 
 export type TouchButtonHandle = {
@@ -21,16 +27,42 @@ export type TouchButtonHandle = {
   setLabel: (text: string) => void;
 };
 
+type BgVisual =
+  | Phaser.GameObjects.Rectangle
+  | Phaser.GameObjects.Arc
+  | Phaser.GameObjects.Ellipse
+  | Phaser.GameObjects.Image;
+
 type PressVisual = {
-  bg?: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Arc | Phaser.GameObjects.Ellipse;
+  bg?: BgVisual;
   colors?: { rest: number; pressed: number };
   pressScale?: number;
+  textured?: boolean;
 };
 
 const STROKE_PX = Math.max(2, scaleUiX(2));
+const MEDIEVAL_LABEL = {
+  color: "#e8dcc8",
+  stroke: "#1a1612",
+};
 
 function textResolution(scene: Phaser.Scene): number {
   return (scene.registry.get("renderResolution") as number | undefined) ?? clampRenderResolution();
+}
+
+function isImageBg(bg: BgVisual | undefined): bg is Phaser.GameObjects.Image {
+  return bg instanceof Phaser.GameObjects.Image;
+}
+
+function applyBgTint(bg: BgVisual | undefined, tint: number): void {
+  if (!bg) return;
+  if (isImageBg(bg)) {
+    bg.setTint(tint);
+    return;
+  }
+  if ("setFillStyle" in bg && typeof bg.setFillStyle === "function") {
+    bg.setFillStyle(tint, 1);
+  }
 }
 
 function pressVisualDown(
@@ -48,7 +80,7 @@ function pressVisualDown(
     ease: "Quad.easeOut",
   });
   if (visual?.bg && visual.colors) {
-    visual.bg.setFillStyle(visual.colors.pressed, 1);
+    applyBgTint(visual.bg, visual.colors.pressed);
   }
 }
 
@@ -58,7 +90,7 @@ function pressVisualUp(
   visual: PressVisual | undefined,
 ): void {
   if (visual?.bg && visual.colors) {
-    visual.bg.setFillStyle(visual.colors.rest, 1);
+    applyBgTint(visual.bg, visual.colors.rest);
   }
   scene.tweens.add({
     targets: container,
@@ -176,6 +208,38 @@ function bindPress(
   scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
 }
 
+function createButtonBackground(
+  scene: Phaser.Scene,
+  width: number,
+  height: number,
+  fill: number,
+  stroke: number,
+  frameTextureKey?: string,
+): BgVisual {
+  if (frameTextureKey && scene.textures.exists(frameTextureKey)) {
+    return scene.add
+      .image(0, 0, frameTextureKey)
+      .setDisplaySize(width, height);
+  }
+  return scene.add
+    .rectangle(0, 0, width, height, fill, 1)
+    .setStrokeStyle(STROKE_PX, stroke);
+}
+
+function labelStyle(scene: Phaser.Scene, fontSize: string, textured: boolean) {
+  const base = {
+    fontSize,
+    resolution: textResolution(scene),
+  };
+  if (!textured) return base;
+  return {
+    ...base,
+    color: MEDIEVAL_LABEL.color,
+    stroke: MEDIEVAL_LABEL.stroke,
+    strokeThickness: Math.max(2, scaleUiX(2)),
+  };
+}
+
 /**
  * Mobile-first button — interactive hit on the container (zones-in-containers miss hits on mobile).
  */
@@ -196,16 +260,22 @@ export function createTouchButton(
   const fill = options.fillColor ?? 0x3b82f6;
   const stroke = options.strokeColor ?? 0x60a5fa;
   const activateOn = options.activateOn ?? "pointerdown";
+  const textured = Boolean(options.frameTextureKey);
 
   const container = scene.add
     .container(Math.round(x), Math.round(y))
     .setDepth(depth)
     .setScrollFactor(sf);
-  const bg = scene.add
-    .rectangle(0, 0, options.width, options.height, fill, 1)
-    .setStrokeStyle(STROKE_PX, stroke);
+  const bg = createButtonBackground(
+    scene,
+    options.width,
+    options.height,
+    fill,
+    stroke,
+    options.frameTextureKey,
+  );
   const text = scene.add
-    .text(0, 0, label, { fontSize, resolution: textResolution(scene) })
+    .text(0, 0, label, labelStyle(scene, fontSize, textured))
     .setOrigin(0.5);
   container.add([bg, text]);
 
@@ -215,8 +285,10 @@ export function createTouchButton(
     new Phaser.Geom.Rectangle(0, 0, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
-  const colors = { rest: fill, pressed: darkenColor(fill, 0.72) };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88 }, activateOn);
+  const colors = textured
+    ? { rest: 0xffffff, pressed: 0x9a9a9a }
+    : { rest: fill, pressed: darkenColor(fill, 0.72) };
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88, textured }, activateOn);
 
   return {
     container,
@@ -233,22 +305,22 @@ export function createTouchToggleButton(
   height: number,
   onPress: () => void,
   depth = 200,
+  toggleOptions?: TouchToggleOptions,
 ): { container: Phaser.GameObjects.Container; setLabel: (text: string) => void; setOn: (on: boolean) => void } {
   const pad = scaleUiX(12);
   const hitW = width + pad * 2;
   const hitH = height + pad * 2;
+  const frameKey = toggleOptions?.frameTextureKey;
+  const textured = Boolean(frameKey);
 
   const container = scene.add
     .container(Math.round(x), Math.round(y))
     .setDepth(depth)
     .setScrollFactor(0);
-  const bg = scene.add
-    .rectangle(0, 0, width, height, 0x3f3f46, 1)
-    .setStrokeStyle(STROKE_PX, 0x71717a);
+  const bg = createButtonBackground(scene, width, height, 0x3f3f46, 0x71717a, frameKey);
   const text = scene.add
     .text(0, 0, initialLabel, {
-      fontSize: `${scaleUiX(14)}px`,
-      resolution: textResolution(scene),
+      ...labelStyle(scene, `${scaleUiX(14)}px`, textured),
     })
     .setOrigin(0.5);
   container.add([bg, text]);
@@ -258,18 +330,28 @@ export function createTouchToggleButton(
     new Phaser.Geom.Rectangle(0, 0, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
-  const colors = { rest: 0x3f3f46, pressed: 0x27272a };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9 });
+  const colors = textured
+    ? { rest: 0xffffff, pressed: 0xaaaaaa }
+    : { rest: 0x3f3f46, pressed: 0x27272a };
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9, textured });
+
+  const applyOn = (on: boolean) => {
+    if (textured && isImageBg(bg)) {
+      bg.setTint(on ? 0xc8e8c0 : 0xffffff);
+      return;
+    }
+    colors.rest = on ? 0x15803d : 0x3f3f46;
+    colors.pressed = darkenColor(colors.rest, 0.75);
+    if (!isImageBg(bg)) {
+      bg.setFillStyle(colors.rest, 1);
+      bg.setStrokeStyle(STROKE_PX, on ? 0x4ade80 : 0x71717a);
+    }
+  };
 
   return {
     container,
     setLabel: (label: string) => text.setText(label),
-    setOn: (on: boolean) => {
-      colors.rest = on ? 0x15803d : 0x3f3f46;
-      colors.pressed = darkenColor(colors.rest, 0.75);
-      bg.setFillStyle(colors.rest, 1);
-      bg.setStrokeStyle(STROKE_PX, on ? 0x4ade80 : 0x71717a);
-    },
+    setOn: applyOn,
   };
 }
 
@@ -281,20 +363,26 @@ export function createTouchCircleButton(
   radius: number,
   onPress: () => void,
   depth = 150,
+  frameTextureKey?: string,
 ): Phaser.GameObjects.Container {
   const pad = scaleUiX(16);
   const hitR = radius + pad;
+  const diameter = radius * 2;
+  const textured = Boolean(frameTextureKey);
   const container = scene.add
     .container(Math.round(x), Math.round(y))
     .setDepth(depth)
     .setScrollFactor(0);
-  const bg = scene.add
-    .circle(0, 0, radius, 0xea580c, 1)
-    .setStrokeStyle(STROKE_PX, 0xfdba74);
+
+  let bg: BgVisual;
+  if (frameTextureKey && scene.textures.exists(frameTextureKey)) {
+    bg = scene.add.image(0, 0, frameTextureKey).setDisplaySize(diameter, diameter);
+  } else {
+    bg = scene.add.circle(0, 0, radius, 0xea580c, 1).setStrokeStyle(STROKE_PX, 0xfdba74);
+  }
   const text = scene.add
     .text(0, 0, label, {
-      fontSize: `${scaleUiX(18)}px`,
-      resolution: textResolution(scene),
+      ...labelStyle(scene, `${scaleUiX(18)}px`, textured),
     })
     .setOrigin(0.5);
   container.add([bg, text]);
@@ -304,8 +392,10 @@ export function createTouchCircleButton(
     new Phaser.Geom.Circle(hitR, hitR, hitR),
     Phaser.Geom.Circle.Contains,
   );
-  const colors = { rest: 0xea580c, pressed: 0xc2410c };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9 });
+  const colors = textured
+    ? { rest: 0xffffff, pressed: 0x999999 }
+    : { rest: 0xea580c, pressed: 0xc2410c };
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9, textured });
   return container;
 }
 
