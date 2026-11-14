@@ -75,4 +75,4 @@ Capacitor wraps the same web `dist/`. Store builds (signed APK/IPA) are a later 
 npm run typecheck && npm run test && npm run build
 ```
 
-CI uses Node **22** (`.nvmrc`).
+CI uses Node **24** (`.nvmrc`).
