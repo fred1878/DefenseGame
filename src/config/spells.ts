@@ -1,41 +1,73 @@
-/** Layout and feel for the defense HUD spell bar (implementation in a follow-up). */
 export const SPELL_BAR = {
-  slotCount: 4,
-  slotSizePx: 52,
-  slotGapPx: 8,
-  /** Distance from bottom of screen to center of slot row */
-  bottomInsetPx: 200,
-  /** Extra hit slop on each slot */
+  slotCount: 3,
+  slotSizePx: 56,
+  slotGapPx: 10,
+  bottomInsetPx: 268,
   tapPaddingPx: 6,
   cooldownRingWidthPx: 3,
-  fontSize: "13px",
+  fontSize: "12px",
+} as const;
+
+export const CAST_BAR = {
+  width: 48,
+  height: 6,
+  offsetY: 26,
+  fillColor: 0xfef9c3,
+  fillAlpha: 0.95,
+  bgColor: 0x3f3f46,
+  bgAlpha: 0.7,
+  borderColor: 0xfffbeb,
 } as const;
 
 export type SpellId = string;
+export type SpellCastKind = "instant" | "channeled";
 
-/** Minimal spell row for tuning / future `spells.json`. */
 export type SpellDefinition = {
   id: SpellId;
   label: string;
+  shortLabel: string;
   cooldownMs: number;
-  /** Placeholder damage multiplier until combat hooks land */
-  power: number;
+  channelMs: number;
+  kind: SpellCastKind;
+  novaRadius?: number;
+  novaDamage?: number;
+  fireballDamage?: number;
+  healAmount?: number;
 };
 
-/** Starter catalog — wire UI + casting in the spell-bar task */
 export const SPELL_CATALOG: readonly SpellDefinition[] = [
-  { id: "heal", label: "Heal", cooldownMs: 8000, power: 20 },
-  { id: "nova", label: "Nova", cooldownMs: 6000, power: 25 },
-  { id: "haste", label: "Haste", cooldownMs: 12000, power: 0 },
-  { id: "barrier", label: "Barrier", cooldownMs: 10000, power: 0 },
+  {
+    id: "nova",
+    label: "Nova",
+    shortLabel: "Nova",
+    cooldownMs: 5000,
+    channelMs: 0,
+    kind: "instant",
+    novaRadius: 88,
+    novaDamage: 22,
+  },
+  {
+    id: "fireball",
+    label: "Fireball",
+    shortLabel: "Fire",
+    cooldownMs: 4500,
+    channelMs: 1200,
+    kind: "channeled",
+    fireballDamage: 28,
+  },
+  {
+    id: "heal",
+    label: "Heal",
+    shortLabel: "Heal",
+    cooldownMs: 7000,
+    channelMs: 1500,
+    kind: "channeled",
+    healAmount: 24,
+  },
 ] as const;
 
 export function createDefaultSpellBarSlots(): SpellId[] {
-  const equipped: SpellId[] = [];
-  for (let i = 0; i < SPELL_BAR.slotCount; i++) {
-    equipped.push(SPELL_CATALOG[i]?.id ?? "");
-  }
-  return equipped;
+  return SPELL_CATALOG.map((s) => s.id).slice(0, SPELL_BAR.slotCount);
 }
 
 export function spellById(id: SpellId): SpellDefinition | undefined {
