@@ -46,6 +46,16 @@ import {
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
+import { buildGroundLayer } from "../world/buildGroundLayer";
+import {
+  cameraWorldPoint,
+  debugButtonPosition,
+  hudBandHeight,
+  hudTextPosition,
+  readSafeInsets,
+  type SafeInsets,
+} from "../ui/screenLayout";
+import type { TouchButtonHandle } from "../ui/touchButton";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -74,7 +84,10 @@ export class DefenseScene extends Phaser.Scene {
   private spellCaster = new SpellCastController();
   private spellBar!: SpellBar;
   private castBar!: CastBar;
+  private debugBtn!: TouchButtonHandle;
+  private safe!: SafeInsets;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
+  private onDebugMenuClose = (): void => this.setHudChromeVisible(true);
 
   constructor() {
     super({ key: "Defense" });
@@ -93,7 +106,7 @@ export class DefenseScene extends Phaser.Scene {
 
     const half = GAME.worldHalfSize;
     this.physics.world.setBounds(-half, -half, half * 2, half * 2);
-    this.add.tileSprite(0, 0, half * 2, half * 2, "ground").setOrigin(0.5);
+    buildGroundLayer(this, half);
 
     this.add
       .rectangle(-half + 20, 0, 40, half * 2, 0x52525b)
@@ -108,9 +121,10 @@ export class DefenseScene extends Phaser.Scene {
     this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
+    this.safe = readSafeInsets();
     const margin = 48;
-    const btnY = this.scale.height - margin - 44;
-    const atkX = this.scale.width - margin - 44;
+    const btnY = this.scale.height - margin - this.safe.bottom - 44;
+    const atkX = this.scale.width - margin - this.safe.right - 44;
 
     this.attackButton = createTouchCircleButton(
       this,
@@ -168,13 +182,19 @@ export class DefenseScene extends Phaser.Scene {
 
     const w = this.scale.width;
     const h = this.scale.height;
+    const hudBand = hudBandHeight(this.safe.top);
     const spellRect = this.spellBar.getScreenRect();
     this.stick = new VirtualStick(this, {
       blockers: this.uiBlockers,
-      excludeZones: [{ x: 0, y: 0, width: w, height: 110 }],
+      excludeZones: [{ x: 0, y: 0, width: w, height: hudBand }],
       uiScreenRects: [
-        { x: 0, y: 0, width: w, height: 110 },
-        { x: w - 230, y: h - 270, width: 230, height: 270 },
+        { x: 0, y: 0, width: w, height: hudBand },
+        {
+          x: w - 230,
+          y: h - 270 - this.safe.bottom,
+          width: 230,
+          height: 270 + this.safe.bottom,
+        },
         spellRect,
       ],
       dragThresholdPx: 18,
@@ -185,20 +205,22 @@ export class DefenseScene extends Phaser.Scene {
     this.touchDebug = new TouchInputDebugDraw(this);
     this.input.on("pointerup", this.onPointerUpBound);
 
+    const hudPos = hudTextPosition(this.safe);
     this.hudText = this.add
-      .text(12, 12, "", {
+      .text(hudPos.x, hudPos.y, "", {
         fontSize: "16px",
         color: "#fafafa",
       })
       .setScrollFactor(0)
       .setDepth(200);
 
-    const debugBtn = createTouchButton(
+    const dbgPos = debugButtonPosition(this, this.safe);
+    this.debugBtn = createTouchButton(
       this,
-      58,
-      44,
+      dbgPos.x,
+      dbgPos.y,
       "Debug",
-      () => this.scene.launch("DebugMenu"),
+      () => this.openDebugMenu(),
       {
         width: 88,
         height: 36,
@@ -208,7 +230,9 @@ export class DefenseScene extends Phaser.Scene {
         strokeColor: 0xa1a1aa,
       },
     );
-    this.uiBlockers.push(debugBtn.container);
+    this.uiBlockers.push(this.debugBtn.container);
+
+    this.game.events.on("debug-menu-close", this.onDebugMenuClose);
 
     this.refreshModeToggle(this.player.mode);
     this.refreshAutoToggle();
@@ -221,6 +245,7 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.events.on("shutdown", () => {
+      this.game.events.off("debug-menu-close", this.onDebugMenuClose);
       this.input.off("pointerup", this.onPointerUpBound);
       this.stick.destroy(this);
       this.targetIndicator.destroy();
@@ -423,7 +448,7 @@ export class DefenseScene extends Phaser.Scene {
     const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
     const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
 
-    const world = this.cameras.main.getWorldPoint(screenX, screenY);
+    const world = cameraWorldPoint(this.cameras.main, screenX, screenY);
     const pick = this.findEnemyNearWorldPoint(world.x, world.y);
     if (showTouchInput(this.registry)) {
       this.focusTapFlash = {
@@ -437,6 +462,16 @@ export class DefenseScene extends Phaser.Scene {
       };
     }
     this.trySelectEnemyAt(world.x, world.y);
+  }
+
+  private openDebugMenu(): void {
+    this.setHudChromeVisible(false);
+    this.scene.launch("DebugMenu");
+  }
+
+  private setHudChromeVisible(visible: boolean): void {
+    this.hudText.setVisible(visible);
+    this.debugBtn.container.setVisible(visible);
   }
 
   private trySelectEnemyAt(worldX: number, worldY: number): void {
@@ -520,10 +555,11 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
+    const hudBand = hudBandHeight(this.safe.top);
     if (
-      pointer.y <= 110 &&
+      pointer.y <= hudBand &&
       pointer.x >= 0 &&
-      pointer.x <= GAME.width
+      pointer.x <= this.scale.width
     ) {
       return true;
     }

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { SPRITE_DISPLAY } from "../config/assets";
 import type { Damageable } from "../combat/DamageSystem";
 import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 
@@ -19,6 +20,7 @@ export function spawnEnemy(
   onTap?: () => void,
 ): EnemyInstance {
   const sprite = scene.physics.add.sprite(x, y, "enemy_grunt");
+  sprite.setDisplaySize(SPRITE_DISPLAY.enemy, SPRITE_DISPLAY.enemy);
   sprite.setCircle(12);
   sprite.setDepth(5);
   sprite.setInteractive(

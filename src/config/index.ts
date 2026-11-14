@@ -1,4 +1,11 @@
 export { GAME } from "./game";
+export {
+  GROUND_TILE_KEYS,
+  GROUND_TILE_SIZE,
+  PLAYER_TEXTURE,
+  SPRITE_DISPLAY,
+  type PlayerCardinal,
+} from "./assets";
 export { PLAYER_TUNING, type AttackMode } from "./player";
 export { ENEMY_TUNING } from "./enemy";
 export {

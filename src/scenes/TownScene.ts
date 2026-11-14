@@ -11,6 +11,7 @@ import { showTouchInput } from "../debug/DebugState";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import { createTouchButton } from "../ui/touchButton";
+import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -50,10 +51,12 @@ export class TownScene extends Phaser.Scene {
 
     this.refreshStatus(store);
 
+    const safe = readSafeInsets();
+    const dbgPos = debugButtonPosition(this, safe);
     createTouchButton(
       this,
-      58,
-      44,
+      dbgPos.x,
+      dbgPos.y,
       "Debug",
       () => this.scene.launch("DebugMenu"),
       {
