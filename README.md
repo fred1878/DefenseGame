@@ -16,18 +16,17 @@ Open the URL from the dev server. Use the virtual stick (lower-left) and **ATK**
 - [docs/AGENTS.md](./docs/AGENTS.md) — architecture, data formats, implementation order
 - [docs/CI_RELEASES.md](./docs/CI_RELEASES.md) — CI, tagging, GitHub Pages, future mobile releases
 
-## CI
+## Play / share
 
-Every push/PR to `main` runs typecheck, tests, and build.
+**Live build (after merge to `main`):** https://fred1878.github.io/DefenseGame/
 
-## Releases
+Enable **Settings → Pages → GitHub Actions** once so deploys work.
 
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
+## CI & deploy
 
-Creates a GitHub Release with a web zip and deploys to GitHub Pages (enable **Pages → GitHub Actions** once).
+- **PRs:** typecheck, tests, build (`ci.yml`)
+- **`main`:** same checks + publish to the Pages URL above (`pages.yml`)
+- **Tags `v*.*.*`:** optional GitHub Release + same hosted game (`release.yml`)
 
 ## Current milestone
 

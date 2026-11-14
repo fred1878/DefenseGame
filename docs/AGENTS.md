@@ -167,7 +167,7 @@ npm run preview      # serve dist locally
 2. **Content vs code:** new enemy = row in `enemies.json` + behavior if needed, not a new scene.
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** portrait logical size in `config.ts`; test touch, not mouse-only.
-5. **CI must stay green:** `typecheck`, `test`, `build` run on every PR (see `docs/CI_RELEASES.md`).
+5. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ---
 

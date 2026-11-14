@@ -23,8 +23,3 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: dist/
-          if-no-files-found: error

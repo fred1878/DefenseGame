@@ -1,13 +1,31 @@
 # CI and releases
 
-## Overview
+## Play the game (URL)
+
+This is a **web game** — players open a link in the browser (phone or desktop). There is no install step for web play.
+
+| What | URL |
+|------|-----|
+| **Latest on `main`** (after merge + Pages deploy) | https://fred1878.github.io/DefenseGame/ |
+| **Local dev** | `npm run dev` → http://127.0.0.1:5173 |
+
+**One-time repo setup:** **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+Every merge to `main` runs **`pages.yml`**, which builds and publishes `dist/` to GitHub Pages. Share that single link; it always reflects the latest `main` build.
+
+Tagged releases (`v*.*.*`) also deploy the same way and add an optional zip on the GitHub Release page for archival only — normal play is still the Pages URL.
+
+---
+
+## Workflows
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci.yml` | Push/PR to `main` | Lint (typecheck), unit tests, production build |
-| `release.yml` | Push tag `v*.*.*` | GitHub Release + web build artifacts + optional Pages deploy |
+| `ci.yml` | Push/PR to `main` | Typecheck, tests, build (no artifacts) |
+| `pages.yml` | Push to `main` | Publish playable site |
+| `release.yml` | Push tag `v*.*.*` | Pages deploy + GitHub Release notes + optional zip |
 
-We ship **web builds first** (playable in browser and inside Capacitor later). Native store releases (signed APK/IPA) are a later phase with signing secrets.
+CI does **not** upload Actions artifacts (large Phaser bundles were hitting account storage limits). Verification is build success only; hosting is **Pages**.
 
 ---
 
@@ -15,66 +33,36 @@ We ship **web builds first** (playable in browser and inside Capacitor later). N
 
 1. Branch from `main` (cloud agents: `cursor/<name>-ee24`).
 2. Open PR → **CI** runs `npm ci`, `typecheck`, `test`, `build`.
-3. Merge when green.
-
-No release is created on merge; only tagged versions release.
+3. Merge to `main` → **Pages** updates the public link within a few minutes.
 
 ---
 
-## Cutting a release
-
-Use [Semantic Versioning](https://semver.org/) tags on `main`:
+## Version tags (optional milestones)
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The **Release** workflow will:
+Creates a GitHub Release with auto-generated notes and an optional zip. The playable URL is the same Pages site (updated by that workflow).
 
-1. Build `dist/` with `npm run build`.
-2. Create a GitHub Release for that tag.
-3. Attach `defensegame-web-vX.Y.Z.zip` (contents of `dist/`).
-4. Deploy the same build to **GitHub Pages** (project site) when Pages is enabled for the repo.
-
-### Enable GitHub Pages (one-time)
-
-Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-
-After the first `v*` release, the playable URL is typically:
-
-`https://fred1878.github.io/DefenseGame/`
-
-(Vite `base` is set to `/DefenseGame/` in `vite.config.ts` for this path.)
+Update `package.json` `version` to match the tag when you cut releases.
 
 ---
 
-## Version bumps before tag
+## Vite base path
 
-Update `package.json` `version` to match the tag (manual or via `npm version patch`).
-
-Suggested cadence:
-
-- `v0.x.y` — active development, any main milestone (new night, town building, etc.).
-- `v1.0.0` — first public “complete loop” (town → night → persist → repeat).
+Production builds use base `/DefenseGame/` for GitHub Pages project sites. Dev uses `/`. Override with `VITE_BASE` if you change hosting.
 
 ---
 
 ## Future: mobile store builds
 
-Not automated yet. Planned steps:
-
-1. Add `@capacitor/android` and `@capacitor/ios`, `npx cap sync`.
-2. **Android:** store keystore + `KEYSTORE_*` secrets; GitHub Action builds AAB on tag (e.g. `v*` + `mobile` workflow).
-3. **iOS:** Apple signing via Fastlane + App Store Connect API key secrets (manual or CI on macOS runner).
-
-Keep web releases on every `v*` tag; add `release-mobile.yml` when signing credentials exist.
+Capacitor wraps the same web `dist/`. Store builds (signed APK/IPA) are a later workflow when signing secrets exist.
 
 ---
 
 ## Required checks for agents
-
-Before pushing or opening a PR:
 
 ```bash
 npm run typecheck && npm run test && npm run build

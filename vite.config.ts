@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => ({
   base: process.env.VITE_BASE ?? (mode === "production" ? "/DefenseGame/" : "/"),
   build: {
     outDir: "dist",
-    sourcemap: true,
+    sourcemap: mode !== "production",
   },
   server: {
     host: "127.0.0.1",
