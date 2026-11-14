@@ -9,7 +9,9 @@ import {
 import { applyDamage } from "../combat/DamageSystem";
 import { chasePlayer, spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import { Player } from "../entities/Player";
+import { configureSceneInput } from "../input/inputTuning";
 import { VirtualStick } from "../input/VirtualStick";
+import { createTouchCircleButton } from "../ui/touchButton";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -29,6 +31,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   create(): void {
+    configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
     this.wallHp = this.save.townWallHp;
     const store = this.registry.get("dataStore") as DataStore;
@@ -56,12 +59,20 @@ export class DefenseScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     const margin = 48;
-    this.stick = new VirtualStick(this, margin + 56, this.scale.height - margin - 56);
+    this.attackButton = createTouchCircleButton(
+      this,
+      this.scale.width - margin - 44,
+      this.scale.height - margin - 44,
+      "ATK",
+      44,
+      () => this.player.tryStartAttack(),
+      200,
+    );
 
-    this.attackButton = makeAttackButton(this, this.scale.width - margin - 44, this.scale.height - margin - 44, () => {
-      this.player.tryStartAttack();
+    this.stick = new VirtualStick(this, {
+      blockers: [this.attackButton],
+      excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 96 }],
     });
-    this.attackButton.setDepth(150);
 
     this.hudText = this.add
       .text(12, 12, "", {
@@ -139,7 +150,7 @@ export class DefenseScene extends Phaser.Scene {
         `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
         `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}`,
         `Enemies ${living}`,
-        this.player.attackPhaseNow !== "idle" ? `ATK: ${this.player.attackPhaseNow}` : "Tap ATK to swing",
+        this.player.attackPhaseNow !== "idle" ? `ATK: ${this.player.attackPhaseNow}` : "Drag to move · ATK to swing",
       ].join("\n"),
     );
 
@@ -215,23 +226,4 @@ export class DefenseScene extends Phaser.Scene {
     this.scene.stop();
     this.scene.start("Town");
   }
-}
-
-function makeAttackButton(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  onPress: () => void,
-): Phaser.GameObjects.Container {
-  const bg = scene.add.circle(0, 0, 44, 0xea580c, 1).setStrokeStyle(2, 0xfdba74);
-  const label = scene.add.text(0, 0, "ATK", { fontSize: "18px" }).setOrigin(0.5);
-  const container = scene.add.container(x, y, [bg, label]);
-  container.setScrollFactor(0).setDepth(150);
-  container.setSize(88, 88);
-  container.setInteractive(
-    new Phaser.Geom.Circle(0, 0, 44),
-    Phaser.Geom.Circle.Contains,
-  );
-  container.on("pointerdown", onPress);
-  return container;
 }
