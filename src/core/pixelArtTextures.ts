@@ -1,0 +1,25 @@
+import Phaser from "phaser";
+import {
+  GROUND_TILE_ASSETS,
+  GROUND_TILE_TEXTURE,
+  PLAYER_TEXTURE,
+} from "../config/assets";
+
+const GAME_SPRITE_KEYS = [
+  ...Object.values(PLAYER_TEXTURE),
+  "enemy_grunt",
+  "projectile",
+];
+
+/** Nearest-neighbor sampling for world sprites/tiles; UI stays vector (Graphics/Text). */
+export function configurePixelArtTextures(scene: Phaser.Scene): void {
+  const keys = [
+    ...GAME_SPRITE_KEYS,
+    GROUND_TILE_TEXTURE,
+    ...GROUND_TILE_ASSETS.map((a) => a.key),
+  ];
+  for (const key of keys) {
+    if (!scene.textures.exists(key)) continue;
+    scene.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+  }
+}

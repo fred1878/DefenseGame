@@ -49,12 +49,14 @@ import { TargetIndicator } from "../ui/TargetIndicator";
 import { buildGroundLayer } from "../world/buildGroundLayer";
 import {
   cameraWorldPoint,
+  combatChromeLayout,
   debugButtonPosition,
   hudBandHeight,
   hudTextPosition,
   readSafeInsets,
   type SafeInsets,
 } from "../ui/screenLayout";
+import { scaleUiX } from "../core/displayScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
 
 export class DefenseScene extends Phaser.Scene {
@@ -122,27 +124,25 @@ export class DefenseScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     this.safe = readSafeInsets();
-    const margin = 48;
-    const btnY = this.scale.height - margin - this.safe.bottom - 44;
-    const atkX = this.scale.width - margin - this.safe.right - 44;
+    const chrome = combatChromeLayout(this, this.safe);
 
     this.attackButton = createTouchCircleButton(
       this,
-      atkX,
-      btnY,
+      chrome.atkX,
+      chrome.btnY,
       "ATK",
-      44,
+      chrome.atkRadius,
       () => this.manualAttack(),
       200,
     );
 
     this.modeToggle = createTouchToggleButton(
       this,
-      atkX - 100,
-      btnY,
+      chrome.atkX - chrome.modeOffsetX,
+      chrome.btnY,
       "MEL",
-      72,
-      40,
+      chrome.toggleW,
+      chrome.toggleH,
       () => {
         const mode = this.player.toggleAttackMode();
         this.refreshModeToggle(mode);
@@ -152,11 +152,11 @@ export class DefenseScene extends Phaser.Scene {
 
     this.autoToggle = createTouchToggleButton(
       this,
-      atkX,
-      btnY - 96,
+      chrome.atkX,
+      chrome.btnY - chrome.autoOffsetY,
       "AUTO",
-      72,
-      40,
+      chrome.toggleW,
+      chrome.toggleH,
       () => {
         this.autoAttackEnabled = !this.autoAttackEnabled;
         this.refreshAutoToggle();
@@ -181,23 +181,17 @@ export class DefenseScene extends Phaser.Scene {
     ];
 
     const w = this.scale.width;
-    const h = this.scale.height;
-    const hudBand = hudBandHeight(this.safe.top);
     const spellRect = this.spellBar.getScreenRect();
     this.stick = new VirtualStick(this, {
       blockers: this.uiBlockers,
-      excludeZones: [{ x: 0, y: 0, width: w, height: hudBand }],
+      excludeZones: [{ x: 0, y: 0, width: w, height: chrome.hudBand }],
       uiScreenRects: [
-        { x: 0, y: 0, width: w, height: hudBand },
-        {
-          x: w - 230,
-          y: h - 270 - this.safe.bottom,
-          width: 230,
-          height: 270 + this.safe.bottom,
-        },
+        { x: 0, y: 0, width: w, height: chrome.hudBand },
+        chrome.rightCluster,
         spellRect,
       ],
-      dragThresholdPx: 18,
+      dragThresholdPx: chrome.stickDragThreshold,
+      radius: chrome.stickRadius,
     });
 
     this.targetIndicator = new TargetIndicator(this);
@@ -208,8 +202,9 @@ export class DefenseScene extends Phaser.Scene {
     const hudPos = hudTextPosition(this.safe);
     this.hudText = this.add
       .text(hudPos.x, hudPos.y, "", {
-        fontSize: "16px",
+        fontSize: `${scaleUiX(16)}px`,
         color: "#fafafa",
+        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
       })
       .setScrollFactor(0)
       .setDepth(200);
@@ -222,10 +217,10 @@ export class DefenseScene extends Phaser.Scene {
       "Debug",
       () => this.openDebugMenu(),
       {
-        width: 88,
-        height: 36,
+        width: scaleUiX(88),
+        height: scaleUiX(36),
         depth: 200,
-        fontSize: "14px",
+        fontSize: `${scaleUiX(14)}px`,
         fillColor: 0x3f3f46,
         strokeColor: 0xa1a1aa,
       },

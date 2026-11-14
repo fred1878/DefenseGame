@@ -1,17 +1,19 @@
+import { scaleUiX, scaleUiY } from "../core/displayScale";
+
 export const SPELL_BAR = {
   slotCount: 3,
-  slotSizePx: 56,
-  slotGapPx: 10,
-  bottomInsetPx: 268,
-  tapPaddingPx: 6,
-  cooldownRingWidthPx: 3,
-  fontSize: "12px",
+  slotSizePx: scaleUiX(56),
+  slotGapPx: scaleUiX(10),
+  bottomInsetPx: scaleUiY(268),
+  tapPaddingPx: scaleUiX(6),
+  cooldownRingWidthPx: scaleUiX(3),
+  fontSize: `${scaleUiX(12)}px`,
 } as const;
 
 export const CAST_BAR = {
-  width: 48,
-  height: 6,
-  offsetY: 26,
+  width: scaleUiX(48),
+  height: scaleUiY(6),
+  offsetY: scaleUiY(26),
   fillColor: 0xfef9c3,
   fillAlpha: 0.95,
   bgColor: 0x3f3f46,

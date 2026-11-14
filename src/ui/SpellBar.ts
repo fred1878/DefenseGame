@@ -4,6 +4,7 @@ import {
   spellById,
   type SpellId,
 } from "../config";
+import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
 import { createTouchButton } from "./touchButton";
 import { readSafeInsets } from "./screenLayout";
@@ -75,8 +76,14 @@ export class SpellBar {
   getScreenRect(): { x: number; y: number; width: number; height: number } {
     const h = this.scene.scale.height;
     const safeBottom = readSafeInsets().bottom;
-    const top = h - SPELL_BAR.bottomInsetPx - safeBottom - SPELL_BAR.slotSizePx / 2 - 24;
-    return { x: 0, y: Math.max(0, top), width: this.scene.scale.width, height: 120 };
+    const top =
+      h - SPELL_BAR.bottomInsetPx - safeBottom - SPELL_BAR.slotSizePx / 2 - scaleUiY(24);
+    return {
+      x: 0,
+      y: Math.max(0, top),
+      width: this.scene.scale.width,
+      height: scaleUiY(120),
+    };
   }
 
   refreshCooldownOverlays(): void {

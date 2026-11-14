@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { clampRenderResolution, scaleUiX } from "../core/displayScale";
 
 export type TouchButtonRectOptions = {
   width: number;
@@ -9,6 +10,8 @@ export type TouchButtonRectOptions = {
   fontSize?: string;
   fillColor?: number;
   strokeColor?: number;
+  /** Use `pointerup` for actions that require it (e.g. Fullscreen API). */
+  activateOn?: "pointerdown" | "pointerup";
 };
 
 export type TouchButtonHandle = {
@@ -21,6 +24,12 @@ type PressVisual = {
   colors?: { rest: number; pressed: number };
   pressScale?: number;
 };
+
+const STROKE_PX = Math.max(2, scaleUiX(2));
+
+function textResolution(scene: Phaser.Scene): number {
+  return (scene.registry.get("renderResolution") as number | undefined) ?? clampRenderResolution();
+}
 
 function addPressFeedback(
   scene: Phaser.Scene,
@@ -74,6 +83,7 @@ function bindPress(
   obj: Phaser.GameObjects.GameObject,
   onPress: () => void,
   pressVisual?: PressVisual,
+  activateOn: "pointerdown" | "pointerup" = "pointerdown",
 ): void {
   const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
   if (go.input) go.input.alwaysEnabled = true;
@@ -83,7 +93,7 @@ function bindPress(
   }
 
   obj.on(
-    "pointerdown",
+    activateOn,
     (
       _pointer: Phaser.Input.Pointer,
       _lx: number,
@@ -109,18 +119,24 @@ export function createTouchButton(
 ): TouchButtonHandle {
   const depth = options.depth ?? 100;
   const sf = options.scrollFactor ?? 0;
-  const pad = options.tapPadding ?? 16;
+  const pad = options.tapPadding ?? scaleUiX(16);
   const hitW = options.width + pad * 2;
   const hitH = options.height + pad * 2;
-  const fontSize = options.fontSize ?? "20px";
+  const fontSize = options.fontSize ?? `${scaleUiX(20)}px`;
   const fill = options.fillColor ?? 0x3b82f6;
   const stroke = options.strokeColor ?? 0x60a5fa;
+  const activateOn = options.activateOn ?? "pointerdown";
 
-  const container = scene.add.container(x, y).setDepth(depth).setScrollFactor(sf);
+  const container = scene.add
+    .container(Math.round(x), Math.round(y))
+    .setDepth(depth)
+    .setScrollFactor(sf);
   const bg = scene.add
     .rectangle(0, 0, options.width, options.height, fill, 1)
-    .setStrokeStyle(2, stroke);
-  const text = scene.add.text(0, 0, label, { fontSize }).setOrigin(0.5);
+    .setStrokeStyle(STROKE_PX, stroke);
+  const text = scene.add
+    .text(0, 0, label, { fontSize, resolution: textResolution(scene) })
+    .setOrigin(0.5);
   container.add([bg, text]);
 
   container.setSize(hitW, hitH);
@@ -129,7 +145,7 @@ export function createTouchButton(
     Phaser.Geom.Rectangle.Contains,
   );
   const colors = { rest: fill, pressed: darkenColor(fill, 0.72) };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88 });
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88 }, activateOn);
 
   return {
     container,
@@ -147,15 +163,23 @@ export function createTouchToggleButton(
   onPress: () => void,
   depth = 200,
 ): { container: Phaser.GameObjects.Container; setLabel: (text: string) => void; setOn: (on: boolean) => void } {
-  const pad = 12;
+  const pad = scaleUiX(12);
   const hitW = width + pad * 2;
   const hitH = height + pad * 2;
 
-  const container = scene.add.container(x, y).setDepth(depth).setScrollFactor(0);
+  const container = scene.add
+    .container(Math.round(x), Math.round(y))
+    .setDepth(depth)
+    .setScrollFactor(0);
   const bg = scene.add
     .rectangle(0, 0, width, height, 0x3f3f46, 1)
-    .setStrokeStyle(2, 0x71717a);
-  const text = scene.add.text(0, 0, initialLabel, { fontSize: "14px" }).setOrigin(0.5);
+    .setStrokeStyle(STROKE_PX, 0x71717a);
+  const text = scene.add
+    .text(0, 0, initialLabel, {
+      fontSize: `${scaleUiX(14)}px`,
+      resolution: textResolution(scene),
+    })
+    .setOrigin(0.5);
   container.add([bg, text]);
 
   container.setSize(hitW, hitH);
@@ -173,7 +197,7 @@ export function createTouchToggleButton(
       colors.rest = on ? 0x15803d : 0x3f3f46;
       colors.pressed = darkenColor(colors.rest, 0.75);
       bg.setFillStyle(colors.rest, 1);
-      bg.setStrokeStyle(2, on ? 0x4ade80 : 0x71717a);
+      bg.setStrokeStyle(STROKE_PX, on ? 0x4ade80 : 0x71717a);
     },
   };
 }
@@ -187,11 +211,21 @@ export function createTouchCircleButton(
   onPress: () => void,
   depth = 150,
 ): Phaser.GameObjects.Container {
-  const pad = 16;
+  const pad = scaleUiX(16);
   const hitR = radius + pad;
-  const container = scene.add.container(x, y).setDepth(depth).setScrollFactor(0);
-  const bg = scene.add.circle(0, 0, radius, 0xea580c, 1).setStrokeStyle(2, 0xfdba74);
-  const text = scene.add.text(0, 0, label, { fontSize: "18px" }).setOrigin(0.5);
+  const container = scene.add
+    .container(Math.round(x), Math.round(y))
+    .setDepth(depth)
+    .setScrollFactor(0);
+  const bg = scene.add
+    .circle(0, 0, radius, 0xea580c, 1)
+    .setStrokeStyle(STROKE_PX, 0xfdba74);
+  const text = scene.add
+    .text(0, 0, label, {
+      fontSize: `${scaleUiX(18)}px`,
+      resolution: textResolution(scene),
+    })
+    .setOrigin(0.5);
   container.add([bg, text]);
 
   container.setSize(hitR * 2, hitR * 2);

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { scaleUiX, scaleUiY } from "../core/displayScale";
 
 export type SafeInsets = {
   top: number;
@@ -7,7 +8,9 @@ export type SafeInsets = {
   left: number;
 };
 
-const HUD_SIDE = 12;
+export type ScreenRect = { x: number; y: number; width: number; height: number };
+
+const HUD_SIDE = scaleUiX(12);
 
 /** Read CSS env(safe-area-inset-*) in pixels (0 when unsupported). */
 export function readSafeInsets(): SafeInsets {
@@ -39,7 +42,7 @@ export function readSafeInsets(): SafeInsets {
 
 /** Top HUD band height (text lines + debug clearance on small screens). */
 export function hudBandHeight(safeTop = 0): number {
-  return 112 + safeTop;
+  return scaleUiY(112) + safeTop;
 }
 
 export function hudTextPosition(safe: SafeInsets): { x: number; y: number } {
@@ -51,11 +54,70 @@ export function debugButtonPosition(
   scene: Phaser.Scene,
   safe: SafeInsets,
 ): { x: number; y: number } {
-  const margin = 12;
+  const margin = scaleUiX(12);
   return {
-    x: margin + safe.left + 44,
-    y: scene.scale.height - margin - safe.bottom - 22,
+    x: margin + safe.left + scaleUiX(44),
+    y: scene.scale.height - margin - safe.bottom - scaleUiY(22),
   };
+}
+
+export type CombatChromeLayout = {
+  margin: number;
+  atkX: number;
+  btnY: number;
+  atkRadius: number;
+  modeOffsetX: number;
+  toggleW: number;
+  toggleH: number;
+  autoOffsetY: number;
+  hudBand: number;
+  stickRadius: number;
+  stickDragThreshold: number;
+  rightCluster: ScreenRect;
+};
+
+export function combatChromeLayout(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): CombatChromeLayout {
+  const margin = scaleUiX(48);
+  const atkRadius = scaleUiX(44);
+  const btnY = scene.scale.height - margin - safe.bottom - atkRadius;
+  const atkX = scene.scale.width - margin - safe.right - atkRadius;
+  const hudBand = hudBandHeight(safe.top);
+  const w = scene.scale.width;
+  const h = scene.scale.height;
+  const clusterW = scaleUiX(230);
+  const clusterH = scaleUiY(270);
+  return {
+    margin,
+    atkX,
+    btnY,
+    atkRadius,
+    modeOffsetX: scaleUiX(100),
+    toggleW: scaleUiX(72),
+    toggleH: scaleUiY(40),
+    autoOffsetY: scaleUiY(96),
+    hudBand,
+    stickRadius: scaleUiX(56),
+    stickDragThreshold: scaleUiX(18),
+    rightCluster: {
+      x: w - clusterW,
+      y: h - clusterH - safe.bottom,
+      width: clusterW,
+      height: clusterH + safe.bottom,
+    },
+  };
+}
+
+/** Town primary actions stacked from the bottom (0 = start night). */
+export function townActionButtonY(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+  fromBottomIndex: 0 | 1 | 2,
+): number {
+  const bases: Record<0 | 1 | 2, number> = { 0: 120, 1: 210, 2: 290 };
+  return scene.scale.height - safe.bottom - scaleUiY(bases[fromBottomIndex]);
 }
 
 /** Align Phaser FIT parent with the visible viewport (mobile URL bar / dynamic island). */
@@ -64,6 +126,7 @@ export function bindViewportToScale(game: Phaser.Game): () => void {
     const w = window.visualViewport?.width ?? window.innerWidth;
     const h = window.visualViewport?.height ?? window.innerHeight;
     game.scale.setParentSize(w, h);
+    game.scale.updateBounds();
   };
   apply();
   window.addEventListener("resize", apply);

@@ -11,7 +11,16 @@ import { showTouchInput } from "../debug/DebugState";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import { createTouchButton } from "../ui/touchButton";
-import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
+import {
+  debugButtonPosition,
+  readSafeInsets,
+  townActionButtonY,
+} from "../ui/screenLayout";
+import { scaleUiX, scaleUiY } from "../core/displayScale";
+import {
+  fullscreenButtonLabel,
+  toggleFullscreen,
+} from "../ui/fullscreen";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -33,19 +42,22 @@ export class TownScene extends Phaser.Scene {
       .rectangle(0, 0, GAME.width, GAME.height, 0x1a1c24)
       .setOrigin(0);
 
+    const titleY = scaleUiY(72);
     this.add
-      .text(GAME.width / 2, 72, "Town — Day", {
-        fontSize: "28px",
+      .text(GAME.width / 2, titleY, "Town — Day", {
+        fontSize: `${scaleUiX(28)}px`,
         color: "#f4f4f5",
+        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
       })
       .setOrigin(0.5);
 
     this.statusText = this.add
-      .text(GAME.width / 2, 140, "", {
-        fontSize: "18px",
+      .text(GAME.width / 2, scaleUiY(140), "", {
+        fontSize: `${scaleUiX(18)}px`,
         color: "#a1a1aa",
         align: "center",
-        wordWrap: { width: GAME.width - 48 },
+        wordWrap: { width: GAME.width - scaleUiX(48) },
+        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
       })
       .setOrigin(0.5, 0);
 
@@ -60,42 +72,77 @@ export class TownScene extends Phaser.Scene {
       "Debug",
       () => this.scene.launch("DebugMenu"),
       {
-        width: 88,
-        height: 36,
+        width: scaleUiX(88),
+        height: scaleUiX(36),
         depth: 200,
-        fontSize: "14px",
+        fontSize: `${scaleUiX(14)}px`,
         fillColor: 0x3f3f46,
         strokeColor: 0xa1a1aa,
       },
     );
 
+    const fsLabel = fullscreenButtonLabel(this.scale);
+    createTouchButton(
+      this,
+      scaleUiX(94) + safe.left,
+      scaleUiY(44) + safe.top,
+      fsLabel,
+      () => toggleFullscreen(this.scale),
+      {
+        width: scaleUiX(168),
+        height: scaleUiX(36),
+        depth: 200,
+        fontSize: `${scaleUiX(13)}px`,
+        fillColor: 0x1e3a5f,
+        strokeColor: 0x60a5fa,
+        activateOn: "pointerup",
+      },
+    );
+
     this.resetButton = createTouchButton(
       this,
-      GAME.width - 70,
-      44,
+      GAME.width - scaleUiX(70) - safe.right,
+      scaleUiY(44) + safe.top,
       "Reset save",
       () => this.onResetTap(),
       {
-        width: 118,
-        height: 36,
+        width: scaleUiX(118),
+        height: scaleUiX(36),
         depth: 200,
-        fontSize: "14px",
+        fontSize: `${scaleUiX(14)}px`,
         fillColor: 0x7f1d1d,
         strokeColor: 0xf87171,
       },
     );
 
-    createTouchButton(this, GAME.width / 2, GAME.height - 120, "Start night", () => {
-      this.scene.start("Defense");
-    }, { width: 260, height: 48, depth: 200 });
+    const btnW = scaleUiX(260);
+    const btnH = scaleUiY(48);
+    createTouchButton(
+      this,
+      GAME.width / 2,
+      townActionButtonY(this, safe, 0),
+      "Start night",
+      () => this.scene.start("Defense"),
+      { width: btnW, height: btnH, depth: 200 },
+    );
 
-    createTouchButton(this, GAME.width / 2, GAME.height - 210, "Upgrade wall", () => {
-      this.tryUpgrade(store, "wall");
-    }, { width: 260, height: 48, depth: 200 });
+    createTouchButton(
+      this,
+      GAME.width / 2,
+      townActionButtonY(this, safe, 1),
+      "Upgrade wall",
+      () => this.tryUpgrade(store, "wall"),
+      { width: btnW, height: btnH, depth: 200 },
+    );
 
-    createTouchButton(this, GAME.width / 2, GAME.height - 290, "Upgrade blacksmith", () => {
-      this.tryUpgrade(store, "blacksmith");
-    }, { width: 260, height: 48, depth: 200 });
+    createTouchButton(
+      this,
+      GAME.width / 2,
+      townActionButtonY(this, safe, 2),
+      "Upgrade blacksmith",
+      () => this.tryUpgrade(store, "blacksmith"),
+      { width: btnW, height: btnH, depth: 200 },
+    );
 
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on("shutdown", () => this.touchDebug.destroy());

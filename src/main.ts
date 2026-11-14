@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "./config";
+import { clampRenderResolution } from "./core/displayScale";
 import { ensureFreshBuild } from "./ensureFreshBuild";
 import { bindViewportToScale } from "./ui/screenLayout";
 import { BootScene } from "./scenes/BootScene";
@@ -25,6 +26,14 @@ const config: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+    autoRound: true,
+    expandParent: true,
+    width: GAME.width,
+    height: GAME.height,
+  },
+  render: {
+    roundPixels: true,
+    antialias: true,
   },
   input: {
     activePointers: 2,
@@ -35,6 +44,7 @@ const config: Phaser.Types.Core.GameConfig = {
 async function start(): Promise<void> {
   await ensureFreshBuild();
   const game = new Phaser.Game(config);
+  game.registry.set("renderResolution", clampRenderResolution());
   bindViewportToScale(game);
 }
 
