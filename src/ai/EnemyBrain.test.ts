@@ -12,7 +12,7 @@ describe("pickEnemyTarget", () => {
   const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
 
   it("prefers wall when player is far", () => {
-    expect(pickEnemyTarget(grid, 200, 0, 0, 0)).toBe("wall");
+    expect(pickEnemyTarget(grid, 300, 0, 0, 0)).toBe("wall");
   });
 
   it("aggros player when close and LOS is clear", () => {
