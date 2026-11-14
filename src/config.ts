@@ -20,6 +20,8 @@ export const PLAYER_TUNING = {
   rangedDamage: 12,
   rangedMaxRange: 340,
   projectileSpeed: 420,
+  meleeKnockback: 320,
+  rangedKnockback: 110,
   maxHp: 100,
   autoAttackMeleeRange: 52,
   autoAttackRangedRange: 300,
@@ -31,8 +33,14 @@ export const PLAYER_TUNING = {
 export const ENEMY_TUNING = {
   gruntHp: 30,
   gruntSpeed: 85,
-  touchDamage: 8,
-  touchCooldownMs: 600,
+  attackDamage: 8,
+  attackTriggerRange: 36,
+  attackRange: 26,
+  attackArcDeg: 70,
+  attackWindupMs: 380,
+  attackActiveMs: 110,
+  attackRecoveryMs: 480,
+  attackCooldownMs: 350,
 } as const;
 
 export type SaveGame = {
