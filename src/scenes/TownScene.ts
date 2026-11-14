@@ -47,6 +47,22 @@ export class TownScene extends Phaser.Scene {
 
     this.refreshStatus(store);
 
+    createTouchButton(
+      this,
+      58,
+      44,
+      "Debug",
+      () => this.scene.launch("DebugMenu"),
+      {
+        width: 88,
+        height: 36,
+        depth: 200,
+        fontSize: "14px",
+        fillColor: 0x3f3f46,
+        strokeColor: 0xa1a1aa,
+      },
+    );
+
     this.resetButton = createTouchButton(
       this,
       GAME.width - 70,

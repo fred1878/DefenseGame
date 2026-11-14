@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
 import { DataStore } from "../core/DataStore";
+import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
 
 export class BootScene extends Phaser.Scene {
@@ -26,6 +27,7 @@ export class BootScene extends Phaser.Scene {
       console.error(err);
       return;
     }
+    getDebugFlags(this.registry);
     const save = loadSave();
     persistSave(save);
     this.registry.set("dataStore", store);

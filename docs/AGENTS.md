@@ -33,10 +33,11 @@ src/
   config.ts            # Dimensions + tuning constants
   core/                # GameState, DataStore, EventBus
   input/               # VirtualStick, ActionButtons
-  combat/              # Hitbox, DamageSystem, CombatEntity
-  entities/            # Player, Enemy, Projectile
+  combat/              # Hitbox, DamageSystem, Knockback
+  debug/               # DebugState registry flags, HitboxDebugDraw
+  entities/            # Player, Enemy, EnemyCombat, Projectile
   ai/                  # EnemyBrain + behavior modules
-  scenes/              # Boot, Town, Defense
+  scenes/              # Boot, Town, Defense, DebugMenu
   systems/             # WaveSpawner, TownBuildings
   ui/                  # HUD + building panels
 public/data/           # JSON content (fetched at runtime)
@@ -167,7 +168,9 @@ npm run preview      # serve dist locally
 2. **Content vs code:** new enemy = row in `enemies.json` + behavior if needed, not a new scene.
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** touch buttons scale on press; **Town → Reset save** (tap twice) calls `resetSaveAndReload()` — clears `localStorage` and reloads with `?fresh=` (no hard refresh needed).
-5. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
+5. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`; **Hitboxes: ON** sets `registry` `debugFlags.showHitboxes`. `DefenseScene` redraws player/enemy melee arcs and projectile circles via `HitboxDebugDraw`.
+6. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
+7. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ---
 

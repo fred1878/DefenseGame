@@ -1,10 +1,12 @@
 import Phaser from "phaser";
 import type { Damageable } from "../combat/DamageSystem";
+import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 
 export type EnemyInstance = {
   id: string;
   sprite: Phaser.Physics.Arcade.Sprite;
   damageable: Damageable;
+  combat: EnemyCombatState;
 };
 
 export function spawnEnemy(
@@ -45,7 +47,7 @@ export function spawnEnemy(
     team: "enemy",
     onDeath,
   };
-  return { id, sprite, damageable };
+  return { id, sprite, damageable, combat: createEnemyCombat() };
 }
 
 export function chasePlayer(
@@ -55,7 +57,12 @@ export function chasePlayer(
   speed: number,
 ): void {
   if (!enemy.damageable.alive) return;
+  if (enemy.combat.phase === "windup" || enemy.combat.phase === "recovery") {
+    enemy.sprite.setVelocity(0, 0);
+    return;
+  }
+  const chaseScale = enemy.combat.phase === "active" ? 0.4 : 1;
   const sprite = enemy.sprite;
   const angle = Math.atan2(playerY - sprite.y, playerX - sprite.x);
-  sprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+  sprite.setVelocity(Math.cos(angle) * speed * chaseScale, Math.sin(angle) * speed * chaseScale);
 }
