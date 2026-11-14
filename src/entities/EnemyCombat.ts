@@ -27,20 +27,39 @@ export function createEnemyCombat(): EnemyCombatState {
   };
 }
 
+export type EnemyAttackTarget =
+  | {
+      kind: "player";
+      x: number;
+      y: number;
+      radius: number;
+      damageable: Damageable;
+    }
+  | {
+      kind: "wall";
+      x: number;
+      y: number;
+    };
+
 export function updateEnemyCombat(
   enemy: EnemyInstance,
-  player: { x: number; y: number; radius: number; damageable: Damageable },
+  target: EnemyAttackTarget,
   deltaMs: number,
+  onWallHit?: () => void,
 ): boolean {
   const c = enemy.combat;
   if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
 
-  const dx = player.x - enemy.sprite.x;
-  const dy = player.y - enemy.sprite.y;
+  const dx = target.x - enemy.sprite.x;
+  const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
   c.facing = Math.atan2(dy, dx);
 
-  const inRange = dist <= ENEMY_TUNING.attackTriggerRange;
+  const triggerRange =
+    target.kind === "wall"
+      ? ENEMY_TUNING.wallAttackTriggerRange
+      : ENEMY_TUNING.attackTriggerRange;
+  const inRange = dist <= triggerRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
     c.phase = "windup";
@@ -68,26 +87,31 @@ export function updateEnemyCombat(
     c.cooldownMs = ENEMY_TUNING.attackCooldownMs;
   }
 
-  if (
-    c.phase === "active" &&
-    !c.hitThisSwing &&
-    player.damageable.alive
-  ) {
-    const arcHalf = Phaser.Math.DegToRad(ENEMY_TUNING.attackArcDeg / 2);
-    const hit = arcHitboxHitsTarget(
-      enemy.sprite.x,
-      enemy.sprite.y,
-      c.facing,
-      ENEMY_TUNING.attackRange,
-      arcHalf,
-      player.x,
-      player.y,
-      player.radius,
-    );
-    if (hit) {
+  if (c.phase === "active" && !c.hitThisSwing) {
+    if (target.kind === "player" && target.damageable.alive) {
+      const arcHalf = Phaser.Math.DegToRad(ENEMY_TUNING.attackArcDeg / 2);
+      const hit = arcHitboxHitsTarget(
+        enemy.sprite.x,
+        enemy.sprite.y,
+        c.facing,
+        ENEMY_TUNING.attackRange,
+        arcHalf,
+        target.x,
+        target.y,
+        target.radius,
+      );
+      if (hit) {
+        c.hitThisSwing = true;
+        return true;
+      }
+    } else if (target.kind === "wall" && dist <= ENEMY_TUNING.wallAttackRange) {
       c.hitThisSwing = true;
-      return true;
+      onWallHit?.();
     }
+  }
+
+  if (enemyIsAttacking(c) && (c.phase === "windup" || c.phase === "recovery")) {
+    enemy.sprite.setVelocity(0, 0);
   }
 
   return false;

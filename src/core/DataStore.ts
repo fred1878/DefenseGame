@@ -42,7 +42,16 @@ export class DataStore {
   }
 
   getWaveForNight(night: number): WaveDef | undefined {
-    return this.waves[String(night)];
+    const direct = this.waves[String(night)];
+    if (direct) return direct;
+    let best: number | null = null;
+    for (const key of Object.keys(this.waves)) {
+      const n = Number(key);
+      if (!Number.isFinite(n)) continue;
+      if (n <= night && (best === null || n > best)) best = n;
+    }
+    if (best !== null) return this.waves[String(best)];
+    return this.waves["1"];
   }
 }
 

@@ -8,7 +8,13 @@ export {
   type PlayerCardinal,
 } from "./assets";
 export { PLAYER_TUNING, type AttackMode } from "./player";
-export { ENEMY_TUNING } from "./enemy";
+export { ENEMY_TUNING, PLAYER_AGGRO_RADIUS } from "./enemy";
+export {
+  DEFENSE_MAP,
+  DEFENSE_OBSTACLES,
+  westWallAttackX,
+  type DefenseObstacleRect,
+} from "./defense";
 export {
   CAST_BAR,
   SPELL_BAR,

@@ -36,7 +36,8 @@ src/
   combat/              # Hitbox, DamageSystem, Knockback, SpellCastController, SpellEffects
   debug/               # DebugState registry flags, HitboxDebugDraw
   entities/            # Player, Enemy, EnemyCombat, Projectile
-  ai/                  # EnemyBrain + behavior modules
+  ai/                  # EnemyBrain (wall rush + player aggro)
+  pathfinding/         # Nav grid, A*, line-of-sight
   scenes/              # Boot, Town, Defense, DebugMenu
   systems/             # WaveSpawner, TownBuildings
   ui/                  # SpellBar, CastBar, touch buttons, HUD
@@ -145,7 +146,7 @@ Until step 2 feels good on a phone-sized viewport, avoid town art and skill tree
 - **Movement:** Arcade physics body on player/enemies; attack uses **custom hitboxes**, not physics overlap alone.
 - **Player attack:** state machine `idle → windup → active → recovery`; damage only in `active` frames.
 - **Pooling:** enemies and projectiles use pools before scaling waves.
-- **Defense objective:** `townWallHp` — enemies may target wall when player is far (see `ai/behaviors/`).
+- **Defense objective:** `townWallHp` — west wall segment; grunts path with A* unless player has LOS within `PLAYER_AGGRO_RADIUS` (`src/config/enemy.ts`).
 
 ---
 
@@ -169,10 +170,11 @@ npm run preview      # serve dist locally
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** touch buttons scale on press; **Town → Reset save** (tap twice) calls `resetSaveAndReload()` — clears `localStorage` and reloads with `?fresh=` (no hard refresh needed).
 5. **Config:** tuning lives under `src/config/` (`game`, `player`, `enemy`, `spells`, `save`); `src/config.ts` re-exports for existing imports. Spell bar: `config/spells.ts` + `save.spellBar.slots`.
-6. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`. Toggles live in registry `debugFlags`: **Hitboxes: ON** (`showHitboxes`) — `DefenseScene` redraws combat arcs via `HitboxDebugDraw`. **Touch input: ON** (`showTouchInput`) — on-canvas overlay via `TouchInputDebugDraw`: finger crosshairs (Phaser pointer coords / FIT scale), virtual-stick base/knob/dead zone, HUD exclusion rects, and tap-to-focus pick radius flash in Defense.
-7. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
-8. **Spells:** Defense HUD spell row (`SpellBar`); **Nova** instant AoE, **Fireball** / **Heal** channeled. Channeling zeroes movement; stick input interrupts. Whitish-yellow `CastBar` under the player shows channel progress.
-9. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
+6. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`. Toggles live in registry `debugFlags`: **Hitboxes: ON** (`showHitboxes`) — `DefenseScene` redraws combat arcs via `HitboxDebugDraw`. **Touch input: ON** (`showTouchInput`) — on-canvas overlay via `TouchInputDebugDraw`: finger crosshairs (Phaser pointer coords / FIT scale), virtual-stick base/knob/dead zone, HUD exclusion rects, and tap-to-focus pick radius flash in Defense. **Enemy paths: ON** (`showEnemyPaths`) — planned A* polylines and chase/wall targets via `PathDebugDraw`.
+7. **Waves:** nights `1`–`10` in `public/data/waves.json`; table in [WAVES.md](./WAVES.md).
+8. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
+9. **Spells:** Defense HUD spell row (`SpellBar`); **Nova** instant AoE, **Fireball** / **Heal** channeled. Channeling zeroes movement; stick input interrupts. Whitish-yellow `CastBar` under the player shows channel progress.
+10. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ### Display / mobile sharpness (`main.ts`, `src/ui/screenLayout.ts`)
 
