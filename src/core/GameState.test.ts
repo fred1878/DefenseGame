@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SPELL_BAR } from "../config";
 import {
   applyNightResult,
   createNewSave,
@@ -12,6 +13,7 @@ describe("GameState", () => {
     expect(save.night).toBe(1);
     expect(save.townWallHp).toBe(save.townWallHpMax);
     expect(save.player.hp).toBe(save.player.hpMax);
+    expect(save.spellBar.slots).toHaveLength(SPELL_BAR.slotCount);
   });
 
   it("applies a won night", () => {

@@ -2,6 +2,7 @@ import {
   ENEMY_TUNING,
   PLAYER_TUNING,
   SAVE_VERSION,
+  createDefaultSpellBarSlots,
   type NightResult,
   type SaveGame,
 } from "../config";
@@ -22,6 +23,7 @@ export function createNewSave(): SaveGame {
       weaponId: "sword",
       moveSpeed: PLAYER_TUNING.moveSpeed,
     },
+    spellBar: { slots: createDefaultSpellBarSlots() },
     flags: [],
   };
 }
@@ -43,12 +45,18 @@ export function loadSave(): SaveGame {
   }
 }
 
-function migrateSave(save: SaveGame): SaveGame {
+function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): SaveGame {
+  const base = createNewSave();
+  const slots =
+    save.spellBar?.slots?.length === base.spellBar.slots.length
+      ? save.spellBar.slots
+      : base.spellBar.slots;
   return {
-    ...createNewSave(),
+    ...base,
     ...save,
-    player: { ...createNewSave().player, ...save.player },
-    buildings: { ...createNewSave().buildings, ...save.buildings },
+    player: { ...base.player, ...save.player },
+    buildings: { ...base.buildings, ...save.buildings },
+    spellBar: { slots },
   };
 }
 
