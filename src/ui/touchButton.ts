@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { clampRenderResolution, scaleUiX } from "../core/displayScale";
+import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../input/inputTuning";
+import { releaseOnSameButton } from "./touchButtonGesture";
 
 export type TouchButtonRectOptions = {
   width: number;
@@ -31,44 +33,77 @@ function textResolution(scene: Phaser.Scene): number {
   return (scene.registry.get("renderResolution") as number | undefined) ?? clampRenderResolution();
 }
 
-function addPressFeedback(
+function pressVisualDown(
   scene: Phaser.Scene,
   container: Phaser.GameObjects.Container,
-  visual?: PressVisual,
+  visual: PressVisual | undefined,
 ): void {
   const pressScale = visual?.pressScale ?? 0.9;
+  scene.tweens.killTweensOf(container);
+  scene.tweens.add({
+    targets: container,
+    scaleX: pressScale,
+    scaleY: pressScale,
+    duration: 50,
+    ease: "Quad.easeOut",
+  });
+  if (visual?.bg && visual.colors) {
+    visual.bg.setFillStyle(visual.colors.pressed, 1);
+  }
+}
 
-  const bounceBack = () => {
-    if (visual?.bg && visual.colors) {
-      visual.bg.setFillStyle(visual.colors.rest, 1);
-    }
-    scene.tweens.add({
-      targets: container,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 110,
-      ease: "Back.easeOut",
-    });
+function pressVisualUp(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  visual: PressVisual | undefined,
+): void {
+  if (visual?.bg && visual.colors) {
+    visual.bg.setFillStyle(visual.colors.rest, 1);
+  }
+  scene.tweens.add({
+    targets: container,
+    scaleX: 1,
+    scaleY: 1,
+    duration: 110,
+    ease: "Back.easeOut",
+  });
+}
+
+function pointerHitsGameObject(
+  scene: Phaser.Scene,
+  obj: Phaser.GameObjects.GameObject,
+  pointer: Phaser.Input.Pointer,
+  slopPx: number,
+): boolean {
+  const hits = scene.input.hitTestPointer(pointer);
+  for (const hit of hits) {
+    if (isSameOrDescendant(hit as Phaser.GameObjects.GameObject, obj)) return true;
+  }
+  const go = obj as Phaser.GameObjects.GameObject & {
+    getBounds?: () => Phaser.Geom.Rectangle;
   };
+  if (typeof go.getBounds === "function") {
+    const b = go.getBounds();
+    return releaseOnSameButton(b, pointer.x, pointer.y, slopPx);
+  }
+  return false;
+}
 
-  const onPress = () => {
-    scene.tweens.killTweensOf(container);
-    scene.tweens.add({
-      targets: container,
-      scaleX: pressScale,
-      scaleY: pressScale,
-      duration: 50,
-      ease: "Quad.easeOut",
-    });
-    if (visual?.bg && visual.colors) {
-      visual.bg.setFillStyle(visual.colors.pressed, 1);
-    }
-  };
-
-  container.on("pointerdown", onPress);
-  container.on("pointerup", bounceBack);
-  container.on("pointerupoutside", bounceBack);
-  container.on("pointerout", bounceBack);
+function isSameOrDescendant(
+  hit: Phaser.GameObjects.GameObject,
+  root: Phaser.GameObjects.GameObject,
+): boolean {
+  if (hit === root) return true;
+  if (root instanceof Phaser.GameObjects.Container && root.list.includes(hit)) return true;
+  let node: Phaser.GameObjects.GameObject | null = hit;
+  while (node) {
+    if (node === root) return true;
+    const parent: Phaser.GameObjects.Container | null =
+      (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
+        .parentContainer ?? null;
+    node = parent;
+  }
+  return false;
 }
 
 function darkenColor(color: number, factor: number): number {
@@ -83,27 +118,59 @@ function bindPress(
   obj: Phaser.GameObjects.GameObject,
   onPress: () => void,
   pressVisual?: PressVisual,
-  activateOn: "pointerdown" | "pointerup" = "pointerdown",
+  _activateOn: "pointerdown" | "pointerup" = "pointerdown",
 ): void {
+  void _activateOn;
   const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
   if (go.input) go.input.alwaysEnabled = true;
 
-  if (obj instanceof Phaser.GameObjects.Container) {
-    addPressFeedback(scene, obj, pressVisual);
-  }
+  const slopPx = scaleUiX(TOUCH_BUTTON_RELEASE_SLOP_PX);
+  let activePointerId: number | null = null;
 
-  obj.on(
-    activateOn,
-    (
-      _pointer: Phaser.Input.Pointer,
-      _lx: number,
-      _ly: number,
-      event: Phaser.Types.Input.EventData,
-    ) => {
-      event.stopPropagation();
-      onPress();
-    },
-  );
+  const showPressed = () => {
+    if (obj instanceof Phaser.GameObjects.Container) {
+      pressVisualDown(scene, obj, pressVisual);
+    }
+  };
+
+  const clearPressed = () => {
+    if (obj instanceof Phaser.GameObjects.Container) {
+      pressVisualUp(scene, obj, pressVisual);
+    }
+  };
+
+  const tryActivate = (pointer: Phaser.Input.Pointer) => {
+    if (activePointerId !== null && pointer.id !== activePointerId) return;
+    if (!pointerHitsGameObject(scene, obj, pointer, slopPx)) return;
+    onPress();
+  };
+
+  const onDown = (
+    pointer: Phaser.Input.Pointer,
+    _lx: number,
+    _ly: number,
+    event: Phaser.Types.Input.EventData,
+  ) => {
+    event.stopPropagation();
+    activePointerId = pointer.id;
+    showPressed();
+  };
+
+  const onUp = (
+    pointer: Phaser.Input.Pointer,
+    _lx: number,
+    _ly: number,
+    event: Phaser.Types.Input.EventData,
+  ) => {
+    event.stopPropagation();
+    tryActivate(pointer);
+    activePointerId = null;
+    clearPressed();
+  };
+
+  obj.on("pointerdown", onDown);
+  obj.on("pointerup", onUp);
+  obj.on("pointerupoutside", onUp);
 }
 
 /**
@@ -119,7 +186,7 @@ export function createTouchButton(
 ): TouchButtonHandle {
   const depth = options.depth ?? 100;
   const sf = options.scrollFactor ?? 0;
-  const pad = options.tapPadding ?? scaleUiX(16);
+  const pad = options.tapPadding ?? scaleUiX(20);
   const hitW = options.width + pad * 2;
   const hitH = options.height + pad * 2;
   const fontSize = options.fontSize ?? `${scaleUiX(20)}px`;
