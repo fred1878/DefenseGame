@@ -46,8 +46,8 @@ describe("screenLayout", () => {
     const y = spellBarCenterY(scene, safe, 52);
     const chrome = combatChromeLayout(scene, safe);
     expect(y).toBe(chrome.bottomStrip.stripCenterY);
-    expect(chrome.btnY).toBe(chrome.bottomStrip.stripCenterY);
-    expect(chrome.modeY).toBe(chrome.autoY);
+    expect(chrome.btnY).toBeGreaterThanOrEqual(chrome.bottomStrip.stripTop);
+    expect(chrome.autoY).toBeLessThan(chrome.btnY);
   });
 
   it("spell slots target bottom 15% of portrait canvas", () => {

@@ -80,18 +80,6 @@ export function debugButtonPosition(
   };
 }
 
-/** Defense: compact debug under top HUD text — not on bottom chrome. */
-export function combatDebugButtonPosition(
-  _scene: Phaser.Scene,
-  safe: SafeInsets,
-): { x: number; y: number } {
-  const hud = hudTextPosition(safe);
-  return {
-    x: hud.x + scaleUiX(52),
-    y: hud.y + scaleUiY(72),
-  };
-}
-
 export type BottomHudStrip = {
   stripH: number;
   stripCenterY: number;
@@ -155,15 +143,20 @@ export type SpellBarOrigin = {
 export function spellBarSlotOrigin(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  _slotCount: number,
+  slotCount: number,
   slotSizePx: number,
-  _slotGapPx: number,
+  slotGapPx: number,
 ): SpellBarOrigin {
-  const strip = bottomHudStripLayout(scene, safe);
-  const leftPad = scaleUiX(14) + safe.left;
+  const chrome = combatChromeLayout(scene, safe);
+  const rowWidth = slotCount * slotSizePx + (slotCount - 1) * slotGapPx;
+  const leftPad = scaleUiX(20) + safe.left;
+  const clusterPad = scaleUiX(10);
+  const availW = Math.max(rowWidth, chrome.combatClusterLeft - clusterPad - leftPad);
+  const firstSlotCenterX =
+    leftPad + availW / 2 - rowWidth / 2 + slotSizePx / 2;
   return {
-    centerY: strip.stripCenterY,
-    firstSlotCenterX: leftPad + slotSizePx / 2,
+    centerY: chrome.bottomStrip.stripCenterY,
+    firstSlotCenterX,
   };
 }
 
@@ -180,20 +173,20 @@ export function combatChromeLayout(
   safe: SafeInsets,
 ): CombatChromeLayout {
   const bottomStrip = bottomHudStripLayout(scene, safe);
-  const sideMargin = scaleUiX(12);
-  const atkRadius = scaleUiX(36);
-  const toggleW = scaleUiX(58);
-  const toggleH = scaleUiY(32);
-  const rowY = bottomStrip.stripCenterY;
+  const sideMargin = scaleUiX(14);
+  const atkRadius = scaleUiX(38);
+  const toggleW = scaleUiX(64);
+  const toggleH = scaleUiY(34);
   const atkX = scene.scale.width - sideMargin - safe.right - atkRadius;
-  const modeX = atkX - atkRadius - scaleUiX(4) - toggleW / 2;
-  const autoX = modeX - toggleW - scaleUiX(6);
+  const modeX = atkX - atkRadius - scaleUiX(6) - toggleW / 2;
+  const rowY = bottomStrip.stripCenterY + scaleUiY(10);
   const btnY = rowY;
   const modeY = rowY;
-  const autoY = rowY;
-  const autoOffsetY = 0;
+  const autoX = atkX;
+  const autoY = bottomStrip.stripTop + toggleH / 2 + scaleUiY(10);
+  const autoOffsetY = btnY - autoY;
   const modeOffsetX = atkX - modeX;
-  const combatClusterLeft = autoX - toggleW / 2 - scaleUiX(6);
+  const combatClusterLeft = modeX - toggleW / 2;
   const hudBand = hudBandHeight(safe.top);
   const w = scene.scale.width;
   const clusterW = w - combatClusterLeft + safe.right;

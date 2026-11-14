@@ -60,7 +60,7 @@ export const SPRITE_DISPLAY = {
 export const UI_ASSETS = [
   {
     key: "ui_atk_circle",
-    file: "buttons/action-attack-circle-v02-64x64.png",
+    file: "buttons/action-attack-circle-v01-64x64.png",
   },
   {
     key: "ui_mode_rect_v01",
