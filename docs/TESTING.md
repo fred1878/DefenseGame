@@ -90,7 +90,6 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | `night-end.spec.ts` | Return button + manual town transition |
 | `town-touch.spec.ts` | Start night tap; drag-off cancel on Start night |
 | `visual.spec.ts` / `fps.spec.ts` | Screenshots, FPS hook |
-| `defense-hud-layout.spec.ts` | Defense HUD geometry (spell row in bottom band) |
 
 ## Visual regression baselines
 
