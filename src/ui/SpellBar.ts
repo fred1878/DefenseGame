@@ -4,11 +4,10 @@ import {
   spellById,
   type SpellId,
 } from "../config";
-import { UI_TEXTURE } from "../config/assets";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
-import { readSafeInsets, spellBarCenterY } from "./screenLayout";
+import { readSafeInsets, spellBarSlotOrigin } from "./screenLayout";
 
 export type SpellBarCallbacks = {
   onCastRequest: (spellId: SpellId) => void;
@@ -34,33 +33,37 @@ export class SpellBar {
     this.slots = slotIds.slice(0, SPELL_BAR.slotCount);
     this.onCastRequest = callbacks.onCastRequest;
 
-    const totalWidth =
-      this.slots.length * SPELL_BAR.slotSizePx +
-      (this.slots.length - 1) * SPELL_BAR.slotGapPx;
     const safe = readSafeInsets();
-    const startX = (scene.scale.width - totalWidth) / 2 + SPELL_BAR.slotSizePx / 2;
-    const y = spellBarCenterY(scene, safe, SPELL_BAR.slotSizePx);
+    const { centerY, firstSlotCenterX } = spellBarSlotOrigin(
+      scene,
+      safe,
+      this.slots.length,
+      SPELL_BAR.slotSizePx,
+      SPELL_BAR.slotGapPx,
+    );
 
     for (let i = 0; i < this.slots.length; i++) {
       const spellId = this.slots[i] ?? "";
       const def = spellById(spellId);
       const label = def?.shortLabel ?? "—";
-      const x = startX + i * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+      const x =
+        firstSlotCenterX + i * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
 
-      const btn = createTouchButton(scene, x, y, label, () => {
+      const btn = createTouchButton(scene, x, centerY, label, () => {
         if (spellId) this.onCastRequest(spellId);
       }, {
         width: SPELL_BAR.slotSizePx,
         height: SPELL_BAR.slotSizePx,
         depth,
         fontSize: SPELL_BAR.fontSize,
-        frameTextureKey: UI_TEXTURE.spellSlot,
+        fillColor: 0x312e81,
+        strokeColor: 0x818cf8,
         tapPadding: SPELL_BAR.tapPaddingPx,
       });
       this.buttons.push(btn);
 
       const overlay = scene.add
-        .rectangle(x, y, SPELL_BAR.slotSizePx, SPELL_BAR.slotSizePx, 0x000000, 0.55)
+        .rectangle(x, centerY, SPELL_BAR.slotSizePx, SPELL_BAR.slotSizePx, 0x000000, 0.55)
         .setScrollFactor(0)
         .setDepth(depth + 1)
         .setVisible(false);
@@ -75,8 +78,14 @@ export class SpellBar {
   /** Screen rect covering the spell row for virtual-stick exclusion. */
   getScreenRect(): { x: number; y: number; width: number; height: number } {
     const safe = readSafeInsets();
-    const centerY = spellBarCenterY(this.scene, safe, SPELL_BAR.slotSizePx);
-    const pad = scaleUiY(24);
+    const { centerY } = spellBarSlotOrigin(
+      this.scene,
+      safe,
+      this.slots.length,
+      SPELL_BAR.slotSizePx,
+      SPELL_BAR.slotGapPx,
+    );
+    const pad = scaleUiY(12);
     const half = SPELL_BAR.slotSizePx / 2 + pad;
     return {
       x: 0,

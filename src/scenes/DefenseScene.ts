@@ -203,8 +203,8 @@ export class DefenseScene extends Phaser.Scene {
 
     this.modeToggle = createTouchToggleButton(
       this,
-      chrome.atkX - chrome.modeOffsetX,
-      chrome.btnY,
+      chrome.modeX,
+      chrome.modeY,
       "MEL",
       chrome.toggleW,
       chrome.toggleH,
@@ -218,8 +218,8 @@ export class DefenseScene extends Phaser.Scene {
 
     this.autoToggle = createTouchToggleButton(
       this,
-      chrome.atkX,
-      chrome.btnY - chrome.autoOffsetY,
+      chrome.autoX,
+      chrome.autoY,
       "AUTO",
       chrome.toggleW,
       chrome.toggleH,
@@ -275,7 +275,8 @@ export class DefenseScene extends Phaser.Scene {
         height: scaleUiX(36),
         depth: 200,
         fontSize: `${scaleUiX(14)}px`,
-        frameTextureKey: UI_TEXTURE.iconBacking,
+        fillColor: 0x3f3f46,
+        strokeColor: 0xa1a1aa,
       },
     );
     this.uiBlockers.push(this.debugBtn.container);
