@@ -267,8 +267,6 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    if (this.nightEnded) return;
-
     this.spellCaster.tickCooldowns(delta);
     const dir = this.stick.getDirection();
     const px = this.player.sprite.x;
@@ -371,25 +369,27 @@ export class DefenseScene extends Phaser.Scene {
     const auto = this.autoAttackEnabled ? "ON" : "OFF";
     const casting = this.spellCaster.isChanneling();
     this.spellBar.refreshCooldownOverlays();
-    this.hudText.setText(
-      [
-        `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
-        `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
-        `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
-        casting
-          ? `Channeling… ${Math.floor(this.spellCaster.getChannelProgress() * 100)}%`
-          : this.player.attackPhaseNow !== "idle"
-            ? `ATK: ${this.player.attackPhaseNow}`
-            : "Spells · tap enemy to focus · drag to move",
-      ].join("\n"),
-    );
-
-    if (this.player.damageable.hp <= 0) {
-      this.endNight(false);
-      return;
+    if (!this.nightEnded) {
+      this.hudText.setText(
+        [
+          `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
+          `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
+          `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
+          casting
+            ? `Channeling… ${Math.floor(this.spellCaster.getChannelProgress() * 100)}%`
+            : this.player.attackPhaseNow !== "idle"
+              ? `ATK: ${this.player.attackPhaseNow}`
+              : "Spells · tap enemy to focus · drag to move",
+        ].join("\n"),
+      );
     }
-    if (this.spawnPlanComplete && living === 0) {
-      this.endNight(true);
+
+    if (!this.nightEnded) {
+      if (this.player.damageable.hp <= 0) {
+        this.endNight(false);
+      } else if (this.spawnPlanComplete && living === 0) {
+        this.endNight(true);
+      }
     }
   }
 
@@ -494,17 +494,6 @@ export class DefenseScene extends Phaser.Scene {
   private setHudChromeVisible(visible: boolean): void {
     this.hudText.setVisible(visible);
     this.debugBtn.container.setVisible(visible);
-  }
-
-  private setCombatChromeVisible(visible: boolean): void {
-    this.attackButton.setVisible(visible);
-    this.modeToggle.container.setVisible(visible);
-    this.autoToggle.container.setVisible(visible);
-    this.castBar.setVisible(visible);
-    this.debugBtn.container.setVisible(visible);
-    for (const c of this.spellBar.getUiContainers()) {
-      c.setVisible(visible);
-    }
   }
 
   private transitionToTown(): void {
@@ -836,9 +825,6 @@ export class DefenseScene extends Phaser.Scene {
     if (won) next.townWallHp = Math.max(0, this.wallHp - wallDamage);
     persistSave(next);
     this.registry.set("save", next);
-
-    this.player.sprite.setVelocity(0, 0);
-    this.setCombatChromeVisible(false);
 
     const headline = won ? "Night defended!" : "You fell — night lost";
     this.hudText.setText(

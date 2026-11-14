@@ -51,18 +51,18 @@ export function hudTextPosition(safe: SafeInsets): { x: number; y: number } {
   return { x: HUD_SIDE + safe.left, y: HUD_SIDE + safe.top };
 }
 
-/** Top-right night summary action — keeps left HUD result copy readable. */
+/** Night-end action — right edge, below the HUD band so result copy stays readable. */
 export function nightReturnButtonPosition(
   scene: Phaser.Scene,
   safe: SafeInsets,
 ): { x: number; y: number; width: number; height: number } {
   const margin = scaleUiX(12);
-  const width = scaleUiX(168);
-  const height = scaleUiY(40);
+  const width = scaleUiX(124);
+  const height = scaleUiY(36);
   const band = hudBandHeight(safe.top);
   return {
     x: scene.scale.width - margin - safe.right - width / 2,
-    y: safe.top + Math.min(scaleUiY(52), band * 0.38),
+    y: band + scaleUiY(10) + height / 2,
     width,
     height,
   };
