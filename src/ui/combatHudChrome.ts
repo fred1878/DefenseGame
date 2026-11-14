@@ -9,7 +9,7 @@ export type CombatHudChrome = {
   setVisible: (visible: boolean) => void;
 };
 
-/** Decorative medieval HUD backing — below interactive controls (depth < 200). */
+/** Decorative Gothic HUD backing — below interactive controls (depth < 200). */
 export function createCombatHudChrome(
   scene: Phaser.Scene,
   depth = 45,
