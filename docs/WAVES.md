@@ -17,4 +17,6 @@ Night keys match `save.night` when defense starts. Winning a night increments `s
 
 All groups use `enemyId: "grunt"` until more enemy types exist. Tuning draft: Project store `docs/wave-progression-draft.md`.
 
+Grunts spawn around the map edges and path toward the **north wall** unless the player is within aggro range with line of sight.
+
 If a night is missing from JSON, `DataStore.getWaveForNight` falls back to the highest defined night ≤ requested night, then night `1`.

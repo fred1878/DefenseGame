@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFENSE_OBSTACLES } from "../config";
+import { DEFENSE_OBSTACLES, GAME } from "../config";
 import { buildNavGrid, cellBlocked } from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
@@ -18,10 +18,11 @@ describe("nav grid", () => {
 describe("A*", () => {
   it("finds a route around a rock cluster", () => {
     const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
-    const path = findPath(grid, 200, -200, -420, 0);
+    const northY = -GAME.worldHalfSize + 40;
+    const path = findPath(grid, 200, -200, 200, northY);
     expect(path.length).toBeGreaterThan(1);
     const last = path[path.length - 1]!;
-    expect(last.x).toBeLessThan(0);
+    expect(last.y).toBeLessThan(-200);
   });
 });
 

@@ -4,6 +4,7 @@ import { DataStore } from "../core/DataStore";
 import {
   playerDamageMult,
   persistSave,
+  prepareDefenseNight,
   resetSaveAndReload,
   wallHpBonusFromBuildings,
 } from "../core/GameState";
@@ -124,7 +125,7 @@ export class TownScene extends Phaser.Scene {
       GAME.width / 2,
       townActionButtonY(this, safe, 0),
       "Start night",
-      () => this.scene.start("Defense"),
+      () => this.beginDefenseNight(),
       { width: btnW, height: btnH, depth: 200 },
     );
 
@@ -155,6 +156,13 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartNight(): void {
+    this.beginDefenseNight();
+  }
+
+  private beginDefenseNight(): void {
+    this.save = prepareDefenseNight(this.save);
+    persistSave(this.save);
+    this.registry.set("save", this.save);
     this.scene.start("Defense");
   }
 

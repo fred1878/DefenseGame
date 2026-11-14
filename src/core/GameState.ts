@@ -83,6 +83,24 @@ export function resetSaveAndReload(): void {
   window.location.replace(url.toString());
 }
 
+/** Ensures save values allow starting a new defense night after a loss (wall or player at 0). */
+export function prepareDefenseNight(save: SaveGame): SaveGame {
+  const next: SaveGame = {
+    ...save,
+    player: { ...save.player },
+    buildings: { ...save.buildings },
+    spellBar: { slots: [...save.spellBar.slots] },
+    flags: [...save.flags],
+  };
+  if (next.townWallHp <= 0) {
+    next.townWallHp = next.townWallHpMax;
+  }
+  if (next.player.hp <= 0) {
+    next.player.hp = next.player.hpMax;
+  }
+  return next;
+}
+
 export function applyNightResult(save: SaveGame, result: NightResult): SaveGame {
   const next = { ...save, night: save.night + (result.won ? 1 : 0) };
   next.gold = save.gold + result.goldEarned;

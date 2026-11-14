@@ -2,7 +2,7 @@ import {
   DEFENSE_MAP,
   ENEMY_TUNING,
   PLAYER_AGGRO_RADIUS,
-  westWallAttackX,
+  northWallAttackY,
 } from "../config";
 import { findPath, type PathPoint } from "../pathfinding/astar";
 import { hasLineOfSight } from "../pathfinding/los";
@@ -42,8 +42,8 @@ export function pickEnemyTarget(
   return "wall";
 }
 
-export function wallTargetPoint(_ex: number, ey: number): { x: number; y: number } {
-  return { x: westWallAttackX(), y: ey };
+export function wallTargetPoint(ex: number, _ey: number): { x: number; y: number } {
+  return { x: ex, y: northWallAttackY() };
 }
 
 export function replanEnemyPath(
