@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import {
+  DEFENSE_MAP,
+  DEFENSE_OBSTACLES,
   ENEMY_TUNING,
   GAME,
   PLAYER_TUNING,
@@ -26,13 +28,16 @@ import {
   applyNova,
   spawnChanneledFireball,
 } from "../combat/SpellEffects";
-import { showHitboxes, showTouchInput } from "../debug/DebugState";
+import { updateEnemyBrain, wallTargetPoint } from "../ai/EnemyBrain";
+import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
+import { showEnemyPaths, showHitboxes, showTouchInput } from "../debug/DebugState";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
+import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
   TouchInputDebugDraw,
   type FocusTapFlash,
 } from "../debug/TouchInputDebugDraw";
-import { chasePlayer, spawnEnemy, type EnemyInstance } from "../entities/Enemy";
+import { spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
 import {
   spawnPlayerProjectile,
@@ -82,9 +87,16 @@ export class DefenseScene extends Phaser.Scene {
   private modeToggle!: ReturnType<typeof createTouchToggleButton>;
   private uiBlockers: Phaser.GameObjects.GameObject[] = [];
   private wallHp = 0;
+  private wallHpStart = 0;
+  private navGrid!: NavGrid;
   private playerInvulnMs = 0;
   private hitboxDebug!: HitboxDebugDraw;
+  private pathDebug!: PathDebugDraw;
   private touchDebug!: TouchInputDebugDraw;
+  private enemyPathGoals = new Map<
+    string,
+    { targetKind: "wall" | "player"; x: number; y: number }
+  >();
   private focusTapFlash: FocusTapFlash | null = null;
   private focusSelectLockMs = 0;
   private rewardGold = 40;
@@ -101,6 +113,7 @@ export class DefenseScene extends Phaser.Scene {
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
   private onDebugMenuClose = (): void => this.setHudChromeVisible(true);
   private prevPlayerAttackPhase: AttackPhase = "idle";
+  private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({ key: "Defense" });
@@ -113,6 +126,8 @@ export class DefenseScene extends Phaser.Scene {
       this.save.spellBar = { slots: createDefaultSpellBarSlots() };
     }
     this.wallHp = Math.max(1, this.save.townWallHp);
+    this.wallHpStart = this.wallHp;
+    this.navGrid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize);
     const store = this.registry.get("dataStore") as DataStore;
     const wave = store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
@@ -125,6 +140,14 @@ export class DefenseScene extends Phaser.Scene {
       .rectangle(-half + 20, 0, 40, half * 2, 0x52525b)
       .setOrigin(0, 0.5);
 
+    this.obstacleGroup = this.physics.add.staticGroup();
+    for (const obs of DEFENSE_OBSTACLES) {
+      const rock = this.add.rectangle(obs.x, obs.y, obs.w, obs.h, 0x57534e);
+      rock.setStrokeStyle(2, 0x78716c);
+      this.physics.add.existing(rock, true);
+      this.obstacleGroup.add(rock);
+    }
+
     this.cameras.main.setBounds(-half, -half, half * 2, half * 2);
     this.cameras.main.setZoom(1);
 
@@ -132,6 +155,7 @@ export class DefenseScene extends Phaser.Scene {
     this.player.damageable.hp = this.save.player.hpMax;
     this.player.damageable.alive = true;
     this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
+    this.physics.add.collider(this.player.sprite, this.obstacleGroup);
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     this.safe = readSafeInsets();
@@ -193,6 +217,7 @@ export class DefenseScene extends Phaser.Scene {
 
     this.targetIndicator = new TargetIndicator(this);
     this.hitboxDebug = new HitboxDebugDraw(this);
+    this.pathDebug = new PathDebugDraw(this);
     this.touchDebug = new TouchInputDebugDraw(this);
     this.input.on("pointerup", this.onPointerUpBound);
 
@@ -249,7 +274,6 @@ export class DefenseScene extends Phaser.Scene {
       this.scheduleWave(store, wave);
     } else {
       this.spawnPlanComplete = true;
-      this.spawnEnemyAt(120, -80);
     }
 
     this.events.on("shutdown", () => {
@@ -260,6 +284,7 @@ export class DefenseScene extends Phaser.Scene {
       this.castBar.destroy();
       this.spellBar.destroy();
       this.hitboxDebug.destroy();
+      this.pathDebug.destroy();
       this.touchDebug.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
@@ -326,9 +351,38 @@ export class DefenseScene extends Phaser.Scene {
     this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
     this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
 
+    this.enemyPathGoals.clear();
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
-      const hitPlayer = updateEnemyCombat(e, playerHurtbox, delta);
+      const brain = updateEnemyBrain(e, e.nav, this.navGrid, px, py, delta);
+      this.enemyPathGoals.set(e.id, {
+        targetKind: brain.targetKind,
+        x: brain.targetX,
+        y: brain.targetY,
+      });
+
+      const attackTarget =
+        brain.targetKind === "player"
+          ? {
+              kind: "player" as const,
+              x: px,
+              y: py,
+              radius: playerHurtbox.radius,
+              damageable: this.player.damageable,
+            }
+          : {
+              kind: "wall" as const,
+              ...wallTargetPoint(e.sprite.x, e.sprite.y),
+            };
+
+      const hitPlayer = updateEnemyCombat(
+        e,
+        attackTarget,
+        delta,
+        () => {
+          this.wallHp = Math.max(0, this.wallHp - ENEMY_TUNING.wallAttackDamage);
+        },
+      );
       if (
         e.combat.phase === "active" &&
         !e.combat.slashFxShown
@@ -351,10 +405,10 @@ export class DefenseScene extends Phaser.Scene {
         }
         this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
       }
-      chasePlayer(e, px, py, ENEMY_TUNING.gruntSpeed);
     }
 
     this.drawDebugHitboxes();
+    this.drawEnemyPaths();
     this.drawTouchDebug(delta);
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
@@ -385,7 +439,9 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     if (!this.nightEnded) {
-      if (this.player.damageable.hp <= 0) {
+      if (this.wallHp <= 0) {
+        this.endNight(false);
+      } else if (this.player.damageable.hp <= 0) {
         this.endNight(false);
       } else if (this.spawnPlanComplete && living === 0) {
         this.endNight(true);
@@ -700,6 +756,20 @@ export class DefenseScene extends Phaser.Scene {
     });
   }
 
+  private drawEnemyPaths(): void {
+    if (!showEnemyPaths(this.registry)) {
+      this.pathDebug.clear();
+      return;
+    }
+    this.pathDebug.clear();
+    for (const e of this.enemies) {
+      if (!e.damageable.alive) continue;
+      const goal = this.enemyPathGoals.get(e.id);
+      if (!goal) continue;
+      this.pathDebug.drawEnemy(e, goal.targetKind, goal.x, goal.y);
+    }
+  }
+
   private drawDebugHitboxes(): void {
     if (!showHitboxes(this.registry)) {
       this.hitboxDebug.clear();
@@ -803,6 +873,7 @@ export class DefenseScene extends Phaser.Scene {
       },
       () => this.setFocusEnemy(id),
     );
+    this.physics.add.collider(enemy.sprite, this.obstacleGroup);
     this.enemies.push(enemy);
   }
 
@@ -810,7 +881,9 @@ export class DefenseScene extends Phaser.Scene {
     if (this.nightEnded) return;
     this.nightEnded = true;
 
-    const wallDamage = won ? 2 : 12;
+    const endPenalty = won ? 2 : 0;
+    const finalWallHp = Math.max(0, this.wallHp - endPenalty);
+    const wallDamage = this.wallHpStart - finalWallHp;
     const baseGold = this.rewardGold;
     const result: NightResult = {
       won,
@@ -822,7 +895,7 @@ export class DefenseScene extends Phaser.Scene {
     const survivedHp = Math.max(0, Math.floor(this.player.damageable.hp));
     this.save.player.hp = survivedHp;
     next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
-    if (won) next.townWallHp = Math.max(0, this.wallHp - wallDamage);
+    next.townWallHp = finalWallHp;
     persistSave(next);
     this.registry.set("save", next);
 

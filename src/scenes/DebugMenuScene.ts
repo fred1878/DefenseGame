@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import {
   getDebugFlags,
+  setShowEnemyPaths,
   setShowHitboxes,
   setShowTouchInput,
+  showEnemyPaths,
   showHitboxes,
   showTouchInput,
 } from "../debug/DebugState";
@@ -19,6 +21,7 @@ import {
 export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
   private touchToggle!: ReturnType<typeof createTouchButton>;
+  private pathToggle!: ReturnType<typeof createTouchButton>;
   private fullscreenToggle!: ReturnType<typeof createTouchButton>;
   private touchDebug!: TouchInputDebugDraw;
 
@@ -78,10 +81,23 @@ export class DebugMenuScene extends Phaser.Scene {
       { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
     );
 
+    this.pathToggle = createTouchButton(
+      this,
+      w / 2,
+      h / 2 + scaleUiY(70),
+      flags.showEnemyPaths ? "Enemy paths: ON" : "Enemy paths: OFF",
+      () => {
+        const next = !showEnemyPaths(this.registry);
+        setShowEnemyPaths(this.registry, next);
+        this.pathToggle.setLabel(next ? "Enemy paths: ON" : "Enemy paths: OFF");
+      },
+      { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
+    );
+
     this.fullscreenToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(75),
+      h / 2 + scaleUiY(135),
       fullscreenButtonLabel(this.scale),
       () => {
         toggleFullscreen(this.scale);
@@ -98,7 +114,7 @@ export class DebugMenuScene extends Phaser.Scene {
     createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(145),
+      h / 2 + scaleUiY(205),
       "Close",
       () => this.closeMenu(),
       {

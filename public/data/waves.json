@@ -4,5 +4,63 @@
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 5, "intervalMs": 700 }
     ]
+  },
+  "2": {
+    "rewardGold": 55,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 8, "intervalMs": 550 }
+    ]
+  },
+  "3": {
+    "rewardGold": 70,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 6, "intervalMs": 500 },
+      { "atMs": 4000, "enemyId": "grunt", "count": 4, "intervalMs": 500 }
+    ]
+  },
+  "4": {
+    "rewardGold": 85,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 10, "intervalMs": 450 }
+    ]
+  },
+  "5": {
+    "rewardGold": 100,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 12, "intervalMs": 400 },
+      { "atMs": 8000, "enemyId": "grunt", "count": 2, "intervalMs": 400 }
+    ]
+  },
+  "6": {
+    "rewardGold": 115,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 14, "intervalMs": 380 }
+    ]
+  },
+  "7": {
+    "rewardGold": 130,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 16, "intervalMs": 350 }
+    ]
+  },
+  "8": {
+    "rewardGold": 150,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 18, "intervalMs": 340 },
+      { "atMs": 6000, "enemyId": "grunt", "count": 6, "intervalMs": 400 }
+    ]
+  },
+  "9": {
+    "rewardGold": 175,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 20, "intervalMs": 320 }
+    ]
+  },
+  "10": {
+    "rewardGold": 200,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 12, "intervalMs": 300 },
+      { "atMs": 5000, "enemyId": "grunt", "count": 12, "intervalMs": 300 }
+    ]
   }
 }

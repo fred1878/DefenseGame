@@ -1,6 +1,7 @@
 export type DebugFlags = {
   showHitboxes: boolean;
   showTouchInput: boolean;
+  showEnemyPaths: boolean;
 };
 
 const REGISTRY_KEY = "debugFlags";
@@ -11,9 +12,14 @@ export function getDebugFlags(registry: Phaser.Data.DataManager): DebugFlags {
     return {
       showHitboxes: existing.showHitboxes ?? false,
       showTouchInput: existing.showTouchInput ?? false,
+      showEnemyPaths: existing.showEnemyPaths ?? false,
     };
   }
-  const defaults: DebugFlags = { showHitboxes: false, showTouchInput: false };
+  const defaults: DebugFlags = {
+    showHitboxes: false,
+    showTouchInput: false,
+    showEnemyPaths: false,
+  };
   registry.set(REGISTRY_KEY, defaults);
   return defaults;
 }
@@ -43,4 +49,17 @@ export function setShowTouchInput(
 export function showTouchInput(registry: Phaser.Data.DataManager): boolean {
   const flags = getDebugFlags(registry);
   return flags.showTouchInput ?? false;
+}
+
+export function setShowEnemyPaths(
+  registry: Phaser.Data.DataManager,
+  value: boolean,
+): void {
+  const flags = getDebugFlags(registry);
+  flags.showEnemyPaths = value;
+  registry.set(REGISTRY_KEY, { ...flags });
+}
+
+export function showEnemyPaths(registry: Phaser.Data.DataManager): boolean {
+  return getDebugFlags(registry).showEnemyPaths;
 }

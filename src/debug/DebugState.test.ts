@@ -20,6 +20,7 @@ describe("DebugState", () => {
     expect(getDebugFlags(reg)).toEqual({
       showHitboxes: false,
       showTouchInput: false,
+      showEnemyPaths: false,
     });
   });
 
