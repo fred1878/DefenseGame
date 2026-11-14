@@ -6,6 +6,7 @@ import {
 } from "../config";
 import { SpellCastController } from "../combat/SpellCastController";
 import { createTouchButton } from "./touchButton";
+import { readSafeInsets } from "./screenLayout";
 
 export type SpellBarCallbacks = {
   onCastRequest: (spellId: SpellId) => void;
@@ -34,8 +35,9 @@ export class SpellBar {
     const totalWidth =
       this.slots.length * SPELL_BAR.slotSizePx +
       (this.slots.length - 1) * SPELL_BAR.slotGapPx;
+    const safe = readSafeInsets();
     const startX = (scene.scale.width - totalWidth) / 2 + SPELL_BAR.slotSizePx / 2;
-    const y = scene.scale.height - SPELL_BAR.bottomInsetPx;
+    const y = scene.scale.height - SPELL_BAR.bottomInsetPx - safe.bottom;
 
     for (let i = 0; i < this.slots.length; i++) {
       const spellId = this.slots[i] ?? "";
@@ -72,7 +74,8 @@ export class SpellBar {
   /** Screen rect covering the spell row for virtual-stick exclusion. */
   getScreenRect(): { x: number; y: number; width: number; height: number } {
     const h = this.scene.scale.height;
-    const top = h - SPELL_BAR.bottomInsetPx - SPELL_BAR.slotSizePx / 2 - 24;
+    const safeBottom = readSafeInsets().bottom;
+    const top = h - SPELL_BAR.bottomInsetPx - safeBottom - SPELL_BAR.slotSizePx / 2 - 24;
     return { x: 0, y: Math.max(0, top), width: this.scene.scale.width, height: 120 };
   }
 

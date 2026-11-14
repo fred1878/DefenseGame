@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "./config";
 import { ensureFreshBuild } from "./ensureFreshBuild";
+import { bindViewportToScale } from "./ui/screenLayout";
 import { BootScene } from "./scenes/BootScene";
 import { DebugMenuScene } from "./scenes/DebugMenuScene";
 import { DefenseScene } from "./scenes/DefenseScene";
@@ -33,7 +34,8 @@ const config: Phaser.Types.Core.GameConfig = {
 
 async function start(): Promise<void> {
   await ensureFreshBuild();
-  new Phaser.Game(config);
+  const game = new Phaser.Game(config);
+  bindViewportToScale(game);
 }
 
 void start();
