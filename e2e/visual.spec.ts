@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 
+/** CI: `npm run test:e2e -- --project=chromium` (see `.github/workflows/ci.yml`). */
 test.describe("visual regression", () => {
   test("town viewport", async ({ page }) => {
     await gotoE2E(page);

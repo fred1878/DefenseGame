@@ -66,6 +66,7 @@ import {
   cameraWorldPoint,
   buildCombatStickUiMask,
   combatChromeLayout,
+  bottomHudStripLayout,
   combatDebugButtonPosition,
   hudBandHeight,
   hudTextPosition,
@@ -190,6 +191,16 @@ export class DefenseScene extends Phaser.Scene {
     const chrome = combatChromeLayout(this, this.safe);
     this.hudChrome = createCombatHudChrome(this);
 
+    const bottomStrip = bottomHudStripLayout(this, this.safe);
+    if (isE2EEnabled() && typeof window !== "undefined") {
+      (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
+        {
+          bottomChromeTextureKey: UI_TEXTURE.bottomStrip,
+          stripCenterY: bottomStrip.stripCenterY,
+          stripH: bottomStrip.stripH,
+        };
+    }
+
     this.attackButton = createTouchCircleButton(
       this,
       chrome.atkX,
@@ -239,6 +250,15 @@ export class DefenseScene extends Phaser.Scene {
       this.spellCaster,
       { onCastRequest: (id) => this.onSpellCastRequest(id) },
     );
+
+    if (isE2EEnabled() && typeof window !== "undefined") {
+      const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
+        .__HUD_DEBUG__;
+      const spell0 = this.spellBar.e2eSlotTapCenters()[0];
+      if (dbg) {
+        dbg.spellSlot0CanvasY = spell0?.y ?? null;
+      }
+    }
 
     this.uiBlockers = [
       this.attackButton,
@@ -1008,6 +1028,10 @@ export class DefenseScene extends Phaser.Scene {
 
   e2eIsReady(): boolean {
     return Boolean(this.player?.sprite);
+  }
+
+  e2eBottomChromeTextureKey(): string {
+    return UI_TEXTURE.bottomStrip;
   }
 
   e2eSetStick(dx: number, dy: number): void {
