@@ -8,12 +8,16 @@
     "build": "tsc -b && vite build && node scripts/write-version.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:e2e": "VITE_E2E=true VITE_BUILD_ID=e2e-local VITE_BASE=/ npm run build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "phaser": "^3.87.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@types/node": "^22.10.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",

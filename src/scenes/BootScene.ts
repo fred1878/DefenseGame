@@ -5,6 +5,9 @@ import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
 import { configurePixelArtTextures } from "../core/pixelArtTextures";
+import { markE2EAssetsLoaded } from "../e2e/installE2E";
+import { publishE2E } from "../e2e/e2eGlobal";
+import { isE2EEnabled } from "../e2e/e2eMode";
 
 const ASSET_ROOT = "assets";
 
@@ -36,6 +39,10 @@ export class BootScene extends Phaser.Scene {
     persistSave(save);
     this.registry.set("dataStore", store);
     this.registry.set("save", save);
+    if (isE2EEnabled()) {
+      markE2EAssetsLoaded(this.game);
+      publishE2E({ scene: "Boot", ready: false, assetsLoaded: true });
+    }
     this.scene.start("Town");
   }
 

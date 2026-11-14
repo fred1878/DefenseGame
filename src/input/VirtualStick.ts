@@ -40,6 +40,7 @@ export class VirtualStick {
   private dragEndPointerId: number | null = null;
   private dragSuppressUntilMs = 0;
   private dir = new Phaser.Math.Vector2(0, 0);
+  private e2eOverride: Phaser.Math.Vector2 | null = null;
 
   constructor(scene: Phaser.Scene, options: VirtualStickOptions = {}) {
     this.scene = scene;
@@ -67,7 +68,21 @@ export class VirtualStick {
   }
 
   getDirection(): Phaser.Math.Vector2 {
-    return this.dir;
+    return this.e2eOverride ?? this.dir;
+  }
+
+  /** E2E-only programmatic stick (normalized dx/dy). */
+  setE2eOverride(dx: number, dy: number): void {
+    if (dx === 0 && dy === 0) {
+      this.e2eOverride = null;
+      return;
+    }
+    const len = Math.hypot(dx, dy);
+    if (!this.e2eOverride) {
+      this.e2eOverride = new Phaser.Math.Vector2(dx / len, dy / len);
+    } else {
+      this.e2eOverride.set(dx / len, dy / len);
+    }
   }
 
   /**

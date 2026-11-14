@@ -72,6 +72,9 @@ import {
 } from "../ui/screenLayout";
 import { scaleUiX } from "../core/displayScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
+import { isE2EEnabled } from "../e2e/e2eMode";
+import { publishE2E } from "../e2e/e2eGlobal";
+import { spellById } from "../config/spells";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -270,10 +273,20 @@ export class DefenseScene extends Phaser.Scene {
     this.refreshModeToggle(this.player.mode);
     this.refreshAutoToggle();
 
-    if (wave) {
+    if (wave && !isE2EEnabled()) {
       this.scheduleWave(store, wave);
+    } else if (isE2EEnabled()) {
+      this.spawnPlanComplete = false;
     } else {
       this.spawnPlanComplete = true;
+    }
+
+    if (isE2EEnabled()) {
+      publishE2E({
+        scene: "Defense",
+        ready: true,
+        player: this.e2ePlayerPosition(),
+      });
     }
 
     this.events.on("shutdown", () => {
@@ -396,7 +409,11 @@ export class DefenseScene extends Phaser.Scene {
           ENEMY_TUNING.attackActiveMs,
         );
       }
-      if (hitPlayer && this.playerInvulnMs <= 0) {
+      if (
+        hitPlayer &&
+        this.playerInvulnMs <= 0 &&
+        !this.registry.get("e2eGodMode")
+      ) {
         applyDamage(this.player.damageable, ENEMY_TUNING.attackDamage);
         if (this.player.damageable.hp <= 0) {
           this.player.damageable.alive = false;
@@ -446,6 +463,19 @@ export class DefenseScene extends Phaser.Scene {
       } else if (this.spawnPlanComplete && living === 0) {
         this.endNight(true);
       }
+    }
+
+    if (isE2EEnabled()) {
+      publishE2E({
+        scene: "Defense",
+        ready: true,
+        player: this.e2ePlayerPosition(),
+        flags: {
+          attackPhase: this.e2eAttackPhase(),
+          projectileCount: this.e2eProjectileCount(),
+          enemyCount: this.e2eEnemyCount(),
+        },
+      });
     }
   }
 
@@ -840,8 +870,10 @@ export class DefenseScene extends Phaser.Scene {
         const at = group.atMs + i * group.intervalMs;
         maxAt = Math.max(maxAt, at);
         this.time.delayedCall(at, () => {
-          const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
-          const dist = Phaser.Math.Between(180, 260);
+          const angle = isE2EEnabled()
+            ? 0
+            : Phaser.Math.FloatBetween(0, Math.PI * 2);
+          const dist = isE2EEnabled() ? 200 : Phaser.Math.Between(180, 260);
           this.spawnEnemyAt(
             Math.cos(angle) * dist,
             Math.sin(angle) * dist,
@@ -927,5 +959,83 @@ export class DefenseScene extends Phaser.Scene {
       },
     );
     this.returnToTownBtn.container.setData("testid", "defense-return-to-town");
+  }
+
+  e2eIsReady(): boolean {
+    return Boolean(this.player?.sprite);
+  }
+
+  e2eSetStick(dx: number, dy: number): void {
+    this.stick.setE2eOverride(dx, dy);
+  }
+
+  e2ePlayerPosition(): { x: number; y: number } {
+    return { x: this.player.sprite.x, y: this.player.sprite.y };
+  }
+
+  e2eAttackPhase(): string {
+    return this.player.attackPhaseNow;
+  }
+
+  e2eProjectileCount(): number {
+    return this.projectiles.filter((p) => p.sprite.active).length;
+  }
+
+  e2eEnemyCount(): number {
+    return this.enemies.filter((e) => e.damageable.alive).length;
+  }
+
+  e2eTapMelee(): void {
+    this.player.setAttackMode("melee");
+    this.refreshModeToggle("melee");
+    if (this.enemies.length === 0) this.spawnEnemyAt(48, 0, 1);
+    this.player.faceToward(this.player.sprite.x + 48, this.player.sprite.y);
+    this.player.tryStartAttack();
+  }
+
+  e2eTapRanged(): void {
+    this.player.setAttackMode("ranged");
+    this.refreshModeToggle("ranged");
+    if (this.enemies.length === 0) this.spawnEnemyAt(80, 0, 1);
+    const e = this.enemies[0];
+    if (e) this.player.faceToward(e.sprite.x, e.sprite.y);
+    this.player.tryStartAttack();
+  }
+
+  e2eCastSpellSlot(slot: number): Promise<void> {
+    const id = this.save.spellBar.slots[slot];
+    if (!id) return Promise.resolve();
+    this.onSpellCastRequest(id);
+    const def = spellById(id);
+    if (!def || def.channelMs <= 0) return Promise.resolve();
+    const waitMs = def.channelMs + 120;
+    return new Promise((resolve) => {
+      this.time.delayedCall(waitMs, () => resolve());
+    });
+  }
+
+  e2eSpawnEnemy(x: number, y: number): void {
+    this.spawnEnemyAt(x, y, 5);
+  }
+
+  e2eDamagePlayer(amount: number): void {
+    applyDamage(this.player.damageable, amount);
+    if (this.player.damageable.hp <= 0) {
+      this.player.damageable.alive = false;
+      this.endNight(false);
+    }
+  }
+
+  e2eKillAllEnemies(): void {
+    for (const e of this.enemies) {
+      e.damageable.alive = false;
+      e.sprite.destroy();
+    }
+    this.enemies = [];
+  }
+
+  e2eForceWinNight(): void {
+    this.e2eKillAllEnemies();
+    this.spawnPlanComplete = true;
   }
 }
