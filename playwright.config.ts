@@ -36,6 +36,8 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
+        // Device preset defaults to 1280×720; game + screenshots are 540×1200.
+        viewport: { width: 540, height: 1200 },
         hasTouch: true,
       },
     },
