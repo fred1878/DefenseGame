@@ -141,10 +141,24 @@ export function townActionButtonY(
 
 /** Align Phaser FIT parent with the visible viewport (mobile URL bar / dynamic island). */
 export function bindViewportToScale(game: Phaser.Game): () => void {
+  const parentEl =
+    typeof document !== "undefined"
+      ? (document.getElementById(game.config.parent as string) ??
+        document.getElementById("game"))
+      : null;
+
   const apply = () => {
-    const w = window.visualViewport?.width ?? window.innerWidth;
-    const h = window.visualViewport?.height ?? window.innerHeight;
+    const vv = window.visualViewport;
+    const w = vv?.width ?? window.innerWidth;
+    const h = vv?.height ?? window.innerHeight;
     game.scale.setParentSize(w, h);
+    if (parentEl && vv) {
+      parentEl.style.position = "fixed";
+      parentEl.style.left = `${vv.offsetLeft}px`;
+      parentEl.style.top = `${vv.offsetTop}px`;
+      parentEl.style.width = `${w}px`;
+      parentEl.style.height = `${h}px`;
+    }
     game.scale.updateBounds();
   };
   apply();
