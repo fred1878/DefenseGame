@@ -44,6 +44,8 @@ export class DefenseScene extends Phaser.Scene {
   private uiBlockers: Phaser.GameObjects.GameObject[] = [];
   private wallHp = 0;
   private touchCooldown = 0;
+  private playerInvulnMs = 0;
+  private focusSelectLockMs = 0;
   private rewardGold = 40;
   private spawnPlanComplete = false;
   private nightEnded = false;
@@ -58,7 +60,7 @@ export class DefenseScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
-    this.wallHp = this.save.townWallHp;
+    this.wallHp = Math.max(1, this.save.townWallHp);
     const store = this.registry.get("dataStore") as DataStore;
     const wave = store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
@@ -75,7 +77,9 @@ export class DefenseScene extends Phaser.Scene {
     this.cameras.main.setZoom(1);
 
     this.player = new Player(this, 0, 0, this.save.player.hpMax);
-    this.player.damageable.hp = this.save.player.hp;
+    this.player.damageable.hp = this.save.player.hpMax;
+    this.player.damageable.alive = true;
+    this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     const margin = 48;
@@ -129,6 +133,7 @@ export class DefenseScene extends Phaser.Scene {
     this.stick = new VirtualStick(this, {
       blockers: this.uiBlockers,
       excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 110 }],
+      dragThresholdPx: 18,
     });
 
     this.targetIndicator = new TargetIndicator(this);
@@ -186,14 +191,22 @@ export class DefenseScene extends Phaser.Scene {
       chasePlayer(e, px, py, ENEMY_TUNING.gruntSpeed);
     }
 
+    this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
+    this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
     this.touchCooldown -= delta;
-    if (this.touchCooldown <= 0) {
+    if (this.touchCooldown <= 0 && this.playerInvulnMs <= 0) {
       for (const e of this.enemies) {
         if (!e.damageable.alive) continue;
         const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
         if (d < 28) {
           applyDamage(this.player.damageable, ENEMY_TUNING.touchDamage);
+          if (this.player.damageable.hp <= 0) {
+            this.player.damageable.alive = false;
+          } else {
+            this.player.damageable.alive = true;
+          }
           this.touchCooldown = ENEMY_TUNING.touchCooldownMs;
+          this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
           break;
         }
       }
@@ -212,7 +225,7 @@ export class DefenseScene extends Phaser.Scene {
     this.hudText.setText(
       [
         `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
-        `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}`,
+        `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
         `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
         this.player.attackPhaseNow !== "idle"
           ? `ATK: ${this.player.attackPhaseNow}`
@@ -220,7 +233,7 @@ export class DefenseScene extends Phaser.Scene {
       ].join("\n"),
     );
 
-    if (!this.player.damageable.alive || this.wallHp <= 0) {
+    if (this.player.damageable.hp <= 0) {
       this.endNight(false);
       return;
     }
@@ -246,6 +259,7 @@ export class DefenseScene extends Phaser.Scene {
 
   private onScreenTap(pointer: Phaser.Input.Pointer): void {
     if (this.isPointerOverUi(pointer)) return;
+    if (this.focusSelectLockMs > 0) return;
 
     const tapResult = this.stick.tryConsumeTap(pointer);
     if (tapResult.kind === "drag") return;
@@ -279,6 +293,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private setFocusEnemy(id: string | null): void {
+    if (id) this.focusSelectLockMs = 220;
     this.focusEnemyId = id;
     if (!id) {
       this.targetIndicator.detach();
@@ -461,9 +476,17 @@ export class DefenseScene extends Phaser.Scene {
   private spawnEnemyAt(x: number, y: number, hp?: number): void {
     const resolvedHp = hp ?? ENEMY_TUNING.gruntHp;
     const id = `e_${this.enemies.length}_${Date.now()}`;
-    const enemy = spawnEnemy(this, id, x, y, resolvedHp, () => {
-      enemy.sprite.destroy();
-    });
+    const enemy = spawnEnemy(
+      this,
+      id,
+      x,
+      y,
+      resolvedHp,
+      () => {
+        enemy.sprite.destroy();
+      },
+      () => this.setFocusEnemy(id),
+    );
     this.enemies.push(enemy);
   }
 
@@ -480,8 +503,9 @@ export class DefenseScene extends Phaser.Scene {
       night: this.save.night,
     };
     const next = applyNightResult(this.save, result);
-    this.save.player.hp = this.player.damageable.hp;
-    next.player.hp = this.player.damageable.hp;
+    const survivedHp = Math.max(0, Math.floor(this.player.damageable.hp));
+    this.save.player.hp = survivedHp;
+    next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
     if (won) next.townWallHp = Math.max(0, this.wallHp - wallDamage);
     persistSave(next);
     this.registry.set("save", next);

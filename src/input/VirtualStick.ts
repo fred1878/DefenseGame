@@ -8,7 +8,7 @@ export type VirtualStickOptions = {
   blockers?: Phaser.GameObjects.GameObject[];
   /** Non-interactive screen regions (e.g. HUD) that reject stick start. */
   excludeZones?: ScreenRect[];
-  /** Pixels before stick appears — avoids stealing taps. */
+  /** Pixels before stick appears — avoids stealing taps (default 16). */
   dragThresholdPx?: number;
 };
 
@@ -41,7 +41,7 @@ export class VirtualStick {
     this.radius = options.radius ?? 56;
     this.blockers = options.blockers ?? [];
     this.excludeZones = options.excludeZones ?? [];
-    this.dragThreshold = options.dragThresholdPx ?? 12;
+    this.dragThreshold = options.dragThresholdPx ?? 16;
 
     this.base = scene.add
       .circle(0, 0, this.radius, 0x2a2d38, 0.55)
