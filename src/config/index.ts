@@ -12,7 +12,7 @@ export { ENEMY_TUNING, PLAYER_AGGRO_RADIUS } from "./enemy";
 export {
   DEFENSE_MAP,
   DEFENSE_OBSTACLES,
-  westWallAttackX,
+  northWallAttackY,
   type DefenseObstacleRect,
 } from "./defense";
 export {

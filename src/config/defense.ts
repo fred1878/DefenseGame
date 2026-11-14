@@ -1,7 +1,7 @@
 import { GAME } from "./game";
 
-/** West settlement wall — attack target plane (world x). */
-export function westWallAttackX(): number {
+/** North settlement wall — attack target plane (world y). */
+export function northWallAttackY(): number {
   const half = GAME.worldHalfSize;
   return -half + 20 + 20;
 }

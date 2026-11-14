@@ -122,13 +122,32 @@ export class DefenseScene extends Phaser.Scene {
     super({ key: "Defense" });
   }
 
+  /** Phaser reuses scene instances; clear per-night state when a new defense run starts. */
+  private resetDefenseRunState(): void {
+    this.nightEnded = false;
+    this.spawnPlanComplete = false;
+    this.returnToTownBtn = null;
+    this.enemies = [];
+    this.projectiles = [];
+    this.projectileSerial = 0;
+    this.enemyPathGoals.clear();
+    this.focusEnemyId = null;
+    this.focusSelectLockMs = 0;
+    this.focusTapFlash = null;
+    this.prevPlayerAttackPhase = "idle";
+    this.autoAttackEnabled = false;
+    this.playerInvulnMs = 0;
+    this.spellCaster = new SpellCastController();
+  }
+
   create(): void {
     configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
     if (!this.save.spellBar?.slots?.length) {
       this.save.spellBar = { slots: createDefaultSpellBarSlots() };
     }
-    this.wallHp = Math.max(1, this.save.townWallHp);
+    this.resetDefenseRunState();
+    this.wallHp = Math.max(0, this.save.townWallHp);
     this.wallHpStart = this.wallHp;
     this.navGrid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize);
     const store = this.registry.get("dataStore") as DataStore;
@@ -140,8 +159,8 @@ export class DefenseScene extends Phaser.Scene {
     buildGroundLayer(this, half);
 
     this.add
-      .rectangle(-half + 20, 0, 40, half * 2, 0x52525b)
-      .setOrigin(0, 0.5);
+      .rectangle(0, -half + 20, half * 2, 40, 0x52525b)
+      .setOrigin(0.5, 0);
 
     this.obstacleGroup = this.physics.add.staticGroup();
     for (const obs of DEFENSE_OBSTACLES) {
@@ -583,6 +602,9 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private transitionToTown(): void {
+    if (this.scene.get("DebugMenu")?.scene.isActive()) {
+      this.scene.stop("DebugMenu");
+    }
     this.scene.stop();
     this.scene.start("Town");
   }

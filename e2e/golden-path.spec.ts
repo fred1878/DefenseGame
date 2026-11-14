@@ -83,4 +83,35 @@ test.describe("golden paths", () => {
       })
       .toBeGreaterThan(goldBefore);
   });
+
+  test("night-lose-retry-win", async ({ page }) => {
+    const nightBefore = await apiEval(page, "api.getSave()?.night ?? 1");
+    await apiEval(page, "api.damagePlayer(9999)");
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.startNight());
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () =>
+              window.__DEFENSEGAME_E2E__?.scene === "Defense" &&
+              window.__DEFENSEGAME_E2E__?.ready === true,
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+    await apiEval(page, "api.setGodMode(true)");
+    await apiEval(page, "api.forceWinNight()");
+    await expect
+      .poll(async () => apiEval(page, "api.getSave()?.night ?? 1"), {
+        timeout: 15_000,
+      })
+      .toBe(nightBefore + 1);
+  });
 });
