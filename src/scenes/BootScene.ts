@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
-import { COMBAT_FX_ASSETS, GROUND_TILE_ASSETS } from "../config/assets";
+import { COMBAT_FX_ASSETS, GROUND_TILE_ASSETS, UI_ASSET_ROOT, UI_ASSETS } from "../config/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
@@ -60,6 +60,9 @@ export class BootScene extends Phaser.Scene {
       }
       for (const { key, file } of COMBAT_FX_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/combat/fx/${file}`);
+      }
+      for (const { key, file } of UI_ASSETS) {
+        loader.image(key, `${UI_ASSET_ROOT}/${file}`);
       }
       loader.once(Phaser.Loader.Events.COMPLETE, () => {
         configurePixelArtTextures(this);

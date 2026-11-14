@@ -4,6 +4,7 @@ import {
   GROUND_TILE_ASSETS,
   GROUND_TILE_TEXTURE,
   PLAYER_TEXTURE,
+  UI_ASSETS,
 } from "../config/assets";
 
 const GAME_SPRITE_KEYS = [
@@ -18,6 +19,7 @@ export function configurePixelArtTextures(scene: Phaser.Scene): void {
     ...GAME_SPRITE_KEYS,
     GROUND_TILE_TEXTURE,
     ...GROUND_TILE_ASSETS.map((a) => a.key),
+    ...UI_ASSETS.map((a) => a.key),
   ];
   for (const key of keys) {
     if (!scene.textures.exists(key)) continue;
