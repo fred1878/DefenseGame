@@ -56,12 +56,15 @@ export class DefenseScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     const margin = 48;
-    this.stick = new VirtualStick(this, margin + 56, this.scale.height - margin - 56);
-
     this.attackButton = makeAttackButton(this, this.scale.width - margin - 44, this.scale.height - margin - 44, () => {
       this.player.tryStartAttack();
     });
     this.attackButton.setDepth(150);
+
+    this.stick = new VirtualStick(this, {
+      blockers: [this.attackButton],
+      excludeZones: [{ x: 0, y: 0, width: GAME.width, height: 96 }],
+    });
 
     this.hudText = this.add
       .text(12, 12, "", {
@@ -139,7 +142,7 @@ export class DefenseScene extends Phaser.Scene {
         `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
         `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}`,
         `Enemies ${living}`,
-        this.player.attackPhaseNow !== "idle" ? `ATK: ${this.player.attackPhaseNow}` : "Tap ATK to swing",
+        this.player.attackPhaseNow !== "idle" ? `ATK: ${this.player.attackPhaseNow}` : "Drag to move · ATK to swing",
       ].join("\n"),
     );
 
