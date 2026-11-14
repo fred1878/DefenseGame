@@ -1,0 +1,8 @@
+{
+  "1": {
+    "rewardGold": 40,
+    "groups": [
+      { "atMs": 0, "enemyId": "grunt", "count": 5, "intervalMs": 700 }
+    ]
+  }
+}

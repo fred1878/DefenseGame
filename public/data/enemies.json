@@ -1,0 +1,9 @@
+{
+  "grunt": {
+    "hp": 30,
+    "speed": 85,
+    "damage": 8,
+    "behavior": "meleeChaser",
+    "textureKey": "enemy_grunt"
+  }
+}
