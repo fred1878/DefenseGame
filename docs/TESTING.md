@@ -9,7 +9,18 @@
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
 | `npm run test:e2e` | Playwright browser suites (`e2e/`) |
 
-CI runs `typecheck`, `test`, `build`, then builds an e2e bundle and runs Playwright (Chromium).
+CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` and build):
+
+| Job | Steps |
+|-----|--------|
+| `verify` | `typecheck`, `test`, production `build` |
+| `e2e` | E2E `build`, Playwright (Chromium) |
+
+Wall-clock time is roughly **max(verify, e2e)** instead of the sum.
+
+**Fail-fast:** If either job fails, that job calls `actions.cancelWorkflowRun` so the other in-flight job is cancelled for the same run. New pushes still use workflow **concurrency** (`cancel-in-progress`) to drop older runs on the same ref.
+
+Locally, run the same checks in sequence (or in two terminals): `npm run typecheck && npm run test && npm run build` and `npm run build:e2e && npm run test:e2e`.
 
 ## E2E gate
 

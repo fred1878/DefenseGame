@@ -28,7 +28,7 @@ Tagged releases (`v*.*.*`) also deploy the same way and add an optional zip on t
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci.yml` | Push/PR to `main` | Typecheck, tests, build (no artifacts) |
+| `ci.yml` | Push/PR to `main` | Parallel `verify` (typecheck, test, build) + `e2e` (Playwright); fail-fast cancels sibling job on failure |
 | `pages.yml` | Push to `main` | Publish playable site |
 | `release.yml` | Push tag `v*.*.*` | Pages deploy + GitHub Release notes + optional zip |
 
@@ -39,7 +39,7 @@ CI does **not** upload Actions artifacts (large Phaser bundles were hitting acco
 ## Day-to-day development
 
 1. Branch from `main` (cloud agents: `cursor/<name>-ee24`).
-2. Open PR → **CI** runs `npm ci`, `typecheck`, `test`, `build`.
+2. Open PR → **CI** runs parallel **verify** and **e2e** (see `docs/TESTING.md`).
 3. Merge to `main` → **Pages** updates the public link within a few minutes.
 
 ---
@@ -75,4 +75,4 @@ Capacitor wraps the same web `dist/`. Store builds (signed APK/IPA) are a later 
 npm run typecheck && npm run test && npm run build
 ```
 
-CI uses Node **22** (`.nvmrc`).
+CI uses Node **24** (`.nvmrc`) on **`ubuntu-24.04`** runners (`ci.yml` jobs).
