@@ -16,11 +16,23 @@ export type TouchButtonHandle = {
   setLabel: (text: string) => void;
 };
 
+type PressVisual = {
+  bg?: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Arc | Phaser.GameObjects.Ellipse;
+  colors?: { rest: number; pressed: number };
+  pressScale?: number;
+};
+
 function addPressFeedback(
   scene: Phaser.Scene,
   container: Phaser.GameObjects.Container,
+  visual?: PressVisual,
 ): void {
+  const pressScale = visual?.pressScale ?? 0.9;
+
   const bounceBack = () => {
+    if (visual?.bg && visual.colors) {
+      visual.bg.setFillStyle(visual.colors.rest, 1);
+    }
     scene.tweens.add({
       targets: container,
       scaleX: 1,
@@ -30,31 +42,44 @@ function addPressFeedback(
     });
   };
 
-  container.on("pointerdown", () => {
+  const onPress = () => {
     scene.tweens.killTweensOf(container);
     scene.tweens.add({
       targets: container,
-      scaleX: 0.9,
-      scaleY: 0.9,
+      scaleX: pressScale,
+      scaleY: pressScale,
       duration: 50,
       ease: "Quad.easeOut",
     });
-  });
+    if (visual?.bg && visual.colors) {
+      visual.bg.setFillStyle(visual.colors.pressed, 1);
+    }
+  };
+
+  container.on("pointerdown", onPress);
   container.on("pointerup", bounceBack);
   container.on("pointerupoutside", bounceBack);
   container.on("pointerout", bounceBack);
+}
+
+function darkenColor(color: number, factor: number): number {
+  const r = Math.floor(((color >> 16) & 0xff) * factor);
+  const g = Math.floor(((color >> 8) & 0xff) * factor);
+  const b = Math.floor((color & 0xff) * factor);
+  return (r << 16) + (g << 8) + b;
 }
 
 function bindPress(
   scene: Phaser.Scene,
   obj: Phaser.GameObjects.GameObject,
   onPress: () => void,
+  pressVisual?: PressVisual,
 ): void {
   const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
   if (go.input) go.input.alwaysEnabled = true;
 
   if (obj instanceof Phaser.GameObjects.Container) {
-    addPressFeedback(scene, obj);
+    addPressFeedback(scene, obj, pressVisual);
   }
 
   obj.on(
@@ -103,7 +128,8 @@ export function createTouchButton(
     new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
-  bindPress(scene, container, onPress);
+  const colors = { rest: fill, pressed: darkenColor(fill, 0.72) };
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88 });
 
   return {
     container,
@@ -137,13 +163,16 @@ export function createTouchToggleButton(
     new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
-  bindPress(scene, container, onPress);
+  const colors = { rest: 0x3f3f46, pressed: 0x27272a };
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9 });
 
   return {
     container,
     setLabel: (label: string) => text.setText(label),
     setOn: (on: boolean) => {
-      bg.setFillStyle(on ? 0x15803d : 0x3f3f46, 1);
+      colors.rest = on ? 0x15803d : 0x3f3f46;
+      colors.pressed = darkenColor(colors.rest, 0.75);
+      bg.setFillStyle(colors.rest, 1);
       bg.setStrokeStyle(2, on ? 0x4ade80 : 0x71717a);
     },
   };
@@ -170,7 +199,8 @@ export function createTouchCircleButton(
     new Phaser.Geom.Circle(0, 0, hitR),
     Phaser.Geom.Circle.Contains,
   );
-  bindPress(scene, container, onPress);
+  const colors = { rest: 0xea580c, pressed: 0xc2410c };
+  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9 });
   return container;
 }
 
