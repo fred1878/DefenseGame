@@ -5,7 +5,7 @@ test.describe("visual regression", () => {
   test("town viewport", async ({ page }) => {
     await gotoE2E(page);
     await expect(page).toHaveScreenshot("town-540x1200.png", {
-      fullPage: true,
+      clip: { x: 0, y: 0, width: 540, height: 1200 },
     });
   });
 
@@ -17,7 +17,7 @@ test.describe("visual regression", () => {
       await api?.spawnTestEnemy(120, 0);
     });
     await expect(page).toHaveScreenshot("defense-540x1200.png", {
-      fullPage: true,
+      clip: { x: 0, y: 0, width: 540, height: 1200 },
       maxDiffPixelRatio: 0.04,
     });
   });

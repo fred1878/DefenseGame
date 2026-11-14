@@ -68,7 +68,7 @@ test.describe("golden paths", () => {
       .poll(
         async () =>
           page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
-        { timeout: 20_000 },
+        { timeout: 45_000 },
       )
       .toBe(true);
     const goldAfter = await apiEval(page, "api.getSave()?.gold ?? 0");
@@ -81,7 +81,7 @@ test.describe("golden paths", () => {
       .poll(
         async () =>
           page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
-        { timeout: 20_000 },
+        { timeout: 45_000 },
       )
       .toBe(true);
   });

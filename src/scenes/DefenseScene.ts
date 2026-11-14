@@ -1037,5 +1037,9 @@ export class DefenseScene extends Phaser.Scene {
   e2eForceWinNight(): void {
     this.e2eKillAllEnemies();
     this.spawnPlanComplete = true;
+    const living = this.enemies.filter((e) => e.damageable.alive).length;
+    if (living === 0 && !this.nightEnded) {
+      this.endNight(true);
+    }
   }
 }
