@@ -14,10 +14,29 @@ export function spawnEnemy(
   y: number,
   hp: number,
   onDeath: () => void,
+  onTap?: () => void,
 ): EnemyInstance {
   const sprite = scene.physics.add.sprite(x, y, "enemy_grunt");
   sprite.setCircle(12);
   sprite.setDepth(5);
+  sprite.setInteractive(
+    new Phaser.Geom.Circle(0, 0, 26),
+    Phaser.Geom.Circle.Contains,
+  );
+  if (onTap) {
+    sprite.on(
+      "pointerdown",
+      (
+        _pointer: Phaser.Input.Pointer,
+        _lx: number,
+        _ly: number,
+        event: Phaser.Types.Input.EventData,
+      ) => {
+        event.stopPropagation();
+        onTap();
+      },
+    );
+  }
   const damageable: Damageable = {
     id,
     hp,

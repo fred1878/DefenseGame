@@ -23,7 +23,9 @@ export const PLAYER_TUNING = {
   maxHp: 100,
   autoAttackMeleeRange: 52,
   autoAttackRangedRange: 300,
-  targetTapRadiusWorld: 40,
+  targetTapRadiusWorld: 56,
+  playerHitInvulnMs: 900,
+  nightSpawnInvulnMs: 1500,
 } as const;
 
 export const ENEMY_TUNING = {
