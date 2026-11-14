@@ -14,7 +14,6 @@ export type SpellBarCallbacks = {
 };
 
 export class SpellBar {
-  private readonly scene: Phaser.Scene;
   private readonly caster: SpellCastController;
   private readonly slots: SpellId[];
   private readonly buttons: ReturnType<typeof createTouchButton>[] = [];
@@ -28,7 +27,6 @@ export class SpellBar {
     callbacks: SpellBarCallbacks,
     depth = 200,
   ) {
-    this.scene = scene;
     this.caster = caster;
     this.slots = slotIds.slice(0, SPELL_BAR.slotCount);
     this.onCastRequest = callbacks.onCastRequest;
@@ -77,21 +75,27 @@ export class SpellBar {
 
   /** Screen rect covering the spell row for virtual-stick exclusion. */
   getScreenRect(): { x: number; y: number; width: number; height: number } {
-    const safe = readSafeInsets();
-    const { centerY } = spellBarSlotOrigin(
-      this.scene,
-      safe,
-      this.slots.length,
-      SPELL_BAR.slotSizePx,
-      SPELL_BAR.slotGapPx,
-    );
-    const pad = scaleUiY(12);
-    const half = SPELL_BAR.slotSizePx / 2 + pad;
+    const pad = scaleUiY(8);
+    let minX = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+    for (const btn of this.buttons) {
+      const r = interactiveObjectScreenRect(btn.container);
+      if (!r) continue;
+      minX = Math.min(minX, r.x);
+      maxX = Math.max(maxX, r.x + r.width);
+      minY = Math.min(minY, r.y);
+      maxY = Math.max(maxY, r.y + r.height);
+    }
+    if (!Number.isFinite(minX)) {
+      return { x: 0, y: 0, width: 0, height: 0 };
+    }
     return {
-      x: 0,
-      y: Math.max(0, centerY - half),
-      width: this.scene.scale.width,
-      height: half * 2,
+      x: minX - pad,
+      y: minY - pad,
+      width: maxX - minX + pad * 2,
+      height: maxY - minY + pad * 2,
     };
   }
 

@@ -28,12 +28,6 @@ import {
 } from "../ui/fullscreen";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { UI_TEXTURE } from "../config/assets";
-import {
-  createTownHudChrome,
-  townActionStackMetrics,
-} from "../ui/townHudChrome";
-
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
@@ -130,51 +124,31 @@ export class TownScene extends Phaser.Scene {
 
     const btnW = scaleUiX(260);
     const btnH = scaleUiY(48);
-    const yStart = townActionButtonY(this, safe, 0);
-    const yWall = townActionButtonY(this, safe, 1);
-    const ySmith = townActionButtonY(this, safe, 2);
-    const stackMetrics = townActionStackMetrics(btnH, btnW, ySmith, yStart);
-    createTownHudChrome(
-      this,
-      safe,
-      stackMetrics.centerY,
-      stackMetrics.panelHeight,
-      stackMetrics.panelWidth,
-    );
-
-    const townBtnStyle = {
-      width: btnW,
-      height: btnH,
-      depth: 200,
-      frameTextureKey: UI_TEXTURE.modeRect,
-      fontSize: `${scaleUiX(18)}px`,
-    } as const;
-
     this.startNightButton = createTouchButton(
       this,
       GAME.width / 2,
-      yStart,
+      townActionButtonY(this, safe, 0),
       "Start night",
       () => this.beginDefenseNight(),
-      townBtnStyle,
+      { width: btnW, height: btnH, depth: 200 },
     );
 
     createTouchButton(
       this,
       GAME.width / 2,
-      yWall,
+      townActionButtonY(this, safe, 1),
       "Upgrade wall",
       () => this.tryUpgrade(store, "wall"),
-      townBtnStyle,
+      { width: btnW, height: btnH, depth: 200 },
     );
 
     createTouchButton(
       this,
       GAME.width / 2,
-      ySmith,
+      townActionButtonY(this, safe, 2),
       "Upgrade blacksmith",
       () => this.tryUpgrade(store, "blacksmith"),
-      townBtnStyle,
+      { width: btnW, height: btnH, depth: 200 },
     );
 
     this.touchDebug = new TouchInputDebugDraw(this);
