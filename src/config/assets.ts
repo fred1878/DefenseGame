@@ -115,8 +115,8 @@ export const UI_NINE_SLICE = {
   panelCompact: { left: 48, right: 48, top: 40, bottom: 40 },
   panelSquare: { left: 56, right: 56, top: 56, bottom: 56 },
   panelTall: { left: 56, right: 56, top: 72, bottom: 72 },
-  /** Full-width bottom HUD using tall panel art (short height). */
-  panelTallBottomBar: { left: 52, right: 52, top: 200, bottom: 56 },
+  /** Full-width bottom HUD using tall panel art (short height) — crop baked sample in center. */
+  panelTallBottomBar: { left: 52, right: 52, top: 288, bottom: 64 },
 } as const;
 
 export const UI_ASSET_ROOT = "assets/ui/gothic";

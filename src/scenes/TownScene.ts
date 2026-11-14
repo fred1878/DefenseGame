@@ -28,7 +28,6 @@ import {
 } from "../ui/fullscreen";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { UI_TEXTURE } from "../config/assets";
 import {
   createTownHudChrome,
   townActionStackMetrics,
@@ -128,8 +127,8 @@ export class TownScene extends Phaser.Scene {
       },
     );
 
-    const btnW = scaleUiX(260);
-    const btnH = scaleUiY(48);
+    const btnW = scaleUiX(300);
+    const btnH = scaleUiY(56);
     const yStart = townActionButtonY(this, safe, 0);
     const yWall = townActionButtonY(this, safe, 1);
     const ySmith = townActionButtonY(this, safe, 2);
@@ -142,12 +141,14 @@ export class TownScene extends Phaser.Scene {
       stackMetrics.panelWidth,
     );
 
+    /** Vector slab only — no scaled sprite (avoids baked center art in mode-rect). */
     const townBtnStyle = {
       width: btnW,
       height: btnH,
       depth: 200,
-      frameTextureKey: UI_TEXTURE.modeRect,
-      fontSize: `${scaleUiX(18)}px`,
+      fontSize: `${scaleUiX(20)}px`,
+      fillColor: 0x2a2520,
+      strokeColor: 0x8a8a8c,
     } as const;
 
     this.startNightButton = createTouchButton(

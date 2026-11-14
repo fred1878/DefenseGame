@@ -8,10 +8,10 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 
-const BOTTOM_STRIP_TEXTURE = "ui_hud_bottom_strip";
+const BOTTOM_PANEL_TEXTURE = "ui_hud_panel_tall";
 
 test.describe("defense HUD layout", () => {
-  test("bottom strip chrome, spell row in strip band", async ({ page }) => {
+  test("bottom panel chrome, spell row in strip band", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);
     await page.evaluate(async () => {
@@ -20,14 +20,14 @@ test.describe("defense HUD layout", () => {
 
     const stripLoaded = await page.evaluate(
       (key) => window.__DEFENSEGAME_E2E__?.api?.textureLoaded(key),
-      BOTTOM_STRIP_TEXTURE,
+      BOTTOM_PANEL_TEXTURE,
     );
     expect(stripLoaded).toBe(true);
 
     const chromeKey = await page.evaluate(() =>
       window.__DEFENSEGAME_E2E__?.api?.e2eBottomChromeTextureKey(),
     );
-    expect(chromeKey).toBe(BOTTOM_STRIP_TEXTURE);
+    expect(chromeKey).toBe(BOTTOM_PANEL_TEXTURE);
 
     const { targets, stripCenterY, stripH } = await page.evaluate(() => {
       const hud = window.__HUD_DEBUG__ as
@@ -51,5 +51,28 @@ test.describe("defense HUD layout", () => {
       expect(pt!.y).toBeGreaterThanOrEqual(stripCenterY - bandHalf);
       expect(pt!.y).toBeLessThanOrEqual(stripCenterY + bandHalf);
     }
+
+    const rects = await page.evaluate(() => {
+      const targets = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
+      const spell0 = targets["spell-slot-0"];
+      const debug = targets["defense-debug"];
+      if (!spell0 || !debug) return null;
+      const pad = 28;
+      const spellR = {
+        x: spell0.x - pad,
+        y: spell0.y - pad,
+        w: pad * 2,
+        h: pad * 2,
+      };
+      const debugR = { x: debug.x - pad, y: debug.y - pad, w: pad * 2, h: pad * 2 };
+      const hit =
+        debugR.x < spellR.x + spellR.w &&
+        debugR.x + debugR.w > spellR.x &&
+        debugR.y < spellR.y + spellR.h &&
+        debugR.y + debugR.h > spellR.y;
+      return { spell0, debug, hit };
+    });
+    expect(rects).not.toBeNull();
+    expect(rects!.hit, JSON.stringify(rects)).toBe(false);
   });
 });

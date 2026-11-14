@@ -80,6 +80,19 @@ export function debugButtonPosition(
   };
 }
 
+/** Defense: left edge above bottom HUD strip — clears spell row inside the panel. */
+export function combatDebugButtonPosition(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): { x: number; y: number } {
+  const strip = bottomHudStripLayout(scene, safe);
+  const margin = scaleUiX(12);
+  return {
+    x: margin + safe.left + scaleUiX(44),
+    y: strip.stripTop - scaleUiY(26),
+  };
+}
+
 export type BottomHudStrip = {
   stripH: number;
   stripCenterY: number;
@@ -149,7 +162,8 @@ export function spellBarSlotOrigin(
 ): SpellBarOrigin {
   const chrome = combatChromeLayout(scene, safe);
   const rowWidth = slotCount * slotSizePx + (slotCount - 1) * slotGapPx;
-  const leftPad = scaleUiX(20) + safe.left;
+  const debugReserve = scaleUiX(108) + safe.left;
+  const leftPad = Math.max(scaleUiX(16) + safe.left, debugReserve);
   const clusterPad = scaleUiX(10);
   const availW = Math.max(rowWidth, chrome.combatClusterLeft - clusterPad - leftPad);
   const firstSlotCenterX =
@@ -173,11 +187,13 @@ export function combatChromeLayout(
   safe: SafeInsets,
 ): CombatChromeLayout {
   const bottomStrip = bottomHudStripLayout(scene, safe);
-  const sideMargin = scaleUiX(14);
+  const sideMargin = scaleUiX(6);
+  const clusterPullLeft = scaleUiX(28);
   const atkRadius = scaleUiX(38);
   const toggleW = scaleUiX(64);
   const toggleH = scaleUiY(34);
-  const atkX = scene.scale.width - sideMargin - safe.right - atkRadius;
+  const atkX =
+    scene.scale.width - sideMargin - safe.right - atkRadius - clusterPullLeft;
   const modeX = atkX - atkRadius - scaleUiX(6) - toggleW / 2;
   const rowY = bottomStrip.stripCenterY + scaleUiY(10);
   const btnY = rowY;

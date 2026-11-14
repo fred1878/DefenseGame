@@ -67,7 +67,7 @@ import {
   buildCombatStickUiMask,
   combatChromeLayout,
   bottomHudStripLayout,
-  debugButtonPosition,
+  combatDebugButtonPosition,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
@@ -195,7 +195,7 @@ export class DefenseScene extends Phaser.Scene {
     if (isE2EEnabled() && typeof window !== "undefined") {
       (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
         {
-          bottomChromeTextureKey: UI_TEXTURE.bottomStrip,
+          bottomChromeTextureKey: UI_TEXTURE.panelTall,
           stripCenterY: bottomStrip.stripCenterY,
           stripH: bottomStrip.stripH,
         };
@@ -208,7 +208,7 @@ export class DefenseScene extends Phaser.Scene {
       "ATK",
       chrome.atkRadius,
       () => this.manualAttack(),
-      200,
+      210,
       UI_TEXTURE.atkCircle,
     );
 
@@ -223,7 +223,7 @@ export class DefenseScene extends Phaser.Scene {
         const mode = this.player.toggleAttackMode();
         this.refreshModeToggle(mode);
       },
-      200,
+      210,
       { frameTextureKey: UI_TEXTURE.modeRect },
     );
 
@@ -238,7 +238,7 @@ export class DefenseScene extends Phaser.Scene {
         this.autoAttackEnabled = !this.autoAttackEnabled;
         this.refreshAutoToggle();
       },
-      200,
+      210,
       { frameTextureKey: UI_TEXTURE.autoRect },
     );
 
@@ -283,7 +283,7 @@ export class DefenseScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(200);
 
-    const dbgPos = debugButtonPosition(this, this.safe);
+    const dbgPos = combatDebugButtonPosition(this, this.safe);
     this.debugBtn = createTouchButton(
       this,
       dbgPos.x,
@@ -1031,7 +1031,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   e2eBottomChromeTextureKey(): string {
-    return UI_TEXTURE.bottomStrip;
+    return UI_TEXTURE.panelTall;
   }
 
   e2eSetStick(dx: number, dy: number): void {
@@ -1165,6 +1165,8 @@ export class DefenseScene extends Phaser.Scene {
     for (const slot of this.spellBar.e2eSlotTapCenters()) {
       out[`spell-slot-${slot.index}`] = { x: slot.x, y: slot.y };
     }
+    const dbg = centerOf(this.debugBtn.container);
+    if (dbg) out["defense-debug"] = dbg;
     if (this.returnToTownBtn) {
       const ret = centerOf(this.returnToTownBtn.container);
       if (ret) out["defense-return-to-town"] = ret;
