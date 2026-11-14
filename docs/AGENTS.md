@@ -146,7 +146,7 @@ Until step 2 feels good on a phone-sized viewport, avoid town art and skill tree
 - **Movement:** Arcade physics body on player/enemies; attack uses **custom hitboxes**, not physics overlap alone.
 - **Player attack:** state machine `idle → windup → active → recovery`; damage only in `active` frames.
 - **Pooling:** enemies and projectiles use pools before scaling waves.
-- **Defense objective:** `townWallHp` — west wall segment; grunts path with A* unless player has LOS within `PLAYER_AGGRO_RADIUS` (`src/config/enemy.ts`).
+- **Defense objective:** `townWallHp` — north wall bar at top of the field (`northWallAttackY()` in `src/config/defense.ts`); grunts path with A* unless player has LOS within `PLAYER_AGGRO_RADIUS` (`src/config/enemy.ts`).
 
 ---
 

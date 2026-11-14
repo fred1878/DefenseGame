@@ -1,5 +1,5 @@
 /** Chase player when line-of-sight is clear and distance ≤ this (world px). */
-export const PLAYER_AGGRO_RADIUS = 140;
+export const PLAYER_AGGRO_RADIUS = 240;
 
 export const ENEMY_TUNING = {
   gruntHp: 30,
