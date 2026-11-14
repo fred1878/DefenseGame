@@ -171,9 +171,11 @@ export class DefenseScene extends Phaser.Scene {
 
     this.obstacleGroup = this.physics.add.staticGroup();
     for (const obs of DEFENSE_OBSTACLES) {
-      const rock = this.add.rectangle(obs.x, obs.y, obs.w, obs.h, 0x57534e);
-      rock.setStrokeStyle(2, 0x78716c);
-      this.physics.add.existing(rock, true);
+      const rock = this.physics.add.staticImage(obs.x, obs.y, obs.textureKey);
+      rock.setDisplaySize(obs.w, obs.h);
+      rock.setOrigin(0.5);
+      rock.setDepth(2);
+      rock.refreshBody();
       this.obstacleGroup.add(rock);
     }
 
