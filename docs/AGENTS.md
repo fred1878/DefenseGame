@@ -158,6 +158,8 @@ npm run dev          # Vite dev server (browser play-test)
 npm run build        # production bundle → dist/
 npm run typecheck
 npm run test         # Vitest unit tests
+npm run build:e2e    # production build with E2E hooks
+npm run test:e2e     # Playwright (run build:e2e first)
 npm run preview      # serve dist locally
 ```
 
@@ -188,4 +190,5 @@ npm run preview      # serve dist locally
 
 ## Related docs
 
+- [Testing](./TESTING.md)
 - [CI and releases](./CI_RELEASES.md)

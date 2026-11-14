@@ -7,7 +7,11 @@ import {
   type SaveGame,
 } from "../config";
 
-const STORAGE_KEY = "defensegame_save_v1";
+import { saveStorageKey } from "../e2e/e2eMode";
+
+function storageKey(): string {
+  return saveStorageKey();
+}
 
 export function createNewSave(): SaveGame {
   const wallMax = 100;
@@ -33,7 +37,7 @@ export function loadSave(): SaveGame {
     return createNewSave();
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey());
     if (!raw) return createNewSave();
     const parsed = JSON.parse(raw) as { version?: number; save?: SaveGame };
     if (parsed.version !== SAVE_VERSION || !parsed.save) {
@@ -63,7 +67,7 @@ function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): Save
 export function persistSave(save: SaveGame): void {
   if (typeof localStorage === "undefined") return;
   localStorage.setItem(
-    STORAGE_KEY,
+    storageKey(),
     JSON.stringify({ version: SAVE_VERSION, save }),
   );
 }
@@ -71,7 +75,7 @@ export function persistSave(save: SaveGame): void {
 /** Wipes save and reloads (mobile-friendly substitute for hard refresh). */
 export function resetSaveAndReload(): void {
   if (typeof localStorage !== "undefined") {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(storageKey());
   }
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);

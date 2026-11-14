@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../config/assets";
+import { publishE2E } from "../e2e/e2eGlobal";
+import { isE2EEnabled } from "../e2e/e2eMode";
 
 /** Peter pick: v1 `slash-arc-v2` at 48px source, scaled for on-screen melee read. */
 const PLAYER_SLASH_OFFSET = 14;
@@ -66,6 +68,9 @@ function spawnSlashFade(
   img.setRotation(facingRad);
   img.setDepth(depth);
   img.setAlpha(0.92);
+  if (isE2EEnabled() && textureKey === COMBAT_FX_TEXTURE.playerMelee) {
+    publishE2E({ flags: { meleeFxSpawned: 1 } });
+  }
   const fadeMs = Math.max(80, holdMs - 40);
   scene.tweens.add({
     targets: img,

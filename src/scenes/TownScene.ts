@@ -21,6 +21,8 @@ import {
   fullscreenButtonLabel,
   toggleFullscreen,
 } from "../ui/fullscreen";
+import { isE2EEnabled } from "../e2e/e2eMode";
+import { publishE2E } from "../e2e/e2eGlobal";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -146,6 +148,14 @@ export class TownScene extends Phaser.Scene {
 
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on("shutdown", () => this.touchDebug.destroy());
+
+    if (isE2EEnabled()) {
+      publishE2E({ scene: "Town", ready: true });
+    }
+  }
+
+  e2eStartNight(): void {
+    this.scene.start("Defense");
   }
 
   update(_time: number, _delta: number): void {

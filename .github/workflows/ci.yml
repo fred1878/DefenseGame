@@ -26,3 +26,30 @@ jobs:
         run: npm run build
         env:
           VITE_BUILD_ID: ${{ github.sha }}
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: E2E production build
+        run: npm run build
+        env:
+          VITE_E2E: "true"
+          VITE_BUILD_ID: e2e-ci
+          VITE_BASE: /
+      - run: npx playwright install --with-deps chromium
+      - name: Playwright e2e
+        run: npm run test:e2e -- --project=chromium
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
