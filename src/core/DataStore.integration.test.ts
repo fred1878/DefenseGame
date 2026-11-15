@@ -107,6 +107,9 @@ describe("public data fixtures", () => {
         "deep_freeze",
         "chain_lightning",
         "combustion",
+        "ice_wall",
+        "shadowform",
+        "blink",
       ]),
     );
     const iconDir = path.join(process.cwd(), "public/assets/spells/icons");
