@@ -11,6 +11,7 @@ import { hasLineOfSight } from "../pathfinding/los";
 import type { NavGrid } from "../pathfinding/grid";
 import type { EnemyInstance } from "../entities/Enemy";
 import { getEnemyBehavior } from "./behaviors";
+import type { EnemyPeerAlly } from "./behaviors/types";
 
 export type EnemyTargetKind = "wall" | "player";
 
@@ -152,6 +153,7 @@ export function updateEnemyBrain(
   playerY: number,
   deltaMs: number,
   peerAgents?: readonly { x: number; y: number }[],
+  peerAllies?: readonly EnemyPeerAlly[],
 ): { targetX: number; targetY: number; targetKind: EnemyTargetKind } {
   const behavior = getEnemyBehavior(enemy.behavior);
   return behavior({
@@ -162,5 +164,6 @@ export function updateEnemyBrain(
     playerY,
     deltaMs,
     peerAgents,
+    peerAllies,
   });
 }

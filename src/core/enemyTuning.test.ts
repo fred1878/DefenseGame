@@ -3,6 +3,8 @@ import {
   DEFAULT_ARROW_RAIN_COMBAT,
   DEFAULT_JAVELINEER_COMBAT,
   DEFAULT_STATIONARY_RANGED_COMBAT,
+  DEFAULT_WALL_SIEGE_COMBAT,
+  DEFAULT_LOBBER_COMBAT,
   DEFAULT_MELEE_COMBAT,
   DEFAULT_WALL_COMBAT,
   resolveEnemyCombat,
@@ -40,6 +42,12 @@ describe("resolveEnemyCombat", () => {
 
     const sentry = resolveEnemyCombat("stationaryRanged", {});
     expect(sentry.stationaryRanged).toEqual(DEFAULT_STATIONARY_RANGED_COMBAT);
+
+    const siege = resolveEnemyCombat("wallSiege", {});
+    expect(siege.wallSiege).toEqual(DEFAULT_WALL_SIEGE_COMBAT);
+
+    const lob = resolveEnemyCombat("lobber", {});
+    expect(lob.lobber).toEqual(DEFAULT_LOBBER_COMBAT);
   });
 });
 

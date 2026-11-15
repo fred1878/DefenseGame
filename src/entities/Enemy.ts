@@ -13,8 +13,10 @@ import {
   createArrowRainCombatState,
   createJavelineerCombatState,
   createStationaryRangedCombatState,
+  createLobberCombatState,
   type ArrowRainCombatState,
   type JavelineerCombatState,
+  type LobberCombatState,
   type StationaryRangedCombatState,
 } from "./EnemyRangedCombat";
 
@@ -25,6 +27,9 @@ import { ENTITY_BODY_RADIUS, tuneArcadeDynamicBody } from "./entityPhysics";
 export type EnemyBehaviorExtra = {
   strafeSign: 1 | -1;
   strafeFlipMs: number;
+  chargeWindupMs: number;
+  chargeActiveMs: number;
+  chargeCooldownMs: number;
 };
 
 export type EnemyInstance = {
@@ -43,6 +48,7 @@ export type EnemyInstance = {
   arrowRain?: ArrowRainCombatState;
   javelineer?: JavelineerCombatState;
   stationaryRanged?: StationaryRangedCombatState;
+  lobber?: LobberCombatState;
 };
 
 export function spawnEnemy(
@@ -104,6 +110,9 @@ export function spawnEnemy(
     behaviorExtra: {
       strafeSign: 1,
       strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 1400,
+      chargeWindupMs: 0,
+      chargeActiveMs: 0,
+      chargeCooldownMs: 0,
     },
   };
   if (def.behavior === "arrowRainArcher") {
@@ -114,6 +123,9 @@ export function spawnEnemy(
   }
   if (def.behavior === "stationaryRanged") {
     enemy.stationaryRanged = createStationaryRangedCombatState();
+  }
+  if (def.behavior === "lobber") {
+    enemy.lobber = createLobberCombatState();
   }
   return enemy;
 }

@@ -22,7 +22,13 @@ function mockJavelineer(x: number, y: number) {
       },
     } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
     nav: { ...createEnemyNav(), targetKind: "player" },
-    behaviorExtra: { strafeSign: 1, strafeFlipMs: 500 },
+    behaviorExtra: {
+      strafeSign: 1,
+      strafeFlipMs: 500,
+      chargeWindupMs: 0,
+      chargeActiveMs: 0,
+      chargeCooldownMs: 0,
+    },
     javelineer: { shotFired: false },
   });
 }

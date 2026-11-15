@@ -52,6 +52,36 @@ export type EnemyCombatPartial = {
     projectileSpeed?: number;
     projectileMaxTravel?: number;
   };
+  /** North-wall priority (`wallSiege` behavior). */
+  wallSiege?: {
+    playerAggroRadius?: number;
+  };
+  /** Burst dash toward player (`charger` behavior). */
+  charger?: {
+    dashTriggerRange?: number;
+    dashWindupMs?: number;
+    dashDurationMs?: number;
+    dashSpeedMul?: number;
+    dashCooldownMs?: number;
+  };
+  /** Arcing ground blast (`lobber` behavior). */
+  lobber?: {
+    preferredRange?: number;
+    attackTriggerRange?: number;
+    windupMs?: number;
+    activeMs?: number;
+    recoveryMs?: number;
+    cooldownMs?: number;
+    projectileSpeed?: number;
+    blastRadius?: number;
+    blastDamageScale?: number;
+  };
+  /** Bodyguard screening (`ward` behavior). */
+  ward?: {
+    protectRadius?: number;
+    screenBlend?: number;
+    playerAggroRadius?: number;
+  };
 };
 
 export type EnemyWallCombat = {
@@ -106,12 +136,46 @@ export type EnemyStationaryRangedCombat = {
   projectileMaxTravel: number;
 };
 
+export type EnemyWallSiegeCombat = {
+  playerAggroRadius: number;
+};
+
+export type EnemyChargerCombat = {
+  dashTriggerRange: number;
+  dashWindupMs: number;
+  dashDurationMs: number;
+  dashSpeedMul: number;
+  dashCooldownMs: number;
+};
+
+export type EnemyLobberCombat = {
+  preferredRange: number;
+  attackTriggerRange: number;
+  windupMs: number;
+  activeMs: number;
+  recoveryMs: number;
+  cooldownMs: number;
+  projectileSpeed: number;
+  blastRadius: number;
+  blastDamageScale: number;
+};
+
+export type EnemyWardCombat = {
+  protectRadius: number;
+  screenBlend: number;
+  playerAggroRadius: number;
+};
+
 export type ResolvedEnemyCombat = {
   wall: EnemyWallCombat;
   melee: EnemyMeleeCombat;
   arrowRain?: EnemyArrowRainCombat;
   javelineer?: EnemyJavelineerCombat;
   stationaryRanged?: EnemyStationaryRangedCombat;
+  wallSiege?: EnemyWallSiegeCombat;
+  charger?: EnemyChargerCombat;
+  lobber?: EnemyLobberCombat;
+  ward?: EnemyWardCombat;
 };
 
 /** Default melee grunt row stats when JSON omits fields. */
@@ -171,6 +235,36 @@ export const DEFAULT_STATIONARY_RANGED_COMBAT: EnemyStationaryRangedCombat = {
   cooldownMs: 1400,
   projectileSpeed: 380,
   projectileMaxTravel: 220,
+};
+
+export const DEFAULT_WALL_SIEGE_COMBAT: EnemyWallSiegeCombat = {
+  playerAggroRadius: 72,
+};
+
+export const DEFAULT_CHARGER_COMBAT: EnemyChargerCombat = {
+  dashTriggerRange: 148,
+  dashWindupMs: 320,
+  dashDurationMs: 420,
+  dashSpeedMul: 2.35,
+  dashCooldownMs: 2800,
+};
+
+export const DEFAULT_LOBBER_COMBAT: EnemyLobberCombat = {
+  preferredRange: 128,
+  attackTriggerRange: 168,
+  windupMs: 680,
+  activeMs: 100,
+  recoveryMs: 520,
+  cooldownMs: 2400,
+  projectileSpeed: 260,
+  blastRadius: 58,
+  blastDamageScale: 0.85,
+};
+
+export const DEFAULT_WARD_COMBAT: EnemyWardCombat = {
+  protectRadius: 220,
+  screenBlend: 0.42,
+  playerAggroRadius: 120,
 };
 
 function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
@@ -248,6 +342,59 @@ function mergeStationaryRanged(
   };
 }
 
+function mergeWallSiege(
+  partial?: EnemyCombatPartial["wallSiege"],
+): EnemyWallSiegeCombat {
+  const d = DEFAULT_WALL_SIEGE_COMBAT;
+  return {
+    playerAggroRadius:
+      partial?.playerAggroRadius ?? d.playerAggroRadius,
+  };
+}
+
+function mergeCharger(
+  partial?: EnemyCombatPartial["charger"],
+): EnemyChargerCombat {
+  const d = DEFAULT_CHARGER_COMBAT;
+  return {
+    dashTriggerRange: partial?.dashTriggerRange ?? d.dashTriggerRange,
+    dashWindupMs: partial?.dashWindupMs ?? d.dashWindupMs,
+    dashDurationMs: partial?.dashDurationMs ?? d.dashDurationMs,
+    dashSpeedMul: partial?.dashSpeedMul ?? d.dashSpeedMul,
+    dashCooldownMs: partial?.dashCooldownMs ?? d.dashCooldownMs,
+  };
+}
+
+function mergeLobber(
+  partial?: EnemyCombatPartial["lobber"],
+): EnemyLobberCombat {
+  const d = DEFAULT_LOBBER_COMBAT;
+  return {
+    preferredRange: partial?.preferredRange ?? d.preferredRange,
+    attackTriggerRange:
+      partial?.attackTriggerRange ?? d.attackTriggerRange,
+    windupMs: partial?.windupMs ?? d.windupMs,
+    activeMs: partial?.activeMs ?? d.activeMs,
+    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
+    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
+    projectileSpeed: partial?.projectileSpeed ?? d.projectileSpeed,
+    blastRadius: partial?.blastRadius ?? d.blastRadius,
+    blastDamageScale: partial?.blastDamageScale ?? d.blastDamageScale,
+  };
+}
+
+function mergeWard(
+  partial?: EnemyCombatPartial["ward"],
+): EnemyWardCombat {
+  const d = DEFAULT_WARD_COMBAT;
+  return {
+    protectRadius: partial?.protectRadius ?? d.protectRadius,
+    screenBlend: partial?.screenBlend ?? d.screenBlend,
+    playerAggroRadius:
+      partial?.playerAggroRadius ?? d.playerAggroRadius,
+  };
+}
+
 export function resolveEnemyCombat(
   behavior: string,
   combat?: EnemyCombatPartial,
@@ -266,6 +413,18 @@ export function resolveEnemyCombat(
     resolved.stationaryRanged = mergeStationaryRanged(
       combat?.stationaryRanged,
     );
+  }
+  if (behavior === "wallSiege") {
+    resolved.wallSiege = mergeWallSiege(combat?.wallSiege);
+  }
+  if (behavior === "charger") {
+    resolved.charger = mergeCharger(combat?.charger);
+  }
+  if (behavior === "lobber") {
+    resolved.lobber = mergeLobber(combat?.lobber);
+  }
+  if (behavior === "ward") {
+    resolved.ward = mergeWard(combat?.ward);
   }
   return resolved;
 }

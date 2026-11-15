@@ -8,6 +8,13 @@ export type BehaviorMoveResult = {
   targetKind: EnemyTargetKind;
 };
 
+export type EnemyPeerAlly = {
+  id: string;
+  behavior: string;
+  x: number;
+  y: number;
+};
+
 export type EnemyBehaviorContext = {
   enemy: EnemyInstance;
   nav: EnemyNavState;
@@ -16,6 +23,7 @@ export type EnemyBehaviorContext = {
   playerY: number;
   deltaMs: number;
   peerAgents?: readonly { x: number; y: number }[];
+  peerAllies?: readonly EnemyPeerAlly[];
 };
 
 export type EnemyBehavior = (ctx: EnemyBehaviorContext) => BehaviorMoveResult;

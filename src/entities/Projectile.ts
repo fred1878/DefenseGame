@@ -303,6 +303,38 @@ export function spawnEnemyProjectile(
   );
 }
 
+/** Arcing lob that detonates on impact / max travel (ground AoE, not hitscan). */
+export function spawnEnemyLobProjectile(
+  scene: Phaser.Scene,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  speed: number,
+  damage: number,
+  blastRadiusWu: number,
+  id: string,
+  textureKey: string = COMBAT_FX_TEXTURE.stoneThrow,
+): EnemyProjectile {
+  const dist = Math.hypot(toX - fromX, toY - fromY);
+  const angle = Math.atan2(toY - fromY, toX - fromX) - 0.62;
+  const proj = spawnPlayerProjectile(
+    scene,
+    fromX,
+    fromY,
+    angle,
+    speed,
+    damage,
+    Math.max(dist + 12, 80),
+    id,
+    textureKey,
+    "default",
+  );
+  proj.spellBehavior = "aoe_on_hit";
+  proj.blastRadiusWu = blastRadiusWu;
+  return proj;
+}
+
 export function updateEnemyProjectile(
   projectile: EnemyProjectile,
   deltaMs: number,
@@ -335,13 +367,26 @@ export function updateEnemyProjectile(
   );
 
   if (t !== null && player.damageable.alive) {
-    applyDamage(player.damageable, projectile.damage, projectile.damageFlavor);
-    applyKnockbackFrom(
-      player.sprite,
-      projectile.sprite.x,
-      projectile.sprite.y,
-      knockback,
-    );
+    if (
+      projectile.spellBehavior === "aoe_on_hit" &&
+      projectile.blastRadiusWu
+    ) {
+      projectile.pendingDetonation = {
+        x: projectile.sprite.x,
+        y: projectile.sprite.y,
+        radiusWu: projectile.blastRadiusWu,
+        damage: projectile.damage,
+        flavor: projectile.damageFlavor,
+      };
+    } else {
+      applyDamage(player.damageable, projectile.damage, projectile.damageFlavor);
+      applyKnockbackFrom(
+        player.sprite,
+        projectile.sprite.x,
+        projectile.sprite.y,
+        knockback,
+      );
+    }
     projectile.sprite.destroy();
     return false;
   }
@@ -353,6 +398,18 @@ export function updateEnemyProjectile(
   projectile.prevY = y1;
 
   if (projectile.traveled >= projectile.maxTravel) {
+    if (
+      projectile.spellBehavior === "aoe_on_hit" &&
+      projectile.blastRadiusWu
+    ) {
+      projectile.pendingDetonation = {
+        x: projectile.sprite.x,
+        y: projectile.sprite.y,
+        radiusWu: projectile.blastRadiusWu,
+        damage: projectile.damage,
+        flavor: projectile.damageFlavor,
+      };
+    }
     projectile.sprite.destroy();
     return false;
   }

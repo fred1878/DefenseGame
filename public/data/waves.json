@@ -5,6 +5,7 @@
       { "atMs": 0, "enemyId": "grunt", "count": 7, "intervalMs": 700 },
       { "atMs": 1200, "enemyId": "skirmisher", "count": 2, "intervalMs": 900 },
       { "atMs": 0, "enemyId": "javelineer", "count": 2, "intervalMs": 0 },
+      { "atMs": 2000, "enemyId": "fast_sapper", "count": 1, "intervalMs": 0 },
       { "atMs": 4200, "enemyId": "sentry_archer", "count": 1, "intervalMs": 0 },
       { "atMs": 5500, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1500 },
       { "atMs": 7500, "enemyId": "javelineer", "count": 1, "intervalMs": 1500 }
@@ -15,6 +16,8 @@
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 11, "intervalMs": 550 },
       { "atMs": 1800, "enemyId": "skirmisher", "count": 2, "intervalMs": 800 },
+      { "atMs": 2500, "enemyId": "fast_sapper", "count": 1, "intervalMs": 0 },
+      { "atMs": 3200, "enemyId": "slow_siege", "count": 1, "intervalMs": 0 },
       { "atMs": 4800, "enemyId": "sentry_archer", "count": 1, "intervalMs": 0 },
       { "atMs": 5000, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1400 },
       { "atMs": 6800, "enemyId": "javelineer", "count": 1, "intervalMs": 1400 }
@@ -25,6 +28,9 @@
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 8, "intervalMs": 500 },
       { "atMs": 4000, "enemyId": "grunt", "count": 5, "intervalMs": 500 },
+      { "atMs": 2200, "enemyId": "fast_sapper", "count": 1, "intervalMs": 0 },
+      { "atMs": 3600, "enemyId": "slow_siege", "count": 1, "intervalMs": 0 },
+      { "atMs": 4200, "enemyId": "charger", "count": 1, "intervalMs": 0 },
       { "atMs": 4800, "enemyId": "bruiser", "count": 1, "intervalMs": 1200 },
       { "atMs": 5200, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1300 },
       { "atMs": 7000, "enemyId": "javelineer", "count": 1, "intervalMs": 1300 }
@@ -34,6 +40,10 @@
     "rewardGold": 85,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 13, "intervalMs": 450 },
+      { "atMs": 2400, "enemyId": "fast_sapper", "count": 2, "intervalMs": 900 },
+      { "atMs": 3000, "enemyId": "slow_siege", "count": 1, "intervalMs": 0 },
+      { "atMs": 3200, "enemyId": "charger", "count": 1, "intervalMs": 0 },
+      { "atMs": 3800, "enemyId": "lobber", "count": 1, "intervalMs": 0 },
       { "atMs": 3000, "enemyId": "bruiser", "count": 2, "intervalMs": 1100 },
       { "atMs": 3800, "enemyId": "arrow_rain_archer", "count": 3, "intervalMs": 1150 },
       { "atMs": 5800, "enemyId": "javelineer", "count": 2, "intervalMs": 1200 }
@@ -43,6 +53,11 @@
     "rewardGold": 100,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 12, "intervalMs": 400 },
+      { "atMs": 2600, "enemyId": "fast_sapper", "count": 2, "intervalMs": 850 },
+      { "atMs": 3000, "enemyId": "slow_siege", "count": 1, "intervalMs": 0 },
+      { "atMs": 3200, "enemyId": "charger", "count": 1, "intervalMs": 0 },
+      { "atMs": 3400, "enemyId": "lobber", "count": 1, "intervalMs": 0 },
+      { "atMs": 3600, "enemyId": "ward", "count": 1, "intervalMs": 0 },
       { "atMs": 3200, "enemyId": "bruiser", "count": 2, "intervalMs": 1050 },
       { "atMs": 3600, "enemyId": "arrow_rain_archer", "count": 3, "intervalMs": 1050 },
       { "atMs": 5600, "enemyId": "javelineer", "count": 3, "intervalMs": 1050 },
@@ -53,6 +68,11 @@
     "rewardGold": 115,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 18, "intervalMs": 380 },
+      { "atMs": 2200, "enemyId": "fast_sapper", "count": 2, "intervalMs": 800 },
+      { "atMs": 2600, "enemyId": "slow_siege", "count": 2, "intervalMs": 1100 },
+      { "atMs": 2800, "enemyId": "charger", "count": 2, "intervalMs": 950 },
+      { "atMs": 3000, "enemyId": "lobber", "count": 1, "intervalMs": 0 },
+      { "atMs": 3200, "enemyId": "ward", "count": 1, "intervalMs": 0 },
       { "atMs": 2800, "enemyId": "bruiser", "count": 3, "intervalMs": 1000 },
       { "atMs": 3200, "enemyId": "arrow_rain_archer", "count": 3, "intervalMs": 1000 },
       { "atMs": 4800, "enemyId": "javelineer", "count": 3, "intervalMs": 950 }
@@ -62,6 +82,11 @@
     "rewardGold": 130,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 21, "intervalMs": 350 },
+      { "atMs": 2000, "enemyId": "fast_sapper", "count": 3, "intervalMs": 750 },
+      { "atMs": 2400, "enemyId": "slow_siege", "count": 2, "intervalMs": 1000 },
+      { "atMs": 2600, "enemyId": "charger", "count": 2, "intervalMs": 900 },
+      { "atMs": 2800, "enemyId": "lobber", "count": 2, "intervalMs": 950 },
+      { "atMs": 3000, "enemyId": "ward", "count": 1, "intervalMs": 0 },
       { "atMs": 2600, "enemyId": "bruiser", "count": 3, "intervalMs": 950 },
       { "atMs": 3000, "enemyId": "arrow_rain_archer", "count": 4, "intervalMs": 950 },
       { "atMs": 4500, "enemyId": "javelineer", "count": 3, "intervalMs": 900 }
@@ -71,6 +96,11 @@
     "rewardGold": 150,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 23, "intervalMs": 340 },
+      { "atMs": 1800, "enemyId": "fast_sapper", "count": 3, "intervalMs": 720 },
+      { "atMs": 2200, "enemyId": "slow_siege", "count": 2, "intervalMs": 950 },
+      { "atMs": 2400, "enemyId": "charger", "count": 3, "intervalMs": 850 },
+      { "atMs": 2600, "enemyId": "lobber", "count": 2, "intervalMs": 900 },
+      { "atMs": 2800, "enemyId": "ward", "count": 2, "intervalMs": 1000 },
       { "atMs": 2500, "enemyId": "bruiser", "count": 4, "intervalMs": 920 },
       { "atMs": 2800, "enemyId": "arrow_rain_archer", "count": 4, "intervalMs": 920 },
       { "atMs": 4200, "enemyId": "javelineer", "count": 4, "intervalMs": 850 },
@@ -81,6 +111,11 @@
     "rewardGold": 175,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 26, "intervalMs": 320 },
+      { "atMs": 1700, "enemyId": "fast_sapper", "count": 4, "intervalMs": 680 },
+      { "atMs": 2100, "enemyId": "slow_siege", "count": 3, "intervalMs": 900 },
+      { "atMs": 2300, "enemyId": "charger", "count": 3, "intervalMs": 820 },
+      { "atMs": 2500, "enemyId": "lobber", "count": 3, "intervalMs": 850 },
+      { "atMs": 2700, "enemyId": "ward", "count": 2, "intervalMs": 950 },
       { "atMs": 2400, "enemyId": "bruiser", "count": 4, "intervalMs": 900 },
       { "atMs": 2700, "enemyId": "arrow_rain_archer", "count": 4, "intervalMs": 900 },
       { "atMs": 4000, "enemyId": "javelineer", "count": 5, "intervalMs": 750 }
@@ -90,6 +125,11 @@
     "rewardGold": 200,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 10, "intervalMs": 300 },
+      { "atMs": 1600, "enemyId": "fast_sapper", "count": 4, "intervalMs": 650 },
+      { "atMs": 2000, "enemyId": "slow_siege", "count": 3, "intervalMs": 850 },
+      { "atMs": 2200, "enemyId": "charger", "count": 4, "intervalMs": 780 },
+      { "atMs": 2400, "enemyId": "lobber", "count": 3, "intervalMs": 820 },
+      { "atMs": 2600, "enemyId": "ward", "count": 3, "intervalMs": 900 },
       { "atMs": 2500, "enemyId": "arrow_rain_archer", "count": 5, "intervalMs": 900 },
       { "atMs": 3500, "enemyId": "bruiser", "count": 5, "intervalMs": 850 },
       { "atMs": 4200, "enemyId": "javelineer", "count": 6, "intervalMs": 700 },
