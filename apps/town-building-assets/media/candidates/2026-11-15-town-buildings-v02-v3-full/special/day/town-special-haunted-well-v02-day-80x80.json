@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/create-image-pixen",
+  "endpoint_mode": "create-image-pixen",
+  "object_id": null,
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_haunted_well",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/day/town-special-haunted-well-v02-day-80x80.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, ONLY round well with iron grill, skull carving, green mist from shaft, prop only, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 113514,
+  "image_size": {
+    "width": 80,
+    "height": 80
+  },
+  "endpoint_rationale": "Compact circular prop; pixen for 80×80 footprint",
+  "view": "high top-down (implicit)"
+}

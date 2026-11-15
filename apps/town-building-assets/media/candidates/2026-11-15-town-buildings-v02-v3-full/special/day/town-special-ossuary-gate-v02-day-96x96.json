@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/map-objects",
+  "endpoint_mode": "map-objects",
+  "object_id": "56c8f434-5ff6-47a2-8454-7ff48757e33c",
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_ossuary_gate",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/day/town-special-ossuary-gate-v02-day-96x96.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, MANDATORY bone rib vault gateway, mourning angel statue, gatehouse not cottage, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 112538,
+  "image_size": {
+    "width": 96,
+    "height": 96
+  },
+  "endpoint_rationale": "Gate arch structure; map-object for bone vault gateway",
+  "view": "high top-down"
+}

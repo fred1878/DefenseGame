@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/generate-ui-v2",
+  "endpoint_mode": "generate-ui-v2",
+  "object_id": null,
+  "ui_asset_id": null,
+  "background_job_id": "4ccb4201-d3d7-406b-828d-f84a36302672",
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_blacksmith",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "common",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/common/day/town-blacksmith-v02-day-96x96.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, ICON glowing forge pit, large anvil, horseshoe sign, bellows, soot chimney dominant NOT cottage, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 113502,
+  "image_size": {
+    "width": 96,
+    "height": 96
+  },
+  "endpoint_rationale": "Central forge subject; UI v2 yields strong icon-like silhouette at game sizes",
+  "view": "high top-down (implicit)"
+}

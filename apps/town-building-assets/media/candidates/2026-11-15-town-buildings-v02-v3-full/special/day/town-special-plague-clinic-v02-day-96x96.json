@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/map-objects",
+  "endpoint_mode": "map-objects",
+  "object_id": "6ca232ba-17c3-4f19-b68c-8232e34394ac",
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_plague_clinic",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/day/town-special-plague-clinic-v02-day-96x96.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, MANDATORY white chalk quarantine circles on ground, vinegar barrels, wax-sealed windows, smoke bellows, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 112520,
+  "image_size": {
+    "width": 96,
+    "height": 96
+  },
+  "endpoint_rationale": "Quarantine yard markings; enclosed clinic compound",
+  "view": "high top-down"
+}

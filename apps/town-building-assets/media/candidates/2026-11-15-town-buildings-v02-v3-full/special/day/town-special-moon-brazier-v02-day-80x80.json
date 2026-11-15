@@ -1,0 +1,25 @@
+{
+  "endpoint": "POST /v2/create-image-pixen",
+  "endpoint_mode": "create-image-pixen",
+  "object_id": null,
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": {
+    "type": "generations",
+    "generations": 1
+  },
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_moon_brazier",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/day/town-special-moon-brazier-v02-day-80x80.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, MANDATORY stone tripod brazier with lunar sickle carving, ash circle, herb offerings, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 112541,
+  "image_size": {
+    "width": 80,
+    "height": 80
+  },
+  "endpoint_rationale": "Compact plaza ritual brazier; pixen prop",
+  "view": "high top-down (implicit)"
+}

@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/map-objects",
+  "endpoint_mode": "map-objects",
+  "object_id": "3039fe27-8b9d-432d-b88a-d3224ae75213",
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_raven_roost",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/day/town-special-raven-roost-v02-day-96x112.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, MANDATORY stone turret with iron raven cages, black feathers, message tube, crooked mast, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 112517,
+  "image_size": {
+    "width": 96,
+    "height": 112
+  },
+  "endpoint_rationale": "Tall turret; map-object detail for perches and cages",
+  "view": "high top-down"
+}

@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/map-objects",
+  "endpoint_mode": "map-objects",
+  "object_id": "76d8a84c-61c3-4fdb-9615-5565ca0db82a",
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_bone_archive",
+  "variant": "v02",
+  "lighting": "night",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/night/town-special-bone-archive-v02-night-96x112.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, GRIMDARK NIGHT, blue-grey shadows, amber forge or window glow accents, MANDATORY charnel house with bone cart, rib cage arch doorway, stacked skulls readable, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 122529,
+  "image_size": {
+    "width": 96,
+    "height": 112
+  },
+  "endpoint_rationale": "Tall ossuary façade; high-detail map-object",
+  "view": "high top-down"
+}

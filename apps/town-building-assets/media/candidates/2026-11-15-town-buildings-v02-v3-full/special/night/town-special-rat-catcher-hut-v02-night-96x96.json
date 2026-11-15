@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/map-objects",
+  "endpoint_mode": "map-objects",
+  "object_id": "2b187053-d113-492a-b011-dff288307534",
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_rat_catcher_hut",
+  "variant": "v02",
+  "lighting": "night",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/night/town-special-rat-catcher-hut-v02-night-96x96.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, GRIMDARK NIGHT, blue-grey shadows, amber forge or window glow accents, MANDATORY wall of cage traps, sewer grate tools, dead rat display pole, catcher yard, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 122545,
+  "image_size": {
+    "width": 96,
+    "height": 96
+  },
+  "endpoint_rationale": "Trap-yard compound; low top-down wide layout",
+  "view": "low top-down"
+}

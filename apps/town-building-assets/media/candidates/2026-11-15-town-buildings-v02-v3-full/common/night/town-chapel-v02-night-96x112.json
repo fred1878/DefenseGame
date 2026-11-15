@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/map-objects",
+  "endpoint_mode": "map-objects",
+  "object_id": "a8ab385d-8c34-4cd5-b68f-8128f1156871",
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_chapel",
+  "variant": "v02",
+  "lighting": "night",
+  "category": "common",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/common/night/town-chapel-v02-night-96x112.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, GRIMDARK NIGHT, blue-grey shadows, amber forge or window glow accents, ICON cross-shaped apse from above, red cross banner, buttress chapel NOT cottage, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 123506,
+  "image_size": {
+    "width": 96,
+    "height": 112
+  },
+  "endpoint_rationale": "Tall spire structure; map-object with high detail + selective outline",
+  "view": "high top-down"
+}

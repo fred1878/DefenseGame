@@ -1,0 +1,22 @@
+{
+  "endpoint": "POST /v2/create-image-pixen",
+  "endpoint_mode": "create-image-pixen",
+  "object_id": null,
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": null,
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_gallows_square",
+  "variant": "v02",
+  "lighting": "day",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/day/town-special-gallows-square-v02-day-112x72.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, OVERCAST MEDIEVAL DAYLIGHT, soft grey sky, readable stone timber, minimal orange glow, ONLY twin gibbet posts, iron cage, stocks on open square, NO walls, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 113512,
+  "image_size": {
+    "width": 112,
+    "height": 72
+  },
+  "endpoint_rationale": "Open plaza furniture; pixen for T-beam gallows without hut mass",
+  "view": "high top-down (implicit)"
+}

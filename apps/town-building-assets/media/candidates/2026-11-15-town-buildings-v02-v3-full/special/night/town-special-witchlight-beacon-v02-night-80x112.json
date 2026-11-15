@@ -1,0 +1,25 @@
+{
+  "endpoint": "POST /v2/create-image-pixen",
+  "endpoint_mode": "create-image-pixen",
+  "object_id": null,
+  "ui_asset_id": null,
+  "background_job_id": null,
+  "usage": {
+    "type": "generations",
+    "generations": 1
+  },
+  "batch": "town-buildings-v3-full-v02-2026-11-15",
+  "texture_key": "town_special_witchlight_beacon",
+  "variant": "v02",
+  "lighting": "night",
+  "category": "special",
+  "relPath": "outputs/town-buildings-v3-full-v02-2026-11-15/special/night/town-special-witchlight-beacon-v02-night-80x112.png",
+  "description": "pixel art Gothic grimdark medieval DefenseGame town, high top-down, transparent background, thumbnail MUST read archetype, GRIMDARK NIGHT, blue-grey shadows, amber forge or window glow accents, MANDATORY triple lantern mast, pale witchfire orbs, rope stays, vertical beacon only, FORBIDDEN generic cottage, FORBIDDEN generic house, FORBIDDEN symmetric peaked-roof home, no neon, no sci-fi, no teal glow",
+  "seed": 122532,
+  "image_size": {
+    "width": 80,
+    "height": 112
+  },
+  "endpoint_rationale": "Tall narrow beacon mast; pixen avoids cottage mass",
+  "view": "high top-down (implicit)"
+}
