@@ -57,6 +57,9 @@ export function pickEnemyTarget(
   return "wall";
 }
 
+/** Combat swings/projectiles: live aggro only (not chase-memory movement targets). */
+export const pickEnemyCombatTarget = pickEnemyTarget;
+
 function hasLivePlayerAggro(
   grid: NavGrid,
   ex: number,

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { ARROW_RAIN_TUNING, JAVELINEER_TUNING } from "../config";
+import { ARROW_RAIN_TUNING, ENEMY_TUNING, JAVELINEER_TUNING } from "../config";
+import { northWallAttackY } from "../config/defense";
 import type { EnemyInstance } from "./Enemy";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import { createEnemyCombat } from "./EnemyCombat";
@@ -66,6 +67,48 @@ describe("updateArrowRainCombat", () => {
     );
     expect(result.hitPlayer).toBe(true);
     expect(result.damage).toBeGreaterThan(0);
+  });
+});
+
+describe("updateArrowRainCombat wall target", () => {
+  it("calls onWallHit during active phase in wall attack range", () => {
+    const wy = northWallAttackY();
+    const enemy = baseEnemy("arrowRainArcher");
+    enemy.sprite.y = wy + ENEMY_TUNING.wallAttackRange - 4;
+    enemy.arrowRain = createArrowRainCombatState();
+    enemy.combat.phase = "active";
+    enemy.combat.phaseMs = 0;
+    enemy.combat.cooldownMs = 0;
+    const onWallHit = vi.fn();
+    updateArrowRainCombat(
+      enemy,
+      { kind: "wall", x: enemy.sprite.x, y: wy },
+      enemy.arrowRain,
+      0,
+      onWallHit,
+    );
+    expect(onWallHit).toHaveBeenCalled();
+  });
+});
+
+describe("updateJavelineerCombat wall target", () => {
+  it("calls onWallHit during active phase at the wall", () => {
+    const wy = northWallAttackY();
+    const enemy = baseEnemy("javelineer");
+    enemy.sprite.y = wy + ENEMY_TUNING.wallAttackRange - 4;
+    enemy.javelineer = createJavelineerCombatState();
+    enemy.combat.phase = "active";
+    enemy.combat.phaseMs = 0;
+    enemy.combat.cooldownMs = 0;
+    const onWallHit = vi.fn();
+    updateJavelineerCombat(
+      enemy,
+      { kind: "wall", x: enemy.sprite.x, y: wy },
+      enemy.javelineer,
+      0,
+      onWallHit,
+    );
+    expect(onWallHit).toHaveBeenCalled();
   });
 });
 
