@@ -404,9 +404,10 @@ export function createTouchToggleButton(
     .setDepth(depth)
     .setScrollFactor(0);
   const bg = createButtonBackground(scene, width, height, 0x3f3f46, 0x71717a, frameKey);
+  const labelPx = textured ? scaleUiX(15) : scaleUiX(14);
   const text = scene.add
     .text(0, 0, initialLabel, {
-      ...labelStyle(scene, `${scaleUiX(14)}px`, textured),
+      ...labelStyle(scene, `${labelPx}px`, textured),
     })
     .setOrigin(0.5);
   container.add([bg, text]);
