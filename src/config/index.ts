@@ -22,6 +22,7 @@ export {
 } from "./defense";
 export {
   CAST_BAR,
+  SPELL_CHANNEL_THEME,
   SPELL_BAR,
   SPELL_CATALOG,
   createDefaultSpellBarAutoCast,

@@ -17,14 +17,39 @@ export const SPELL_BAR = {
 
 export const CAST_BAR = {
   width: scaleUiX(48),
-  height: scaleUiY(6),
+  height: scaleUiY(5),
   offsetY: scaleUiY(26),
   fillColor: 0xfef9c3,
   fillAlpha: 0.95,
   bgColor: 0x3f3f46,
-  bgAlpha: 0.7,
+  bgAlpha: 0.55,
   borderColor: 0xfffbeb,
+  /** Foot ring — primary channel progress read (not a mystery world rect). */
+  ringRadius: scaleUiX(22),
+  ringLineWidth: scaleUiX(3),
+  ringYOffset: scaleUiY(4),
+  labelOffsetY: scaleUiY(-30),
+  labelFontSize: `${scaleUiX(10)}px`,
 } as const;
+
+/** Per-spell colors for world-space channel indicator (fireball / heal). */
+export const SPELL_CHANNEL_THEME: Record<
+  string,
+  { ring: number; track: number; fill: number; chip: number }
+> = {
+  fireball: {
+    ring: 0xff8844,
+    track: 0x422818,
+    fill: 0xfbbf24,
+    chip: 0xf97316,
+  },
+  heal: {
+    ring: 0x4ade80,
+    track: 0x14532d,
+    fill: 0x86efac,
+    chip: 0x22c55e,
+  },
+};
 
 export type SpellId = string;
 export type SpellCastKind = "instant" | "channeled";

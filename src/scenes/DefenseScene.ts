@@ -404,12 +404,15 @@ export class DefenseScene extends Phaser.Scene {
       this.player.sprite.setVelocity(0, 0);
       const channel = this.spellCaster.updateChannel(delta, dir.x, dir.y);
       if (channel.type === "channeling") {
+        this.castBar.setActiveSpell(channel.spellId);
         this.castBar.setVisible(true);
         this.castBar.setWorldPosition(px, py);
         this.castBar.setProgress(channel.progress);
       } else if (channel.type === "interrupted") {
+        this.castBar.setActiveSpell(null);
         this.castBar.setVisible(false);
       } else if (channel.type === "completed") {
+        this.castBar.setActiveSpell(null);
         this.castBar.setVisible(false);
         this.resolveSpellEffect(channel.def);
       }
@@ -656,6 +659,7 @@ export class DefenseScene extends Phaser.Scene {
     if (begun === false) return;
     if (begun === "channel") {
       this.player.sprite.setVelocity(0, 0);
+      this.castBar.setActiveSpell(spellId);
       const target = this.facingTarget("ranged", true);
       if (target) this.player.faceToward(target.x, target.y);
       return;
@@ -682,6 +686,7 @@ export class DefenseScene extends Phaser.Scene {
       }
       case "heal":
         applyChanneledHeal(this.player.damageable, def);
+        this.flashHeal(px, py);
         break;
     }
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
@@ -698,6 +703,22 @@ export class DefenseScene extends Phaser.Scene {
       duration: 280,
       ease: "Quad.easeOut",
       onComplete: () => ring.destroy(),
+    });
+  }
+
+  private flashHeal(x: number, y: number): void {
+    const ring = this.add.circle(x, y, 28, 0x4ade80, 0.45).setDepth(7);
+    const core = this.add.circle(x, y, 12, 0xbbf7d0, 0.55).setDepth(8);
+    this.tweens.add({
+      targets: [ring, core],
+      alpha: 0,
+      scale: 1.25,
+      duration: 320,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        ring.destroy();
+        core.destroy();
+      },
     });
   }
 
