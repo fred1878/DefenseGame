@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SPELL_BAR } from "../config/spells";
+import { SPELL_BAR } from "../config/spellBar";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { containerScreenRect } from "./touchButton";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";

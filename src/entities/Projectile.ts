@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../config/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { segmentFirstCircleHitT } from "../combat/Hitbox";

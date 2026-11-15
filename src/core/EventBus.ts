@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 export type GameEvents = {
-  "night-complete": { result: import("../config").NightResult };
+  "night-complete": { result: import("./saveTypes").NightResult };
 };
 
 export class EventBus extends Phaser.Events.EventEmitter {

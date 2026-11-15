@@ -4,13 +4,16 @@ import {
   DEFENSE_OBSTACLES,
   GAME,
   PLAYER_TUNING,
+  SPELL_BAR,
   type AttackMode,
-  type NightResult,
+} from "../config";
+import {
   createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
-  type SaveGame,
+  spellById,
   type SpellDefinition,
-} from "../config";
+} from "../content/spells";
+import type { NightResult, SaveGame } from "../core/saveTypes";
 import { DataStore, type EnemyDef } from "../core/DataStore";
 import {
   applyNightResult,
@@ -93,8 +96,7 @@ import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { SPELL_BAR, spellById } from "../config/spells";
-import { UI_TEXTURE } from "../config/assets";
+import { UI_TEXTURE } from "../content/assets";
 import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
 
 export class DefenseScene extends Phaser.Scene {

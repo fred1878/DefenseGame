@@ -7,7 +7,7 @@ import {
   GROUND_TILE_TEXTURE,
   PLAYER_TEXTURE,
   UI_ASSETS,
-} from "../config/assets";
+} from "../content/assets";
 
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),

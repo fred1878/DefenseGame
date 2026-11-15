@@ -1,9 +1,6 @@
 import Phaser from "phaser";
-import {
-  SPELL_BAR,
-  spellById,
-  type SpellId,
-} from "../config";
+import { SPELL_BAR } from "../config";
+import { spellById, type SpellId } from "../content/spells";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
 import {

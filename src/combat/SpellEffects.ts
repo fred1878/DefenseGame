@@ -1,6 +1,7 @@
 import Phaser from "phaser";
-import { PLAYER_TUNING, type SpellDefinition } from "../config";
-import { COMBAT_FX_TEXTURE } from "../config/assets";
+import { PLAYER_TUNING } from "../config";
+import type { SpellDefinition } from "../content/spells";
+import { COMBAT_FX_TEXTURE } from "../content/assets";
 import { applyDamage } from "./DamageSystem";
 import type { Damageable } from "./DamageSystem";
 import {

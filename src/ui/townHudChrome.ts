@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { UI_NINE_SLICE, UI_TEXTURE } from "../config/assets";
+import { UI_NINE_SLICE, UI_TEXTURE } from "../content/assets";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { SafeInsets } from "./screenLayout";
 

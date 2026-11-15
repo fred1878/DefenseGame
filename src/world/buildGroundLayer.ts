@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GROUND_TILE_SIZE, GROUND_TILE_TEXTURE } from "../config/assets";
+import { GROUND_TILE_SIZE, GROUND_TILE_TEXTURE } from "../content/assets";
 
 export function buildGroundLayer(
   scene: Phaser.Scene,

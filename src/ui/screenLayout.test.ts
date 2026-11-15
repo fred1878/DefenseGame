@@ -10,7 +10,7 @@ import {
   expectedSpellBarCenterY,
   townActionButtonY,
 } from "./screenLayout";
-import { SPELL_BAR } from "../config/spells";
+import { SPELL_BAR } from "../config/spellBar";
 
 function mockScene(
   width = GAME.width,

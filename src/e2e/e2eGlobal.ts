@@ -1,4 +1,4 @@
-import type { SaveGame } from "../config";
+import type { SaveGame } from "../core/saveTypes";
 
 export type DefenseGameE2EState = {
   ready: boolean;

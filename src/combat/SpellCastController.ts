@@ -1,4 +1,8 @@
-import { spellById, type SpellDefinition, type SpellId } from "../config";
+import {
+  spellById,
+  type SpellDefinition,
+  type SpellId,
+} from "../content/spells";
 
 export type ChannelUpdateResult =
   | { type: "idle" }

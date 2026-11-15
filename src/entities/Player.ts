@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { PLAYER_TUNING, type AttackMode } from "../config";
-import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../config/assets";
+import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../content/assets";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";

@@ -1,4 +1,4 @@
-import { spellById, type SpellId } from "../config";
+import { spellById, type SpellId } from "../content/spells";
 
 export type SpellAutoCastCandidate = {
   slotIndex: number;

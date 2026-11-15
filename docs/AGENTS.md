@@ -30,8 +30,9 @@ flowchart LR
 ```text
 src/
   main.ts              # Phaser.Game config (portrait 540×1200, FIT + autoRound)
-  config/              # game, player, enemy, spells, save (+ config.ts barrel)
-  core/                # GameState, DataStore, EventBus
+  config/              # Tunable constants only (+ types that describe those tunables)
+  content/             # Code-defined content manifests (assets, spell catalog)
+  core/                # GameState, saveTypes, DataStore, EventBus
   input/               # VirtualStick, ActionButtons
   combat/              # Hitbox, DamageSystem, Knockback, SpellCastController, SpellEffects
   debug/               # DebugState registry flags, HitboxDebugDraw
@@ -50,31 +51,15 @@ docs/                  # This file, CI_RELEASES.md
 
 ---
 
-## Core types (source of truth: `src/config/`, especially `save.ts` and `spells.ts`)
+## Where constants live
 
-```ts
-export type SaveGame = {
-  night: number;
-  gold: number;
-  buildings: Record<string, number>;
-  townWallHp: number;
-  townWallHpMax: number;
-  player: {
-    hp: number;
-    hpMax: number;
-    weaponId: string;
-    moveSpeed: number;
-  };
-  flags: string[];
-};
+| Layer | Path | Holds |
+|-------|------|--------|
+| **Tuning** | `src/config/` | `GAME`, `PLAYER_TUNING`, `PLAYER_AGGRO_RADIUS`, `DEFENSE_MAP` / `DEFENSE_OBSTACLES`, spell bar **layout** (`SPELL_BAR`, `CAST_BAR` px). No save schemas, no asset manifests, no spell damage tables. |
+| **Code content** | `src/content/` | `assets.ts` (texture keys, file paths, nine-slice), `spells.ts` (`SPELL_CATALOG`, spell ids). Candidate to move spells → `public/data/spells.json` later. |
+| **Runtime JSON** | `public/data/` | `enemies.json`, `waves.json`, `buildings.json` (fetched in Boot). |
 
-export type NightResult = {
-  won: boolean;
-  goldEarned: number;
-  wallDamage: number;
-  night: number;
-};
-```
+Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). `src/config.ts` re-exports **tuning only** from `src/config/index.ts`.
 
 ---
 
@@ -211,7 +196,7 @@ npm run preview      # serve dist locally
 2. **Content vs code:** new enemy = row in `enemies.json` + behavior if needed, not a new scene.
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** touch buttons scale on press; **Town → Reset save** (tap twice) calls `resetSaveAndReload()` — clears `localStorage` and reloads with `?fresh=` (no hard refresh needed).
-5. **Config:** tuning lives under `src/config/` (`game`, `player`, `enemy`, `spells`, `save`); `src/config.ts` re-exports for existing imports. Spell bar: `config/spells.ts` + `save.spellBar.slots` (6 slots, 2×3) and `save.spellBar.autoCast[]` (long-press per slot in defense). Town **Spell bar** screen reorders slots.
+5. **Config vs content:** edit numbers in `src/config/`; edit spell definitions in `src/content/spells.ts`; edit waves/enemies in `public/data/`. Spell bar layout: `config/spellBar.ts`; defaults: `content/spells.ts` + `save.spellBar` on `SaveGame` (`core/saveTypes.ts`).
 6. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`. Toggles live in registry `debugFlags`: **Hitboxes: ON** (`showHitboxes`) — `DefenseScene` redraws combat arcs via `HitboxDebugDraw`. **Touch input: ON** (`showTouchInput`) — on-canvas overlay via `TouchInputDebugDraw`: finger crosshairs (Phaser pointer coords / FIT scale), virtual-stick base/knob/dead zone, HUD exclusion rects, and tap-to-focus pick radius flash in Defense. **Enemy paths: ON** (`showEnemyPaths`) — planned A* polylines and chase/wall targets via `PathDebugDraw`.
 7. **Waves:** nights `1`–`10` in `public/data/waves.json`; table in [WAVES.md](./WAVES.md).
 8. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
