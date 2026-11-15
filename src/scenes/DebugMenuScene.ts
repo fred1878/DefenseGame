@@ -13,6 +13,7 @@ import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { createTouchButton } from "../ui/touchButton";
 import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { uiTextStyle } from "../ui/uiTextStyle";
 import {
   cycleDebugWorldPixelScale,
   getWorldPixelScale,
@@ -51,11 +52,15 @@ export class DebugMenuScene extends Phaser.Scene {
       .setInteractive();
 
     this.add
-      .text(w / 2, panelTop, "Debug", {
-        fontSize: `${scaleUiX(26)}px`,
-        color: "#fafafa",
-        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
-      })
+      .text(
+        w / 2,
+        panelTop,
+        "Debug",
+        uiTextStyle(this, {
+          fontSize: `${scaleUiX(26)}px`,
+          color: "#fafafa",
+        }),
+      )
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(401);

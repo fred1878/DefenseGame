@@ -7,6 +7,7 @@ import {
 } from "../content/spells";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { createTouchButton } from "./touchButton";
+import { uiTextStyle } from "./uiTextStyle";
 export type SpellBarSortResult = {
   slots: SpellId[];
   autoCast: boolean[];
@@ -47,20 +48,30 @@ export class SpellBarSortPanel {
     this.root.add(dim);
 
     const title = scene.add
-      .text(GAME.width / 2, scaleUiY(80), "Spell bar", {
-        fontSize: `${scaleUiX(24)}px`,
-        color: "#f4f4f5",
-      })
+      .text(
+        GAME.width / 2,
+        scaleUiY(80),
+        "Spell bar",
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(24)}px`,
+          color: "#f4f4f5",
+        }),
+      )
       .setOrigin(0.5);
     this.root.add(title);
 
     const hint = scene.add
-      .text(GAME.width / 2, scaleUiY(118), "Drag spells on or off the bar · same 2×3 order as night", {
-        fontSize: `${scaleUiX(14)}px`,
-        color: "#a1a1aa",
-        align: "center",
-        wordWrap: { width: GAME.width - scaleUiX(40) },
-      })
+      .text(
+        GAME.width / 2,
+        scaleUiY(118),
+        "Drag spells on or off the bar · same 2×3 order as night",
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(14)}px`,
+          color: "#a1a1aa",
+          align: "center",
+          wordWrap: { width: GAME.width - scaleUiX(40) },
+        }),
+      )
       .setOrigin(0.5, 0);
     this.root.add(hint);
 
@@ -81,20 +92,32 @@ export class SpellBarSortPanel {
         .setStrokeStyle(2, 0x6366f1);
       frame.setInteractive({ draggable: false, useHandCursor: true });
       frame.on("pointerup", () => this.onDropOnSlot(i));
-      const label = scene.add.text(x, y, this.slotLabel(i), {
-        fontSize: `${scaleUiX(13)}px`,
-        color: "#e0e7ff",
-      }).setOrigin(0.5);
+      const label = scene.add
+        .text(
+          x,
+          y,
+          this.slotLabel(i),
+          uiTextStyle(scene, {
+            fontSize: `${scaleUiX(13)}px`,
+            color: "#e0e7ff",
+          }),
+        )
+        .setOrigin(0.5);
       this.slotLabels.push(label);
       this.root.add([frame, label]);
     }
 
     const poolY = gridTop + rowGap + cell * 2 + scaleUiY(48);
     scene.add
-      .text(GAME.width / 2, poolY - scaleUiY(28), "Spell pool", {
-        fontSize: `${scaleUiX(16)}px`,
-        color: "#d4d4d8",
-      })
+      .text(
+        GAME.width / 2,
+        poolY - scaleUiY(28),
+        "Spell pool",
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(16)}px`,
+          color: "#d4d4d8",
+        }),
+      )
       .setOrigin(0.5);
 
     const poolIds = getSpellCatalog().map((s) => s.id);
@@ -108,10 +131,17 @@ export class SpellBarSortPanel {
       chip.setData("spellId", id);
       chip.on("pointerdown", (p: Phaser.Input.Pointer) => this.beginDrag(id, p));
       const def = spellById(id);
-      const t = scene.add.text(poolX, poolY, def?.shortLabel ?? id, {
-        fontSize: `${scaleUiX(12)}px`,
-        color: "#fef9c3",
-      }).setOrigin(0.5);
+      const t = scene.add
+        .text(
+          poolX,
+          poolY,
+          def?.shortLabel ?? id,
+          uiTextStyle(scene, {
+            fontSize: `${scaleUiX(12)}px`,
+            color: "#fef9c3",
+          }),
+        )
+        .setOrigin(0.5);
       this.root.add([chip, t]);
       poolX += cell + gap;
     }
@@ -157,10 +187,17 @@ export class SpellBarSortPanel {
     const bg = scene.add
       .rectangle(0, 0, scaleUiX(56), scaleUiX(56), 0x4c1d95, 0.92)
       .setStrokeStyle(2, 0xe879f9);
-    const t = scene.add.text(0, 0, def?.shortLabel ?? spellId, {
-      fontSize: `${scaleUiX(12)}px`,
-      color: "#fafafa",
-    }).setOrigin(0.5);
+    const t = scene.add
+      .text(
+        0,
+        0,
+        def?.shortLabel ?? spellId,
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(12)}px`,
+          color: "#fafafa",
+        }),
+      )
+      .setOrigin(0.5);
     ghost.add([bg, t]);
     this.drag = { spellId, ghost };
   }

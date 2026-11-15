@@ -120,6 +120,7 @@ import {
   type SafeInsets,
 } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { uiTextStyle } from "../ui/uiTextStyle";
 import {
   scaledDefenseObstacles,
   worldUnit,
@@ -401,11 +402,15 @@ export class DefenseScene extends Phaser.Scene {
 
     const hudPos = hudTextPosition(this.safe);
     this.hudText = this.add
-      .text(hudPos.x, hudPos.y, "", {
-        fontSize: `${scaleUiX(16)}px`,
-        color: "#fafafa",
-        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
-      })
+      .text(
+        hudPos.x,
+        hudPos.y,
+        "",
+        uiTextStyle(this, {
+          fontSize: `${scaleUiX(16)}px`,
+          color: "#fafafa",
+        }),
+      )
       .setScrollFactor(0)
       .setDepth(200);
 

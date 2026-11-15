@@ -1,5 +1,10 @@
 import Phaser from "phaser";
-import { clampRenderResolution, scaleUiX } from "../core/displayScale";
+import { scaleUiX, uiTextResolution } from "../core/displayScale";
+import {
+  parseUiFontSizePx,
+  UI_FONT_FAMILY,
+  uiTextStrokeAllowed,
+} from "./uiTextStyle";
 import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../input/inputTuning";
 import { releaseOnSameButton } from "./touchButtonGesture";
 
@@ -65,10 +70,6 @@ const MEDIEVAL_LABEL = {
   color: "#e8dcc8",
   stroke: "#1a1612",
 };
-
-function textResolution(scene: Phaser.Scene): number {
-  return (scene.registry.get("renderResolution") as number | undefined) ?? clampRenderResolution();
-}
 
 function isImageBg(bg: BgVisual | undefined): bg is Phaser.GameObjects.Image {
   return bg instanceof Phaser.GameObjects.Image;
@@ -334,11 +335,16 @@ function createButtonBackground(
 }
 
 function labelStyle(scene: Phaser.Scene, fontSize: string, textured: boolean) {
-  const base = {
+  const base: Phaser.Types.GameObjects.Text.TextStyle = {
+    fontFamily: UI_FONT_FAMILY,
     fontSize,
-    resolution: textResolution(scene),
+    resolution: uiTextResolution(scene),
   };
   if (!textured) return base;
+  const px = parseUiFontSizePx(fontSize);
+  if (!uiTextStrokeAllowed(px)) {
+    return { ...base, color: MEDIEVAL_LABEL.color };
+  }
   return {
     ...base,
     color: MEDIEVAL_LABEL.color,
