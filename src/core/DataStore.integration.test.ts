@@ -42,6 +42,16 @@ describe("public data fixtures", () => {
     expect(bruiser!.combat?.melee?.range).toBeGreaterThan(30);
   });
 
+  it("javelineer documents combat schema with kite band", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      { behavior: string; combat?: { javelineer?: { maxRange?: number } } }
+    >;
+    const javelineer = enemies.javelineer;
+    expect(javelineer?.behavior).toBe("javelineer");
+    expect(javelineer?.combat?.javelineer?.maxRange).toBe(198);
+  });
+
   it("arrow_rain_archer documents combat schema with merged defaults", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
