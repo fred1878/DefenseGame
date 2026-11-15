@@ -38,6 +38,7 @@ import {
   TouchInputDebugDraw,
   type FocusTapFlash,
 } from "../debug/TouchInputDebugDraw";
+import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
 import { spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
 import {
@@ -125,6 +126,7 @@ export class DefenseScene extends Phaser.Scene {
   private onDebugMenuClose = (): void => this.setHudChromeVisible(true);
   private prevPlayerAttackPhase: AttackPhase = "idle";
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private enemyGroup!: Phaser.Physics.Arcade.Group;
   private hudChrome!: CombatHudChrome;
 
   constructor() {
@@ -187,6 +189,10 @@ export class DefenseScene extends Phaser.Scene {
     this.player.damageable.alive = true;
     this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
     this.physics.add.collider(this.player.sprite, this.obstacleGroup);
+    this.enemyGroup = this.physics.add.group();
+    this.physics.add.collider(this.player.sprite, this.enemyGroup);
+    this.physics.add.collider(this.enemyGroup, this.enemyGroup);
+    this.physics.add.collider(this.enemyGroup, this.obstacleGroup);
     this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
 
     this.safe = readSafeInsets();
@@ -415,7 +421,7 @@ export class DefenseScene extends Phaser.Scene {
     const playerHurtbox = {
       x: px,
       y: py,
-      radius: 14,
+      radius: ENTITY_BODY_RADIUS.player,
       damageable: this.player.damageable,
     };
 
@@ -823,7 +829,7 @@ export class DefenseScene extends Phaser.Scene {
       id: e.id,
       x: e.sprite.x,
       y: e.sprite.y,
-      radius: 12,
+      radius: ENTITY_BODY_RADIUS.enemy,
       damageable: e.damageable,
       sprite: e.sprite,
     }));
@@ -871,7 +877,7 @@ export class DefenseScene extends Phaser.Scene {
     this.hitboxDebug.clear();
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
-    this.hitboxDebug.drawCircle(px, py, 14);
+    this.hitboxDebug.drawCircle(px, py, ENTITY_BODY_RADIUS.player);
 
     if (
       this.player.mode === "melee" &&
@@ -889,7 +895,11 @@ export class DefenseScene extends Phaser.Scene {
 
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
-      this.hitboxDebug.drawCircle(e.sprite.x, e.sprite.y, 12);
+      this.hitboxDebug.drawCircle(
+        e.sprite.x,
+        e.sprite.y,
+        ENTITY_BODY_RADIUS.enemy,
+      );
       if (e.combat.phase === "active") {
         const arcHalf = Phaser.Math.DegToRad(ENEMY_TUNING.attackArcDeg / 2);
         this.hitboxDebug.drawMeleeArc(
@@ -971,7 +981,7 @@ export class DefenseScene extends Phaser.Scene {
     enemy.damageable.onDamaged = (_amount, flavor = "default") => {
       flashSpriteTint(this, enemy.sprite, flavor);
     };
-    this.physics.add.collider(enemy.sprite, this.obstacleGroup);
+    this.enemyGroup.add(enemy.sprite);
     this.enemies.push(enemy);
   }
 
