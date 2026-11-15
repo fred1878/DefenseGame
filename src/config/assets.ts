@@ -52,7 +52,7 @@ export const SPRITE_DISPLAY = {
   enemy: 64,
   fireBolt: 16,
   stoneThrow: 16,
-  playerMeleeSlash: 56,
+  playerMeleeSlash: 68,
   gruntMeleeSlash: 40,
 } as const;
 
