@@ -70,11 +70,42 @@ describe("screenLayout", () => {
     expect(centerY).toBeGreaterThan(1000);
     const lastCenterX =
       firstSlotCenterX +
-      (SPELL_BAR.columnCount - 1) * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+      (SPELL_BAR.columnCount - 1) *
+        (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
     const rowRight = lastCenterX + SPELL_BAR.slotSizePx / 2;
     const melGuard = scaleUiX(12) + chrome.toggleW / 2 + scaleUiX(10);
     const rowEndMax = chrome.modeX - melGuard;
     expect(rowRight).toBeLessThanOrEqual(rowEndMax + 0.5);
+  });
+
+  it("spell grid stays inside portrait viewport with tap padding", () => {
+    const { firstSlotCenterX, centerY } = spellBarSlotOrigin(
+      scene,
+      safe,
+      SPELL_BAR.slotCount,
+      SPELL_BAR.slotSizePx,
+      SPELL_BAR.slotGapPx,
+    );
+    const half = SPELL_BAR.slotSizePx / 2;
+    const pad = SPELL_BAR.tapPaddingPx;
+    const margin = 8;
+    const slot0Left = firstSlotCenterX - half - pad;
+    expect(slot0Left).toBeGreaterThanOrEqual(margin);
+    const lastColCenterX =
+      firstSlotCenterX +
+      (SPELL_BAR.columnCount - 1) *
+        (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+    const rowRight = lastColCenterX + half + pad;
+    expect(rowRight).toBeLessThanOrEqual(GAME.width - margin);
+
+    const lastRowCenterY =
+      centerY +
+      (SPELL_BAR.rowCount - 1) *
+        (SPELL_BAR.slotSizePx + SPELL_BAR.rowGapPx);
+    const gridBottom = lastRowCenterY + half + pad;
+    expect(gridBottom).toBeLessThanOrEqual(GAME.height - margin);
+    const gridTop = centerY - half - pad;
+    expect(gridTop).toBeGreaterThanOrEqual(margin);
   });
 
   it("nightReturnButtonPosition is below HUD band", () => {

@@ -87,7 +87,7 @@ export class SpellBarSortPanel {
       .text(
         GAME.width / 2,
         scaleUiY(98),
-        "4 slots for night — drag bright icons onto the bar. Dim = on bar; faded = coming soon.",
+        "2×2 night bar (same order as defense) — drag bright icons onto slots. Dim = on bar; faded = coming soon.",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
           color: "#a1a1aa",
@@ -100,13 +100,16 @@ export class SpellBarSortPanel {
 
     const barCell = scaleUiX(56);
     const barGap = scaleUiX(8);
+    const barRowGap = scaleUiY(8);
     const gridTop = scaleUiY(168);
     const gridW = SPELL_BAR.columnCount * barCell + (SPELL_BAR.columnCount - 1) * barGap;
     const gridLeft = GAME.width / 2 - gridW / 2 + barCell / 2;
 
     for (let i = 0; i < SPELL_BAR.slotCount; i++) {
-      const x = gridLeft + i * (barCell + barGap);
-      const y = gridTop;
+      const col = i % SPELL_BAR.columnCount;
+      const row = Math.floor(i / SPELL_BAR.columnCount);
+      const x = gridLeft + col * (barCell + barGap);
+      const y = gridTop + row * (barCell + barRowGap);
       const frame = scene.add
         .rectangle(x, y, barCell, barCell, 0x1e1b4b, 0.92)
         .setStrokeStyle(2, 0x6366f1);
@@ -130,7 +133,12 @@ export class SpellBarSortPanel {
       this.root.add([frame, icon, indexLabel]);
     }
 
-    const poolHeaderY = gridTop + barCell + scaleUiY(36);
+    const barRows =
+      SPELL_BAR.rowCount > 0
+        ? SPELL_BAR.rowCount
+        : Math.ceil(SPELL_BAR.slotCount / SPELL_BAR.columnCount);
+    const poolHeaderY =
+      gridTop + barRows * barCell + (barRows - 1) * barRowGap + scaleUiY(36);
     scene.add
       .text(
         GAME.width / 2,

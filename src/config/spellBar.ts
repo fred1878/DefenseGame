@@ -2,12 +2,13 @@ import { scaleUiX, scaleUiY } from "../core/displayScale";
 
 export const SPELL_BAR = {
   slotCount: 4,
-  columnCount: 4,
-  rowCount: 1,
+  columnCount: 2,
+  rowCount: 2,
+  /** Gothic frame art is 64×64; scale to design canvas (540-wide). */
   slotSizePx: scaleUiX(48),
-  slotGapPx: scaleUiX(2),
-  rowGapPx: scaleUiY(0),
-  tapPaddingPx: scaleUiX(2),
+  slotGapPx: scaleUiX(3),
+  rowGapPx: scaleUiY(4),
+  tapPaddingPx: scaleUiX(4),
   /** Inset inside Gothic frame before icon edge (fraction of slot size). */
   iconInsetFrac: 0.07,
   cooldownRingWidthPx: scaleUiX(3),

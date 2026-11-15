@@ -1793,6 +1793,10 @@ export class DefenseScene extends Phaser.Scene {
     return out;
   }
 
+  e2eGetSpellSlotHitRects(): ReturnType<SpellBar["e2eSlotHitRects"]> {
+    return this.spellBar.e2eSlotHitRects();
+  }
+
   e2eAutoAttackEnabled(): boolean {
     return this.autoAttackEnabled;
   }

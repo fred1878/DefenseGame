@@ -301,6 +301,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       if (town?.scene.isActive()) return town.e2eGetUiTapTargets();
       return {};
     },
+    getSpellSlotHitRects() {
+      return activeDefense(game)?.e2eGetSpellSlotHitRects() ?? [];
+    },
     isUiButtonPressed(testId: string) {
       const defense = activeDefense(game);
       if (defense) return defense.e2eIsTouchButtonPressed(testId);

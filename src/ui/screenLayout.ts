@@ -158,6 +158,9 @@ export type SpellBarOrigin = {
   firstSlotCenterX: number;
 };
 
+/** Minimum inset from canvas left/right edges for spell slot visuals and hit rects. */
+export const SPELL_BAR_VIEWPORT_MARGIN_PX = 8;
+
 /** First spell slot center X — left-packed, ends before MEL hit box (combat cluster locked). */
 export function spellBarSlotOrigin(
   scene: Phaser.Scene,
@@ -167,27 +170,32 @@ export function spellBarSlotOrigin(
   slotGapPx: number,
 ): SpellBarOrigin {
   const chrome = combatChromeLayout(scene, safe);
-  const cols = SPELL_BAR.columnCount;
+  const cols = Math.min(slotCount, SPELL_BAR.columnCount);
   const leftPad = scaleUiX(16) + safe.left;
-  const tapPad = scaleUiX(4);
+  const tapPad = SPELL_BAR.tapPaddingPx;
   const rowWidth = cols * slotSizePx + (cols - 1) * slotGapPx;
   const melGuard = scaleUiX(12) + chrome.toggleW / 2 + scaleUiX(10);
   const rowEndMax = chrome.modeX - melGuard;
+  const viewportMargin = SPELL_BAR_VIEWPORT_MARGIN_PX;
+  const minFirstCenter =
+    safe.left + viewportMargin + tapPad + slotSizePx / 2;
   const packedFirst = leftPad + tapPad + slotSizePx / 2;
-  const fitFirst = rowEndMax - rowWidth + slotSizePx / 2;
-  const firstSlotCenterX = Math.min(packedFirst, fitFirst);
+  const melLimitedFirst = rowEndMax - rowWidth + slotSizePx / 2;
+  const firstSlotCenterX = Math.max(
+    minFirstCenter,
+    Math.min(packedFirst, melLimitedFirst),
+  );
   const rowSpan =
     slotSizePx * SPELL_BAR.rowCount +
     SPELL_BAR.rowGapPx * (SPELL_BAR.rowCount - 1);
   const centerY = chrome.bottomStrip.stripCenterY - rowSpan / 2 + slotSizePx / 2;
-  void slotCount;
   return {
     centerY,
     firstSlotCenterX,
   };
 }
 
-/** Center of spell bar grid cell (single row, left-packed). */
+/** Center of spell bar grid cell (rows × columns, left-packed). */
 export function spellBarSlotCenter(
   scene: Phaser.Scene,
   safe: SafeInsets,
