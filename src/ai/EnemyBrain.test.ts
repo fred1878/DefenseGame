@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { DEFENSE_OBSTACLES, PLAYER_AGGRO_RADIUS } from "../config";
+import {
+  DEFENSE_OBSTACLES,
+  PLAYER_AGGRO_RADIUS,
+  PLAYER_CHASE_MEMORY_MS,
+  WALL_VELOCITY_BLEND_MS,
+} from "../config";
 import { buildNavGrid } from "../pathfinding/grid";
 import {
   createEnemyNav,
   pickEnemyTarget,
   replanEnemyPath,
+  resolveEnemyTarget,
   wallTargetPoint,
 } from "./EnemyBrain";
 
@@ -12,7 +18,8 @@ describe("pickEnemyTarget", () => {
   const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
 
   it("prefers wall when player is far", () => {
-    expect(pickEnemyTarget(grid, 300, 0, 0, 0)).toBe("wall");
+    expect(pickEnemyTarget(grid, 400, 0, 0, 0)).toBe("wall");
+    expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(300);
   });
 
   it("aggros player when close and LOS is clear", () => {
@@ -27,6 +34,39 @@ describe("pickEnemyTarget", () => {
     const px = rock.x + 30;
     const py = rock.y;
     expect(pickEnemyTarget(grid, ex, ey, px, py)).toBe("wall");
+  });
+});
+
+describe("resolveEnemyTarget", () => {
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
+
+  it("continues toward last known position after LOS breaks", () => {
+    const nav = createEnemyNav();
+    resolveEnemyTarget(nav, grid, 40, 0, 0, 0, 16);
+    expect(nav.targetKind).toBe("player");
+    expect(nav.chaseMemoryMs).toBe(PLAYER_CHASE_MEMORY_MS);
+
+    const px = 500;
+    const py = 200;
+    const r = resolveEnemyTarget(nav, grid, 40, 0, px, py, 16);
+    expect(r.targetKind).toBe("player");
+    expect(r.goalX).toBe(0);
+    expect(r.goalY).toBe(0);
+    expect(nav.chaseMemoryMs).toBeLessThan(PLAYER_CHASE_MEMORY_MS);
+    expect(nav.chaseMemoryMs).toBeGreaterThan(0);
+  });
+
+  it("starts wall velocity blend when chase memory expires", () => {
+    const nav = createEnemyNav();
+    nav.targetKind = "player";
+    nav.lastKnownPlayerX = 80;
+    nav.lastKnownPlayerY = 40;
+    nav.chaseMemoryMs = 50;
+
+    const r = resolveEnemyTarget(nav, grid, 400, 0, 0, 0, 100);
+    expect(r.targetKind).toBe("wall");
+    expect(nav.chaseMemoryMs).toBe(0);
+    expect(nav.wallTransitionMs).toBe(WALL_VELOCITY_BLEND_MS);
   });
 });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ARROW_RAIN_TUNING, JAVELINEER_TUNING } from "../config";
 import type { EnemyInstance } from "./Enemy";
+import { createEnemyNav } from "../ai/EnemyBrain";
 import { createEnemyCombat } from "./EnemyCombat";
 import {
   createArrowRainCombatState,
@@ -31,7 +32,7 @@ function baseEnemy(behavior: string): EnemyInstance {
       team: "enemy",
     },
     combat: createEnemyCombat(),
-    nav: { targetKind: "player", path: [], pathIndex: 0, replanMs: 0 },
+    nav: { ...createEnemyNav(), targetKind: "player" },
     behaviorExtra: { strafeSign: 1, strafeFlipMs: 0 },
   };
 }
