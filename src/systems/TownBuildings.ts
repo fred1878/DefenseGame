@@ -60,34 +60,31 @@ export function spawnTownBuildingControls(
       .setOrigin(0.5, 1)
       .setDisplaySize(def.width, def.height);
 
-    const labelBandH = scaleUiY(26);
-    const labelInset = scaleUiY(4);
-    const labelY = -labelInset - labelBandH / 2;
-    const labelW = def.width - scaleUiX(4);
+    const labelBandH = scaleUiY(32);
+    const labelY = -scaleUiY(6) - labelBandH / 2;
+    const labelW = scaleUiX(118);
     const backing = scene.add
-      .rectangle(0, labelY, labelW, labelBandH, 0x0f1118, 0.72)
-      .setStrokeStyle(Math.max(1, scaleUiX(1)), 0x3f3f46, 0.9);
+      .rectangle(0, labelY, labelW, labelBandH, 0x0f1118, 0.82)
+      .setStrokeStyle(Math.max(1, scaleUiX(1)), 0x52525b, 1);
 
-    const fontSize = `${scaleUiX(8)}px`;
+    const fontSize = `${scaleUiX(10)}px`;
     const labelText = opts.labelFor(def);
     const text = scene.add
       .text(0, labelY, labelText, {
         fontSize,
-        color: "#f4f4f5",
-        stroke: "#0c0c0e",
-        strokeThickness: Math.max(1, scaleUiX(1)),
+        color: "#fafafa",
+        stroke: "#18181b",
+        strokeThickness: Math.max(2, scaleUiX(2)),
         align: "center",
-        wordWrap: { width: labelW - scaleUiX(4), useAdvancedWrap: true },
-        lineSpacing: -scaleUiY(2),
+        wordWrap: { width: labelW - scaleUiX(8), useAdvancedWrap: true },
+        lineSpacing: 0,
         resolution: textResolution(scene),
       })
-      .setOrigin(0.5, 0.5)
-      .setMaxLines(2);
-
-    const labelMask = backing.createBitmapMask();
-    text.setMask(labelMask);
+      .setOrigin(0.5, 0.5);
 
     container.add([sprite, backing, text]);
+    text.setDepth(2);
+    backing.setDepth(1);
 
     // Feet at container origin: hit box spans the full sprite footprint.
     container.setInteractive(

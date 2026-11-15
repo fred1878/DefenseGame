@@ -315,12 +315,14 @@ export function townBuildingGridFootY(fromBottomRow: 0 | 1 | 2 | 3): number {
   return Math.round(bandBottom - (rowFromBottom * span) / 3);
 }
 
+/** Horizontal offset from canvas center to each column (2-wide grid inset from edges). */
+const TOWN_BUILDING_GRID_CENTER_OFFSET = scaleUiX(72);
+
 /** Center X for left (0) or right (1) column of the town building grid. */
 export function townBuildingGridColumnX(column: 0 | 1): number {
-  const halfSpan = scaleUiX(135);
   return column === 0
-    ? GAME.width / 2 - halfSpan
-    : GAME.width / 2 + halfSpan;
+    ? GAME.width / 2 - TOWN_BUILDING_GRID_CENTER_OFFSET
+    : GAME.width / 2 + TOWN_BUILDING_GRID_CENTER_OFFSET;
 }
 
 /**
