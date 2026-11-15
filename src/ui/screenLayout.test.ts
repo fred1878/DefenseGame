@@ -9,6 +9,9 @@ import {
   spellBarSlotOrigin,
   expectedSpellBarCenterY,
   townActionButtonY,
+  townBuildingGridClearsStatus,
+  townBuildingGridColumnX,
+  townBuildingGridFootY,
 } from "./screenLayout";
 import { SPELL_BAR } from "../config/spellBar";
 
@@ -80,5 +83,15 @@ describe("screenLayout", () => {
     const y1 = townActionButtonY(scene, safe, 1);
     expect(y0).toBeGreaterThan(y1);
     expect(y0).toBeLessThan(GAME.height);
+  });
+
+  it("town building grid reuses bottom menu band", () => {
+    expect(townBuildingGridFootY(0)).toBe(townActionButtonY(scene, safe, 0));
+    expect(townBuildingGridFootY(1)).toBe(townActionButtonY(scene, safe, 2));
+    expect(townBuildingGridColumnX(0)).toBeLessThan(GAME.width / 2);
+    expect(townBuildingGridColumnX(1)).toBeGreaterThan(GAME.width / 2);
+    expect(
+      townBuildingGridClearsStatus(3, 112),
+    ).toBe(true);
   });
 });

@@ -19,6 +19,4 @@ export type TownLayoutSlot = {
 
 export type TownLayoutDef = {
   slots: TownLayoutSlot[];
-  /** Bottom-to-top menu order after Start night (defaults to sorted building ids). */
-  menuOrder?: string[];
 };

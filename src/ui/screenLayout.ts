@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { GAME } from "../config";
 import { SPELL_BAR } from "../config/spellBar";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { containerScreenRect } from "./touchButton";
@@ -287,6 +288,40 @@ export function townActionButtonY(
     safe.bottom -
     scaleUiY(firstFromBottom + fromBottomIndex * step)
   );
+}
+
+/** Two old menu rows between 2×4 town building grid rows (same band as former stacked buttons). */
+const TOWN_BUILDING_GRID_MENU_ROW_STEP = 88;
+
+/** Foot Y on the design canvas for a 2×4 building grid row (0 = bottom). */
+export function townBuildingGridFootY(fromBottomRow: 0 | 1 | 2 | 3): number {
+  return (
+    GAME.height -
+    scaleUiY(96 + fromBottomRow * TOWN_BUILDING_GRID_MENU_ROW_STEP)
+  );
+}
+
+/** Center X for left (0) or right (1) column of the town building grid. */
+export function townBuildingGridColumnX(column: 0 | 1): number {
+  const halfSpan = scaleUiX(135);
+  return column === 0
+    ? GAME.width / 2 - halfSpan
+    : GAME.width / 2 + halfSpan;
+}
+
+/**
+ * Status block top in TownScene (`statusText` origin); keep building sprites below this band.
+ * @param maxBuildingHeight tallest slot footprint (witchlight beacons).
+ */
+export function townBuildingGridClearsStatus(
+  fromTopRow: 0 | 1 | 2 | 3,
+  maxBuildingHeight: number,
+  statusTopY = scaleUiY(140),
+  statusBlockHeight = scaleUiY(108),
+): boolean {
+  const footY = townBuildingGridFootY(fromTopRow);
+  const spriteTop = footY - maxBuildingHeight;
+  return spriteTop >= statusTopY + statusBlockHeight;
 }
 
 /** Align Phaser FIT parent with the visible viewport (mobile URL bar / dynamic island). */
