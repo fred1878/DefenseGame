@@ -7,6 +7,27 @@ import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, applyDirectVelocity } from "./movement";
 
 const STRAFE_PROBE_DIST = 44;
+/** Blend weight for closing distance while in the kite band. */
+const RANGE_APPROACH_BLEND = 0.38;
+/** Blend weight for backing off while still inside the outer band. */
+const RANGE_RETREAT_BLEND = 0.48;
+/** Stronger retreat when inside min range (melee danger). */
+const CLOSE_RETREAT_BLEND = 0.68;
+/** Light radial nudge when sitting on the ideal arc distance. */
+const IDEAL_RANGE_NUDGE = 0.2;
+
+function advanceStrafeSign(enemy: EnemyInstance, deltaMs: number): void {
+  enemy.behaviorExtra.strafeFlipMs = Math.max(
+    0,
+    enemy.behaviorExtra.strafeFlipMs - deltaMs,
+  );
+  if (enemy.behaviorExtra.strafeFlipMs <= 0) {
+    enemy.behaviorExtra.strafeSign =
+      enemy.behaviorExtra.strafeSign === 1 ? -1 : 1;
+    enemy.behaviorExtra.strafeFlipMs =
+      enemy.combatTuning.javelineer?.orbitFlipMs ?? 1400;
+  }
+}
 
 function strafeTangentBlocked(
   grid: NavGrid,
@@ -38,6 +59,8 @@ function resolveStrafeSign(
   ) {
     sign = sign === 1 ? -1 : 1;
     enemy.behaviorExtra.strafeSign = sign;
+    enemy.behaviorExtra.strafeFlipMs =
+      enemy.combatTuning.javelineer?.orbitFlipMs ?? 1400;
     if (
       strafeTangentBlocked(
         grid,
@@ -52,6 +75,48 @@ function resolveStrafeSign(
     }
   }
   return sign;
+}
+
+function playerOrbitDirs(
+  dx: number,
+  dy: number,
+  dist: number,
+): { nx: number; ny: number; tangentX: number; tangentY: number } {
+  const len = dist || 1;
+  const nx = dx / len;
+  const ny = dy / len;
+  return { nx, ny, tangentX: -ny, tangentY: nx };
+}
+
+function kiteArcVelocity(
+  enemy: EnemyInstance,
+  ctx: {
+    grid: NavGrid;
+    deltaMs: number;
+    tangentX: number;
+    tangentY: number;
+    nx: number;
+    ny: number;
+    radialBlend: number;
+    towardPlayer: boolean;
+    speedMul: number;
+    peerAgents?: readonly { x: number; y: number }[];
+  },
+): void {
+  advanceStrafeSign(enemy, ctx.deltaMs);
+  const sign = resolveStrafeSign(
+    enemy,
+    ctx.grid,
+    ctx.tangentX,
+    ctx.tangentY,
+    ctx.peerAgents,
+  );
+  const radialSign = ctx.towardPlayer ? 1 : -1;
+  const moveX =
+    ctx.tangentX * sign + ctx.nx * radialSign * ctx.radialBlend;
+  const moveY =
+    ctx.tangentY * sign + ctx.ny * radialSign * ctx.radialBlend;
+  applyDirectVelocity(enemy, moveX, moveY, ctx.speedMul);
 }
 
 export const javelineerBehavior: EnemyBehavior = (ctx) => {
@@ -88,8 +153,23 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   if (desired === "player" && javelineer) {
     const minRange = worldUnit(javelineer.minRange, reg);
     const maxRange = worldUnit(javelineer.maxRange, reg);
+    const bandSlack = worldUnit(28, reg);
+    const ideal = (minRange + maxRange) / 2;
+    const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
+
     if (dist < minRange) {
-      applyDirectVelocity(enemy, ex - playerX, ey - playerY, 1.05);
+      kiteArcVelocity(enemy, {
+        grid,
+        deltaMs,
+        tangentX,
+        tangentY,
+        nx,
+        ny,
+        radialBlend: CLOSE_RETREAT_BLEND,
+        towardPlayer: false,
+        speedMul: 1.1,
+        peerAgents,
+      });
     } else if (dist > maxRange) {
       let moveX = goal.x;
       let moveY = goal.y;
@@ -107,24 +187,40 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       }
       applyChaseVelocity(enemy, moveX, moveY, 1.08, { nav, deltaMs });
     } else {
-      const len = dist || 1;
-      const nx = dx / len;
-      const ny = dy / len;
-      const tangentX = -ny;
-      const tangentY = nx;
-      const sign = resolveStrafeSign(
-        enemy,
+      const distError = dist - ideal;
+      let radialBlend = 0;
+      let towardPlayer = false;
+      let speedMul = javelineer.strafeSpeedMul;
+
+      if (Math.abs(distError) <= bandSlack) {
+        if (distError > bandSlack * 0.4) {
+          radialBlend = IDEAL_RANGE_NUDGE;
+          towardPlayer = true;
+        } else if (distError < -bandSlack * 0.4) {
+          radialBlend = IDEAL_RANGE_NUDGE;
+          towardPlayer = false;
+        }
+      } else if (distError > 0) {
+        radialBlend = RANGE_APPROACH_BLEND;
+        towardPlayer = true;
+      } else {
+        radialBlend = RANGE_RETREAT_BLEND;
+        towardPlayer = false;
+        speedMul = Math.max(speedMul, 1.02);
+      }
+
+      kiteArcVelocity(enemy, {
         grid,
+        deltaMs,
         tangentX,
         tangentY,
+        nx,
+        ny,
+        radialBlend,
+        towardPlayer,
+        speedMul,
         peerAgents,
-      );
-      applyDirectVelocity(
-        enemy,
-        tangentX * sign,
-        tangentY * sign,
-        javelineer.strafeSpeedMul,
-      );
+      });
     }
   } else if (javelineer) {
     const wallY = northWallAttackY();
@@ -151,6 +247,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       }
       applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
     } else {
+      advanceStrafeSign(enemy, deltaMs);
       const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
       applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
     }
