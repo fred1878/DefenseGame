@@ -3,17 +3,21 @@ import {
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
 } from "../content/assets";
+import { obstacleDisplaySize } from "../config/defense";
 
-/** Scale cropped art to the gameplay collider so sprite footprint matches blocking. */
+/** Crop art for display; Arcade body sized to gameplay blocker (can be smaller than sprite). */
 export function configureDefenseObstacleSprite(
   rock: Phaser.Physics.Arcade.Image,
   textureKey: ObstacleTextureKey,
-  w: number,
-  h: number,
+  blockW: number,
+  blockH: number,
 ): void {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
+  const disp = obstacleDisplaySize(textureKey);
   rock.setCrop(crop.x, crop.y, crop.w, crop.h);
-  rock.setDisplaySize(w, h);
+  rock.setDisplaySize(disp.w, disp.h);
   rock.setOrigin(0.5);
   rock.refreshBody();
+  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
+  body.setSize(blockW, blockH, true);
 }

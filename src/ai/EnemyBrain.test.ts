@@ -16,7 +16,7 @@ import {
 } from "./EnemyBrain";
 
 describe("pickEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16);
 
   it("prefers wall when player is far", () => {
     expect(pickEnemyTarget(grid, 400, 0, 0, 0)).toBe("wall");
@@ -39,7 +39,7 @@ describe("pickEnemyTarget", () => {
 });
 
 describe("resolveEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16);
 
   it("continues toward last known position after LOS breaks", () => {
     const nav = createEnemyNav();
@@ -95,9 +95,9 @@ describe("wallTargetPoint", () => {
 
 describe("replanEnemyPath", () => {
   it("produces a non-empty path toward goal", () => {
-    const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
+    const grid = buildNavGrid(DEFENSE_OBSTACLES, 16);
     const nav = createEnemyNav();
-    replanEnemyPath(nav, grid, 200, -200, -420, 0);
+    replanEnemyPath(nav, grid, 0, 400, 0, -500);
     expect(nav.path.length).toBeGreaterThan(0);
   });
 });

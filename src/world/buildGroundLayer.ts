@@ -3,13 +3,13 @@ import { GROUND_TILE_SIZE, GROUND_TILE_TEXTURE } from "../content/assets";
 
 export function buildGroundLayer(
   scene: Phaser.Scene,
-  worldHalfSize: number,
+  worldHalfWidth: number,
+  worldHalfHeight: number,
 ): Phaser.GameObjects.Container {
-  const size = worldHalfSize * 2;
-  const tilesX = Math.ceil(size / GROUND_TILE_SIZE);
-  const tilesY = Math.ceil(size / GROUND_TILE_SIZE);
-  const originX = -worldHalfSize;
-  const originY = -worldHalfSize;
+  const tilesX = Math.ceil((worldHalfWidth * 2) / GROUND_TILE_SIZE);
+  const tilesY = Math.ceil((worldHalfHeight * 2) / GROUND_TILE_SIZE);
+  const originX = -worldHalfWidth;
+  const originY = -worldHalfHeight;
   const layer = scene.add.container(0, 0).setDepth(-10);
 
   if (!scene.textures.exists(GROUND_TILE_TEXTURE)) {

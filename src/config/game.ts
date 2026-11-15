@@ -5,7 +5,6 @@
 export const GAME = {
   width: 540,
   height: 1200,
-  worldHalfSize: 520,
   /** Max internal Text resolution multiplier on high-DPI browsers. */
   renderResolutionCap: 3,
 } as const;

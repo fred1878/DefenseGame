@@ -303,6 +303,20 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     setSpawnPlanComplete() {
       activeDefense(game)?.e2eSetSpawnPlanComplete();
     },
+    setPlayerPosition(x: number, y: number) {
+      activeDefense(game)?.e2eSetPlayerPosition(x, y);
+    },
+    getDefenseCameraScroll() {
+      return (
+        activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
+      );
+    },
+    setShowEnemyPaths(on: boolean) {
+      activeDefense(game)?.e2eSetShowEnemyPaths(on);
+    },
+    getObstacleAlignment() {
+      return activeDefense(game)?.e2eGetObstacleAlignment() ?? [];
+    },
   };
 }
 
