@@ -21,9 +21,12 @@ describe("defense field tiles", () => {
     );
   });
 
-  it("is taller than the portrait viewport for vertical scroll", () => {
+  it("targets ~1.5× viewport width (≈810px) and taller than viewport", () => {
+    const targetW = GAME.width * 1.5;
+    expect(DEFENSE_FIELD_PX.width).toBeGreaterThanOrEqual(targetW - 32);
+    expect(DEFENSE_FIELD_PX.width).toBeLessThanOrEqual(targetW + 32);
     expect(DEFENSE_FIELD_PX.height).toBeGreaterThan(GAME.height);
-    expect(DEFENSE_FIELD_PX.width).toBeLessThan(GAME.width);
+    expect(DEFENSE_FIELD_PX.width).toBeGreaterThan(GAME.width);
   });
 
   it("places north wall inside the north edge", () => {
