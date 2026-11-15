@@ -29,13 +29,14 @@ export function findPath(
   startY: number,
   goalX: number,
   goalY: number,
+  peerAgents?: readonly { x: number; y: number }[],
 ): PathPoint[] {
   const startCell = worldToCell(grid, startX, startY);
   const goalCell = worldToCell(grid, goalX, goalY);
   if (!startCell || !goalCell) return [];
 
-  const start = nearestWalkable(grid, startCell.col, startCell.row);
-  const goal = nearestWalkable(grid, goalCell.col, goalCell.row);
+  const start = nearestWalkable(grid, startCell.col, startCell.row, peerAgents);
+  const goal = nearestWalkable(grid, goalCell.col, goalCell.row, peerAgents);
 
   const total = grid.cols * grid.rows;
   const gScore = new Float32Array(total);
@@ -77,7 +78,7 @@ export function findPath(
     for (const [dc, dr] of NEIGHBORS) {
       const nc = col + dc;
       const nr = row + dr;
-      if (cellBlocked(grid, nc, nr)) continue;
+      if (cellBlocked(grid, nc, nr, peerAgents)) continue;
       const neighbor = nr * grid.cols + nc;
       const stepCost = dc !== 0 && dr !== 0 ? 1.414 : 1;
         const gCur = gScore[current] ?? Infinity;

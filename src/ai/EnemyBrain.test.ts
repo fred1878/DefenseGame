@@ -5,7 +5,11 @@ import {
   PLAYER_CHASE_MEMORY_MS,
   WALL_VELOCITY_BLEND_MS,
 } from "../config";
-import { northWallApproachY, northWallAttackY } from "../config/defense";
+import {
+  DEFENSE_MAP,
+  northWallApproachY,
+  northWallAttackY,
+} from "../config/defense";
 import { buildNavGrid } from "../pathfinding/grid";
 import {
   createEnemyNav,
@@ -16,7 +20,7 @@ import {
 } from "./EnemyBrain";
 
 describe("pickEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16);
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
 
   it("prefers wall when player is far", () => {
     expect(pickEnemyTarget(grid, 400, 0, 0, 0)).toBe("wall");
@@ -39,7 +43,7 @@ describe("pickEnemyTarget", () => {
 });
 
 describe("resolveEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16);
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
 
   it("continues toward last known position after LOS breaks", () => {
     const nav = createEnemyNav();
@@ -95,7 +99,7 @@ describe("wallTargetPoint", () => {
 
 describe("replanEnemyPath", () => {
   it("produces a non-empty path toward goal", () => {
-    const grid = buildNavGrid(DEFENSE_OBSTACLES, 16);
+    const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
     const nav = createEnemyNav();
     replanEnemyPath(nav, grid, 0, 400, 0, -500);
     expect(nav.path.length).toBeGreaterThan(0);

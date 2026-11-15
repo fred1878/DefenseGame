@@ -211,6 +211,7 @@ export class DefenseScene extends Phaser.Scene {
     this.navGrid = buildNavGrid(
       scaledDefenseObstacles(this.registry),
       worldUnit(DEFENSE_MAP.cellSize, this.registry),
+      worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
     );
     const store = this.registry.get("dataStore") as DataStore;
     const wave = store.getWaveForNight(this.save.night);
@@ -526,9 +527,20 @@ export class DefenseScene extends Phaser.Scene {
     this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
 
     this.enemyPathGoals.clear();
-    for (const e of this.enemies) {
-      if (!e.damageable.alive) continue;
-      const brain = updateEnemyBrain(e, e.nav, this.navGrid, px, py, delta);
+    const liveEnemies = this.enemies.filter((e) => e.damageable.alive);
+    for (const e of liveEnemies) {
+      const peerAgents = liveEnemies
+        .filter((o) => o.id !== e.id)
+        .map((o) => ({ x: o.sprite.x, y: o.sprite.y }));
+      const brain = updateEnemyBrain(
+        e,
+        e.nav,
+        this.navGrid,
+        px,
+        py,
+        delta,
+        peerAgents,
+      );
       this.enemyPathGoals.set(e.id, {
         targetKind: brain.targetKind,
         x: brain.targetX,

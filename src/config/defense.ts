@@ -80,6 +80,11 @@ export function obstacleDisplaySize(textureKey: ObstacleTextureKey): {
 export const DEFENSE_MAP = {
   /** 16px nav cells — quarter ground tile — so blocked cells hug sprite mass. */
   cellSize: 16,
+  /**
+   * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than an
+   * enemy body (~28px diameter at default scale).
+   */
+  pathClearancePx: 14,
   /** How close an enemy must be to a path node before advancing. */
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */
