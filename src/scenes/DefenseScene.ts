@@ -861,6 +861,7 @@ export class DefenseScene extends Phaser.Scene {
       return;
     }
     this.pathDebug.clear();
+    this.pathDebug.drawObstacleZones(this.navGrid, DEFENSE_OBSTACLES);
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       const goal = this.enemyPathGoals.get(e.id);
