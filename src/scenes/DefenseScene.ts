@@ -286,14 +286,20 @@ export class DefenseScene extends Phaser.Scene {
         this.refreshModeToggle(mode);
       },
       210,
-      { frameTextureKey: UI_TEXTURE.modeRect },
+      {
+        frameTextureKey: UI_TEXTURE.modeRect,
+        onBgTint: 0xe8d4a8,
+        offBgTint: 0xffffff,
+        onTextColor: "#fde68a",
+        offTextColor: "#e8dcc8",
+      },
     );
 
     this.autoToggle = createTouchToggleButton(
       this,
       chrome.autoX,
       chrome.autoY,
-      "AUTO",
+      "AUTO\nOFF",
       chrome.toggleW,
       chrome.toggleH,
       () => {
@@ -301,7 +307,13 @@ export class DefenseScene extends Phaser.Scene {
         this.refreshAutoToggle();
       },
       210,
-      { frameTextureKey: UI_TEXTURE.autoRect },
+      {
+        frameTextureKey: UI_TEXTURE.autoRect,
+        onBgTint: 0xa8d8a0,
+        offBgTint: 0xffffff,
+        onTextColor: "#bef264",
+        offTextColor: "#a8a29e",
+      },
     );
 
     this.spellCaster = new SpellCastController();
@@ -1155,7 +1167,9 @@ export class DefenseScene extends Phaser.Scene {
 
   private refreshAutoToggle(): void {
     this.autoToggle.setOn(this.autoAttackEnabled);
-    this.autoToggle.setLabel(this.autoAttackEnabled ? "AUTO" : "AUTO");
+    this.autoToggle.setLabel(
+      this.autoAttackEnabled ? "AUTO\nON" : "AUTO\nOFF",
+    );
   }
 
   private scheduleWave(
@@ -1461,6 +1475,10 @@ export class DefenseScene extends Phaser.Scene {
       if (ret) out["defense-return-to-town"] = ret;
     }
     return out;
+  }
+
+  e2eAutoAttackEnabled(): boolean {
+    return this.autoAttackEnabled;
   }
 
   e2eIsTouchButtonPressed(testId: string): boolean {

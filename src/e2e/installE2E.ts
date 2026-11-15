@@ -145,6 +145,7 @@ export function attachE2EGame(game: Phaser.Game): void {
           nightEnded: defense.e2eNightEnded(),
           hasReturnButton: defense.e2eHasReturnButton(),
           defenseWallHp: defense.e2eWallHp(),
+          autoAttackOn: defense.e2eAutoAttackEnabled(),
         };
         positionDomMirrors(defense.e2eGetUiTapTargets());
       }
@@ -272,6 +273,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       if (town?.scene.isActive()) return town.e2eIsTouchButtonPressed(testId);
       return false;
+    },
+    getAutoAttackEnabled() {
+      return activeDefense(game)?.e2eAutoAttackEnabled() ?? false;
     },
     syncDomMirrors() {
       const defense = activeDefense(game);
