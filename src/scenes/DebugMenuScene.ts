@@ -23,6 +23,7 @@ import {
   fullscreenButtonLabel,
   toggleFullscreen,
 } from "../ui/fullscreen";
+import { DEBUG_MENU_CLOSE } from "../debug/debugMenuLifecycle";
 
 export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
@@ -183,7 +184,7 @@ export class DebugMenuScene extends Phaser.Scene {
   }
 
   private closeMenu(): void {
-    this.game.events.emit("debug-menu-close");
+    this.game.events.emit(DEBUG_MENU_CLOSE);
     this.scene.stop("DebugMenu");
   }
 }

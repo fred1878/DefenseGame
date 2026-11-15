@@ -9,6 +9,11 @@ import {
   resetSaveAndReload,
 } from "../core/GameState";
 import { showTouchInput } from "../debug/DebugState";
+import {
+  DEBUG_MENU_CLOSE,
+  pauseForDebugMenu,
+  resumeFromDebugMenu,
+} from "../debug/debugMenuLifecycle";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
@@ -45,6 +50,7 @@ export class TownScene extends Phaser.Scene {
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
+  private readonly onDebugMenuClose = (): void => resumeFromDebugMenu(this);
 
   constructor() {
     super({ key: "Town" });
@@ -115,7 +121,10 @@ export class TownScene extends Phaser.Scene {
       dbgPos.x,
       dbgPos.y,
       "Debug",
-      () => this.scene.launch("DebugMenu"),
+      () => {
+        pauseForDebugMenu(this);
+        this.scene.launch("DebugMenu");
+      },
       {
         width: scaleUiX(88),
         height: scaleUiX(36),
@@ -161,7 +170,11 @@ export class TownScene extends Phaser.Scene {
     );
 
     this.touchDebug = new TouchInputDebugDraw(this);
-    this.events.on("shutdown", () => this.touchDebug.destroy());
+    this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
+    this.events.on("shutdown", () => {
+      this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
+      this.touchDebug.destroy();
+    });
 
     if (isE2EEnabled()) {
       publishE2E({ scene: "Town", ready: true });

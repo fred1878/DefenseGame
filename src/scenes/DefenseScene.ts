@@ -63,6 +63,11 @@ import {
   showHitboxes,
   showTouchInput,
 } from "../debug/DebugState";
+import {
+  DEBUG_MENU_CLOSE,
+  pauseForDebugMenu,
+  resumeFromDebugMenu,
+} from "../debug/debugMenuLifecycle";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
@@ -183,7 +188,10 @@ export class DefenseScene extends Phaser.Scene {
   private debugBtn!: TouchButtonHandle;
   private safe!: SafeInsets;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
-  private onDebugMenuClose = (): void => this.setHudChromeVisible(true);
+  private onDebugMenuClose = (): void => {
+    this.setHudChromeVisible(true);
+    resumeFromDebugMenu(this);
+  };
   private prevPlayerAttackPhase: AttackPhase = "idle";
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
   private enemyGroup!: Phaser.Physics.Arcade.Group;
@@ -456,7 +464,7 @@ export class DefenseScene extends Phaser.Scene {
       radius: chrome.stickRadius,
     });
 
-    this.game.events.on("debug-menu-close", this.onDebugMenuClose);
+    this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
 
     this.refreshModeToggle(this.player.mode);
     this.refreshAutoToggle();
@@ -478,7 +486,7 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.events.on("shutdown", () => {
-      this.game.events.off("debug-menu-close", this.onDebugMenuClose);
+      this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
       this.input.off("pointerup", this.onPointerUpBound);
       this.stick.destroy(this);
       this.targetIndicator.destroy();
@@ -1187,6 +1195,7 @@ export class DefenseScene extends Phaser.Scene {
 
   private openDebugMenu(): void {
     this.setHudChromeVisible(false);
+    pauseForDebugMenu(this);
     this.scene.launch("DebugMenu");
   }
 
