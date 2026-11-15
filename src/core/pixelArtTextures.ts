@@ -11,6 +11,8 @@ import {
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
   "enemy_grunt",
+  "enemy_arrow_rain_archer",
+  "enemy_javelineer",
   ...COMBAT_FX_ASSETS.map((a) => a.key),
 ];
 

@@ -14,6 +14,11 @@ function mockEnemy(
 ): EnemyInstance {
   return {
     id: "e",
+    defId: "grunt",
+    behavior: "meleeChaser",
+    speed: 85,
+    damage: 8,
+    textureKey: "enemy_grunt",
     sprite: { x, y, setVelocity: vi.fn() } as unknown as EnemyInstance["sprite"],
     damageable: {
       id: "e",
@@ -24,6 +29,7 @@ function mockEnemy(
     },
     combat: combat ?? createEnemyCombat(),
     nav: { targetKind: "wall", path: [], pathIndex: 0, replanMs: 0 },
+    behaviorExtra: { strafeSign: 1 as const, strafeFlipMs: 0 },
   };
 }
 
