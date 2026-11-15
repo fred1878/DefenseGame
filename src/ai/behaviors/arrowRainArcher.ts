@@ -1,4 +1,4 @@
-import { DEFENSE_MAP } from "../../config";
+import { DEFENSE_MAP, northWallAttackY } from "../../config";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, applyDirectVelocity } from "./movement";
@@ -20,15 +20,27 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
 
   const distToPlayer = Math.hypot(playerX - ex, playerY - ey);
   const arrow = enemy.combatTuning.arrowRain;
-  const inAttackBand =
+  const wallY = northWallAttackY();
+  const distToWall = ey - wallY;
+  const inPlayerAttackBand =
     desired === "player" &&
     arrow !== undefined &&
     distToPlayer <= arrow.attackTriggerRange;
+  const inWallAttackBand =
+    desired === "wall" &&
+    arrow !== undefined &&
+    distToWall <= arrow.attackTriggerRange;
 
-  if (inAttackBand && arrow) {
-    const tooClose = distToPlayer < arrow.preferredRange - 24;
+  if ((inPlayerAttackBand || inWallAttackBand) && arrow) {
+    const tooClose = inWallAttackBand
+      ? distToWall < arrow.preferredRange - 24
+      : distToPlayer < arrow.preferredRange - 24;
     if (tooClose) {
-      applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.65);
+      if (inWallAttackBand) {
+        applyDirectVelocity(enemy, 0, 1, 0.65);
+      } else {
+        applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.65);
+      }
     } else {
       enemy.sprite.setVelocity(0, 0);
     }

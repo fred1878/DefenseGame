@@ -1,4 +1,4 @@
-import { DEFENSE_MAP } from "../../config";
+import { DEFENSE_MAP, northWallAttackY } from "../../config";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
@@ -36,9 +36,9 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   const dx = playerX - ex;
   const dy = playerY - ey;
   const dist = Math.hypot(dx, dy);
+  const javelineer = enemy.combatTuning.javelineer;
 
-  if (desired === "player") {
-    const javelineer = enemy.combatTuning.javelineer!;
+  if (desired === "player" && javelineer) {
     const { minRange, maxRange } = javelineer;
     if (dist < minRange) {
       applyDirectVelocity(enemy, ex - playerX, ey - playerY, 1.05);
@@ -63,31 +63,43 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       const len = dist || 1;
       const nx = dx / len;
       const ny = dy / len;
-      const px = -ny * sign;
-      const py = nx * sign;
+      const tx = -ny * sign;
+      const ty = nx * sign;
+      const nearMin = dist < minRange * 1.15;
+      const retreat = nearMin ? 0.72 : 0.22;
       applyDirectVelocity(
         enemy,
-        px + nx * 0.15,
-        py + ny * 0.15,
-        javelineer.strafeSpeedMul,
+        tx - nx * retreat,
+        ty - ny * retreat,
+        nearMin ? 1.12 : javelineer.strafeSpeedMul,
       );
     }
-  } else {
-    let moveX = goal.x;
-    let moveY = goal.y;
-    if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-      const wp = nav.path[nav.pathIndex]!;
-      const d = Math.hypot(wp.x - ex, wp.y - ey);
-      if (d <= DEFENSE_MAP.pathWaypointRadius) {
-        nav.pathIndex += 1;
+  } else if (javelineer) {
+    const wallY = northWallAttackY();
+    const distToWall = ey - wallY;
+    const { minRange, maxRange, strafeSpeedMul } = javelineer;
+    if (distToWall < minRange) {
+      applyDirectVelocity(enemy, 0, 1, 1.05);
+    } else if (distToWall > maxRange) {
+      let moveX = goal.x;
+      let moveY = goal.y;
+      if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
+        const wp = nav.path[nav.pathIndex]!;
+        const d = Math.hypot(wp.x - ex, wp.y - ey);
+        if (d <= DEFENSE_MAP.pathWaypointRadius) {
+          nav.pathIndex += 1;
+        }
+        const nextWp = nav.path[nav.pathIndex];
+        if (nextWp) {
+          moveX = nextWp.x;
+          moveY = nextWp.y;
+        }
       }
-      const nextWp = nav.path[nav.pathIndex];
-      if (nextWp) {
-        moveX = nextWp.x;
-        moveY = nextWp.y;
-      }
+      applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
+    } else {
+      const sign = advanceStrafeSign(enemy, deltaMs);
+      applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
     }
-    applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
   }
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };

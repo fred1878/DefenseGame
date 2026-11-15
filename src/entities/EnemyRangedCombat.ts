@@ -49,8 +49,15 @@ function advanceCombatPhase(
   }
 }
 
-function freezeWindupRecovery(enemy: EnemyInstance, phase: EnemyAttackPhase): void {
-  if (enemyIsAttacking(enemy.combat) && (phase === "windup" || phase === "recovery")) {
+function freezeWindupRecovery(
+  enemy: EnemyInstance,
+  phase: EnemyAttackPhase,
+  targetKind: EnemyAttackTarget["kind"],
+): void {
+  const hold =
+    enemyIsAttacking(enemy.combat) &&
+    (targetKind === "wall" || phase === "windup" || phase === "recovery");
+  if (hold) {
     enemy.sprite.setVelocity(0, 0);
   }
 }
@@ -84,7 +91,6 @@ export function updateArrowRainCombat(
   onWallHit?: () => void,
 ): { hitPlayer: boolean; damage: number } {
   const c = enemy.combat;
-  const { wall } = enemy.combatTuning;
   const tune = enemy.combatTuning.arrowRain!;
   if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
 
@@ -93,16 +99,15 @@ export function updateArrowRainCombat(
   const dist = Math.hypot(dx, dy);
   c.facing = Math.atan2(dy, dx);
 
-  const triggerRange =
-    target.kind === "wall" ? wall.triggerRange : tune.attackTriggerRange;
-  const inRange = dist <= triggerRange;
+  const inRange = dist <= tune.attackTriggerRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
     c.phase = "windup";
     c.phaseMs = 0;
+    c.hitThisSwing = false;
     extra.tickAccumulatorMs = 0;
     extra.ticksDealt = 0;
-    if (target.kind === "player") {
+    if (target.kind === "player" || target.kind === "wall") {
       extra.zoneX = target.x;
       extra.zoneY = target.y;
       destroyArrowRainTelegraph(extra.telegraph);
@@ -156,8 +161,14 @@ export function updateArrowRainCombat(
           damage += enemy.damage * tune.tickDamageScale;
         }
       }
-    } else if (target.kind === "wall" && dist <= wall.hitRange) {
-      onWallHit?.();
+    } else if (
+      target.kind === "wall" &&
+      dist <= tune.attackTriggerRange
+    ) {
+      if (!c.hitThisSwing) {
+        c.hitThisSwing = true;
+        onWallHit?.();
+      }
     }
   }
 
@@ -166,7 +177,7 @@ export function updateArrowRainCombat(
     extra.telegraph = undefined;
   }
 
-  freezeWindupRecovery(enemy, c.phase);
+  freezeWindupRecovery(enemy, c.phase, target.kind);
   return { hitPlayer, damage };
 }
 
@@ -178,7 +189,6 @@ export function updateJavelineerCombat(
   onWallHit?: () => void,
 ): { spawnJavelin?: JavelinSpawnRequest; meleeHit: boolean } {
   const c = enemy.combat;
-  const { wall } = enemy.combatTuning;
   const tune = enemy.combatTuning.javelineer!;
   if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
 
@@ -191,13 +201,16 @@ export function updateJavelineerCombat(
     target.kind === "player" &&
     dist >= tune.minRange &&
     dist <= tune.maxRange;
-  const wallInRange =
-    target.kind === "wall" && dist <= wall.triggerRange;
+  const wallInBand =
+    target.kind === "wall" &&
+    dist >= tune.minRange &&
+    dist <= tune.maxRange;
 
-  if (c.phase === "idle" && c.cooldownMs <= 0 && (inBand || wallInRange)) {
+  if (c.phase === "idle" && c.cooldownMs <= 0 && (inBand || wallInBand)) {
     c.phase = "windup";
     c.phaseMs = 0;
     extra.shotFired = false;
+    c.hitThisSwing = false;
   }
 
   advanceCombatPhase(
@@ -222,14 +235,21 @@ export function updateJavelineerCombat(
         toY: target.y,
         damage: enemy.damage,
       };
-    } else if (target.kind === "wall" && dist <= wall.hitRange) {
+    } else if (target.kind === "wall" && wallInBand) {
+      spawnJavelin = {
+        fromX: enemy.sprite.x,
+        fromY: enemy.sprite.y,
+        toX: target.x,
+        toY: target.y,
+        damage: enemy.damage,
+      };
       onWallHit?.();
     } else if (target.kind === "player" && dist < tune.minRange) {
       meleeHit = true;
     }
   }
 
-  freezeWindupRecovery(enemy, c.phase);
+  freezeWindupRecovery(enemy, c.phase, target.kind);
   return { spawnJavelin, meleeHit };
 }
 

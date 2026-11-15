@@ -3,6 +3,7 @@ import {
   PLAYER_AGGRO_RADIUS,
   PLAYER_CHASE_MEMORY_MS,
   WALL_VELOCITY_BLEND_MS,
+  northWallApproachY,
   northWallAttackY,
 } from "../config";
 import { findPath, type PathPoint } from "../pathfinding/astar";
@@ -111,7 +112,13 @@ export function resolveEnemyTarget(
   return { targetKind: "wall", goalX: wall.x, goalY: wall.y };
 }
 
+/** Movement / A* goal south of the wall plane. */
 export function wallTargetPoint(ex: number, _ey: number): { x: number; y: number } {
+  return { x: ex, y: northWallApproachY() };
+}
+
+/** Combat targeting plane on the wall (projectiles, swing arcs, range checks). */
+export function wallCombatPoint(ex: number): { x: number; y: number } {
   return { x: ex, y: northWallAttackY() };
 }
 

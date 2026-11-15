@@ -23,18 +23,19 @@ function mockJavelineer(x: number, y: number) {
 }
 
 describe("javelineerBehavior", () => {
+  const openGrid = {
+    blocked: () => false,
+    width: 1,
+    height: 1,
+    cellSize: 40,
+  } as unknown as import("../../pathfinding/grid").NavGrid;
+
   it("backs away when player is inside min range", () => {
     const enemy = mockJavelineer(0, 0);
-    const grid = {
-      blocked: () => false,
-      width: 1,
-      height: 1,
-      cellSize: 40,
-    } as unknown as import("../../pathfinding/grid").NavGrid;
     javelineerBehavior({
       enemy,
       nav: enemy.nav,
-      grid,
+      grid: openGrid,
       playerX: DEFAULT_JAVELINEER_COMBAT.minRange - 10,
       playerY: 0,
       deltaMs: 16,
@@ -42,6 +43,26 @@ describe("javelineerBehavior", () => {
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     expect(setVelocity).toHaveBeenCalled();
     const [vx] = setVelocity.mock.calls[0]!;
+    expect(vx).toBeLessThan(0);
+  });
+
+  it("strafes laterally with light retreat when in the kite band", () => {
+    const enemy = mockJavelineer(0, 0);
+    const band =
+      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: band,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx, vy] = setVelocity.mock.calls[0]!;
+    expect(Math.abs(vy)).toBeGreaterThan(0);
+    expect(Math.abs(vx)).toBeLessThan(Math.abs(vy));
     expect(vx).toBeLessThan(0);
   });
 });

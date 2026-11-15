@@ -105,7 +105,12 @@ export function updateEnemyCombat(
     }
   }
 
-  if (enemyIsAttacking(c) && (c.phase === "windup" || c.phase === "recovery")) {
+  const holdPosition =
+    enemyIsAttacking(c) &&
+    (target.kind === "wall" ||
+      c.phase === "windup" ||
+      c.phase === "recovery");
+  if (holdPosition) {
     enemy.sprite.setVelocity(0, 0);
   }
 

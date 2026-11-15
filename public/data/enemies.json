@@ -66,7 +66,7 @@
   },
   "javelineer": {
     "hp": 26,
-    "speed": 118,
+    "speed": 128,
     "damage": 11,
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer"
