@@ -1,11 +1,16 @@
 export type AttackMode = "melee" | "ranged" | "auto";
 
+/** Matches `ENTITY_BODY_RADIUS.enemy`; arc hits use `meleeRange + targetRadius`. */
+const MELEE_ENGAGE_TARGET_RADIUS = 14;
+
+const meleeRange = 52;
+
 export const PLAYER_TUNING = {
   moveSpeed: 220,
   meleeWindupMs: 120,
   meleeActiveMs: 100,
   meleeRecoveryMs: 280,
-  meleeRange: 52,
+  meleeRange,
   meleeArcDeg: 108,
   meleeDamage: 15,
   rangedWindupMs: 100,
@@ -17,7 +22,7 @@ export const PLAYER_TUNING = {
   meleeKnockback: 320,
   rangedKnockback: 110,
   maxHp: 100,
-  autoAttackMeleeRange: 52,
+  autoAttackMeleeRange: meleeRange + MELEE_ENGAGE_TARGET_RADIUS,
   autoAttackRangedRange: 300,
   targetTapRadiusWorld: 56,
   playerHitInvulnMs: 900,
