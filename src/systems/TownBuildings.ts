@@ -1,20 +1,40 @@
 import Phaser from "phaser";
+import { clampRenderResolution, scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
+import { bindContainerPress } from "../ui/touchButton";
 
-export type TownBuildingInstance = {
-  sprite: Phaser.GameObjects.Image;
+export type TownBuildingControl = {
+  container: Phaser.GameObjects.Container;
   buildingId: string;
-  label: string;
+  setLabel: (text: string) => void;
+  /** Building center in game/canvas coords (for e2e taps). */
+  spriteCenter: () => { x: number; y: number };
 };
 
-/** Place layout slots as 1:1 native PNG footprints (feet at slot y). */
-export function spawnTownBuildings(
+export type SpawnTownBuildingControlsOpts = {
+  depth?: number;
+  labelFor: (def: TownBuildingDef) => string;
+  onTap: (buildingId: string, def: TownBuildingDef) => void;
+};
+
+function textResolution(scene: Phaser.Scene): number {
+  return (
+    (scene.registry.get("renderResolution") as number | undefined) ??
+    clampRenderResolution()
+  );
+}
+
+/** Layout slot buildings: sprite art + overlay label, full footprint is the tap target. */
+export function spawnTownBuildingControls(
   scene: Phaser.Scene,
   defs: Record<string, TownBuildingDef>,
   layout: TownLayoutDef,
-  depth = 8,
-): TownBuildingInstance[] {
-  const out: TownBuildingInstance[] = [];
+  opts: SpawnTownBuildingControlsOpts,
+): TownBuildingControl[] {
+  const depth = opts.depth ?? 24;
+  const tapPad = scaleUiX(8);
+  const out: TownBuildingControl[] = [];
+
   for (const slot of layout.slots) {
     const def = defs[slot.buildingId];
     if (!def) {
@@ -25,12 +45,83 @@ export function spawnTownBuildings(
       console.warn(`Town building texture missing: ${def.textureKey}`);
       continue;
     }
-    const sprite = scene.add
-      .image(slot.x, slot.y, def.textureKey)
-      .setOrigin(0.5, 1)
+
+    const footX = slot.x;
+    const footY = slot.y;
+    const hitW = def.width + tapPad * 2;
+    const hitH = def.height + tapPad;
+
+    const container = scene.add
+      .container(footX, footY)
       .setDepth(depth);
-    sprite.setDisplaySize(def.width, def.height);
-    out.push({ sprite, buildingId: slot.buildingId, label: def.label });
+
+    const sprite = scene.add
+      .image(0, 0, def.textureKey)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(def.width, def.height);
+
+    const labelBandH = scaleUiY(34);
+    const labelY = -def.height * 0.52;
+    const backing = scene.add
+      .rectangle(0, labelY, def.width, labelBandH, 0x0f1118, 0.62)
+      .setStrokeStyle(Math.max(1, scaleUiX(1)), 0x3f3f46, 0.9);
+
+    const fontSize = `${scaleUiX(10)}px`;
+    const labelText = opts.labelFor(def);
+    const text = scene.add
+      .text(0, labelY, labelText, {
+        fontSize,
+        color: "#f4f4f5",
+        stroke: "#0c0c0e",
+        strokeThickness: Math.max(2, scaleUiX(2)),
+        align: "center",
+        wordWrap: { width: def.width - scaleUiX(6) },
+        resolution: textResolution(scene),
+      })
+      .setOrigin(0.5);
+
+    container.add([sprite, backing, text]);
+
+    // Feet at container origin: hit box spans the full sprite footprint.
+    container.setInteractive(
+      new Phaser.Geom.Rectangle(
+        -hitW / 2,
+        -hitH,
+        hitW,
+        hitH,
+      ),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    bindContainerPress(
+      scene,
+      container,
+      () => opts.onTap(slot.buildingId, def),
+      {
+        bg: sprite,
+        colors: { rest: 0xffffff, pressed: 0xb8b8b8 },
+        pressScale: 0.96,
+        textured: true,
+      },
+    );
+
+    container.setData("testid", `town-building-${slot.buildingId}`);
+    if (def.startsNight) {
+      container.setData("testid", "start-night");
+    }
+
+    const spriteCenter = (): { x: number; y: number } => ({
+      x: footX,
+      y: footY - def.height / 2,
+    });
+
+    out.push({
+      container,
+      buildingId: slot.buildingId,
+      setLabel: (next: string) => text.setText(next),
+      spriteCenter,
+    });
   }
+
   return out;
 }

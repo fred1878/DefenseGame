@@ -150,6 +150,17 @@ function darkenColor(color: number, factor: number): number {
   return (r << 16) + (g << 8) + b;
 }
 
+/** Press feedback + tap-on-release for any interactive container (town buildings, etc.). */
+export function bindContainerPress(
+  scene: Phaser.Scene,
+  obj: Phaser.GameObjects.GameObject,
+  onPress: () => void,
+  pressVisual?: PressVisual,
+  activateOn: "pointerdown" | "pointerup" = "pointerdown",
+): void {
+  bindPress(scene, obj, onPress, pressVisual, activateOn);
+}
+
 function bindPress(
   scene: Phaser.Scene,
   obj: Phaser.GameObjects.GameObject,

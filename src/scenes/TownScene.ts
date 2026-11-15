@@ -13,7 +13,6 @@ import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
   createTouchButton,
-  interactiveObjectScreenRect,
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
 import {
@@ -30,21 +29,22 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
-import { spawnTownBuildings } from "../systems/TownBuildings";
+import {
+  spawnTownBuildingControls,
+  type TownBuildingControl,
+} from "../systems/TownBuildings";
 import {
   formatTownBuildingButtonLabel,
   handleTownBuildingTap,
-  townBuildingMenuIds,
   townBuildingSubtitle,
 } from "../systems/townBuildingMenu";
-import type { TouchButtonHandle } from "../ui/touchButton";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
-  private buildingMenuButtons = new Map<string, TouchButtonHandle>();
+  private buildingControls = new Map<string, TownBuildingControl>();
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
@@ -86,7 +86,22 @@ export class TownScene extends Phaser.Scene {
 
     this.refreshStatus(store);
 
-    spawnTownBuildings(this, store.townBuildings, store.townLayout);
+    const controls = spawnTownBuildingControls(
+      this,
+      store.townBuildings,
+      store.townLayout,
+      {
+        labelFor: (def) =>
+          formatTownBuildingButtonLabel(
+            def,
+            townBuildingSubtitle(store, this.save, def),
+          ),
+        onTap: (buildingId, def) => this.onTownBuildingTap(store, buildingId, def),
+      },
+    );
+    for (const c of controls) {
+      this.buildingControls.set(c.buildingId, c);
+    }
 
     const safe = readSafeInsets();
     const dbgPos = debugButtonPosition(this, safe);
@@ -141,43 +156,13 @@ export class TownScene extends Phaser.Scene {
     );
 
     const btnW = scaleUiX(260);
-    const btnH = scaleUiY(40);
-    const buildingFont = `${scaleUiX(13)}px`;
     const menuFill = 0x2d3748;
     const menuStroke = 0x4a5568;
-
-    const menuIds = townBuildingMenuIds(store.townBuildings, store.townLayout);
-    menuIds.forEach((buildingId, i) => {
-      const def = store.townBuildings[buildingId];
-      if (!def) return;
-      const subtitle = townBuildingSubtitle(store, this.save, def);
-      const isStartNight = Boolean(def.startsNight);
-      const handle = createTouchButton(
-        this,
-        GAME.width / 2,
-        townActionButtonY(this, safe, i),
-        formatTownBuildingButtonLabel(def, subtitle),
-        () => this.onTownBuildingTap(store, buildingId, def),
-        {
-          width: btnW,
-          height: isStartNight ? scaleUiY(48) : btnH,
-          depth: 200,
-          fontSize: buildingFont,
-          fillColor: isStartNight ? 0x3b82f6 : menuFill,
-          strokeColor: isStartNight ? 0x60a5fa : menuStroke,
-        },
-      );
-      handle.container.setData("testid", `town-building-${buildingId}`);
-      if (isStartNight) {
-        handle.container.setData("testid", "start-night");
-      }
-      this.buildingMenuButtons.set(buildingId, handle);
-    });
 
     createTouchButton(
       this,
       GAME.width / 2,
-      townActionButtonY(this, safe, menuIds.length),
+      townActionButtonY(this, safe, 0),
       "Spell bar",
       () => this.openSpellSortPanel(),
       {
@@ -203,15 +188,11 @@ export class TownScene extends Phaser.Scene {
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
     const out: Record<string, { x: number; y: number }> = {};
-    for (const [id, btn] of this.buildingMenuButtons) {
-      const br = interactiveObjectScreenRect(btn.container);
-      if (!br) continue;
-      const pt = {
-        x: br.x + br.width / 2,
-        y: br.y + br.height / 2,
-      };
+    const store = this.registry.get("dataStore") as DataStore;
+    for (const [id, control] of this.buildingControls) {
+      const pt = control.spriteCenter();
       out[`town-building-${id}`] = pt;
-      const def = (this.registry.get("dataStore") as DataStore).townBuildings[id];
+      const def = store.townBuildings[id];
       if (def?.startsNight) {
         out["start-night"] = pt;
       }
@@ -221,7 +202,7 @@ export class TownScene extends Phaser.Scene {
 
   e2eIsTouchButtonPressed(testId: string): boolean {
     if (testId === "start-night") {
-      const btn = this.buildingMenuButtons.get("town_special_gallows_square");
+      const btn = this.buildingControls.get("town_special_gallows_square");
       return btn
         ? isTouchButtonVisuallyPressed(btn.container)
         : false;
@@ -308,17 +289,17 @@ export class TownScene extends Phaser.Scene {
       this.save = save;
       persistSave(this.save);
       this.registry.set("save", this.save);
-      this.refreshBuildingMenuLabels(store);
+      this.refreshBuildingOverlays(store);
       this.refreshStatus(store);
     }
     this.flashTransientStatus(result.message, store);
   }
 
-  private refreshBuildingMenuLabels(store: DataStore): void {
-    for (const [id, handle] of this.buildingMenuButtons) {
+  private refreshBuildingOverlays(store: DataStore): void {
+    for (const [id, control] of this.buildingControls) {
       const def = store.townBuildings[id];
       if (!def) continue;
-      handle.setLabel(
+      control.setLabel(
         formatTownBuildingButtonLabel(
           def,
           townBuildingSubtitle(store, this.save, def),
