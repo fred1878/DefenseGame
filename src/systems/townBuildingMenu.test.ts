@@ -18,7 +18,7 @@ describe("townBuildingMenu", () => {
     },
     blacksmith: {
       maxLevel: 3,
-      costByLevel: [100],
+      costByLevel: [100, 200, 350],
       effect: "playerDamage",
     },
   };
@@ -63,5 +63,47 @@ describe("townBuildingMenu", () => {
     expect(result.kind).toBe("upgraded");
     expect(next.buildings.wall).toBe(1);
     expect(next.gold).toBe(150);
+  });
+
+  it("formats wall and smith upgrade subtitles like legacy town UI", () => {
+    const save = createNewSave();
+    save.gold = 40;
+    const wallDef: TownBuildingDef = {
+      label: "Witchlight Beacon (Night)",
+      textureKey: "town_special_witchlight_beacon",
+      width: 80,
+      height: 112,
+      upgradeId: "wall",
+    };
+    expect(townBuildingSubtitle(store, save, wallDef)).toBe(
+      "— Upgrade wall (L0, next 50g)",
+    );
+
+    save.buildings.blacksmith = 1;
+    const smithDef: TownBuildingDef = {
+      label: "Moon Brazier",
+      textureKey: "town_special_moon_brazier",
+      width: 80,
+      height: 80,
+      upgradeId: "blacksmith",
+    };
+    expect(townBuildingSubtitle(store, save, smithDef)).toBe(
+      "— Upgrade smith (L1, damage x1.10, next 200g)",
+    );
+  });
+
+  it("blocks upgrade when gold is insufficient", () => {
+    const def: TownBuildingDef = {
+      label: "Moon Brazier",
+      textureKey: "town_special_moon_brazier",
+      width: 80,
+      height: 80,
+      upgradeId: "blacksmith",
+    };
+    const save = createNewSave();
+    save.gold = 10;
+    const { result } = handleTownBuildingTap(store, save, def);
+    expect(result.kind).toBe("blocked");
+    expect(result.message).toContain("Need 100g");
   });
 });

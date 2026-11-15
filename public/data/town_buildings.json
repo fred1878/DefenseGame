@@ -15,7 +15,8 @@
     "label": "Moon Brazier",
     "textureKey": "town_special_moon_brazier",
     "width": 80,
-    "height": 80
+    "height": 80,
+    "upgradeId": "blacksmith"
   },
   "town_special_plague_clinic": {
     "label": "Plague Clinic",
@@ -39,7 +40,8 @@
     "label": "Witchlight Beacon (Night)",
     "textureKey": "town_special_witchlight_beacon",
     "width": 80,
-    "height": 112
+    "height": 112,
+    "upgradeId": "wall"
   },
   "town_special_witchlight_beacon_daylit": {
     "label": "Witchlight Beacon (Daylit)",

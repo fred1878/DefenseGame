@@ -50,6 +50,11 @@ describe("town building v02 keep list", () => {
     expect(layout.slots).toHaveLength(8);
   });
 
+  it("wires legacy upgrades to thematic building rows", () => {
+    expect(defs.town_special_witchlight_beacon?.upgradeId).toBe("wall");
+    expect(defs.town_special_moon_brazier?.upgradeId).toBe("blacksmith");
+  });
+
   it("menu order lists every kept building once", () => {
     expect(layout.menuOrder).toHaveLength(8);
     const ids = new Set(layout.menuOrder);

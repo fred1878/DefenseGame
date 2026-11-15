@@ -35,15 +35,32 @@ export function townBuildingSubtitle(
   if (!up) return UNIMPLEMENTED_SUBTITLE;
 
   const level = save.buildings[upgradeId] ?? 0;
+  if (upgradeId === "wall") {
+    if (level >= up.maxLevel) {
+      return `— Wall max (L${level}, HP ${save.townWallHp}/${save.townWallHpMax})`;
+    }
+    const cost = up.costByLevel[level];
+    const next =
+      cost !== undefined ? `, next ${cost}g` : "";
+    return `— Upgrade wall (L${level}${next})`;
+  }
+  if (upgradeId === "blacksmith") {
+    const dmg = playerDamageMult(save.buildings).toFixed(2);
+    if (level >= up.maxLevel) {
+      return `— Smith max (L${level}, damage x${dmg})`;
+    }
+    const cost = up.costByLevel[level];
+    const next =
+      cost !== undefined ? `, next ${cost}g` : "";
+    return `— Upgrade smith (L${level}, damage x${dmg}${next})`;
+  }
+
   if (level >= up.maxLevel) {
     return `— ${upgradeEffectLabel(up.effect)} · max level`;
   }
   const cost = up.costByLevel[level];
   if (cost === undefined) return `— ${upgradeEffectLabel(up.effect)}`;
-  if (save.gold < cost) {
-    return `— Upgrade · need ${cost}g`;
-  }
-  return `— Upgrade · ${cost}g`;
+  return `— Upgrade (${upgradeId} L${level}, next ${cost}g)`;
 }
 
 export function formatTownBuildingButtonLabel(
