@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
-import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS } from "../content/assets";
+import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
 import { setShowTouchInput } from "../debug/DebugState";
 import { persistSave } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
@@ -227,6 +227,42 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     textureLoaded(key: string) {
       return game.textures.exists(key);
+    },
+    auditSpellBarTextures() {
+      const save = game.registry.get("save") as SaveGame | undefined;
+      const slots = save?.spellBar?.slots ?? [];
+      const out: ReturnType<DefenseGameE2EApi["auditSpellBarTextures"]> = [];
+      for (let slot = 0; slot < 6; slot++) {
+        const spellId = slots[slot] ?? "";
+        const key = spellId ? spellIconTextureKey(spellId) : "";
+        if (!key) {
+          out.push({
+            slot,
+            spellId: "",
+            key: "",
+            loaded: false,
+            width: 0,
+            height: 0,
+          });
+          continue;
+        }
+        const loaded = game.textures.exists(key);
+        if (!loaded) {
+          out.push({ slot, spellId, key, loaded: false, width: 0, height: 0 });
+          continue;
+        }
+        const tex = game.textures.get(key);
+        const frame = tex.get();
+        out.push({
+          slot,
+          spellId,
+          key,
+          loaded: true,
+          width: frame.width,
+          height: frame.height,
+        });
+      }
+      return out;
     },
     async sampleFps(seconds = 5) {
       const samples: number[] = [];

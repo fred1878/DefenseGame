@@ -40,7 +40,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   render: {
     roundPixels: true,
-    antialias: true,
+    antialias: false,
   },
   input: {
     activePointers: 2,

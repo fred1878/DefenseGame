@@ -86,6 +86,8 @@ export class SpellBar {
             SPELL_BAR.slotSizePx - iconPad,
           );
         btn.container.add(icon);
+        btn.container.bringToTop(icon);
+        scene.textures.get(iconKey!).setFilter(Phaser.Textures.FilterMode.NEAREST);
         const textObj = btn.container.list.find(
           (o) => o instanceof Phaser.GameObjects.Text,
         ) as Phaser.GameObjects.Text | undefined;
