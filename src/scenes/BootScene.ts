@@ -90,8 +90,10 @@ export class BootScene extends Phaser.Scene {
         const root = entry.root ?? "assets/spells/fx";
         loader.image(entry.key, `${root}/${entry.file}`);
       }
+      const assetRev = import.meta.env.VITE_BUILD_ID ?? "";
       for (const { key, file } of SPELL_ICON_ASSETS) {
-        loader.image(key, `${SPELL_ICON_ROOT}/${file}`);
+        const q = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+        loader.image(key, `${SPELL_ICON_ROOT}/${file}${q}`);
       }
       for (const { key, file } of UI_ASSETS) {
         loader.image(key, `${UI_ASSET_ROOT}/${file}`);

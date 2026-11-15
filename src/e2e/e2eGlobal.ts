@@ -24,6 +24,14 @@ export type DefenseGameE2EApi = {
   killAllEnemies(): void;
   forceWinNight(): void;
   textureLoaded(key: string): boolean;
+  auditSpellBarTextures(): Array<{
+    slot: number;
+    spellId: string;
+    key: string;
+    loaded: boolean;
+    width: number;
+    height: number;
+  }>;
   sampleFps(seconds?: number): Promise<number>;
   getAttackPhase(): string;
   getProjectileCount(): number;
