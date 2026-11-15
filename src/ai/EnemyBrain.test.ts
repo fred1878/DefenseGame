@@ -97,7 +97,7 @@ describe("replanEnemyPath", () => {
   it("produces a non-empty path toward goal", () => {
     const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
     const nav = createEnemyNav();
-    replanEnemyPath(nav, grid, 200, -200, -420, 0);
+    replanEnemyPath(nav, grid, 0, 200, 0, -500);
     expect(nav.path.length).toBeGreaterThan(0);
   });
 });

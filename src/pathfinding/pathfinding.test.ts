@@ -18,8 +18,8 @@ describe("nav grid", () => {
 describe("A*", () => {
   it("finds a route around spread obstacles to the north wall", () => {
     const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
-    const northY = -GAME.worldHalfSize + 40;
-    const path = findPath(grid, 200, -200, 200, northY);
+    const northY = -GAME.worldHalfHeight + 40;
+    const path = findPath(grid, 0, 200, 0, northY);
     expect(path.length).toBeGreaterThan(1);
     const last = path[path.length - 1]!;
     expect(last.y).toBeLessThan(-200);
@@ -37,6 +37,6 @@ describe("line of sight", () => {
 
   it("is clear across open ground", () => {
     const grid = buildNavGrid(DEFENSE_OBSTACLES, 40);
-    expect(hasLineOfSight(grid, 0, 0, 100, 50)).toBe(true);
+    expect(hasLineOfSight(grid, 0, 320, 0, 480)).toBe(true);
   });
 });

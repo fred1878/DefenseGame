@@ -17,12 +17,12 @@ export function buildNavGrid(
   obstacles: DefenseObstacleRect[],
   cellSize = 40,
 ): NavGrid {
-  const half = GAME.worldHalfSize;
-  const minX = -half;
-  const minY = -half;
-  const size = half * 2;
-  const cols = Math.ceil(size / cellSize);
-  const rows = Math.ceil(size / cellSize);
+  const halfW = GAME.worldHalfWidth;
+  const halfH = GAME.worldHalfHeight;
+  const minX = -halfW;
+  const minY = -halfH;
+  const cols = Math.ceil((halfW * 2) / cellSize);
+  const rows = Math.ceil((halfH * 2) / cellSize);
   const blocked = new Uint8Array(cols * rows);
 
   for (const obs of obstacles) {

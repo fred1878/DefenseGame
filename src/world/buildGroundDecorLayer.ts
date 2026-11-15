@@ -12,14 +12,14 @@ import {
 
 export function buildGroundDecorLayer(
   scene: Phaser.Scene,
-  worldHalfSize: number,
+  worldHalfWidth: number,
+  worldHalfHeight: number,
   seed: number,
 ): Phaser.GameObjects.Container {
-  const size = worldHalfSize * 2;
-  const tilesX = Math.ceil(size / GROUND_TILE_SIZE);
-  const tilesY = Math.ceil(size / GROUND_TILE_SIZE);
-  const originX = -worldHalfSize;
-  const originY = -worldHalfSize;
+  const tilesX = Math.ceil((worldHalfWidth * 2) / GROUND_TILE_SIZE);
+  const tilesY = Math.ceil((worldHalfHeight * 2) / GROUND_TILE_SIZE);
+  const originX = -worldHalfWidth;
+  const originY = -worldHalfHeight;
   const layer = scene.add.container(0, 0).setDepth(-9);
 
   const keys = GROUND_DECOR_ASSETS.map((a) => a.key).filter((k) =>

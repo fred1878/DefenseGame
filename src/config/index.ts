@@ -10,6 +10,7 @@ export {
   DEFENSE_OBSTACLES,
   northWallAttackY,
   northWallApproachY,
+  obstacleColliderSize,
   type DefenseObstacleRect,
 } from "./defense";
 export { CAST_BAR, SPELL_BAR } from "./spellBar";

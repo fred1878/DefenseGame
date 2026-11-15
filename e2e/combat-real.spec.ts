@@ -54,7 +54,7 @@ test.describe("combat without cheats", () => {
 
   test("enemy at wall reduces defense wall hp", async ({ page }) => {
     await page.evaluate(() =>
-      window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(-420, 0),
+      window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(-140, -480),
     );
     const wallBefore = await page.evaluate(
       () => window.__DEFENSEGAME_E2E__?.flags.defenseWallHp ?? 999,

@@ -4,7 +4,7 @@ import {
   type ObstacleTextureKey,
 } from "../content/assets";
 
-/** Scale cropped art to the gameplay collider so sprite footprint matches blocking. */
+/** Crop transparent margins, then 1:1 display/collider size (same pattern as ground decor). */
 export function configureDefenseObstacleSprite(
   rock: Phaser.Physics.Arcade.Image,
   textureKey: ObstacleTextureKey,

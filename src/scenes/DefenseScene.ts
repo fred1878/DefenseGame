@@ -40,7 +40,12 @@ import {
 } from "../ai/EnemyBrain";
 import { DEFAULT_ENEMY_BASE } from "../core/enemyTuning";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
-import { showEnemyPaths, showHitboxes, showTouchInput } from "../debug/DebugState";
+import {
+  setShowEnemyPaths,
+  showEnemyPaths,
+  showHitboxes,
+  showTouchInput,
+} from "../debug/DebugState";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
@@ -187,13 +192,14 @@ export class DefenseScene extends Phaser.Scene {
     const wave = store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
 
-    const half = GAME.worldHalfSize;
-    this.physics.world.setBounds(-half, -half, half * 2, half * 2);
-    buildGroundLayer(this, half);
-    buildGroundDecorLayer(this, half, this.save.night);
+    const halfW = GAME.worldHalfWidth;
+    const halfH = GAME.worldHalfHeight;
+    this.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
+    buildGroundLayer(this, halfW, halfH);
+    buildGroundDecorLayer(this, halfW, halfH, this.save.night);
 
     this.add
-      .rectangle(0, -half + 20, half * 2, 40, 0x52525b)
+      .rectangle(0, -halfH + 20, halfW * 2, 40, 0x52525b)
       .setOrigin(0.5, 0);
 
     this.obstacleGroup = this.physics.add.staticGroup();
@@ -204,7 +210,7 @@ export class DefenseScene extends Phaser.Scene {
       this.obstacleGroup.add(rock);
     }
 
-    this.cameras.main.setBounds(-half, -half, half * 2, half * 2);
+    this.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
     this.cameras.main.setZoom(1);
 
     this.player = new Player(this, 0, 0, this.save.player.hpMax);
@@ -1387,5 +1393,48 @@ export class DefenseScene extends Phaser.Scene {
       return isTouchButtonVisuallyPressed(this.returnToTownBtn.container);
     }
     return false;
+  }
+
+  e2eSetPlayerPosition(x: number, y: number): void {
+    this.player.sprite.setPosition(x, y);
+    const body = this.player.sprite.body as Phaser.Physics.Arcade.Body | null;
+    body?.reset(x, y);
+  }
+
+  e2eSetShowEnemyPaths(on: boolean): void {
+    setShowEnemyPaths(this.registry, on);
+  }
+
+  e2eGetObstacleAlignment(): Array<{
+    textureKey: string;
+    configX: number;
+    configY: number;
+    configW: number;
+    configH: number;
+    spriteX: number;
+    spriteY: number;
+    displayW: number;
+    displayH: number;
+    bodyW: number;
+    bodyH: number;
+  }> {
+    const children = this.obstacleGroup.getChildren() as Phaser.Physics.Arcade.Image[];
+    return DEFENSE_OBSTACLES.map((cfg, i) => {
+      const img = children[i]!;
+      const body = img.body as Phaser.Physics.Arcade.StaticBody;
+      return {
+        textureKey: cfg.textureKey,
+        configX: cfg.x,
+        configY: cfg.y,
+        configW: cfg.w,
+        configH: cfg.h,
+        spriteX: img.x,
+        spriteY: img.y,
+        displayW: img.displayWidth,
+        displayH: img.displayHeight,
+        bodyW: body.width,
+        bodyH: body.height,
+      };
+    });
   }
 }

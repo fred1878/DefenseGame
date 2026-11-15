@@ -164,7 +164,7 @@ export const OBSTACLE_TEXTURE = {
 export type ObstacleTextureKey =
   (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE];
 
-/** Native PNG dimensions — collider/display sizes should match these (see defense.ts). */
+/** Native PNG dimensions (includes transparent margins). Colliders use `OBSTACLE_SPRITE_CROP`. */
 export const OBSTACLE_SOURCE_FRAME: Record<
   (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],
   { w: number; h: number }

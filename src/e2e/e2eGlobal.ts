@@ -39,6 +39,21 @@ export type DefenseGameE2EApi = {
   getDefenseWallHp(): number;
   setSpawnPlanComplete(): void;
   e2eBottomChromeTextureKey(): string | null;
+  setPlayerPosition(x: number, y: number): void;
+  setShowEnemyPaths(on: boolean): void;
+  getObstacleAlignment(): Array<{
+    textureKey: string;
+    configX: number;
+    configY: number;
+    configW: number;
+    configH: number;
+    spriteX: number;
+    spriteY: number;
+    displayW: number;
+    displayH: number;
+    bodyW: number;
+    bodyH: number;
+  }>;
 };
 
 declare global {
