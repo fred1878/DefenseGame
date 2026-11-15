@@ -1,0 +1,54 @@
+{
+  "town_special_gallows_square": {
+    "label": "Gallows Square",
+    "textureKey": "town_special_gallows_square",
+    "width": 112,
+    "height": 72,
+    "startsNight": true
+  },
+  "town_special_haunted_well": {
+    "label": "Haunted Well",
+    "textureKey": "town_special_haunted_well",
+    "width": 80,
+    "height": 80
+  },
+  "town_special_moon_brazier": {
+    "label": "Moon Brazier",
+    "textureKey": "town_special_moon_brazier",
+    "width": 80,
+    "height": 80,
+    "upgradeId": "blacksmith"
+  },
+  "town_special_plague_clinic": {
+    "label": "Plague Clinic",
+    "textureKey": "town_special_plague_clinic",
+    "width": 96,
+    "height": 96
+  },
+  "town_market_stall": {
+    "label": "Market Stall (Night)",
+    "textureKey": "town_market_stall",
+    "width": 112,
+    "height": 72
+  },
+  "town_market_stall_daylit": {
+    "label": "Market Stall (Daylit)",
+    "textureKey": "town_market_stall_daylit",
+    "width": 112,
+    "height": 72
+  },
+  "town_special_witchlight_beacon": {
+    "label": "Witchlight Beacon (Night)",
+    "textureKey": "town_special_witchlight_beacon",
+    "width": 80,
+    "height": 112,
+    "upgradeId": "wall"
+  },
+  "town_special_witchlight_beacon_daylit": {
+    "label": "Witchlight Beacon (Daylit)",
+    "textureKey": "town_special_witchlight_beacon_daylit",
+    "width": 80,
+    "height": 112,
+    "opensSpellBar": true
+  }
+}

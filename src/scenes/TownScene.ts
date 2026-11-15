@@ -7,21 +7,15 @@ import {
   persistSave,
   prepareDefenseNight,
   resetSaveAndReload,
-  wallHpBonusFromBuildings,
 } from "../core/GameState";
 import { showTouchInput } from "../debug/DebugState";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
   createTouchButton,
-  interactiveObjectScreenRect,
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
-import {
-  debugButtonPosition,
-  readSafeInsets,
-  townActionButtonY,
-} from "../ui/screenLayout";
+import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import {
   fullscreenButtonLabel,
@@ -31,13 +25,23 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
+import {
+  spawnTownBuildingControls,
+  type TownBuildingControl,
+} from "../systems/TownBuildings";
+import {
+  formatTownBuildingButtonLabel,
+  handleTownBuildingTap,
+  townBuildingSubtitle,
+} from "../systems/townBuildingMenu";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
-  private startNightButton!: ReturnType<typeof createTouchButton>;
+  private buildingControls = new Map<string, TownBuildingControl>();
+  private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
 
@@ -77,6 +81,23 @@ export class TownScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
 
     this.refreshStatus(store);
+
+    const controls = spawnTownBuildingControls(
+      this,
+      store.townBuildings,
+      store.townLayout,
+      {
+        labelFor: (def) =>
+          formatTownBuildingButtonLabel(
+            def,
+            townBuildingSubtitle(store, this.save, def),
+          ),
+        onTap: (buildingId, def) => this.onTownBuildingTap(store, buildingId, def),
+      },
+    );
+    for (const c of controls) {
+      this.buildingControls.set(c.buildingId, c);
+    }
 
     const safe = readSafeInsets();
     const dbgPos = debugButtonPosition(this, safe);
@@ -130,44 +151,6 @@ export class TownScene extends Phaser.Scene {
       },
     );
 
-    const btnW = scaleUiX(260);
-    const btnH = scaleUiY(48);
-    this.startNightButton = createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 0),
-      "Start night",
-      () => this.beginDefenseNight(),
-      { width: btnW, height: btnH, depth: 200 },
-    );
-
-    createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 1),
-      "Upgrade wall",
-      () => this.tryUpgrade(store, "wall"),
-      { width: btnW, height: btnH, depth: 200 },
-    );
-
-    createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 2),
-      "Upgrade blacksmith",
-      () => this.tryUpgrade(store, "blacksmith"),
-      { width: btnW, height: btnH, depth: 200 },
-    );
-
-    createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 3),
-      "Spell bar",
-      () => this.openSpellSortPanel(),
-      { width: btnW, height: btnH, depth: 200 },
-    );
-
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on("shutdown", () => this.touchDebug.destroy());
 
@@ -181,19 +164,25 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const r = interactiveObjectScreenRect(this.startNightButton.container);
-    if (!r) return {};
-    return {
-      "start-night": {
-        x: r.x + r.width / 2,
-        y: r.y + r.height / 2,
-      },
-    };
+    const out: Record<string, { x: number; y: number }> = {};
+    const store = this.registry.get("dataStore") as DataStore;
+    for (const [id, control] of this.buildingControls) {
+      const pt = control.spriteCenter();
+      out[`town-building-${id}`] = pt;
+      const def = store.townBuildings[id];
+      if (def?.startsNight) {
+        out["start-night"] = pt;
+      }
+    }
+    return out;
   }
 
   e2eIsTouchButtonPressed(testId: string): boolean {
     if (testId === "start-night") {
-      return isTouchButtonVisuallyPressed(this.startNightButton.container);
+      const btn = this.buildingControls.get("town_special_gallows_square");
+      return btn
+        ? isTouchButtonVisuallyPressed(btn.container)
+        : false;
     }
     return false;
   }
@@ -263,24 +252,52 @@ export class TownScene extends Phaser.Scene {
     resetSaveAndReload();
   }
 
-  private tryUpgrade(store: DataStore, id: string): void {
-    const def = store.buildings[id];
-    if (!def) return;
-    const level = this.save.buildings[id] ?? 0;
-    if (level >= def.maxLevel) return;
-    const cost = def.costByLevel[level];
-    if (cost === undefined || this.save.gold < cost) return;
-
-    this.save.gold -= cost;
-    this.save.buildings[id] = level + 1;
-    if (def.effect === "wallHpMax") {
-      const bonus = wallHpBonusFromBuildings(this.save.buildings);
-      this.save.townWallHpMax = 100 + bonus;
-      this.save.townWallHp = Math.min(this.save.townWallHp, this.save.townWallHpMax);
+  private onTownBuildingTap(
+    store: DataStore,
+    _buildingId: string,
+    def: (typeof store.townBuildings)[string],
+  ): void {
+    const { save, result } = handleTownBuildingTap(store, this.save, def);
+    if (result.kind === "startNight") {
+      this.beginDefenseNight();
+      return;
     }
-    persistSave(this.save);
-    this.registry.set("save", this.save);
-    this.refreshStatus(store);
+    if (result.kind === "openSpellBar") {
+      this.openSpellSortPanel();
+      return;
+    }
+    if (result.kind === "upgraded") {
+      this.save = save;
+      persistSave(this.save);
+      this.registry.set("save", this.save);
+      this.refreshBuildingOverlays(store);
+      this.refreshStatus(store);
+    }
+    this.flashTransientStatus(result.message, store);
+  }
+
+  private refreshBuildingOverlays(store: DataStore): void {
+    for (const [id, control] of this.buildingControls) {
+      const def = store.townBuildings[id];
+      if (!def) continue;
+      control.setLabel(
+        formatTownBuildingButtonLabel(
+          def,
+          townBuildingSubtitle(store, this.save, def),
+        ),
+      );
+    }
+  }
+
+  private flashTransientStatus(message: string, store: DataStore): void {
+    this.statusText.setText(message);
+    if (this.statusFlashEvent) {
+      this.statusFlashEvent.remove(false);
+    }
+    this.statusFlashEvent = this.time.delayedCall(2200, () => {
+      this.statusFlashEvent = null;
+      this.refreshStatus(store);
+    });
   }
 
   private refreshStatus(store: DataStore): void {

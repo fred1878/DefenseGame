@@ -274,19 +274,19 @@ export function combatChromeLayout(
   };
 }
 
-/** Town primary actions stacked from the bottom (0 = start night). */
+/** Town actions stacked from the bottom (0 = start night, then building rows, then spell bar). */
 export function townActionButtonY(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  fromBottomIndex: 0 | 1 | 2 | 3,
+  fromBottomIndex: number,
 ): number {
-  const bases: Record<0 | 1 | 2 | 3, number> = {
-    0: 120,
-    1: 210,
-    2: 290,
-    3: 370,
-  };
-  return scene.scale.height - safe.bottom - scaleUiY(bases[fromBottomIndex]);
+  const firstFromBottom = 96;
+  const step = 44;
+  return (
+    scene.scale.height -
+    safe.bottom -
+    scaleUiY(firstFromBottom + fromBottomIndex * step)
+  );
 }
 
 /** Align Phaser FIT parent with the visible viewport (mobile URL bar / dynamic island). */

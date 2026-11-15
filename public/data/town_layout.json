@@ -1,0 +1,22 @@
+{
+  "menuOrder": [
+    "town_special_gallows_square",
+    "town_market_stall_daylit",
+    "town_market_stall",
+    "town_special_witchlight_beacon_daylit",
+    "town_special_witchlight_beacon",
+    "town_special_plague_clinic",
+    "town_special_haunted_well",
+    "town_special_moon_brazier"
+  ],
+  "slots": [
+    { "buildingId": "town_market_stall_daylit", "x": 100, "y": 230 },
+    { "buildingId": "town_special_witchlight_beacon_daylit", "x": 220, "y": 242 },
+    { "buildingId": "town_market_stall", "x": 340, "y": 230 },
+    { "buildingId": "town_special_witchlight_beacon", "x": 450, "y": 242 },
+    { "buildingId": "town_special_plague_clinic", "x": 95, "y": 360 },
+    { "buildingId": "town_special_haunted_well", "x": 210, "y": 368 },
+    { "buildingId": "town_special_moon_brazier", "x": 320, "y": 368 },
+    { "buildingId": "town_special_gallows_square", "x": 430, "y": 360 }
+  ]
+}

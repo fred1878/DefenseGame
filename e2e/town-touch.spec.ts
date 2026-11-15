@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E } from "./helpers/game";
-import { dragCanvas, getTapTarget } from "./helpers/touch";
+import { dragCanvas, getTapTarget, tapCanvas } from "./helpers/touch";
 
 test("drag-off Start night clears pressed visual and stays in Town", async ({
   page,
@@ -19,6 +19,24 @@ test("drag-off Start night clears pressed visual and stays in Town", async ({
       { timeout: 5_000 },
     )
     .toBe(false);
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
+      { timeout: 3_000 },
+    )
+    .toBe(true);
+});
+
+test("town building menu tap shows status without leaving Town", async ({
+  page,
+}) => {
+  await gotoE2E(page);
+  const target = await getTapTarget(
+    page,
+    "town-building-town_special_haunted_well",
+  );
+  await tapCanvas(page, target.x, target.y);
   await expect
     .poll(
       async () =>
