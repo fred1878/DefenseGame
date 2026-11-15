@@ -22,6 +22,35 @@ function baseEnemy(behavior: "arrowRainArcher" | "javelineer") {
 }
 
 describe("updateArrowRainCombat", () => {
+  it("does not start a volley when player is inside preferred range", () => {
+    const enemy = baseEnemy("arrowRainArcher");
+    enemy.arrowRain = createArrowRainCombatState();
+    enemy.combat.phase = "idle";
+    enemy.combat.cooldownMs = 0;
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    const playerDist = DEFAULT_ARROW_RAIN_COMBAT.preferredRange - 40;
+    updateArrowRainCombat(
+      enemy,
+      {
+        kind: "player",
+        x: playerDist,
+        y: 0,
+        radius: 14,
+        damageable: {
+          id: "p",
+          hp: 50,
+          maxHp: 50,
+          alive: true,
+          team: "player",
+        },
+      },
+      enemy.arrowRain,
+      16,
+    );
+    expect(enemy.combat.phase).toBe("idle");
+  });
+
   it("deals tick damage when player stays in telegraphed zone", () => {
     const enemy = baseEnemy("arrowRainArcher");
     enemy.arrowRain = createArrowRainCombatState();
