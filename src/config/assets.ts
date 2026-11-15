@@ -19,26 +19,27 @@ export const GROUND_TILE_ASSETS = [
   { key: "ground_0", file: "tile_00.png" },
 ] as const;
 
-/** Sparse transparent props over `ground_0` (no nav blocking). */
+/** Sparse transparent 16×16 props over `ground_0` (no nav blocking). */
 export const GROUND_DECOR_ASSETS = [
-  { key: "ground_decor_pebble_a", file: "ground_decor_pebble_a_24.png" },
-  { key: "ground_decor_pebble_b", file: "ground_decor_pebble_b_24.png" },
-  { key: "ground_decor_rock_sm", file: "ground_decor_rock_sm_32.png" },
-  { key: "ground_decor_shrub_low", file: "ground_decor_shrub_low_32.png" },
-  { key: "ground_decor_dry_tuft", file: "ground_decor_dry_tuft_24.png" },
-  { key: "ground_decor_twigs", file: "ground_decor_twigs_24.png" },
+  { key: "ground_decor_pebble_a", file: "ground_decor_pebble_a_16.png" },
+  { key: "ground_decor_pebble_b", file: "ground_decor_pebble_b_16.png" },
+  { key: "ground_decor_rock_sm", file: "ground_decor_rock_sm_16.png" },
+  { key: "ground_decor_shrub_low", file: "ground_decor_shrub_low_16.png" },
+  { key: "ground_decor_dry_tuft", file: "ground_decor_dry_tuft_16.png" },
+  { key: "ground_decor_twigs", file: "ground_decor_twigs_16.png" },
 ] as const;
 
+/** 1:1 source px on field (16×16 art). */
 export const GROUND_DECOR_DISPLAY: Record<
   (typeof GROUND_DECOR_ASSETS)[number]["key"],
   number
 > = {
-  ground_decor_pebble_a: 20,
-  ground_decor_pebble_b: 20,
-  ground_decor_rock_sm: 28,
-  ground_decor_shrub_low: 28,
-  ground_decor_dry_tuft: 22,
-  ground_decor_twigs: 20,
+  ground_decor_pebble_a: 16,
+  ground_decor_pebble_b: 16,
+  ground_decor_rock_sm: 16,
+  ground_decor_shrub_low: 16,
+  ground_decor_dry_tuft: 16,
+  ground_decor_twigs: 16,
 };
 
 /** Combat FX under `public/assets/combat/fx/` (Peter review 2026-11-14). */
