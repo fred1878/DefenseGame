@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Slice MobileRPG spell icons + FX from atlas.tga using the same BGRA decode as the game.
+Slice MobileRPG spell icons + FX from atlas.tga using atlas.txt rects + spells_data iconFrame.
 
 Atlas source (not committed — ~4 MiB):
   export MOBILERPG_ATLAS_TGA=/path/to/MobileRPG/assets/atlas.tga
@@ -14,7 +14,6 @@ Fetch pristine atlas first (avoids MCP UTF-8 corruption on large binaries):
 from __future__ import annotations
 
 import os
-import struct
 import sys
 from pathlib import Path
 
@@ -22,40 +21,15 @@ from PIL import Image
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
+from mobilerpg_atlas_frames import parse_atlas_frames, resolve_frame  # noqa: E402
 from tga_atlas_io import read_tga_region_rgba  # noqa: E402
 
 OUT_ICONS = REPO / "public/assets/spells/icons"
 OUT_FX = REPO / "public/assets/spells/fx"
 
-FRAMES: dict[str, tuple[int, int, int, int]] = {
-    "icon_spell_00": (256, 64, 32, 32),
-    "icon_spell_01": (288, 64, 32, 32),
-    "icon_spell_02": (320, 64, 32, 32),
-    "icon_spell_03": (352, 64, 32, 32),
-    "icon_spell_04": (256, 96, 32, 32),
-    "icon_spell_05": (288, 96, 32, 32),
-    "icon_spell_06": (320, 96, 32, 32),
-    "icon_spell_07": (352, 96, 32, 32),
-    "icon_spell_08": (256, 128, 32, 32),
-    "icon_spell_09": (288, 128, 32, 32),
-    "icon_spell_10": (320, 128, 32, 32),
-    "icon_spell_11": (352, 128, 32, 32),
-    "icon_spell_12": (384, 608, 32, 32),
-    "icon_spell_13": (448, 608, 32, 32),
-    "icon_spell_14": (384, 576, 32, 32),
-    "icon_spell_15": (448, 576, 32, 32),
-    "icon_spell_16": (384, 640, 32, 32),
-    "fx_fire_bolt_0": (672, 544, 16, 16),
-    "fx_ice_bolt_1": (720, 560, 16, 16),
-    "fx_lightning_bolt_1": (768, 560, 16, 16),
-    "fx_water_bolt_1": (816, 560, 16, 16),
-    "fx_arc_bomb_1": (864, 560, 16, 16),
-    "fire_nova_01": (256, 320, 64, 64),
-    "fx_shockwave": (192, 0, 64, 64),
-    "blizzard_01": (0, 384, 32, 32),
-}
+DEFAULT_ATLAS_TXT = REPO / "scripts/data/mobilerpg-atlas.txt"
 
-# spell_id -> atlas frame name
+# iconFrame from MobileRPG src/spells_data.c (DefenseGame spell id -> atlas frame name)
 SPELL_ICON_OUT: dict[str, str] = {
     "fire_bolt": "icon_spell_00",
     "ice_bolt": "icon_spell_01",
@@ -78,8 +52,8 @@ SPELL_ICON_OUT: dict[str, str] = {
     "chain_lightning": "icon_spell_02",
     "blink": "icon_spell_12",
     "combustion": "icon_spell_00",
-    # No dedicated heal spell in MobileRPG — interim slice documented in port plan.
-    "heal": "icon_spell_08",
+    # Defense-only — no MobileRPG spell row; use world pickup health art.
+    "heal": "pickup_health_0",
 }
 
 FX_OUT: dict[str, str] = {
@@ -91,6 +65,13 @@ FX_OUT: dict[str, str] = {
     "fire-nova-mrpg-64.png": "fire_nova_01",
     "shockwave-mrpg-64.png": "fx_shockwave",
     "blizzard-mrpg-32.png": "blizzard_01",
+}
+
+# Pristine atlas.tga still has garbage at some icon_spell_* "rest" rects (atlas.txt stale).
+# Fall back to the paired *_down art MobileRPG uses when pressed.
+ICON_FRAME_FALLBACK: dict[str, str] = {
+    "icon_spell_08": "icon_spell_08_down",
+    "icon_spell_11": "icon_spell_11_down",
 }
 
 
@@ -125,17 +106,28 @@ def main() -> int:
     atlas_path = materialize_atlas(
         Path(os.environ.get("MOBILERPG_ATLAS_TGA", "/tmp/mobilerpg-assets/atlas.tga")),
     )
+    atlas_txt = Path(
+        os.environ.get("MOBILERPG_ATLAS_TXT", DEFAULT_ATLAS_TXT),
+    )
+    if not atlas_txt.is_file():
+        raise SystemExit(f"Missing atlas.txt at {atlas_txt}")
+    frames = parse_atlas_frames(atlas_txt)
 
     for spell_id, frame in SPELL_ICON_OUT.items():
-        x, y, rw, rh = FRAMES[frame]
+        _resolved, (x, y, rw, rh) = resolve_frame(
+            frame, frames, ICON_FRAME_FALLBACK,
+        )
         rgba = read_tga_region_rgba(atlas_path, x, y, rw, rh)
         save_rgba(rgba, rw, rh, OUT_ICONS / f"{spell_id}.png", scale=2)
 
     for filename, frame in FX_OUT.items():
-        x, y, rw, rh = FRAMES[frame]
+        if frame not in frames:
+            raise SystemExit(f"FX frame {frame!r} missing from {atlas_txt}")
+        x, y, rw, rh = frames[frame]
         rgba = read_tga_region_rgba(atlas_path, x, y, rw, rh)
         save_rgba(rgba, rw, rh, OUT_FX / filename)
 
+    print(f"atlas.txt: {atlas_txt}")
     print(f"wrote icons -> {OUT_ICONS}")
     print(f"wrote fx -> {OUT_FX}")
     return 0
