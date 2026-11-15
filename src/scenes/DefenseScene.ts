@@ -7,6 +7,7 @@ import {
   PLAYER_TUNING,
   type AttackMode,
   type NightResult,
+  createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
   type SaveGame,
   type SpellDefinition,
@@ -23,6 +24,7 @@ import {
   showGruntMeleeSwipe,
   showPlayerMeleeSwipe,
 } from "../combat/MeleeSwipeFx";
+import { pickAutoCastSpell } from "../combat/spellAutoCast";
 import { SpellCastController } from "../combat/SpellCastController";
 import {
   applyChanneledHeal,
@@ -163,7 +165,13 @@ export class DefenseScene extends Phaser.Scene {
     configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
     if (!this.save.spellBar?.slots?.length) {
-      this.save.spellBar = { slots: createDefaultSpellBarSlots() };
+      this.save.spellBar = {
+        slots: createDefaultSpellBarSlots(),
+        autoCast: createDefaultSpellBarAutoCast(),
+      };
+    }
+    if (!this.save.spellBar.autoCast?.length) {
+      this.save.spellBar.autoCast = createDefaultSpellBarAutoCast();
     }
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
@@ -236,7 +244,7 @@ export class DefenseScene extends Phaser.Scene {
       chrome.toggleW,
       chrome.toggleH,
       () => {
-        const mode = this.player.toggleAttackMode();
+        const mode = this.player.cycleAttackMode();
         this.refreshModeToggle(mode);
       },
       210,
@@ -263,9 +271,14 @@ export class DefenseScene extends Phaser.Scene {
     this.spellBar = new SpellBar(
       this,
       this.save.spellBar.slots,
+      this.save.spellBar.autoCast,
       this.spellCaster,
-      { onCastRequest: (id) => this.onSpellCastRequest(id) },
+      {
+        onCastRequest: (id) => this.onSpellCastRequest(id),
+        onAutoCastToggle: (slot) => this.onSpellAutoCastToggle(slot),
+      },
     );
+    this.spellBar.refreshAutoCastBorders(this.save.spellBar.autoCast);
 
     if (isE2EEnabled() && typeof window !== "undefined") {
       const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
@@ -407,6 +420,7 @@ export class DefenseScene extends Phaser.Scene {
 
     if (!this.spellCaster.isChanneling()) {
       this.tryAutoAttack();
+      this.tryAutoCastSpells(dir.x, dir.y);
     }
     this.player.updateAttack(delta);
     this.syncMeleeSwipeFx();
@@ -565,7 +579,12 @@ export class DefenseScene extends Phaser.Scene {
       this.focusEnemyId && this.getEnemyById(this.focusEnemyId)?.damageable.alive
         ? " (focus)"
         : "";
-    const mode = this.player.mode === "melee" ? "Melee" : "Ranged";
+    const mode =
+      this.player.mode === "melee"
+        ? "Melee"
+        : this.player.mode === "ranged"
+          ? "Ranged"
+          : "Auto combat";
     const auto = this.autoAttackEnabled ? "ON" : "OFF";
     const casting = this.spellCaster.isChanneling();
     this.spellBar.refreshCooldownOverlays();
@@ -607,6 +626,28 @@ export class DefenseScene extends Phaser.Scene {
         },
       });
     }
+  }
+
+  private onSpellAutoCastToggle(slotIndex: number): void {
+    const next = [...this.save.spellBar.autoCast];
+    while (next.length < this.save.spellBar.slots.length) next.push(false);
+    next[slotIndex] = !next[slotIndex];
+    this.save.spellBar.autoCast = next;
+    this.spellBar.refreshAutoCastBorders(next);
+    persistSave(this.save);
+  }
+
+  private tryAutoCastSpells(stickX: number, stickY: number): void {
+    const moving = Math.hypot(stickX, stickY) > 0.12;
+    const pick = pickAutoCastSpell(
+      this.save.spellBar.slots,
+      this.save.spellBar.autoCast,
+      moving,
+      (id) => this.spellCaster.getCooldownRemaining(id),
+      this.spellCaster.isChanneling(),
+    );
+    if (!pick) return;
+    this.onSpellCastRequest(pick.spellId);
   }
 
   private onSpellCastRequest(spellId: string): void {
@@ -662,19 +703,43 @@ export class DefenseScene extends Phaser.Scene {
 
   private manualAttack(): void {
     if (this.spellCaster.isChanneling()) return;
-    const target = this.facingTarget(this.player.mode, true);
+    const strike =
+      this.player.mode === "auto"
+        ? this.resolveStrikeMode(true)
+        : this.player.mode === "ranged"
+          ? "ranged"
+          : "melee";
+    const target = this.facingTarget(strike, true);
     if (target) this.player.faceToward(target.x, target.y);
-    this.player.tryStartAttack();
+    this.player.tryStartAttack(this.player.mode === "auto" ? strike : undefined);
   }
 
   private tryAutoAttack(): void {
     if (this.spellCaster.isChanneling()) return;
-    if (!this.autoAttackEnabled || !this.player.canAttack()) return;
-    const mode = this.player.mode;
-    const target = this.facingTarget(mode, false);
+    const autoCombat = this.player.mode === "auto";
+    if (!this.autoAttackEnabled && !autoCombat) return;
+    if (!this.player.canAttack()) return;
+    const strike = this.resolveStrikeMode(autoCombat);
+    const target = this.facingTarget(strike, false);
     if (!target) return;
     this.player.faceToward(target.x, target.y);
-    this.player.tryStartAttack();
+    this.player.tryStartAttack(autoCombat ? strike : undefined);
+  }
+
+  private resolveStrikeMode(autoCombat: boolean): "melee" | "ranged" {
+    if (!autoCombat) {
+      return this.player.mode === "ranged" ? "ranged" : "melee";
+    }
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    let bestMelee: number | null = null;
+    for (const e of this.enemies) {
+      if (!e.damageable.alive) continue;
+      const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
+      if (d > PLAYER_TUNING.autoAttackMeleeRange) continue;
+      if (bestMelee === null || d < bestMelee) bestMelee = d;
+    }
+    return bestMelee !== null ? "melee" : "ranged";
   }
 
   private onScreenTap(pointer: Phaser.Input.Pointer): void {
@@ -775,16 +840,18 @@ export class DefenseScene extends Phaser.Scene {
 
   /** Selected enemy if alive; else nearest in range. Manual allows focus out of range for facing. */
   private facingTarget(
-    mode: AttackMode,
+    mode: AttackMode | "melee" | "ranged",
     manual: boolean,
   ): { x: number; y: number } | null {
-    const focused = this.focusedEnemyPosition(mode, manual);
+    const strike: "melee" | "ranged" =
+      mode === "auto" ? "ranged" : mode;
+    const focused = this.focusedEnemyPosition(strike, manual);
     if (focused) return focused;
-    return this.nearestEnemyForMode(mode);
+    return this.nearestEnemyForMode(strike);
   }
 
   private focusedEnemyPosition(
-    mode: AttackMode,
+    mode: "melee" | "ranged",
     manual: boolean,
   ): { x: number; y: number } | null {
     if (!this.focusEnemyId) return null;
@@ -836,7 +903,7 @@ export class DefenseScene extends Phaser.Scene {
     return false;
   }
 
-  private nearestEnemyForMode(mode: AttackMode): { x: number; y: number } | null {
+  private nearestEnemyForMode(mode: "melee" | "ranged"): { x: number; y: number } | null {
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
     const maxR =
@@ -860,7 +927,7 @@ export class DefenseScene extends Phaser.Scene {
     if (
       phase === "active" &&
       this.prevPlayerAttackPhase !== "active" &&
-      this.player.mode === "melee"
+      this.player.strikeMode() === "melee"
     ) {
       showPlayerMeleeSwipe(
         this,
@@ -986,8 +1053,10 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private refreshModeToggle(mode: AttackMode): void {
-    this.modeToggle.setLabel(mode === "melee" ? "MEL" : "RNG");
-    this.modeToggle.setOn(mode === "ranged");
+    const label =
+      mode === "melee" ? "MEL" : mode === "ranged" ? "RNG" : "A.COM";
+    this.modeToggle.setLabel(label);
+    this.modeToggle.setOn(mode === "ranged" || mode === "auto");
   }
 
   private refreshAutoToggle(): void {

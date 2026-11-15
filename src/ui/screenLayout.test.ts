@@ -63,7 +63,8 @@ describe("screenLayout", () => {
     expect(centerY).toBeGreaterThan(GAME.height * 0.85);
     expect(centerY).toBeGreaterThan(1000);
     const lastCenterX =
-      firstSlotCenterX + (SPELL_BAR.slotCount - 1) * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+      firstSlotCenterX +
+      (SPELL_BAR.columnCount - 1) * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
     const rowRight = lastCenterX + SPELL_BAR.slotSizePx / 2;
     expect(rowRight).toBeLessThan(chrome.modeX - chrome.toggleW / 2);
   });

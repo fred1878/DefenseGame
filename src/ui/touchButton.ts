@@ -16,6 +16,8 @@ export type TouchButtonRectOptions = {
   frameTextureKey?: string;
   /** Use `pointerup` for actions that require it (e.g. Fullscreen API). */
   activateOn?: "pointerdown" | "pointerup";
+  /** When set, caller wires press handling (e.g. long-press). */
+  skipPressBinding?: boolean;
 };
 
 export type TouchToggleOptions = {
@@ -25,6 +27,12 @@ export type TouchToggleOptions = {
 export type TouchButtonHandle = {
   container: Phaser.GameObjects.Container;
   setLabel: (text: string) => void;
+};
+
+export type TapOrLongPressCallbacks = {
+  onTap: () => void;
+  onLongPress: () => void;
+  longPressMs: number;
 };
 
 type BgVisual =
@@ -208,6 +216,82 @@ function bindPress(
   scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
 }
 
+/** Tap activates on release; long-press fires once without tap. */
+export function bindTapOrLongPress(
+  scene: Phaser.Scene,
+  obj: Phaser.GameObjects.GameObject,
+  callbacks: TapOrLongPressCallbacks,
+  pressVisual?: PressVisual,
+): void {
+  const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
+  if (go.input) go.input.alwaysEnabled = true;
+
+  const slopPx = scaleUiX(TOUCH_BUTTON_RELEASE_SLOP_PX);
+  let activePointerId: number | null = null;
+  let longPressTimer: number | null = null;
+  let longPressFired = false;
+
+  const showPressed = () => {
+    if (obj instanceof Phaser.GameObjects.Container) {
+      pressVisualDown(scene, obj, pressVisual);
+    }
+  };
+
+  const clearPressed = () => {
+    if (obj instanceof Phaser.GameObjects.Container) {
+      pressVisualUp(scene, obj, pressVisual);
+    }
+  };
+
+  const clearTimer = () => {
+    if (longPressTimer !== null) {
+      window.clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  };
+
+  const onDown = (
+    pointer: Phaser.Input.Pointer,
+    _lx: number,
+    _ly: number,
+    event: Phaser.Types.Input.EventData,
+  ) => {
+    event.stopPropagation();
+    activePointerId = pointer.id;
+    longPressFired = false;
+    clearTimer();
+    longPressTimer = window.setTimeout(() => {
+      longPressFired = true;
+      callbacks.onLongPress();
+    }, callbacks.longPressMs);
+    showPressed();
+  };
+
+  const onScenePointerUp = (pointer: Phaser.Input.Pointer) => {
+    if (activePointerId === null || pointer.id !== activePointerId) return;
+    clearTimer();
+    if (!longPressFired && pointerHitsGameObject(scene, obj, pointer, slopPx)) {
+      callbacks.onTap();
+    }
+    activePointerId = null;
+    clearPressed();
+  };
+
+  obj.on("pointerdown", onDown);
+  scene.input.on("pointerup", onScenePointerUp);
+  scene.input.on("pointerupoutside", onScenePointerUp);
+  scene.input.on("pointercancel", onScenePointerUp);
+
+  const cleanup = () => {
+    clearTimer();
+    scene.input.off("pointerup", onScenePointerUp);
+    scene.input.off("pointerupoutside", onScenePointerUp);
+    scene.input.off("pointercancel", onScenePointerUp);
+  };
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
+  scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
+}
+
 function createButtonBackground(
   scene: Phaser.Scene,
   width: number,
@@ -288,7 +372,9 @@ export function createTouchButton(
   const colors = textured
     ? { rest: 0xffffff, pressed: 0x9a9a9a }
     : { rest: fill, pressed: darkenColor(fill, 0.72) };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88, textured }, activateOn);
+  if (!options.skipPressBinding) {
+    bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88, textured }, activateOn);
+  }
 
   return {
     container,

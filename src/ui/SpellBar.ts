@@ -6,54 +6,68 @@ import {
 } from "../config";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
-import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
-import { readSafeInsets, spellBarSlotOrigin } from "./screenLayout";
+import {
+  bindTapOrLongPress,
+  createTouchButton,
+  interactiveObjectScreenRect,
+} from "./touchButton";
+import { readSafeInsets, spellBarSlotCenter } from "./screenLayout";
 
 export type SpellBarCallbacks = {
-  onCastRequest: (spellId: SpellId) => void;
+  onCastRequest: (spellId: SpellId, slotIndex: number) => void;
+  onAutoCastToggle: (slotIndex: number) => void;
 };
 
 type CooldownVisual = {
   overlay: Phaser.GameObjects.Rectangle;
 };
 
+type SlotChrome = {
+  autoBorder: Phaser.GameObjects.Rectangle;
+  button: ReturnType<typeof createTouchButton>;
+};
+
 export class SpellBar {
   private readonly caster: SpellCastController;
   private readonly slots: SpellId[];
-  private readonly buttons: ReturnType<typeof createTouchButton>[] = [];
+  private readonly autoCast: boolean[];
+  private readonly slotChrome: SlotChrome[] = [];
   private readonly cooldownVisuals: CooldownVisual[] = [];
-  private readonly onCastRequest: (spellId: SpellId) => void;
+  private readonly onCastRequest: (spellId: SpellId, slotIndex: number) => void;
+  private readonly onAutoCastToggle: (slotIndex: number) => void;
 
   constructor(
     scene: Phaser.Scene,
     slotIds: SpellId[],
+    autoCast: boolean[],
     caster: SpellCastController,
     callbacks: SpellBarCallbacks,
     depth = 200,
   ) {
     this.caster = caster;
     this.slots = slotIds.slice(0, SPELL_BAR.slotCount);
+    while (this.slots.length < SPELL_BAR.slotCount) this.slots.push("");
+    this.autoCast = autoCast.slice(0, SPELL_BAR.slotCount);
+    while (this.autoCast.length < SPELL_BAR.slotCount) this.autoCast.push(false);
     this.onCastRequest = callbacks.onCastRequest;
+    this.onAutoCastToggle = callbacks.onAutoCastToggle;
 
     const safe = readSafeInsets();
-    const { centerY, firstSlotCenterX } = spellBarSlotOrigin(
-      scene,
-      safe,
-      this.slots.length,
-      SPELL_BAR.slotSizePx,
-      SPELL_BAR.slotGapPx,
-    );
 
-    for (let i = 0; i < this.slots.length; i++) {
+    for (let i = 0; i < SPELL_BAR.slotCount; i++) {
       const spellId = this.slots[i] ?? "";
       const def = spellById(spellId);
       const label = def?.shortLabel ?? "—";
-      const x =
-        firstSlotCenterX + i * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
+      const { x, y } = spellBarSlotCenter(
+        scene,
+        safe,
+        i,
+        SPELL_BAR.slotSizePx,
+        SPELL_BAR.slotGapPx,
+        SPELL_BAR.rowGapPx,
+      );
 
-      const btn = createTouchButton(scene, x, centerY, label, () => {
-        if (spellId) this.onCastRequest(spellId);
-      }, {
+      const btn = createTouchButton(scene, x, y, label, () => {}, {
         width: SPELL_BAR.slotSizePx,
         height: SPELL_BAR.slotSizePx,
         depth,
@@ -61,13 +75,51 @@ export class SpellBar {
         fillColor: 0x312e81,
         strokeColor: 0x818cf8,
         tapPadding: SPELL_BAR.tapPaddingPx,
+        skipPressBinding: true,
       });
-      this.buttons.push(btn);
+
+      const slotIndex = i;
+      bindTapOrLongPress(
+        scene,
+        btn.container,
+        {
+          onTap: () => {
+            const id = this.slots[slotIndex] ?? "";
+            if (id) this.onCastRequest(id, slotIndex);
+          },
+          onLongPress: () => this.onAutoCastToggle(slotIndex),
+          longPressMs: SPELL_BAR.longPressMs,
+        },
+        {
+          bg: btn.container.list[0] as Phaser.GameObjects.GameObject &
+            Phaser.GameObjects.Rectangle,
+          colors: { rest: 0x312e81, pressed: 0x232350 },
+          pressScale: 0.88,
+        },
+      );
+
+      const borderPad = SPELL_BAR.autoCastBorderWidthPx;
+      const autoBorder = scene.add
+        .rectangle(
+          x,
+          y,
+          SPELL_BAR.slotSizePx + borderPad * 2,
+          SPELL_BAR.slotSizePx + borderPad * 2,
+        )
+        .setStrokeStyle(
+          SPELL_BAR.autoCastBorderWidthPx,
+          SPELL_BAR.autoCastBorderColor,
+          1,
+        )
+        .setFillStyle(0x000000, 0)
+        .setScrollFactor(0)
+        .setDepth(depth - 1)
+        .setVisible(this.autoCast[i] ?? false);
 
       const overlay = scene.add
         .rectangle(
           x,
-          centerY - SPELL_BAR.slotSizePx / 2,
+          y - SPELL_BAR.slotSizePx / 2,
           SPELL_BAR.slotSizePx,
           SPELL_BAR.slotSizePx,
           0x101018,
@@ -78,12 +130,19 @@ export class SpellBar {
         .setOrigin(0.5, 0)
         .setVisible(false);
 
+      this.slotChrome.push({ autoBorder, button: btn });
       this.cooldownVisuals.push({ overlay });
     }
   }
 
   getUiContainers(): Phaser.GameObjects.Container[] {
-    return this.buttons.map((b) => b.container);
+    return this.slotChrome.map((s) => s.button.container);
+  }
+
+  refreshAutoCastBorders(autoCast: readonly boolean[]): void {
+    for (let i = 0; i < this.slotChrome.length; i++) {
+      this.slotChrome[i]!.autoBorder.setVisible(Boolean(autoCast[i]));
+    }
   }
 
   /** Screen rect covering the spell row for virtual-stick exclusion. */
@@ -93,8 +152,8 @@ export class SpellBar {
     let maxX = Number.NEGATIVE_INFINITY;
     let minY = Number.POSITIVE_INFINITY;
     let maxY = Number.NEGATIVE_INFINITY;
-    for (const btn of this.buttons) {
-      const r = interactiveObjectScreenRect(btn.container);
+    for (const { button } of this.slotChrome) {
+      const r = interactiveObjectScreenRect(button.container);
       if (!r) continue;
       minX = Math.min(minX, r.x);
       maxX = Math.max(maxX, r.x + r.width);
@@ -114,8 +173,8 @@ export class SpellBar {
 
   e2eSlotTapCenters(): { index: number; x: number; y: number }[] {
     const centers: { index: number; x: number; y: number }[] = [];
-    for (let i = 0; i < this.buttons.length; i++) {
-      const r = interactiveObjectScreenRect(this.buttons[i]!.container);
+    for (let i = 0; i < this.slotChrome.length; i++) {
+      const r = interactiveObjectScreenRect(this.slotChrome[i]!.button.container);
       if (!r) continue;
       centers.push({
         index: i,
@@ -133,7 +192,7 @@ export class SpellBar {
       const remaining = id ? this.caster.getCooldownRemaining(id) : 0;
       const def = id ? spellById(id) : undefined;
       const onCd = remaining > 0 && !!def;
-      const btn = this.buttons[i];
+      const btn = this.slotChrome[i]?.button;
       const visual = this.cooldownVisuals[i];
       if (!btn || !visual) continue;
 
@@ -152,5 +211,6 @@ export class SpellBar {
 
   destroy(): void {
     for (const v of this.cooldownVisuals) v.overlay.destroy();
+    for (const s of this.slotChrome) s.autoBorder.destroy();
   }
 }
