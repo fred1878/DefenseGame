@@ -7,7 +7,6 @@ import {
   persistSave,
   prepareDefenseNight,
   resetSaveAndReload,
-  wallHpBonusFromBuildings,
 } from "../core/GameState";
 import { showTouchInput } from "../debug/DebugState";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
@@ -31,6 +30,14 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
+import { spawnTownBuildings } from "../systems/TownBuildings";
+import {
+  formatTownBuildingButtonLabel,
+  handleTownBuildingTap,
+  townBuildingMenuIds,
+  townBuildingSubtitle,
+} from "../systems/townBuildingMenu";
+import type { TouchButtonHandle } from "../ui/touchButton";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -38,6 +45,8 @@ export class TownScene extends Phaser.Scene {
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
   private startNightButton!: ReturnType<typeof createTouchButton>;
+  private buildingMenuButtons = new Map<string, TouchButtonHandle>();
+  private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
 
@@ -77,6 +86,8 @@ export class TownScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
 
     this.refreshStatus(store);
+
+    spawnTownBuildings(this, store.townBuildings, store.townLayout);
 
     const safe = readSafeInsets();
     const dbgPos = debugButtonPosition(this, safe);
@@ -131,41 +142,58 @@ export class TownScene extends Phaser.Scene {
     );
 
     const btnW = scaleUiX(260);
-    const btnH = scaleUiY(48);
+    const btnH = scaleUiY(40);
+    const buildingFont = `${scaleUiX(13)}px`;
+    const menuFill = 0x2d3748;
+    const menuStroke = 0x4a5568;
+
     this.startNightButton = createTouchButton(
       this,
       GAME.width / 2,
       townActionButtonY(this, safe, 0),
       "Start night",
       () => this.beginDefenseNight(),
-      { width: btnW, height: btnH, depth: 200 },
+      { width: btnW, height: scaleUiY(48), depth: 200 },
     );
+    this.startNightButton.container.setData("testid", "start-night");
+
+    const menuIds = townBuildingMenuIds(store.townBuildings, store.townLayout);
+    menuIds.forEach((buildingId, i) => {
+      const def = store.townBuildings[buildingId];
+      if (!def) return;
+      const subtitle = townBuildingSubtitle(store, this.save, def);
+      const handle = createTouchButton(
+        this,
+        GAME.width / 2,
+        townActionButtonY(this, safe, 1 + i),
+        formatTownBuildingButtonLabel(def, subtitle),
+        () => this.onTownBuildingTap(store, buildingId, def),
+        {
+          width: btnW,
+          height: btnH,
+          depth: 200,
+          fontSize: buildingFont,
+          fillColor: menuFill,
+          strokeColor: menuStroke,
+        },
+      );
+      handle.container.setData("testid", `town-building-${buildingId}`);
+      this.buildingMenuButtons.set(buildingId, handle);
+    });
 
     createTouchButton(
       this,
       GAME.width / 2,
-      townActionButtonY(this, safe, 1),
-      "Upgrade wall",
-      () => this.tryUpgrade(store, "wall"),
-      { width: btnW, height: btnH, depth: 200 },
-    );
-
-    createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 2),
-      "Upgrade blacksmith",
-      () => this.tryUpgrade(store, "blacksmith"),
-      { width: btnW, height: btnH, depth: 200 },
-    );
-
-    createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 3),
+      townActionButtonY(this, safe, 1 + menuIds.length),
       "Spell bar",
       () => this.openSpellSortPanel(),
-      { width: btnW, height: btnH, depth: 200 },
+      {
+        width: btnW,
+        height: scaleUiY(48),
+        depth: 200,
+        fillColor: menuFill,
+        strokeColor: menuStroke,
+      },
     );
 
     this.touchDebug = new TouchInputDebugDraw(this);
@@ -181,14 +209,23 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
+    const out: Record<string, { x: number; y: number }> = {};
     const r = interactiveObjectScreenRect(this.startNightButton.container);
-    if (!r) return {};
-    return {
-      "start-night": {
+    if (r) {
+      out["start-night"] = {
         x: r.x + r.width / 2,
         y: r.y + r.height / 2,
-      },
-    };
+      };
+    }
+    for (const [id, btn] of this.buildingMenuButtons) {
+      const br = interactiveObjectScreenRect(btn.container);
+      if (!br) continue;
+      out[`town-building-${id}`] = {
+        x: br.x + br.width / 2,
+        y: br.y + br.height / 2,
+      };
+    }
+    return out;
   }
 
   e2eIsTouchButtonPressed(testId: string): boolean {
@@ -263,24 +300,44 @@ export class TownScene extends Phaser.Scene {
     resetSaveAndReload();
   }
 
-  private tryUpgrade(store: DataStore, id: string): void {
-    const def = store.buildings[id];
-    if (!def) return;
-    const level = this.save.buildings[id] ?? 0;
-    if (level >= def.maxLevel) return;
-    const cost = def.costByLevel[level];
-    if (cost === undefined || this.save.gold < cost) return;
-
-    this.save.gold -= cost;
-    this.save.buildings[id] = level + 1;
-    if (def.effect === "wallHpMax") {
-      const bonus = wallHpBonusFromBuildings(this.save.buildings);
-      this.save.townWallHpMax = 100 + bonus;
-      this.save.townWallHp = Math.min(this.save.townWallHp, this.save.townWallHpMax);
+  private onTownBuildingTap(
+    store: DataStore,
+    _buildingId: string,
+    def: (typeof store.townBuildings)[string],
+  ): void {
+    const { save, result } = handleTownBuildingTap(store, this.save, def);
+    if (result.kind === "upgraded") {
+      this.save = save;
+      persistSave(this.save);
+      this.registry.set("save", this.save);
+      this.refreshBuildingMenuLabels(store);
+      this.refreshStatus(store);
     }
-    persistSave(this.save);
-    this.registry.set("save", this.save);
-    this.refreshStatus(store);
+    this.flashTransientStatus(result.message, store);
+  }
+
+  private refreshBuildingMenuLabels(store: DataStore): void {
+    for (const [id, handle] of this.buildingMenuButtons) {
+      const def = store.townBuildings[id];
+      if (!def) continue;
+      handle.setLabel(
+        formatTownBuildingButtonLabel(
+          def,
+          townBuildingSubtitle(store, this.save, def),
+        ),
+      );
+    }
+  }
+
+  private flashTransientStatus(message: string, store: DataStore): void {
+    this.statusText.setText(message);
+    if (this.statusFlashEvent) {
+      this.statusFlashEvent.remove(false);
+    }
+    this.statusFlashEvent = this.time.delayedCall(2200, () => {
+      this.statusFlashEvent = null;
+      this.refreshStatus(store);
+    });
   }
 
   private refreshStatus(store: DataStore): void {

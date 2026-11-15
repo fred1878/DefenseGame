@@ -1,5 +1,6 @@
 import type { EnemyCombatPartial } from "./enemyTuning";
 import { normalizeEnemyRow } from "./normalizeEnemy";
+import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
   hp: number;
@@ -33,14 +34,21 @@ export class DataStore {
   enemies: Record<string, EnemyDef> = {};
   waves: Record<string, WaveDef> = {};
   buildings: Record<string, BuildingDef> = {};
+  townBuildings: Record<string, TownBuildingDef> = {};
+  townLayout: TownLayoutDef = { slots: [] };
 
   async loadAll(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
-    const [enemies, waves, buildings] = await Promise.all([
-      fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
-      fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
-      fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
-    ]);
+    const [enemies, waves, buildings, townBuildings, townLayout] =
+      await Promise.all([
+        fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
+        fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
+        fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
+        fetchJson<Record<string, TownBuildingDef>>(
+          `${prefix}data/town_buildings.json`,
+        ),
+        fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
+      ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
         id,
@@ -49,6 +57,8 @@ export class DataStore {
     );
     this.waves = waves;
     this.buildings = buildings;
+    this.townBuildings = townBuildings;
+    this.townLayout = townLayout;
   }
 
   getWaveForNight(night: number): WaveDef | undefined {

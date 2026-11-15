@@ -8,6 +8,7 @@ import {
   PLAYER_TEXTURE,
   UI_ASSETS,
 } from "../content/assets";
+import { TOWN_BUILDING_ASSETS } from "../content/townBuildingAssets";
 
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
@@ -26,6 +27,7 @@ export function configurePixelArtTextures(scene: Phaser.Scene): void {
     ...GROUND_DECOR_ASSETS.map((a) => a.key),
     ...DEFENSE_OBSTACLE_ASSETS.map((a) => a.key),
     ...UI_ASSETS.map((a) => a.key),
+    ...TOWN_BUILDING_ASSETS.map((a) => a.key),
   ];
   for (const key of keys) {
     if (!scene.textures.exists(key)) continue;

@@ -8,6 +8,10 @@ import {
   UI_ASSET_ROOT,
   UI_ASSETS,
 } from "../content/assets";
+import {
+  TOWN_BUILDING_ASSET_ROOT,
+  TOWN_BUILDING_ASSETS,
+} from "../content/townBuildingAssets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
@@ -81,6 +85,9 @@ export class BootScene extends Phaser.Scene {
       }
       for (const { key, file } of UI_ASSETS) {
         loader.image(key, `${UI_ASSET_ROOT}/${file}`);
+      }
+      for (const { key, file } of TOWN_BUILDING_ASSETS) {
+        loader.image(key, `${TOWN_BUILDING_ASSET_ROOT}/${file}`);
       }
       loader.once(Phaser.Loader.Events.COMPLETE, () => {
         configurePixelArtTextures(this);
