@@ -73,6 +73,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 | `melee` | `meleeChaser` (arc swipe vs player) |
 | `arrowRain` | `arrowRainArcher` (telegraphed floor AoE) |
 | `javelineer` | `javelineer` (kite band + toss) |
+| `stationaryRanged` | `stationaryRanged` (hold + straight bolt) |
 
 ```json
 {

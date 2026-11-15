@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_ARROW_RAIN_COMBAT,
   DEFAULT_JAVELINEER_COMBAT,
+  DEFAULT_STATIONARY_RANGED_COMBAT,
 } from "../core/enemyTuning";
 import { northWallAttackY } from "../config/defense";
 import { createEnemyNav } from "../ai/EnemyBrain";
@@ -10,10 +11,14 @@ import {
   createJavelineerCombatState,
   updateArrowRainCombat,
   updateJavelineerCombat,
+  createStationaryRangedCombatState,
+  updateStationaryRangedCombat,
 } from "./EnemyRangedCombat";
 import { mockEnemyInstance } from "./testEnemyInstance";
 
-function baseEnemy(behavior: "arrowRainArcher" | "javelineer") {
+function baseEnemy(
+  behavior: "arrowRainArcher" | "javelineer" | "stationaryRanged",
+) {
   return mockEnemyInstance({
     behavior,
     damage: 10,
@@ -154,5 +159,36 @@ describe("updateJavelineerCombat", () => {
     );
     expect(result.spawnJavelin).toBeDefined();
     expect(result.spawnJavelin?.damage).toBe(10);
+  });
+});
+
+describe("updateStationaryRangedCombat", () => {
+  it("fires a straight bolt during active phase in range", () => {
+    const enemy = baseEnemy("stationaryRanged");
+    enemy.stationaryRanged = createStationaryRangedCombatState();
+    enemy.combat.phase = "active";
+    enemy.combat.phaseMs = 0;
+    const dist = DEFAULT_STATIONARY_RANGED_COMBAT.attackTriggerRange - 10;
+    const result = updateStationaryRangedCombat(
+      enemy,
+      {
+        kind: "player",
+        x: dist,
+        y: 0,
+        radius: 14,
+        damageable: {
+          id: "p",
+          hp: 50,
+          maxHp: 50,
+          alive: true,
+          team: "player",
+        },
+      },
+      enemy.stationaryRanged,
+      0,
+    );
+    expect(result.spawnBolt).toBeDefined();
+    expect(result.spawnBolt?.toX).toBe(dist);
+    expect(result.spawnBolt?.damage).toBe(10);
   });
 });

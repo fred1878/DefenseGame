@@ -78,7 +78,11 @@ import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
 import { spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
 import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
-import { updateArrowRainCombat, updateJavelineerCombat } from "../entities/EnemyRangedCombat";
+import {
+  updateArrowRainCombat,
+  updateJavelineerCombat,
+  updateStationaryRangedCombat,
+} from "../entities/EnemyRangedCombat";
 import {
   spawnEnemyProjectile,
   spawnPlayerProjectile,
@@ -715,6 +719,32 @@ export class DefenseScene extends Phaser.Scene {
           );
         }
         if (jav.meleeHit) playerHitDamage += e.damage;
+      } else if (e.behavior === "stationaryRanged" && e.stationaryRanged) {
+        const bolt = updateStationaryRangedCombat(
+          e,
+          attackTarget,
+          e.stationaryRanged,
+          delta,
+          onWallHit,
+        );
+        if (bolt.spawnBolt) {
+          const req = bolt.spawnBolt;
+          const tune = e.combatTuning.stationaryRanged!;
+          const id = `es_${this.projectileSerial++}`;
+          this.enemyProjectiles.push(
+            spawnEnemyProjectile(
+              this,
+              req.fromX,
+              req.fromY,
+              req.toX,
+              req.toY,
+              tune.projectileSpeed,
+              req.damage,
+              tune.projectileMaxTravel,
+              id,
+            ),
+          );
+        }
       } else {
         const hitPlayer = updateEnemyCombat(
           e,
