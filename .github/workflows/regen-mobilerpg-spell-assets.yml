@@ -1,7 +1,7 @@
 name: Regen MobileRPG spell assets
 
 # Manual: re-slice spell icons/FX after fetching a pristine atlas.tga blob.
-# Requires repo secret MOBILERPG_GITHUB_TOKEN or CARDGAME_DEBUG_GITHUB_PAT (MobileRPG read).
+# Requires MOBILERPG_GITHUB_TOKEN, CROSS_REPO, or CARDGAME_DEBUG_GITHUB_PAT (MobileRPG read).
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
         run: pip install pillow
       - name: Fetch MobileRPG atlas (Git blob API)
         env:
-          MOBILERPG_GITHUB_TOKEN: ${{ secrets.MOBILERPG_GITHUB_TOKEN || secrets.CARDGAME_DEBUG_GITHUB_PAT }}
+          MOBILERPG_GITHUB_TOKEN: ${{ secrets.MOBILERPG_GITHUB_TOKEN || secrets.CROSS_REPO || secrets.CARDGAME_DEBUG_GITHUB_PAT }}
         run: |
           python3 scripts/fetch-mobilerpg-atlas-blob.py
       - name: Extract spell PNGs

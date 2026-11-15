@@ -6,7 +6,7 @@ Do NOT use cursor-github get_file_contents on atlas.tga — large binaries are w
 through a UTF-8 path and pick up U+FFFD bytes (corrupt slices / rainbow spell icons).
 
 Requires a PAT with read access to fred1878/MobileRPG:
-  export MOBILERPG_GITHUB_TOKEN=<pat>
+  export MOBILERPG_GITHUB_TOKEN=<pat>   # or CROSS_REPO (cloud agent runtime)
   python3 scripts/fetch-mobilerpg-atlas-blob.py
   export MOBILERPG_ATLAS_TGA=/tmp/mobilerpg-assets/atlas.tga
   python3 scripts/extract-mobilerpg-spell-assets.py
@@ -33,6 +33,7 @@ REPO = "fred1878/MobileRPG"
 def _token() -> str:
     for key in (
         "MOBILERPG_GITHUB_TOKEN",
+        "CROSS_REPO",
         "CARDGAME_DEBUG_GITHUB_PAT",
         "GITHUB_TOKEN",
     ):
@@ -40,7 +41,7 @@ def _token() -> str:
         if val:
             return val.strip()
     raise SystemExit(
-        "Set MOBILERPG_GITHUB_TOKEN (PAT with read on fred1878/MobileRPG)",
+        "Set MOBILERPG_GITHUB_TOKEN or CROSS_REPO (PAT with read on fred1878/MobileRPG)",
     )
 
 
