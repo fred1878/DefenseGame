@@ -46,6 +46,24 @@ test("town building menu tap shows status without leaving Town", async ({
     .toBe(true);
 });
 
+test("touch debug overlays eight town building hit rects", async ({ page }) => {
+  await gotoE2E(page);
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.setShowTouchInput(true);
+  });
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            window.__DEFENSEGAME_E2E__?.api?.getTownBuildingDebugRectCount() ??
+            0,
+        ),
+      { timeout: 5_000 },
+    )
+    .toBe(8);
+});
+
 test("start night via DOM mirror tap", async ({ page }) => {
   await gotoE2E(page);
   await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors());

@@ -42,6 +42,8 @@ export type DefenseGameE2EApi = {
   setPlayerPosition(x: number, y: number): void;
   getDefenseCameraScroll(): { x: number; y: number };
   setShowEnemyPaths(on: boolean): void;
+  setShowTouchInput(on: boolean): void;
+  getTownBuildingDebugRectCount(): number;
   getObstacleAlignment(): Array<{
     textureKey: string;
     configX: number;
