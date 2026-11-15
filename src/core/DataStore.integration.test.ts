@@ -86,6 +86,7 @@ describe("public data fixtures", () => {
     };
     expect(spells.spells.length).toBeGreaterThanOrEqual(21);
     const castable = spells.spells.filter((s) => s.castableInDefense);
+    expect(castable.length).toBeGreaterThanOrEqual(18);
     expect(castable.map((s) => s.id)).toEqual(
       expect.arrayContaining([
         "fire_bolt",

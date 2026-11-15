@@ -1,15 +1,17 @@
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 
 export const SPELL_BAR = {
-  slotCount: 6,
-  columnCount: 3,
-  rowCount: 2,
+  slotCount: 4,
+  columnCount: 4,
+  rowCount: 1,
   slotSizePx: scaleUiX(48),
-  slotGapPx: scaleUiX(3),
-  rowGapPx: scaleUiY(4),
-  tapPaddingPx: scaleUiX(4),
+  slotGapPx: scaleUiX(2),
+  rowGapPx: scaleUiY(0),
+  tapPaddingPx: scaleUiX(2),
+  /** Inset inside Gothic frame before icon edge (fraction of slot size). */
+  iconInsetFrac: 0.07,
   cooldownRingWidthPx: scaleUiX(3),
-  autoCastBorderWidthPx: scaleUiX(3),
+  autoCastBorderWidthPx: scaleUiX(2),
   autoCastBorderColor: 0xfacc15,
   longPressMs: 520,
   fontSize: `${scaleUiX(11)}px`,

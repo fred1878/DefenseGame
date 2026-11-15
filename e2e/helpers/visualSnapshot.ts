@@ -40,10 +40,15 @@ export async function expectViewportScreenshot(
     const root = document.getElementById("defensegame-e2e-dom");
     if (root) root.style.visibility = "hidden";
   });
+  const ratio = options.maxDiffPixelRatio;
+  const pixelBudget =
+    ratio !== undefined
+      ? Math.ceil(options.clip.width * options.clip.height * ratio)
+      : undefined;
   try {
     await expect(page).toHaveScreenshot(snapshotName, {
       clip: options.clip,
-      maxDiffPixelRatio: options.maxDiffPixelRatio,
+      ...(ratio !== undefined ? { maxDiffPixelRatio: ratio, maxDiffPixels: pixelBudget } : {}),
     });
   } finally {
     await page.evaluate(() => {

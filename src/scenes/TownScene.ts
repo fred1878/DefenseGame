@@ -16,7 +16,8 @@ import {
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
 import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
-import { scaleUiX, scaleUiY, uiTextResolution } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { uiTextStyle } from "../ui/uiTextStyle";
 import {
   fullscreenButtonLabel,
   toggleFullscreen,
@@ -63,21 +64,29 @@ export class TownScene extends Phaser.Scene {
 
     const titleY = scaleUiY(72);
     this.add
-      .text(GAME.width / 2, titleY, "Town — Day", {
-        fontSize: `${scaleUiX(28)}px`,
-        color: "#f4f4f5",
-        resolution: uiTextResolution(this),
-      })
+      .text(
+        GAME.width / 2,
+        titleY,
+        "Town — Day",
+        uiTextStyle(this, {
+          fontSize: `${scaleUiX(28)}px`,
+          color: "#f4f4f5",
+        }),
+      )
       .setOrigin(0.5);
 
     this.statusText = this.add
-      .text(GAME.width / 2, scaleUiY(140), "", {
-        fontSize: `${scaleUiX(18)}px`,
-        color: "#a1a1aa",
-        align: "center",
-        wordWrap: { width: GAME.width - scaleUiX(48) },
-        resolution: uiTextResolution(this),
-      })
+      .text(
+        GAME.width / 2,
+        scaleUiY(140),
+        "",
+        uiTextStyle(this, {
+          fontSize: `${scaleUiX(18)}px`,
+          color: "#a1a1aa",
+          align: "center",
+          wordWrap: { width: GAME.width - scaleUiX(48) },
+        }),
+      )
       .setOrigin(0.5, 0);
 
     this.refreshStatus(store);
@@ -189,6 +198,14 @@ export class TownScene extends Phaser.Scene {
         : false;
     }
     return false;
+  }
+
+  e2eOpenSpellSortPanel(): void {
+    this.openSpellSortPanel();
+  }
+
+  e2eIsSpellSortPanelOpen(): boolean {
+    return this.spellSortPanel !== null;
   }
 
   private openSpellSortPanel(): void {

@@ -35,7 +35,7 @@ test.describe("defense HUD layout", () => {
     expect(stripCenterY).toBeGreaterThan(1000);
     const bandHalf = stripH / 2 + 36;
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 4; i++) {
       const key = `spell-slot-${i}`;
       const pt = targets[key];
       expect(pt, `missing ${key}`).toBeTruthy();
@@ -58,15 +58,15 @@ test.describe("defense HUD layout", () => {
         a.y < b.y + b.h &&
         a.y + a.h > b.y;
 
-      const spell2 = rects("spell-slot-2") ?? rects("spell-slot-5");
+      const spellLast = rects("spell-slot-3");
       const mel = rects("combat-mode");
       const spell0 = rects("spell-slot-0");
       const debug = rects("defense-debug");
-      if (!spell2 || !mel || !spell0 || !debug) return null;
+      if (!spellLast || !mel || !spell0 || !debug) return null;
       return {
-        spellMel: hits(spell2, mel),
+        spellMel: hits(spellLast, mel),
         debugSpell: hits(debug, spell0),
-        spell2,
+        spellLast,
         mel,
         spell0,
         debug,

@@ -20,9 +20,9 @@ test.describe("spell bar textures", () => {
       }>
     >(`api.auditSpellBarTextures()`);
 
-    expect(audit.length).toBe(6);
+    expect(audit.length).toBe(4);
     const filled = audit.filter((r) => r.spellId);
-    expect(filled.length).toBeGreaterThanOrEqual(5);
+    expect(filled.length).toBeGreaterThanOrEqual(4);
 
     for (const row of filled) {
       expect(row.loaded, `texture ${row.key}`).toBe(true);

@@ -15,6 +15,7 @@ import {
   townBuildingGridFootY,
 } from "./screenLayout";
 import { SPELL_BAR } from "../config/spellBar";
+import { scaleUiX } from "../core/displayScale";
 
 function mockScene(
   width = GAME.width,
@@ -71,7 +72,9 @@ describe("screenLayout", () => {
       firstSlotCenterX +
       (SPELL_BAR.columnCount - 1) * (SPELL_BAR.slotSizePx + SPELL_BAR.slotGapPx);
     const rowRight = lastCenterX + SPELL_BAR.slotSizePx / 2;
-    expect(rowRight).toBeLessThan(chrome.modeX - chrome.toggleW / 2);
+    const melGuard = scaleUiX(12) + chrome.toggleW / 2 + scaleUiX(10);
+    const rowEndMax = chrome.modeX - melGuard;
+    expect(rowRight).toBeLessThanOrEqual(rowEndMax + 0.5);
   });
 
   it("nightReturnButtonPosition is below HUD band", () => {

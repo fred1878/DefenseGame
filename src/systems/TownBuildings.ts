@@ -1,7 +1,8 @@
 import Phaser from "phaser";
-import { scaleUiX, scaleUiY, uiTextResolution } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
 import { bindContainerPress, interactiveObjectScreenRect } from "../ui/touchButton";
+import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
 
 export type TownBuildingControl = {
   container: Phaser.GameObjects.Container;
@@ -45,23 +46,14 @@ function townBuildingOverlayLabelStyle(
   wrapWidth: number,
 ): Phaser.Types.GameObjects.Text.TextStyle {
   const fontPx = scaleUiX(12);
-  return {
+  return uiTextStyle(scene, {
     fontSize: `${fontPx}px`,
-    fontFamily: "Arial, Helvetica, sans-serif",
     color: "#fafafa",
     align: "center",
     wordWrap: { width: wrapWidth, useAdvancedWrap: true },
     lineSpacing: scaleUiY(2),
-    resolution: uiTextResolution(scene),
-    shadow: {
-      offsetX: 0,
-      offsetY: Math.max(1, scaleUiY(1)),
-      color: "#09090b",
-      blur: 0,
-      stroke: false,
-      fill: true,
-    },
-  };
+    shadow: uiSmallLabelShadow(),
+  });
 }
 
 /** Layout slot buildings: sprite art + overlay label, full footprint is the tap target. */
