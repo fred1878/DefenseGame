@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFENSE_OBSTACLE_ASSETS,
-  GROUND_TILE_SIZE,
+  OBSTACLE_BLOCKER_FOOTPRINT,
   OBSTACLE_SOURCE_FRAME,
   OBSTACLE_SPRITE_CROP,
 } from "../content/assets";
@@ -9,8 +9,9 @@ import {
   DEFENSE_OBSTACLES,
   defenseTileCenter,
   obstacleColliderSize,
+  obstacleDisplaySize,
 } from "../config/defense";
-import { GAME } from "../config/game";
+import { DEFENSE_FIELD_TILES } from "../config/defense";
 
 describe("defense obstacle art vs colliders", () => {
   it("keeps crop rects inside each texture frame", () => {
@@ -22,23 +23,26 @@ describe("defense obstacle art vs colliders", () => {
     }
   });
 
-  it("matches collider size to opaque crop footprints", () => {
+  it("uses tight blockers inside sprite crop bounds", () => {
     for (const obs of DEFENSE_OBSTACLES) {
       const size = obstacleColliderSize(obs.textureKey);
+      const disp = obstacleDisplaySize(obs.textureKey);
+      const block =
+        OBSTACLE_BLOCKER_FOOTPRINT[
+          obs.textureKey as keyof typeof OBSTACLE_BLOCKER_FOOTPRINT
+        ];
       expect(obs.w).toBe(size.w);
       expect(obs.h).toBe(size.h);
-      const crop =
-        OBSTACLE_SPRITE_CROP[
-          obs.textureKey as keyof typeof OBSTACLE_SPRITE_CROP
-        ];
-      expect(obs.w).toBe(crop.w);
-      expect(obs.h).toBe(crop.h);
+      expect(obs.w).toBeLessThanOrEqual(block.w);
+      expect(obs.h).toBeLessThanOrEqual(block.h);
+      expect(obs.w).toBeLessThanOrEqual(disp.w);
+      expect(obs.h).toBeLessThanOrEqual(disp.h);
     }
   });
 
   it("places obstacles on ground tile centers inside the field", () => {
-    const maxTx = Math.ceil((GAME.worldHalfWidth * 2) / GROUND_TILE_SIZE);
-    const maxTy = Math.ceil((GAME.worldHalfHeight * 2) / GROUND_TILE_SIZE);
+    const maxTx = DEFENSE_FIELD_TILES.cols;
+    const maxTy = DEFENSE_FIELD_TILES.rows;
     for (let i = 0; i < DEFENSE_OBSTACLES.length; i++) {
       const obs = DEFENSE_OBSTACLES[i]!;
       let matched = false;

@@ -39,10 +39,12 @@ test.describe("obstacle sprite vs blocking", () => {
     for (const row of rows) {
       expect(Math.abs(row.spriteX - row.configX)).toBeLessThan(0.01);
       expect(Math.abs(row.spriteY - row.configY)).toBeLessThan(0.01);
-      expect(Math.abs(row.displayW - row.configW)).toBeLessThan(0.51);
-      expect(Math.abs(row.displayH - row.configH)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyW - row.configW)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyH - row.configH)).toBeLessThan(0.51);
+      expect(row.bodyW).toBeLessThanOrEqual(row.displayW + 0.51);
+      expect(row.bodyH).toBeLessThanOrEqual(row.displayH + 0.51);
+      expect(row.displayW).toBeGreaterThan(row.bodyW);
+      expect(row.displayH).toBeGreaterThan(row.bodyH);
     }
   });
 

@@ -40,6 +40,7 @@ export type DefenseGameE2EApi = {
   setSpawnPlanComplete(): void;
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
+  getDefenseCameraScroll(): { x: number; y: number };
   setShowEnemyPaths(on: boolean): void;
   getObstacleAlignment(): Array<{
     textureKey: string;

@@ -176,7 +176,7 @@ export const OBSTACLE_SOURCE_FRAME: Record<
   obstacle_boulder_sm: { w: 56, h: 56 },
 };
 
-/** Opaque art bounds in source pixels — crop before scaling to collider size. */
+/** Opaque art bounds in source pixels — sprite display crop (1:1 world px). */
 export const OBSTACLE_SPRITE_CROP: Record<
   (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],
   { x: number; y: number; w: number; h: number }
@@ -186,4 +186,16 @@ export const OBSTACLE_SPRITE_CROP: Record<
   obstacle_boulder_med: { x: 14, y: 11, w: 36, h: 35 },
   obstacle_rubble_low: { x: 32, y: 12, w: 36, h: 26 },
   obstacle_boulder_sm: { x: 13, y: 16, w: 28, h: 24 },
+};
+
+/** Tighter gameplay blockers — opaque stone mass only (≤ crop), not transparent halo. */
+export const OBSTACLE_BLOCKER_FOOTPRINT: Record<
+  (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],
+  { w: number; h: number }
+> = {
+  obstacle_wide_slab: { w: 58, h: 22 },
+  obstacle_tall_rock: { w: 52, h: 62 },
+  obstacle_boulder_med: { w: 30, h: 28 },
+  obstacle_rubble_low: { w: 28, h: 18 },
+  obstacle_boulder_sm: { w: 22, h: 18 },
 };

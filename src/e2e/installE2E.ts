@@ -306,6 +306,11 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     setPlayerPosition(x: number, y: number) {
       activeDefense(game)?.e2eSetPlayerPosition(x, y);
     },
+    getDefenseCameraScroll() {
+      return (
+        activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
+      );
+    },
     setShowEnemyPaths(on: boolean) {
       activeDefense(game)?.e2eSetShowEnemyPaths(on);
     },

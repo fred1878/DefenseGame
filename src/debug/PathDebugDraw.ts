@@ -26,11 +26,11 @@ export class PathDebugDraw {
     this.g.destroy();
   }
 
-  /** Nav cells marked blocked by `buildNavGrid` plus obstacle collider rects. */
+  /** Gameplay blocker rects; optional 16px nav cells at low alpha. */
   drawObstacleZones(grid: NavGrid, obstacles: DefenseObstacleRect[]): void {
     const { cellSize, cols, rows, minX, minY, blocked } = grid;
-    this.g.fillStyle(BLOCKED_CELL_FILL, 0.38);
-    this.g.lineStyle(1, BLOCKED_CELL_LINE, 0.45);
+    this.g.fillStyle(BLOCKED_CELL_FILL, 0.18);
+    this.g.lineStyle(1, BLOCKED_CELL_LINE, 0.22);
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         if (blocked[row * cols + col] !== 1) continue;
@@ -41,7 +41,7 @@ export class PathDebugDraw {
       }
     }
 
-    this.g.lineStyle(2, OBSTACLE_RECT_LINE, 0.65);
+    this.g.lineStyle(2, OBSTACLE_RECT_LINE, 0.85);
     for (const obs of obstacles) {
       const left = obs.x - obs.w / 2;
       const top = obs.y - obs.h / 2;

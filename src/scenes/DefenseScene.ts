@@ -2,7 +2,8 @@ import Phaser from "phaser";
 import {
   DEFENSE_MAP,
   DEFENSE_OBSTACLES,
-  GAME,
+  defenseHalfHeight,
+  defenseHalfWidth,
   PLAYER_TUNING,
   SPELL_BAR,
   type AttackMode,
@@ -84,7 +85,12 @@ import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../world/buildGroundLayer";
+import { configureDefenseFollowCamera } from "../world/defenseCamera";
 import { configureDefenseObstacleSprite } from "../world/defenseObstacleSprite";
+import {
+  defensePlayerStart,
+  pickWaveSpawnPoint,
+} from "../world/defenseSpawns";
 import {
   cameraWorldPoint,
   buildCombatStickUiMask,
@@ -192,8 +198,8 @@ export class DefenseScene extends Phaser.Scene {
     const wave = store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
 
-    const halfW = GAME.worldHalfWidth;
-    const halfH = GAME.worldHalfHeight;
+    const halfW = defenseHalfWidth();
+    const halfH = defenseHalfHeight();
     this.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
     buildGroundLayer(this, halfW, halfH);
     buildGroundDecorLayer(this, halfW, halfH, this.save.night);
@@ -211,9 +217,9 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
-    this.cameras.main.setZoom(1);
 
-    this.player = new Player(this, 0, 0, this.save.player.hpMax);
+    const start = defensePlayerStart();
+    this.player = new Player(this, start.x, start.y, this.save.player.hpMax);
     this.player.damageable.hp = this.save.player.hpMax;
     this.player.damageable.alive = true;
     this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
@@ -222,7 +228,7 @@ export class DefenseScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, this.enemyGroup);
     this.physics.add.collider(this.enemyGroup, this.enemyGroup);
     this.physics.add.collider(this.enemyGroup, this.obstacleGroup);
-    this.cameras.main.startFollow(this.player.sprite, true, 0.12, 0.12);
+    configureDefenseFollowCamera(this.cameras.main, this.player.sprite);
 
     this.safe = readSafeInsets();
     const chrome = combatChromeLayout(this, this.safe);
@@ -1104,16 +1110,8 @@ export class DefenseScene extends Phaser.Scene {
         const at = group.atMs + i * group.intervalMs;
         maxAt = Math.max(maxAt, at);
         this.time.delayedCall(at, () => {
-          const angle = isE2EEnabled()
-            ? 0
-            : Phaser.Math.FloatBetween(0, Math.PI * 2);
-          const dist = isE2EEnabled() ? 200 : Phaser.Math.Between(180, 260);
-          this.spawnEnemyAt(
-            Math.cos(angle) * dist,
-            Math.sin(angle) * dist,
-            enemyDef,
-            group.enemyId,
-          );
+          const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
+          this.spawnEnemyAt(x, y, enemyDef, group.enemyId);
         });
       }
     }
@@ -1268,7 +1266,15 @@ export class DefenseScene extends Phaser.Scene {
   e2eTapMelee(): void {
     this.player.setAttackMode("melee");
     this.refreshModeToggle("melee");
-    if (this.enemies.length === 0) this.spawnEnemyAt(48, 0, undefined, "grunt", 1);
+    if (this.enemies.length === 0) {
+      this.spawnEnemyAt(
+        this.player.sprite.x + 48,
+        this.player.sprite.y,
+        undefined,
+        "grunt",
+        1,
+      );
+    }
     this.player.faceToward(this.player.sprite.x + 48, this.player.sprite.y);
     this.player.tryStartAttack();
   }
@@ -1276,7 +1282,15 @@ export class DefenseScene extends Phaser.Scene {
   e2eTapRanged(): void {
     this.player.setAttackMode("ranged");
     this.refreshModeToggle("ranged");
-    if (this.enemies.length === 0) this.spawnEnemyAt(80, 0, undefined, "grunt", 1);
+    if (this.enemies.length === 0) {
+      this.spawnEnemyAt(
+        this.player.sprite.x + 80,
+        this.player.sprite.y,
+        undefined,
+        "grunt",
+        1,
+      );
+    }
     const e = this.enemies[0];
     if (e) this.player.faceToward(e.sprite.x, e.sprite.y);
     this.player.tryStartAttack();
@@ -1294,8 +1308,14 @@ export class DefenseScene extends Phaser.Scene {
     });
   }
 
-  e2eSpawnEnemy(x: number, y: number): void {
-    this.spawnEnemyAt(x, y, undefined, "grunt", 5);
+  e2eSpawnEnemy(offX = 48, offY = 0): void {
+    this.spawnEnemyAt(
+      this.player.sprite.x + offX,
+      this.player.sprite.y + offY,
+      undefined,
+      "grunt",
+      5,
+    );
   }
 
   e2eDamagePlayer(amount: number): void {
@@ -1399,6 +1419,13 @@ export class DefenseScene extends Phaser.Scene {
     this.player.sprite.setPosition(x, y);
     const body = this.player.sprite.body as Phaser.Physics.Arcade.Body | null;
     body?.reset(x, y);
+  }
+
+  e2eGetDefenseCameraScroll(): { x: number; y: number } {
+    return {
+      x: this.cameras.main.scrollX,
+      y: this.cameras.main.scrollY,
+    };
   }
 
   e2eSetShowEnemyPaths(on: boolean): void {

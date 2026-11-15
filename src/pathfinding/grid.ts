@@ -1,4 +1,8 @@
-import { GAME, type DefenseObstacleRect } from "../config";
+import {
+  defenseHalfHeight,
+  defenseHalfWidth,
+  type DefenseObstacleRect,
+} from "../config";
 
 export type NavGrid = {
   cellSize: number;
@@ -17,8 +21,8 @@ export function buildNavGrid(
   obstacles: DefenseObstacleRect[],
   cellSize = 40,
 ): NavGrid {
-  const halfW = GAME.worldHalfWidth;
-  const halfH = GAME.worldHalfHeight;
+  const halfW = defenseHalfWidth();
+  const halfH = defenseHalfHeight();
   const minX = -halfW;
   const minY = -halfH;
   const cols = Math.ceil((halfW * 2) / cellSize);
