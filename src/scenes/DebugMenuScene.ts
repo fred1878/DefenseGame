@@ -14,6 +14,11 @@ import { createTouchButton } from "../ui/touchButton";
 import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import {
+  cycleDebugWorldPixelScale,
+  getWorldPixelScale,
+  worldScaleDebugLabel,
+} from "../core/worldPixelScale";
+import {
   fullscreenButtonLabel,
   toggleFullscreen,
 } from "../ui/fullscreen";
@@ -23,6 +28,7 @@ export class DebugMenuScene extends Phaser.Scene {
   private touchToggle!: ReturnType<typeof createTouchButton>;
   private pathToggle!: ReturnType<typeof createTouchButton>;
   private fullscreenToggle!: ReturnType<typeof createTouchButton>;
+  private worldScaleToggle!: ReturnType<typeof createTouchButton>;
   private touchDebug!: TouchInputDebugDraw;
 
   constructor() {
@@ -94,10 +100,22 @@ export class DebugMenuScene extends Phaser.Scene {
       { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
     );
 
-    this.fullscreenToggle = createTouchButton(
+    this.worldScaleToggle = createTouchButton(
       this,
       w / 2,
       h / 2 + scaleUiY(135),
+      worldScaleDebugLabel(getWorldPixelScale(this.registry)),
+      () => {
+        const next = cycleDebugWorldPixelScale(this.game);
+        this.worldScaleToggle.setLabel(worldScaleDebugLabel(next));
+      },
+      { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
+    );
+
+    this.fullscreenToggle = createTouchButton(
+      this,
+      w / 2,
+      h / 2 + scaleUiY(200),
       fullscreenButtonLabel(this.scale),
       () => {
         toggleFullscreen(this.scale);
@@ -114,7 +132,7 @@ export class DebugMenuScene extends Phaser.Scene {
     createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(205),
+      h / 2 + scaleUiY(270),
       "Close",
       () => this.closeMenu(),
       {

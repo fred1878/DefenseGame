@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
+import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
 
@@ -27,9 +28,9 @@ export function showPlayerMeleeSwipe(
     x,
     y,
     facingRad,
-    PLAYER_SLASH_OFFSET,
+    worldUnit(PLAYER_SLASH_OFFSET, scene.registry),
     COMBAT_FX_TEXTURE.playerMelee,
-    SPRITE_DISPLAY.playerMeleeSlash,
+    worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
     activeMs,
     PLAYER_MELEE_FX_DEPTH,
   );
@@ -51,9 +52,9 @@ export function showGruntMeleeSwipe(
     x,
     y,
     facingRad,
-    GRUNT_SLASH_OFFSET,
+    worldUnit(GRUNT_SLASH_OFFSET, scene.registry),
     COMBAT_FX_TEXTURE.gruntMelee,
-    SPRITE_DISPLAY.gruntMeleeSlash,
+    worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
     activeMs,
     8,
   );

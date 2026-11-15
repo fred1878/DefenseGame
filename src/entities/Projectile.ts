@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
+import { worldDisplayPx } from "../core/worldPixelScale";
 import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { segmentFirstCircleHitT } from "../combat/Hitbox";
@@ -45,12 +46,13 @@ export function spawnPlayerProjectile(
   damageFlavor: DamageFlavor = "default",
 ): PlayerProjectile {
   const sprite = scene.physics.add.sprite(x, y, textureKey);
-  const display =
+  const base =
     textureKey === COMBAT_FX_TEXTURE.fireBolt
       ? SPRITE_DISPLAY.fireBolt
       : SPRITE_DISPLAY.stoneThrow;
+  const display = worldDisplayPx(base, scene.registry);
   sprite.setDisplaySize(display, display);
-  sprite.setCircle(4);
+  sprite.setCircle(worldDisplayPx(4, scene.registry) / 2);
   sprite.setDepth(8);
   const vx = Math.cos(angleRad) * speed;
   const vy = Math.sin(angleRad) * speed;

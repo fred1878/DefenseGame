@@ -8,8 +8,10 @@ import {
   spawnPlayerProjectile,
   type PlayerProjectile,
 } from "../entities/Projectile";
+import { worldUnit } from "../core/worldPixelScale";
 
 export function applyNova(
+  scene: Phaser.Scene,
   playerX: number,
   playerY: number,
   def: SpellDefinition,
@@ -22,7 +24,7 @@ export function applyNova(
   }>,
   damageMult: number,
 ): void {
-  const radius = def.novaRadius ?? 80;
+  const radius = worldUnit(def.novaRadius ?? 80, scene.registry);
   const damage = (def.novaDamage ?? 20) * damageMult;
   for (const e of enemies) {
     if (!e.damageable.alive) continue;
@@ -50,7 +52,7 @@ export function spawnChanneledFireball(
     angleRad,
     PLAYER_TUNING.projectileSpeed * 1.05,
     damage,
-    PLAYER_TUNING.rangedMaxRange,
+    worldUnit(PLAYER_TUNING.rangedMaxRange, scene.registry),
     id,
     COMBAT_FX_TEXTURE.fireBolt,
     "fire",
