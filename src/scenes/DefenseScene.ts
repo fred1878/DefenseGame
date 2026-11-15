@@ -462,7 +462,14 @@ export class DefenseScene extends Phaser.Scene {
         this.resolveSpellEffect(channel.def);
       }
     } else {
-      this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed);
+      const lockMeleeAim = this.shouldLockMeleeAimFacing();
+      this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed, {
+        lockMeleeAim,
+      });
+      if (lockMeleeAim) {
+        const target = this.facingTarget("melee", false);
+        if (target) this.player.faceToward(target.x, target.y);
+      }
       this.castBar.setVisible(false);
     }
 
@@ -779,6 +786,13 @@ export class DefenseScene extends Phaser.Scene {
     const target = this.facingTarget(strike, true);
     if (target) this.player.faceToward(target.x, target.y);
     this.player.tryStartAttack(this.player.mode === "auto" ? strike : undefined);
+  }
+
+  /** Keep melee arc aimed at the auto target while the player can still move. */
+  private shouldLockMeleeAimFacing(): boolean {
+    if (this.player.attackPhaseNow === "idle") return false;
+    if (this.player.strikeMode() !== "melee") return false;
+    return this.autoAttackEnabled || this.player.mode === "auto";
   }
 
   private tryAutoAttack(): void {
