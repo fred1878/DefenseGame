@@ -3,7 +3,7 @@ import {
   DEFENSE_OBSTACLE_ASSETS,
   OBSTACLE_SOURCE_FRAME,
   OBSTACLE_SPRITE_CROP,
-} from "../config/assets";
+} from "../content/assets";
 import { DEFENSE_OBSTACLES } from "../config/defense";
 
 describe("defense obstacle art vs colliders", () => {

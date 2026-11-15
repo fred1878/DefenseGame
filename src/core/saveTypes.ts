@@ -1,4 +1,4 @@
-import type { SpellId } from "./spells";
+import type { SpellId } from "../content/spells";
 
 export const SAVE_VERSION = 1;
 

@@ -1,13 +1,14 @@
+import { PLAYER_TUNING, SPELL_BAR } from "../config";
 import {
-  PLAYER_TUNING,
-  SAVE_VERSION,
-  SPELL_BAR,
   createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
+} from "../content/spells";
+import {
+  SAVE_VERSION,
   type NightResult,
   type SaveGame,
   type SaveSpellBar,
-} from "../config";
+} from "./saveTypes";
 import { DEFAULT_ENEMY_BASE } from "./enemyTuning";
 import { saveStorageKey } from "../e2e/e2eMode";
 

@@ -3,7 +3,7 @@ import {
   GROUND_DECOR_ASSETS,
   GROUND_DECOR_DISPLAY,
   GROUND_TILE_SIZE,
-} from "../config/assets";
+} from "../content/assets";
 import {
   groundDecorJitter,
   groundDecorShouldPlace,

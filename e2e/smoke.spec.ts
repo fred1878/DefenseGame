@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { COMBAT_FX_TEXTURE } from "../src/config/assets";
+import { COMBAT_FX_TEXTURE } from "../src/content/assets";
 import { e2eApi, gotoE2E, startDefense } from "./helpers/game";
 
 test.describe("smoke", () => {

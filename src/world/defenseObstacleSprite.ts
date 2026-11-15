@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import {
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
-} from "../config/assets";
+} from "../content/assets";
 
 /** Scale cropped art to the gameplay collider so sprite footprint matches blocking. */
 export function configureDefenseObstacleSprite(

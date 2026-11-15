@@ -7,7 +7,7 @@ import {
   GROUND_TILE_ASSETS,
   UI_ASSET_ROOT,
   UI_ASSETS,
-} from "../config/assets";
+} from "../content/assets";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";

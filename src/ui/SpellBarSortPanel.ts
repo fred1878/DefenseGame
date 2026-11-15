@@ -1,14 +1,12 @@
 import Phaser from "phaser";
+import { GAME, SPELL_BAR } from "../config";
 import {
-  SPELL_BAR,
   SPELL_CATALOG,
   spellById,
   type SpellId,
-} from "../config";
+} from "../content/spells";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { createTouchButton } from "./touchButton";
-import { GAME } from "../config";
-
 export type SpellBarSortResult = {
   slots: SpellId[];
   autoCast: boolean[];

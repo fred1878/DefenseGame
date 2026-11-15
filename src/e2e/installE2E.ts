@@ -1,6 +1,7 @@
 import Phaser from "phaser";
-import { GAME, type SaveGame } from "../config";
-import { COMBAT_FX_ASSETS } from "../config/assets";
+import { GAME } from "../config";
+import type { SaveGame } from "../core/saveTypes";
+import { COMBAT_FX_ASSETS } from "../content/assets";
 import { persistSave } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";

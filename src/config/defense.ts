@@ -1,4 +1,7 @@
-import { OBSTACLE_TEXTURE, type ObstacleTextureKey } from "./assets";
+import {
+  OBSTACLE_TEXTURE,
+  type ObstacleTextureKey,
+} from "../content/assets";
 import { GAME } from "./game";
 
 /** North settlement wall — attack target plane (world y). */

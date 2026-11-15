@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SPRITE_DISPLAY } from "../config/assets";
+import { SPRITE_DISPLAY } from "../content/assets";
 import type { EnemyDef } from "../core/DataStore";
 import {
   DEFAULT_ENEMY_BASE,

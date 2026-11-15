@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../config/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
 

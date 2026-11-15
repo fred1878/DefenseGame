@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { GAME, type SaveGame } from "../config";
+import { GAME } from "../config";
+import type { SaveGame } from "../core/saveTypes";
 import { DataStore } from "../core/DataStore";
 import {
   playerDamageMult,
@@ -29,7 +30,7 @@ import {
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
-import { createDefaultSpellBarAutoCast } from "../config";
+import { createDefaultSpellBarAutoCast } from "../content/spells";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
