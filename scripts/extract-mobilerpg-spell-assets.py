@@ -6,8 +6,9 @@ Atlas source (not committed — ~4 MiB):
   export MOBILERPG_ATLAS_TGA=/path/to/MobileRPG/assets/atlas.tga
   default: /tmp/mobilerpg-assets/atlas.tga
 
-Optional recovery from a raw GitHub MCP download (strip embedded newlines, truncate to 1024²×4):
-  export MOBILERPG_ATLAS_SPILL=/path/to/atlas.tga.tool-spill
+Fetch pristine atlas first (avoids MCP UTF-8 corruption on large binaries):
+  export MOBILERPG_GITHUB_TOKEN=<pat with MobileRPG read>
+  python3 scripts/fetch-mobilerpg-atlas-blob.py
 """
 
 from __future__ import annotations
@@ -94,16 +95,20 @@ FX_OUT: dict[str, str] = {
 
 
 def materialize_atlas(path: Path) -> Path:
-    spill = os.environ.get("MOBILERPG_ATLAS_SPILL")
-    if spill and Path(spill).is_file():
-        raw = Path(spill).read_bytes().replace(b"\n", b"")
-        w, h = struct.unpack_from("<HH", raw, 12)
-        need = 18 + w * h * 4
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(raw[:need])
     if not path.is_file():
         raise SystemExit(
-            f"Missing atlas at {path}. Set MOBILERPG_ATLAS_TGA or MOBILERPG_ATLAS_SPILL.",
+            f"Missing atlas at {path}. Run scripts/fetch-mobilerpg-atlas-blob.py "
+            "then set MOBILERPG_ATLAS_TGA.",
+        )
+    raw = path.read_bytes()
+    if raw.count(b"\xef\xbf\xbd") > 0:
+        raise SystemExit(
+            f"Corrupt atlas at {path} (UTF-8 replacement bytes). "
+            "Re-fetch with scripts/fetch-mobilerpg-atlas-blob.py.",
+        )
+    if len(raw) != 4194348:
+        raise SystemExit(
+            f"Unexpected atlas size {len(raw)} (expected 4194348). Re-fetch pristine blob.",
         )
     return path
 
