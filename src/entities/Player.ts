@@ -93,7 +93,12 @@ export class Player {
     this.setCardinalTexture(card);
   }
 
-  setVelocityFromStick(dx: number, dy: number, speed: number): void {
+  setVelocityFromStick(
+    dx: number,
+    dy: number,
+    speed: number,
+    opts?: { lockMeleeAim?: boolean },
+  ): void {
     const rooted =
       this.attackMode === "ranged" &&
       (this.attackPhase === "windup" || this.attackPhase === "recovery");
@@ -102,11 +107,17 @@ export class Player {
       this.sprite.setVelocity(0, 0);
       return;
     }
+    const lockMeleeAim =
+      opts?.lockMeleeAim === true &&
+      this.strikeMode() === "melee" &&
+      this.attackPhase !== "idle";
     if (dx !== 0 || dy !== 0) {
-      this.facing = Math.atan2(dy, dx);
-      const card = cardinalFromDelta(dx, dy);
-      if (card) this.setCardinalTexture(card);
-    } else {
+      if (!lockMeleeAim) {
+        this.facing = Math.atan2(dy, dx);
+        const card = cardinalFromDelta(dx, dy);
+        if (card) this.setCardinalTexture(card);
+      }
+    } else if (!lockMeleeAim) {
       this.setCardinalTexture("s");
     }
     body.setVelocity(dx * speed, dy * speed);
