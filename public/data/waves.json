@@ -3,6 +3,7 @@
     "rewardGold": 40,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 7, "intervalMs": 700 },
+      { "atMs": 0, "enemyId": "javelineer", "count": 2, "intervalMs": 0 },
       { "atMs": 5500, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1500 },
       { "atMs": 7500, "enemyId": "javelineer", "count": 1, "intervalMs": 1500 }
     ]
