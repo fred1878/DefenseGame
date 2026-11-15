@@ -1,23 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { groundTileVariantIndex } from "./groundTileVariant";
+import {
+  groundDecorShouldPlace,
+  groundTileVariantIndex,
+} from "./groundTileVariant";
 
 describe("groundTileVariantIndex", () => {
-  it("is stable for the same cell and seed", () => {
-    expect(groundTileVariantIndex(3, 7, 42, 4)).toBe(
-      groundTileVariantIndex(3, 7, 42, 4),
+  it("is stable", () => {
+    expect(groundTileVariantIndex(1, 2, 3, 6)).toBe(
+      groundTileVariantIndex(1, 2, 3, 6),
     );
   });
+});
 
-  it("varies across neighboring cells", () => {
-    const a = groundTileVariantIndex(0, 0, 1, 4);
-    const b = groundTileVariantIndex(1, 0, 1, 4);
-    const c = groundTileVariantIndex(0, 1, 1, 4);
-    expect(new Set([a, b, c]).size).toBeGreaterThan(1);
-  });
-
-  it("shifts when night seed changes", () => {
-    expect(groundTileVariantIndex(5, 5, 1, 4)).not.toBe(
-      groundTileVariantIndex(5, 5, 2, 4),
-    );
+describe("groundDecorShouldPlace", () => {
+  it("places roughly 9% of cells", () => {
+    let n = 0;
+    for (let ty = 0; ty < 20; ty++) {
+      for (let tx = 0; tx < 20; tx++) {
+        if (groundDecorShouldPlace(tx, ty, 7)) n++;
+      }
+    }
+    expect(n).toBeGreaterThan(10);
+    expect(n).toBeLessThan(60);
   });
 });

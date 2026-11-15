@@ -3,6 +3,7 @@ import { GAME } from "../config";
 import {
   COMBAT_FX_ASSETS,
   DEFENSE_OBSTACLE_ASSETS,
+  GROUND_DECOR_ASSETS,
   GROUND_TILE_ASSETS,
   UI_ASSET_ROOT,
   UI_ASSETS,
@@ -71,6 +72,9 @@ export class BootScene extends Phaser.Scene {
       }
       for (const { key, file } of GROUND_TILE_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
+      }
+      for (const { key, file } of GROUND_DECOR_ASSETS) {
+        loader.image(key, `${ASSET_ROOT}/tilesets/ground/decor/${file}`);
       }
       for (const { key, file } of COMBAT_FX_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/combat/fx/${file}`);
