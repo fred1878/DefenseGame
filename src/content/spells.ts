@@ -38,6 +38,8 @@ export type SpellDefinition = {
   iconFile: string;
   projectileTextureKey?: string;
   projectileFile?: string;
+  blastTextureKey?: string;
+  blastFile?: string;
   damageFlavor?: DamageFlavor;
 };
 

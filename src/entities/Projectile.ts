@@ -21,8 +21,8 @@ export type PlayerProjectile = {
   prevY: number;
 };
 
+/** MobileRPG atlas projectile slices only (never `fx_fire_bolt`). */
 const SPELL_BOLT_TEXTURES = new Set<string>([
-  COMBAT_FX_TEXTURE.fireBolt,
   COMBAT_FX_TEXTURE.spellFireBolt,
   COMBAT_FX_TEXTURE.spellIceBolt,
   COMBAT_FX_TEXTURE.spellLightningBolt,

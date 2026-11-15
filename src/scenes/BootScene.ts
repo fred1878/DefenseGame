@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { GAME } from "../config";
 import {
   COMBAT_FX_ASSETS,
+  SPELL_FX_ASSETS,
   DEFENSE_OBSTACLE_ASSETS,
   GROUND_DECOR_ASSETS,
   GROUND_TILE_ASSETS,
@@ -83,10 +84,10 @@ export class BootScene extends Phaser.Scene {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/decor/${file}`);
       }
       for (const entry of COMBAT_FX_ASSETS) {
-        const root =
-          "root" in entry && entry.root
-            ? entry.root
-            : `${ASSET_ROOT}/combat/fx`;
+        loader.image(entry.key, `${ASSET_ROOT}/combat/fx/${entry.file}`);
+      }
+      for (const entry of SPELL_FX_ASSETS) {
+        const root = entry.root ?? "assets/spells/fx";
         loader.image(entry.key, `${root}/${entry.file}`);
       }
       for (const { key, file } of SPELL_ICON_ASSETS) {

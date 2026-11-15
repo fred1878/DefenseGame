@@ -778,7 +778,7 @@ export class DefenseScene extends Phaser.Scene {
     switch (def.mechanicType) {
       case "blast":
         applyNova(this, px, py, def, this.enemyTargets(), mult);
-        this.flashNova(px, py, this.wu(def.blastRadius ?? 80));
+        this.flashNova(px, py, this.wu(def.blastRadius ?? 80), def);
         break;
       case "projectile":
       case "projectile_aoe":
@@ -798,17 +798,33 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
   }
 
-  private flashNova(x: number, y: number, radius: number): void {
-    const ring = this.add
-      .circle(x, y, radius, 0xfef08a, 0.35)
-      .setDepth(7);
+  private flashNova(
+    x: number,
+    y: number,
+    radius: number,
+    def?: { blastTextureKey?: string },
+  ): void {
+    const key = def?.blastTextureKey;
+    if (!key || !this.textures.exists(key)) {
+      console.warn(
+        `spell blast missing MobileRPG texture${key ? `: ${key}` : ""}`,
+      );
+      return;
+    }
+    const sprite = this.add
+      .image(x, y, key)
+      .setDepth(7)
+      .setAlpha(0.9)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    const size = radius * 2.2;
+    sprite.setDisplaySize(size, size);
     this.tweens.add({
-      targets: ring,
+      targets: sprite,
       alpha: 0,
-      scale: 1.15,
-      duration: 280,
+      scale: 1.25,
+      duration: 320,
       ease: "Quad.easeOut",
-      onComplete: () => ring.destroy(),
+      onComplete: () => sprite.destroy(),
     });
   }
 

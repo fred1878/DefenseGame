@@ -42,7 +42,7 @@ export const GROUND_DECOR_DISPLAY: Record<
   ground_decor_twigs: 16,
 };
 
-/** Combat FX under `public/assets/combat/fx/` (Peter review 2026-11-14). */
+/** Generic combat FX (`public/assets/combat/fx/`) — not used for spell bar or spell projectiles. */
 export const COMBAT_FX_ASSETS = [
   {
     key: "fx_fire_bolt",
@@ -52,6 +52,18 @@ export const COMBAT_FX_ASSETS = [
     key: "fx_stone_throw",
     file: "stone-throw-v5-03-16x16.png",
   },
+  {
+    key: "fx_player_melee",
+    file: "slash-arc-v2-48x48.png",
+  },
+  {
+    key: "fx_grunt_melee",
+    file: "slash-arc-v2-32x32.png",
+  },
+] as const;
+
+/** Spell combat art re-sliced from MobileRPG atlas (`public/assets/spells/fx/`). */
+export const SPELL_FX_ASSETS = [
   {
     key: "fx_spell_fire_bolt",
     file: "fire-bolt-mrpg-16.png",
@@ -78,12 +90,9 @@ export const COMBAT_FX_ASSETS = [
     root: "assets/spells/fx",
   },
   {
-    key: "fx_player_melee",
-    file: "slash-arc-v2-48x48.png",
-  },
-  {
-    key: "fx_grunt_melee",
-    file: "slash-arc-v2-32x32.png",
+    key: "fx_spell_fire_nova",
+    file: "fire-nova-mrpg-64.png",
+    root: "assets/spells/fx",
   },
 ] as const;
 
@@ -95,6 +104,7 @@ export const COMBAT_FX_TEXTURE = {
   spellLightningBolt: "fx_spell_lightning_bolt",
   spellWaterBolt: "fx_spell_water_bolt",
   spellArcBomb: "fx_spell_arc_bomb",
+  spellFireNova: "fx_spell_fire_nova",
   playerMelee: "fx_player_melee",
   gruntMelee: "fx_grunt_melee",
 } as const;

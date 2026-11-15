@@ -64,6 +64,8 @@
       "baseDamage": 22,
       "blastRadius": 88,
       "iconFile": "fire_nova.png",
+      "blastTextureKey": "fx_spell_fire_nova",
+      "blastFile": "fire-nova-mrpg-64.png",
       "damageFlavor": "fire"
     },
     {
