@@ -124,6 +124,9 @@ export type CombatChromeLayout = {
 
 export const BOTTOM_HUD_STRIP_H = scaleUiY(156);
 
+/** Gothic `action-mode-rect` / AUTO slabs — source art is 64×64 (`public/assets/ui/gothic/buttons/`). */
+export const COMBAT_MODE_TOGGLE_DESIGN_PX = 64;
+
 /** Shared bottom HUD strip geometry (spell row + combat controls sit inside). */
 export function bottomHudStripLayout(
   scene: Phaser.Scene,
@@ -227,8 +230,8 @@ export function combatChromeLayout(
   const sideMargin = scaleUiX(6);
   const clusterPullLeft = scaleUiX(28);
   const atkRadius = scaleUiX(38);
-  const toggleW = scaleUiX(64);
-  const toggleH = scaleUiY(34);
+  const toggleW = scaleUiX(COMBAT_MODE_TOGGLE_DESIGN_PX);
+  const toggleH = scaleUiY(COMBAT_MODE_TOGGLE_DESIGN_PX);
   const atkX =
     scene.scale.width - sideMargin - safe.right - atkRadius - clusterPullLeft;
   const modeX = atkX - atkRadius - scaleUiX(6) - toggleW / 2;
@@ -236,7 +239,7 @@ export function combatChromeLayout(
   const btnY = rowY;
   const modeY = rowY;
   const autoX = atkX;
-  const autoY = bottomStrip.stripTop + toggleH / 2 + scaleUiY(10);
+  const autoY = bottomStrip.stripTop + toggleH / 2 + scaleUiY(4);
   const autoOffsetY = btnY - autoY;
   const modeOffsetX = atkX - modeX;
   const combatClusterLeft = modeX - toggleW / 2;
