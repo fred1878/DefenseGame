@@ -92,6 +92,19 @@ describe("townBuildingMenu", () => {
     );
   });
 
+  it("spell bar building shows subtitle and opens spell bar on tap", () => {
+    const def: TownBuildingDef = {
+      label: "Witchlight Beacon (Daylit)",
+      textureKey: "town_special_witchlight_beacon_daylit",
+      width: 80,
+      height: 112,
+      opensSpellBar: true,
+    };
+    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe("— Spell bar");
+    const { result } = handleTownBuildingTap(store, createNewSave(), def);
+    expect(result.kind).toBe("openSpellBar");
+  });
+
   it("start night building returns startNight tap result", () => {
     const def: TownBuildingDef = {
       label: "Gallows Square",

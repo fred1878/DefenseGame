@@ -48,6 +48,7 @@
     "label": "Witchlight Beacon (Daylit)",
     "textureKey": "town_special_witchlight_beacon_daylit",
     "width": 80,
-    "height": 112
+    "height": 112,
+    "opensSpellBar": true
   }
 }

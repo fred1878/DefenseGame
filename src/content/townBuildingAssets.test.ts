@@ -60,6 +60,12 @@ describe("town building v02 keep list", () => {
     expect(layout.menuOrder?.[0]).toBe("town_special_gallows_square");
   });
 
+  it("wires daylit witchlight beacon to spell bar", () => {
+    expect(defs.town_special_witchlight_beacon_daylit?.opensSpellBar).toBe(true);
+    expect(defs.town_special_witchlight_beacon_daylit?.upgradeId).toBeUndefined();
+    expect(defs.town_special_witchlight_beacon?.upgradeId).toBe("wall");
+  });
+
   it("menu order lists every kept building once", () => {
     expect(layout.menuOrder).toHaveLength(8);
     const ids = new Set(layout.menuOrder);

@@ -6,6 +6,7 @@ import type { BuildingDef } from "../core/DataStore";
 
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
 const START_NIGHT_SUBTITLE = "— Start night";
+const SPELL_BAR_SUBTITLE = "— Spell bar";
 
 export function townBuildingMenuIds(
   defs: Record<string, TownBuildingDef>,
@@ -30,6 +31,7 @@ export function townBuildingSubtitle(
   def: TownBuildingDef,
 ): string {
   if (def.startsNight) return START_NIGHT_SUBTITLE;
+  if (def.opensSpellBar) return SPELL_BAR_SUBTITLE;
 
   const upgradeId = def.upgradeId;
   if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
@@ -77,7 +79,8 @@ export type TownBuildingTapResult =
   | { kind: "noop"; message: string }
   | { kind: "upgraded"; message: string }
   | { kind: "blocked"; message: string }
-  | { kind: "startNight"; message: string };
+  | { kind: "startNight"; message: string }
+  | { kind: "openSpellBar"; message: string };
 
 /** Tap handler for a town building menu row (upgrade when wired, else status-only). */
 export function handleTownBuildingTap(
@@ -87,6 +90,9 @@ export function handleTownBuildingTap(
 ): { save: SaveGame; result: TownBuildingTapResult } {
   if (def.startsNight) {
     return { save, result: { kind: "startNight", message: "" } };
+  }
+  if (def.opensSpellBar) {
+    return { save, result: { kind: "openSpellBar", message: "" } };
   }
 
   const upgradeId = def.upgradeId;

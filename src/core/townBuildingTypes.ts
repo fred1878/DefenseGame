@@ -7,6 +7,8 @@ export type TownBuildingDef = {
   upgradeId?: string;
   /** When true, tap starts Defense night (e.g. Gallows Square). */
   startsNight?: boolean;
+  /** When true, tap opens town Spell bar sort panel (e.g. daylit Witchlight Beacon). */
+  opensSpellBar?: boolean;
 };
 
 export type TownLayoutSlot = {

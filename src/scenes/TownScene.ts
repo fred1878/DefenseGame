@@ -15,11 +15,7 @@ import {
   createTouchButton,
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
-import {
-  debugButtonPosition,
-  readSafeInsets,
-  townActionButtonY,
-} from "../ui/screenLayout";
+import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import {
   fullscreenButtonLabel,
@@ -155,25 +151,6 @@ export class TownScene extends Phaser.Scene {
       },
     );
 
-    const btnW = scaleUiX(260);
-    const menuFill = 0x2d3748;
-    const menuStroke = 0x4a5568;
-
-    createTouchButton(
-      this,
-      GAME.width / 2,
-      townActionButtonY(this, safe, 0),
-      "Spell bar",
-      () => this.openSpellSortPanel(),
-      {
-        width: btnW,
-        height: scaleUiY(48),
-        depth: 200,
-        fillColor: menuFill,
-        strokeColor: menuStroke,
-      },
-    );
-
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on("shutdown", () => this.touchDebug.destroy());
 
@@ -283,6 +260,10 @@ export class TownScene extends Phaser.Scene {
     const { save, result } = handleTownBuildingTap(store, this.save, def);
     if (result.kind === "startNight") {
       this.beginDefenseNight();
+      return;
+    }
+    if (result.kind === "openSpellBar") {
+      this.openSpellSortPanel();
       return;
     }
     if (result.kind === "upgraded") {
