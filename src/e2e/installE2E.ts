@@ -23,6 +23,10 @@ const DOM_MIRROR_IDS = [
   "spell-slot-1",
   "spell-slot-2",
   "spell-slot-3",
+  "spell-slot-4",
+  "spell-slot-5",
+  "spell-slot-6",
+  "spell-slot-7",
   "defense-return-to-town",
 ] as const;
 

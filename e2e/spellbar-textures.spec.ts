@@ -20,7 +20,7 @@ test.describe("spell bar textures", () => {
       }>
     >(`api.auditSpellBarTextures()`);
 
-    expect(audit.length).toBe(4);
+    expect(audit.length).toBe(8);
     const filled = audit.filter((r) => r.spellId);
     expect(filled.length).toBeGreaterThanOrEqual(4);
 

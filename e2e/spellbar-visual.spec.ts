@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 import { expectViewportScreenshot } from "./helpers/visualSnapshot";
 
-const SPELL_BAR_CLIP = { x: 8, y: 1028, width: 168, height: 152 } as const;
+const SPELL_BAR_CLIP = { x: 8, y: 996, width: 220, height: 118 } as const;
 
 /** Spell bar only — proves icons render (not rainbow 404/HTML garbage). */
 test.describe("spell bar visual", () => {

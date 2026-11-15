@@ -41,7 +41,7 @@ test.describe("defense HUD layout", () => {
         };
       });
 
-    expect(slotCount).toBe(4);
+    expect(slotCount).toBe(8);
     expect(stripCenterY).toBeGreaterThan(1000);
     const bandHalf = stripH / 2 + 36;
 
@@ -88,7 +88,7 @@ test.describe("defense HUD layout", () => {
         a.y < b.y + b.h &&
         a.y + a.h > b.y;
 
-      const spellLast = rects("spell-slot-3");
+      const spellLast = rects("spell-slot-7");
       const mel = rects("combat-mode");
       const spell0 = rects("spell-slot-0");
       const debug = rects("defense-debug");
