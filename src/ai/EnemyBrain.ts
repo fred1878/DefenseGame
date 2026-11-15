@@ -133,8 +133,9 @@ export function replanEnemyPath(
   goalX: number,
   goalY: number,
   waypointRadius: number = DEFENSE_MAP.pathWaypointRadius,
+  peerAgents?: readonly { x: number; y: number }[],
 ): void {
-  const path = findPath(grid, ex, ey, goalX, goalY);
+  const path = findPath(grid, ex, ey, goalX, goalY, peerAgents);
   nav.path = path;
   nav.pathIndex = 0;
   const first = path[0];
@@ -150,6 +151,7 @@ export function updateEnemyBrain(
   playerX: number,
   playerY: number,
   deltaMs: number,
+  peerAgents?: readonly { x: number; y: number }[],
 ): { targetX: number; targetY: number; targetKind: EnemyTargetKind } {
   const behavior = getEnemyBehavior(enemy.behavior);
   return behavior({
@@ -159,5 +161,6 @@ export function updateEnemyBrain(
     playerX,
     playerY,
     deltaMs,
+    peerAgents,
   });
 }

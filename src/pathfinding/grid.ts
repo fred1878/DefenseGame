@@ -11,6 +11,8 @@ export type NavGrid = {
   minX: number;
   minY: number;
   blocked: Uint8Array;
+  /** Inflate static obstacles + peer-agent exclusion radius (world px). */
+  clearancePx: number;
 };
 
 function cellIndex(grid: NavGrid, col: number, row: number): number {
@@ -20,6 +22,7 @@ function cellIndex(grid: NavGrid, col: number, row: number): number {
 export function buildNavGrid(
   obstacles: DefenseObstacleRect[],
   cellSize = 40,
+  clearancePx = 0,
 ): NavGrid {
   const halfW = defenseHalfWidth();
   const halfH = defenseHalfHeight();
@@ -30,22 +33,26 @@ export function buildNavGrid(
   const blocked = new Uint8Array(cols * rows);
 
   for (const obs of obstacles) {
-    const left = obs.x - obs.w / 2;
-    const right = obs.x + obs.w / 2;
-    const top = obs.y - obs.h / 2;
-    const bottom = obs.y + obs.h / 2;
+    const left = obs.x - obs.w / 2 - clearancePx;
+    const right = obs.x + obs.w / 2 + clearancePx;
+    const top = obs.y - obs.h / 2 - clearancePx;
+    const bottom = obs.y + obs.h / 2 + clearancePx;
     const c0 = Math.max(0, Math.floor((left - minX) / cellSize));
     const c1 = Math.min(cols - 1, Math.floor((right - minX) / cellSize));
     const r0 = Math.max(0, Math.floor((top - minY) / cellSize));
     const r1 = Math.min(rows - 1, Math.floor((bottom - minY) / cellSize));
     for (let r = r0; r <= r1; r++) {
       for (let c = c0; c <= c1; c++) {
-        blocked[cellIndex({ cellSize, cols, rows, minX, minY, blocked }, c, r)] = 1;
+        blocked[cellIndex(
+          { cellSize, cols, rows, minX, minY, blocked, clearancePx },
+          c,
+          r,
+        )] = 1;
       }
     }
   }
 
-  return { cellSize, cols, rows, minX, minY, blocked };
+  return { cellSize, cols, rows, minX, minY, blocked, clearancePx };
 }
 
 export function worldToCell(
@@ -66,17 +73,31 @@ export function cellToWorldCenter(grid: NavGrid, col: number, row: number): { x:
   };
 }
 
-export function cellBlocked(grid: NavGrid, col: number, row: number): boolean {
+export function cellBlocked(
+  grid: NavGrid,
+  col: number,
+  row: number,
+  peerAgents?: readonly { x: number; y: number }[],
+): boolean {
   if (col < 0 || row < 0 || col >= grid.cols || row >= grid.rows) return true;
-  return grid.blocked[cellIndex(grid, col, row)] === 1;
+  if (grid.blocked[cellIndex(grid, col, row)] === 1) return true;
+  if (peerAgents && peerAgents.length > 0 && grid.clearancePx > 0) {
+    const { x, y } = cellToWorldCenter(grid, col, row);
+    const r = grid.clearancePx;
+    for (const p of peerAgents) {
+      if ((x - p.x) ** 2 + (y - p.y) ** 2 < r * r) return true;
+    }
+  }
+  return false;
 }
 
 export function nearestWalkable(
   grid: NavGrid,
   col: number,
   row: number,
+  peerAgents?: readonly { x: number; y: number }[],
 ): { col: number; row: number } {
-  if (!cellBlocked(grid, col, row)) return { col, row };
+  if (!cellBlocked(grid, col, row, peerAgents)) return { col, row };
   const maxR = Math.max(grid.cols, grid.rows);
   for (let radius = 1; radius <= maxR; radius++) {
     for (let dr = -radius; dr <= radius; dr++) {
@@ -84,7 +105,7 @@ export function nearestWalkable(
         if (Math.abs(dc) !== radius && Math.abs(dr) !== radius) continue;
         const c = col + dc;
         const r = row + dr;
-        if (!cellBlocked(grid, c, r)) return { col: c, row: r };
+        if (!cellBlocked(grid, c, r, peerAgents)) return { col: c, row: r };
       }
     }
   }

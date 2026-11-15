@@ -56,6 +56,9 @@ export function defenseTileCenter(tileX: number, tileY: number): {
   };
 }
 
+/** On-field scale for defense obstacle sprites and matching nav/physics blockers. */
+export const DEFENSE_OBSTACLE_WORLD_SCALE = 2;
+
 /** Gameplay blocker footprint (nav grid + Arcade body), tighter than sprite crop. */
 export function obstacleColliderSize(textureKey: ObstacleTextureKey): {
   w: number;
@@ -63,9 +66,10 @@ export function obstacleColliderSize(textureKey: ObstacleTextureKey): {
 } {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
   const block = OBSTACLE_BLOCKER_FOOTPRINT[textureKey];
+  const s = DEFENSE_OBSTACLE_WORLD_SCALE;
   return {
-    w: Math.min(block.w, crop.w),
-    h: Math.min(block.h, crop.h),
+    w: Math.min(block.w, crop.w) * s,
+    h: Math.min(block.h, crop.h) * s,
   };
 }
 
@@ -74,12 +78,18 @@ export function obstacleDisplaySize(textureKey: ObstacleTextureKey): {
   h: number;
 } {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
-  return { w: crop.w, h: crop.h };
+  const s = DEFENSE_OBSTACLE_WORLD_SCALE;
+  return { w: crop.w * s, h: crop.h * s };
 }
 
 export const DEFENSE_MAP = {
   /** 16px nav cells — quarter ground tile — so blocked cells hug sprite mass. */
   cellSize: 16,
+  /**
+   * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than an
+   * enemy body (~28px diameter at default scale).
+   */
+  pathClearancePx: 14,
   /** How close an enemy must be to a path node before advancing. */
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */

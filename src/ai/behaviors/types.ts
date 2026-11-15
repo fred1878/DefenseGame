@@ -15,6 +15,7 @@ export type EnemyBehaviorContext = {
   playerX: number;
   playerY: number;
   deltaMs: number;
+  peerAgents?: readonly { x: number; y: number }[];
 };
 
 export type EnemyBehavior = (ctx: EnemyBehaviorContext) => BehaviorMoveResult;

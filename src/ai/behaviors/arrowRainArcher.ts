@@ -5,7 +5,7 @@ import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, applyDirectVelocity } from "./movement";
 
 export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -26,7 +26,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
   const goal = { x: resolved.goalX, y: resolved.goalY };
 
   if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y, waypointRadius);
+    replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y, waypointRadius, peerAgents);
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }
 
