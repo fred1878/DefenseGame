@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import {
   COMBAT_FX_ASSETS,
   DEFENSE_OBSTACLE_ASSETS,
+  GROUND_DECOR_ASSETS,
   GROUND_TILE_ASSETS,
   GROUND_TILE_TEXTURE,
   PLAYER_TEXTURE,
@@ -22,6 +23,7 @@ export function configurePixelArtTextures(scene: Phaser.Scene): void {
     ...GAME_SPRITE_KEYS,
     GROUND_TILE_TEXTURE,
     ...GROUND_TILE_ASSETS.map((a) => a.key),
+    ...GROUND_DECOR_ASSETS.map((a) => a.key),
     ...DEFENSE_OBSTACLE_ASSETS.map((a) => a.key),
     ...UI_ASSETS.map((a) => a.key),
   ];

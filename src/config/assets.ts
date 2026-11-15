@@ -9,18 +9,37 @@ export const PLAYER_TEXTURE: Record<PlayerCardinal, string> = {
   w: "player_w",
 };
 
-/** Default ground key (`tile_00` — `ground-sparse-grass-night` wang_15). */
+/** Combat ground fill (`tile_00.png` — `ground-sparse-grass-night` wang_15). */
 export const GROUND_TILE_TEXTURE = "ground_0";
 
 export const GROUND_TILE_SIZE = 64;
 
-/** Wang fill set from one `ground-sparse-grass-night` tileset; DefenseScene picks per cell. */
+/** Ground tiles loaded in Boot; combat repeats `GROUND_TILE_TEXTURE` only. */
 export const GROUND_TILE_ASSETS = [
   { key: "ground_0", file: "tile_00.png" },
-  { key: "ground_1", file: "tile_01.png" },
-  { key: "ground_2", file: "tile_02.png" },
-  { key: "ground_3", file: "tile_03.png" },
 ] as const;
+
+/** Sparse transparent props over `ground_0` (no nav blocking). */
+export const GROUND_DECOR_ASSETS = [
+  { key: "ground_decor_pebble_a", file: "ground_decor_pebble_a_24.png" },
+  { key: "ground_decor_pebble_b", file: "ground_decor_pebble_b_24.png" },
+  { key: "ground_decor_rock_sm", file: "ground_decor_rock_sm_32.png" },
+  { key: "ground_decor_shrub_low", file: "ground_decor_shrub_low_32.png" },
+  { key: "ground_decor_dry_tuft", file: "ground_decor_dry_tuft_24.png" },
+  { key: "ground_decor_twigs", file: "ground_decor_twigs_24.png" },
+] as const;
+
+export const GROUND_DECOR_DISPLAY: Record<
+  (typeof GROUND_DECOR_ASSETS)[number]["key"],
+  number
+> = {
+  ground_decor_pebble_a: 20,
+  ground_decor_pebble_b: 20,
+  ground_decor_rock_sm: 28,
+  ground_decor_shrub_low: 28,
+  ground_decor_dry_tuft: 22,
+  ground_decor_twigs: 20,
+};
 
 /** Combat FX under `public/assets/combat/fx/` (Peter review 2026-11-14). */
 export const COMBAT_FX_ASSETS = [

@@ -75,6 +75,7 @@ import { evaluateNightEnd } from "./defenseNightLogic";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
+import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../world/buildGroundLayer";
 import { configureDefenseObstacleSprite } from "../world/defenseObstacleSprite";
 import {
@@ -187,7 +188,8 @@ export class DefenseScene extends Phaser.Scene {
 
     const half = GAME.worldHalfSize;
     this.physics.world.setBounds(-half, -half, half * 2, half * 2);
-    buildGroundLayer(this, half, this.save.night);
+    buildGroundLayer(this, half);
+    buildGroundDecorLayer(this, half, this.save.night);
 
     this.add
       .rectangle(0, -half + 20, half * 2, 40, 0x52525b)
