@@ -16,7 +16,7 @@ import {
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
 import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY, uiTextResolution } from "../core/displayScale";
 import {
   fullscreenButtonLabel,
   toggleFullscreen,
@@ -66,7 +66,7 @@ export class TownScene extends Phaser.Scene {
       .text(GAME.width / 2, titleY, "Town — Day", {
         fontSize: `${scaleUiX(28)}px`,
         color: "#f4f4f5",
-        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
+        resolution: uiTextResolution(this),
       })
       .setOrigin(0.5);
 
@@ -76,7 +76,7 @@ export class TownScene extends Phaser.Scene {
         color: "#a1a1aa",
         align: "center",
         wordWrap: { width: GAME.width - scaleUiX(48) },
-        resolution: (this.registry.get("renderResolution") as number | undefined) ?? 1,
+        resolution: uiTextResolution(this),
       })
       .setOrigin(0.5, 0);
 

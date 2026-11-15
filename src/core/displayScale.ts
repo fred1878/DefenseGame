@@ -29,3 +29,13 @@ export function clampRenderResolution(
   const dpr = window.devicePixelRatio ?? 1;
   return Math.min(Math.max(dpr, 1), max);
 }
+
+type RegistryScene = { registry: { get: (key: string) => unknown } };
+
+/** Registry `renderResolution` with DPR cap — use on all HUD / overlay Text. */
+export function uiTextResolution(scene: RegistryScene): number {
+  return (
+    (scene.registry.get("renderResolution") as number | undefined) ??
+    clampRenderResolution()
+  );
+}
