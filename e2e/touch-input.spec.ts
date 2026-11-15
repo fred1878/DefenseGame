@@ -33,19 +33,24 @@ test.describe("real pointer / touch input", () => {
 
   test("MEL/RNG toggle then ranged ATK via canvas", async ({ page }) => {
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(80, 0));
+    const enemiesBefore = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEnemyCount() ?? 0,
+    );
+    expect(enemiesBefore).toBeGreaterThan(0);
     const mode = await getTapTarget(page, "combat-mode");
     await tapCanvas(page, mode.x, mode.y);
     const atk = await getTapTarget(page, "combat-atk");
     await tapCanvas(page, atk.x, atk.y);
+    // Projectiles destroy on first hit (PR #43); adjacent spawns rarely expose count > 0 on CI.
     await expect
       .poll(
         async () =>
           page.evaluate(
-            () => window.__DEFENSEGAME_E2E__?.api?.getProjectileCount() ?? 0,
+            () => window.__DEFENSEGAME_E2E__?.api?.getEnemyCount() ?? enemiesBefore,
           ),
         { timeout: 15_000 },
       )
-      .toBeGreaterThan(0);
+      .toBeLessThan(enemiesBefore);
   });
 
   test("spell slot via canvas tap fires nova", async ({ page }) => {
