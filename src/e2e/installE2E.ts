@@ -160,9 +160,9 @@ export function attachE2EGame(game: Phaser.Game): void {
 function buildApi(game: Phaser.Game): DefenseGameE2EApi {
   return {
     startNight() {
-      const town = game.scene.getScene("Town");
-      if (town) {
-        town.scene.start("Defense");
+      const town = game.scene.getScene("Town") as TownScene | null;
+      if (town?.scene.isActive()) {
+        town.e2eStartNight();
         return;
       }
       game.scene.start("Defense");

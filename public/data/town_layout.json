@@ -1,13 +1,13 @@
 {
   "menuOrder": [
+    "town_special_gallows_square",
     "town_market_stall_daylit",
     "town_market_stall",
     "town_special_witchlight_beacon_daylit",
     "town_special_witchlight_beacon",
     "town_special_plague_clinic",
     "town_special_haunted_well",
-    "town_special_moon_brazier",
-    "town_special_gallows_square"
+    "town_special_moon_brazier"
   ],
   "slots": [
     { "buildingId": "town_market_stall_daylit", "x": 100, "y": 230 },

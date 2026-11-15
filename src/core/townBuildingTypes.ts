@@ -5,6 +5,8 @@ export type TownBuildingDef = {
   height: number;
   /** When set, menu tap runs `buildings.json` upgrade for this id. */
   upgradeId?: string;
+  /** When true, tap starts Defense night (e.g. Gallows Square). */
+  startsNight?: boolean;
 };
 
 export type TownLayoutSlot = {

@@ -5,6 +5,7 @@ import { playerDamageMult, wallHpBonusFromBuildings } from "../core/GameState";
 import type { BuildingDef } from "../core/DataStore";
 
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
+const START_NIGHT_SUBTITLE = "— Start night";
 
 export function townBuildingMenuIds(
   defs: Record<string, TownBuildingDef>,
@@ -28,6 +29,8 @@ export function townBuildingSubtitle(
   save: SaveGame,
   def: TownBuildingDef,
 ): string {
+  if (def.startsNight) return START_NIGHT_SUBTITLE;
+
   const upgradeId = def.upgradeId;
   if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
 
@@ -73,7 +76,8 @@ export function formatTownBuildingButtonLabel(
 export type TownBuildingTapResult =
   | { kind: "noop"; message: string }
   | { kind: "upgraded"; message: string }
-  | { kind: "blocked"; message: string };
+  | { kind: "blocked"; message: string }
+  | { kind: "startNight"; message: string };
 
 /** Tap handler for a town building menu row (upgrade when wired, else status-only). */
 export function handleTownBuildingTap(
@@ -81,6 +85,10 @@ export function handleTownBuildingTap(
   save: SaveGame,
   def: TownBuildingDef,
 ): { save: SaveGame; result: TownBuildingTapResult } {
+  if (def.startsNight) {
+    return { save, result: { kind: "startNight", message: "" } };
+  }
+
   const upgradeId = def.upgradeId;
   if (!upgradeId) {
     return {

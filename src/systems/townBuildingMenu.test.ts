@@ -92,6 +92,21 @@ describe("townBuildingMenu", () => {
     );
   });
 
+  it("start night building returns startNight tap result", () => {
+    const def: TownBuildingDef = {
+      label: "Gallows Square",
+      textureKey: "town_special_gallows_square",
+      width: 112,
+      height: 72,
+      startsNight: true,
+    };
+    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
+      "— Start night",
+    );
+    const { result } = handleTownBuildingTap(store, createNewSave(), def);
+    expect(result.kind).toBe("startNight");
+  });
+
   it("blocks upgrade when gold is insufficient", () => {
     const def: TownBuildingDef = {
       label: "Moon Brazier",

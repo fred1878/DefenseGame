@@ -3,7 +3,8 @@
     "label": "Gallows Square",
     "textureKey": "town_special_gallows_square",
     "width": 112,
-    "height": 72
+    "height": 72,
+    "startsNight": true
   },
   "town_special_haunted_well": {
     "label": "Haunted Well",

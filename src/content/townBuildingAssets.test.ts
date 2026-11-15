@@ -55,6 +55,11 @@ describe("town building v02 keep list", () => {
     expect(defs.town_special_moon_brazier?.upgradeId).toBe("blacksmith");
   });
 
+  it("wires gallows square to start night", () => {
+    expect(defs.town_special_gallows_square?.startsNight).toBe(true);
+    expect(layout.menuOrder?.[0]).toBe("town_special_gallows_square");
+  });
+
   it("menu order lists every kept building once", () => {
     expect(layout.menuOrder).toHaveLength(8);
     const ids = new Set(layout.menuOrder);
