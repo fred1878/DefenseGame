@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { SPRITE_DISPLAY } from "../content/assets";
+import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import type { EnemyDef } from "../core/DataStore";
 import {
   DEFAULT_ENEMY_BASE,
@@ -52,11 +53,14 @@ export function spawnEnemy(
   onTap?: () => void,
 ): EnemyInstance {
   const sprite = scene.physics.add.sprite(x, y, def.textureKey);
-  sprite.setDisplaySize(SPRITE_DISPLAY.enemy, SPRITE_DISPLAY.enemy);
-  tuneArcadeDynamicBody(sprite, ENTITY_BODY_RADIUS.enemy, { pushable: true });
+  const side = worldDisplayPx(SPRITE_DISPLAY.enemy, scene.registry);
+  sprite.setDisplaySize(side, side);
+  tuneArcadeDynamicBody(sprite, worldUnit(ENTITY_BODY_RADIUS.enemy, scene.registry), {
+    pushable: true,
+  });
   sprite.setDepth(5);
   sprite.setInteractive(
-    new Phaser.Geom.Circle(0, 0, 26),
+    new Phaser.Geom.Circle(0, 0, worldUnit(26, scene.registry)),
     Phaser.Geom.Circle.Contains,
   );
   if (onTap) {

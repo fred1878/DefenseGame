@@ -4,6 +4,10 @@ import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
 import { publishE2E } from "./e2e/e2eGlobal";
 import { clampRenderResolution } from "./core/displayScale";
+import {
+  DEFAULT_WORLD_PIXEL_SCALE,
+  WORLD_PIXEL_SCALE_REGISTRY_KEY,
+} from "./core/worldPixelScale";
 import { ensureFreshBuild } from "./ensureFreshBuild";
 import { bindViewportToScale } from "./ui/screenLayout";
 import { BootScene } from "./scenes/BootScene";
@@ -50,6 +54,7 @@ async function start(): Promise<void> {
   await ensureFreshBuild();
   const game = new Phaser.Game(config);
   game.registry.set("renderResolution", clampRenderResolution());
+  game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
   if (isE2EEnabled()) {
     const e2eTimeScale = (): void => {

@@ -51,8 +51,9 @@ export function pickEnemyTarget(
   ey: number,
   px: number,
   py: number,
+  aggroRadius: number = PLAYER_AGGRO_RADIUS,
 ): EnemyTargetKind {
-  if (hasLivePlayerAggro(grid, ex, ey, px, py)) {
+  if (hasLivePlayerAggro(grid, ex, ey, px, py, aggroRadius)) {
     return "player";
   }
   return "wall";
@@ -67,9 +68,10 @@ function hasLivePlayerAggro(
   ey: number,
   px: number,
   py: number,
+  aggroRadius: number = PLAYER_AGGRO_RADIUS,
 ): boolean {
   const dist = Math.hypot(px - ex, py - ey);
-  return dist <= PLAYER_AGGRO_RADIUS && hasLineOfSight(grid, ex, ey, px, py);
+  return dist <= aggroRadius && hasLineOfSight(grid, ex, ey, px, py);
 }
 
 /** Target resolution with chase memory and wall-abandon transition flags on nav. */
@@ -81,8 +83,9 @@ export function resolveEnemyTarget(
   px: number,
   py: number,
   deltaMs: number,
+  aggroRadius: number = PLAYER_AGGRO_RADIUS,
 ): EnemyTargetResolution {
-  if (hasLivePlayerAggro(grid, ex, ey, px, py)) {
+  if (hasLivePlayerAggro(grid, ex, ey, px, py, aggroRadius)) {
     nav.lastKnownPlayerX = px;
     nav.lastKnownPlayerY = py;
     nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
@@ -129,12 +132,13 @@ export function replanEnemyPath(
   ey: number,
   goalX: number,
   goalY: number,
+  waypointRadius: number = DEFENSE_MAP.pathWaypointRadius,
 ): void {
   const path = findPath(grid, ex, ey, goalX, goalY);
   nav.path = path;
   nav.pathIndex = 0;
   const first = path[0];
-  if (first && Math.hypot(first.x - ex, first.y - ey) < DEFENSE_MAP.pathWaypointRadius) {
+  if (first && Math.hypot(first.x - ex, first.y - ey) < waypointRadius) {
     nav.pathIndex = 1;
   }
 }

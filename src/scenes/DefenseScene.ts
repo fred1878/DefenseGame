@@ -104,6 +104,10 @@ import {
   type SafeInsets,
 } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import {
+  scaledDefenseObstacles,
+  worldUnit,
+} from "../core/worldPixelScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -159,6 +163,10 @@ export class DefenseScene extends Phaser.Scene {
     super({ key: "Defense" });
   }
 
+  private wu(atDefault2x: number): number {
+    return worldUnit(atDefault2x, this.registry);
+  }
+
   /** Phaser reuses scene instances; clear per-night state when a new defense run starts. */
   private resetDefenseRunState(): void {
     this.nightEnded = false;
@@ -193,7 +201,10 @@ export class DefenseScene extends Phaser.Scene {
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
     this.wallHpStart = this.wallHp;
-    this.navGrid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize);
+    this.navGrid = buildNavGrid(
+      scaledDefenseObstacles(this.registry),
+      worldUnit(DEFENSE_MAP.cellSize, this.registry),
+    );
     const store = this.registry.get("dataStore") as DataStore;
     const wave = store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
@@ -205,11 +216,11 @@ export class DefenseScene extends Phaser.Scene {
     buildGroundDecorLayer(this, halfW, halfH, this.save.night);
 
     this.add
-      .rectangle(0, -halfH + 20, halfW * 2, 40, 0x52525b)
+      .rectangle(0, -halfH + 20, halfW * 2, worldUnit(40, this.registry), 0x52525b)
       .setOrigin(0.5, 0);
 
     this.obstacleGroup = this.physics.add.staticGroup();
-    for (const obs of DEFENSE_OBSTACLES) {
+    for (const obs of scaledDefenseObstacles(this.registry)) {
       const rock = this.physics.add.staticImage(obs.x, obs.y, obs.textureKey);
       configureDefenseObstacleSprite(rock, obs.textureKey, obs.w, obs.h);
       rock.setDepth(2);
@@ -467,7 +478,7 @@ export class DefenseScene extends Phaser.Scene {
     const playerHurtbox = {
       x: px,
       y: py,
-      radius: ENTITY_BODY_RADIUS.player,
+      radius: this.wu(ENTITY_BODY_RADIUS.player),
       damageable: this.player.damageable,
     };
 
@@ -701,8 +712,8 @@ export class DefenseScene extends Phaser.Scene {
     const py = this.player.sprite.y;
     switch (def.id) {
       case "nova":
-        applyNova(px, py, def, this.enemyTargets(), mult);
-        this.flashNova(px, py, def.novaRadius ?? 80);
+        applyNova(this, px, py, def, this.enemyTargets(), mult);
+        this.flashNova(px, py, this.wu(def.novaRadius ?? 80));
         break;
       case "fireball": {
         const angle = this.player.getFacingAngle();
@@ -768,7 +779,7 @@ export class DefenseScene extends Phaser.Scene {
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-      if (d > PLAYER_TUNING.autoAttackMeleeRange) continue;
+      if (d > this.wu(PLAYER_TUNING.autoAttackMeleeRange)) continue;
       if (bestMelee === null || d < bestMelee) bestMelee = d;
     }
     return bestMelee !== null ? "melee" : "ranged";
@@ -792,7 +803,7 @@ export class DefenseScene extends Phaser.Scene {
         worldX: world.x,
         worldY: world.y,
         picked: pick !== null,
-        pickRadiusWorld: PLAYER_TUNING.targetTapRadiusWorld,
+        pickRadiusWorld: this.wu(PLAYER_TUNING.targetTapRadiusWorld),
         ageMs: 0,
       };
     }
@@ -828,7 +839,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private findEnemyNearWorldPoint(worldX: number, worldY: number): EnemyInstance | null {
-    const r = PLAYER_TUNING.targetTapRadiusWorld;
+    const r = this.wu(PLAYER_TUNING.targetTapRadiusWorld);
     let best: { e: EnemyInstance; d: number } | null = null;
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
@@ -894,8 +905,8 @@ export class DefenseScene extends Phaser.Scene {
     const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
     const maxR =
       mode === "melee"
-        ? PLAYER_TUNING.autoAttackMeleeRange
-        : PLAYER_TUNING.autoAttackRangedRange;
+        ? this.wu(PLAYER_TUNING.autoAttackMeleeRange)
+        : this.wu(PLAYER_TUNING.autoAttackRangedRange);
     if (!manual && d > maxR) return null;
     return { x: e.sprite.x, y: e.sprite.y };
   }
@@ -940,8 +951,8 @@ export class DefenseScene extends Phaser.Scene {
     const py = this.player.sprite.y;
     const maxR =
       mode === "melee"
-        ? PLAYER_TUNING.autoAttackMeleeRange
-        : PLAYER_TUNING.autoAttackRangedRange;
+        ? this.wu(PLAYER_TUNING.autoAttackMeleeRange)
+        : this.wu(PLAYER_TUNING.autoAttackRangedRange);
     let best: { x: number; y: number; d: number } | null = null;
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
@@ -982,7 +993,7 @@ export class DefenseScene extends Phaser.Scene {
       angle,
       PLAYER_TUNING.projectileSpeed,
       damage,
-      PLAYER_TUNING.rangedMaxRange,
+      this.wu(PLAYER_TUNING.rangedMaxRange),
       id,
     );
     this.projectiles.push(p);
@@ -993,7 +1004,7 @@ export class DefenseScene extends Phaser.Scene {
       id: e.id,
       x: e.sprite.x,
       y: e.sprite.y,
-      radius: ENTITY_BODY_RADIUS.enemy,
+      radius: this.wu(ENTITY_BODY_RADIUS.enemy),
       damageable: e.damageable,
       sprite: e.sprite,
     }));
@@ -1042,7 +1053,7 @@ export class DefenseScene extends Phaser.Scene {
     this.hitboxDebug.clear();
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
-    this.hitboxDebug.drawCircle(px, py, ENTITY_BODY_RADIUS.player);
+    this.hitboxDebug.drawCircle(px, py, this.wu(ENTITY_BODY_RADIUS.player));
 
     if (
       this.player.mode === "melee" &&
@@ -1053,7 +1064,7 @@ export class DefenseScene extends Phaser.Scene {
         px,
         py,
         this.player.getFacingAngle(),
-        PLAYER_TUNING.meleeRange,
+        this.wu(PLAYER_TUNING.meleeRange),
         arcHalf,
       );
     }
@@ -1063,7 +1074,7 @@ export class DefenseScene extends Phaser.Scene {
       this.hitboxDebug.drawCircle(
         e.sprite.x,
         e.sprite.y,
-        ENTITY_BODY_RADIUS.enemy,
+        this.wu(ENTITY_BODY_RADIUS.enemy),
       );
       if (e.combat.phase === "active") {
         const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);

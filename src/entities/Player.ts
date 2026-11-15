@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { PLAYER_TUNING, type AttackMode } from "../config";
 import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../content/assets";
+import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
@@ -25,8 +26,12 @@ export class Player {
 
   constructor(scene: Phaser.Scene, x: number, y: number, hpMax: number) {
     this.sprite = scene.physics.add.sprite(x, y, PLAYER_TEXTURE.s);
-    this.sprite.setDisplaySize(SPRITE_DISPLAY.player, SPRITE_DISPLAY.player);
-    tuneArcadeDynamicBody(this.sprite, ENTITY_BODY_RADIUS.player, {
+    const reg = scene.registry;
+    this.sprite.setDisplaySize(
+      worldDisplayPx(SPRITE_DISPLAY.player, reg),
+      worldDisplayPx(SPRITE_DISPLAY.player, reg),
+    );
+    tuneArcadeDynamicBody(this.sprite, worldUnit(ENTITY_BODY_RADIUS.player, reg), {
       pushable: false,
       worldBounds: true,
     });
@@ -113,7 +118,9 @@ export class Player {
     const key = PLAYER_TEXTURE[card];
     if (this.sprite.texture.key !== key) {
       this.sprite.setTexture(key);
-      this.sprite.setDisplaySize(SPRITE_DISPLAY.player, SPRITE_DISPLAY.player);
+      const reg = this.sprite.scene.registry;
+      const side = worldDisplayPx(SPRITE_DISPLAY.player, reg);
+      this.sprite.setDisplaySize(side, side);
     }
   }
 
@@ -176,7 +183,7 @@ export class Player {
         this.sprite.x,
         this.sprite.y,
         this.facing,
-        PLAYER_TUNING.meleeRange,
+        worldUnit(PLAYER_TUNING.meleeRange, this.sprite.scene.registry),
         arcHalf,
         e.x,
         e.y,

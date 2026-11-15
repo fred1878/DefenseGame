@@ -15,6 +15,11 @@ function mockJavelineer(x: number, y: number) {
       x,
       y,
       setVelocity: vi.fn(),
+      scene: {
+        registry: {
+          get: () => undefined,
+        },
+      },
     } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
     nav: { ...createEnemyNav(), targetKind: "player" },
     behaviorExtra: { strafeSign: 1, strafeFlipMs: 500 },

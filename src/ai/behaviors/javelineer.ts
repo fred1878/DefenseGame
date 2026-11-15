@@ -1,4 +1,5 @@
-import { DEFENSE_MAP, northWallAttackY } from "../../config";
+import { DEFENSE_MAP, northWallAttackY, PLAYER_AGGRO_RADIUS } from "../../config";
+import { worldUnit } from "../../core/worldPixelScale";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
@@ -22,14 +23,25 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
-  const resolved = resolveEnemyTarget(nav, grid, ex, ey, playerX, playerY, deltaMs);
+  const reg = enemy.sprite.scene.registry;
+  const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
+  const resolved = resolveEnemyTarget(
+    nav,
+    grid,
+    ex,
+    ey,
+    playerX,
+    playerY,
+    deltaMs,
+    worldUnit(PLAYER_AGGRO_RADIUS, reg),
+  );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
 
   if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y);
+    replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y, waypointRadius);
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }
 
@@ -39,7 +51,8 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   const javelineer = enemy.combatTuning.javelineer;
 
   if (desired === "player" && javelineer) {
-    const { minRange, maxRange } = javelineer;
+    const minRange = worldUnit(javelineer.minRange, reg);
+    const maxRange = worldUnit(javelineer.maxRange, reg);
     if (dist < minRange) {
       applyDirectVelocity(enemy, ex - playerX, ey - playerY, 1.05);
     } else if (dist > maxRange) {
@@ -48,7 +61,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
         const wp = nav.path[nav.pathIndex]!;
         const d = Math.hypot(wp.x - ex, wp.y - ey);
-        if (d <= DEFENSE_MAP.pathWaypointRadius) {
+        if (d <= waypointRadius) {
           nav.pathIndex += 1;
         }
         const nextWp = nav.path[nav.pathIndex];
@@ -77,7 +90,9 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   } else if (javelineer) {
     const wallY = northWallAttackY();
     const distToWall = ey - wallY;
-    const { minRange, maxRange, strafeSpeedMul } = javelineer;
+    const minRange = worldUnit(javelineer.minRange, reg);
+    const maxRange = worldUnit(javelineer.maxRange, reg);
+    const { strafeSpeedMul } = javelineer;
     if (distToWall < minRange) {
       applyDirectVelocity(enemy, 0, 1, 1.05);
     } else if (distToWall > maxRange) {
@@ -86,7 +101,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
         const wp = nav.path[nav.pathIndex]!;
         const d = Math.hypot(wp.x - ex, wp.y - ey);
-        if (d <= DEFENSE_MAP.pathWaypointRadius) {
+        if (d <= waypointRadius) {
           nav.pathIndex += 1;
         }
         const nextWp = nav.path[nav.pathIndex];

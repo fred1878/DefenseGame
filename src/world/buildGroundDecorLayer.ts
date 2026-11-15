@@ -4,6 +4,7 @@ import {
   GROUND_DECOR_DISPLAY,
   GROUND_TILE_SIZE,
 } from "../content/assets";
+import { worldDisplayPx } from "../core/worldPixelScale";
 import {
   groundDecorJitter,
   groundDecorShouldPlace,
@@ -16,8 +17,9 @@ export function buildGroundDecorLayer(
   worldHalfHeight: number,
   seed: number,
 ): Phaser.GameObjects.Container {
-  const tilesX = Math.ceil((worldHalfWidth * 2) / GROUND_TILE_SIZE);
-  const tilesY = Math.ceil((worldHalfHeight * 2) / GROUND_TILE_SIZE);
+  const tileSize = worldDisplayPx(GROUND_TILE_SIZE, scene.registry);
+  const tilesX = Math.ceil((worldHalfWidth * 2) / tileSize);
+  const tilesY = Math.ceil((worldHalfHeight * 2) / tileSize);
   const originX = -worldHalfWidth;
   const originY = -worldHalfHeight;
   const layer = scene.add.container(0, 0).setDepth(-9);
@@ -32,18 +34,18 @@ export function buildGroundDecorLayer(
       if (!groundDecorShouldPlace(tx, ty, seed)) continue;
       const vi = groundTileVariantIndex(tx, ty, seed, keys.length);
       const key = keys[vi]!;
-      const jitter = GROUND_TILE_SIZE * 0.22;
+      const jitter = tileSize * 0.22;
       const x =
         originX +
-        tx * GROUND_TILE_SIZE +
-        GROUND_TILE_SIZE / 2 +
+        tx * tileSize +
+        tileSize / 2 +
         groundDecorJitter(tx, ty, seed, jitter);
       const y =
         originY +
-        ty * GROUND_TILE_SIZE +
-        GROUND_TILE_SIZE / 2 +
+        ty * tileSize +
+        tileSize / 2 +
         groundDecorJitter(ty, tx, seed ^ 0x85ebca6b, jitter);
-      const disp = GROUND_DECOR_DISPLAY[key] ?? 24;
+      const disp = worldDisplayPx(GROUND_DECOR_DISPLAY[key] ?? 24, scene.registry);
       const spr = scene.add.image(x, y, key).setOrigin(0.5);
       spr.setDisplaySize(disp, disp);
       layer.add(spr);
