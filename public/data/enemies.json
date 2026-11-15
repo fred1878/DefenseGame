@@ -88,8 +88,8 @@
       "javelineer": {
         "minRange": 52,
         "maxRange": 198,
-        "strafeSpeedMul": 0.92,
-        "orbitFlipMs": 1400,
+        "strafeSpeedMul": 0.95,
+        "orbitFlipMs": 880,
         "windupMs": 340,
         "activeMs": 120,
         "recoveryMs": 420,

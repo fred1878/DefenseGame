@@ -35,7 +35,7 @@ describe("javelineerBehavior", () => {
     cellSize: 40,
   } as unknown as import("../../pathfinding/grid").NavGrid;
 
-  it("backs away when player is inside min range", () => {
+  it("retreats and arcs when player is inside min range", () => {
     const enemy = mockJavelineer(0, 0);
     javelineerBehavior({
       enemy,
@@ -47,11 +47,12 @@ describe("javelineerBehavior", () => {
     });
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     expect(setVelocity).toHaveBeenCalled();
-    const [vx] = setVelocity.mock.calls[0]!;
+    const [vx, vy] = setVelocity.mock.calls[0]!;
     expect(vx).toBeLessThan(0);
+    expect(Math.abs(vy)).toBeGreaterThan(0);
   });
 
-  it("strafes laterally with light retreat when in the kite band", () => {
+  it("strafes tangentially when at ideal kite distance", () => {
     const enemy = mockJavelineer(0, 0);
     const band =
       (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
@@ -68,5 +69,39 @@ describe("javelineerBehavior", () => {
     const [vx, vy] = setVelocity.mock.calls[0]!;
     expect(Math.abs(vy)).toBeGreaterThan(0);
     expect(Math.abs(vx)).toBeLessThan(Math.abs(vy));
+  });
+
+  it("approaches while strafing when beyond ideal range inside the band", () => {
+    const enemy = mockJavelineer(0, 0);
+    const dist = DEFAULT_JAVELINEER_COMBAT.maxRange - 8;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: dist,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx, vy] = setVelocity.mock.calls[0]!;
+    expect(vx).toBeGreaterThan(0);
+    expect(Math.abs(vy)).toBeGreaterThan(0);
+  });
+
+  it("flips strafe sign after orbit timer elapses", () => {
+    const enemy = mockJavelineer(0, 0);
+    enemy.behaviorExtra.strafeFlipMs = 8;
+    const band =
+      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: band,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.strafeSign).toBe(-1);
   });
 });
