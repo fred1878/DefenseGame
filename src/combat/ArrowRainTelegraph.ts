@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { ARROW_RAIN_TUNING } from "../config";
 
 export type ArrowRainTelegraph = {
   gfx: Phaser.GameObjects.Graphics;
@@ -7,6 +6,7 @@ export type ArrowRainTelegraph = {
   zoneY: number;
   phaseMs: number;
   windupMs: number;
+  zoneRadius: number;
 };
 
 export function spawnArrowRainTelegraph(
@@ -14,19 +14,21 @@ export function spawnArrowRainTelegraph(
   zoneX: number,
   zoneY: number,
   windupMs: number,
+  zoneRadius: number,
 ): ArrowRainTelegraph {
   const gfx = scene.add.graphics();
   gfx.setDepth(3);
-  return { gfx, zoneX, zoneY, phaseMs: 0, windupMs };
+  return { gfx, zoneX, zoneY, phaseMs: 0, windupMs, zoneRadius };
 }
 
 export function updateArrowRainTelegraph(
   telegraph: ArrowRainTelegraph,
   deltaMs: number,
   raining: boolean,
+  zoneRadius = telegraph.zoneRadius,
 ): void {
   telegraph.phaseMs += deltaMs;
-  const r = ARROW_RAIN_TUNING.zoneRadius;
+  const r = zoneRadius;
   const t = raining
     ? 1
     : Math.min(1, telegraph.phaseMs / Math.max(1, telegraph.windupMs));

@@ -1,5 +1,4 @@
 import {
-  ENEMY_TUNING,
   PLAYER_TUNING,
   SAVE_VERSION,
   SPELL_BAR,
@@ -9,7 +8,7 @@ import {
   type SaveGame,
   type SaveSpellBar,
 } from "../config";
-
+import { DEFAULT_ENEMY_BASE } from "./enemyTuning";
 import { saveStorageKey } from "../e2e/e2eMode";
 
 function storageKey(): string {
@@ -149,7 +148,7 @@ export function playerDamageMult(buildings: Record<string, number>): number {
   return 1 + smith * 0.1;
 }
 
-/** Placeholder tuning hook for tests / future JSON. */
+/** Placeholder tuning hook for tests / content parity with default grunt row. */
 export function gruntMaxHp(): number {
-  return ENEMY_TUNING.gruntHp;
+  return DEFAULT_ENEMY_BASE.hp;
 }

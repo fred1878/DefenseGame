@@ -9,16 +9,9 @@ export {
 } from "./assets";
 export { PLAYER_TUNING, type AttackMode } from "./player";
 export {
-  ARROW_RAIN_TUNING,
-  BRUISER_MELEE_TUNING,
-  ENEMY_TUNING,
-  GRUNT_MELEE_TUNING,
-  JAVELINEER_TUNING,
   PLAYER_AGGRO_RADIUS,
   PLAYER_CHASE_MEMORY_MS,
   WALL_VELOCITY_BLEND_MS,
-  meleeCombatTuningForDef,
-  type MeleeCombatTuning,
 } from "./enemy";
 export {
   DEFENSE_MAP,

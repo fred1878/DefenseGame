@@ -1,9 +1,14 @@
+import type { EnemyCombatPartial } from "./enemyTuning";
+import { normalizeEnemyRow } from "./normalizeEnemy";
+
 export type EnemyDef = {
   hp: number;
   speed: number;
   damage: number;
   behavior: string;
   textureKey: string;
+  /** Optional overrides; missing fields use per-behavior defaults. */
+  combat?: EnemyCombatPartial;
 };
 
 export type WaveGroup = {
@@ -36,7 +41,12 @@ export class DataStore {
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
       fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
     ]);
-    this.enemies = enemies;
+    this.enemies = Object.fromEntries(
+      Object.entries(enemies).map(([id, row]) => [
+        id,
+        normalizeEnemyRow(id, row),
+      ]),
+    );
     this.waves = waves;
     this.buildings = buildings;
   }

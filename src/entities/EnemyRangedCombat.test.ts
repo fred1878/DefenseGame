@@ -1,41 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
-import { ARROW_RAIN_TUNING, ENEMY_TUNING, JAVELINEER_TUNING } from "../config";
+import {
+  DEFAULT_ARROW_RAIN_COMBAT,
+  DEFAULT_JAVELINEER_COMBAT,
+  DEFAULT_WALL_COMBAT,
+} from "../core/enemyTuning";
 import { northWallAttackY } from "../config/defense";
-import type { EnemyInstance } from "./Enemy";
 import { createEnemyNav } from "../ai/EnemyBrain";
-import { createEnemyCombat } from "./EnemyCombat";
 import {
   createArrowRainCombatState,
   createJavelineerCombatState,
   updateArrowRainCombat,
   updateJavelineerCombat,
 } from "./EnemyRangedCombat";
+import { mockEnemyInstance } from "./testEnemyInstance";
 
-function baseEnemy(behavior: string): EnemyInstance {
-  return {
-    id: "e",
-    defId: behavior,
+function baseEnemy(behavior: "arrowRainArcher" | "javelineer") {
+  return mockEnemyInstance({
     behavior,
-    speed: 80,
     damage: 10,
-    textureKey: "enemy_grunt",
-    sprite: {
-      x: 0,
-      y: 0,
-      setVelocity: vi.fn(),
-      scene: { add: { graphics: vi.fn() } },
-    } as unknown as EnemyInstance["sprite"],
-    damageable: {
-      id: "e",
-      hp: 20,
-      maxHp: 20,
-      alive: true,
-      team: "enemy",
-    },
-    combat: createEnemyCombat(),
     nav: { ...createEnemyNav(), targetKind: "player" },
-    behaviorExtra: { strafeSign: 1, strafeFlipMs: 0 },
-  };
+  });
 }
 
 describe("updateArrowRainCombat", () => {
@@ -59,11 +43,11 @@ describe("updateArrowRainCombat", () => {
     };
     enemy.arrowRain.zoneX = 40;
     enemy.arrowRain.zoneY = 0;
-  const result = updateArrowRainCombat(
+    const result = updateArrowRainCombat(
       enemy,
       target,
       enemy.arrowRain,
-      ARROW_RAIN_TUNING.tickIntervalMs + 10,
+      DEFAULT_ARROW_RAIN_COMBAT.tickIntervalMs + 10,
     );
     expect(result.hitPlayer).toBe(true);
     expect(result.damage).toBeGreaterThan(0);
@@ -74,7 +58,7 @@ describe("updateArrowRainCombat wall target", () => {
   it("calls onWallHit during active phase in wall attack range", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("arrowRainArcher");
-    enemy.sprite.y = wy + ENEMY_TUNING.wallAttackRange - 4;
+    enemy.sprite.y = wy + DEFAULT_WALL_COMBAT.hitRange - 4;
     enemy.arrowRain = createArrowRainCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -95,7 +79,7 @@ describe("updateJavelineerCombat wall target", () => {
   it("calls onWallHit during active phase at the wall", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("javelineer");
-    enemy.sprite.y = wy + ENEMY_TUNING.wallAttackRange - 4;
+    enemy.sprite.y = wy + DEFAULT_WALL_COMBAT.hitRange - 4;
     enemy.javelineer = createJavelineerCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -118,7 +102,9 @@ describe("updateJavelineerCombat", () => {
     enemy.javelineer = createJavelineerCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
-    const mid = (JAVELINEER_TUNING.minRange + JAVELINEER_TUNING.maxRange) / 2;
+    const mid =
+      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      2;
     const result = updateJavelineerCombat(
       enemy,
       {

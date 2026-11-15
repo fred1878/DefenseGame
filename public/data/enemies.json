@@ -11,14 +11,58 @@
     "speed": 58,
     "damage": 11,
     "behavior": "bruiser",
-    "textureKey": "enemy_grunt"
+    "textureKey": "enemy_grunt",
+    "combat": {
+      "wall": {
+        "damage": 8,
+        "triggerRange": 52,
+        "hitRange": 44
+      },
+      "melee": {
+        "triggerRange": 50,
+        "range": 44,
+        "arcDeg": 78,
+        "windupMs": 480,
+        "activeMs": 130,
+        "recoveryMs": 600,
+        "cooldownMs": 520
+      }
+    }
   },
   "arrow_rain_archer": {
     "hp": 28,
     "speed": 52,
     "damage": 9,
     "behavior": "arrowRainArcher",
-    "textureKey": "enemy_arrow_rain_archer"
+    "textureKey": "enemy_arrow_rain_archer",
+    "combat": {
+      "wall": {
+        "damage": 6,
+        "triggerRange": 42,
+        "hitRange": 34
+      },
+      "melee": {
+        "triggerRange": 36,
+        "range": 26,
+        "arcDeg": 70,
+        "windupMs": 380,
+        "activeMs": 110,
+        "recoveryMs": 480,
+        "cooldownMs": 350
+      },
+      "arrowRain": {
+        "preferredRange": 150,
+        "attackTriggerRange": 168,
+        "windupMs": 900,
+        "activeMs": 1200,
+        "recoveryMs": 520,
+        "cooldownMs": 2200,
+        "zoneRadius": 72,
+        "tickIntervalMs": 300,
+        "tickDamageScale": 0.55,
+        "maxTicks": 4
+      }
+    }
   },
   "javelineer": {
     "hp": 26,
