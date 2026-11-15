@@ -12,8 +12,10 @@ import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 import {
   createArrowRainCombatState,
   createJavelineerCombatState,
+  createStationaryRangedCombatState,
   type ArrowRainCombatState,
   type JavelineerCombatState,
+  type StationaryRangedCombatState,
 } from "./EnemyRangedCombat";
 
 import type { EnemyNavState } from "../ai/EnemyBrain";
@@ -40,6 +42,7 @@ export type EnemyInstance = {
   behaviorExtra: EnemyBehaviorExtra;
   arrowRain?: ArrowRainCombatState;
   javelineer?: JavelineerCombatState;
+  stationaryRanged?: StationaryRangedCombatState;
 };
 
 export function spawnEnemy(
@@ -108,6 +111,9 @@ export function spawnEnemy(
   }
   if (def.behavior === "javelineer") {
     enemy.javelineer = createJavelineerCombatState();
+  }
+  if (def.behavior === "stationaryRanged") {
+    enemy.stationaryRanged = createStationaryRangedCombatState();
   }
   return enemy;
 }

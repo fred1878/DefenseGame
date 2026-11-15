@@ -42,6 +42,16 @@ export type EnemyCombatPartial = {
     projectileSpeed?: number;
     projectileMaxTravel?: number;
   };
+  /** Hold position + straight bolt (`stationaryRanged` behavior). */
+  stationaryRanged?: {
+    attackTriggerRange?: number;
+    windupMs?: number;
+    activeMs?: number;
+    recoveryMs?: number;
+    cooldownMs?: number;
+    projectileSpeed?: number;
+    projectileMaxTravel?: number;
+  };
 };
 
 export type EnemyWallCombat = {
@@ -86,11 +96,22 @@ export type EnemyJavelineerCombat = {
   projectileMaxTravel: number;
 };
 
+export type EnemyStationaryRangedCombat = {
+  attackTriggerRange: number;
+  windupMs: number;
+  activeMs: number;
+  recoveryMs: number;
+  cooldownMs: number;
+  projectileSpeed: number;
+  projectileMaxTravel: number;
+};
+
 export type ResolvedEnemyCombat = {
   wall: EnemyWallCombat;
   melee: EnemyMeleeCombat;
   arrowRain?: EnemyArrowRainCombat;
   javelineer?: EnemyJavelineerCombat;
+  stationaryRanged?: EnemyStationaryRangedCombat;
 };
 
 /** Default melee grunt row stats when JSON omits fields. */
@@ -140,6 +161,16 @@ export const DEFAULT_JAVELINEER_COMBAT: EnemyJavelineerCombat = {
   cooldownMs: 1100,
   projectileSpeed: 340,
   projectileMaxTravel: 240,
+};
+
+export const DEFAULT_STATIONARY_RANGED_COMBAT: EnemyStationaryRangedCombat = {
+  attackTriggerRange: 155,
+  windupMs: 520,
+  activeMs: 80,
+  recoveryMs: 480,
+  cooldownMs: 1400,
+  projectileSpeed: 380,
+  projectileMaxTravel: 220,
 };
 
 function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
@@ -200,6 +231,23 @@ function mergeJavelineer(
   };
 }
 
+function mergeStationaryRanged(
+  partial?: EnemyCombatPartial["stationaryRanged"],
+): EnemyStationaryRangedCombat {
+  const d = DEFAULT_STATIONARY_RANGED_COMBAT;
+  return {
+    attackTriggerRange:
+      partial?.attackTriggerRange ?? d.attackTriggerRange,
+    windupMs: partial?.windupMs ?? d.windupMs,
+    activeMs: partial?.activeMs ?? d.activeMs,
+    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
+    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
+    projectileSpeed: partial?.projectileSpeed ?? d.projectileSpeed,
+    projectileMaxTravel:
+      partial?.projectileMaxTravel ?? d.projectileMaxTravel,
+  };
+}
+
 export function resolveEnemyCombat(
   behavior: string,
   combat?: EnemyCombatPartial,
@@ -213,6 +261,11 @@ export function resolveEnemyCombat(
   }
   if (behavior === "javelineer") {
     resolved.javelineer = mergeJavelineer(combat?.javelineer);
+  }
+  if (behavior === "stationaryRanged") {
+    resolved.stationaryRanged = mergeStationaryRanged(
+      combat?.stationaryRanged,
+    );
   }
   return resolved;
 }

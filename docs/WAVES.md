@@ -6,8 +6,8 @@ Counts below are per-night totals (grunt groups summed). ~30% more enemies than 
 
 | Night | rewardGold | Summary |
 |------:|-----------:|---------|
-| 1 | 40 | 7× grunt; 1 archer + 1 javelineer (late) |
-| 2 | 55 | 11× grunt; 1 archer + 1 javelineer |
+| 1 | 40 | 7× grunt, 2× skirmisher; 1 sentry archer + 1 arrow rain archer + javelineers (late) |
+| 2 | 55 | 11× grunt, 2× skirmisher; 1 sentry archer + 1 archer + 1 javelineer |
 | 3 | 70 | 13× grunt; 1 bruiser; 1 archer + 1 javelineer |
 | 4 | 85 | 13× grunt; 2 bruisers; 3 archers + 2 javelineers |
 | 5 | 100 | 15× grunt; 2 bruisers; 3 archers + 3 javelineers |

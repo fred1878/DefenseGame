@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_ARROW_RAIN_COMBAT,
   DEFAULT_JAVELINEER_COMBAT,
+  DEFAULT_STATIONARY_RANGED_COMBAT,
   DEFAULT_MELEE_COMBAT,
   DEFAULT_WALL_COMBAT,
   resolveEnemyCombat,
@@ -15,6 +16,7 @@ describe("resolveEnemyCombat", () => {
     expect(tuned.melee).toEqual(DEFAULT_MELEE_COMBAT);
     expect(tuned.arrowRain).toBeUndefined();
     expect(tuned.javelineer).toBeUndefined();
+    expect(tuned.stationaryRanged).toBeUndefined();
   });
 
   it("merges partial wall override onto defaults", () => {
@@ -35,6 +37,9 @@ describe("resolveEnemyCombat", () => {
     });
     expect(jav.javelineer?.maxRange).toBe(210);
     expect(jav.javelineer?.minRange).toBe(DEFAULT_JAVELINEER_COMBAT.minRange);
+
+    const sentry = resolveEnemyCombat("stationaryRanged", {});
+    expect(sentry.stationaryRanged).toEqual(DEFAULT_STATIONARY_RANGED_COMBAT);
   });
 });
 

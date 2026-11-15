@@ -3,7 +3,9 @@
     "rewardGold": 40,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 7, "intervalMs": 700 },
+      { "atMs": 1200, "enemyId": "skirmisher", "count": 2, "intervalMs": 900 },
       { "atMs": 0, "enemyId": "javelineer", "count": 2, "intervalMs": 0 },
+      { "atMs": 4200, "enemyId": "sentry_archer", "count": 1, "intervalMs": 0 },
       { "atMs": 5500, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1500 },
       { "atMs": 7500, "enemyId": "javelineer", "count": 1, "intervalMs": 1500 }
     ]
@@ -12,6 +14,8 @@
     "rewardGold": 55,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 11, "intervalMs": 550 },
+      { "atMs": 1800, "enemyId": "skirmisher", "count": 2, "intervalMs": 800 },
+      { "atMs": 4800, "enemyId": "sentry_archer", "count": 1, "intervalMs": 0 },
       { "atMs": 5000, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1400 },
       { "atMs": 6800, "enemyId": "javelineer", "count": 1, "intervalMs": 1400 }
     ]

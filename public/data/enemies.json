@@ -64,6 +64,61 @@
       }
     }
   },
+  "skirmisher": {
+    "hp": 17,
+    "speed": 122,
+    "damage": 5,
+    "behavior": "meleeChaser",
+    "textureKey": "enemy_grunt",
+    "combat": {
+      "wall": {
+        "damage": 4,
+        "triggerRange": 38,
+        "hitRange": 30
+      },
+      "melee": {
+        "triggerRange": 32,
+        "range": 22,
+        "arcDeg": 62,
+        "windupMs": 280,
+        "activeMs": 90,
+        "recoveryMs": 380,
+        "cooldownMs": 280
+      }
+    }
+  },
+  "sentry_archer": {
+    "hp": 24,
+    "speed": 62,
+    "damage": 10,
+    "behavior": "stationaryRanged",
+    "textureKey": "enemy_arrow_rain_archer",
+    "combat": {
+      "wall": {
+        "damage": 5,
+        "triggerRange": 40,
+        "hitRange": 32
+      },
+      "melee": {
+        "triggerRange": 34,
+        "range": 22,
+        "arcDeg": 65,
+        "windupMs": 360,
+        "activeMs": 100,
+        "recoveryMs": 440,
+        "cooldownMs": 320
+      },
+      "stationaryRanged": {
+        "attackTriggerRange": 158,
+        "windupMs": 540,
+        "activeMs": 70,
+        "recoveryMs": 500,
+        "cooldownMs": 1500,
+        "projectileSpeed": 390,
+        "projectileMaxTravel": 230
+      }
+    }
+  },
   "javelineer": {
     "hp": 26,
     "speed": 128,
