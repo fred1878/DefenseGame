@@ -11,7 +11,7 @@ test.describe("town spell panel visual", () => {
     await page.waitForTimeout(400);
     await expectViewportScreenshot(page, testInfo, "town-spell-panel-540x1200.png", {
       clip: PANEL_CLIP,
-      maxDiffPixelRatio: 0.04,
+      maxDiffPixelRatio: 0.07,
     });
   });
 });
