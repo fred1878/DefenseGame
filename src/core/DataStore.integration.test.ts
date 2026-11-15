@@ -95,6 +95,12 @@ describe("public data fixtures", () => {
         "heal",
         "water_bolt",
         "arc_bomb",
+        "swing",
+        "rend",
+        "cone_of_cold",
+        "cone_of_fire",
+        "fire_blast",
+        "frost_nova",
       ]),
     );
     const iconDir = path.join(process.cwd(), "public/assets/spells/icons");
