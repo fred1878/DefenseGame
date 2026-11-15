@@ -5,6 +5,7 @@ import {
   PLAYER_CHASE_MEMORY_MS,
   WALL_VELOCITY_BLEND_MS,
 } from "../config";
+import { northWallAttackY } from "../config/defense";
 import { buildNavGrid } from "../pathfinding/grid";
 import {
   createEnemyNav,
@@ -53,6 +54,19 @@ describe("resolveEnemyTarget", () => {
     expect(r.goalX).toBe(0);
     expect(r.goalY).toBe(0);
     expect(nav.chaseMemoryMs).toBeLessThan(PLAYER_CHASE_MEMORY_MS);
+    expect(nav.chaseMemoryMs).toBeGreaterThan(0);
+  });
+
+  it("combat target is wall while chase memory still pursues last known player", () => {
+    const nav = createEnemyNav();
+    nav.lastKnownPlayerX = 120;
+    nav.lastKnownPlayerY = 80;
+    nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
+    nav.targetKind = "player";
+
+    const wy = northWallAttackY();
+    expect(pickEnemyTarget(grid, 0, wy + 24, 400, 300)).toBe("wall");
+    expect(nav.targetKind).toBe("player");
     expect(nav.chaseMemoryMs).toBeGreaterThan(0);
   });
 

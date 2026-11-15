@@ -31,7 +31,11 @@ import {
   applyNova,
   spawnChanneledFireball,
 } from "../combat/SpellEffects";
-import { updateEnemyBrain, wallTargetPoint } from "../ai/EnemyBrain";
+import {
+  pickEnemyCombatTarget,
+  updateEnemyBrain,
+  wallTargetPoint,
+} from "../ai/EnemyBrain";
 import { JAVELINEER_TUNING } from "../config/enemy";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { showEnemyPaths, showHitboxes, showTouchInput } from "../debug/DebugState";
@@ -480,8 +484,15 @@ export class DefenseScene extends Phaser.Scene {
         y: brain.targetY,
       });
 
+      const combatTargetKind = pickEnemyCombatTarget(
+        this.navGrid,
+        e.sprite.x,
+        e.sprite.y,
+        px,
+        py,
+      );
       const attackTarget =
-        brain.targetKind === "player"
+        combatTargetKind === "player"
           ? {
               kind: "player" as const,
               x: px,
