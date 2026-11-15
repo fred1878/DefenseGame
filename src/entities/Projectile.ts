@@ -10,6 +10,12 @@ import { applyKnockbackFrom } from "../combat/Knockback";
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
 const STONE_THROW_ROT_OFFSET = 0;
 
+export type SpellProjectileBehavior =
+  | "default"
+  | "pierce"
+  | "aoe_on_hit"
+  | "tracking";
+
 export type PlayerProjectile = {
   id: string;
   sprite: Phaser.Physics.Arcade.Sprite;
@@ -19,6 +25,22 @@ export type PlayerProjectile = {
   traveled: number;
   prevX: number;
   prevY: number;
+  spellBehavior?: SpellProjectileBehavior;
+  /** World-units blast on detonate (arc bomb). */
+  blastRadiusWu?: number;
+  pierceRemaining?: number;
+  trackEnemyId?: string | null;
+  damagedEnemyIds?: Set<string>;
+  spellId?: string;
+  pendingDetonation?: ProjectileDetonation;
+};
+
+export type ProjectileDetonation = {
+  x: number;
+  y: number;
+  radiusWu: number;
+  damage: number;
+  flavor: DamageFlavor;
 };
 
 /** MobileRPG atlas projectile slices only (never `fx_fire_bolt`). */
@@ -75,7 +97,22 @@ export function spawnPlayerProjectile(
     traveled: 0,
     prevX: x,
     prevY: y,
+    spellBehavior: "default",
+    damagedEnemyIds: new Set<string>(),
   };
+}
+
+function steerProjectileToward(
+  projectile: PlayerProjectile,
+  tx: number,
+  ty: number,
+  speed: number,
+): void {
+  const sprite = projectile.sprite;
+  const angle = Math.atan2(ty - sprite.y, tx - sprite.x);
+  const body = sprite.body as Phaser.Physics.Arcade.Body;
+  body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+  sprite.setRotation(angle + projectileRotOffset(sprite.texture.key));
 }
 
 export function updateProjectile(
@@ -105,8 +142,10 @@ export function updateProjectile(
     | (typeof enemies)[number]
     | undefined;
 
+  const skipIds = projectile.damagedEnemyIds;
   for (const e of enemies) {
     if (!e.damageable.alive) continue;
+    if (skipIds?.has(e.id)) continue;
     const hitR = e.radius + 6;
     const t = segmentFirstCircleHitT(x0, y0, x1, y1, e.x, e.y, hitR);
     if (t === null) continue;
@@ -117,13 +156,47 @@ export function updateProjectile(
   }
 
   if (firstTarget && firstT !== null) {
-    applyDamage(firstTarget.damageable, projectile.damage, projectile.damageFlavor);
-    applyKnockbackFrom(
-      firstTarget.sprite,
-      projectile.sprite.x,
-      projectile.sprite.y,
-      knockback,
-    );
+    const behavior = projectile.spellBehavior ?? "default";
+    const damaged = projectile.damagedEnemyIds ?? new Set<string>();
+    if (!damaged.has(firstTarget.id)) {
+      damaged.add(firstTarget.id);
+      applyDamage(
+        firstTarget.damageable,
+        projectile.damage,
+        projectile.damageFlavor,
+      );
+      applyKnockbackFrom(
+        firstTarget.sprite,
+        projectile.sprite.x,
+        projectile.sprite.y,
+        knockback,
+      );
+    }
+    projectile.damagedEnemyIds = damaged;
+    if (behavior === "pierce") {
+      if (projectile.pierceRemaining !== undefined) {
+        if (projectile.pierceRemaining <= 0) {
+          projectile.sprite.destroy();
+          return false;
+        }
+        projectile.pierceRemaining -= 1;
+      }
+      projectile.prevX = x1;
+      projectile.prevY = y1;
+      return true;
+    }
+    if (behavior === "aoe_on_hit" && projectile.blastRadiusWu) {
+      const detonation: ProjectileDetonation = {
+        x: projectile.sprite.x,
+        y: projectile.sprite.y,
+        radiusWu: projectile.blastRadiusWu,
+        damage: projectile.damage,
+        flavor: projectile.damageFlavor,
+      };
+      projectile.pendingDetonation = detonation;
+      projectile.sprite.destroy();
+      return false;
+    }
     projectile.sprite.destroy();
     return false;
   }
@@ -135,11 +208,70 @@ export function updateProjectile(
   projectile.prevY = y1;
 
   if (projectile.traveled >= projectile.maxTravel) {
+    if (
+      projectile.spellBehavior === "aoe_on_hit" &&
+      projectile.blastRadiusWu
+    ) {
+      const detonation: ProjectileDetonation = {
+        x: projectile.sprite.x,
+        y: projectile.sprite.y,
+        radiusWu: projectile.blastRadiusWu,
+        damage: projectile.damage,
+        flavor: projectile.damageFlavor,
+      };
+      projectile.pendingDetonation = detonation;
+    }
     projectile.sprite.destroy();
     return false;
   }
 
   return true;
+}
+
+export type SpellProjectileUpdateContext = {
+  deltaMs: number;
+  enemies: Array<{
+    id: string;
+    x: number;
+    y: number;
+    radius: number;
+    damageable: Damageable;
+    sprite: Phaser.Physics.Arcade.Sprite;
+  }>;
+  knockback: number;
+  findEnemy: (id: string) =>
+    | {
+        id: string;
+        x: number;
+        y: number;
+        damageable: Damageable;
+        sprite: Phaser.Physics.Arcade.Sprite;
+      }
+    | undefined;
+};
+
+/** Tracking steer + default hit logic; returns optional ground detonation. */
+export function updateSpellProjectile(
+  projectile: PlayerProjectile,
+  ctx: SpellProjectileUpdateContext,
+): { alive: boolean; detonation?: ProjectileDetonation } {
+  if (projectile.spellBehavior === "tracking" && projectile.trackEnemyId) {
+    const target = ctx.findEnemy(projectile.trackEnemyId);
+    if (target?.damageable.alive) {
+      const body = projectile.sprite.body as Phaser.Physics.Arcade.Body;
+      const speed = Math.hypot(body.velocity.x, body.velocity.y) || 420;
+      steerProjectileToward(projectile, target.x, target.y, speed);
+    }
+  }
+
+  const alive = updateProjectile(
+    projectile,
+    ctx.deltaMs,
+    ctx.enemies,
+    ctx.knockback,
+  );
+  const detonation = !alive ? projectile.pendingDetonation : undefined;
+  return { alive, detonation };
 }
 
 export type EnemyProjectile = PlayerProjectile;

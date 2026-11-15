@@ -87,7 +87,15 @@ describe("public data fixtures", () => {
     expect(spells.spells.length).toBeGreaterThanOrEqual(21);
     const castable = spells.spells.filter((s) => s.castableInDefense);
     expect(castable.map((s) => s.id)).toEqual(
-      expect.arrayContaining(["fire_bolt", "ice_bolt", "lightning_bolt", "fire_nova", "heal"]),
+      expect.arrayContaining([
+        "fire_bolt",
+        "ice_bolt",
+        "lightning_bolt",
+        "fire_nova",
+        "heal",
+        "water_bolt",
+        "arc_bomb",
+      ]),
     );
     const iconDir = path.join(process.cwd(), "public/assets/spells/icons");
     const fxDir = path.join(process.cwd(), "public/assets/spells/fx");

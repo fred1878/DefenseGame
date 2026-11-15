@@ -94,6 +94,16 @@ export const SPELL_FX_ASSETS = [
     file: "fire-nova-mrpg-64.png",
     root: "assets/spells/fx",
   },
+  {
+    key: "fx_spell_shockwave",
+    file: "shockwave-mrpg-64.png",
+    root: "assets/spells/fx",
+  },
+  {
+    key: "fx_spell_blizzard",
+    file: "blizzard-mrpg-32.png",
+    root: "assets/spells/fx",
+  },
 ] as const;
 
 export const COMBAT_FX_TEXTURE = {
@@ -105,6 +115,8 @@ export const COMBAT_FX_TEXTURE = {
   spellWaterBolt: "fx_spell_water_bolt",
   spellArcBomb: "fx_spell_arc_bomb",
   spellFireNova: "fx_spell_fire_nova",
+  spellShockwave: "fx_spell_shockwave",
+  spellBlizzard: "fx_spell_blizzard",
   playerMelee: "fx_player_melee",
   gruntMelee: "fx_grunt_melee",
 } as const;
