@@ -62,6 +62,24 @@ export async function tapCanvas(
   }
 }
 
+/** Hold pointer down at game coords without releasing (press-scale feedback). */
+export async function holdCanvas(
+  page: Page,
+  gameX: number,
+  gameY: number,
+): Promise<void> {
+  const canvas = await canvasLocator(page);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("Canvas bounding box missing");
+  const pos = await gameToCanvasPosition(page, gameX, gameY);
+  await page.mouse.move(box.x + pos.x, box.y + pos.y);
+  await page.mouse.down();
+}
+
+export async function releasePointer(page: Page): Promise<void> {
+  await page.mouse.up();
+}
+
 export async function getTapTarget(
   page: Page,
   testId: string,

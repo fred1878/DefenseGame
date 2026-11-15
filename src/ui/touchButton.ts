@@ -22,7 +22,19 @@ export type TouchButtonRectOptions = {
 
 export type TouchToggleOptions = {
   frameTextureKey?: string;
+  /** Multiply tint on the frame image when toggled on (textured buttons). */
+  onBgTint?: number;
+  offBgTint?: number;
+  onTextColor?: string;
+  offTextColor?: string;
 };
+
+function darkenTint(tint: number, factor = 0.72): number {
+  const r = Math.floor(((tint >> 16) & 0xff) * factor);
+  const g = Math.floor(((tint >> 8) & 0xff) * factor);
+  const b = Math.floor((tint & 0xff) * factor);
+  return (r << 16) + (g << 8) + b;
+}
 
 export type TouchButtonHandle = {
   container: Phaser.GameObjects.Container;
@@ -381,7 +393,7 @@ export function createTouchButton(
     Phaser.Geom.Rectangle.Contains,
   );
   const colors = textured
-    ? { rest: 0xffffff, pressed: 0x9a9a9a }
+    ? { rest: 0xffffff, pressed: darkenTint(0xffffff, 0.68) }
     : { rest: fill, pressed: darkenColor(fill, 0.72) };
   if (!options.skipPressBinding) {
     bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88, textured }, activateOn);
@@ -403,7 +415,12 @@ export function createTouchToggleButton(
   onPress: () => void,
   depth = 200,
   toggleOptions?: TouchToggleOptions,
-): { container: Phaser.GameObjects.Container; setLabel: (text: string) => void; setOn: (on: boolean) => void } {
+): {
+  container: Phaser.GameObjects.Container;
+  setLabel: (text: string) => void;
+  setOn: (on: boolean) => void;
+  getOn: () => boolean;
+} {
   const pad = scaleUiX(12);
   const hitW = width + pad * 2;
   const hitH = height + pad * 2;
@@ -420,7 +437,12 @@ export function createTouchToggleButton(
     .text(0, 0, initialLabel, {
       ...labelStyle(scene, `${labelPx}px`, textured),
     })
-    .setOrigin(0.5);
+    .setOrigin(0.5)
+    .setAlign("center");
+  if (initialLabel.includes("\n")) {
+    text.setFontSize(scaleUiX(12));
+    text.setLineSpacing(scaleUiX(-2));
+  }
   container.add([bg, text]);
 
   container.setSize(hitW, hitH);
@@ -428,14 +450,26 @@ export function createTouchToggleButton(
     new Phaser.Geom.Rectangle(0, 0, hitW, hitH),
     Phaser.Geom.Rectangle.Contains,
   );
+  const onBgTint = toggleOptions?.onBgTint ?? 0xb8e0a8;
+  const offBgTint = toggleOptions?.offBgTint ?? 0xffffff;
+  const onTextColor = toggleOptions?.onTextColor ?? "#d9f99d";
+  const offTextColor = toggleOptions?.offTextColor ?? MEDIEVAL_LABEL.color;
+
   const colors = textured
-    ? { rest: 0xffffff, pressed: 0xaaaaaa }
+    ? { rest: offBgTint, pressed: darkenTint(offBgTint) }
     : { rest: 0x3f3f46, pressed: 0x27272a };
   bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9, textured });
 
+  let onState = false;
+
   const applyOn = (on: boolean) => {
+    onState = on;
     if (textured && isImageBg(bg)) {
-      bg.setTint(on ? 0xc8e8c0 : 0xffffff);
+      const rest = on ? onBgTint : offBgTint;
+      colors.rest = rest;
+      colors.pressed = darkenTint(rest);
+      bg.setTint(rest);
+      text.setColor(on ? onTextColor : offTextColor);
       return;
     }
     colors.rest = on ? 0x15803d : 0x3f3f46;
@@ -444,12 +478,20 @@ export function createTouchToggleButton(
       bg.setFillStyle(colors.rest, 1);
       bg.setStrokeStyle(STROKE_PX, on ? 0x4ade80 : 0x71717a);
     }
+    text.setColor(on ? "#bbf7d0" : "#e4e4e7");
   };
 
   return {
     container,
-    setLabel: (label: string) => text.setText(label),
+    setLabel: (label: string) => {
+      text.setText(label);
+      if (label.includes("\n")) {
+        text.setFontSize(scaleUiX(12));
+        text.setLineSpacing(scaleUiX(-2));
+      }
+    },
     setOn: applyOn,
+    getOn: () => onState,
   };
 }
 
@@ -491,7 +533,7 @@ export function createTouchCircleButton(
     Phaser.Geom.Circle.Contains,
   );
   const colors = textured
-    ? { rest: 0xffffff, pressed: 0x999999 }
+    ? { rest: 0xffffff, pressed: darkenTint(0xffffff, 0.65) }
     : { rest: 0xea580c, pressed: 0xc2410c };
   bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9, textured });
   return container;

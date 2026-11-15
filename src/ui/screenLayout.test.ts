@@ -44,6 +44,7 @@ describe("screenLayout", () => {
     expect(chrome.atkX).toBeLessThan(GAME.width);
     expect(chrome.btnY).toBeLessThan(GAME.height);
     expect(chrome.hudBand).toBe(hudBandHeight(0));
+    expect(chrome.toggleW).toBeGreaterThan(chrome.toggleH);
   });
 
   it("spellBarCenterY aligns with bottom HUD strip", () => {

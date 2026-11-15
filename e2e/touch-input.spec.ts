@@ -3,6 +3,8 @@ import { gotoE2E, startDefense } from "./helpers/game";
 import {
   dragCanvas,
   getTapTarget,
+  holdCanvas,
+  releasePointer,
   tapCanvas,
   waitForTapTargets,
 } from "./helpers/touch";
@@ -104,6 +106,51 @@ test.describe("real pointer / touch input", () => {
         { timeout: 3_000 },
       )
       .toBe("idle");
+  });
+
+  test("combat-auto toggles auto attack", async ({ page }) => {
+    await waitForTapTargets(page, ["combat-auto"]);
+    const before = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled() ?? false,
+    );
+    const auto = await getTapTarget(page, "combat-auto");
+    await tapCanvas(page, auto.x, auto.y);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () => window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled(),
+          ),
+        { timeout: 5_000 },
+      )
+      .toBe(!before);
+  });
+
+  test("pointer down shows pressed visual on combat-auto", async ({ page }) => {
+    await waitForTapTargets(page, ["combat-auto"]);
+    const auto = await getTapTarget(page, "combat-auto");
+    await holdCanvas(page, auto.x, auto.y);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () =>
+              window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-auto"),
+          ),
+        { timeout: 3_000 },
+      )
+      .toBe(true);
+    await releasePointer(page);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () =>
+              window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-auto"),
+          ),
+        { timeout: 3_000 },
+      )
+      .toBe(false);
   });
 
   test("DOM mirror ATK button", async ({ page }) => {
