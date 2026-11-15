@@ -1,22 +1,12 @@
 import type { DataStore } from "../core/DataStore";
 import type { SaveGame } from "../core/saveTypes";
-import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
+import type { TownBuildingDef } from "../core/townBuildingTypes";
 import { playerDamageMult, wallHpBonusFromBuildings } from "../core/GameState";
 import type { BuildingDef } from "../core/DataStore";
 
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
 const START_NIGHT_SUBTITLE = "— Start night";
 const SPELL_BAR_SUBTITLE = "— Spell bar";
-
-export function townBuildingMenuIds(
-  defs: Record<string, TownBuildingDef>,
-  layout: TownLayoutDef,
-): string[] {
-  if (layout.menuOrder?.length) {
-    return layout.menuOrder.filter((id) => defs[id]);
-  }
-  return Object.keys(defs).sort();
-}
 
 function upgradeEffectLabel(effect: string): string {
   if (effect === "wallHpMax") return "Wall HP";

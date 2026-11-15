@@ -177,6 +177,10 @@ export class TownScene extends Phaser.Scene {
     return out;
   }
 
+  e2eTownBuildingDebugRectCount(): number {
+    return this.townBuildingDebugRects().length;
+  }
+
   e2eIsTouchButtonPressed(testId: string): boolean {
     if (testId === "start-night") {
       const btn = this.buildingControls.get("town_special_gallows_square");
@@ -214,9 +218,25 @@ export class TownScene extends Phaser.Scene {
       this.touchDebug.clear();
       return;
     }
+    const uiScreenRects = [...this.townBuildingDebugRects()];
     this.touchDebug.draw({
       pointerUiBlocked: (pointer) => this.isPointerOverInteractive(pointer),
+      uiScreenRects,
     });
+  }
+
+  private townBuildingDebugRects(): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }[] {
+    const rects: { x: number; y: number; width: number; height: number }[] = [];
+    for (const control of this.buildingControls.values()) {
+      const r = control.hitFootprintScreenRect();
+      if (r && r.width > 0 && r.height > 0) rects.push(r);
+    }
+    return rects;
   }
 
   private isPointerOverInteractive(pointer: Phaser.Input.Pointer): boolean {

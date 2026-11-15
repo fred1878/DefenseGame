@@ -9,6 +9,10 @@ import {
   spellBarSlotOrigin,
   expectedSpellBarCenterY,
   townActionButtonY,
+  townBuildingGridBandBottomFootY,
+  townBuildingGridClearsStatus,
+  townBuildingGridColumnX,
+  townBuildingGridFootY,
 } from "./screenLayout";
 import { SPELL_BAR } from "../config/spellBar";
 
@@ -80,5 +84,18 @@ describe("screenLayout", () => {
     const y1 = townActionButtonY(scene, safe, 1);
     expect(y0).toBeGreaterThan(y1);
     expect(y0).toBeLessThan(GAME.height);
+  });
+
+  it("town building grid fills band between status and bottom", () => {
+    expect(townBuildingGridFootY(0)).toBe(townBuildingGridBandBottomFootY());
+    expect(townBuildingGridFootY(3)).toBeLessThan(townBuildingGridFootY(2));
+    expect(townBuildingGridFootY(2)).toBeLessThan(townBuildingGridFootY(1));
+    expect(townBuildingGridFootY(1)).toBeLessThan(townBuildingGridFootY(0));
+    expect(townBuildingGridColumnX(0)).toBeLessThan(GAME.width / 2);
+    expect(townBuildingGridColumnX(1)).toBeGreaterThan(GAME.width / 2);
+    expect(townBuildingGridClearsStatus(3, 112)).toBe(true);
+    const mid =
+      (townBuildingGridFootY(0) + townBuildingGridFootY(3)) / 2;
+    expect(mid).toBeGreaterThan(GAME.height * 0.45);
   });
 });

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { clampRenderResolution, scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
-import { bindContainerPress } from "../ui/touchButton";
+import { bindContainerPress, interactiveObjectScreenRect } from "../ui/touchButton";
 
 export type TownBuildingControl = {
   container: Phaser.GameObjects.Container;
@@ -9,6 +9,13 @@ export type TownBuildingControl = {
   setLabel: (text: string) => void;
   /** Building center in game/canvas coords (for e2e taps). */
   spriteCenter: () => { x: number; y: number };
+  /** Sprite footprint in screen/canvas coords (touch debug). */
+  hitFootprintScreenRect: () => {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
 };
 
 export type SpawnTownBuildingControlsOpts = {
@@ -16,6 +23,22 @@ export type SpawnTownBuildingControlsOpts = {
   labelFor: (def: TownBuildingDef) => string;
   onTap: (buildingId: string, def: TownBuildingDef) => void;
 };
+
+export function townBuildingLabelWrapWidth(def: TownBuildingDef): number {
+  return Math.max(def.width, scaleUiX(136));
+}
+
+/** Interactive hit box in container space (feet at origin, origin 0,0). */
+export function townBuildingFootprintHitArea(
+  def: TownBuildingDef,
+): Phaser.Geom.Rectangle {
+  return new Phaser.Geom.Rectangle(
+    -def.width / 2,
+    -def.height,
+    def.width,
+    def.height,
+  );
+}
 
 function textResolution(scene: Phaser.Scene): number {
   return (
@@ -32,7 +55,6 @@ export function spawnTownBuildingControls(
   opts: SpawnTownBuildingControlsOpts,
 ): TownBuildingControl[] {
   const depth = opts.depth ?? 24;
-  const tapPad = scaleUiX(8);
   const out: TownBuildingControl[] = [];
 
   for (const slot of layout.slots) {
@@ -48,8 +70,6 @@ export function spawnTownBuildingControls(
 
     const footX = slot.x;
     const footY = slot.y;
-    const hitW = def.width + tapPad * 2;
-    const hitH = def.height + tapPad;
 
     const container = scene.add
       .container(footX, footY)
@@ -60,38 +80,27 @@ export function spawnTownBuildingControls(
       .setOrigin(0.5, 1)
       .setDisplaySize(def.width, def.height);
 
-    const labelBandH = scaleUiY(34);
-    const labelY = -def.height * 0.52;
-    const backing = scene.add
-      .rectangle(0, labelY, def.width, labelBandH, 0x0f1118, 0.62)
-      .setStrokeStyle(Math.max(1, scaleUiX(1)), 0x3f3f46, 0.9);
-
+    const labelWrap = townBuildingLabelWrapWidth(def);
+    const labelY = -scaleUiY(4);
     const fontSize = `${scaleUiX(10)}px`;
     const labelText = opts.labelFor(def);
     const text = scene.add
       .text(0, labelY, labelText, {
         fontSize,
-        color: "#f4f4f5",
-        stroke: "#0c0c0e",
+        color: "#fafafa",
+        stroke: "#18181b",
         strokeThickness: Math.max(2, scaleUiX(2)),
         align: "center",
-        wordWrap: { width: def.width - scaleUiX(6) },
+        wordWrap: { width: labelWrap - scaleUiX(6), useAdvancedWrap: true },
+        lineSpacing: -scaleUiY(1),
         resolution: textResolution(scene),
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5, 1);
 
-    container.add([sprite, backing, text]);
+    container.add([sprite, text]);
 
-    // Feet at container origin: hit box spans the full sprite footprint.
-    container.setInteractive(
-      new Phaser.Geom.Rectangle(
-        -hitW / 2,
-        -hitH,
-        hitW,
-        hitH,
-      ),
-      Phaser.Geom.Rectangle.Contains,
-    );
+    const hitArea = townBuildingFootprintHitArea(def);
+    container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
 
     bindContainerPress(
       scene,
@@ -120,6 +129,8 @@ export function spawnTownBuildingControls(
       buildingId: slot.buildingId,
       setLabel: (next: string) => text.setText(next),
       spriteCenter,
+      hitFootprintScreenRect: () =>
+        interactiveObjectScreenRect(container),
     });
   }
 
