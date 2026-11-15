@@ -5,6 +5,8 @@ import {
   DEFENSE_OBSTACLE_ASSETS,
   GROUND_DECOR_ASSETS,
   GROUND_TILE_ASSETS,
+  SPELL_ICON_ASSETS,
+  SPELL_ICON_ROOT,
   UI_ASSET_ROOT,
   UI_ASSETS,
 } from "../content/assets";
@@ -80,8 +82,15 @@ export class BootScene extends Phaser.Scene {
       for (const { key, file } of GROUND_DECOR_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/tilesets/ground/decor/${file}`);
       }
-      for (const { key, file } of COMBAT_FX_ASSETS) {
-        loader.image(key, `${ASSET_ROOT}/combat/fx/${file}`);
+      for (const entry of COMBAT_FX_ASSETS) {
+        const root =
+          "root" in entry && entry.root
+            ? entry.root
+            : `${ASSET_ROOT}/combat/fx`;
+        loader.image(entry.key, `${root}/${entry.file}`);
+      }
+      for (const { key, file } of SPELL_ICON_ASSETS) {
+        loader.image(key, `${SPELL_ICON_ROOT}/${file}`);
       }
       for (const { key, file } of UI_ASSETS) {
         loader.image(key, `${UI_ASSET_ROOT}/${file}`);

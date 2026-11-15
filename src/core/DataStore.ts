@@ -1,3 +1,5 @@
+import type { SpellDefinition } from "../content/spells";
+import { setSpellCatalog } from "../content/spells";
 import type { EnemyCombatPartial } from "./enemyTuning";
 import { normalizeEnemyRow } from "./normalizeEnemy";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
@@ -36,10 +38,11 @@ export class DataStore {
   buildings: Record<string, BuildingDef> = {};
   townBuildings: Record<string, TownBuildingDef> = {};
   townLayout: TownLayoutDef = { slots: [] };
+  spells: SpellDefinition[] = [];
 
   async loadAll(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
-    const [enemies, waves, buildings, townBuildings, townLayout] =
+    const [enemies, waves, buildings, townBuildings, townLayout, spellsFile] =
       await Promise.all([
         fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
         fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
@@ -48,6 +51,7 @@ export class DataStore {
           `${prefix}data/town_buildings.json`,
         ),
         fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
+        fetchJson<{ spells: SpellDefinition[] }>(`${prefix}data/spells.json`),
       ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
@@ -59,6 +63,8 @@ export class DataStore {
     this.buildings = buildings;
     this.townBuildings = townBuildings;
     this.townLayout = townLayout;
+    this.spells = spellsFile.spells;
+    setSpellCatalog(spellsFile.spells);
   }
 
   getWaveForNight(night: number): WaveDef | undefined {

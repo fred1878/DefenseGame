@@ -72,6 +72,17 @@ describe("public data fixtures", () => {
     expect(wave1!.groups.length).toBeGreaterThan(0);
   });
 
+  it("spells.json lists MobileRPG catalog with defense castables", () => {
+    const spells = readJson("spells.json") as {
+      spells: Array<{ id: string; castableInDefense: boolean }>;
+    };
+    expect(spells.spells.length).toBeGreaterThanOrEqual(21);
+    const castable = spells.spells.filter((s) => s.castableInDefense);
+    expect(castable.map((s) => s.id)).toEqual(
+      expect.arrayContaining(["fire_bolt", "ice_bolt", "lightning_bolt", "fire_nova", "heal"]),
+    );
+  });
+
   it("buildings.json defines wall costs", () => {
     const buildings = readJson("buildings.json") as Record<
       string,
@@ -100,6 +111,7 @@ describe("DataStore.loadAll", () => {
     expect(store.enemies.grunt).toBeDefined();
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
+    expect(store.spells.length).toBeGreaterThan(0);
     vi.unstubAllGlobals();
   });
 });

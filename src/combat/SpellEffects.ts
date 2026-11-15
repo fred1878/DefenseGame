@@ -2,8 +2,7 @@ import Phaser from "phaser";
 import { PLAYER_TUNING } from "../config";
 import type { SpellDefinition } from "../content/spells";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
-import { applyDamage } from "./DamageSystem";
-import type { Damageable } from "./DamageSystem";
+import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";
 import {
   spawnPlayerProjectile,
   type PlayerProjectile,
@@ -24,17 +23,46 @@ export function applyNova(
   }>,
   damageMult: number,
 ): void {
-  const radius = worldUnit(def.novaRadius ?? 80, scene.registry);
-  const damage = (def.novaDamage ?? 20) * damageMult;
+  const radius = worldUnit(def.blastRadius ?? 80, scene.registry);
+  const damage = (def.baseDamage ?? 20) * damageMult;
   for (const e of enemies) {
     if (!e.damageable.alive) continue;
     const d = Phaser.Math.Distance.Between(playerX, playerY, e.x, e.y);
     if (d <= radius + e.radius) {
-      applyDamage(e.damageable, damage);
+      applyDamage(e.damageable, damage, def.damageFlavor ?? "fire");
     }
   }
 }
 
+export function spawnSpellProjectile(
+  scene: Phaser.Scene,
+  playerX: number,
+  playerY: number,
+  angleRad: number,
+  def: SpellDefinition,
+  damageMult: number,
+  id: string,
+): PlayerProjectile {
+  const textureKey = def.projectileTextureKey ?? COMBAT_FX_TEXTURE.fireBolt;
+  const speed =
+    def.projectileSpeed ?? PLAYER_TUNING.projectileSpeed * 1.05;
+  const damage = (def.baseDamage ?? 20) * damageMult;
+  const flavor: DamageFlavor = def.damageFlavor ?? "default";
+  return spawnPlayerProjectile(
+    scene,
+    playerX,
+    playerY,
+    angleRad,
+    speed,
+    damage,
+    worldUnit(PLAYER_TUNING.rangedMaxRange, scene.registry),
+    id,
+    textureKey,
+    flavor,
+  );
+}
+
+/** @deprecated use spawnSpellProjectile */
 export function spawnChanneledFireball(
   scene: Phaser.Scene,
   playerX: number,
@@ -44,18 +72,14 @@ export function spawnChanneledFireball(
   damageMult: number,
   id: string,
 ): PlayerProjectile {
-  const damage = (def.fireballDamage ?? 24) * damageMult;
-  return spawnPlayerProjectile(
+  return spawnSpellProjectile(
     scene,
     playerX,
     playerY,
     angleRad,
-    PLAYER_TUNING.projectileSpeed * 1.05,
-    damage,
-    worldUnit(PLAYER_TUNING.rangedMaxRange, scene.registry),
+    def,
+    damageMult,
     id,
-    COMBAT_FX_TEXTURE.fireBolt,
-    "fire",
   );
 }
 

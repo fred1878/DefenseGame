@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { SPELL_BAR } from "../config";
 import { spellById, type SpellId } from "../content/spells";
+import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
 import {
@@ -55,6 +56,7 @@ export class SpellBar {
       const spellId = this.slots[i] ?? "";
       const def = spellById(spellId);
       const label = def?.shortLabel ?? "—";
+      const iconKey = spellId ? spellIconTextureKey(spellId) : "";
       const { x, y } = spellBarSlotCenter(
         scene,
         safe,
@@ -73,7 +75,24 @@ export class SpellBar {
         strokeColor: 0x818cf8,
         tapPadding: SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
+        frameTextureKey: scene.textures.exists("ui_spell_slot")
+          ? "ui_spell_slot"
+          : undefined,
       });
+      if (iconKey && scene.textures.exists(iconKey)) {
+        const iconPad = Math.round(SPELL_BAR.slotSizePx * 0.14);
+        const icon = scene.add
+          .image(0, 0, iconKey)
+          .setDisplaySize(
+            SPELL_BAR.slotSizePx - iconPad,
+            SPELL_BAR.slotSizePx - iconPad,
+          );
+        btn.container.add(icon);
+        const textObj = btn.container.list.find(
+          (o) => o instanceof Phaser.GameObjects.Text,
+        ) as Phaser.GameObjects.Text | undefined;
+        textObj?.setVisible(false);
+      }
 
       const slotIndex = i;
       bindTapOrLongPress(

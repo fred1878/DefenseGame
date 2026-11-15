@@ -33,7 +33,7 @@ import { SpellCastController } from "../combat/SpellCastController";
 import {
   applyChanneledHeal,
   applyNova,
-  spawnChanneledFireball,
+  spawnSpellProjectile,
 } from "../combat/SpellEffects";
 import {
   pickEnemyCombatTarget,
@@ -774,21 +774,25 @@ export class DefenseScene extends Phaser.Scene {
     const mult = playerDamageMult(this.save.buildings);
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
-    switch (def.id) {
-      case "nova":
+  const angle = this.player.getFacingAngle();
+    switch (def.mechanicType) {
+      case "blast":
         applyNova(this, px, py, def, this.enemyTargets(), mult);
-        this.flashNova(px, py, this.wu(def.novaRadius ?? 80));
+        this.flashNova(px, py, this.wu(def.blastRadius ?? 80));
         break;
-      case "fireball": {
-        const angle = this.player.getFacingAngle();
-        const id = `spell_fb_${this.projectileSerial++}`;
+      case "projectile":
+      case "projectile_aoe":
+      case "tracking_projectile": {
+        const id = `spell_proj_${this.projectileSerial++}`;
         this.projectiles.push(
-          spawnChanneledFireball(this, px, py, angle, def, mult, id),
+          spawnSpellProjectile(this, px, py, angle, def, mult, id),
         );
         break;
       }
       case "heal":
         applyChanneledHeal(this.player.damageable, def);
+        break;
+      default:
         break;
     }
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
