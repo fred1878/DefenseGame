@@ -1,9 +1,5 @@
 import { DEFENSE_MAP } from "../../config";
-import {
-  pickEnemyTarget,
-  replanEnemyPath,
-  wallTargetPoint,
-} from "../EnemyBrain";
+import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity } from "./movement";
 
@@ -11,14 +7,11 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
-  const desired = pickEnemyTarget(grid, ex, ey, playerX, playerY);
-  nav.targetKind = desired;
+  const resolved = resolveEnemyTarget(nav, grid, ex, ey, playerX, playerY, deltaMs);
+  const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 
-  const goal =
-    desired === "player"
-      ? { x: playerX, y: playerY }
-      : wallTargetPoint(ex, ey);
+  const goal = { x: resolved.goalX, y: resolved.goalY };
 
   if (nav.replanMs <= 0 || nav.path.length === 0) {
     replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y);
@@ -41,7 +34,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1);
+  applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };
 };

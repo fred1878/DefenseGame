@@ -1,6 +1,8 @@
 import {
   DEFENSE_MAP,
   PLAYER_AGGRO_RADIUS,
+  PLAYER_CHASE_MEMORY_MS,
+  WALL_VELOCITY_BLEND_MS,
   northWallAttackY,
 } from "../config";
 import { findPath, type PathPoint } from "../pathfinding/astar";
@@ -16,6 +18,16 @@ export type EnemyNavState = {
   path: PathPoint[];
   pathIndex: number;
   replanMs: number;
+  lastKnownPlayerX: number;
+  lastKnownPlayerY: number;
+  chaseMemoryMs: number;
+  wallTransitionMs: number;
+};
+
+export type EnemyTargetResolution = {
+  targetKind: EnemyTargetKind;
+  goalX: number;
+  goalY: number;
 };
 
 export function createEnemyNav(): EnemyNavState {
@@ -24,9 +36,14 @@ export function createEnemyNav(): EnemyNavState {
     path: [],
     pathIndex: 0,
     replanMs: 0,
+    lastKnownPlayerX: 0,
+    lastKnownPlayerY: 0,
+    chaseMemoryMs: 0,
+    wallTransitionMs: 0,
   };
 }
 
+/** Instantaneous aggro check (LOS + radius); does not apply chase memory. */
 export function pickEnemyTarget(
   grid: NavGrid,
   ex: number,
@@ -34,11 +51,61 @@ export function pickEnemyTarget(
   px: number,
   py: number,
 ): EnemyTargetKind {
-  const dist = Math.hypot(px - ex, py - ey);
-  if (dist <= PLAYER_AGGRO_RADIUS && hasLineOfSight(grid, ex, ey, px, py)) {
+  if (hasLivePlayerAggro(grid, ex, ey, px, py)) {
     return "player";
   }
   return "wall";
+}
+
+function hasLivePlayerAggro(
+  grid: NavGrid,
+  ex: number,
+  ey: number,
+  px: number,
+  py: number,
+): boolean {
+  const dist = Math.hypot(px - ex, py - ey);
+  return dist <= PLAYER_AGGRO_RADIUS && hasLineOfSight(grid, ex, ey, px, py);
+}
+
+/** Target resolution with chase memory and wall-abandon transition flags on nav. */
+export function resolveEnemyTarget(
+  nav: EnemyNavState,
+  grid: NavGrid,
+  ex: number,
+  ey: number,
+  px: number,
+  py: number,
+  deltaMs: number,
+): EnemyTargetResolution {
+  if (hasLivePlayerAggro(grid, ex, ey, px, py)) {
+    nav.lastKnownPlayerX = px;
+    nav.lastKnownPlayerY = py;
+    nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
+    nav.targetKind = "player";
+    nav.wallTransitionMs = 0;
+    return { targetKind: "player", goalX: px, goalY: py };
+  }
+
+  if (nav.chaseMemoryMs > 0) {
+    nav.chaseMemoryMs = Math.max(0, nav.chaseMemoryMs - deltaMs);
+    if (nav.chaseMemoryMs > 0) {
+      nav.targetKind = "player";
+      return {
+        targetKind: "player",
+        goalX: nav.lastKnownPlayerX,
+        goalY: nav.lastKnownPlayerY,
+      };
+    }
+  }
+
+  const wasChasingPlayer = nav.targetKind === "player";
+  nav.targetKind = "wall";
+  if (wasChasingPlayer) {
+    nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
+  }
+  const wall = wallTargetPoint(ex, ey);
+  return { targetKind: "wall", goalX: wall.x, goalY: wall.y };
 }
 
 export function wallTargetPoint(ex: number, _ey: number): { x: number; y: number } {

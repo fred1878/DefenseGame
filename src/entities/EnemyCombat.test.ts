@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../config/defense";
 import type { EnemyInstance } from "./Enemy";
+import { createEnemyNav } from "../ai/EnemyBrain";
 import {
   createEnemyCombat,
   updateEnemyCombat,
@@ -28,7 +29,7 @@ function mockEnemy(
       team: "enemy",
     },
     combat: combat ?? createEnemyCombat(),
-    nav: { targetKind: "wall", path: [], pathIndex: 0, replanMs: 0 },
+    nav: createEnemyNav(),
     behaviorExtra: { strafeSign: 1 as const, strafeFlipMs: 0 },
   };
 }

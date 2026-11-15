@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { JAVELINEER_TUNING } from "../../config";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { createEnemyCombat } from "../../entities/EnemyCombat";
+import { createEnemyNav } from "../EnemyBrain";
 import { javelineerBehavior } from "./javelineer";
 
 function mockJavelineer(x: number, y: number): EnemyInstance {
@@ -25,7 +26,7 @@ function mockJavelineer(x: number, y: number): EnemyInstance {
       team: "enemy",
     },
     combat: createEnemyCombat(),
-    nav: { targetKind: "player", path: [], pathIndex: 0, replanMs: 0 },
+    nav: { ...createEnemyNav(), targetKind: "player" },
     behaviorExtra: { strafeSign: 1, strafeFlipMs: 500 },
     javelineer: { shotFired: false },
   };
