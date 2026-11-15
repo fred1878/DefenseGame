@@ -101,6 +101,12 @@ describe("public data fixtures", () => {
         "cone_of_fire",
         "fire_blast",
         "frost_nova",
+        "blizzard",
+        "meteor",
+        "flamestrike",
+        "deep_freeze",
+        "chain_lightning",
+        "combustion",
       ]),
     );
     const iconDir = path.join(process.cwd(), "public/assets/spells/icons");
