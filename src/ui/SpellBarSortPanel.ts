@@ -64,7 +64,7 @@ export class SpellBarSortPanel {
       .text(
         GAME.width / 2,
         scaleUiY(118),
-        "Drag spells on or off the bar · same 2×3 order as night",
+        "Drag spells on or off the bar · same left-packed row as night",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(14)}px`,
           color: "#a1a1aa",
@@ -78,15 +78,13 @@ export class SpellBarSortPanel {
     const gridTop = scaleUiY(200);
     const cell = scaleUiX(56);
     const gap = scaleUiX(8);
-    const rowGap = scaleUiY(10);
     const gridW = SPELL_BAR.columnCount * cell + (SPELL_BAR.columnCount - 1) * gap;
     const gridLeft = GAME.width / 2 - gridW / 2 + cell / 2;
 
     for (let i = 0; i < SPELL_BAR.slotCount; i++) {
       const col = i % SPELL_BAR.columnCount;
-      const row = Math.floor(i / SPELL_BAR.columnCount);
       const x = gridLeft + col * (cell + gap);
-      const y = gridTop + row * (cell + rowGap);
+      const y = gridTop;
       const frame = scene.add
         .rectangle(x, y, cell, cell, 0x1e1b4b, 0.9)
         .setStrokeStyle(2, 0x6366f1);
@@ -107,7 +105,7 @@ export class SpellBarSortPanel {
       this.root.add([frame, label]);
     }
 
-    const poolY = gridTop + rowGap + cell * 2 + scaleUiY(48);
+    const poolY = gridTop + cell + scaleUiY(48);
     scene.add
       .text(
         GAME.width / 2,

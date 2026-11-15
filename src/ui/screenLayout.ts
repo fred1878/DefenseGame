@@ -175,7 +175,7 @@ export function spellBarSlotOrigin(
   const rowEndMax = chrome.modeX - melGuard;
   const packedFirst = leftPad + tapPad + slotSizePx / 2;
   const fitFirst = rowEndMax - rowWidth + slotSizePx / 2;
-  const firstSlotCenterX = Math.max(packedFirst, fitFirst);
+  const firstSlotCenterX = Math.min(packedFirst, fitFirst);
   const rowSpan =
     slotSizePx * SPELL_BAR.rowCount +
     SPELL_BAR.rowGapPx * (SPELL_BAR.rowCount - 1);
@@ -187,7 +187,7 @@ export function spellBarSlotOrigin(
   };
 }
 
-/** Center of spell bar grid cell (2 rows × 3 columns). */
+/** Center of spell bar grid cell (single row, left-packed). */
 export function spellBarSlotCenter(
   scene: Phaser.Scene,
   safe: SafeInsets,

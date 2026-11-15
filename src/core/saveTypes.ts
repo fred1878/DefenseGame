@@ -3,7 +3,7 @@ import type { SpellId } from "../content/spells";
 export const SAVE_VERSION = 1;
 
 export type SaveSpellBar = {
-  /** One spell id per slot; empty string = unassigned (6 slots, 2×3 grid) */
+  /** One spell id per slot; empty string = unassigned (4 slots, single row) */
   slots: SpellId[];
   /** Per-slot spell auto-cast (long-press in defense) */
   autoCast: boolean[];

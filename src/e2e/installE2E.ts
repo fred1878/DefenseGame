@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME } from "../config";
+import { GAME, SPELL_BAR } from "../config";
 import type { SaveGame } from "../core/saveTypes";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
 import { setShowTouchInput } from "../debug/DebugState";
@@ -23,8 +23,6 @@ const DOM_MIRROR_IDS = [
   "spell-slot-1",
   "spell-slot-2",
   "spell-slot-3",
-  "spell-slot-4",
-  "spell-slot-5",
   "defense-return-to-town",
 ] as const;
 
@@ -232,7 +230,7 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const save = game.registry.get("save") as SaveGame | undefined;
       const slots = save?.spellBar?.slots ?? [];
       const out: ReturnType<DefenseGameE2EApi["auditSpellBarTextures"]> = [];
-      for (let slot = 0; slot < 6; slot++) {
+      for (let slot = 0; slot < SPELL_BAR.slotCount; slot++) {
         const spellId = slots[slot] ?? "";
         const key = spellId ? spellIconTextureKey(spellId) : "";
         if (!key) {

@@ -78,7 +78,7 @@ export class SpellBar {
         frameTextureKey: "ui_spell_slot",
       });
       if (hasIcon) {
-        const iconPad = Math.round(SPELL_BAR.slotSizePx * 0.14);
+        const iconPad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
         const icon = scene.add
           .image(0, 0, iconKey!)
           .setDisplaySize(
@@ -114,14 +114,8 @@ export class SpellBar {
         },
       );
 
-      const borderPad = SPELL_BAR.autoCastBorderWidthPx;
       const autoBorder = scene.add
-        .rectangle(
-          x,
-          y,
-          SPELL_BAR.slotSizePx + borderPad * 2,
-          SPELL_BAR.slotSizePx + borderPad * 2,
-        )
+        .rectangle(x, y, SPELL_BAR.slotSizePx, SPELL_BAR.slotSizePx)
         .setStrokeStyle(
           SPELL_BAR.autoCastBorderWidthPx,
           SPELL_BAR.autoCastBorderColor,
@@ -135,7 +129,7 @@ export class SpellBar {
       const overlay = scene.add
         .rectangle(
           x,
-          y - SPELL_BAR.slotSizePx / 2,
+          y + SPELL_BAR.slotSizePx / 2,
           SPELL_BAR.slotSizePx,
           SPELL_BAR.slotSizePx,
           0x101018,
@@ -143,7 +137,7 @@ export class SpellBar {
         )
         .setScrollFactor(0)
         .setDepth(depth + 1)
-        .setOrigin(0.5, 0)
+        .setOrigin(0.5, 1)
         .setVisible(false);
 
       this.slotChrome.push({ autoBorder, button: btn });
@@ -219,8 +213,8 @@ export class SpellBar {
 
       const ratio = Phaser.Math.Clamp(remaining / def.cooldownMs, 0, 1);
       const coverH = slotH * ratio;
-      const topY = btn.container.y - slotH / 2;
-      visual.overlay.setPosition(btn.container.x, topY);
+      const bottomY = btn.container.y + slotH / 2;
+      visual.overlay.setPosition(btn.container.x, bottomY);
       visual.overlay.setSize(SPELL_BAR.slotSizePx, coverH);
     }
   }
