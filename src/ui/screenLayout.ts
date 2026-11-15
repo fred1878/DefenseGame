@@ -290,15 +290,29 @@ export function townActionButtonY(
   );
 }
 
-/** Two old menu rows between 2×4 town building grid rows (same band as former stacked buttons). */
-const TOWN_BUILDING_GRID_MENU_ROW_STEP = 88;
+const TOWN_BUILDING_GRID_MAX_HEIGHT = 112;
 
-/** Foot Y on the design canvas for a 2×4 building grid row (0 = bottom). */
+/** Bottom edge of the TownScene status word-wrap block (`statusText` at scaleUiY(140)). */
+export function townBuildingGridStatusBottomY(): number {
+  return scaleUiY(140) + scaleUiY(108);
+}
+
+/** Foot Y for the bottom grid row (above bottom safe / old Start night band). */
+export function townBuildingGridBandBottomFootY(): number {
+  return GAME.height - scaleUiY(96);
+}
+
+/**
+ * Foot Y on the design canvas for a 2×4 building grid row (0 = bottom).
+ * Rows are evenly distributed between status bottom and the bottom band.
+ */
 export function townBuildingGridFootY(fromBottomRow: 0 | 1 | 2 | 3): number {
-  return (
-    GAME.height -
-    scaleUiY(96 + fromBottomRow * TOWN_BUILDING_GRID_MENU_ROW_STEP)
-  );
+  const bandBottom = townBuildingGridBandBottomFootY();
+  const bandTopFoot =
+    townBuildingGridStatusBottomY() + TOWN_BUILDING_GRID_MAX_HEIGHT;
+  const span = bandBottom - bandTopFoot;
+  const rowFromBottom = fromBottomRow;
+  return Math.round(bandBottom - (rowFromBottom * span) / 3);
 }
 
 /** Center X for left (0) or right (1) column of the town building grid. */
@@ -315,13 +329,11 @@ export function townBuildingGridColumnX(column: 0 | 1): number {
  */
 export function townBuildingGridClearsStatus(
   fromTopRow: 0 | 1 | 2 | 3,
-  maxBuildingHeight: number,
-  statusTopY = scaleUiY(140),
-  statusBlockHeight = scaleUiY(108),
+  maxBuildingHeight: number = TOWN_BUILDING_GRID_MAX_HEIGHT,
 ): boolean {
   const footY = townBuildingGridFootY(fromTopRow);
   const spriteTop = footY - maxBuildingHeight;
-  return spriteTop >= statusTopY + statusBlockHeight;
+  return spriteTop >= townBuildingGridStatusBottomY();
 }
 
 /** Align Phaser FIT parent with the visible viewport (mobile URL bar / dynamic island). */

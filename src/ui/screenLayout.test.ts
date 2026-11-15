@@ -9,6 +9,7 @@ import {
   spellBarSlotOrigin,
   expectedSpellBarCenterY,
   townActionButtonY,
+  townBuildingGridBandBottomFootY,
   townBuildingGridClearsStatus,
   townBuildingGridColumnX,
   townBuildingGridFootY,
@@ -85,13 +86,16 @@ describe("screenLayout", () => {
     expect(y0).toBeLessThan(GAME.height);
   });
 
-  it("town building grid reuses bottom menu band", () => {
-    expect(townBuildingGridFootY(0)).toBe(townActionButtonY(scene, safe, 0));
-    expect(townBuildingGridFootY(1)).toBe(townActionButtonY(scene, safe, 2));
+  it("town building grid fills band between status and bottom", () => {
+    expect(townBuildingGridFootY(0)).toBe(townBuildingGridBandBottomFootY());
+    expect(townBuildingGridFootY(3)).toBeLessThan(townBuildingGridFootY(2));
+    expect(townBuildingGridFootY(2)).toBeLessThan(townBuildingGridFootY(1));
+    expect(townBuildingGridFootY(1)).toBeLessThan(townBuildingGridFootY(0));
     expect(townBuildingGridColumnX(0)).toBeLessThan(GAME.width / 2);
     expect(townBuildingGridColumnX(1)).toBeGreaterThan(GAME.width / 2);
-    expect(
-      townBuildingGridClearsStatus(3, 112),
-    ).toBe(true);
+    expect(townBuildingGridClearsStatus(3, 112)).toBe(true);
+    const mid =
+      (townBuildingGridFootY(0) + townBuildingGridFootY(3)) / 2;
+    expect(mid).toBeGreaterThan(GAME.height * 0.45);
   });
 });
