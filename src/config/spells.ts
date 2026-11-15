@@ -1,12 +1,18 @@
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 
 export const SPELL_BAR = {
-  slotCount: 3,
-  slotSizePx: scaleUiX(56),
-  slotGapPx: scaleUiX(4),
+  slotCount: 6,
+  columnCount: 3,
+  rowCount: 2,
+  slotSizePx: scaleUiX(48),
+  slotGapPx: scaleUiX(3),
+  rowGapPx: scaleUiY(4),
   tapPaddingPx: scaleUiX(4),
   cooldownRingWidthPx: scaleUiX(3),
-  fontSize: `${scaleUiX(12)}px`,
+  autoCastBorderWidthPx: scaleUiX(3),
+  autoCastBorderColor: 0xfacc15,
+  longPressMs: 520,
+  fontSize: `${scaleUiX(11)}px`,
 } as const;
 
 export const CAST_BAR = {
@@ -68,7 +74,13 @@ export const SPELL_CATALOG: readonly SpellDefinition[] = [
 ] as const;
 
 export function createDefaultSpellBarSlots(): SpellId[] {
-  return SPELL_CATALOG.map((s) => s.id).slice(0, SPELL_BAR.slotCount);
+  const slots: SpellId[] = SPELL_CATALOG.map((s) => s.id);
+  while (slots.length < SPELL_BAR.slotCount) slots.push("");
+  return slots.slice(0, SPELL_BAR.slotCount);
+}
+
+export function createDefaultSpellBarAutoCast(): boolean[] {
+  return Array.from({ length: SPELL_BAR.slotCount }, () => false);
 }
 
 export function spellById(id: SpellId): SpellDefinition | undefined {

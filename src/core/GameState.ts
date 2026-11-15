@@ -2,9 +2,12 @@ import {
   ENEMY_TUNING,
   PLAYER_TUNING,
   SAVE_VERSION,
+  SPELL_BAR,
+  createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
   type NightResult,
   type SaveGame,
+  type SaveSpellBar,
 } from "../config";
 
 import { saveStorageKey } from "../e2e/e2eMode";
@@ -27,7 +30,10 @@ export function createNewSave(): SaveGame {
       weaponId: "sword",
       moveSpeed: PLAYER_TUNING.moveSpeed,
     },
-    spellBar: { slots: createDefaultSpellBarSlots() },
+    spellBar: {
+      slots: createDefaultSpellBarSlots(),
+      autoCast: createDefaultSpellBarAutoCast(),
+    },
     flags: [],
   };
 }
@@ -49,18 +55,34 @@ export function loadSave(): SaveGame {
   }
 }
 
+function normalizeSpellBar(raw?: Partial<SaveSpellBar>): SaveSpellBar {
+  const base = createNewSave().spellBar;
+  const slots = [...(raw?.slots ?? base.slots)];
+  while (slots.length < SPELL_BAR.slotCount) slots.push("");
+  if (slots.length > SPELL_BAR.slotCount) slots.length = SPELL_BAR.slotCount;
+
+  const autoCast = [...(raw?.autoCast ?? base.autoCast)];
+  while (autoCast.length < SPELL_BAR.slotCount) autoCast.push(false);
+  if (autoCast.length > SPELL_BAR.slotCount) autoCast.length = SPELL_BAR.slotCount;
+
+  return { slots, autoCast };
+}
+
 function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): SaveGame {
   const base = createNewSave();
-  const slots =
-    save.spellBar?.slots?.length === base.spellBar.slots.length
-      ? save.spellBar.slots
-      : base.spellBar.slots;
+  const spellBar = normalizeSpellBar(save.spellBar);
+  if (save.spellBar?.slots?.length === 3) {
+    spellBar.slots = [
+      ...save.spellBar.slots,
+      ...Array(Math.max(0, SPELL_BAR.slotCount - 3)).fill(""),
+    ].slice(0, SPELL_BAR.slotCount);
+  }
   return {
     ...base,
     ...save,
     player: { ...base.player, ...save.player },
     buildings: { ...base.buildings, ...save.buildings },
-    spellBar: { slots },
+    spellBar,
   };
 }
 
@@ -89,7 +111,10 @@ export function prepareDefenseNight(save: SaveGame): SaveGame {
     ...save,
     player: { ...save.player },
     buildings: { ...save.buildings },
-    spellBar: { slots: [...save.spellBar.slots] },
+    spellBar: {
+      slots: [...save.spellBar.slots],
+      autoCast: [...save.spellBar.autoCast],
+    },
     flags: [...save.flags],
   };
   if (next.townWallHp <= 0) {

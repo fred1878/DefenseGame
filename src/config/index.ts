@@ -24,6 +24,7 @@ export {
   CAST_BAR,
   SPELL_BAR,
   SPELL_CATALOG,
+  createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
   spellById,
   type SpellCastKind,

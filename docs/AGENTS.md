@@ -171,11 +171,11 @@ npm run preview      # serve dist locally
 2. **Content vs code:** new enemy = row in `enemies.json` + behavior if needed, not a new scene.
 3. **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 4. **Mobile:** touch buttons scale on press; **Town → Reset save** (tap twice) calls `resetSaveAndReload()` — clears `localStorage` and reloads with `?fresh=` (no hard refresh needed).
-5. **Config:** tuning lives under `src/config/` (`game`, `player`, `enemy`, `spells`, `save`); `src/config.ts` re-exports for existing imports. Spell bar: `config/spells.ts` + `save.spellBar.slots`.
+5. **Config:** tuning lives under `src/config/` (`game`, `player`, `enemy`, `spells`, `save`); `src/config.ts` re-exports for existing imports. Spell bar: `config/spells.ts` + `save.spellBar.slots` (6 slots, 2×3) and `save.spellBar.autoCast[]` (long-press per slot in defense). Town **Spell bar** screen reorders slots.
 6. **Debug:** **Town** or **Defense → Debug** opens `DebugMenuScene`. Toggles live in registry `debugFlags`: **Hitboxes: ON** (`showHitboxes`) — `DefenseScene` redraws combat arcs via `HitboxDebugDraw`. **Touch input: ON** (`showTouchInput`) — on-canvas overlay via `TouchInputDebugDraw`: finger crosshairs (Phaser pointer coords / FIT scale), virtual-stick base/knob/dead zone, HUD exclusion rects, and tap-to-focus pick radius flash in Defense. **Enemy paths: ON** (`showEnemyPaths`) — planned A* polylines and chase/wall targets via `PathDebugDraw`.
 7. **Waves:** nights `1`–`10` in `public/data/waves.json`; table in [WAVES.md](./WAVES.md).
 8. **Combat:** each enemy has its own `EnemyCombat` FSM (windup/active/recovery + per-enemy cooldown). Player melee/ranged applies `Knockback` (`PLAYER_TUNING.meleeKnockback` > `rangedKnockback`). No shared enemy touch-damage loop.
-9. **Spells:** Defense HUD spell row (`SpellBar`); **Nova** instant AoE, **Fireball** / **Heal** channeled. Channeling zeroes movement; stick input interrupts. Whitish-yellow `CastBar` under the player shows channel progress.
+9. **Spells:** Defense HUD spell grid (`SpellBar`, 2×3); **Nova** instant AoE, **Fireball** / **Heal** channeled. Long-press slot toggles per-spell auto-cast (gold border). Auto-cast priority follows grid order; channeled spells skip while moving. Combat mode cycles **Melee / Ranged / Auto combat** (`A.COM`). Channeling zeroes movement; stick input interrupts. Whitish-yellow `CastBar` under the player shows channel progress.
 10. **CI must stay green:** `typecheck`, `test`, `build` on every PR; merges to `main` publish the playable Pages URL (see `docs/CI_RELEASES.md`).
 
 ### Display / mobile sharpness (`main.ts`, `src/ui/screenLayout.ts`)

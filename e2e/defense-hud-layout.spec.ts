@@ -35,13 +35,13 @@ test.describe("defense HUD layout", () => {
     expect(stripCenterY).toBeGreaterThan(1000);
     const bandHalf = stripH / 2 + 36;
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 6; i++) {
       const key = `spell-slot-${i}`;
       const pt = targets[key];
       expect(pt, `missing ${key}`).toBeTruthy();
-      expect(pt!.y).toBeGreaterThan(1000);
-      expect(pt!.y).toBeGreaterThanOrEqual(stripCenterY - bandHalf);
-      expect(pt!.y).toBeLessThanOrEqual(stripCenterY + bandHalf);
+      expect(pt!.y).toBeGreaterThan(960);
+      expect(pt!.y).toBeGreaterThanOrEqual(stripCenterY - bandHalf - 20);
+      expect(pt!.y).toBeLessThanOrEqual(stripCenterY + bandHalf + 20);
     }
 
     const overlap = await page.evaluate(() => {
@@ -58,7 +58,7 @@ test.describe("defense HUD layout", () => {
         a.y < b.y + b.h &&
         a.y + a.h > b.y;
 
-      const spell2 = rects("spell-slot-2");
+      const spell2 = rects("spell-slot-2") ?? rects("spell-slot-5");
       const mel = rects("combat-mode");
       const spell0 = rects("spell-slot-0");
       const debug = rects("defense-debug");

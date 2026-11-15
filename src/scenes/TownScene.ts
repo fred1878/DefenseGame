@@ -28,6 +28,9 @@ import {
 } from "../ui/fullscreen";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
+import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
+import { createDefaultSpellBarAutoCast } from "../config";
+
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
@@ -35,6 +38,7 @@ export class TownScene extends Phaser.Scene {
   private resetButton!: ReturnType<typeof createTouchButton>;
   private startNightButton!: ReturnType<typeof createTouchButton>;
   private touchDebug!: TouchInputDebugDraw;
+  private spellSortPanel: SpellBarSortPanel | null = null;
 
   constructor() {
     super({ key: "Town" });
@@ -43,6 +47,9 @@ export class TownScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     this.save = this.registry.get("save") as SaveGame;
+    if (!this.save.spellBar.autoCast?.length) {
+      this.save.spellBar.autoCast = createDefaultSpellBarAutoCast();
+    }
     const store = this.registry.get("dataStore") as DataStore;
 
     this.add
@@ -151,6 +158,15 @@ export class TownScene extends Phaser.Scene {
       { width: btnW, height: btnH, depth: 200 },
     );
 
+    createTouchButton(
+      this,
+      GAME.width / 2,
+      townActionButtonY(this, safe, 3),
+      "Spell bar",
+      () => this.openSpellSortPanel(),
+      { width: btnW, height: btnH, depth: 200 },
+    );
+
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on("shutdown", () => this.touchDebug.destroy());
 
@@ -179,6 +195,21 @@ export class TownScene extends Phaser.Scene {
       return isTouchButtonVisuallyPressed(this.startNightButton.container);
     }
     return false;
+  }
+
+  private openSpellSortPanel(): void {
+    if (this.spellSortPanel) return;
+    this.spellSortPanel = new SpellBarSortPanel(
+      this,
+      this.save.spellBar.slots,
+      this.save.spellBar.autoCast,
+      (result) => {
+        this.save.spellBar = result;
+        persistSave(this.save);
+        this.registry.set("save", this.save);
+        this.spellSortPanel = null;
+      },
+    );
   }
 
   private beginDefenseNight(): void {

@@ -1,4 +1,4 @@
-export type AttackMode = "melee" | "ranged";
+export type AttackMode = "melee" | "ranged" | "auto";
 
 export const PLAYER_TUNING = {
   moveSpeed: 220,

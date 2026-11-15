@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { SPELL_BAR } from "../config/spells";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { containerScreenRect } from "./touchButton";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";
@@ -121,7 +122,7 @@ export type CombatChromeLayout = {
   rightCluster: ScreenRect;
 };
 
-export const BOTTOM_HUD_STRIP_H = scaleUiY(140);
+export const BOTTOM_HUD_STRIP_H = scaleUiY(156);
 
 /** Shared bottom HUD strip geometry (spell row + combat controls sit inside). */
 export function bottomHudStripLayout(
@@ -161,26 +162,61 @@ export function spellBarSlotOrigin(
   slotGapPx: number,
 ): SpellBarOrigin {
   const chrome = combatChromeLayout(scene, safe);
+  const cols = SPELL_BAR.columnCount;
   const leftPad = scaleUiX(16) + safe.left;
   const tapPad = scaleUiX(4);
-  const rowWidth = slotCount * slotSizePx + (slotCount - 1) * slotGapPx;
+  const rowWidth = cols * slotSizePx + (cols - 1) * slotGapPx;
   const melGuard = scaleUiX(12) + chrome.toggleW / 2 + scaleUiX(10);
   const rowEndMax = chrome.modeX - melGuard;
   const packedFirst = leftPad + tapPad + slotSizePx / 2;
   const fitFirst = rowEndMax - rowWidth + slotSizePx / 2;
   const firstSlotCenterX = Math.max(packedFirst, fitFirst);
+  const rowSpan =
+    slotSizePx * SPELL_BAR.rowCount +
+    SPELL_BAR.rowGapPx * (SPELL_BAR.rowCount - 1);
+  const centerY = chrome.bottomStrip.stripCenterY - rowSpan / 2 + slotSizePx / 2;
+  void slotCount;
   return {
-    centerY: chrome.bottomStrip.stripCenterY,
+    centerY,
     firstSlotCenterX,
   };
 }
 
-/** Game-space Y of spell row center (for tests). */
+/** Center of spell bar grid cell (2 rows × 3 columns). */
+export function spellBarSlotCenter(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+  slotIndex: number,
+  slotSizePx: number,
+  slotGapPx: number,
+  rowGapPx: number,
+): { x: number; y: number } {
+  const { firstSlotCenterX, centerY } = spellBarSlotOrigin(
+    scene,
+    safe,
+    SPELL_BAR.slotCount,
+    slotSizePx,
+    slotGapPx,
+  );
+  const col = slotIndex % SPELL_BAR.columnCount;
+  const row = Math.floor(slotIndex / SPELL_BAR.columnCount);
+  const x = firstSlotCenterX + col * (slotSizePx + slotGapPx);
+  const y = centerY + row * (slotSizePx + rowGapPx);
+  return { x, y };
+}
+
+/** Game-space Y of first spell row center (for tests). */
 export function expectedSpellBarCenterY(
   scene: Phaser.Scene,
   safe: SafeInsets = { top: 0, right: 0, bottom: 0, left: 0 },
 ): number {
-  return bottomHudStripLayout(scene, safe).stripCenterY;
+  return spellBarSlotOrigin(
+    scene,
+    safe,
+    SPELL_BAR.slotCount,
+    SPELL_BAR.slotSizePx,
+    SPELL_BAR.slotGapPx,
+  ).centerY;
 }
 
 export function combatChromeLayout(
@@ -239,9 +275,14 @@ export function combatChromeLayout(
 export function townActionButtonY(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  fromBottomIndex: 0 | 1 | 2,
+  fromBottomIndex: 0 | 1 | 2 | 3,
 ): number {
-  const bases: Record<0 | 1 | 2, number> = { 0: 120, 1: 210, 2: 290 };
+  const bases: Record<0 | 1 | 2 | 3, number> = {
+    0: 120,
+    1: 210,
+    2: 290,
+    3: 370,
+  };
   return scene.scale.height - safe.bottom - scaleUiY(bases[fromBottomIndex]);
 }
 

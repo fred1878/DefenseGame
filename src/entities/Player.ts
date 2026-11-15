@@ -19,6 +19,8 @@ export class Player {
   private phaseElapsed = 0;
   private hitEnemyIds = new Set<string>();
   private attackMode: AttackMode = "melee";
+  /** When auto-combat picks melee vs ranged for the current swing. */
+  private strikeModeOverride: "melee" | "ranged" | null = null;
   private rangedShotPending = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, hpMax: number) {
@@ -47,6 +49,13 @@ export class Player {
     return this.attackMode;
   }
 
+  /** Active attack style (melee/ranged only) for the current or next strike. */
+  strikeMode(): "melee" | "ranged" {
+    if (this.strikeModeOverride) return this.strikeModeOverride;
+    if (this.attackMode === "auto") return "ranged";
+    return this.attackMode;
+  }
+
   getFacingAngle(): number {
     return this.facing;
   }
@@ -59,9 +68,16 @@ export class Player {
     this.attackMode = mode;
   }
 
-  toggleAttackMode(): AttackMode {
-    this.attackMode = this.attackMode === "melee" ? "ranged" : "melee";
+  cycleAttackMode(): AttackMode {
+    if (this.attackMode === "melee") this.attackMode = "ranged";
+    else if (this.attackMode === "ranged") this.attackMode = "auto";
+    else this.attackMode = "melee";
     return this.attackMode;
+  }
+
+  /** @deprecated use cycleAttackMode */
+  toggleAttackMode(): AttackMode {
+    return this.cycleAttackMode();
   }
 
   faceToward(x: number, y: number): void {
@@ -101,12 +117,13 @@ export class Player {
     }
   }
 
-  tryStartAttack(): boolean {
+  tryStartAttack(strikeMode?: "melee" | "ranged"): boolean {
     if (this.attackPhase !== "idle") return false;
     this.attackPhase = "windup";
     this.phaseElapsed = 0;
     this.hitEnemyIds.clear();
     this.rangedShotPending = false;
+    this.strikeModeOverride = strikeMode ?? null;
     return true;
   }
 
@@ -120,7 +137,7 @@ export class Player {
     if (this.attackPhase === "idle") return;
     this.phaseElapsed += deltaMs;
 
-    const isRanged = this.attackMode === "ranged";
+    const isRanged = this.strikeMode() === "ranged";
     const windup = isRanged ? PLAYER_TUNING.rangedWindupMs : PLAYER_TUNING.meleeWindupMs;
     const active = isRanged ? PLAYER_TUNING.rangedActiveMs : PLAYER_TUNING.meleeActiveMs;
     const recovery = isRanged ? PLAYER_TUNING.rangedRecoveryMs : PLAYER_TUNING.meleeRecoveryMs;
@@ -135,6 +152,7 @@ export class Player {
     } else if (this.attackPhase === "recovery" && this.phaseElapsed >= recovery) {
       this.attackPhase = "idle";
       this.phaseElapsed = 0;
+      this.strikeModeOverride = null;
     }
   }
 
@@ -150,7 +168,7 @@ export class Player {
     damage: number,
     knockback: number,
   ): void {
-    if (this.attackMode !== "melee" || this.attackPhase !== "active") return;
+    if (this.strikeMode() !== "melee" || this.attackPhase !== "active") return;
     const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
     for (const e of enemies) {
       if (!e.damageable.alive || this.hitEnemyIds.has(e.id)) continue;
