@@ -59,18 +59,49 @@ export function defenseTileCenter(tileX: number, tileY: number): {
 /** On-field scale for defense obstacle sprites and matching nav/physics blockers. */
 export const DEFENSE_OBSTACLE_WORLD_SCALE = 2;
 
+/** Uniform shrink vs authored blocker footprints (tighter than transparent crop halo). */
+export const OBSTACLE_COLLIDER_SIZE_SCALE = 0.8;
+
+export type ObstaclePhysicsLayout = {
+  bodyW: number;
+  bodyH: number;
+  displayW: number;
+  displayH: number;
+  /**
+   * Collider center offset from sprite anchor (origin 0.5 at crop center).
+   * Positive Y moves the body south — feet sit on the crop baseline.
+   */
+  bodyCenterOffsetX: number;
+  bodyCenterOffsetY: number;
+};
+
 /** Gameplay blocker footprint (nav grid + Arcade body), tighter than sprite crop. */
+export function obstaclePhysicsLayout(textureKey: ObstacleTextureKey): ObstaclePhysicsLayout {
+  const crop = OBSTACLE_SPRITE_CROP[textureKey];
+  const block = OBSTACLE_BLOCKER_FOOTPRINT[textureKey];
+  const s = DEFENSE_OBSTACLE_WORLD_SCALE;
+  const bodyW =
+    Math.min(block.w, crop.w) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
+  const bodyH =
+    Math.min(block.h, crop.h) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
+  const displayW = crop.w * s;
+  const displayH = crop.h * s;
+  return {
+    bodyW,
+    bodyH,
+    displayW,
+    displayH,
+    bodyCenterOffsetX: 0,
+    bodyCenterOffsetY: (displayH - bodyH) / 2,
+  };
+}
+
 export function obstacleColliderSize(textureKey: ObstacleTextureKey): {
   w: number;
   h: number;
 } {
-  const crop = OBSTACLE_SPRITE_CROP[textureKey];
-  const block = OBSTACLE_BLOCKER_FOOTPRINT[textureKey];
-  const s = DEFENSE_OBSTACLE_WORLD_SCALE;
-  return {
-    w: Math.min(block.w, crop.w) * s,
-    h: Math.min(block.h, crop.h) * s,
-  };
+  const layout = obstaclePhysicsLayout(textureKey);
+  return { w: layout.bodyW, h: layout.bodyH };
 }
 
 export function obstacleDisplaySize(textureKey: ObstacleTextureKey): {
@@ -104,24 +135,44 @@ export type DefenseObstacleRect = {
   textureKey: ObstacleTextureKey;
 };
 
-function obsAtTile(
-  tileX: number,
-  tileY: number,
-  textureKey: ObstacleTextureKey,
-): DefenseObstacleRect {
-  const { x, y } = defenseTileCenter(tileX, tileY);
-  const { w, h } = obstacleColliderSize(textureKey);
-  return { x, y, w, h, textureKey };
+export type DefenseObstaclePlacement = {
+  tileX: number;
+  tileY: number;
+  textureKey: ObstacleTextureKey;
+};
+
+/** Sprite anchor (tile center); collider rect is feet-aligned via {@link obstaclePhysicsLayout}. */
+export const DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
+  { tileX: 2, tileY: 3, textureKey: OBSTACLE_TEXTURE.wideSlab },
+  { tileX: 10, tileY: 4, textureKey: OBSTACLE_TEXTURE.tallRock },
+  { tileX: 2, tileY: 15, textureKey: OBSTACLE_TEXTURE.rubbleLow },
+  { tileX: 10, tileY: 16, textureKey: OBSTACLE_TEXTURE.boulderSm },
+  { tileX: 6, tileY: 2, textureKey: OBSTACLE_TEXTURE.boulderMed },
+  { tileX: 9, tileY: 11, textureKey: OBSTACLE_TEXTURE.boulderSm },
+  { tileX: 4, tileY: 10, textureKey: OBSTACLE_TEXTURE.boulderMed },
+  { tileX: 6, tileY: 8, textureKey: OBSTACLE_TEXTURE.rubbleLow },
+];
+
+export function defenseObstacleSpriteAnchor(
+  placement: DefenseObstaclePlacement,
+): { x: number; y: number } {
+  return defenseTileCenter(placement.tileX, placement.tileY);
 }
 
-/** Static rock/wall blocks on the defense field (world coords, center origin). */
-export const DEFENSE_OBSTACLES: DefenseObstacleRect[] = [
-  obsAtTile(2, 3, OBSTACLE_TEXTURE.wideSlab),
-  obsAtTile(10, 4, OBSTACLE_TEXTURE.tallRock),
-  obsAtTile(2, 15, OBSTACLE_TEXTURE.rubbleLow),
-  obsAtTile(10, 16, OBSTACLE_TEXTURE.boulderSm),
-  obsAtTile(6, 2, OBSTACLE_TEXTURE.boulderMed),
-  obsAtTile(9, 11, OBSTACLE_TEXTURE.boulderSm),
-  obsAtTile(4, 10, OBSTACLE_TEXTURE.boulderMed),
-  obsAtTile(6, 8, OBSTACLE_TEXTURE.rubbleLow),
-];
+export function defenseObstacleColliderFromPlacement(
+  placement: DefenseObstaclePlacement,
+): DefenseObstacleRect {
+  const anchor = defenseObstacleSpriteAnchor(placement);
+  const layout = obstaclePhysicsLayout(placement.textureKey);
+  return {
+    x: anchor.x + layout.bodyCenterOffsetX,
+    y: anchor.y + layout.bodyCenterOffsetY,
+    w: layout.bodyW,
+    h: layout.bodyH,
+    textureKey: placement.textureKey,
+  };
+}
+
+/** Static rock/wall blockers (world coords = Arcade body AABB center + size). */
+export const DEFENSE_OBSTACLES: DefenseObstacleRect[] =
+  DEFENSE_OBSTACLE_PLACEMENTS.map(defenseObstacleColliderFromPlacement);

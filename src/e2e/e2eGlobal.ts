@@ -50,12 +50,16 @@ export type DefenseGameE2EApi = {
     configY: number;
     configW: number;
     configH: number;
+    anchorX: number;
+    anchorY: number;
     spriteX: number;
     spriteY: number;
     displayW: number;
     displayH: number;
     bodyW: number;
     bodyH: number;
+    bodyCenterX: number;
+    bodyCenterY: number;
   }>;
 };
 
