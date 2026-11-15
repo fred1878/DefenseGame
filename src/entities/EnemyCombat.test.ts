@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+  BRUISER_MELEE_TUNING,
+  GRUNT_MELEE_TUNING,
+} from "../config/enemy";
 import { northWallAttackY } from "../config/defense";
 import type { EnemyInstance } from "./Enemy";
 import { createEnemyNav } from "../ai/EnemyBrain";
@@ -78,5 +82,38 @@ describe("updateEnemyCombat player target", () => {
       0,
     );
     expect(hit).toBe(true);
+  });
+
+  it("bruiser connects farther than grunt at the same player offset", () => {
+    const px = 42;
+    const target = {
+      kind: "player" as const,
+      x: px,
+      y: 0,
+      radius: 14,
+      damageable: {
+        id: "p",
+        hp: 50,
+        maxHp: 50,
+        alive: true,
+        team: "player" as const,
+      },
+    };
+    const grunt = mockEnemy(0, 0);
+    grunt.combat.phase = "active";
+    grunt.combat.phaseMs = 0;
+    grunt.combat.hitThisSwing = false;
+    expect(
+      updateEnemyCombat(grunt, target, 0, undefined, GRUNT_MELEE_TUNING),
+    ).toBe(false);
+
+    const bruiser = mockEnemy(0, 0);
+    bruiser.defId = "bruiser";
+    bruiser.combat.phase = "active";
+    bruiser.combat.phaseMs = 0;
+    bruiser.combat.hitThisSwing = false;
+    expect(
+      updateEnemyCombat(bruiser, target, 0, undefined, BRUISER_MELEE_TUNING),
+    ).toBe(true);
   });
 });

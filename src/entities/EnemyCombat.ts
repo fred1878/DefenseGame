@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { ENEMY_TUNING } from "../config";
+import { GRUNT_MELEE_TUNING, type MeleeCombatTuning } from "../config";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
@@ -46,6 +46,7 @@ export function updateEnemyCombat(
   target: EnemyAttackTarget,
   deltaMs: number,
   onWallHit?: () => void,
+  tuning: MeleeCombatTuning = GRUNT_MELEE_TUNING,
 ): boolean {
   const c = enemy.combat;
   if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
@@ -57,8 +58,8 @@ export function updateEnemyCombat(
 
   const triggerRange =
     target.kind === "wall"
-      ? ENEMY_TUNING.wallAttackTriggerRange
-      : ENEMY_TUNING.attackTriggerRange;
+      ? tuning.wallAttackTriggerRange
+      : tuning.attackTriggerRange;
   const inRange = dist <= triggerRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
@@ -72,29 +73,26 @@ export function updateEnemyCombat(
 
   c.phaseMs += deltaMs;
 
-  if (c.phase === "windup" && c.phaseMs >= ENEMY_TUNING.attackWindupMs) {
+  if (c.phase === "windup" && c.phaseMs >= tuning.attackWindupMs) {
     c.phase = "active";
     c.phaseMs = 0;
-  } else if (c.phase === "active" && c.phaseMs >= ENEMY_TUNING.attackActiveMs) {
+  } else if (c.phase === "active" && c.phaseMs >= tuning.attackActiveMs) {
     c.phase = "recovery";
     c.phaseMs = 0;
-  } else if (
-    c.phase === "recovery" &&
-    c.phaseMs >= ENEMY_TUNING.attackRecoveryMs
-  ) {
+  } else if (c.phase === "recovery" && c.phaseMs >= tuning.attackRecoveryMs) {
     c.phase = "idle";
     c.phaseMs = 0;
-    c.cooldownMs = ENEMY_TUNING.attackCooldownMs;
+    c.cooldownMs = tuning.attackCooldownMs;
   }
 
   if (c.phase === "active" && !c.hitThisSwing) {
     if (target.kind === "player" && target.damageable.alive) {
-      const arcHalf = Phaser.Math.DegToRad(ENEMY_TUNING.attackArcDeg / 2);
+      const arcHalf = Phaser.Math.DegToRad(tuning.attackArcDeg / 2);
       const hit = arcHitboxHitsTarget(
         enemy.sprite.x,
         enemy.sprite.y,
         c.facing,
-        ENEMY_TUNING.attackRange,
+        tuning.attackRange,
         arcHalf,
         target.x,
         target.y,
@@ -104,7 +102,7 @@ export function updateEnemyCombat(
         c.hitThisSwing = true;
         return true;
       }
-    } else if (target.kind === "wall" && dist <= ENEMY_TUNING.wallAttackRange) {
+    } else if (target.kind === "wall" && dist <= tuning.wallAttackRange) {
       c.hitThisSwing = true;
       onWallHit?.();
     }

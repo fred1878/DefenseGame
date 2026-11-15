@@ -36,7 +36,7 @@ import {
   updateEnemyBrain,
   wallTargetPoint,
 } from "../ai/EnemyBrain";
-import { JAVELINEER_TUNING } from "../config/enemy";
+import { JAVELINEER_TUNING, meleeCombatTuningForDef } from "../config/enemy";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { showEnemyPaths, showHitboxes, showTouchInput } from "../debug/DebugState";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
@@ -506,8 +506,12 @@ export class DefenseScene extends Phaser.Scene {
             };
 
       let playerHitDamage = 0;
+      const meleeTuning = meleeCombatTuningForDef(e.defId);
       const onWallHit = () => {
-        this.wallHp = Math.max(0, this.wallHp - ENEMY_TUNING.wallAttackDamage);
+        this.wallHp = Math.max(
+          0,
+          this.wallHp - meleeTuning.wallAttackDamage,
+        );
       };
 
       if (e.behavior === "arrowRainArcher" && e.arrowRain) {
@@ -546,7 +550,13 @@ export class DefenseScene extends Phaser.Scene {
         }
         if (jav.meleeHit) playerHitDamage += e.damage;
       } else {
-        const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
+        const hitPlayer = updateEnemyCombat(
+          e,
+          attackTarget,
+          delta,
+          onWallHit,
+          meleeTuning,
+        );
         if (
           e.combat.phase === "active" &&
           !e.combat.slashFxShown
@@ -557,7 +567,7 @@ export class DefenseScene extends Phaser.Scene {
             e.sprite.x,
             e.sprite.y,
             e.combat.facing,
-            ENEMY_TUNING.attackActiveMs,
+            meleeTuning.attackActiveMs,
           );
         }
         if (hitPlayer) playerHitDamage += e.damage;
@@ -1045,12 +1055,13 @@ export class DefenseScene extends Phaser.Scene {
         ENTITY_BODY_RADIUS.enemy,
       );
       if (e.combat.phase === "active") {
-        const arcHalf = Phaser.Math.DegToRad(ENEMY_TUNING.attackArcDeg / 2);
+        const meleeTuning = meleeCombatTuningForDef(e.defId);
+        const arcHalf = Phaser.Math.DegToRad(meleeTuning.attackArcDeg / 2);
         this.hitboxDebug.drawMeleeArc(
           e.sprite.x,
           e.sprite.y,
           e.combat.facing,
-          ENEMY_TUNING.attackRange,
+          meleeTuning.attackRange,
           arcHalf,
         );
       }

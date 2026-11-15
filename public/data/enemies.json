@@ -6,6 +6,13 @@
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt"
   },
+  "bruiser": {
+    "hp": 48,
+    "speed": 58,
+    "damage": 11,
+    "behavior": "bruiser",
+    "textureKey": "enemy_grunt"
+  },
   "arrow_rain_archer": {
     "hp": 28,
     "speed": 52,

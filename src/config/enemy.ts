@@ -50,3 +50,47 @@ export const JAVELINEER_TUNING = {
   projectileSpeed: 340,
   projectileMaxTravel: 240,
 } as const;
+
+export type MeleeCombatTuning = {
+  wallAttackDamage: number;
+  wallAttackTriggerRange: number;
+  wallAttackRange: number;
+  attackTriggerRange: number;
+  attackRange: number;
+  attackArcDeg: number;
+  attackWindupMs: number;
+  attackActiveMs: number;
+  attackRecoveryMs: number;
+  attackCooldownMs: number;
+};
+
+export const GRUNT_MELEE_TUNING: MeleeCombatTuning = {
+  wallAttackDamage: ENEMY_TUNING.wallAttackDamage,
+  wallAttackTriggerRange: ENEMY_TUNING.wallAttackTriggerRange,
+  wallAttackRange: ENEMY_TUNING.wallAttackRange,
+  attackTriggerRange: ENEMY_TUNING.attackTriggerRange,
+  attackRange: ENEMY_TUNING.attackRange,
+  attackArcDeg: ENEMY_TUNING.attackArcDeg,
+  attackWindupMs: ENEMY_TUNING.attackWindupMs,
+  attackActiveMs: ENEMY_TUNING.attackActiveMs,
+  attackRecoveryMs: ENEMY_TUNING.attackRecoveryMs,
+  attackCooldownMs: ENEMY_TUNING.attackCooldownMs,
+};
+
+/** Slow polearm skirmisher — long melee reach, telegraphed swings. */
+export const BRUISER_MELEE_TUNING: MeleeCombatTuning = {
+  wallAttackDamage: 8,
+  wallAttackTriggerRange: 52,
+  wallAttackRange: 44,
+  attackTriggerRange: 50,
+  attackRange: 44,
+  attackArcDeg: 78,
+  attackWindupMs: 480,
+  attackActiveMs: 130,
+  attackRecoveryMs: 600,
+  attackCooldownMs: 520,
+};
+
+export function meleeCombatTuningForDef(defId: string): MeleeCombatTuning {
+  return defId === "bruiser" ? BRUISER_MELEE_TUNING : GRUNT_MELEE_TUNING;
+}
