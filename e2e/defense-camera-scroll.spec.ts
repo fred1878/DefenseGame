@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { defenseHalfHeight } from "../src/config/defense";
+import { defenseHalfHeight, defenseHalfWidth } from "../src/config/defense";
 import { e2eApi, gotoE2E, startDefense } from "./helpers/game";
 
 test.describe("defense vertical camera scroll", () => {
-  test("camera scrollY shifts when player moves north on tall map", async ({
+  test("camera scroll shifts when player moves on tall/wide map", async ({
     page,
   }) => {
     await gotoE2E(page);
@@ -31,5 +31,16 @@ test.describe("defense vertical camera scroll", () => {
         api.eval<number>("api.getDefenseCameraScroll().y"),
       )
       .not.toBe(before.y);
+
+    await api.eval<void>(
+      "api.setPlayerPosition(arg, 0)",
+      defenseHalfWidth() - 48,
+    );
+
+    await expect
+      .poll(async () =>
+        api.eval<number>("api.getDefenseCameraScroll().x"),
+      )
+      .not.toBe(before.x);
   });
 });

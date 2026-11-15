@@ -9,8 +9,8 @@ import { DEFAULT_WALL_COMBAT } from "../core/enemyTuning";
 
 /** Playable defense footprint in 64px ground tiles (source of truth). */
 export const DEFENSE_FIELD_TILES = {
-  /** East–west — fewer columns than legacy square maps. */
-  cols: 5,
+  /** East–west — ~1.5× portrait viewport (540px → 832px @ 13×64). */
+  cols: 13,
   /** North–south — tall scrollable field (taller than 1200px viewport). */
   rows: 22,
 } as const;
@@ -106,12 +106,12 @@ function obsAtTile(
 
 /** Static rock/wall blocks on the defense field (world coords, center origin). */
 export const DEFENSE_OBSTACLES: DefenseObstacleRect[] = [
-  obsAtTile(1, 3, OBSTACLE_TEXTURE.wideSlab),
-  obsAtTile(3, 4, OBSTACLE_TEXTURE.tallRock),
-  obsAtTile(1, 15, OBSTACLE_TEXTURE.rubbleLow),
-  obsAtTile(3, 16, OBSTACLE_TEXTURE.boulderSm),
-  obsAtTile(2, 2, OBSTACLE_TEXTURE.boulderMed),
-  obsAtTile(3, 11, OBSTACLE_TEXTURE.boulderSm),
-  obsAtTile(1, 10, OBSTACLE_TEXTURE.boulderMed),
-  obsAtTile(2, 8, OBSTACLE_TEXTURE.rubbleLow),
+  obsAtTile(2, 3, OBSTACLE_TEXTURE.wideSlab),
+  obsAtTile(10, 4, OBSTACLE_TEXTURE.tallRock),
+  obsAtTile(2, 15, OBSTACLE_TEXTURE.rubbleLow),
+  obsAtTile(10, 16, OBSTACLE_TEXTURE.boulderSm),
+  obsAtTile(6, 2, OBSTACLE_TEXTURE.boulderMed),
+  obsAtTile(9, 11, OBSTACLE_TEXTURE.boulderSm),
+  obsAtTile(4, 10, OBSTACLE_TEXTURE.boulderMed),
+  obsAtTile(6, 8, OBSTACLE_TEXTURE.rubbleLow),
 ];
