@@ -8,6 +8,10 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 
+const GAME_WIDTH = 540;
+const GAME_HEIGHT = 1200;
+const VIEWPORT_MARGIN = 8;
+
 test.describe("defense HUD layout", () => {
   test("no bottom panel chrome, spell row left of MEL", async ({ page }) => {
     await gotoE2E(page);
@@ -21,28 +25,54 @@ test.describe("defense HUD layout", () => {
     );
     expect(chromeKey).toBeNull();
 
-    const { targets, stripCenterY, stripH } = await page.evaluate(() => {
-      const hud = window.__HUD_DEBUG__ as
-        | { stripCenterY: number; stripH: number }
-        | undefined;
-      return {
-        targets: window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {},
-        stripCenterY: hud?.stripCenterY ?? 0,
-        stripH: hud?.stripH ?? 0,
-      };
-    });
+    const { targets, stripCenterY, stripH, slotCount, hitRects } =
+      await page.evaluate(() => {
+        const hud = window.__HUD_DEBUG__ as
+          | { stripCenterY: number; stripH: number }
+          | undefined;
+        const api = window.__DEFENSEGAME_E2E__?.api;
+        const rects = api?.getSpellSlotHitRects() ?? [];
+        return {
+          targets: api?.getUiTapTargets() ?? {},
+          stripCenterY: hud?.stripCenterY ?? 0,
+          stripH: hud?.stripH ?? 0,
+          slotCount: rects.length,
+          hitRects: rects,
+        };
+      });
 
+    expect(slotCount).toBe(8);
     expect(stripCenterY).toBeGreaterThan(1000);
     const bandHalf = stripH / 2 + 36;
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < slotCount; i++) {
       const key = `spell-slot-${i}`;
       const pt = targets[key];
       expect(pt, `missing ${key}`).toBeTruthy();
+      expect(pt!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+      expect(pt!.x).toBeLessThanOrEqual(GAME_WIDTH - VIEWPORT_MARGIN);
       expect(pt!.y).toBeGreaterThan(960);
       expect(pt!.y).toBeGreaterThanOrEqual(stripCenterY - bandHalf - 20);
       expect(pt!.y).toBeLessThanOrEqual(stripCenterY + bandHalf + 20);
+
+      const rect = hitRects.find((r) => r.index === i);
+      expect(rect, `missing hit rect ${i}`).toBeTruthy();
+      expect(rect!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+      expect(rect!.x + rect!.width).toBeLessThanOrEqual(
+        GAME_WIDTH - VIEWPORT_MARGIN + 0.5,
+      );
+      expect(pt!.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+      expect(pt!.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
+      expect(rect!.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+      expect(rect!.y + rect!.height).toBeLessThanOrEqual(
+        GAME_HEIGHT - VIEWPORT_MARGIN + 0.5,
+      );
     }
+
+    const slot0 = hitRects.find((r) => r.index === 0);
+    expect(slot0).toBeTruthy();
+    expect(slot0!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+    expect(slot0!.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
 
     const overlap = await page.evaluate(() => {
       const targets = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
@@ -58,7 +88,7 @@ test.describe("defense HUD layout", () => {
         a.y < b.y + b.h &&
         a.y + a.h > b.y;
 
-      const spellLast = rects("spell-slot-3");
+      const spellLast = rects("spell-slot-7");
       const mel = rects("combat-mode");
       const spell0 = rects("spell-slot-0");
       const debug = rects("defense-debug");
@@ -88,7 +118,7 @@ test.describe("defense HUD layout", () => {
     });
     expect(minimap).not.toBeNull();
     expect(minimap!.width).toBeGreaterThan(0);
-    expect(minimap!.x + minimap!.width).toBeLessThanOrEqual(540 + 2);
+    expect(minimap!.x + minimap!.width).toBeLessThanOrEqual(GAME_WIDTH + 2);
     expect(minimap!.y).toBeGreaterThan(80);
     expect(minimap!.y).toBeLessThan(220);
   });

@@ -195,6 +195,28 @@ export class SpellBar {
     return centers;
   }
 
+  e2eSlotHitRects(): Array<{
+    index: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }> {
+    const rects: Array<{
+      index: number;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }> = [];
+    for (let i = 0; i < this.slotChrome.length; i++) {
+      const r = interactiveObjectScreenRect(this.slotChrome[i]!.button.container);
+      if (!r) continue;
+      rects.push({ index: i, ...r });
+    }
+    return rects;
+  }
+
   refreshCooldownOverlays(): void {
     const slotH = SPELL_BAR.slotSizePx;
     for (let i = 0; i < this.slots.length; i++) {

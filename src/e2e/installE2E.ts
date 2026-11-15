@@ -23,6 +23,10 @@ const DOM_MIRROR_IDS = [
   "spell-slot-1",
   "spell-slot-2",
   "spell-slot-3",
+  "spell-slot-4",
+  "spell-slot-5",
+  "spell-slot-6",
+  "spell-slot-7",
   "defense-return-to-town",
 ] as const;
 
@@ -300,6 +304,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       if (town?.scene.isActive()) return town.e2eGetUiTapTargets();
       return {};
+    },
+    getSpellSlotHitRects() {
+      return activeDefense(game)?.e2eGetSpellSlotHitRects() ?? [];
     },
     isUiButtonPressed(testId: string) {
       const defense = activeDefense(game);

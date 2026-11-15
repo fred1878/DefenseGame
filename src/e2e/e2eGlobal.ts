@@ -40,6 +40,13 @@ export type DefenseGameE2EApi = {
   nightEnded(): boolean;
   hasReturnButton(): boolean;
   getUiTapTargets(): Record<string, { x: number; y: number }>;
+  getSpellSlotHitRects(): Array<{
+    index: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
   isUiButtonPressed(testId: string): boolean;
   getAutoAttackEnabled(): boolean;
   syncDomMirrors(): void;
