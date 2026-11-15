@@ -7,6 +7,7 @@ import {
   GROUND_DECOR_ASSETS,
   GROUND_TILE_ASSETS,
   GROUND_TILE_TEXTURE,
+  ENEMY_SPRITE_ASSETS,
   PLAYER_TEXTURE,
   UI_ASSETS,
 } from "../content/assets";
@@ -14,9 +15,7 @@ import { TOWN_BUILDING_ASSETS } from "../content/townBuildingAssets";
 
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
-  "enemy_grunt",
-  "enemy_arrow_rain_archer",
-  "enemy_javelineer",
+  ...ENEMY_SPRITE_ASSETS.map((a) => a.key),
     ...COMBAT_FX_ASSETS.map((a) => a.key),
     ...SPELL_FX_ASSETS.map((a) => a.key),
     ...SPELL_ICON_ASSETS.map((a) => a.key),

@@ -1,0 +1,48 @@
+import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_WALL_SIEGE_COMBAT } from "../../core/enemyTuning";
+import { createEnemyNav } from "../EnemyBrain";
+import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { wallSiegeBehavior } from "./wallSiege";
+import { PLAYER_AGGRO_RADIUS } from "../../config";
+
+describe("wallSiegeBehavior", () => {
+  const openGrid = {
+    blocked: () => false,
+    width: 1,
+    height: 1,
+    cellSize: 40,
+  } as unknown as import("../../pathfinding/grid").NavGrid;
+
+  it("ignores player beyond tight siege aggro", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "wallSiege",
+      combatTuning: undefined,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
+    });
+    enemy.combatTuning.wallSiege = DEFAULT_WALL_SIEGE_COMBAT;
+    enemy.nav = { ...createEnemyNav(), targetKind: "wall" };
+    wallSiegeBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: DEFAULT_WALL_SIEGE_COMBAT.playerAggroRadius + 40,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.nav.targetKind).toBe("wall");
+  });
+
+  it("paths when player is inside default aggro band", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    setVelocity.mockClear();
+    expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(
+      DEFAULT_WALL_SIEGE_COMBAT.playerAggroRadius,
+    );
+  });
+});

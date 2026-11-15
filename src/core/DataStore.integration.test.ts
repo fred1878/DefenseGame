@@ -38,7 +38,7 @@ describe("public data fixtures", () => {
     expect(bruiser).toBeDefined();
     expect(bruiser!.speed).toBeLessThan(grunt!.speed);
     expect(bruiser!.behavior).toBe("bruiser");
-    expect(bruiser!.textureKey).toBe("enemy_grunt");
+    expect(bruiser!.textureKey).toBe("enemy_bruiser");
     expect(bruiser!.combat?.melee?.range).toBeGreaterThan(30);
   });
 
@@ -59,6 +59,18 @@ describe("public data fixtures", () => {
     >;
     const archer = enemies.arrow_rain_archer;
     expect(archer?.combat?.arrowRain?.zoneRadius).toBe(72);
+  });
+
+  it("enemies.json assigns a unique textureKey per id", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      { textureKey: string }
+    >;
+    const keys = Object.values(enemies).map((e) => e.textureKey);
+    expect(new Set(keys).size).toBe(keys.length);
+    for (const [id, row] of Object.entries(enemies)) {
+      expect(row.textureKey).toBe(`enemy_${id}`);
+    }
   });
 
   it("waves.json night 1 has groups", () => {

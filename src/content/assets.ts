@@ -9,6 +9,21 @@ export const PLAYER_TEXTURE: Record<PlayerCardinal, string> = {
   w: "player_w",
 };
 
+/** Enemy field sprites (`public/assets/sprites/`, 64×64). One key per `enemies.json` row. */
+export const ENEMY_SPRITE_ASSETS = [
+  { key: "enemy_grunt", file: "enemy_grunt.png" },
+  { key: "enemy_bruiser", file: "enemy_bruiser.png" },
+  { key: "enemy_skirmisher", file: "enemy_skirmisher.png" },
+  { key: "enemy_arrow_rain_archer", file: "enemy_arrow_rain_archer.png" },
+  { key: "enemy_sentry_archer", file: "enemy_sentry_archer.png" },
+  { key: "enemy_javelineer", file: "enemy_javelineer.png" },
+  { key: "enemy_slow_siege", file: "enemy_slow_siege.png" },
+  { key: "enemy_fast_sapper", file: "enemy_fast_sapper.png" },
+  { key: "enemy_charger", file: "enemy_charger.png" },
+  { key: "enemy_lobber", file: "enemy_lobber.png" },
+  { key: "enemy_ward", file: "enemy_ward.png" },
+] as const;
+
 /** Combat ground fill (`tile_00.png` — `ground-sparse-grass-night` wang_15). */
 export const GROUND_TILE_TEXTURE = "ground_0";
 

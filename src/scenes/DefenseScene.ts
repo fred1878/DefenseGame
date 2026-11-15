@@ -81,9 +81,11 @@ import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
 import {
   updateArrowRainCombat,
   updateJavelineerCombat,
+  updateLobberCombat,
   updateStationaryRangedCombat,
 } from "../entities/EnemyRangedCombat";
 import {
+  spawnEnemyLobProjectile,
   spawnEnemyProjectile,
   spawnPlayerProjectile,
   updateEnemyProjectile,
@@ -612,8 +614,8 @@ export class DefenseScene extends Phaser.Scene {
       damageable: this.player.damageable,
     };
 
-    this.enemyProjectiles = this.enemyProjectiles.filter((p) =>
-      updateEnemyProjectile(
+    this.enemyProjectiles = this.enemyProjectiles.filter((p) => {
+      const alive = updateEnemyProjectile(
         p,
         delta,
         {
@@ -624,8 +626,31 @@ export class DefenseScene extends Phaser.Scene {
           sprite: this.player.sprite,
         },
         PLAYER_TUNING.rangedKnockback * 0.65,
-      ),
-    );
+      );
+      const det = p.pendingDetonation;
+      if (!alive && det) {
+        const blastR = this.wu(det.radiusWu);
+        const inBlast =
+          Phaser.Math.Distance.Between(px, py, det.x, det.y) <=
+          blastR + playerHurtbox.radius;
+        if (
+          inBlast &&
+          this.playerInvulnMs <= 0 &&
+          !this.registry.get("e2eGodMode") &&
+          this.player.damageable.alive
+        ) {
+          const scale =
+            (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ??
+            1;
+          applyDamage(this.player.damageable, det.damage * scale);
+          this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
+        }
+        this.flashNova(det.x, det.y, blastR, {
+          blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave,
+        });
+      }
+      return alive;
+    });
 
     this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
     this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
@@ -642,6 +667,14 @@ export class DefenseScene extends Phaser.Scene {
       const peerAgents = liveEnemies
         .filter((o) => o.id !== e.id)
         .map((o) => ({ x: o.sprite.x, y: o.sprite.y }));
+      const peerAllies = liveEnemies
+        .filter((o) => o.id !== e.id)
+        .map((o) => ({
+          id: o.id,
+          behavior: o.behavior,
+          x: o.sprite.x,
+          y: o.sprite.y,
+        }));
       const brain = updateEnemyBrain(
         e,
         e.nav,
@@ -650,6 +683,7 @@ export class DefenseScene extends Phaser.Scene {
         py,
         delta,
         peerAgents,
+        peerAllies,
       );
       this.enemyPathGoals.set(e.id, {
         targetKind: brain.targetKind,
@@ -744,6 +778,33 @@ export class DefenseScene extends Phaser.Scene {
               id,
             ),
           );
+        }
+      } else if (e.behavior === "lobber" && e.lobber) {
+        const lob = updateLobberCombat(
+          e,
+          attackTarget,
+          e.lobber,
+          delta,
+          onWallHit,
+        );
+        if (lob.spawnLob) {
+          const req = lob.spawnLob;
+          const tune = e.combatTuning.lobber!;
+          const id = `el_${this.projectileSerial++}`;
+          const proj = spawnEnemyLobProjectile(
+            this,
+            req.fromX,
+            req.fromY,
+            req.toX,
+            req.toY,
+            tune.projectileSpeed,
+            req.damage,
+            tune.blastRadius,
+            id,
+          );
+          (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =
+            req.blastDamageScale;
+          this.enemyProjectiles.push(proj);
         }
       } else {
         const hitPlayer = updateEnemyCombat(

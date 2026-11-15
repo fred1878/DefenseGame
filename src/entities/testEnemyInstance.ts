@@ -31,7 +31,13 @@ export function mockEnemyInstance(
     },
     combat: createEnemyCombat(),
     nav: createEnemyNav(),
-    behaviorExtra: { strafeSign: 1, strafeFlipMs: 0 },
+    behaviorExtra: {
+      strafeSign: 1,
+      strafeFlipMs: 0,
+      chargeWindupMs: 0,
+      chargeActiveMs: 0,
+      chargeCooldownMs: 0,
+    },
     ...partial,
     combatTuning,
   };

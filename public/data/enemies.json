@@ -11,7 +11,7 @@
     "speed": 58,
     "damage": 11,
     "behavior": "bruiser",
-    "textureKey": "enemy_grunt",
+    "textureKey": "enemy_bruiser",
     "combat": {
       "wall": {
         "damage": 8,
@@ -69,7 +69,7 @@
     "speed": 122,
     "damage": 5,
     "behavior": "meleeChaser",
-    "textureKey": "enemy_grunt",
+    "textureKey": "enemy_skirmisher",
     "combat": {
       "wall": {
         "damage": 4,
@@ -92,7 +92,7 @@
     "speed": 62,
     "damage": 10,
     "behavior": "stationaryRanged",
-    "textureKey": "enemy_arrow_rain_archer",
+    "textureKey": "enemy_sentry_archer",
     "combat": {
       "wall": {
         "damage": 5,
@@ -151,6 +151,150 @@
         "cooldownMs": 1100,
         "projectileSpeed": 340,
         "projectileMaxTravel": 240
+      }
+    }
+  },
+  "slow_siege": {
+    "hp": 92,
+    "speed": 40,
+    "damage": 14,
+    "behavior": "wallSiege",
+    "textureKey": "enemy_slow_siege",
+    "combat": {
+      "wall": {
+        "damage": 12,
+        "triggerRange": 58,
+        "hitRange": 48
+      },
+      "melee": {
+        "triggerRange": 40,
+        "range": 30,
+        "arcDeg": 64,
+        "windupMs": 520,
+        "activeMs": 140,
+        "recoveryMs": 620,
+        "cooldownMs": 480
+      },
+      "wallSiege": {
+        "playerAggroRadius": 68
+      }
+    }
+  },
+  "fast_sapper": {
+    "hp": 20,
+    "speed": 148,
+    "damage": 6,
+    "behavior": "wallSiege",
+    "textureKey": "enemy_fast_sapper",
+    "combat": {
+      "wall": {
+        "damage": 5,
+        "triggerRange": 44,
+        "hitRange": 36
+      },
+      "melee": {
+        "triggerRange": 30,
+        "range": 22,
+        "arcDeg": 58,
+        "windupMs": 260,
+        "activeMs": 80,
+        "recoveryMs": 340,
+        "cooldownMs": 260
+      },
+      "wallSiege": {
+        "playerAggroRadius": 56
+      }
+    }
+  },
+  "charger": {
+    "hp": 34,
+    "speed": 78,
+    "damage": 12,
+    "behavior": "charger",
+    "textureKey": "enemy_charger",
+    "combat": {
+      "wall": {
+        "damage": 7,
+        "triggerRange": 46,
+        "hitRange": 38
+      },
+      "melee": {
+        "triggerRange": 42,
+        "range": 30,
+        "arcDeg": 72,
+        "windupMs": 360,
+        "activeMs": 110,
+        "recoveryMs": 460,
+        "cooldownMs": 380
+      },
+      "charger": {
+        "dashTriggerRange": 152,
+        "dashWindupMs": 300,
+        "dashDurationMs": 400,
+        "dashSpeedMul": 2.4,
+        "dashCooldownMs": 2600
+      }
+    }
+  },
+  "lobber": {
+    "hp": 32,
+    "speed": 66,
+    "damage": 13,
+    "behavior": "lobber",
+    "textureKey": "enemy_lobber",
+    "combat": {
+      "wall": {
+        "damage": 6,
+        "triggerRange": 42,
+        "hitRange": 34
+      },
+      "melee": {
+        "triggerRange": 34,
+        "range": 24,
+        "arcDeg": 65,
+        "windupMs": 340,
+        "activeMs": 100,
+        "recoveryMs": 440,
+        "cooldownMs": 320
+      },
+      "lobber": {
+        "preferredRange": 130,
+        "attackTriggerRange": 172,
+        "windupMs": 700,
+        "activeMs": 100,
+        "recoveryMs": 520,
+        "cooldownMs": 2300,
+        "projectileSpeed": 255,
+        "blastRadius": 60,
+        "blastDamageScale": 0.88
+      }
+    }
+  },
+  "ward": {
+    "hp": 44,
+    "speed": 50,
+    "damage": 9,
+    "behavior": "ward",
+    "textureKey": "enemy_ward",
+    "combat": {
+      "wall": {
+        "damage": 5,
+        "triggerRange": 42,
+        "hitRange": 34
+      },
+      "melee": {
+        "triggerRange": 38,
+        "range": 28,
+        "arcDeg": 68,
+        "windupMs": 400,
+        "activeMs": 110,
+        "recoveryMs": 500,
+        "cooldownMs": 360
+      },
+      "ward": {
+        "protectRadius": 230,
+        "screenBlend": 0.4,
+        "playerAggroRadius": 110
       }
     }
   }

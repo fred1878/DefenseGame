@@ -2,23 +2,23 @@
 
 Night keys match `save.night` when defense starts. Winning a night increments `save.night`.
 
-Counts below are per-night totals (grunt groups summed). ~30% more enemies than the baseline mix; **`bruiser`** (slow polearm melee) appears from night **3** onward.
+Counts below are per-night totals (grunt groups summed). Nights **1–10** include skirmishers, sentry cover, and ramping groups for **slow_siege**, **fast_sapper**, **charger**, **lobber**, and **ward** alongside the core grunt/bruiser/archer/javelineer mix.
 
 | Night | rewardGold | Summary |
 |------:|-----------:|---------|
-| 1 | 40 | 7× grunt, 2× skirmisher; 1 sentry archer + 1 arrow rain archer + javelineers (late) |
-| 2 | 55 | 11× grunt, 2× skirmisher; 1 sentry archer + 1 archer + 1 javelineer |
-| 3 | 70 | 13× grunt; 1 bruiser; 1 archer + 1 javelineer |
-| 4 | 85 | 13× grunt; 2 bruisers; 3 archers + 2 javelineers |
-| 5 | 100 | 15× grunt; 2 bruisers; 3 archers + 3 javelineers |
-| 6 | 115 | 18× grunt; 3 bruisers; 3 archers + 3 javelineers |
-| 7 | 130 | 21× grunt; 3 bruisers; 4 archers + 3 javelineers |
-| 8 | 150 | 31× grunt; 4 bruisers; 4 archers + 4 javelineers |
-| 9 | 175 | 26× grunt; 4 bruisers; 4 archers + 5 javelineers |
-| 10 | 200 | 21× grunt, 5 bruisers, 5× archer, 6× javelineer (milestone) |
+| 1 | 40 | 7× grunt, 2 skirmisher; sapper + sentry late; archer + javelineer |
+| 2 | 55 | 11× grunt, 2 skirmisher; sapper, siege, sentry, archer, javelineer |
+| 3 | 70 | 13× grunt; bruiser; sapper, siege, charger; archer + javelineer |
+| 4 | 85 | 13× grunt, 2 bruisers; sapper×2, siege, charger, lobber; archer×3, javelineer×2 |
+| 5 | 100 | 15× grunt, 2 bruisers; all five specialists; archer×3, javelineer×3 |
+| 6 | 115 | 18× grunt, 3 bruisers; siege×2, charger×2; lobber, ward; ranged mix |
+| 7 | 130 | 21× grunt, 3 bruisers; sapper×3, siege×2, charger×2, lobber×2, ward |
+| 8 | 150 | 31× grunt, 4 bruisers; full specialist ramp + grunt reinforcement |
+| 9 | 175 | 26× grunt, 4 bruisers; specialist counts peak before milestone |
+| 10 | 200 | Milestone: 21× grunt, 5 bruisers, 5 archers, 6 javelineers; 3 siege, 4 charger, 3 lobber, 3 ward, 4 sapper |
 
-Nights **1–10** each include at least one `arrow_rain_archer` and one `javelineer` group; counts and intervals ramp toward night 10’s mix. Grunts remain the backbone every night.
+Grunts, bruisers, and skirmishers path toward the **north wall** unless the player is within aggro with line of sight. Siege and sapper units use a tighter aggro disc. Wards screen nearby arrow/javelin/sentry allies.
 
-Grunts and bruisers spawn around the map edges and path toward the **north wall** unless the player is within aggro range with line of sight. Bruisers use the grunt sprite as a placeholder until dedicated art lands.
+Each enemy id has a unique `textureKey` and matching PNG in `public/assets/sprites/`.
 
 If a night is missing from JSON, `DataStore.getWaveForNight` falls back to the highest defined night ≤ requested night, then night `1`.
