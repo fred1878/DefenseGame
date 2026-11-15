@@ -8,7 +8,12 @@ export {
   type PlayerCardinal,
 } from "./assets";
 export { PLAYER_TUNING, type AttackMode } from "./player";
-export { ENEMY_TUNING, PLAYER_AGGRO_RADIUS } from "./enemy";
+export {
+  ARROW_RAIN_TUNING,
+  ENEMY_TUNING,
+  JAVELINEER_TUNING,
+  PLAYER_AGGRO_RADIUS,
+} from "./enemy";
 export {
   DEFENSE_MAP,
   DEFENSE_OBSTACLES,

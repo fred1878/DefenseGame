@@ -11,7 +11,7 @@ import {
   type SaveGame,
   type SpellDefinition,
 } from "../config";
-import { DataStore } from "../core/DataStore";
+import { DataStore, type EnemyDef } from "../core/DataStore";
 import {
   applyNightResult,
   persistSave,
@@ -30,6 +30,7 @@ import {
   spawnChanneledFireball,
 } from "../combat/SpellEffects";
 import { updateEnemyBrain, wallTargetPoint } from "../ai/EnemyBrain";
+import { JAVELINEER_TUNING } from "../config/enemy";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { showEnemyPaths, showHitboxes, showTouchInput } from "../debug/DebugState";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
@@ -41,9 +42,14 @@ import {
 import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
 import { spawnEnemy, type EnemyInstance } from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
+import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
+import { updateArrowRainCombat, updateJavelineerCombat } from "../entities/EnemyRangedCombat";
 import {
+  spawnEnemyProjectile,
   spawnPlayerProjectile,
+  updateEnemyProjectile,
   updateProjectile,
+  type EnemyProjectile,
   type PlayerProjectile,
 } from "../entities/Projectile";
 import { Player, type AttackPhase } from "../entities/Player";
@@ -91,6 +97,7 @@ export class DefenseScene extends Phaser.Scene {
   private stick!: VirtualStick;
   private enemies: EnemyInstance[] = [];
   private projectiles: PlayerProjectile[] = [];
+  private enemyProjectiles: EnemyProjectile[] = [];
   private projectileSerial = 0;
   private hudText!: Phaser.GameObjects.Text;
   private attackButton!: Phaser.GameObjects.Container;
@@ -140,6 +147,7 @@ export class DefenseScene extends Phaser.Scene {
     this.returnToTownBtn = null;
     this.enemies = [];
     this.projectiles = [];
+    this.enemyProjectiles = [];
     this.projectileSerial = 0;
     this.enemyPathGoals.clear();
     this.focusEnemyId = null;
@@ -365,6 +373,11 @@ export class DefenseScene extends Phaser.Scene {
       this.touchDebug.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
+      for (const p of this.enemyProjectiles) p.sprite.destroy();
+      this.enemyProjectiles = [];
+      for (const e of this.enemies) {
+        destroyArrowRainTelegraph(e.arrowRain?.telegraph);
+      }
     });
   }
 
@@ -425,6 +438,21 @@ export class DefenseScene extends Phaser.Scene {
       damageable: this.player.damageable,
     };
 
+    this.enemyProjectiles = this.enemyProjectiles.filter((p) =>
+      updateEnemyProjectile(
+        p,
+        delta,
+        {
+          x: px,
+          y: py,
+          radius: playerHurtbox.radius,
+          damageable: this.player.damageable,
+          sprite: this.player.sprite,
+        },
+        PLAYER_TUNING.rangedKnockback * 0.65,
+      ),
+    );
+
     this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
     this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
 
@@ -452,33 +480,70 @@ export class DefenseScene extends Phaser.Scene {
               ...wallTargetPoint(e.sprite.x, e.sprite.y),
             };
 
-      const hitPlayer = updateEnemyCombat(
-        e,
-        attackTarget,
-        delta,
-        () => {
-          this.wallHp = Math.max(0, this.wallHp - ENEMY_TUNING.wallAttackDamage);
-        },
-      );
-      if (
-        e.combat.phase === "active" &&
-        !e.combat.slashFxShown
-      ) {
-        e.combat.slashFxShown = true;
-        showGruntMeleeSwipe(
-          this,
-          e.sprite.x,
-          e.sprite.y,
-          e.combat.facing,
-          ENEMY_TUNING.attackActiveMs,
+      let playerHitDamage = 0;
+      const onWallHit = () => {
+        this.wallHp = Math.max(0, this.wallHp - ENEMY_TUNING.wallAttackDamage);
+      };
+
+      if (e.behavior === "arrowRainArcher" && e.arrowRain) {
+        const rain = updateArrowRainCombat(
+          e,
+          attackTarget,
+          e.arrowRain,
+          delta,
+          onWallHit,
         );
+        if (rain.hitPlayer) playerHitDamage += rain.damage;
+      } else if (e.behavior === "javelineer" && e.javelineer) {
+        const jav = updateJavelineerCombat(
+          e,
+          attackTarget,
+          e.javelineer,
+          delta,
+          onWallHit,
+        );
+        if (jav.spawnJavelin) {
+          const req = jav.spawnJavelin;
+          const id = `ej_${this.projectileSerial++}`;
+          this.enemyProjectiles.push(
+            spawnEnemyProjectile(
+              this,
+              req.fromX,
+              req.fromY,
+              req.toX,
+              req.toY,
+              JAVELINEER_TUNING.projectileSpeed,
+              req.damage,
+              JAVELINEER_TUNING.projectileMaxTravel,
+              id,
+            ),
+          );
+        }
+        if (jav.meleeHit) playerHitDamage += e.damage;
+      } else {
+        const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
+        if (
+          e.combat.phase === "active" &&
+          !e.combat.slashFxShown
+        ) {
+          e.combat.slashFxShown = true;
+          showGruntMeleeSwipe(
+            this,
+            e.sprite.x,
+            e.sprite.y,
+            e.combat.facing,
+            ENEMY_TUNING.attackActiveMs,
+          );
+        }
+        if (hitPlayer) playerHitDamage += e.damage;
       }
+
       if (
-        hitPlayer &&
+        playerHitDamage > 0 &&
         this.playerInvulnMs <= 0 &&
         !this.registry.get("e2eGodMode")
       ) {
-        applyDamage(this.player.damageable, ENEMY_TUNING.attackDamage);
+        applyDamage(this.player.damageable, playerHitDamage);
         if (this.player.damageable.hp <= 0) {
           this.player.damageable.alive = false;
         } else {
@@ -951,7 +1016,8 @@ export class DefenseScene extends Phaser.Scene {
           this.spawnEnemyAt(
             Math.cos(angle) * dist,
             Math.sin(angle) * dist,
-            enemyDef.hp,
+            enemyDef,
+            group.enemyId,
           );
         });
       }
@@ -965,16 +1031,39 @@ export class DefenseScene extends Phaser.Scene {
     });
   }
 
-  private spawnEnemyAt(x: number, y: number, hp?: number): void {
-    const resolvedHp = hp ?? ENEMY_TUNING.gruntHp;
+  private defaultEnemyDef(): EnemyDef {
+    const store = this.registry.get("dataStore") as DataStore;
+    return (
+      store.enemies.grunt ?? {
+        hp: ENEMY_TUNING.gruntHp,
+        speed: ENEMY_TUNING.gruntSpeed,
+        damage: ENEMY_TUNING.attackDamage,
+        behavior: "meleeChaser",
+        textureKey: "enemy_grunt",
+      }
+    );
+  }
+
+  private spawnEnemyAt(
+    x: number,
+    y: number,
+    def?: EnemyDef,
+    defId = "grunt",
+    hpOverride?: number,
+  ): void {
+    const base = def ?? this.defaultEnemyDef();
+    const spawnDef =
+      hpOverride !== undefined ? { ...base, hp: hpOverride } : base;
     const id = `e_${this.enemies.length}_${Date.now()}`;
     const enemy = spawnEnemy(
       this,
       id,
       x,
       y,
-      resolvedHp,
+      spawnDef,
+      defId,
       () => {
+        destroyArrowRainTelegraph(enemy.arrowRain?.telegraph);
         enemy.sprite.destroy();
       },
       () => this.setFocusEnemy(id),
@@ -1084,7 +1173,7 @@ export class DefenseScene extends Phaser.Scene {
   e2eTapMelee(): void {
     this.player.setAttackMode("melee");
     this.refreshModeToggle("melee");
-    if (this.enemies.length === 0) this.spawnEnemyAt(48, 0, 1);
+    if (this.enemies.length === 0) this.spawnEnemyAt(48, 0, undefined, "grunt", 1);
     this.player.faceToward(this.player.sprite.x + 48, this.player.sprite.y);
     this.player.tryStartAttack();
   }
@@ -1092,7 +1181,7 @@ export class DefenseScene extends Phaser.Scene {
   e2eTapRanged(): void {
     this.player.setAttackMode("ranged");
     this.refreshModeToggle("ranged");
-    if (this.enemies.length === 0) this.spawnEnemyAt(80, 0, 1);
+    if (this.enemies.length === 0) this.spawnEnemyAt(80, 0, undefined, "grunt", 1);
     const e = this.enemies[0];
     if (e) this.player.faceToward(e.sprite.x, e.sprite.y);
     this.player.tryStartAttack();
@@ -1111,7 +1200,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   e2eSpawnEnemy(x: number, y: number): void {
-    this.spawnEnemyAt(x, y, 5);
+    this.spawnEnemyAt(x, y, undefined, "grunt", 5);
   }
 
   e2eDamagePlayer(amount: number): void {

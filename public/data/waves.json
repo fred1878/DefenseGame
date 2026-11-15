@@ -59,8 +59,10 @@
   "10": {
     "rewardGold": 200,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 12, "intervalMs": 300 },
-      { "atMs": 5000, "enemyId": "grunt", "count": 12, "intervalMs": 300 }
+      { "atMs": 0, "enemyId": "grunt", "count": 8, "intervalMs": 300 },
+      { "atMs": 2500, "enemyId": "arrow_rain_archer", "count": 4, "intervalMs": 900 },
+      { "atMs": 4000, "enemyId": "javelineer", "count": 5, "intervalMs": 700 },
+      { "atMs": 7000, "enemyId": "grunt", "count": 8, "intervalMs": 320 }
     ]
   }
 }

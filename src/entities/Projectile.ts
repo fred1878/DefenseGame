@@ -131,3 +131,89 @@ export function updateProjectile(
 
   return true;
 }
+
+export type EnemyProjectile = PlayerProjectile;
+
+export function spawnEnemyProjectile(
+  scene: Phaser.Scene,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  speed: number,
+  damage: number,
+  maxTravel: number,
+  id: string,
+  textureKey: string = COMBAT_FX_TEXTURE.stoneThrow,
+): EnemyProjectile {
+  const angle = Math.atan2(toY - fromY, toX - fromX);
+  return spawnPlayerProjectile(
+    scene,
+    fromX,
+    fromY,
+    angle,
+    speed,
+    damage,
+    maxTravel,
+    id,
+    textureKey,
+    "default",
+  );
+}
+
+export function updateEnemyProjectile(
+  projectile: EnemyProjectile,
+  deltaMs: number,
+  player: {
+    x: number;
+    y: number;
+    radius: number;
+    damageable: Damageable;
+    sprite: Phaser.Physics.Arcade.Sprite;
+  },
+  knockback: number,
+): boolean {
+  if (!projectile.sprite.active) return false;
+
+  const x0 = projectile.prevX;
+  const y0 = projectile.prevY;
+  const x1 = projectile.sprite.x;
+  const y1 = projectile.sprite.y;
+
+  aimProjectileSprite(projectile.sprite, projectile.sprite.texture.key);
+
+  const t = segmentFirstCircleHitT(
+    x0,
+    y0,
+    x1,
+    y1,
+    player.x,
+    player.y,
+    player.radius + 6,
+  );
+
+  if (t !== null && player.damageable.alive) {
+    applyDamage(player.damageable, projectile.damage, projectile.damageFlavor);
+    applyKnockbackFrom(
+      player.sprite,
+      projectile.sprite.x,
+      projectile.sprite.y,
+      knockback,
+    );
+    projectile.sprite.destroy();
+    return false;
+  }
+
+  const body = projectile.sprite.body as Phaser.Physics.Arcade.Body;
+  const dist = Math.hypot(body.velocity.x, body.velocity.y) * (deltaMs / 1000);
+  projectile.traveled += dist;
+  projectile.prevX = x1;
+  projectile.prevY = y1;
+
+  if (projectile.traveled >= projectile.maxTravel) {
+    projectile.sprite.destroy();
+    return false;
+  }
+
+  return true;
+}
