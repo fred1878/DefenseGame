@@ -113,6 +113,11 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { UI_TEXTURE } from "../content/assets";
 import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
+import {
+  DefenseMinimap,
+  defenseMinimapLayout,
+  defenseMinimapScreenRect,
+} from "../ui/defenseMinimap";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -158,6 +163,8 @@ export class DefenseScene extends Phaser.Scene {
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
   private enemyGroup!: Phaser.Physics.Arcade.Group;
   private hudChrome!: CombatHudChrome;
+  private minimap!: DefenseMinimap;
+  private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
 
   constructor() {
     super({ key: "Defense" });
@@ -327,6 +334,15 @@ export class DefenseScene extends Phaser.Scene {
     ];
 
     this.targetIndicator = new TargetIndicator(this);
+    this.minimap = new DefenseMinimap(this);
+    this.minimapLayout = defenseMinimapLayout(this, this.safe);
+    if (isE2EEnabled() && typeof window !== "undefined") {
+      const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
+        .__HUD_DEBUG__;
+      if (dbg) {
+        dbg.minimap = this.minimapLayout;
+      }
+    }
     this.hitboxDebug = new HitboxDebugDraw(this);
     this.pathDebug = new PathDebugDraw(this);
     this.touchDebug = new TouchInputDebugDraw(this);
@@ -375,10 +391,11 @@ export class DefenseScene extends Phaser.Scene {
       spellRect,
       this.debugBtn.container,
     );
+    const minimapRect = defenseMinimapScreenRect(this, this.safe);
     this.stick = new VirtualStick(this, {
       blockers: this.uiBlockers,
       excludeZones: [{ x: 0, y: 0, width: w, height: chrome.hudBand }],
-      uiScreenRects: uiMask,
+      uiScreenRects: [...uiMask, minimapRect],
       dragThresholdPx: chrome.stickDragThreshold,
       radius: chrome.stickRadius,
     });
@@ -414,6 +431,7 @@ export class DefenseScene extends Phaser.Scene {
       this.hitboxDebug.destroy();
       this.pathDebug.destroy();
       this.touchDebug.destroy();
+      this.minimap.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
       for (const p of this.enemyProjectiles) p.sprite.destroy();
@@ -613,6 +631,12 @@ export class DefenseScene extends Phaser.Scene {
     this.drawDebugHitboxes();
     this.drawEnemyPaths();
     this.drawTouchDebug(delta);
+    this.minimap.draw(
+      this.minimapLayout,
+      this.player.sprite.x,
+      this.player.sprite.y,
+      this.enemies,
+    );
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
     this.syncFocusTarget();
@@ -819,6 +843,7 @@ export class DefenseScene extends Phaser.Scene {
     this.hudText.setVisible(visible);
     this.debugBtn.container.setVisible(visible);
     this.hudChrome?.setVisible(visible);
+    this.minimap?.setVisible(visible);
   }
 
   private transitionToTown(): void {

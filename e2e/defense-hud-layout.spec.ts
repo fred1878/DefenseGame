@@ -76,4 +76,20 @@ test.describe("defense HUD layout", () => {
     expect(overlap!.spellMel, JSON.stringify(overlap)).toBe(false);
     expect(overlap!.debugSpell, JSON.stringify(overlap)).toBe(false);
   });
+
+  test("minimap frame is top-right below HUD", async ({ page }) => {
+    await gotoE2E(page);
+    await startDefense(page);
+    const minimap = await page.evaluate(() => {
+      const hud = window.__HUD_DEBUG__ as
+        | { minimap?: { x: number; y: number; width: number; height: number } }
+        | undefined;
+      return hud?.minimap ?? null;
+    });
+    expect(minimap).not.toBeNull();
+    expect(minimap!.width).toBeGreaterThan(0);
+    expect(minimap!.x + minimap!.width).toBeLessThanOrEqual(540 + 2);
+    expect(minimap!.y).toBeGreaterThan(80);
+    expect(minimap!.y).toBeLessThan(220);
+  });
 });
