@@ -1,35 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
-import { JAVELINEER_TUNING } from "../../config";
-import type { EnemyInstance } from "../../entities/Enemy";
-import { createEnemyCombat } from "../../entities/EnemyCombat";
+import { DEFAULT_JAVELINEER_COMBAT } from "../../core/enemyTuning";
 import { createEnemyNav } from "../EnemyBrain";
+import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import { javelineerBehavior } from "./javelineer";
 
-function mockJavelineer(x: number, y: number): EnemyInstance {
-  return {
+function mockJavelineer(x: number, y: number) {
+  return mockEnemyInstance({
     id: "j",
     defId: "javelineer",
     behavior: "javelineer",
-    speed: JAVELINEER_TUNING.maxRange,
-    damage: 10,
+    speed: DEFAULT_JAVELINEER_COMBAT.maxRange,
     textureKey: "enemy_javelineer",
     sprite: {
       x,
       y,
       setVelocity: vi.fn(),
-    } as unknown as EnemyInstance["sprite"],
-    damageable: {
-      id: "j",
-      hp: 20,
-      maxHp: 20,
-      alive: true,
-      team: "enemy",
-    },
-    combat: createEnemyCombat(),
+    } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
     nav: { ...createEnemyNav(), targetKind: "player" },
     behaviorExtra: { strafeSign: 1, strafeFlipMs: 500 },
     javelineer: { shotFired: false },
-  };
+  });
 }
 
 describe("javelineerBehavior", () => {
@@ -45,7 +35,7 @@ describe("javelineerBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid,
-      playerX: JAVELINEER_TUNING.minRange - 10,
+      playerX: DEFAULT_JAVELINEER_COMBAT.minRange - 10,
       playerY: 0,
       deltaMs: 16,
     });

@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import {
   DEFENSE_MAP,
   DEFENSE_OBSTACLES,
-  ENEMY_TUNING,
   GAME,
   PLAYER_TUNING,
   type AttackMode,
@@ -36,7 +35,7 @@ import {
   updateEnemyBrain,
   wallTargetPoint,
 } from "../ai/EnemyBrain";
-import { JAVELINEER_TUNING, meleeCombatTuningForDef } from "../config/enemy";
+import { DEFAULT_ENEMY_BASE } from "../core/enemyTuning";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { showEnemyPaths, showHitboxes, showTouchInput } from "../debug/DebugState";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
@@ -508,12 +507,9 @@ export class DefenseScene extends Phaser.Scene {
             };
 
       let playerHitDamage = 0;
-      const meleeTuning = meleeCombatTuningForDef(e.defId);
       const onWallHit = () => {
-        this.wallHp = Math.max(
-          0,
-          this.wallHp - meleeTuning.wallAttackDamage,
-        );
+        const wallDamage = e.combatTuning.wall.damage;
+        this.wallHp = Math.max(0, this.wallHp - wallDamage);
       };
 
       if (e.behavior === "arrowRainArcher" && e.arrowRain) {
@@ -543,9 +539,9 @@ export class DefenseScene extends Phaser.Scene {
               req.fromY,
               req.toX,
               req.toY,
-              JAVELINEER_TUNING.projectileSpeed,
+              e.combatTuning.javelineer!.projectileSpeed,
               req.damage,
-              JAVELINEER_TUNING.projectileMaxTravel,
+              e.combatTuning.javelineer!.projectileMaxTravel,
               id,
             ),
           );
@@ -557,7 +553,6 @@ export class DefenseScene extends Phaser.Scene {
           attackTarget,
           delta,
           onWallHit,
-          meleeTuning,
         );
         if (
           e.combat.phase === "active" &&
@@ -569,7 +564,7 @@ export class DefenseScene extends Phaser.Scene {
             e.sprite.x,
             e.sprite.y,
             e.combat.facing,
-            meleeTuning.attackActiveMs,
+            e.combatTuning.melee.activeMs,
           );
         }
         if (hitPlayer) playerHitDamage += e.damage;
@@ -1057,13 +1052,12 @@ export class DefenseScene extends Phaser.Scene {
         ENTITY_BODY_RADIUS.enemy,
       );
       if (e.combat.phase === "active") {
-        const meleeTuning = meleeCombatTuningForDef(e.defId);
-        const arcHalf = Phaser.Math.DegToRad(meleeTuning.attackArcDeg / 2);
+        const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);
         this.hitboxDebug.drawMeleeArc(
           e.sprite.x,
           e.sprite.y,
           e.combat.facing,
-          meleeTuning.attackRange,
+          e.combatTuning.melee.range,
           arcHalf,
         );
       }
@@ -1128,9 +1122,9 @@ export class DefenseScene extends Phaser.Scene {
     const store = this.registry.get("dataStore") as DataStore;
     return (
       store.enemies.grunt ?? {
-        hp: ENEMY_TUNING.gruntHp,
-        speed: ENEMY_TUNING.gruntSpeed,
-        damage: ENEMY_TUNING.attackDamage,
+        hp: DEFAULT_ENEMY_BASE.hp,
+        speed: DEFAULT_ENEMY_BASE.speed,
+        damage: DEFAULT_ENEMY_BASE.damage,
         behavior: "meleeChaser",
         textureKey: "enemy_grunt",
       }

@@ -25,7 +25,13 @@ describe("public data fixtures", () => {
   it("enemies.json bruiser is slower than grunt with long reach behavior id", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
-      { hp: number; speed: number; behavior: string; textureKey: string }
+      {
+        hp: number;
+        speed: number;
+        behavior: string;
+        textureKey: string;
+        combat?: { melee?: { range?: number } };
+      }
     >;
     const bruiser = enemies.bruiser;
     const grunt = enemies.grunt;
@@ -33,6 +39,16 @@ describe("public data fixtures", () => {
     expect(bruiser!.speed).toBeLessThan(grunt!.speed);
     expect(bruiser!.behavior).toBe("bruiser");
     expect(bruiser!.textureKey).toBe("enemy_grunt");
+    expect(bruiser!.combat?.melee?.range).toBeGreaterThan(30);
+  });
+
+  it("arrow_rain_archer documents combat schema with merged defaults", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      { behavior: string; combat?: { arrowRain?: { zoneRadius?: number } } }
+    >;
+    const archer = enemies.arrow_rain_archer;
+    expect(archer?.combat?.arrowRain?.zoneRadius).toBe(72);
   });
 
   it("waves.json night 1 has groups", () => {

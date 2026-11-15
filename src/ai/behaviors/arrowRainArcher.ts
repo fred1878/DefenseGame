@@ -1,4 +1,3 @@
-import { ARROW_RAIN_TUNING } from "../../config";
 import { DEFENSE_MAP } from "../../config";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
@@ -20,11 +19,14 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
   }
 
   const distToPlayer = Math.hypot(playerX - ex, playerY - ey);
+  const arrow = enemy.combatTuning.arrowRain;
   const inAttackBand =
-    desired === "player" && distToPlayer <= ARROW_RAIN_TUNING.attackTriggerRange;
+    desired === "player" &&
+    arrow !== undefined &&
+    distToPlayer <= arrow.attackTriggerRange;
 
-  if (inAttackBand) {
-    const tooClose = distToPlayer < ARROW_RAIN_TUNING.preferredRange - 24;
+  if (inAttackBand && arrow) {
+    const tooClose = distToPlayer < arrow.preferredRange - 24;
     if (tooClose) {
       applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.65);
     } else {

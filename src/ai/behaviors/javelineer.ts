@@ -1,4 +1,4 @@
-import { DEFENSE_MAP, JAVELINEER_TUNING } from "../../config";
+import { DEFENSE_MAP } from "../../config";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
@@ -12,7 +12,8 @@ function advanceStrafeSign(enemy: EnemyInstance, deltaMs: number): 1 | -1 {
   if (enemy.behaviorExtra.strafeFlipMs <= 0) {
     enemy.behaviorExtra.strafeSign =
       enemy.behaviorExtra.strafeSign === 1 ? -1 : 1;
-    enemy.behaviorExtra.strafeFlipMs = JAVELINEER_TUNING.orbitFlipMs;
+    enemy.behaviorExtra.strafeFlipMs =
+      enemy.combatTuning.javelineer?.orbitFlipMs ?? 1400;
   }
   return enemy.behaviorExtra.strafeSign;
 }
@@ -37,7 +38,8 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   const dist = Math.hypot(dx, dy);
 
   if (desired === "player") {
-    const { minRange, maxRange } = JAVELINEER_TUNING;
+    const javelineer = enemy.combatTuning.javelineer!;
+    const { minRange, maxRange } = javelineer;
     if (dist < minRange) {
       applyDirectVelocity(enemy, ex - playerX, ey - playerY, 1.05);
     } else if (dist > maxRange) {
@@ -67,7 +69,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         enemy,
         px + nx * 0.15,
         py + ny * 0.15,
-        JAVELINEER_TUNING.strafeSpeedMul,
+        javelineer.strafeSpeedMul,
       );
     }
   } else {

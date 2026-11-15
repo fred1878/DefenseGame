@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { ARROW_RAIN_TUNING, ENEMY_TUNING, JAVELINEER_TUNING } from "../config";
 import type { Damageable } from "../combat/DamageSystem";
 import {
   destroyArrowRainTelegraph,
@@ -85,7 +84,8 @@ export function updateArrowRainCombat(
   onWallHit?: () => void,
 ): { hitPlayer: boolean; damage: number } {
   const c = enemy.combat;
-  const tune = ARROW_RAIN_TUNING;
+  const { wall } = enemy.combatTuning;
+  const tune = enemy.combatTuning.arrowRain!;
   if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
 
   const dx = target.x - enemy.sprite.x;
@@ -94,9 +94,7 @@ export function updateArrowRainCombat(
   c.facing = Math.atan2(dy, dx);
 
   const triggerRange =
-    target.kind === "wall"
-      ? ENEMY_TUNING.wallAttackTriggerRange
-      : tune.attackTriggerRange;
+    target.kind === "wall" ? wall.triggerRange : tune.attackTriggerRange;
   const inRange = dist <= triggerRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
@@ -113,12 +111,13 @@ export function updateArrowRainCombat(
         extra.zoneX,
         extra.zoneY,
         tune.windupMs,
+        tune.zoneRadius,
       );
     }
   }
 
   if (c.phase === "windup" && extra.telegraph) {
-    updateArrowRainTelegraph(extra.telegraph, deltaMs, false);
+    updateArrowRainTelegraph(extra.telegraph, deltaMs, false, tune.zoneRadius);
   }
 
   advanceCombatPhase(
@@ -135,7 +134,7 @@ export function updateArrowRainCombat(
 
   if (c.phase === "active") {
     if (extra.telegraph) {
-      updateArrowRainTelegraph(extra.telegraph, deltaMs, true);
+      updateArrowRainTelegraph(extra.telegraph, deltaMs, true, tune.zoneRadius);
     }
     if (target.kind === "player" && target.damageable.alive) {
       extra.tickAccumulatorMs += deltaMs;
@@ -157,7 +156,7 @@ export function updateArrowRainCombat(
           damage += enemy.damage * tune.tickDamageScale;
         }
       }
-    } else if (target.kind === "wall" && dist <= ENEMY_TUNING.wallAttackRange) {
+    } else if (target.kind === "wall" && dist <= wall.hitRange) {
       onWallHit?.();
     }
   }
@@ -179,7 +178,8 @@ export function updateJavelineerCombat(
   onWallHit?: () => void,
 ): { spawnJavelin?: JavelinSpawnRequest; meleeHit: boolean } {
   const c = enemy.combat;
-  const tune = JAVELINEER_TUNING;
+  const { wall } = enemy.combatTuning;
+  const tune = enemy.combatTuning.javelineer!;
   if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
 
   const dx = target.x - enemy.sprite.x;
@@ -192,7 +192,7 @@ export function updateJavelineerCombat(
     dist >= tune.minRange &&
     dist <= tune.maxRange;
   const wallInRange =
-    target.kind === "wall" && dist <= ENEMY_TUNING.wallAttackTriggerRange;
+    target.kind === "wall" && dist <= wall.triggerRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && (inBand || wallInRange)) {
     c.phase = "windup";
@@ -222,7 +222,7 @@ export function updateJavelineerCombat(
         toY: target.y,
         damage: enemy.damage,
       };
-    } else if (target.kind === "wall" && dist <= ENEMY_TUNING.wallAttackRange) {
+    } else if (target.kind === "wall" && dist <= wall.hitRange) {
       onWallHit?.();
     } else if (target.kind === "player" && dist < tune.minRange) {
       meleeHit = true;
@@ -237,11 +237,12 @@ export function playerInsideArrowRain(
   px: number,
   py: number,
   radius: number,
+  zoneRadius: number,
   extra: ArrowRainCombatState,
 ): boolean {
   return (
     Phaser.Math.Distance.Between(px, py, extra.zoneX, extra.zoneY) <=
-    ARROW_RAIN_TUNING.zoneRadius + radius
+    zoneRadius + radius
   );
 }
 

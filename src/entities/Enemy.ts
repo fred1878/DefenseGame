@@ -1,7 +1,11 @@
 import Phaser from "phaser";
-import { ENEMY_TUNING, JAVELINEER_TUNING } from "../config";
 import { SPRITE_DISPLAY } from "../config/assets";
 import type { EnemyDef } from "../core/DataStore";
+import {
+  DEFAULT_ENEMY_BASE,
+  resolveEnemyCombat,
+  type ResolvedEnemyCombat,
+} from "../core/enemyTuning";
 import type { Damageable } from "../combat/DamageSystem";
 import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 import {
@@ -27,6 +31,7 @@ export type EnemyInstance = {
   speed: number;
   damage: number;
   textureKey: string;
+  combatTuning: ResolvedEnemyCombat;
   sprite: Phaser.Physics.Arcade.Sprite;
   damageable: Damageable;
   combat: EnemyCombatState;
@@ -76,20 +81,22 @@ export function spawnEnemy(
     team: "enemy",
     onDeath,
   };
+  const combatTuning = resolveEnemyCombat(def.behavior, def.combat);
   const enemy: EnemyInstance = {
     id,
     defId,
     behavior: def.behavior,
-    speed: def.speed ?? ENEMY_TUNING.gruntSpeed,
-    damage: def.damage ?? ENEMY_TUNING.attackDamage,
+    speed: def.speed ?? DEFAULT_ENEMY_BASE.speed,
+    damage: def.damage ?? DEFAULT_ENEMY_BASE.damage,
     textureKey: def.textureKey,
+    combatTuning,
     sprite,
     damageable,
     combat: createEnemyCombat(),
     nav: createEnemyNav(),
     behaviorExtra: {
       strafeSign: 1,
-      strafeFlipMs: JAVELINEER_TUNING.orbitFlipMs,
+      strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 1400,
     },
   };
   if (def.behavior === "arrowRainArcher") {

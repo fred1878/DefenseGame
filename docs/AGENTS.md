@@ -80,19 +80,59 @@ export type NightResult = {
 
 ## Data examples (`public/data/`)
 
-**enemies.json** — stats + `behavior` id (maps to `src/ai/behaviors/`):
+**enemies.json** — per-enemy stats + `behavior` id (maps to `src/ai/behaviors/`). Combat timings/ranges live under optional `combat`; omitted keys inherit typed defaults in `src/core/enemyTuning.ts` (grunt-compatible melee/wall baseline). Player aggro radius stays global: `PLAYER_AGGRO_RADIUS` in `src/config/enemy.ts`.
+
+| `combat` block | Used when `behavior` is |
+|----------------|-------------------------|
+| `wall` | All (north wall objective) |
+| `melee` | `meleeChaser` (arc swipe vs player) |
+| `arrowRain` | `arrowRainArcher` (telegraphed floor AoE) |
+| `javelineer` | `javelineer` (kite band + toss) |
 
 ```json
 {
   "grunt": {
     "hp": 30,
-    "speed": 70,
+    "speed": 85,
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt"
+  },
+  "arrow_rain_archer": {
+    "hp": 28,
+    "speed": 52,
+    "damage": 9,
+    "behavior": "arrowRainArcher",
+    "textureKey": "enemy_arrow_rain_archer",
+    "combat": {
+      "wall": { "damage": 6, "triggerRange": 42, "hitRange": 34 },
+      "melee": {
+        "triggerRange": 36,
+        "range": 26,
+        "arcDeg": 70,
+        "windupMs": 380,
+        "activeMs": 110,
+        "recoveryMs": 480,
+        "cooldownMs": 350
+      },
+      "arrowRain": {
+        "preferredRange": 150,
+        "attackTriggerRange": 168,
+        "windupMs": 900,
+        "activeMs": 1200,
+        "recoveryMs": 520,
+        "cooldownMs": 2200,
+        "zoneRadius": 72,
+        "tickIntervalMs": 300,
+        "tickDamageScale": 0.55,
+        "maxTicks": 4
+      }
+    }
   }
 }
 ```
+
+New melee enemies can omit `combat` entirely. Override only what you need (e.g. `"combat": { "melee": { "windupMs": 500 } }`).
 
 **waves.json** — keyed by night number:
 

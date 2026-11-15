@@ -1,41 +1,44 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  BRUISER_MELEE_TUNING,
-  GRUNT_MELEE_TUNING,
-} from "../config/enemy";
 import { northWallAttackY } from "../config/defense";
-import type { EnemyInstance } from "./Enemy";
+import { resolveEnemyCombat } from "../core/enemyTuning";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {
   createEnemyCombat,
   updateEnemyCombat,
   type EnemyCombatState,
 } from "./EnemyCombat";
+import { mockEnemyInstance } from "./testEnemyInstance";
 
 function mockEnemy(
   x: number,
   y: number,
   combat?: EnemyCombatState,
-): EnemyInstance {
-  return {
-    id: "e",
-    defId: "grunt",
-    behavior: "meleeChaser",
-    speed: 85,
-    damage: 8,
-    textureKey: "enemy_grunt",
-    sprite: { x, y, setVelocity: vi.fn() } as unknown as EnemyInstance["sprite"],
-    damageable: {
-      id: "e",
-      hp: 10,
-      maxHp: 10,
-      alive: true,
-      team: "enemy",
-    },
+  defId = "grunt",
+  behavior = "meleeChaser",
+) {
+  const combatPartial =
+    defId === "bruiser"
+      ? ({
+          wall: { damage: 8, triggerRange: 52, hitRange: 44 },
+          melee: {
+            triggerRange: 50,
+            range: 44,
+            arcDeg: 78,
+            windupMs: 480,
+            activeMs: 130,
+            recoveryMs: 600,
+            cooldownMs: 520,
+          },
+        } as const)
+      : undefined;
+  return mockEnemyInstance({
+    defId,
+    behavior,
+    combatTuning: resolveEnemyCombat(behavior, combatPartial),
+    sprite: { x, y, setVelocity: vi.fn() } as unknown as import("./Enemy").EnemyInstance["sprite"],
     combat: combat ?? createEnemyCombat(),
     nav: createEnemyNav(),
-    behaviorExtra: { strafeSign: 1 as const, strafeFlipMs: 0 },
-  };
+  });
 }
 
 describe("updateEnemyCombat wall target", () => {
@@ -103,17 +106,12 @@ describe("updateEnemyCombat player target", () => {
     grunt.combat.phase = "active";
     grunt.combat.phaseMs = 0;
     grunt.combat.hitThisSwing = false;
-    expect(
-      updateEnemyCombat(grunt, target, 0, undefined, GRUNT_MELEE_TUNING),
-    ).toBe(false);
+    expect(updateEnemyCombat(grunt, target, 0)).toBe(false);
 
-    const bruiser = mockEnemy(0, 0);
-    bruiser.defId = "bruiser";
+    const bruiser = mockEnemy(0, 0, undefined, "bruiser", "bruiser");
     bruiser.combat.phase = "active";
     bruiser.combat.phaseMs = 0;
     bruiser.combat.hitThisSwing = false;
-    expect(
-      updateEnemyCombat(bruiser, target, 0, undefined, BRUISER_MELEE_TUNING),
-    ).toBe(true);
+    expect(updateEnemyCombat(bruiser, target, 0)).toBe(true);
   });
 });
