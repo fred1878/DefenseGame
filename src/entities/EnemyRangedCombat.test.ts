@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_ARROW_RAIN_COMBAT,
   DEFAULT_JAVELINEER_COMBAT,
-  DEFAULT_WALL_COMBAT,
 } from "../core/enemyTuning";
 import { northWallAttackY } from "../config/defense";
 import { createEnemyNav } from "../ai/EnemyBrain";
@@ -55,44 +54,45 @@ describe("updateArrowRainCombat", () => {
 });
 
 describe("updateArrowRainCombat wall target", () => {
-  it("calls onWallHit during active phase in wall attack range", () => {
+  it("calls onWallHit once per volley during active phase", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("arrowRainArcher");
-    enemy.sprite.y = wy + DEFAULT_WALL_COMBAT.hitRange - 4;
+    enemy.sprite.y = wy + DEFAULT_ARROW_RAIN_COMBAT.preferredRange;
     enemy.arrowRain = createArrowRainCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     enemy.combat.cooldownMs = 0;
+    enemy.combat.hitThisSwing = false;
     const onWallHit = vi.fn();
-    updateArrowRainCombat(
-      enemy,
-      { kind: "wall", x: enemy.sprite.x, y: wy },
-      enemy.arrowRain,
-      0,
-      onWallHit,
-    );
-    expect(onWallHit).toHaveBeenCalled();
+    const target = { kind: "wall" as const, x: enemy.sprite.x, y: wy };
+    updateArrowRainCombat(enemy, target, enemy.arrowRain, 16, onWallHit);
+    updateArrowRainCombat(enemy, target, enemy.arrowRain, 16, onWallHit);
+    expect(onWallHit).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("updateJavelineerCombat wall target", () => {
-  it("calls onWallHit during active phase at the wall", () => {
+  it("throws at the wall and damages once per shot", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("javelineer");
-    enemy.sprite.y = wy + DEFAULT_WALL_COMBAT.hitRange - 4;
+    const band =
+      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      2;
+    enemy.sprite.y = wy + band;
     enemy.javelineer = createJavelineerCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     enemy.combat.cooldownMs = 0;
     const onWallHit = vi.fn();
-    updateJavelineerCombat(
+    const result = updateJavelineerCombat(
       enemy,
       { kind: "wall", x: enemy.sprite.x, y: wy },
       enemy.javelineer,
       0,
       onWallHit,
     );
-    expect(onWallHit).toHaveBeenCalled();
+    expect(onWallHit).toHaveBeenCalledTimes(1);
+    expect(result.spawnJavelin?.toY).toBe(wy);
   });
 });
 

@@ -9,6 +9,7 @@ export {
   DEFENSE_MAP,
   DEFENSE_OBSTACLES,
   northWallAttackY,
+  northWallApproachY,
   type DefenseObstacleRect,
 } from "./defense";
 export { CAST_BAR, SPELL_BAR } from "./spellBar";

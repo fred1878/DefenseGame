@@ -36,7 +36,7 @@ import {
 import {
   pickEnemyCombatTarget,
   updateEnemyBrain,
-  wallTargetPoint,
+  wallCombatPoint,
 } from "../ai/EnemyBrain";
 import { DEFAULT_ENEMY_BASE } from "../core/enemyTuning";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
@@ -505,7 +505,7 @@ export class DefenseScene extends Phaser.Scene {
             }
           : {
               kind: "wall" as const,
-              ...wallTargetPoint(e.sprite.x, e.sprite.y),
+              ...wallCombatPoint(e.sprite.x),
             };
 
       let playerHitDamage = 0;

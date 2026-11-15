@@ -5,7 +5,7 @@ import {
   PLAYER_CHASE_MEMORY_MS,
   WALL_VELOCITY_BLEND_MS,
 } from "../config";
-import { northWallAttackY } from "../config/defense";
+import { northWallApproachY, northWallAttackY } from "../config/defense";
 import { buildNavGrid } from "../pathfinding/grid";
 import {
   createEnemyNav,
@@ -85,10 +85,11 @@ describe("resolveEnemyTarget", () => {
 });
 
 describe("wallTargetPoint", () => {
-  it("returns north wall y with enemy x", () => {
+  it("returns approach line south of the wall with enemy x", () => {
     const pt = wallTargetPoint(100, -40);
     expect(pt.x).toBe(100);
-    expect(pt.y).toBeLessThan(-40);
+    expect(pt.y).toBe(northWallApproachY());
+    expect(pt.y).toBeGreaterThan(northWallAttackY());
   });
 });
 

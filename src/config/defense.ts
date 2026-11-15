@@ -2,12 +2,22 @@ import {
   OBSTACLE_TEXTURE,
   type ObstacleTextureKey,
 } from "../content/assets";
+import { DEFAULT_WALL_COMBAT } from "../core/enemyTuning";
 import { GAME } from "./game";
 
 /** North settlement wall — attack target plane (world y). */
 export function northWallAttackY(): number {
   const half = GAME.worldHalfSize;
   return -half + 20 + 20;
+}
+
+/**
+ * Pathing stop line south of the wall so enemies hold attack range instead of walking into the barricade.
+ */
+export function northWallApproachY(
+  standoffPx = DEFAULT_WALL_COMBAT.triggerRange - 6,
+): number {
+  return northWallAttackY() + standoffPx;
 }
 
 export const DEFENSE_MAP = {
