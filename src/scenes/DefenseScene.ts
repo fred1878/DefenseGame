@@ -183,7 +183,7 @@ export class DefenseScene extends Phaser.Scene {
 
     const half = GAME.worldHalfSize;
     this.physics.world.setBounds(-half, -half, half * 2, half * 2);
-    buildGroundLayer(this, half);
+    buildGroundLayer(this, half, this.save.night);
 
     this.add
       .rectangle(0, -half + 20, half * 2, 40, 0x52525b)
