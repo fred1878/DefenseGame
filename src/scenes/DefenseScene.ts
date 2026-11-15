@@ -18,6 +18,7 @@ import {
   playerDamageMult,
 } from "../core/GameState";
 import { applyDamage } from "../combat/DamageSystem";
+import { flashSpriteTint } from "../combat/HitFlash";
 import {
   showGruntMeleeSwipe,
   showPlayerMeleeSwipe,
@@ -968,6 +969,9 @@ export class DefenseScene extends Phaser.Scene {
       },
       () => this.setFocusEnemy(id),
     );
+    enemy.damageable.onDamaged = (_amount, flavor = "default") => {
+      flashSpriteTint(this, enemy.sprite, flavor);
+    };
     this.physics.add.collider(enemy.sprite, this.obstacleGroup);
     this.enemies.push(enemy);
   }

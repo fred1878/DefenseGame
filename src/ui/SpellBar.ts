@@ -13,11 +13,15 @@ export type SpellBarCallbacks = {
   onCastRequest: (spellId: SpellId) => void;
 };
 
+type CooldownVisual = {
+  overlay: Phaser.GameObjects.Rectangle;
+};
+
 export class SpellBar {
   private readonly caster: SpellCastController;
   private readonly slots: SpellId[];
   private readonly buttons: ReturnType<typeof createTouchButton>[] = [];
-  private readonly cooldownOverlays: Phaser.GameObjects.Rectangle[] = [];
+  private readonly cooldownVisuals: CooldownVisual[] = [];
   private readonly onCastRequest: (spellId: SpellId) => void;
 
   constructor(
@@ -61,11 +65,20 @@ export class SpellBar {
       this.buttons.push(btn);
 
       const overlay = scene.add
-        .rectangle(x, centerY, SPELL_BAR.slotSizePx, SPELL_BAR.slotSizePx, 0x000000, 0.55)
+        .rectangle(
+          x,
+          centerY - SPELL_BAR.slotSizePx / 2,
+          SPELL_BAR.slotSizePx,
+          SPELL_BAR.slotSizePx,
+          0x101018,
+          0.78,
+        )
         .setScrollFactor(0)
         .setDepth(depth + 1)
+        .setOrigin(0.5, 0)
         .setVisible(false);
-      this.cooldownOverlays.push(overlay);
+
+      this.cooldownVisuals.push({ overlay });
     }
   }
 
@@ -114,20 +127,30 @@ export class SpellBar {
   }
 
   refreshCooldownOverlays(): void {
+    const slotH = SPELL_BAR.slotSizePx;
     for (let i = 0; i < this.slots.length; i++) {
       const id = this.slots[i];
       const remaining = id ? this.caster.getCooldownRemaining(id) : 0;
       const def = id ? spellById(id) : undefined;
-      const show = remaining > 0 && !!def;
-      this.cooldownOverlays[i]?.setVisible(show);
-      if (show && def) {
-        const alpha = 0.35 + 0.45 * (remaining / def.cooldownMs);
-        this.cooldownOverlays[i]?.setFillStyle(0x000000, Math.min(0.75, alpha));
-      }
+      const onCd = remaining > 0 && !!def;
+      const btn = this.buttons[i];
+      const visual = this.cooldownVisuals[i];
+      if (!btn || !visual) continue;
+
+      btn.container.setAlpha(onCd ? 0.45 : 1);
+
+      visual.overlay.setVisible(onCd);
+      if (!onCd || !def) continue;
+
+      const ratio = Phaser.Math.Clamp(remaining / def.cooldownMs, 0, 1);
+      const coverH = slotH * ratio;
+      const topY = btn.container.y - slotH / 2;
+      visual.overlay.setPosition(btn.container.x, topY);
+      visual.overlay.setSize(SPELL_BAR.slotSizePx, coverH);
     }
   }
 
   destroy(): void {
-    for (const o of this.cooldownOverlays) o.destroy();
+    for (const v of this.cooldownVisuals) v.overlay.destroy();
   }
 }
