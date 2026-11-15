@@ -7,7 +7,10 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 const SLASH_ARC_V2_ROT_OFFSET = Math.PI;
 
 /** Peter pick: v1 `slash-arc-v2` at 48px source, scaled for on-screen melee read. */
-const PLAYER_SLASH_OFFSET = 14;
+const PLAYER_SLASH_OFFSET = 24;
+
+/** Above player (10) and enemies (5); below CastBar / target rings. */
+const PLAYER_MELEE_FX_DEPTH = 15;
 
 /** Locked grunt v2 mirror at 32px source. */
 const GRUNT_SLASH_OFFSET = 12;
@@ -28,7 +31,7 @@ export function showPlayerMeleeSwipe(
     COMBAT_FX_TEXTURE.playerMelee,
     SPRITE_DISPLAY.playerMeleeSlash,
     activeMs,
-    9,
+    PLAYER_MELEE_FX_DEPTH,
   );
 }
 
