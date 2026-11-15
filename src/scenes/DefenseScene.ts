@@ -1,9 +1,10 @@
 import Phaser from "phaser";
 import {
   DEFENSE_MAP,
-  DEFENSE_OBSTACLES,
+  DEFENSE_OBSTACLE_PLACEMENTS,
   defenseHalfHeight,
   defenseHalfWidth,
+  defenseObstacleSpriteAnchor,
   PLAYER_TUNING,
   SPELL_BAR,
   type AttackMode,
@@ -228,9 +229,17 @@ export class DefenseScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
 
     this.obstacleGroup = this.physics.add.staticGroup();
-    for (const obs of scaledDefenseObstacles(this.registry)) {
-      const rock = this.physics.add.staticImage(obs.x, obs.y, obs.textureKey);
-      configureDefenseObstacleSprite(rock, obs.textureKey, obs.w, obs.h);
+    const scaledObstacles = scaledDefenseObstacles(this.registry);
+    for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
+      const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
+      const obs = scaledObstacles[i]!;
+      const anchor = defenseObstacleSpriteAnchor(placement);
+      const rock = this.physics.add.staticImage(
+        anchor.x,
+        anchor.y,
+        placement.textureKey,
+      );
+      configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
       rock.setDepth(2);
       this.obstacleGroup.add(rock);
     }
@@ -1087,7 +1096,10 @@ export class DefenseScene extends Phaser.Scene {
       return;
     }
     this.pathDebug.clear();
-    this.pathDebug.drawObstacleZones(this.navGrid, DEFENSE_OBSTACLES);
+    this.pathDebug.drawObstacleZones(
+      this.navGrid,
+      scaledDefenseObstacles(this.registry),
+    );
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       const goal = this.enemyPathGoals.get(e.id);
@@ -1500,29 +1512,40 @@ export class DefenseScene extends Phaser.Scene {
     configY: number;
     configW: number;
     configH: number;
+    anchorX: number;
+    anchorY: number;
     spriteX: number;
     spriteY: number;
     displayW: number;
     displayH: number;
     bodyW: number;
     bodyH: number;
+    bodyCenterX: number;
+    bodyCenterY: number;
   }> {
     const children = this.obstacleGroup.getChildren() as Phaser.Physics.Arcade.Image[];
-    return DEFENSE_OBSTACLES.map((cfg, i) => {
+    const scaled = scaledDefenseObstacles(this.registry);
+    return DEFENSE_OBSTACLE_PLACEMENTS.map((placement, i) => {
+      const cfg = scaled[i]!;
+      const anchor = defenseObstacleSpriteAnchor(placement);
       const img = children[i]!;
       const body = img.body as Phaser.Physics.Arcade.StaticBody;
       return {
-        textureKey: cfg.textureKey,
+        textureKey: placement.textureKey,
         configX: cfg.x,
         configY: cfg.y,
         configW: cfg.w,
         configH: cfg.h,
+        anchorX: anchor.x,
+        anchorY: anchor.y,
         spriteX: img.x,
         spriteY: img.y,
         displayW: img.displayWidth,
         displayH: img.displayHeight,
         bodyW: body.width,
         bodyH: body.height,
+        bodyCenterX: body.center.x,
+        bodyCenterY: body.center.y,
       };
     });
   }
