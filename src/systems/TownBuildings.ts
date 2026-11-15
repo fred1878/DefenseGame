@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { clampRenderResolution, scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY, uiTextResolution } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
 import { bindContainerPress, interactiveObjectScreenRect } from "../ui/touchButton";
 
@@ -40,11 +40,28 @@ export function townBuildingFootprintHitArea(
   );
 }
 
-function textResolution(scene: Phaser.Scene): number {
-  return (
-    (scene.registry.get("renderResolution") as number | undefined) ??
-    clampRenderResolution()
-  );
+function townBuildingOverlayLabelStyle(
+  scene: Phaser.Scene,
+  wrapWidth: number,
+): Phaser.Types.GameObjects.Text.TextStyle {
+  const fontPx = scaleUiX(12);
+  return {
+    fontSize: `${fontPx}px`,
+    fontFamily: "Arial, Helvetica, sans-serif",
+    color: "#fafafa",
+    align: "center",
+    wordWrap: { width: wrapWidth, useAdvancedWrap: true },
+    lineSpacing: scaleUiY(2),
+    resolution: uiTextResolution(scene),
+    shadow: {
+      offsetX: 0,
+      offsetY: Math.max(1, scaleUiY(1)),
+      color: "#09090b",
+      blur: 0,
+      stroke: false,
+      fill: true,
+    },
+  };
 }
 
 /** Layout slot buildings: sprite art + overlay label, full footprint is the tap target. */
@@ -82,19 +99,14 @@ export function spawnTownBuildingControls(
 
     const labelWrap = townBuildingLabelWrapWidth(def);
     const labelY = -scaleUiY(4);
-    const fontSize = `${scaleUiX(10)}px`;
     const labelText = opts.labelFor(def);
     const text = scene.add
-      .text(0, labelY, labelText, {
-        fontSize,
-        color: "#fafafa",
-        stroke: "#18181b",
-        strokeThickness: Math.max(2, scaleUiX(2)),
-        align: "center",
-        wordWrap: { width: labelWrap - scaleUiX(6), useAdvancedWrap: true },
-        lineSpacing: -scaleUiY(1),
-        resolution: textResolution(scene),
-      })
+      .text(
+        0,
+        labelY,
+        labelText,
+        townBuildingOverlayLabelStyle(scene, labelWrap - scaleUiX(6)),
+      )
       .setOrigin(0.5, 1);
 
     container.add([sprite, text]);
