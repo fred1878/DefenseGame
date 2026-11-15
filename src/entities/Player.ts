@@ -73,10 +73,11 @@ export class Player {
   }
 
   setVelocityFromStick(dx: number, dy: number, speed: number): void {
-    const slowed =
-      this.attackPhase === "windup" || this.attackPhase === "recovery";
+    const rooted =
+      this.attackMode === "ranged" &&
+      (this.attackPhase === "windup" || this.attackPhase === "recovery");
     const body = this.sprite.body as Phaser.Physics.Arcade.Body;
-    if (slowed) {
+    if (rooted) {
       this.sprite.setVelocity(0, 0);
       return;
     }
@@ -87,8 +88,7 @@ export class Player {
     } else {
       this.setCardinalTexture("s");
     }
-    const moveScale = this.attackPhase === "active" && this.attackMode === "melee" ? 0.35 : 1;
-    body.setVelocity(dx * speed * moveScale, dy * speed * moveScale);
+    body.setVelocity(dx * speed, dy * speed);
   }
 
   private setCardinalTexture(card: PlayerCardinal): void {

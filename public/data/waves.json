@@ -2,58 +2,76 @@
   "1": {
     "rewardGold": 40,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 5, "intervalMs": 700 }
+      { "atMs": 0, "enemyId": "grunt", "count": 5, "intervalMs": 700 },
+      { "atMs": 5500, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1500 },
+      { "atMs": 7500, "enemyId": "javelineer", "count": 1, "intervalMs": 1500 }
     ]
   },
   "2": {
     "rewardGold": 55,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 8, "intervalMs": 550 }
+      { "atMs": 0, "enemyId": "grunt", "count": 8, "intervalMs": 550 },
+      { "atMs": 5000, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1400 },
+      { "atMs": 6800, "enemyId": "javelineer", "count": 1, "intervalMs": 1400 }
     ]
   },
   "3": {
     "rewardGold": 70,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 6, "intervalMs": 500 },
-      { "atMs": 4000, "enemyId": "grunt", "count": 4, "intervalMs": 500 }
+      { "atMs": 4000, "enemyId": "grunt", "count": 4, "intervalMs": 500 },
+      { "atMs": 4500, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1300 },
+      { "atMs": 6200, "enemyId": "javelineer", "count": 1, "intervalMs": 1300 }
     ]
   },
   "4": {
     "rewardGold": 85,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 10, "intervalMs": 450 }
+      { "atMs": 0, "enemyId": "grunt", "count": 10, "intervalMs": 450 },
+      { "atMs": 3500, "enemyId": "arrow_rain_archer", "count": 2, "intervalMs": 1150 },
+      { "atMs": 5500, "enemyId": "javelineer", "count": 1, "intervalMs": 1200 }
     ]
   },
   "5": {
     "rewardGold": 100,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 12, "intervalMs": 400 },
-      { "atMs": 8000, "enemyId": "grunt", "count": 2, "intervalMs": 400 }
+      { "atMs": 8000, "enemyId": "grunt", "count": 2, "intervalMs": 400 },
+      { "atMs": 3200, "enemyId": "arrow_rain_archer", "count": 2, "intervalMs": 1050 },
+      { "atMs": 5200, "enemyId": "javelineer", "count": 2, "intervalMs": 1050 }
     ]
   },
   "6": {
     "rewardGold": 115,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 14, "intervalMs": 380 }
+      { "atMs": 0, "enemyId": "grunt", "count": 14, "intervalMs": 380 },
+      { "atMs": 3000, "enemyId": "arrow_rain_archer", "count": 2, "intervalMs": 1000 },
+      { "atMs": 4500, "enemyId": "javelineer", "count": 2, "intervalMs": 950 }
     ]
   },
   "7": {
     "rewardGold": 130,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 16, "intervalMs": 350 }
+      { "atMs": 0, "enemyId": "grunt", "count": 16, "intervalMs": 350 },
+      { "atMs": 2800, "enemyId": "arrow_rain_archer", "count": 3, "intervalMs": 950 },
+      { "atMs": 4200, "enemyId": "javelineer", "count": 2, "intervalMs": 900 }
     ]
   },
   "8": {
     "rewardGold": 150,
     "groups": [
       { "atMs": 0, "enemyId": "grunt", "count": 18, "intervalMs": 340 },
-      { "atMs": 6000, "enemyId": "grunt", "count": 6, "intervalMs": 400 }
+      { "atMs": 6000, "enemyId": "grunt", "count": 6, "intervalMs": 400 },
+      { "atMs": 2600, "enemyId": "arrow_rain_archer", "count": 3, "intervalMs": 920 },
+      { "atMs": 4000, "enemyId": "javelineer", "count": 3, "intervalMs": 850 }
     ]
   },
   "9": {
     "rewardGold": 175,
     "groups": [
-      { "atMs": 0, "enemyId": "grunt", "count": 20, "intervalMs": 320 }
+      { "atMs": 0, "enemyId": "grunt", "count": 20, "intervalMs": 320 },
+      { "atMs": 2500, "enemyId": "arrow_rain_archer", "count": 3, "intervalMs": 900 },
+      { "atMs": 3800, "enemyId": "javelineer", "count": 4, "intervalMs": 750 }
     ]
   },
   "10": {
