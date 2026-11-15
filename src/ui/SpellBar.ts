@@ -54,9 +54,9 @@ export class SpellBar {
 
     for (let i = 0; i < SPELL_BAR.slotCount; i++) {
       const spellId = this.slots[i] ?? "";
-      const def = spellById(spellId);
-      const label = def?.shortLabel ?? "—";
       const iconKey = spellId ? spellIconTextureKey(spellId) : "";
+      const hasIcon = Boolean(iconKey && scene.textures.exists(iconKey));
+      const label = spellId && !hasIcon ? "" : spellId ? "" : "—";
       const { x, y } = spellBarSlotCenter(
         scene,
         safe,
@@ -75,14 +75,12 @@ export class SpellBar {
         strokeColor: 0x818cf8,
         tapPadding: SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
-        frameTextureKey: scene.textures.exists("ui_spell_slot")
-          ? "ui_spell_slot"
-          : undefined,
+        frameTextureKey: "ui_spell_slot",
       });
-      if (iconKey && scene.textures.exists(iconKey)) {
+      if (hasIcon) {
         const iconPad = Math.round(SPELL_BAR.slotSizePx * 0.14);
         const icon = scene.add
-          .image(0, 0, iconKey)
+          .image(0, 0, iconKey!)
           .setDisplaySize(
             SPELL_BAR.slotSizePx - iconPad,
             SPELL_BAR.slotSizePx - iconPad,

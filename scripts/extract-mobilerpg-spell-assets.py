@@ -1,19 +1,31 @@
 #!/usr/bin/env python3
-"""One-off: slice MobileRPG atlas.tga (already fetched) into DefenseGame public spell assets."""
+"""
+Slice MobileRPG spell icons + FX from atlas.tga using the same BGRA decode as the game.
+
+Atlas source (not committed — ~4 MiB):
+  export MOBILERPG_ATLAS_TGA=/path/to/MobileRPG/assets/atlas.tga
+  default: /tmp/mobilerpg-assets/atlas.tga
+
+Optional recovery from a raw GitHub MCP download (strip embedded newlines, truncate to 1024²×4):
+  export MOBILERPG_ATLAS_SPILL=/path/to/atlas.tga.tool-spill
+"""
 
 from __future__ import annotations
 
+import os
 import struct
+import sys
 from pathlib import Path
 
 from PIL import Image
 
 REPO = Path(__file__).resolve().parents[1]
-ATLAS_TGA = Path("/tmp/mobilerpg-assets/atlas.tga")
+sys.path.insert(0, str(REPO / "scripts"))
+from tga_atlas_io import read_tga_region_rgba  # noqa: E402
+
 OUT_ICONS = REPO / "public/assets/spells/icons"
 OUT_FX = REPO / "public/assets/spells/fx"
 
-# From fred1878/MobileRPG assets/atlas.txt (1024×1024 atlas)
 FRAMES: dict[str, tuple[int, int, int, int]] = {
     "icon_spell_00": (256, 64, 32, 32),
     "icon_spell_01": (288, 64, 32, 32),
@@ -32,17 +44,18 @@ FRAMES: dict[str, tuple[int, int, int, int]] = {
     "icon_spell_14": (384, 576, 32, 32),
     "icon_spell_15": (448, 576, 32, 32),
     "icon_spell_16": (384, 640, 32, 32),
-    "proj_fire_bolt": (672, 544, 16, 16),
-    "proj_ice_bolt": (720, 560, 16, 16),
-    "proj_lightning_bolt": (768, 560, 16, 16),
-    "proj_water_bolt": (816, 560, 16, 16),
-    "proj_arc_bomb": (864, 560, 16, 16),
+    "fx_fire_bolt_0": (672, 544, 16, 16),
+    "fx_ice_bolt_1": (720, 560, 16, 16),
+    "fx_lightning_bolt_1": (768, 560, 16, 16),
+    "fx_water_bolt_1": (816, 560, 16, 16),
+    "fx_arc_bomb_1": (864, 560, 16, 16),
     "fire_nova_01": (256, 320, 64, 64),
     "fx_shockwave": (192, 0, 64, 64),
     "blizzard_01": (0, 384, 32, 32),
 }
 
-SPELL_ICON_OUT = {
+# spell_id -> atlas frame name
+SPELL_ICON_OUT: dict[str, str] = {
     "fire_bolt": "icon_spell_00",
     "ice_bolt": "icon_spell_01",
     "lightning_bolt": "icon_spell_02",
@@ -64,92 +77,64 @@ SPELL_ICON_OUT = {
     "chain_lightning": "icon_spell_02",
     "blink": "icon_spell_12",
     "combustion": "icon_spell_00",
+    # No dedicated heal spell in MobileRPG — interim slice documented in port plan.
     "heal": "icon_spell_08",
 }
 
-
-def read_tga_rgba(path: Path) -> tuple[int, int, bytes]:
-    data = path.read_bytes()
-    id_len = data[0]
-    if data[2] != 2:
-        raise RuntimeError(f"unsupported TGA type in {path}")
-    w, h = struct.unpack_from("<HH", data, 12)
-    depth = data[16]
-    desc = data[17]
-    offset = 18 + id_len
-    px = depth // 8
-    top_left = (desc & 0x20) != 0
-    rgba = bytearray(w * h * 4)
-    for y in range(h):
-        src_y = y if top_left else (h - 1 - y)
-        for x in range(w):
-            s = offset + (src_y * w + x) * px
-            d = (y * w + x) * 4
-            b, g, r = data[s], data[s + 1], data[s + 2]
-            a = data[s + 3] if px == 4 else 255
-            rgba[d : d + 4] = (r, g, b, a)
-    return w, h, bytes(rgba)
+FX_OUT: dict[str, str] = {
+    "fire-bolt-mrpg-16.png": "fx_fire_bolt_0",
+    "ice-bolt-mrpg-16.png": "fx_ice_bolt_1",
+    "lightning-bolt-mrpg-16.png": "fx_lightning_bolt_1",
+    "water-bolt-mrpg-16.png": "fx_water_bolt_1",
+    "arc-bomb-mrpg-16.png": "fx_arc_bomb_1",
+    "fire-nova-mrpg-64.png": "fire_nova_01",
+    "shockwave-mrpg-64.png": "fx_shockwave",
+    "blizzard-mrpg-32.png": "blizzard_01",
+}
 
 
-def crop(rgba: bytes, atlas_w: int, x: int, y: int, rw: int, rh: int) -> bytes:
-    out = bytearray(rw * rh * 4)
-    for dy in range(rh):
-        for dx in range(rw):
-            sx, sy = x + dx, y + dy
-            si = (sy * atlas_w + sx) * 4
-            di = (dy * rw + dx) * 4
-            out[di : di + 4] = rgba[si : si + 4]
-    return bytes(out)
+def materialize_atlas(path: Path) -> Path:
+    spill = os.environ.get("MOBILERPG_ATLAS_SPILL")
+    if spill and Path(spill).is_file():
+        raw = Path(spill).read_bytes().replace(b"\n", b"")
+        w, h = struct.unpack_from("<HH", raw, 12)
+        need = 18 + w * h * 4
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw[:need])
+    if not path.is_file():
+        raise SystemExit(
+            f"Missing atlas at {path}. Set MOBILERPG_ATLAS_TGA or MOBILERPG_ATLAS_SPILL.",
+        )
+    return path
 
 
-def save_region(
-    rgba: bytes,
-    atlas_w: int,
-    frame: str,
-    dest: Path,
-    icon_scale: int | None = None,
-) -> None:
-    x, y, rw, rh = FRAMES[frame]
-    chunk = crop(rgba, atlas_w, x, y, rw, rh)
-    img = Image.frombytes("RGBA", (rw, rh), chunk)
-    if icon_scale and icon_scale != 1:
-        img = img.resize((rw * icon_scale, rh * icon_scale), Image.NEAREST)
+def save_rgba(rgba: bytes, w: int, h: int, dest: Path, scale: int = 1) -> None:
+    img = Image.frombytes("RGBA", (w, h), rgba)
+    if scale != 1:
+        img = img.resize((w * scale, h * scale), Image.Resampling.NEAREST)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    img.save(dest)
+    img.save(dest, format="PNG")
 
 
-def main() -> None:
-    if not ATLAS_TGA.is_file():
-        raise SystemExit(f"missing atlas: {ATLAS_TGA}")
-    aw, ah, rgba = read_tga_rgba(ATLAS_TGA)
-    if aw != 1024 or ah != 1024:
-        raise SystemExit(f"unexpected atlas size {aw}x{ah}")
+def main() -> int:
+    atlas_path = materialize_atlas(
+        Path(os.environ.get("MOBILERPG_ATLAS_TGA", "/tmp/mobilerpg-assets/atlas.tga")),
+    )
 
     for spell_id, frame in SPELL_ICON_OUT.items():
-        save_region(
-            rgba,
-            aw,
-            frame,
-            OUT_ICONS / f"{spell_id}.png",
-            icon_scale=2,
-        )
+        x, y, rw, rh = FRAMES[frame]
+        rgba = read_tga_region_rgba(atlas_path, x, y, rw, rh)
+        save_rgba(rgba, rw, rh, OUT_ICONS / f"{spell_id}.png", scale=2)
 
-    fx_out = {
-        "fire-bolt-mrpg-16.png": "proj_fire_bolt",
-        "ice-bolt-mrpg-16.png": "proj_ice_bolt",
-        "lightning-bolt-mrpg-16.png": "proj_lightning_bolt",
-        "water-bolt-mrpg-16.png": "proj_water_bolt",
-        "arc-bomb-mrpg-16.png": "proj_arc_bomb",
-        "fire-nova-mrpg-64.png": "fire_nova_01",
-        "shockwave-mrpg-64.png": "fx_shockwave",
-        "blizzard-mrpg-32.png": "blizzard_01",
-    }
-    for filename, frame in fx_out.items():
-        save_region(rgba, aw, frame, OUT_FX / filename)
+    for filename, frame in FX_OUT.items():
+        x, y, rw, rh = FRAMES[frame]
+        rgba = read_tga_region_rgba(atlas_path, x, y, rw, rh)
+        save_rgba(rgba, rw, rh, OUT_FX / filename)
 
-    print(f"wrote icons to {OUT_ICONS}")
-    print(f"wrote fx to {OUT_FX}")
+    print(f"wrote icons -> {OUT_ICONS}")
+    print(f"wrote fx -> {OUT_FX}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

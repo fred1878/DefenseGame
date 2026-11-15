@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import { PLAYER_TUNING } from "../config";
 import type { SpellDefinition } from "../content/spells";
-import { COMBAT_FX_TEXTURE } from "../content/assets";
 import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";
 import {
   spawnPlayerProjectile,
@@ -43,7 +42,10 @@ export function spawnSpellProjectile(
   damageMult: number,
   id: string,
 ): PlayerProjectile {
-  const textureKey = def.projectileTextureKey ?? COMBAT_FX_TEXTURE.fireBolt;
+  const textureKey = def.projectileTextureKey;
+  if (!textureKey) {
+    throw new Error(`spell ${def.id} has no MobileRPG projectileTextureKey`);
+  }
   const speed =
     def.projectileSpeed ?? PLAYER_TUNING.projectileSpeed * 1.05;
   const damage = (def.baseDamage ?? 20) * damageMult;
