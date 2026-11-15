@@ -22,6 +22,19 @@ describe("public data fixtures", () => {
     expect(grunt!.damage).toBeGreaterThan(0);
   });
 
+  it("enemies.json bruiser is slower than grunt with long reach behavior id", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      { hp: number; speed: number; behavior: string; textureKey: string }
+    >;
+    const bruiser = enemies.bruiser;
+    const grunt = enemies.grunt;
+    expect(bruiser).toBeDefined();
+    expect(bruiser!.speed).toBeLessThan(grunt!.speed);
+    expect(bruiser!.behavior).toBe("bruiser");
+    expect(bruiser!.textureKey).toBe("enemy_grunt");
+  });
+
   it("waves.json night 1 has groups", () => {
     const waves = readJson("waves.json") as Record<
       string,
