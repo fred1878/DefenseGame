@@ -34,8 +34,21 @@ export async function expectViewportScreenshot(
     }
   }
 
-  await expect(page).toHaveScreenshot(snapshotName, {
-    clip: options.clip,
-    maxDiffPixelRatio: options.maxDiffPixelRatio,
+  // Semi-transparent DOM tap mirrors sit above the canvas; hide them so pixels
+  // match Phaser-only baselines (order-dependent mirror layout caused CI drift).
+  await page.evaluate(() => {
+    const root = document.getElementById("defensegame-e2e-dom");
+    if (root) root.style.visibility = "hidden";
   });
+  try {
+    await expect(page).toHaveScreenshot(snapshotName, {
+      clip: options.clip,
+      maxDiffPixelRatio: options.maxDiffPixelRatio,
+    });
+  } finally {
+    await page.evaluate(() => {
+      const root = document.getElementById("defensegame-e2e-dom");
+      if (root) root.style.visibility = "";
+    });
+  }
 }
