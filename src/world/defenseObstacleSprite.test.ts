@@ -7,6 +7,7 @@ import {
 } from "../content/assets";
 import {
   DEFENSE_OBSTACLES,
+  DEFENSE_OBSTACLE_WORLD_SCALE,
   defenseTileCenter,
   obstacleColliderSize,
   obstacleDisplaySize,
@@ -23,18 +24,25 @@ describe("defense obstacle art vs colliders", () => {
     }
   });
 
-  it("uses tight blockers inside sprite crop bounds", () => {
+  it("uses tight blockers inside sprite crop bounds at world scale", () => {
+    const s = DEFENSE_OBSTACLE_WORLD_SCALE;
     for (const obs of DEFENSE_OBSTACLES) {
       const size = obstacleColliderSize(obs.textureKey);
       const disp = obstacleDisplaySize(obs.textureKey);
+      const crop =
+        OBSTACLE_SPRITE_CROP[
+          obs.textureKey as keyof typeof OBSTACLE_SPRITE_CROP
+        ];
       const block =
         OBSTACLE_BLOCKER_FOOTPRINT[
           obs.textureKey as keyof typeof OBSTACLE_BLOCKER_FOOTPRINT
         ];
       expect(obs.w).toBe(size.w);
       expect(obs.h).toBe(size.h);
-      expect(obs.w).toBeLessThanOrEqual(block.w);
-      expect(obs.h).toBeLessThanOrEqual(block.h);
+      expect(disp.w).toBe(crop.w * s);
+      expect(disp.h).toBe(crop.h * s);
+      expect(obs.w).toBeLessThanOrEqual(block.w * s);
+      expect(obs.h).toBeLessThanOrEqual(block.h * s);
       expect(obs.w).toBeLessThanOrEqual(disp.w);
       expect(obs.h).toBeLessThanOrEqual(disp.h);
     }
