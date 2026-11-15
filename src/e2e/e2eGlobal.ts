@@ -54,6 +54,7 @@ export type DefenseGameE2EApi = {
   setShowTouchInput(on: boolean): void;
   getTownBuildingDebugRectCount(): number;
   openSpellSortPanel(): void;
+  isSpellSortPanelOpen(): boolean;
   getObstacleAlignment(): Array<{
     textureKey: string;
     configX: number;

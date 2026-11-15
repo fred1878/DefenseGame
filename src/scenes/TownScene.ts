@@ -204,6 +204,10 @@ export class TownScene extends Phaser.Scene {
     this.openSpellSortPanel();
   }
 
+  e2eIsSpellSortPanelOpen(): boolean {
+    return this.spellSortPanel !== null;
+  }
+
   private openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
     this.spellSortPanel = new SpellBarSortPanel(
