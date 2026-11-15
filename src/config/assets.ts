@@ -137,3 +137,30 @@ export const OBSTACLE_TEXTURE = {
   rubbleLow: "obstacle_rubble_low",
   boulderSm: "obstacle_boulder_sm",
 } as const;
+
+export type ObstacleTextureKey =
+  (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE];
+
+/** Native PNG dimensions — collider/display sizes should match these (see defense.ts). */
+export const OBSTACLE_SOURCE_FRAME: Record<
+  (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],
+  { w: number; h: number }
+> = {
+  obstacle_wide_slab: { w: 90, h: 54 },
+  obstacle_tall_rock: { w: 70, h: 90 },
+  obstacle_boulder_med: { w: 60, h: 60 },
+  obstacle_rubble_low: { w: 100, h: 50 },
+  obstacle_boulder_sm: { w: 56, h: 56 },
+};
+
+/** Opaque art bounds in source pixels — crop before scaling to collider size. */
+export const OBSTACLE_SPRITE_CROP: Record<
+  (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],
+  { x: number; y: number; w: number; h: number }
+> = {
+  obstacle_wide_slab: { x: 8, y: 14, w: 75, h: 32 },
+  obstacle_tall_rock: { x: 2, y: 6, w: 66, h: 75 },
+  obstacle_boulder_med: { x: 14, y: 11, w: 36, h: 35 },
+  obstacle_rubble_low: { x: 32, y: 12, w: 36, h: 26 },
+  obstacle_boulder_sm: { x: 13, y: 16, w: 28, h: 24 },
+};

@@ -1,4 +1,4 @@
-import { OBSTACLE_TEXTURE } from "./assets";
+import { OBSTACLE_TEXTURE, type ObstacleTextureKey } from "./assets";
 import { GAME } from "./game";
 
 /** North settlement wall — attack target plane (world y). */
@@ -20,14 +20,14 @@ export type DefenseObstacleRect = {
   y: number;
   w: number;
   h: number;
-  textureKey: string;
+  textureKey: ObstacleTextureKey;
 };
 
 /** Static rock/wall blocks on the defense field (world coords, center origin). */
 export const DEFENSE_OBSTACLES: DefenseObstacleRect[] = [
-  { x: -300, y: -200, w: 90, h: 55, textureKey: OBSTACLE_TEXTURE.wideSlab },
+  { x: -300, y: -200, w: 90, h: 54, textureKey: OBSTACLE_TEXTURE.wideSlab },
   { x: 320, y: -160, w: 70, h: 90, textureKey: OBSTACLE_TEXTURE.tallRock },
   { x: -260, y: 220, w: 100, h: 50, textureKey: OBSTACLE_TEXTURE.rubbleLow },
-  { x: 300, y: 260, w: 55, h: 55, textureKey: OBSTACLE_TEXTURE.boulderSm },
+  { x: 300, y: 260, w: 56, h: 56, textureKey: OBSTACLE_TEXTURE.boulderSm },
   { x: -150, y: -320, w: 60, h: 60, textureKey: OBSTACLE_TEXTURE.boulderMed },
 ];
