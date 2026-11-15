@@ -62,6 +62,7 @@ import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 import { buildGroundLayer } from "../world/buildGroundLayer";
+import { configureDefenseObstacleSprite } from "../world/defenseObstacleSprite";
 import {
   cameraWorldPoint,
   buildCombatStickUiMask,
@@ -172,10 +173,8 @@ export class DefenseScene extends Phaser.Scene {
     this.obstacleGroup = this.physics.add.staticGroup();
     for (const obs of DEFENSE_OBSTACLES) {
       const rock = this.physics.add.staticImage(obs.x, obs.y, obs.textureKey);
-      rock.setDisplaySize(obs.w, obs.h);
-      rock.setOrigin(0.5);
+      configureDefenseObstacleSprite(rock, obs.textureKey, obs.w, obs.h);
       rock.setDepth(2);
-      rock.refreshBody();
       this.obstacleGroup.add(rock);
     }
 
