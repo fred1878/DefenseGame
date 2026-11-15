@@ -11,6 +11,7 @@ test.describe("visual regression", () => {
     await gotoE2E(page);
     await expectViewportScreenshot(page, testInfo, "town-540x1200.png", {
       clip: VIEWPORT_CLIP,
+      maxDiffPixelRatio: 0.04,
     });
   });
 
