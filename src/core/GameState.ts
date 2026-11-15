@@ -68,12 +68,24 @@ function normalizeSpellBar(raw?: Partial<SaveSpellBar>): SaveSpellBar {
   return { slots, autoCast };
 }
 
+const LEGACY_SPELL_ID: Record<string, string> = {
+  nova: "fire_nova",
+  fireball: "fire_bolt",
+};
+
+function remapSpellBarIds(spellBar: SaveSpellBar): SaveSpellBar {
+  return {
+    ...spellBar,
+    slots: spellBar.slots.map((id) => LEGACY_SPELL_ID[id] ?? id),
+  };
+}
+
 function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): SaveGame {
   const base = createNewSave();
-  const spellBar = normalizeSpellBar(save.spellBar);
+  const spellBar = remapSpellBarIds(normalizeSpellBar(save.spellBar));
   if (save.spellBar?.slots?.length === 3) {
     spellBar.slots = [
-      ...save.spellBar.slots,
+      ...save.spellBar.slots.map((id) => LEGACY_SPELL_ID[id] ?? id),
       ...Array(Math.max(0, SPELL_BAR.slotCount - 3)).fill(""),
     ].slice(0, SPELL_BAR.slotCount);
   }

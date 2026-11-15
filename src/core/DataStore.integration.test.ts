@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { DataStore } from "./DataStore";
@@ -72,6 +72,46 @@ describe("public data fixtures", () => {
     expect(wave1!.groups.length).toBeGreaterThan(0);
   });
 
+  it("spells.json lists MobileRPG catalog with defense castables", () => {
+    const spells = readJson("spells.json") as {
+      spells: Array<{
+        id: string;
+        castableInDefense: boolean;
+        iconFile?: string;
+        projectileTextureKey?: string;
+        projectileFile?: string;
+        blastTextureKey?: string;
+        blastFile?: string;
+      }>;
+    };
+    expect(spells.spells.length).toBeGreaterThanOrEqual(21);
+    const castable = spells.spells.filter((s) => s.castableInDefense);
+    expect(castable.map((s) => s.id)).toEqual(
+      expect.arrayContaining(["fire_bolt", "ice_bolt", "lightning_bolt", "fire_nova", "heal"]),
+    );
+    const iconDir = path.join(process.cwd(), "public/assets/spells/icons");
+    const fxDir = path.join(process.cwd(), "public/assets/spells/fx");
+    for (const s of spells.spells) {
+      expect(s.iconFile).toBeTruthy();
+      expect(s.iconFile).not.toMatch(/combat\/|generated|placeholder|stub/i);
+      expect(
+        existsSync(path.join(iconDir, s.iconFile!)),
+        `${s.id} icon missing: ${s.iconFile}`,
+      ).toBe(true);
+      if (s.projectileTextureKey) {
+        expect(s.projectileTextureKey).toMatch(/^fx_spell_/);
+        expect(s.projectileTextureKey).not.toBe("fx_fire_bolt");
+        expect(s.projectileFile).toBeTruthy();
+        expect(existsSync(path.join(fxDir, s.projectileFile!))).toBe(true);
+      }
+      if (s.blastTextureKey) {
+        expect(s.blastTextureKey).toMatch(/^fx_spell_/);
+        expect(s.blastFile).toBeTruthy();
+        expect(existsSync(path.join(fxDir, s.blastFile!))).toBe(true);
+      }
+    }
+  });
+
   it("buildings.json defines wall costs", () => {
     const buildings = readJson("buildings.json") as Record<
       string,
@@ -100,6 +140,7 @@ describe("DataStore.loadAll", () => {
     expect(store.enemies.grunt).toBeDefined();
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
+    expect(store.spells.length).toBeGreaterThan(0);
     vi.unstubAllGlobals();
   });
 });

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME, SPELL_BAR } from "../config";
 import {
-  SPELL_CATALOG,
+  getSpellCatalog,
   spellById,
   type SpellId,
 } from "../content/spells";
@@ -97,7 +97,7 @@ export class SpellBarSortPanel {
       })
       .setOrigin(0.5);
 
-    const poolIds = SPELL_CATALOG.map((s) => s.id);
+    const poolIds = getSpellCatalog().map((s) => s.id);
     const poolW = poolIds.length * (cell + gap) - gap;
     let poolX = GAME.width / 2 - poolW / 2 + cell / 2;
     for (const id of poolIds) {

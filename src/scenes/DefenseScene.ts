@@ -33,7 +33,7 @@ import { SpellCastController } from "../combat/SpellCastController";
 import {
   applyChanneledHeal,
   applyNova,
-  spawnChanneledFireball,
+  spawnSpellProjectile,
 } from "../combat/SpellEffects";
 import {
   pickEnemyCombatTarget,
@@ -774,37 +774,57 @@ export class DefenseScene extends Phaser.Scene {
     const mult = playerDamageMult(this.save.buildings);
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
-    switch (def.id) {
-      case "nova":
+  const angle = this.player.getFacingAngle();
+    switch (def.mechanicType) {
+      case "blast":
         applyNova(this, px, py, def, this.enemyTargets(), mult);
-        this.flashNova(px, py, this.wu(def.novaRadius ?? 80));
+        this.flashNova(px, py, this.wu(def.blastRadius ?? 80), def);
         break;
-      case "fireball": {
-        const angle = this.player.getFacingAngle();
-        const id = `spell_fb_${this.projectileSerial++}`;
+      case "projectile":
+      case "projectile_aoe":
+      case "tracking_projectile": {
+        const id = `spell_proj_${this.projectileSerial++}`;
         this.projectiles.push(
-          spawnChanneledFireball(this, px, py, angle, def, mult, id),
+          spawnSpellProjectile(this, px, py, angle, def, mult, id),
         );
         break;
       }
       case "heal":
         applyChanneledHeal(this.player.damageable, def);
         break;
+      default:
+        break;
     }
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
   }
 
-  private flashNova(x: number, y: number, radius: number): void {
-    const ring = this.add
-      .circle(x, y, radius, 0xfef08a, 0.35)
-      .setDepth(7);
+  private flashNova(
+    x: number,
+    y: number,
+    radius: number,
+    def?: { blastTextureKey?: string },
+  ): void {
+    const key = def?.blastTextureKey;
+    if (!key || !this.textures.exists(key)) {
+      console.warn(
+        `spell blast missing MobileRPG texture${key ? `: ${key}` : ""}`,
+      );
+      return;
+    }
+    const sprite = this.add
+      .image(x, y, key)
+      .setDepth(7)
+      .setAlpha(0.9)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    const size = radius * 2.2;
+    sprite.setDisplaySize(size, size);
     this.tweens.add({
-      targets: ring,
+      targets: sprite,
       alpha: 0,
-      scale: 1.15,
-      duration: 280,
+      scale: 1.25,
+      duration: 320,
       ease: "Quad.easeOut",
-      onComplete: () => ring.destroy(),
+      onComplete: () => sprite.destroy(),
     });
   }
 

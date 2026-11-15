@@ -14,15 +14,15 @@ describe("SpellCastController", () => {
 
   it("completes channel when still and time elapsed", () => {
     const c = new SpellCastController();
-    c.tryBeginCast("fireball");
+    c.tryBeginCast("meteor");
     const done = c.updateChannel(1200, 0, 0);
     expect(done.type).toBe("completed");
-    if (done.type === "completed") expect(done.spellId).toBe("fireball");
+    if (done.type === "completed") expect(done.spellId).toBe("meteor");
   });
 
   it("casts instant nova without channeling", () => {
     const c = new SpellCastController();
-    const def = c.tryBeginCast("nova");
+    const def = c.tryBeginCast("fire_nova");
     expect(def).not.toBe(false);
     expect(def).not.toBe("channel");
     expect(c.isChanneling()).toBe(false);

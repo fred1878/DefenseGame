@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import {
   COMBAT_FX_ASSETS,
+  SPELL_FX_ASSETS,
+  SPELL_ICON_ASSETS,
   DEFENSE_OBSTACLE_ASSETS,
   GROUND_DECOR_ASSETS,
   GROUND_TILE_ASSETS,
@@ -15,8 +17,10 @@ const GAME_SPRITE_KEYS = [
   "enemy_grunt",
   "enemy_arrow_rain_archer",
   "enemy_javelineer",
-  ...COMBAT_FX_ASSETS.map((a) => a.key),
-];
+    ...COMBAT_FX_ASSETS.map((a) => a.key),
+    ...SPELL_FX_ASSETS.map((a) => a.key),
+    ...SPELL_ICON_ASSETS.map((a) => a.key),
+  ];
 
 /** Nearest-neighbor sampling for world sprites/tiles; UI stays vector (Graphics/Text). */
 export function configurePixelArtTextures(scene: Phaser.Scene): void {

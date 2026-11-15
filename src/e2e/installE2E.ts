@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
-import { COMBAT_FX_ASSETS } from "../content/assets";
+import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS } from "../content/assets";
 import { setShowTouchInput } from "../debug/DebugState";
 import { persistSave } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
@@ -352,7 +352,10 @@ function waitGameMs(game: Phaser.Game, ms: number): Promise<void> {
 
 export function markE2EAssetsLoaded(game: Phaser.Game): void {
   if (!isE2EEnabled()) return;
-  const keys = COMBAT_FX_ASSETS.map((a) => a.key);
+  const keys = [
+    ...COMBAT_FX_ASSETS.map((a) => a.key),
+    ...SPELL_FX_ASSETS.map((a) => a.key),
+  ];
   const ok = keys.every((k) => game.textures.exists(k));
   publishE2E({ assetsLoaded: ok, flags: { combatFxKeys: keys.join(",") } });
 }

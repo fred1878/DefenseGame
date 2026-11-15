@@ -42,7 +42,7 @@ export const GROUND_DECOR_DISPLAY: Record<
   ground_decor_twigs: 16,
 };
 
-/** Combat FX under `public/assets/combat/fx/` (Peter review 2026-11-14). */
+/** Generic combat FX (`public/assets/combat/fx/`) — not used for spell bar or spell projectiles. */
 export const COMBAT_FX_ASSETS = [
   {
     key: "fx_fire_bolt",
@@ -62,12 +62,83 @@ export const COMBAT_FX_ASSETS = [
   },
 ] as const;
 
+/** Spell combat art re-sliced from MobileRPG atlas (`public/assets/spells/fx/`). */
+export const SPELL_FX_ASSETS = [
+  {
+    key: "fx_spell_fire_bolt",
+    file: "fire-bolt-mrpg-16.png",
+    root: "assets/spells/fx",
+  },
+  {
+    key: "fx_spell_ice_bolt",
+    file: "ice-bolt-mrpg-16.png",
+    root: "assets/spells/fx",
+  },
+  {
+    key: "fx_spell_lightning_bolt",
+    file: "lightning-bolt-mrpg-16.png",
+    root: "assets/spells/fx",
+  },
+  {
+    key: "fx_spell_water_bolt",
+    file: "water-bolt-mrpg-16.png",
+    root: "assets/spells/fx",
+  },
+  {
+    key: "fx_spell_arc_bomb",
+    file: "arc-bomb-mrpg-16.png",
+    root: "assets/spells/fx",
+  },
+  {
+    key: "fx_spell_fire_nova",
+    file: "fire-nova-mrpg-64.png",
+    root: "assets/spells/fx",
+  },
+] as const;
+
 export const COMBAT_FX_TEXTURE = {
   fireBolt: "fx_fire_bolt",
   stoneThrow: "fx_stone_throw",
+  spellFireBolt: "fx_spell_fire_bolt",
+  spellIceBolt: "fx_spell_ice_bolt",
+  spellLightningBolt: "fx_spell_lightning_bolt",
+  spellWaterBolt: "fx_spell_water_bolt",
+  spellArcBomb: "fx_spell_arc_bomb",
+  spellFireNova: "fx_spell_fire_nova",
   playerMelee: "fx_player_melee",
   gruntMelee: "fx_grunt_melee",
 } as const;
+
+/** Hotbar icons under `public/assets/spells/icons/` (MobileRPG atlas slices, 64×64). */
+export const SPELL_ICON_ASSETS = [
+  { key: "spell_icon_fire_bolt", file: "fire_bolt.png" },
+  { key: "spell_icon_ice_bolt", file: "ice_bolt.png" },
+  { key: "spell_icon_lightning_bolt", file: "lightning_bolt.png" },
+  { key: "spell_icon_water_bolt", file: "water_bolt.png" },
+  { key: "spell_icon_arc_bomb", file: "arc_bomb.png" },
+  { key: "spell_icon_swing", file: "swing.png" },
+  { key: "spell_icon_rend", file: "rend.png" },
+  { key: "spell_icon_cone_of_cold", file: "cone_of_cold.png" },
+  { key: "spell_icon_cone_of_fire", file: "cone_of_fire.png" },
+  { key: "spell_icon_fire_blast", file: "fire_blast.png" },
+  { key: "spell_icon_fire_nova", file: "fire_nova.png" },
+  { key: "spell_icon_blizzard", file: "blizzard.png" },
+  { key: "spell_icon_meteor", file: "meteor.png" },
+  { key: "spell_icon_frost_nova", file: "frost_nova.png" },
+  { key: "spell_icon_ice_wall", file: "ice_wall.png" },
+  { key: "spell_icon_flamestrike", file: "flamestrike.png" },
+  { key: "spell_icon_shadowform", file: "shadowform.png" },
+  { key: "spell_icon_deep_freeze", file: "deep_freeze.png" },
+  { key: "spell_icon_chain_lightning", file: "chain_lightning.png" },
+  { key: "spell_icon_blink", file: "blink.png" },
+  { key: "spell_icon_combustion", file: "combustion.png" },
+  { key: "spell_icon_heal", file: "heal.png" },
+] as const;
+
+export const SPELL_ICON_ROOT = "assets/spells/icons";
+
+export const spellIconTextureKey = (spellId: string): string =>
+  `spell_icon_${spellId}`;
 
 /** On-screen size in world units (2× source pixels, nearest-neighbor filtered in Boot). */
 export const SPRITE_DISPLAY = {

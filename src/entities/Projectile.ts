@@ -21,8 +21,17 @@ export type PlayerProjectile = {
   prevY: number;
 };
 
+/** MobileRPG atlas projectile slices only (never `fx_fire_bolt`). */
+const SPELL_BOLT_TEXTURES = new Set<string>([
+  COMBAT_FX_TEXTURE.spellFireBolt,
+  COMBAT_FX_TEXTURE.spellIceBolt,
+  COMBAT_FX_TEXTURE.spellLightningBolt,
+  COMBAT_FX_TEXTURE.spellWaterBolt,
+  COMBAT_FX_TEXTURE.spellArcBomb,
+]);
+
 function projectileRotOffset(textureKey: string): number {
-  return textureKey === COMBAT_FX_TEXTURE.fireBolt
+  return SPELL_BOLT_TEXTURES.has(textureKey)
     ? FIRE_BOLT_ROT_OFFSET
     : STONE_THROW_ROT_OFFSET;
 }
@@ -46,10 +55,9 @@ export function spawnPlayerProjectile(
   damageFlavor: DamageFlavor = "default",
 ): PlayerProjectile {
   const sprite = scene.physics.add.sprite(x, y, textureKey);
-  const base =
-    textureKey === COMBAT_FX_TEXTURE.fireBolt
-      ? SPRITE_DISPLAY.fireBolt
-      : SPRITE_DISPLAY.stoneThrow;
+  const base = SPELL_BOLT_TEXTURES.has(textureKey)
+    ? SPRITE_DISPLAY.fireBolt
+    : SPRITE_DISPLAY.stoneThrow;
   const display = worldDisplayPx(base, scene.registry);
   sprite.setDisplaySize(display, display);
   sprite.setCircle(worldDisplayPx(4, scene.registry) / 2);
