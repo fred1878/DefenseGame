@@ -1,22 +1,57 @@
 import { DEFENSE_MAP, northWallAttackY, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
+import { cellBlocked, worldToCell, type NavGrid } from "../../pathfinding/grid";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, applyDirectVelocity } from "./movement";
 
-function advanceStrafeSign(enemy: EnemyInstance, deltaMs: number): 1 | -1 {
-  enemy.behaviorExtra.strafeFlipMs = Math.max(
-    0,
-    enemy.behaviorExtra.strafeFlipMs - deltaMs,
-  );
-  if (enemy.behaviorExtra.strafeFlipMs <= 0) {
-    enemy.behaviorExtra.strafeSign =
-      enemy.behaviorExtra.strafeSign === 1 ? -1 : 1;
-    enemy.behaviorExtra.strafeFlipMs =
-      enemy.combatTuning.javelineer?.orbitFlipMs ?? 1400;
+const STRAFE_PROBE_DIST = 44;
+
+function strafeTangentBlocked(
+  grid: NavGrid,
+  x: number,
+  y: number,
+  tangentX: number,
+  tangentY: number,
+  peerAgents?: readonly { x: number; y: number }[],
+): boolean {
+  const probeX = x + tangentX * STRAFE_PROBE_DIST;
+  const probeY = y + tangentY * STRAFE_PROBE_DIST;
+  const cell = worldToCell(grid, probeX, probeY);
+  if (!cell) return true;
+  return cellBlocked(grid, cell.col, cell.row, peerAgents);
+}
+
+function resolveStrafeSign(
+  enemy: EnemyInstance,
+  grid: NavGrid,
+  tangentX: number,
+  tangentY: number,
+  peerAgents?: readonly { x: number; y: number }[],
+): 1 | -1 {
+  let sign = enemy.behaviorExtra.strafeSign;
+  const ex = enemy.sprite.x;
+  const ey = enemy.sprite.y;
+  if (
+    strafeTangentBlocked(grid, ex, ey, tangentX * sign, tangentY * sign, peerAgents)
+  ) {
+    sign = sign === 1 ? -1 : 1;
+    enemy.behaviorExtra.strafeSign = sign;
+    if (
+      strafeTangentBlocked(
+        grid,
+        ex,
+        ey,
+        tangentX * sign,
+        tangentY * sign,
+        peerAgents,
+      )
+    ) {
+      enemy.sprite.setVelocity(0, 0);
+    }
   }
-  return enemy.behaviorExtra.strafeSign;
+  return sign;
 }
 
 export const javelineerBehavior: EnemyBehavior = (ctx) => {
@@ -72,19 +107,23 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       }
       applyChaseVelocity(enemy, moveX, moveY, 1.08, { nav, deltaMs });
     } else {
-      const sign = advanceStrafeSign(enemy, deltaMs);
       const len = dist || 1;
       const nx = dx / len;
       const ny = dy / len;
-      const tx = -ny * sign;
-      const ty = nx * sign;
-      const nearMin = dist < minRange * 1.15;
-      const retreat = nearMin ? 0.72 : 0.22;
+      const tangentX = -ny;
+      const tangentY = nx;
+      const sign = resolveStrafeSign(
+        enemy,
+        grid,
+        tangentX,
+        tangentY,
+        peerAgents,
+      );
       applyDirectVelocity(
         enemy,
-        tx - nx * retreat,
-        ty - ny * retreat,
-        nearMin ? 1.12 : javelineer.strafeSpeedMul,
+        tangentX * sign,
+        tangentY * sign,
+        javelineer.strafeSpeedMul,
       );
     }
   } else if (javelineer) {
@@ -112,7 +151,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       }
       applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
     } else {
-      const sign = advanceStrafeSign(enemy, deltaMs);
+      const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
       applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
     }
   }

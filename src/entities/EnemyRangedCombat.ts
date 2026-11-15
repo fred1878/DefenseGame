@@ -252,7 +252,6 @@ export function updateJavelineerCombat(
     }
   }
 
-  freezeWindupRecovery(enemy, c.phase, target.kind);
   return { spawnJavelin, meleeHit };
 }
 

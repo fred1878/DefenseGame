@@ -421,7 +421,7 @@ export class DefenseScene extends Phaser.Scene {
       SPELL_BAR.slotSizePx / 2 +
       scaleUiY(14) +
       scaleUiX(36) / 2;
-    dbgPos.y = Math.max(dbgPos.y, spellClearY);
+    dbgPos.y = Math.max(dbgPos.y, spellClearY) + scaleUiY(8);
     this.debugBtn = createTouchButton(
       this,
       dbgPos.x,

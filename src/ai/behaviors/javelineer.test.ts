@@ -68,6 +68,5 @@ describe("javelineerBehavior", () => {
     const [vx, vy] = setVelocity.mock.calls[0]!;
     expect(Math.abs(vy)).toBeGreaterThan(0);
     expect(Math.abs(vx)).toBeLessThan(Math.abs(vy));
-    expect(vx).toBeLessThan(0);
   });
 });
