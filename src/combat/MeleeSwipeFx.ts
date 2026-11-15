@@ -3,6 +3,9 @@ import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../config/assets";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
 
+/** At rotation 0, `slash-arc-v2` strike bisector points west; combat facing is attack direction (+X = east). */
+const SLASH_ARC_V2_ROT_OFFSET = Math.PI;
+
 /** Peter pick: v1 `slash-arc-v2` at 48px source, scaled for on-screen melee read. */
 const PLAYER_SLASH_OFFSET = 14;
 
@@ -27,6 +30,10 @@ export function showPlayerMeleeSwipe(
     activeMs,
     9,
   );
+}
+
+export function meleeSwipeRotation(facingRad: number): number {
+  return facingRad + SLASH_ARC_V2_ROT_OFFSET;
 }
 
 export function showGruntMeleeSwipe(
@@ -65,7 +72,7 @@ function spawnSlashFade(
   const img = scene.add.image(ox, oy, textureKey);
   img.setDisplaySize(displaySize, displaySize);
   img.setOrigin(0.5, 0.5);
-  img.setRotation(facingRad);
+  img.setRotation(meleeSwipeRotation(facingRad));
   img.setDepth(depth);
   img.setAlpha(0.92);
   if (isE2EEnabled() && textureKey === COMBAT_FX_TEXTURE.playerMelee) {
