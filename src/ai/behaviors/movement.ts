@@ -8,6 +8,11 @@ export type ChaseVelocityOptions = {
   deltaMs?: number;
 };
 
+function enemyMovementBlocked(enemy: EnemyInstance): boolean {
+  if (enemy.behavior === "javelineer") return false;
+  return enemyIsAttacking(enemy.combat);
+}
+
 export function applyChaseVelocity(
   enemy: EnemyInstance,
   moveX: number,
@@ -15,10 +20,11 @@ export function applyChaseVelocity(
   speedMul = 1,
   opts?: ChaseVelocityOptions,
 ): void {
-  if (enemyIsAttacking(enemy.combat)) return;
+  if (enemyMovementBlocked(enemy)) return;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
-  const chaseScale = enemy.combat.phase === "active" ? 0.35 : 1;
+  const chaseScale =
+    enemy.behavior !== "javelineer" && enemy.combat.phase === "active" ? 0.35 : 1;
   const speed = enemy.speed * speedMul * chaseScale;
   const angle = Math.atan2(moveY - ey, moveX - ex);
   const desiredVx = Math.cos(angle) * speed;
@@ -45,13 +51,14 @@ export function applyDirectVelocity(
   dirY: number,
   speedMul = 1,
 ): void {
-  if (enemyIsAttacking(enemy.combat)) return;
+  if (enemyMovementBlocked(enemy)) return;
   const len = Math.hypot(dirX, dirY);
   if (len < 0.001) {
     enemy.sprite.setVelocity(0, 0);
     return;
   }
-  const chaseScale = enemy.combat.phase === "active" ? 0.35 : 1;
+  const chaseScale =
+    enemy.behavior !== "javelineer" && enemy.combat.phase === "active" ? 0.35 : 1;
   const speed = enemy.speed * speedMul * chaseScale;
   enemy.sprite.setVelocity((dirX / len) * speed, (dirY / len) * speed);
 }

@@ -78,7 +78,7 @@ export function debugButtonPosition(
   const margin = scaleUiX(12);
   return {
     x: margin + safe.left + scaleUiX(44),
-    y: scene.scale.height - margin - safe.bottom - scaleUiY(22),
+    y: scene.scale.height - margin - safe.bottom - scaleUiY(12),
   };
 }
 
@@ -91,7 +91,7 @@ export function combatDebugButtonPosition(
   const margin = scaleUiX(12);
   return {
     x: margin + safe.left + scaleUiX(44),
-    y: strip.stripTop - scaleUiY(26),
+    y: strip.stripTop - scaleUiY(14),
   };
 }
 
