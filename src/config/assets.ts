@@ -9,17 +9,18 @@ export const PLAYER_TEXTURE: Record<PlayerCardinal, string> = {
   w: "player_w",
 };
 
-/** Default ground key (`tile_00` — `ground-sparse-grass-night` wang_15). */
+/** Default ground key (`tile_00` — wang_15 base). */
 export const GROUND_TILE_TEXTURE = "ground_0";
 
 export const GROUND_TILE_SIZE = 64;
 
-/** Wang fill set from one `ground-sparse-grass-night` tileset; DefenseScene picks per cell. */
+/** Same-palette 64×64 fills (bitforge from tile_00 + border lock). */
 export const GROUND_TILE_ASSETS = [
   { key: "ground_0", file: "tile_00.png" },
   { key: "ground_1", file: "tile_01.png" },
   { key: "ground_2", file: "tile_02.png" },
   { key: "ground_3", file: "tile_03.png" },
+  { key: "ground_4", file: "tile_04.png" },
 ] as const;
 
 /** Combat FX under `public/assets/combat/fx/` (Peter review 2026-11-14). */

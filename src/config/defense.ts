@@ -30,4 +30,7 @@ export const DEFENSE_OBSTACLES: DefenseObstacleRect[] = [
   { x: -260, y: 220, w: 100, h: 50, textureKey: OBSTACLE_TEXTURE.rubbleLow },
   { x: 300, y: 260, w: 56, h: 56, textureKey: OBSTACLE_TEXTURE.boulderSm },
   { x: -150, y: -320, w: 60, h: 60, textureKey: OBSTACLE_TEXTURE.boulderMed },
+  { x: 240, y: 40, w: 56, h: 56, textureKey: OBSTACLE_TEXTURE.boulderSm },
+  { x: -200, y: 100, w: 60, h: 60, textureKey: OBSTACLE_TEXTURE.boulderMed },
+  { x: -60, y: -250, w: 100, h: 50, textureKey: OBSTACLE_TEXTURE.rubbleLow },
 ];

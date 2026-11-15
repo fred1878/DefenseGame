@@ -5,7 +5,7 @@ import { groundTileVariantIndex } from "./groundTileVariant";
 export function buildGroundLayer(
   scene: Phaser.Scene,
   worldHalfSize: number,
-  /** Night number (or other run id) — perturbs the variant map per defense. */
+  /** Night number — stable variant map per defense. */
   seed = 0,
 ): Phaser.GameObjects.Container {
   const size = worldHalfSize * 2;

@@ -1,4 +1,4 @@
-/** Deterministic per-cell ground texture index (stable across reloads for a given seed). */
+/** Deterministic per-cell ground tile index (same-palette variants only). */
 export function groundTileVariantIndex(
   tx: number,
   ty: number,
