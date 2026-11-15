@@ -6,6 +6,7 @@ import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
+import { ENTITY_BODY_RADIUS, tuneArcadeDynamicBody } from "./entityPhysics";
 
 export type AttackPhase = "idle" | "windup" | "active" | "recovery";
 
@@ -23,8 +24,10 @@ export class Player {
   constructor(scene: Phaser.Scene, x: number, y: number, hpMax: number) {
     this.sprite = scene.physics.add.sprite(x, y, PLAYER_TEXTURE.s);
     this.sprite.setDisplaySize(SPRITE_DISPLAY.player, SPRITE_DISPLAY.player);
-    this.sprite.setCircle(14);
-    this.sprite.setCollideWorldBounds(true);
+    tuneArcadeDynamicBody(this.sprite, ENTITY_BODY_RADIUS.player, {
+      pushable: false,
+      worldBounds: true,
+    });
     this.sprite.setDepth(10);
 
     this.damageable = {

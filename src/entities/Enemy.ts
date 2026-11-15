@@ -5,6 +5,7 @@ import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 
 import type { EnemyNavState } from "../ai/EnemyBrain";
 import { createEnemyNav } from "../ai/EnemyBrain";
+import { ENTITY_BODY_RADIUS, tuneArcadeDynamicBody } from "./entityPhysics";
 
 export type EnemyInstance = {
   id: string;
@@ -25,7 +26,7 @@ export function spawnEnemy(
 ): EnemyInstance {
   const sprite = scene.physics.add.sprite(x, y, "enemy_grunt");
   sprite.setDisplaySize(SPRITE_DISPLAY.enemy, SPRITE_DISPLAY.enemy);
-  sprite.setCircle(12);
+  tuneArcadeDynamicBody(sprite, ENTITY_BODY_RADIUS.enemy, { pushable: true });
   sprite.setDepth(5);
   sprite.setInteractive(
     new Phaser.Geom.Circle(0, 0, 26),
