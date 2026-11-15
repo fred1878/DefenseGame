@@ -18,7 +18,7 @@ describe("applyDamage", () => {
     t.onDamaged = onDamaged;
     applyDamage(t, 5);
     expect(t.hp).toBe(15);
-    expect(onDamaged).toHaveBeenCalledWith(5);
+    expect(onDamaged).toHaveBeenCalledWith(5, "default");
   });
 
   it("kills at zero hp and calls onDeath", () => {

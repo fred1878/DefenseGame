@@ -52,6 +52,7 @@ export function spawnChanneledFireball(
     PLAYER_TUNING.rangedMaxRange,
     id,
     COMBAT_FX_TEXTURE.fireBolt,
+    "fire",
   );
 }
 

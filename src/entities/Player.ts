@@ -3,6 +3,7 @@ import { PLAYER_TUNING, type AttackMode } from "../config";
 import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../config/assets";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
+import { applyDamage } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
 
@@ -162,17 +163,13 @@ export class Player {
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);
-        e.damageable.hp -= damage;
+        applyDamage(e.damageable, damage, "default");
         applyKnockbackFrom(
           e.sprite,
           this.sprite.x,
           this.sprite.y,
           knockback,
         );
-        if (e.damageable.hp <= 0) {
-          e.damageable.alive = false;
-          e.damageable.onDeath?.();
-        }
       }
     }
   }
