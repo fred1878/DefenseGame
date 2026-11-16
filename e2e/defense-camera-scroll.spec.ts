@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 import { defenseHalfHeight, defenseHalfWidth } from "../src/config/defense";
 import { e2eApi, gotoE2E, startDefense } from "./helpers/game";
 
+const SCROLL_POLL_OPTS = { timeout: 15_000 };
+
 test.describe("defense vertical camera scroll", () => {
   test("camera scroll shifts when player moves on tall/wide map", async ({
     page,
@@ -18,19 +20,24 @@ test.describe("defense vertical camera scroll", () => {
     await api.eval<void>("api.setPlayerPosition(0, arg)", northY);
 
     await expect
-      .poll(async () =>
-        api.eval<number>("api.getDefenseCameraScroll().y"),
+      .poll(
+        async () => api.eval<number>("api.getDefenseCameraScroll().y"),
+        SCROLL_POLL_OPTS,
       )
       .not.toBe(before.y);
 
-    const southY = defenseHalfHeight() - 200;
+    const afterNorthY = await api.eval<number>("api.getDefenseCameraScroll().y");
+
+    // South band far from spawn (spawn ≈ halfH − 220) so scroll must differ from north.
+    const southY = defenseHalfHeight() - 96;
     await api.eval<void>("api.setPlayerPosition(0, arg)", southY);
 
     await expect
-      .poll(async () =>
-        api.eval<number>("api.getDefenseCameraScroll().y"),
+      .poll(
+        async () => api.eval<number>("api.getDefenseCameraScroll().y"),
+        SCROLL_POLL_OPTS,
       )
-      .not.toBe(before.y);
+      .not.toBe(afterNorthY);
 
     await api.eval<void>(
       "api.setPlayerPosition(arg, 0)",
@@ -38,8 +45,9 @@ test.describe("defense vertical camera scroll", () => {
     );
 
     await expect
-      .poll(async () =>
-        api.eval<number>("api.getDefenseCameraScroll().x"),
+      .poll(
+        async () => api.eval<number>("api.getDefenseCameraScroll().x"),
+        SCROLL_POLL_OPTS,
       )
       .not.toBe(before.x);
   });

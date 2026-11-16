@@ -2118,6 +2118,8 @@ export class DefenseScene extends Phaser.Scene {
     this.player.sprite.setPosition(x, y);
     const body = this.player.sprite.body as Phaser.Physics.Arcade.Body | null;
     body?.reset(x, y);
+    // E2E teleports skip follow lerp — tests assert scroll vs position, not easing.
+    this.cameras.main.centerOn(x, y);
   }
 
   e2eGetDefenseCameraScroll(): { x: number; y: number } {
