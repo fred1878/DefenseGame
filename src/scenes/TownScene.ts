@@ -255,6 +255,16 @@ export class TownScene extends Phaser.Scene {
     this.endlessPanel = null;
   }
 
+  e2eScrollEndlessEnemyList(deltaY: number): void {
+    this.endlessPanel?.e2eScrollEnemyList(deltaY);
+  }
+
+  e2eEndlessEnemyListScrollState(): ReturnType<
+    EndlessModePanel["e2eEnemyListScrollState"]
+  > | null {
+    return this.endlessPanel?.e2eEnemyListScrollState() ?? null;
+  }
+
   private openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
     this.spellSortPanel = new SpellBarSortPanel(

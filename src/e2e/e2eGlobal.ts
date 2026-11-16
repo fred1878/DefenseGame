@@ -73,6 +73,14 @@ export type DefenseGameE2EApi = {
   openEndlessPanel(): void;
   isEndlessPanelOpen(): boolean;
   startEndless(enemyId: string): void;
+  scrollEndlessEnemyList(deltaY: number): void;
+  getEndlessEnemyListScrollState(): {
+    scrollY: number;
+    maxScroll: number;
+    listTop: number;
+    listViewportH: number;
+    contentHeight: number;
+  } | null;
   isEndlessDefense(): boolean;
   getEndlessEnemyId(): string | null;
   hasLeaveEndlessButton(): boolean;
