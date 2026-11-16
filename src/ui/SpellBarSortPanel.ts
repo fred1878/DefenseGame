@@ -3,6 +3,7 @@ import {
   GAME,
   SPELL_BAR,
   TOWN_SPELL_SORT_BAR,
+  TOWN_SPELL_SORT_PANEL,
   townSpellBarIconDisplayPx,
 } from "../config";
 import { spellIconTextureKey } from "../content/assets";
@@ -78,10 +79,11 @@ export class SpellBarSortPanel {
       .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x000000, 0.72);
     this.root.add(dim);
 
+    const panelLayout = TOWN_SPELL_SORT_PANEL;
     const title = scene.add
       .text(
         GAME.width / 2,
-        scaleUiY(64),
+        scaleUiY(panelLayout.titleY),
         "Spell bar",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(24)}px`,
@@ -94,7 +96,7 @@ export class SpellBarSortPanel {
     const hint = scene.add
       .text(
         GAME.width / 2,
-        scaleUiY(98),
+        scaleUiY(panelLayout.hintY),
         "4×2 night bar — 8 slots, same order as defense. Drag bright icons on; dim = on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
@@ -110,7 +112,7 @@ export class SpellBarSortPanel {
     const barCell = bar.slotSizePx;
     const barGap = bar.slotGapPx;
     const barRowGap = bar.rowGapPx;
-    const gridTop = scaleUiY(148);
+    const gridTop = scaleUiY(panelLayout.barGridTopY);
     const gridW = bar.columnCount * barCell + (bar.columnCount - 1) * barGap;
     const gridLeft = GAME.width / 2 - gridW / 2 + barCell / 2;
 
@@ -172,7 +174,10 @@ export class SpellBarSortPanel {
         ? bar.rowCount
         : Math.ceil(SPELL_BAR.slotCount / bar.columnCount);
     const poolHeaderY =
-      gridTop + barRows * barCell + (barRows - 1) * barRowGap + scaleUiY(28);
+      gridTop +
+      barRows * barCell +
+      (barRows - 1) * barRowGap +
+      scaleUiY(panelLayout.poolBelowBarGapY);
     scene.add
       .text(
         GAME.width / 2,
@@ -187,7 +192,7 @@ export class SpellBarSortPanel {
 
     const poolCell = scaleUiX(44);
     const poolGap = scaleUiX(4);
-    const poolTop = poolHeaderY + scaleUiY(24);
+    const poolTop = poolHeaderY + scaleUiY(panelLayout.poolHeaderToGridGapY);
     const poolGridW = POOL_COLUMNS * poolCell + (POOL_COLUMNS - 1) * poolGap;
     const poolLeft = GAME.width / 2 - poolGridW / 2 + poolCell / 2;
 
@@ -229,7 +234,7 @@ export class SpellBarSortPanel {
 
     const poolRows = Math.ceil(catalog.length / POOL_COLUMNS);
     const doneY =
-      poolTop + poolRows * (poolCell + poolGap) + scaleUiY(28);
+      poolTop + poolRows * (poolCell + poolGap) + scaleUiY(panelLayout.doneBelowPoolGapY);
 
     const done = createTouchButton(
       scene,

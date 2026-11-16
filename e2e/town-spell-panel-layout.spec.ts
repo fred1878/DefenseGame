@@ -29,6 +29,9 @@ test.describe("town spell panel layout", () => {
     });
 
     expect(hitRects.length).toBe(8);
+    // 2× bar grid sits below wrapped hint (regression: bar must not cover instruction copy).
+    expect(hitRects[0]!.y).toBeGreaterThanOrEqual(220);
+
     for (let i = 0; i < hitRects.length; i++) {
       const key = `spell-sort-slot-${i}`;
       const pt = targets[key];
