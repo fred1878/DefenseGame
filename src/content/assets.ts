@@ -26,17 +26,14 @@ export const ENEMY_SPRITE_IDS = [
 
 export type EnemySpriteId = (typeof ENEMY_SPRITE_IDS)[number];
 
-/**
- * Roster folder names under the mixed pipeline (`enemy_<rosterId>/`).
- * Unmapped ids are provisional picks until art lead confirms.
- */
+/** Peter mapping: game id → mixed-pipeline roster (`enemy_<rosterId>/`). */
 export const ENEMY_SPRITE_ROSTER: Record<EnemySpriteId, string> = {
   grunt: "melee_01",
   bruiser: "melee_04",
   skirmisher: "melee_02",
-  arrow_rain_archer: "ranged_04",
+  arrow_rain_archer: "ranged_01",
   sentry_archer: "ranged_06",
-  javelineer: "ranged_07",
+  javelineer: "caster_01",
   slow_siege: "melee_06",
   fast_sapper: "ranged_02",
   charger: "melee_03",
