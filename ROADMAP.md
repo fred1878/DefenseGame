@@ -1,75 +1,122 @@
 # Roadmap
 
-Checkbox milestones for DefenseGame. Items marked **[x]** are implemented in `main` today (verified against source). Order is suggested, not mandatory.
+Every item below still needs **some amount of work** (polish, content, tests, or engineering). Nothing is “finished” for a 1.0-quality release.
+
+**Legend:** **Effort** — S (small), M (medium), L (large), XL (very large). **Baseline** — playable hook exists today; follow-up is polish or scope completion.
 
 **Playable web build:** https://fred1878.github.io/DefenseGame/  
-**Package version:** `0.1.0` (`package.json`) — first git tag `v0.1.0` not cut yet.
+**Package version:** `0.1.0` (`package.json`) — tag `v0.1.0` not cut yet.
 
 ---
 
-## Milestone A — v0.1 web release (current focus)
+## Execution order (agent / team)
 
-Ship a coherent browser build on GitHub Pages with honest docs and green CI.
+Do work in this sequence unless a PR blocks you:
 
-- [x] Boot → Town → Defense loop (`BootScene`, `TownScene`, `DefenseScene`)
-- [x] Portrait layout 540×1200, touch virtual stick + action buttons (`main.ts`, `VirtualStick`)
-- [x] `localStorage` save/load (`GameState`, `saveTypes.ts`)
-- [x] CI: typecheck + Vitest + build + Playwright on PRs (`ci.yml`)
-- [x] Pages deploy on `main` (`pages.yml`, `docs/CI_RELEASES.md`)
-- [ ] **Tag `v0.1.0`** and optional GitHub Release zip (`release.yml`) — version already `0.1.0`
-- [x] README + agent docs reflect shipped features (this pass)
+| Step | Work | Effort |
+|------|------|--------|
+| **0** | Merge [docs PR #108](https://github.com/fred1878/DefenseGame/pull/108) (`REFACTOR_PLAN.md`, README, this roadmap) | S |
+| **1** | **DefenseScene refactor** — [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) PRs **1→12** on `main` (one concern per PR, CI green each time) | L |
+| **2** | Tag **`v0.1.0`** + optional GitHub Release | S |
+| **3** | Milestone **B** content (post–night 10, four town buildings) | M–L |
+| **4** | Milestone **C** (cone art VFX, pooling) | M–L |
+| **5** | Milestone **D** UX/audio/meta | L–XL |
+| **6** | Milestone **F** Capacitor + stores | XL |
+
+Refactor (**step 1**) runs **immediately after step 0**, before new feature polish, so later content PRs touch smaller modules.
+
+### Refactor checklist (Milestone E detail)
+
+Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
+
+- [ ] PR1 — `DefenseSceneE2E.ts` (e2e methods)
+- [ ] PR2 — `DefenseWaveSpawner.ts`
+- [ ] PR3 — `DefenseEnemySpawner.ts`
+- [ ] PR4 — `DefenseNightEnd.ts`
+- [ ] PR5 — `DefenseTargeting.ts`
+- [ ] PR6 — `DefenseHudController.ts`
+- [ ] PR7 — `DefenseWorldBootstrap.ts`
+- [ ] PR8 — `DefenseProjectileTick.ts`
+- [ ] PR9 — `DefenseEnemyTick.ts`
+- [ ] PR10 — `DefenseSpellDirector.ts`
+- [ ] PR11 — Optional `systems/WaveSpawner.ts` promotion
+- [ ] PR12 — Pooling (enemies / projectiles)
+- [ ] P1 — Split `touchButton.ts`
+- [ ] P2 — Split `EnemyRangedCombat.ts`
 
 ---
 
-## Milestone B — Core loop complete (nights 1–10)
+## Milestone A — v0.1 web release
 
-- [x] Waves for nights **1–10** in `public/data/waves.json`
-- [x] **12 enemy types** in `public/data/enemies.json` (grunt, bruiser, arrow_rain_archer, skirmisher, sentry_archer, javelineer, slow_siege, fast_sapper, charger, lobber, reaver, ward)
-- [x] North wall objective + win/lose via `evaluateNightEnd` / `NightResult`
-- [x] Town upgrades: wall HP + blacksmith damage (`buildings.json`, Moon Brazier / Witchlight Beacon hooks)
-- [x] Gallows Square starts night; Witchlight Beacon (daylit) opens spell sort UI
-- [ ] **Campaign past night 10** — `DataStore.getWaveForNight` repeats the highest defined night (10) for `night > 10`; no ending scene yet
-- [ ] Wire **four town buildings** still showing “Not available yet” (`townBuildingMenu.ts`): Haunted Well, Plague Clinic, Market Stall (night), Market Stall (daylit) — no `upgradeId` in `town_buildings.json`
+| Item | Effort | Baseline today | Remaining work |
+|------|--------|----------------|----------------|
+| Boot → Town → Defense loop | M | Yes | Endless training mode UX copy; scene transition polish |
+| Portrait 540×1200 + touch input | M | Yes | Keyboard hints; accessibility |
+| `localStorage` saves | S | Yes | Migration tests for future `SAVE_VERSION` bumps |
+| CI + Pages deploy | S | Yes | Keep green under refactor PRs |
+| Tag `v0.1.0` | S | No | Cut tag after refactor PR1+ or after full step 1 |
+| README / agent docs | S | PR #108 | Keep synced as features land |
+
+---
+
+## Milestone B — Core loop (nights 1–10+)
+
+| Item | Effort | Baseline today | Remaining work |
+|------|--------|----------------|----------------|
+| Waves nights 1–10 | M | Yes | Balance pass; docs in `WAVES.md` |
+| 12 enemy types | L | Yes | More behaviors tied to buildings; tuning |
+| Wall win/lose + `NightResult` | M | Yes | Clearer lose UX; endless vs campaign rules |
+| Wall + smith upgrades | M | Yes | More upgrade types |
+| Gallows / spell bar buildings | S | Yes | Art and copy |
+| **Campaign after night 10** | M | No | Ending or NG+; stop repeating night 10 wave |
+| **Four unwired town buildings** | M | No | Haunted Well, Plague Clinic, both Market Stalls — effects + `upgradeId` |
+| Endless concurrent spawn (if on `main`) | M | Partial | Polish, balance, docs |
 
 ---
 
 ## Milestone C — Spells & combat polish
 
-- [x] **22 spells** catalog in `public/data/spells.json` (loaded in Boot)
-- [x] Defense **8-slot** spell bar (4×2) + channeling `CastBar` (`SPELL_BAR.slotCount`)
-- [x] Town spell pool drag-sort overlay (`SpellBarSortPanel`)
-- [x] Minimap + combat HUD chrome (`DefenseMinimap`, `combatHudChrome`)
-- [ ] **Cone of Fire (and cone) VFX** — gameplay works via `applySpellCone` / `SpellConeFx.ts` but VFX is procedural `Graphics` (orange wedge placeholder, not art-backed like other MRPG FX)
-- [ ] **Enemy / projectile pooling** — spawn/destroy each instance (`spawnEnemy`, projectile `filter` + `sprite.destroy`); AGENTS.md calls for pools before scaling further
+| Item | Effort | Baseline today | Remaining work |
+|------|--------|----------------|----------------|
+| 22 spells in JSON | L | Yes | Balance, tooltips, VFX per spell |
+| 8-slot spell bar + channeling | M | Yes | Cooldown UX, errors |
+| Town spell sort panel | M | Yes | Mobile drag edge cases |
+| Minimap + HUD chrome | M | Yes | Icons, scaling |
+| **Cone / cone-of-fire VFX** | S | Gameplay only | Replace `SpellConeFx.ts` Graphics wedge with art |
+| **Enemy + projectile pooling** | L | No | Pools per AGENTS.md; ties refactor PR12 |
 
 ---
 
 ## Milestone D — UX, audio, meta
 
-- [ ] **Title screen** — game starts at Town after Boot (no title scene in `main.ts` scene list)
-- [ ] **Settings menu** (volume, controls, reset) — only Debug menu + town reset today
-- [ ] **Pause menu** in Defense — debug overlay pauses via `DebugMenuScene`, not a player-facing pause
-- [ ] **Tutorial** — no guided first-night flow
-- [ ] **Audio / music** — no Phaser sound usage in `src/` yet
-- [ ] **Walk-cycle animations** — player/enemies use directional static sprites (`player_n/e/s/w`, enemy facings); no walk animation system
-- [ ] **`weaponId` and `save.flags`** — persisted in `SaveGame` (`GameState.createNew`) but not read for combat or unlock logic
+| Item | Effort | Baseline today | Remaining work |
+|------|--------|----------------|----------------|
+| Title screen | M | No | Scene before Town |
+| Settings menu | M | No | Volume, controls |
+| Pause menu (player-facing) | M | No | Not only debug overlay |
+| Tutorial | L | No | First night guidance |
+| Audio / music | L | No | No `sound` usage in `src/` yet |
+| Walk-cycle animations | L | No | Static facing sprites only |
+| `weaponId` + `save.flags` | M | Persisted only | Gameplay unlocks / combat hooks |
 
 ---
 
-## Milestone E — Engineering / maintainability
+## Milestone E — Engineering
 
-- [ ] **`DefenseScene` refactor** per [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) (~10–12 PRs; `WaveSpawner` still inline in scene)
-- [ ] Split **`touchButton.ts`** / **`EnemyRangedCombat.ts`** when touching those areas (see refactor plan P1–P2)
-- [x] Pure night-end guard extracted (`defenseNightLogic.ts` + tests)
+| Item | Effort | Baseline today | Remaining work |
+|------|--------|----------------|----------------|
+| `DefenseScene` decomposition | L | Plan in REFACTOR_PLAN | **Execute steps 0→1 now** |
+| `touchButton` / `EnemyRangedCombat` splits | M | Monolith files | After DefenseScene PR9–10 or when touching |
+| `defenseNightLogic` pure guard | S | Yes | Keep covered when moving `endNight` |
 
 ---
 
 ## Milestone F — Mobile & stores
 
-- [ ] **Capacitor device smoke test** (AGENTS.md step 6) — `capacitor.config.ts` stub only; `@capacitor/*` not in `package.json`
-- [ ] Signed **store builds** (APK/IPA) per `docs/CI_RELEASES.md` “Future: mobile store builds”
-
-**Suggested sequence after web v0.1:** finish Milestone B content gaps → Milestone C VFX/pooling → Milestone D polish → Milestone E refactor in parallel with content → Milestone F.
+| Item | Effort | Baseline today | Remaining work |
+|------|--------|----------------|----------------|
+| Capacitor device smoke (AGENTS step 6) | M | `capacitor.config.ts` stub | Add packages, iOS/Android smoke |
+| Store APK/IPA | XL | No | Signing, CI per `CI_RELEASES.md` |
 
 ---
 
