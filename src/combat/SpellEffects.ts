@@ -26,6 +26,7 @@ import {
 } from "../entities/Projectile";
 import { worldUnit } from "../core/worldPixelScale";
 import { showPlayerMeleeSwipe } from "./MeleeSwipeFx";
+import { showSpellConeFx } from "./SpellConeFx";
 
 export function applyNova(
   scene: Phaser.Scene,
@@ -189,6 +190,7 @@ export function applySpellCone(
   const half = Phaser.Math.DegToRad(SPELL_CONE_ARC_DEG / 2);
   const damage = (def.baseDamage ?? 12) * damageMult;
   const flavor = def.damageFlavor ?? "default";
+  showSpellConeFx(scene, playerX, playerY, facingRad);
   for (const e of enemiesInCone(playerX, playerY, facingRad, range, half, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
