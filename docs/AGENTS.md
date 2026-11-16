@@ -44,7 +44,7 @@ src/
   ui/                  # SpellBar, CastBar, touch buttons, HUD
 public/data/           # JSON content (fetched at runtime)
 assets/ or public/     # Sprites/audio (placeholders OK early)
-docs/                  # This file, CI_RELEASES.md
+docs/                  # AGENTS, TESTING, CI_RELEASES, REFACTOR_PLAN; ROADMAP at repo root
 ```
 
 **When adding features:** prefer new JSON rows + small behavior modules over growing scene files.
@@ -218,3 +218,5 @@ npm run preview      # serve dist locally
 
 - [Testing](./TESTING.md)
 - [CI and releases](./CI_RELEASES.md)
+- [Refactor plan](./REFACTOR_PLAN.md) — splitting `DefenseScene` and other large files
+- [Roadmap](../ROADMAP.md) — milestones and known gaps
