@@ -3,7 +3,10 @@ import {
   type SpellDefinition,
   type SpellId,
 } from "../content/spells";
-import { spellCastMs } from "../content/spellTargeting";
+import {
+  SPELL_MOVE_INTERRUPT_EPS,
+  spellCastMs,
+} from "../content/spellTargeting";
 
 export type ChannelUpdateResult =
   | { type: "idle" }
@@ -11,8 +14,6 @@ export type ChannelUpdateResult =
   | { type: "channeling"; progress: number; spellId: SpellId }
   | { type: "interrupted"; spellId: SpellId }
   | { type: "completed"; spellId: SpellId; def: SpellDefinition };
-
-const MOVE_INTERRUPT_EPS = 0.12;
 
 export class SpellCastController {
   private activeSpellId: SpellId | null = null;
@@ -82,7 +83,7 @@ export class SpellCastController {
     if (!this.activeSpellId) return { type: "idle" };
 
     const mag = Math.hypot(stickX, stickY);
-    if (mag > MOVE_INTERRUPT_EPS) {
+    if (mag > SPELL_MOVE_INTERRUPT_EPS) {
       const id = this.activeSpellId;
       this.clearCast();
       return { type: "interrupted", spellId: id };
