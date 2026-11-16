@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E } from "./helpers/game";
+import { tapCanvas } from "./helpers/touch";
 
 const GAME_WIDTH = 540;
 const GAME_HEIGHT = 1200;
@@ -37,15 +38,21 @@ test.describe("endless mode panel layout", () => {
       const enemyKeys = Object.keys(api?.getUiTapTargets() ?? {}).filter((k) =>
         k.startsWith("endless-enemy-"),
       );
-      const lastEnemyId = enemyKeys
-        .sort()
-        .at(-1)
-        ?.replace("endless-enemy-", "");
-      return { state, lastEnemyId, enemyCount: enemyKeys.length };
+      const roster = api?.getEndlessRosterEnemyIds() ?? [];
+      const lastEnemyId = roster.at(-1) ?? null;
+      return { state, lastEnemyId, enemyCount: enemyKeys.length, rosterLen: roster.length };
     });
 
+    expect(scrollState.rosterLen).toBeGreaterThan(0);
     expect(scrollState.enemyCount).toBeGreaterThan(0);
+    expect(scrollState.enemyCount).toBeLessThanOrEqual(
+      scrollState.state!.maxVisibleRows,
+    );
     expect(scrollState.state).toBeTruthy();
+    expect(scrollState.state!.maxVisibleRows).toBe(4);
+    if (scrollState.state!.maxScroll > 0) {
+      expect(scrollState.state!.scrollbarVisible).toBe(true);
+    }
     if (
       scrollState.state &&
       scrollState.state.maxScroll > 0 &&
@@ -91,5 +98,47 @@ test.describe("endless mode panel layout", () => {
       scrollState.state!.listTop + VIEWPORT_MARGIN,
     );
     expect(firstEnemy!.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
+  });
+
+  test("footer taps do not change hidden roster selection", async ({
+    page,
+  }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const initial = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyId() ?? "",
+    );
+    expect(initial).toBeTruthy();
+
+    const start = await page.evaluate(
+      () =>
+        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-start"],
+    );
+    expect(start).toBeTruthy();
+    await tapCanvas(page, start!.x, start!.y + 28);
+
+    const after = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyId() ?? "",
+    );
+    expect(after).toBe(initial);
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 3_000 },
+      )
+      .toBe(true);
   });
 });
