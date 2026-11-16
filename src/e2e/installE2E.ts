@@ -28,6 +28,7 @@ const DOM_MIRROR_IDS = [
   "spell-slot-6",
   "spell-slot-7",
   "defense-return-to-town",
+  "defense-leave-endless",
 ] as const;
 
 function ensureDomMirrorButton(
@@ -402,6 +403,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getEndlessEnemyId() {
       return activeDefense(game)?.e2eEndlessEnemyId() ?? null;
+    },
+    hasLeaveEndlessButton() {
+      return activeDefense(game)?.e2eHasLeaveEndlessButton() ?? false;
     },
     getObstacleAlignment() {
       return activeDefense(game)?.e2eGetObstacleAlignment() ?? [];

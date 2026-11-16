@@ -75,6 +75,7 @@ export type DefenseGameE2EApi = {
   startEndless(enemyId: string): void;
   isEndlessDefense(): boolean;
   getEndlessEnemyId(): string | null;
+  hasLeaveEndlessButton(): boolean;
   getObstacleAlignment(): Array<{
     textureKey: string;
     configX: number;
