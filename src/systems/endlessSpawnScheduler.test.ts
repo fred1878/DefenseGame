@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+import {
+  clampEndlessConcurrent,
+  countLivingWithDefId,
+  endlessSpawnDeficit,
+  ENDLESS_CONCURRENT_MAX,
+  ENDLESS_CONCURRENT_MIN,
+} from "./endlessSpawnScheduler";
+
+describe("clampEndlessConcurrent", () => {
+  it("clamps to 3–10", () => {
+    expect(clampEndlessConcurrent(1)).toBe(ENDLESS_CONCURRENT_MIN);
+    expect(clampEndlessConcurrent(99)).toBe(ENDLESS_CONCURRENT_MAX);
+    expect(clampEndlessConcurrent(7.4)).toBe(7);
+  });
+});
+
+describe("endlessSpawnDeficit", () => {
+  it("returns zero when at or above cap", () => {
+    expect(endlessSpawnDeficit(10, 10)).toBe(0);
+    expect(endlessSpawnDeficit(11, 10)).toBe(0);
+  });
+
+  it("returns missing headcount", () => {
+    expect(endlessSpawnDeficit(7, 10)).toBe(3);
+    expect(endlessSpawnDeficit(0, 3)).toBe(3);
+  });
+});
+
+describe("countLivingWithDefId", () => {
+  it("counts only matching living def ids", () => {
+    const entries = [
+      { defId: "grunt", damageable: { alive: true } },
+      { defId: "grunt", damageable: { alive: true } },
+      { defId: "grunt", damageable: { alive: false } },
+      { defId: "javelineer", damageable: { alive: true } },
+    ];
+    expect(countLivingWithDefId(entries, "grunt")).toBe(2);
+    expect(countLivingWithDefId(entries, "javelineer")).toBe(1);
+  });
+});

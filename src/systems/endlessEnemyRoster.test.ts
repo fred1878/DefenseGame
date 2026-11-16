@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { DataStore } from "../core/DataStore";
-import { listPlayableDefenseEnemyIds } from "./endlessEnemyRoster";
+import {
+  getEndlessConcurrentCap,
+  listPlayableDefenseEnemyIds,
+} from "./endlessEnemyRoster";
 
 describe("listPlayableDefenseEnemyIds", () => {
   it("returns sorted ids referenced by waves", () => {
@@ -33,5 +36,49 @@ describe("listPlayableDefenseEnemyIds", () => {
       },
     };
     expect(listPlayableDefenseEnemyIds(store)).toEqual(["grunt"]);
+  });
+});
+
+describe("getEndlessConcurrentCap", () => {
+  const gruntDef = {
+    hp: 1,
+    speed: 1,
+    damage: 1,
+    behavior: "meleeChaser",
+    textureKey: "enemy_grunt",
+    displayName: "Grunt",
+    endlessConcurrent: 10,
+  };
+
+  it("uses JSON endlessConcurrent when set", () => {
+    expect(getEndlessConcurrentCap("grunt", gruntDef)).toBe(10);
+    expect(
+      getEndlessConcurrentCap("custom", {
+        ...gruntDef,
+        endlessConcurrent: 3,
+      }),
+    ).toBe(3);
+  });
+
+  it("falls back to per-id table", () => {
+    expect(getEndlessConcurrentCap("javelineer", undefined)).toBe(3);
+    expect(getEndlessConcurrentCap("grunt", undefined)).toBe(10);
+  });
+
+  it("falls back to behavior defaults", () => {
+    expect(
+      getEndlessConcurrentCap("unknown_melee", {
+        behavior: "meleeChaser",
+      }),
+    ).toBe(9);
+  });
+
+  it("clamps out-of-range JSON values", () => {
+    expect(
+      getEndlessConcurrentCap("x", {
+        behavior: "meleeChaser",
+        endlessConcurrent: 50,
+      }),
+    ).toBe(10);
   });
 });
