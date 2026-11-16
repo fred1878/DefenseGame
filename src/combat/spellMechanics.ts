@@ -137,3 +137,18 @@ export const SHADOWFORM_DURATION_MS = 10000;
 export const SHADOWFORM_DAMAGE_MULT = 1.35;
 export const FROST_ROOT_MS = 2200;
 export const DEEP_FREEZE_ROOT_MS = 2800;
+
+export function clampGroundTarget(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  maxRange: number,
+): { x: number; y: number } {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const d = Math.hypot(dx, dy);
+  if (d <= maxRange || d < 0.001) return { x: toX, y: toY };
+  const s = maxRange / d;
+  return { x: fromX + dx * s, y: fromY + dy * s };
+}

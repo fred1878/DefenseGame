@@ -3,9 +3,11 @@ import {
   type SpellDefinition,
   type SpellId,
 } from "../content/spells";
+import { spellCastMs } from "../content/spellTargeting";
 
 export type ChannelUpdateResult =
   | { type: "idle" }
+  | { type: "windup"; progress: number; spellId: SpellId }
   | { type: "channeling"; progress: number; spellId: SpellId }
   | { type: "interrupted"; spellId: SpellId }
   | { type: "completed"; spellId: SpellId; def: SpellDefinition };
@@ -13,17 +15,25 @@ export type ChannelUpdateResult =
 const MOVE_INTERRUPT_EPS = 0.12;
 
 export class SpellCastController {
-  private channelSpellId: SpellId | null = null;
+  private activeSpellId: SpellId | null = null;
+  private windupElapsedMs = 0;
+  private windupDurationMs = 0;
   private channelElapsedMs = 0;
   private channelDurationMs = 0;
+  private inChannel = false;
   private readonly cooldownRemainingMs = new Map<SpellId, number>();
 
   isChanneling(): boolean {
-    return this.channelSpellId !== null;
+    return this.activeSpellId !== null;
   }
 
   getChannelProgress(): number {
-    if (!this.channelSpellId || this.channelDurationMs <= 0) return 0;
+    if (!this.activeSpellId) return 0;
+    if (!this.inChannel) {
+      if (this.windupDurationMs <= 0) return 0;
+      return Math.min(1, this.windupElapsedMs / this.windupDurationMs);
+    }
+    if (this.channelDurationMs <= 0) return 1;
     return Math.min(1, this.channelElapsedMs / this.channelDurationMs);
   }
 
@@ -39,21 +49,28 @@ export class SpellCastController {
     }
   }
 
-  /** Begin instant cast or channel. Returns false if blocked. */
-  tryBeginCast(spellId: SpellId): SpellDefinition | "channel" | false {
+  /** Begin windup, channel, or instant cast. Returns false if blocked. */
+  tryBeginCast(spellId: SpellId): SpellDefinition | "channel" | "windup" | false {
     if (this.isChanneling()) return false;
     const def = spellById(spellId);
     if (!def) return false;
     if ((this.cooldownRemainingMs.get(spellId) ?? 0) > 0) return false;
 
-    if (def.kind === "instant" || def.channelMs <= 0) {
+    const castMs = spellCastMs(def);
+    const hasChannel = def.channelMs > 0;
+
+    if (castMs <= 0 && !hasChannel) {
       this.cooldownRemainingMs.set(spellId, def.cooldownMs);
       return def;
     }
 
-    this.channelSpellId = spellId;
+    this.activeSpellId = spellId;
+    this.windupElapsedMs = 0;
+    this.windupDurationMs = castMs;
     this.channelElapsedMs = 0;
-    this.channelDurationMs = def.channelMs;
+    this.channelDurationMs = hasChannel ? def.channelMs : 0;
+    this.inChannel = castMs <= 0 && hasChannel;
+    if (castMs > 0) return "windup";
     return "channel";
   }
 
@@ -62,36 +79,65 @@ export class SpellCastController {
     stickX: number,
     stickY: number,
   ): ChannelUpdateResult {
-    if (!this.channelSpellId) return { type: "idle" };
+    if (!this.activeSpellId) return { type: "idle" };
 
     const mag = Math.hypot(stickX, stickY);
     if (mag > MOVE_INTERRUPT_EPS) {
-      const id = this.channelSpellId;
-      this.clearChannel();
+      const id = this.activeSpellId;
+      this.clearCast();
       return { type: "interrupted", spellId: id };
     }
 
-    this.channelElapsedMs += deltaMs;
-    const progress = this.getChannelProgress();
-    if (this.channelElapsedMs < this.channelDurationMs) {
-      return { type: "channeling", progress, spellId: this.channelSpellId };
+    const spellId = this.activeSpellId;
+
+    if (!this.inChannel && this.windupDurationMs > 0) {
+      this.windupElapsedMs += deltaMs;
+      if (this.windupElapsedMs < this.windupDurationMs) {
+        return {
+          type: "windup",
+          progress: this.getChannelProgress(),
+          spellId,
+        };
+      }
+      if (this.channelDurationMs > 0) {
+        this.inChannel = true;
+      } else {
+        const def = spellById(spellId);
+        this.clearCast();
+        if (!def) return { type: "idle" };
+        this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+        return { type: "completed", spellId, def };
+      }
     }
 
-    const id = this.channelSpellId;
-    const def = spellById(id);
-    this.clearChannel();
+    if (this.inChannel && this.channelDurationMs > 0) {
+      this.channelElapsedMs += deltaMs;
+      if (this.channelElapsedMs < this.channelDurationMs) {
+        return {
+          type: "channeling",
+          progress: this.getChannelProgress(),
+          spellId,
+        };
+      }
+    }
+
+    const def = spellById(spellId);
+    this.clearCast();
     if (!def) return { type: "idle" };
-    this.cooldownRemainingMs.set(id, def.cooldownMs);
-    return { type: "completed", spellId: id, def };
+    this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+    return { type: "completed", spellId, def };
   }
 
   cancelChannel(): void {
-    this.clearChannel();
+    this.clearCast();
   }
 
-  private clearChannel(): void {
-    this.channelSpellId = null;
+  private clearCast(): void {
+    this.activeSpellId = null;
+    this.windupElapsedMs = 0;
+    this.windupDurationMs = 0;
     this.channelElapsedMs = 0;
     this.channelDurationMs = 0;
+    this.inChannel = false;
   }
 }

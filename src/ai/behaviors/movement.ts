@@ -63,7 +63,8 @@ export function applyChaseVelocity(
   const ey = enemy.sprite.y;
   const chaseScale =
     enemy.behavior !== "javelineer" && enemy.combat.phase === "active" ? 0.35 : 1;
-  const speed = enemy.speed * speedMul * chaseScale;
+  const statusMul = enemy.statusSpeedMul ?? 1;
+  const speed = enemy.speed * speedMul * chaseScale * statusMul;
   const angle = Math.atan2(moveY - ey, moveX - ex);
   const desiredVx = Math.cos(angle) * speed;
   const desiredVy = Math.sin(angle) * speed;
@@ -97,6 +98,7 @@ export function applyDirectVelocity(
   }
   const chaseScale =
     enemy.behavior !== "javelineer" && enemy.combat.phase === "active" ? 0.35 : 1;
-  const speed = enemy.speed * speedMul * chaseScale;
+  const statusMul = enemy.statusSpeedMul ?? 1;
+  const speed = enemy.speed * speedMul * chaseScale * statusMul;
   enemy.sprite.setVelocity((dirX / len) * speed, (dirY / len) * speed);
 }

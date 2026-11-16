@@ -17,6 +17,8 @@ import {
   CHAIN_LIGHTNING_HOPS,
   type EnemyHitTarget,
 } from "./spellMechanics";
+import { applySpellOnHitEffects } from "./spellOnHitEffects";
+import type { EnemySpellStatusMap } from "./enemySpellStatus";
 import {
   spawnPlayerProjectile,
   type PlayerProjectile,
@@ -38,6 +40,7 @@ export function applyNova(
     damageable: Damageable;
   }>,
   damageMult: number,
+  status?: EnemySpellStatusMap,
 ): void {
   const radius = worldUnit(def.blastRadius ?? 80, scene.registry);
   const damage = (def.baseDamage ?? 20) * damageMult;
@@ -46,6 +49,9 @@ export function applyNova(
     const d = Phaser.Math.Distance.Between(playerX, playerY, e.x, e.y);
     if (d <= radius + e.radius) {
       applyDamage(e.damageable, damage, def.damageFlavor ?? "fire");
+      if (status && def.onHit) {
+        applySpellOnHitEffects(status, e.id, def.onHit, def.damageFlavor ?? "fire");
+      }
     }
   }
 }
@@ -120,6 +126,7 @@ export function applySpellBlastAt(
   enemies: SpellEnemyTarget[],
   damageMult: number,
   knockback = 140,
+  status?: EnemySpellStatusMap,
 ): void {
   const r = worldUnit(def.blastRadius ?? 72, scene.registry);
   const damage = (def.baseDamage ?? 0) * damageMult;
@@ -129,6 +136,9 @@ export function applySpellBlastAt(
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
     applyKnockbackFrom(full.sprite, centerX, centerY, knockback);
+    if (status && def.onHit) {
+      applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+    }
   }
 }
 
@@ -140,6 +150,7 @@ export function applySpellSwing(
   def: SpellDefinition,
   enemies: SpellEnemyTarget[],
   damageMult: number,
+  status?: EnemySpellStatusMap,
 ): void {
   const range = worldUnit(SPELL_SWING_RANGE_WU, scene.registry);
   const damage = (def.baseDamage ?? 16) * damageMult;
@@ -157,6 +168,9 @@ export function applySpellSwing(
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
     applyKnockbackFrom(full.sprite, playerX, playerY, PLAYER_TUNING.meleeKnockback);
+    if (status && def.onHit) {
+      applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+    }
   }
 }
 
@@ -168,8 +182,10 @@ export function applySpellCone(
   def: SpellDefinition,
   enemies: SpellEnemyTarget[],
   damageMult: number,
+  status?: EnemySpellStatusMap,
 ): void {
-  const range = worldUnit(SPELL_CONE_RANGE_WU, scene.registry);
+  const rangeWu = def.coneRangeWu ?? SPELL_CONE_RANGE_WU;
+  const range = worldUnit(rangeWu, scene.registry);
   const half = Phaser.Math.DegToRad(SPELL_CONE_ARC_DEG / 2);
   const damage = (def.baseDamage ?? 12) * damageMult;
   const flavor = def.damageFlavor ?? "default";
@@ -178,6 +194,9 @@ export function applySpellCone(
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
     applyKnockbackFrom(full.sprite, playerX, playerY, 90);
+    if (status && def.onHit) {
+      applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+    }
   }
 }
 
@@ -189,17 +208,38 @@ export function applyInstantTargeted(
   playerX: number,
   playerY: number,
   damageMult: number,
+  status?: EnemySpellStatusMap,
 ): string | null {
-  const maxR = worldUnit(PLAYER_TUNING.autoAttackRangedRange, scene.registry);
+  const maxR = worldUnit(
+    def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
+    scene.registry,
+  );
   const target =
     (targetId && enemies.find((e) => e.id === targetId && e.damageable.alive)) ||
     nearestEnemy(playerX, playerY, enemies, maxR);
   if (!target) return null;
   const full = enemies.find((e) => e.id === target.id);
   if (!full) return null;
-  const damage = (def.baseDamage ?? 16) * damageMult;
-  applyDamage(full.damageable, damage, def.damageFlavor ?? "default");
-  if (def.blastRadius) {
+  const flavor = def.damageFlavor ?? "default";
+  const hitDamage = (def.baseDamage ?? 0) * damageMult;
+  if (hitDamage > 0) {
+    applyDamage(full.damageable, hitDamage, flavor);
+  }
+  if (def.burstDamage && def.burstDamage > 0) {
+    applyDamage(full.damageable, def.burstDamage * damageMult, flavor);
+    if (def.blastRadius) {
+      applySpellBlastAt(
+        scene,
+        full.x,
+        full.y,
+        { ...def, baseDamage: def.burstDamage * 0.65 },
+        enemies,
+        damageMult,
+        80,
+        status,
+      );
+    }
+  } else if (def.blastRadius) {
     applySpellBlastAt(
       scene,
       full.x,
@@ -208,7 +248,11 @@ export function applyInstantTargeted(
       enemies,
       damageMult,
       80,
+      status,
     );
+  }
+  if (status && def.onHit) {
+    applySpellOnHitEffects(status, full.id, def.onHit, flavor);
   }
   return full.id;
 }

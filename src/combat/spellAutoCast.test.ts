@@ -19,7 +19,7 @@ describe("pickAutoCastSpell", () => {
   });
 
   it("skips channeled spells while moving", () => {
-    const channeledSlots = ["", "heal", "meteor", "", "", ""];
+    const channeledSlots = ["", "heal", "flamestrike", "", "", ""];
     const auto = [false, true, true, false, false, false];
     expect(
       pickAutoCastSpell(channeledSlots, auto, true, () => 0, false),

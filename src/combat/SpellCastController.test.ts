@@ -12,10 +12,12 @@ describe("SpellCastController", () => {
     expect(c.isChanneling()).toBe(false);
   });
 
-  it("completes channel when still and time elapsed", () => {
+  it("completes windup-only meteor when still", () => {
     const c = new SpellCastController();
     c.tryBeginCast("meteor");
-    const done = c.updateChannel(1200, 0, 0);
+    const mid = c.updateChannel(500, 0, 0);
+    expect(mid.type).toBe("windup");
+    const done = c.updateChannel(800, 0, 0);
     expect(done.type).toBe("completed");
     if (done.type === "completed") expect(done.spellId).toBe("meteor");
   });
