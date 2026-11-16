@@ -10,7 +10,8 @@
     "label": "Haunted Well",
     "textureKey": "town_special_haunted_well",
     "width": 80,
-    "height": 80
+    "height": 80,
+    "opensEndlessMode": true
   },
   "town_special_moon_brazier": {
     "label": "Moon Brazier",

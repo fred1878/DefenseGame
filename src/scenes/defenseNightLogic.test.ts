@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateNightEnd } from "./defenseNightLogic";
+import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
 
 describe("evaluateNightEnd", () => {
   const base = {
@@ -36,5 +36,25 @@ describe("evaluateNightEnd", () => {
     expect(
       evaluateNightEnd({ ...base, spawnPlanComplete: false, livingEnemies: 0 }),
     ).toBe(false);
+  });
+});
+
+describe("evaluateEndlessEnd", () => {
+  const base = { nightEnded: false, wallHp: 50, playerHp: 40 };
+
+  it("does not end when spawns are clear", () => {
+    expect(evaluateEndlessEnd(base)).toBe(false);
+  });
+
+  it("ends on player death", () => {
+    expect(evaluateEndlessEnd({ ...base, playerHp: 0 })).toEqual({
+      reason: "player",
+    });
+  });
+
+  it("ends when wall is breached", () => {
+    expect(evaluateEndlessEnd({ ...base, wallHp: 0 })).toEqual({
+      reason: "wall",
+    });
   });
 });

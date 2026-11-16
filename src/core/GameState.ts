@@ -138,6 +138,20 @@ export function prepareDefenseNight(save: SaveGame): SaveGame {
   return next;
 }
 
+/** Persist wall/player HP after endless training without meta rewards. */
+export function applyEndlessRunExit(
+  save: SaveGame,
+  wallHp: number,
+  playerHp: number,
+): SaveGame {
+  const hp = Math.min(save.player.hpMax, Math.max(0, Math.floor(playerHp)));
+  return {
+    ...save,
+    townWallHp: Math.max(0, Math.floor(wallHp)),
+    player: { ...save.player, hp: hp > 0 ? hp : save.player.hp },
+  };
+}
+
 export function applyNightResult(save: SaveGame, result: NightResult): SaveGame {
   const next = { ...save, night: save.night + (result.won ? 1 : 0) };
   next.gold = save.gold + result.goldEarned;

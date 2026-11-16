@@ -18,10 +18,15 @@ import {
 import type { NightResult, SaveGame } from "../core/saveTypes";
 import { DataStore, type EnemyDef } from "../core/DataStore";
 import {
+  applyEndlessRunExit,
   applyNightResult,
   persistSave,
   playerDamageMult,
 } from "../core/GameState";
+import {
+  clearDefenseRunMode,
+  readDefenseRunMode,
+} from "../core/defenseRunMode";
 import { applyDamage } from "../combat/DamageSystem";
 import { flashSpriteTint } from "../combat/HitFlash";
 import {
@@ -109,7 +114,7 @@ import {
   interactiveObjectScreenRect,
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
-import { evaluateNightEnd } from "./defenseNightLogic";
+import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
@@ -226,6 +231,8 @@ export class DefenseScene extends Phaser.Scene {
   private hudChrome!: CombatHudChrome;
   private minimap!: DefenseMinimap;
   private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
+  private endlessEnemyId: string | null = null;
+  private leaveEndlessBtn: TouchButtonHandle | null = null;
 
   constructor() {
     super({ key: "Defense" });
@@ -260,6 +267,12 @@ export class DefenseScene extends Phaser.Scene {
     this.shadowformEndsAt = 0;
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
+    this.endlessEnemyId = null;
+    this.leaveEndlessBtn = null;
+  }
+
+  private isEndlessMode(): boolean {
+    return this.endlessEnemyId !== null;
   }
 
   create(): void {
@@ -283,7 +296,13 @@ export class DefenseScene extends Phaser.Scene {
       worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
     );
     const store = this.registry.get("dataStore") as DataStore;
-    const wave = store.getWaveForNight(this.save.night);
+    const runMode = readDefenseRunMode(this.registry);
+    const endless = runMode.kind === "endless";
+    if (endless) {
+      this.endlessEnemyId = runMode.enemyId;
+      this.rewardGold = 0;
+    }
+    const wave = endless ? undefined : store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
 
     const halfW = defenseHalfWidth();
@@ -500,7 +519,27 @@ export class DefenseScene extends Phaser.Scene {
     this.refreshModeToggle(this.player.mode);
     this.refreshAutoToggle();
 
-    if (wave && !isE2EEnabled()) {
+    if (endless) {
+      this.spawnPlanComplete = true;
+      this.spawnEndlessEnemy();
+      const leavePos = hudTextPosition(this.safe);
+      this.leaveEndlessBtn = createTouchButton(
+        this,
+        leavePos.x + scaleUiX(72),
+        leavePos.y + scaleUiY(88),
+        "Leave",
+        () => this.endEndlessRun("quit"),
+        {
+          width: scaleUiX(88),
+          height: scaleUiX(36),
+          depth: 200,
+          fontSize: `${scaleUiX(14)}px`,
+          fillColor: 0x52525b,
+          strokeColor: 0xa1a1aa,
+        },
+      );
+      this.uiBlockers.push(this.leaveEndlessBtn.container);
+    } else if (wave && !isE2EEnabled()) {
       this.scheduleWave(store, wave);
     } else if (isE2EEnabled()) {
       this.spawnPlanComplete = false;
@@ -935,9 +974,13 @@ export class DefenseScene extends Phaser.Scene {
     const casting = this.spellCaster.isChanneling();
     this.spellBar.refreshCooldownOverlays();
     if (!this.nightEnded) {
+      const dataStore = this.registry.get("dataStore") as DataStore;
+      const header = this.isEndlessMode()
+        ? `Endless · ${dataStore.enemies[this.endlessEnemyId!]?.displayName ?? this.endlessEnemyId}`
+        : `Night ${this.save.night}`;
       this.hudText.setText(
         [
-          `Night ${this.save.night} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
+          `${header} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
           `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
           `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
           casting
@@ -949,15 +992,26 @@ export class DefenseScene extends Phaser.Scene {
       );
     }
 
-    const nightEnd = evaluateNightEnd({
-      nightEnded: this.nightEnded,
-      wallHp: this.wallHp,
-      playerHp: this.player.damageable.hp,
-      spawnPlanComplete: this.spawnPlanComplete,
-      livingEnemies: living,
-    });
-    if (nightEnd) {
-      this.endNight(nightEnd.won);
+    if (this.isEndlessMode()) {
+      const endlessEnd = evaluateEndlessEnd({
+        nightEnded: this.nightEnded,
+        wallHp: this.wallHp,
+        playerHp: this.player.damageable.hp,
+      });
+      if (endlessEnd) {
+        this.endEndlessRun(endlessEnd.reason);
+      }
+    } else {
+      const nightEnd = evaluateNightEnd({
+        nightEnded: this.nightEnded,
+        wallHp: this.wallHp,
+        playerHp: this.player.damageable.hp,
+        spawnPlanComplete: this.spawnPlanComplete,
+        livingEnemies: living,
+      });
+      if (nightEnd) {
+        this.endNight(nightEnd.won);
+      }
     }
 
     if (isE2EEnabled()) {
@@ -1455,6 +1509,7 @@ export class DefenseScene extends Phaser.Scene {
     if (this.scene.get("DebugMenu")?.scene.isActive()) {
       this.scene.stop("DebugMenu");
     }
+    clearDefenseRunMode(this.registry);
     this.scene.stop();
     this.scene.start("Town");
   }
@@ -1742,6 +1797,22 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
+  private spawnEndlessEnemy(): void {
+    if (!this.endlessEnemyId || this.nightEnded) return;
+    const store = this.registry.get("dataStore") as DataStore;
+    const def = store.enemies[this.endlessEnemyId];
+    if (!def) return;
+    const living = this.enemies.filter((e) => e.damageable.alive).length;
+    if (living > 0) return;
+    const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
+    this.spawnEnemyAt(x, y, def, this.endlessEnemyId);
+  }
+
+  private scheduleEndlessRespawn(): void {
+    if (!this.isEndlessMode() || this.nightEnded) return;
+    this.time.delayedCall(0, () => this.spawnEndlessEnemy());
+  }
+
   private scheduleWave(
     store: DataStore,
     wave: import("../core/DataStore").WaveDef,
@@ -1805,6 +1876,7 @@ export class DefenseScene extends Phaser.Scene {
       () => {
         destroyArrowRainTelegraph(enemy.arrowRain?.telegraph);
         enemy.sprite.destroy();
+        this.scheduleEndlessRespawn();
       },
       () => this.setFocusEnemy(id),
     );
@@ -1815,9 +1887,62 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies.push(enemy);
   }
 
+  private endEndlessRun(reason: "quit" | "player" | "wall"): void {
+    if (this.nightEnded) return;
+    this.nightEnded = true;
+
+    const survivedHp = Math.max(0, Math.floor(this.player.damageable.hp));
+    const finalWallHp = Math.max(0, this.wallHp);
+    const next = applyEndlessRunExit(this.save, finalWallHp, survivedHp);
+    this.save.player.hp = next.player.hp;
+    persistSave(next);
+    this.registry.set("save", next);
+    clearDefenseRunMode(this.registry);
+    this.endlessEnemyId = null;
+
+    if (isE2EEnabled() && !this.registry.get("e2eManualReturn")) {
+      this.transitionToTown();
+      publishE2E({ scene: "Town", ready: true, player: null });
+      return;
+    }
+
+    const headline =
+      reason === "quit"
+        ? "Training ended"
+        : reason === "wall"
+          ? "Wall breached — training over"
+          : "You fell — training over";
+    this.hudText.setText(
+      [
+        headline,
+        "No gold earned · night unchanged",
+        `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
+      ].join("\n"),
+    );
+    this.hudText.setColor(reason === "quit" ? "#a1a1aa" : "#fca5a5");
+
+    const btn = nightReturnButtonPosition(this, this.safe);
+    this.returnToTownBtn = createTouchButton(
+      this,
+      btn.x,
+      btn.y,
+      "Return to town",
+      () => this.transitionToTown(),
+      {
+        width: btn.width,
+        height: btn.height,
+        depth: 260,
+        fontSize: `${scaleUiX(14)}px`,
+        fillColor: 0x15803d,
+        strokeColor: 0x4ade80,
+      },
+    );
+  }
+
   private endNight(won: boolean): void {
     if (this.nightEnded) return;
     this.nightEnded = true;
+    clearDefenseRunMode(this.registry);
 
     const endPenalty = won ? 2 : 0;
     const finalWallHp = Math.max(0, this.wallHp - endPenalty);
@@ -1969,8 +2094,20 @@ export class DefenseScene extends Phaser.Scene {
     applyDamage(this.player.damageable, amount);
     if (this.player.damageable.hp <= 0) {
       this.player.damageable.alive = false;
-      this.endNight(false);
+      if (this.isEndlessMode()) {
+        this.endEndlessRun("player");
+      } else {
+        this.endNight(false);
+      }
     }
+  }
+
+  e2eIsEndlessMode(): boolean {
+    return this.isEndlessMode();
+  }
+
+  e2eEndlessEnemyId(): string | null {
+    return this.endlessEnemyId;
   }
 
   e2eKillAllEnemies(): void {

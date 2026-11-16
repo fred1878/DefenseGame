@@ -9,6 +9,8 @@ export type TownBuildingDef = {
   startsNight?: boolean;
   /** When true, tap opens town Spell bar sort panel (e.g. daylit Witchlight Beacon). */
   opensSpellBar?: boolean;
+  /** When true, tap opens endless enemy training panel (e.g. Haunted Well). */
+  opensEndlessMode?: boolean;
 };
 
 export type TownLayoutSlot = {

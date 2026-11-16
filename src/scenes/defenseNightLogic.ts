@@ -1,5 +1,21 @@
 export type NightEndEvaluation = false | { won: boolean };
 
+export type EndlessEndEvaluation = false | { reason: "player" | "wall" };
+
+/**
+ * Endless training ends only on player death or wall at 0 — never on clearing spawns.
+ */
+export function evaluateEndlessEnd(input: {
+  nightEnded: boolean;
+  wallHp: number;
+  playerHp: number;
+}): EndlessEndEvaluation {
+  if (input.nightEnded) return false;
+  if (input.wallHp <= 0) return { reason: "wall" };
+  if (input.playerHp <= 0) return { reason: "player" };
+  return false;
+}
+
 /** Pure guard for DefenseScene night-end checks (wall / player / clear). */
 export function evaluateNightEnd(input: {
   nightEnded: boolean;

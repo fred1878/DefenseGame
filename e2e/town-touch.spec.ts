@@ -28,7 +28,7 @@ test("drag-off Start night clears pressed visual and stays in Town", async ({
     .toBe(true);
 });
 
-test("town building menu tap shows status without leaving Town", async ({
+test("Haunted Well opens endless panel without leaving Town", async ({
   page,
 }) => {
   await gotoE2E(page);
@@ -40,8 +40,12 @@ test("town building menu tap shows status without leaving Town", async ({
   await expect
     .poll(
       async () =>
-        page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
-      { timeout: 3_000 },
+        page.evaluate(
+          () =>
+            window.__DEFENSEGAME_E2E__?.scene === "Town" &&
+            (window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? false),
+        ),
+      { timeout: 5_000 },
     )
     .toBe(true);
 });

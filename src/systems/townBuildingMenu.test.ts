@@ -2,11 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DataStore } from "../core/DataStore";
 import type { TownBuildingDef } from "../core/townBuildingTypes";
 import { createNewSave } from "../core/GameState";
-import {
-  formatTownBuildingButtonLabel,
-  handleTownBuildingTap,
-  townBuildingSubtitle,
-} from "./townBuildingMenu";
+import { handleTownBuildingTap, townBuildingSubtitle } from "./townBuildingMenu";
 
 describe("townBuildingMenu", () => {
   const store = new DataStore();
@@ -23,6 +19,21 @@ describe("townBuildingMenu", () => {
     },
   };
 
+  it("endless training building opens panel on tap", () => {
+    const def: TownBuildingDef = {
+      label: "Haunted Well",
+      textureKey: "town_special_haunted_well",
+      width: 80,
+      height: 80,
+      opensEndlessMode: true,
+    };
+    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
+      "— Endless training",
+    );
+    const { result } = handleTownBuildingTap(store, createNewSave(), def);
+    expect(result.kind).toBe("openEndlessMode");
+  });
+
   it("uses honest subtitle when no upgrade hook", () => {
     const def: TownBuildingDef = {
       label: "Haunted Well",
@@ -32,9 +43,6 @@ describe("townBuildingMenu", () => {
     };
     expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
       "— Not available yet",
-    );
-    expect(formatTownBuildingButtonLabel(def, "— Not available yet")).toBe(
-      "Haunted Well\n— Not available yet",
     );
   });
 

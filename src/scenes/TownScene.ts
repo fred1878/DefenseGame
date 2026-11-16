@@ -30,6 +30,11 @@ import {
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
+import { EndlessModePanel } from "../ui/EndlessModePanel";
+import {
+  setEndlessDefenseRun,
+  setNightDefenseRun,
+} from "../core/defenseRunMode";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
 import {
   spawnTownBuildingControls,
@@ -50,6 +55,7 @@ export class TownScene extends Phaser.Scene {
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
+  private endlessPanel: EndlessModePanel | null = null;
   private readonly onDebugMenuClose = (): void => resumeFromDebugMenu(this);
 
   constructor() {
@@ -199,6 +205,9 @@ export class TownScene extends Phaser.Scene {
     if (this.spellSortPanel) {
       Object.assign(out, this.spellSortPanel.e2eTapTargets());
     }
+    if (this.endlessPanel) {
+      Object.assign(out, this.endlessPanel.e2eTapTargets());
+    }
     return out;
   }
 
@@ -232,6 +241,20 @@ export class TownScene extends Phaser.Scene {
     return this.spellSortPanel !== null;
   }
 
+  e2eOpenEndlessPanel(): void {
+    this.openEndlessPanel();
+  }
+
+  e2eIsEndlessPanelOpen(): boolean {
+    return this.endlessPanel !== null;
+  }
+
+  e2eStartEndless(enemyId: string): void {
+    if (!this.endlessPanel) this.openEndlessPanel();
+    this.endlessPanel?.e2eStartWithEnemy(enemyId);
+    this.endlessPanel = null;
+  }
+
   private openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
     this.spellSortPanel = new SpellBarSortPanel(
@@ -247,10 +270,28 @@ export class TownScene extends Phaser.Scene {
     );
   }
 
+  private openEndlessPanel(): void {
+    if (this.endlessPanel) return;
+    const store = this.registry.get("dataStore") as DataStore;
+    this.endlessPanel = new EndlessModePanel(this, store, (enemyId) => {
+      this.endlessPanel = null;
+      this.beginEndlessDefense(enemyId);
+    });
+  }
+
   private beginDefenseNight(): void {
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
     this.registry.set("save", this.save);
+    setNightDefenseRun(this.registry);
+    this.scene.start("Defense");
+  }
+
+  private beginEndlessDefense(enemyId: string): void {
+    this.save = prepareDefenseNight(this.save);
+    persistSave(this.save);
+    this.registry.set("save", this.save);
+    setEndlessDefenseRun(this.registry, enemyId);
     this.scene.start("Defense");
   }
 
@@ -325,6 +366,10 @@ export class TownScene extends Phaser.Scene {
     }
     if (result.kind === "openSpellBar") {
       this.openSpellSortPanel();
+      return;
+    }
+    if (result.kind === "openEndlessMode") {
+      this.openEndlessPanel();
       return;
     }
     if (result.kind === "upgraded") {

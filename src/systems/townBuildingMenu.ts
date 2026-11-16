@@ -7,6 +7,7 @@ import type { BuildingDef } from "../core/DataStore";
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
 const START_NIGHT_SUBTITLE = "— Start night";
 const SPELL_BAR_SUBTITLE = "— Spell bar";
+const ENDLESS_MODE_SUBTITLE = "— Endless training";
 
 function upgradeEffectLabel(effect: string): string {
   if (effect === "wallHpMax") return "Wall HP";
@@ -22,6 +23,7 @@ export function townBuildingSubtitle(
 ): string {
   if (def.startsNight) return START_NIGHT_SUBTITLE;
   if (def.opensSpellBar) return SPELL_BAR_SUBTITLE;
+  if (def.opensEndlessMode) return ENDLESS_MODE_SUBTITLE;
 
   const upgradeId = def.upgradeId;
   if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
@@ -70,7 +72,8 @@ export type TownBuildingTapResult =
   | { kind: "upgraded"; message: string }
   | { kind: "blocked"; message: string }
   | { kind: "startNight"; message: string }
-  | { kind: "openSpellBar"; message: string };
+  | { kind: "openSpellBar"; message: string }
+  | { kind: "openEndlessMode"; message: string };
 
 /** Tap handler for a town building menu row (upgrade when wired, else status-only). */
 export function handleTownBuildingTap(
@@ -83,6 +86,9 @@ export function handleTownBuildingTap(
   }
   if (def.opensSpellBar) {
     return { save, result: { kind: "openSpellBar", message: "" } };
+  }
+  if (def.opensEndlessMode) {
+    return { save, result: { kind: "openEndlessMode", message: "" } };
   }
 
   const upgradeId = def.upgradeId;

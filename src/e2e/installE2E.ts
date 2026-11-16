@@ -144,6 +144,8 @@ export function attachE2EGame(game: Phaser.Game): void {
           attackPhase: defense.e2eAttackPhase(),
           projectileCount: defense.e2eProjectileCount(),
           enemyCount: defense.e2eEnemyCount(),
+          endlessMode: defense.e2eIsEndlessMode(),
+          endlessEnemyId: defense.e2eEndlessEnemyId() ?? "",
           nightEnded: defense.e2eNightEnded(),
           hasReturnButton: defense.e2eHasReturnButton(),
           defenseWallHp: defense.e2eWallHp(),
@@ -382,6 +384,24 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getSpellSortBarSlots() {
       const town = game.scene.getScene("Town") as TownScene | null;
       return town?.scene.isActive() ? town.e2eGetSpellSortBarSlots() : [];
+    },
+    openEndlessPanel() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eOpenEndlessPanel();
+    },
+    isEndlessPanelOpen() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive() ? town.e2eIsEndlessPanelOpen() : false;
+    },
+    startEndless(enemyId: string) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eStartEndless(enemyId);
+    },
+    isEndlessDefense() {
+      return activeDefense(game)?.e2eIsEndlessMode() ?? false;
+    },
+    getEndlessEnemyId() {
+      return activeDefense(game)?.e2eEndlessEnemyId() ?? null;
     },
     getObstacleAlignment() {
       return activeDefense(game)?.e2eGetObstacleAlignment() ?? [];
