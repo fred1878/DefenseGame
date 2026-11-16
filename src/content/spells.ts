@@ -94,9 +94,7 @@ export function createDefaultSpellBarSlots(): SpellId[] {
   return slots;
 }
 
-export function createDefaultSpellBarAutoCast(): boolean[] {
-  return Array.from({ length: SPELL_BAR.slotCount }, () => false);
-}
+export { createDefaultAutoCastSpellIds as createDefaultSpellBarAutoCast } from "./spellBarAutoCast";
 
 export function spellById(id: SpellId): SpellDefinition | undefined {
   if (!id) return undefined;

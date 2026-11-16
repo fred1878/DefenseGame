@@ -10,7 +10,7 @@ test.describe("town spell panel drag", () => {
       api?.setSave({
         spellBar: {
           slots: ["", "", "", "", "", "", "", ""],
-          autoCast: [false, false, false, false, false, false, false, false],
+          autoCastSpellIds: [],
         },
       });
       api?.openSpellSortPanel();
