@@ -1,5 +1,10 @@
 import Phaser from "phaser";
-import { SPRITE_DISPLAY } from "../content/assets";
+import {
+  SPRITE_DISPLAY,
+  enemyTextureKey,
+  type PlayerCardinal,
+} from "../content/assets";
+import { resolveEnemyCardinal } from "./enemyFacing";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import type { EnemyDef } from "../core/DataStore";
 import {
@@ -48,6 +53,7 @@ export type EnemyInstance = {
   speed: number;
   damage: number;
   textureKey: string;
+  cardinalFacing: PlayerCardinal;
   combatTuning: ResolvedEnemyCombat;
   sprite: Phaser.Physics.Arcade.Sprite;
   damageable: Damageable;
@@ -72,7 +78,11 @@ export function spawnEnemy(
   onDeath: () => void,
   onTap?: () => void,
 ): EnemyInstance {
-  const sprite = scene.physics.add.sprite(x, y, def.textureKey);
+  const sprite = scene.physics.add.sprite(
+    x,
+    y,
+    enemyTextureKey(def.textureKey, "s"),
+  );
   const side = worldDisplayPx(SPRITE_DISPLAY.enemy, scene.registry);
   sprite.setDisplaySize(side, side);
   tuneArcadeDynamicBody(
@@ -127,6 +137,7 @@ export function spawnEnemy(
     speed: def.speed ?? DEFAULT_ENEMY_BASE.speed,
     damage: def.damage ?? DEFAULT_ENEMY_BASE.damage,
     textureKey: def.textureKey,
+    cardinalFacing: "s",
     displayName: def.displayName,
     combatTuning,
     sprite,
@@ -155,4 +166,26 @@ export function spawnEnemy(
     enemy.lobber = createLobberCombatState();
   }
   return enemy;
+}
+
+export function updateEnemySpriteFacing(enemy: EnemyInstance): void {
+  const body = enemy.sprite.body as Phaser.Physics.Arcade.Body | null;
+  const vx = body?.velocity.x ?? 0;
+  const vy = body?.velocity.y ?? 0;
+  const combatActive = enemy.combat.phase !== "idle";
+  const card = resolveEnemyCardinal(
+    vx,
+    vy,
+    enemy.combat.facing,
+    enemy.cardinalFacing,
+    combatActive,
+  );
+  if (card === enemy.cardinalFacing) return;
+  enemy.cardinalFacing = card;
+  const key = enemyTextureKey(enemy.textureKey, card);
+  if (enemy.sprite.texture.key === key) return;
+  enemy.sprite.setTexture(key);
+  const reg = enemy.sprite.scene.registry;
+  const side = worldDisplayPx(SPRITE_DISPLAY.enemy, reg);
+  enemy.sprite.setDisplaySize(side, side);
 }

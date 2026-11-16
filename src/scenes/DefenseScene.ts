@@ -75,7 +75,11 @@ import {
   type FocusTapFlash,
 } from "../debug/TouchInputDebugDraw";
 import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
-import { spawnEnemy, type EnemyInstance } from "../entities/Enemy";
+import {
+  spawnEnemy,
+  updateEnemySpriteFacing,
+  type EnemyInstance,
+} from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
 import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
 import {
@@ -849,6 +853,7 @@ export class DefenseScene extends Phaser.Scene {
     const enemySpriteSide = worldDisplayPx(SPRITE_DISPLAY.enemy, this.registry);
     for (const e of this.enemies) {
       if (!e.damageable.alive || e.nameplate.dying) continue;
+      updateEnemySpriteFacing(e);
       updateEnemyNameplate(
         e.nameplate,
         e.sprite.x,
