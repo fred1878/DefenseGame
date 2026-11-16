@@ -28,6 +28,7 @@ export {
 export {
   CAST_BAR,
   SPELL_BAR,
+  TOWN_SPELL_SORT_PANEL,
   TOWN_SPELL_SORT_BAR,
   spellBarIconDisplayPx,
   townSpellBarIconDisplayPx,

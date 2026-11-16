@@ -20,6 +20,19 @@ export const SPELL_BAR = {
 
 const TOWN_SORT_BAR_SCALE = 2;
 
+/**
+ * Town spell-sort overlay chrome (legacy 844-tall design units — apply scaleUiY / scaleUiX).
+ * Bar grid top is below the wrapped hint so 2× slots do not cover instruction copy.
+ */
+export const TOWN_SPELL_SORT_PANEL = {
+  titleY: 64,
+  hintY: 98,
+  barGridTopY: 200,
+  poolBelowBarGapY: 28,
+  poolHeaderToGridGapY: 24,
+  doneBelowPoolGapY: 28,
+} as const;
+
 /** Town spell-sort overlay: 2× defense bar slots (icons + hit targets). */
 export const TOWN_SPELL_SORT_BAR = {
   columnCount: SPELL_BAR.columnCount,
