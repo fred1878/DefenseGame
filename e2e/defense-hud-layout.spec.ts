@@ -11,6 +11,8 @@ import { gotoE2E, startDefense } from "./helpers/game";
 const GAME_WIDTH = 540;
 const GAME_HEIGHT = 1200;
 const VIEWPORT_MARGIN = 8;
+/** Defense spell slots use 2× tap padding; allow bleed at bottom safe edge. */
+const TAP_HIT_BLEED = 6;
 
 test.describe("defense HUD layout", () => {
   test("no bottom panel chrome, spell row left of MEL", async ({ page }) => {
@@ -42,8 +44,8 @@ test.describe("defense HUD layout", () => {
       });
 
     expect(slotCount).toBe(8);
-    expect(stripCenterY).toBeGreaterThan(1000);
-    const bandHalf = stripH / 2 + 36;
+    expect(stripCenterY).toBeGreaterThan(900);
+    const bandHalf = stripH / 2 + 48;
 
     for (let i = 0; i < slotCount; i++) {
       const key = `spell-slot-${i}`;
@@ -51,7 +53,6 @@ test.describe("defense HUD layout", () => {
       expect(pt, `missing ${key}`).toBeTruthy();
       expect(pt!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
       expect(pt!.x).toBeLessThanOrEqual(GAME_WIDTH - VIEWPORT_MARGIN);
-      expect(pt!.y).toBeGreaterThan(960);
       expect(pt!.y).toBeGreaterThanOrEqual(stripCenterY - bandHalf - 20);
       expect(pt!.y).toBeLessThanOrEqual(stripCenterY + bandHalf + 20);
 
@@ -65,7 +66,7 @@ test.describe("defense HUD layout", () => {
       expect(pt!.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
       expect(rect!.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
       expect(rect!.y + rect!.height).toBeLessThanOrEqual(
-        GAME_HEIGHT - VIEWPORT_MARGIN + 0.5,
+        GAME_HEIGHT - VIEWPORT_MARGIN + TAP_HIT_BLEED,
       );
     }
 
@@ -105,6 +106,19 @@ test.describe("defense HUD layout", () => {
     expect(overlap).not.toBeNull();
     expect(overlap!.spellMel, JSON.stringify(overlap)).toBe(false);
     expect(overlap!.debugSpell, JSON.stringify(overlap)).toBe(false);
+
+  const combatOrder = await page.evaluate(() => {
+    const t = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
+    const auto = t["combat-auto"];
+    const mel = t["combat-mode"];
+    const atk = t["combat-atk"];
+    if (!auto || !mel || !atk) return null;
+    return { autoX: auto.x, melX: mel.x, atkX: atk.x, rowY: Math.round(mel.y) };
+  });
+  expect(combatOrder).not.toBeNull();
+  expect(combatOrder!.autoX).toBeLessThan(combatOrder!.melX);
+  expect(combatOrder!.melX).toBeLessThan(combatOrder!.atkX);
+  expect(combatOrder!.rowY).toBeGreaterThan(900);
   });
 
   test("minimap frame is top-right below HUD", async ({ page }) => {

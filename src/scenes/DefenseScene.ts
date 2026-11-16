@@ -6,7 +6,7 @@ import {
   defenseHalfWidth,
   defenseObstacleSpriteAnchor,
   PLAYER_TUNING,
-  SPELL_BAR,
+  DEFENSE_SPELL_BAR,
   type AttackMode,
 } from "../config";
 import { toggleAutoCastSpellId } from "../content/spellBarAutoCast";
@@ -513,7 +513,7 @@ export class DefenseScene extends Phaser.Scene {
     const strip = bottomHudStripLayout(this, this.safe);
     const spellClearY =
       strip.stripCenterY +
-      SPELL_BAR.slotSizePx / 2 +
+      DEFENSE_SPELL_BAR.slotSizePx / 2 +
       scaleUiY(14) +
       scaleUiX(36) / 2;
     dbgPos.y = Math.max(dbgPos.y, spellClearY) + scaleUiY(8);

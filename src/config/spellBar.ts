@@ -18,7 +18,8 @@ export const SPELL_BAR = {
   fontSize: `${scaleUiX(11)}px`,
 } as const;
 
-const TOWN_SORT_BAR_SCALE = 2;
+const HUD_SPELL_BAR_2X_SCALE = 2;
+const TOWN_SORT_BAR_SCALE = HUD_SPELL_BAR_2X_SCALE;
 
 /**
  * Town spell-sort overlay chrome (legacy 844-tall design units — apply scaleUiY / scaleUiX).
@@ -31,6 +32,23 @@ export const TOWN_SPELL_SORT_PANEL = {
   poolBelowBarGapY: 28,
   poolHeaderToGridGapY: 24,
   doneBelowPoolGapY: 28,
+} as const;
+
+/** Defense night HUD: 2× slot size; 2×4 grid fits beside AUTO/MEL/ATK on 540-wide. */
+export const DEFENSE_SPELL_BAR = {
+  columnCount: 2,
+  rowCount: 4,
+  slotCount: SPELL_BAR.slotCount,
+  slotSizePx: SPELL_BAR.slotSizePx * HUD_SPELL_BAR_2X_SCALE,
+  slotGapPx: SPELL_BAR.slotGapPx * HUD_SPELL_BAR_2X_SCALE,
+  rowGapPx: SPELL_BAR.rowGapPx * HUD_SPELL_BAR_2X_SCALE,
+  tapPaddingPx: SPELL_BAR.tapPaddingPx * HUD_SPELL_BAR_2X_SCALE,
+  iconInsetFrac: SPELL_BAR.iconInsetFrac,
+  cooldownRingWidthPx: SPELL_BAR.cooldownRingWidthPx * HUD_SPELL_BAR_2X_SCALE,
+  autoCastBorderWidthPx: SPELL_BAR.autoCastBorderWidthPx * HUD_SPELL_BAR_2X_SCALE,
+  autoCastBorderColor: SPELL_BAR.autoCastBorderColor,
+  longPressMs: SPELL_BAR.longPressMs,
+  fontSize: `${scaleUiX(11 * HUD_SPELL_BAR_2X_SCALE)}px`,
 } as const;
 
 /** Town spell-sort overlay: 2× defense bar slots (icons + hit targets). */
@@ -46,10 +64,18 @@ export const TOWN_SPELL_SORT_BAR = {
   iconInsetFrac: SPELL_BAR.iconInsetFrac,
 } as const;
 
-/** On-screen spell icon size inside a slot (defense HUD). */
+/** On-screen spell icon size inside a slot (legacy 1× metrics; town-only if needed). */
 export function spellBarIconDisplayPx(): number {
   const pad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
   return SPELL_BAR.slotSizePx - pad;
+}
+
+/** On-screen spell icon size in the defense night HUD (2× base). */
+export function defenseSpellBarIconDisplayPx(): number {
+  const pad = Math.round(
+    DEFENSE_SPELL_BAR.slotSizePx * DEFENSE_SPELL_BAR.iconInsetFrac,
+  );
+  return DEFENSE_SPELL_BAR.slotSizePx - pad;
 }
 
 /** On-screen spell icon size in the town sort overlay (2× defense). */

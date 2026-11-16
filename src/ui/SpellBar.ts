@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SPELL_BAR, spellBarIconDisplayPx } from "../config";
+import { DEFENSE_SPELL_BAR, defenseSpellBarIconDisplayPx } from "../config";
 import { autoCastFlagsForSlots } from "../content/spellBarAutoCast";
 import { spellById, type SpellId } from "../content/spells";
 import { spellIconTextureKey } from "../content/assets";
@@ -43,15 +43,15 @@ export class SpellBar {
     depth = 200,
   ) {
     this.caster = caster;
-    this.slots = slotIds.slice(0, SPELL_BAR.slotCount);
-    while (this.slots.length < SPELL_BAR.slotCount) this.slots.push("");
+    this.slots = slotIds.slice(0, DEFENSE_SPELL_BAR.slotCount);
+    while (this.slots.length < DEFENSE_SPELL_BAR.slotCount) this.slots.push("");
     const autoFlags = autoCastFlagsForSlots(this.slots, autoCastSpellIds);
     this.onCastRequest = callbacks.onCastRequest;
     this.onAutoCastToggle = callbacks.onAutoCastToggle;
 
     const safe = readSafeInsets();
 
-    for (let i = 0; i < SPELL_BAR.slotCount; i++) {
+    for (let i = 0; i < DEFENSE_SPELL_BAR.slotCount; i++) {
       const spellId = this.slots[i] ?? "";
       const iconKey = spellId ? spellIconTextureKey(spellId) : "";
       const hasIcon = Boolean(iconKey && scene.textures.exists(iconKey));
@@ -60,23 +60,23 @@ export class SpellBar {
         scene,
         safe,
         i,
-        SPELL_BAR.slotSizePx,
-        SPELL_BAR.slotGapPx,
-        SPELL_BAR.rowGapPx,
+        DEFENSE_SPELL_BAR.slotSizePx,
+        DEFENSE_SPELL_BAR.slotGapPx,
+        DEFENSE_SPELL_BAR.rowGapPx,
       );
 
       const btn = createTouchButton(scene, x, y, label, () => {}, {
-        width: SPELL_BAR.slotSizePx,
-        height: SPELL_BAR.slotSizePx,
+        width: DEFENSE_SPELL_BAR.slotSizePx,
+        height: DEFENSE_SPELL_BAR.slotSizePx,
         depth,
-        fontSize: SPELL_BAR.fontSize,
+        fontSize: DEFENSE_SPELL_BAR.fontSize,
         fillColor: 0x312e81,
         strokeColor: 0x818cf8,
-        tapPadding: SPELL_BAR.tapPaddingPx,
+        tapPadding: DEFENSE_SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
       });
       if (hasIcon) {
-        const iconSize = spellBarIconDisplayPx();
+        const iconSize = defenseSpellBarIconDisplayPx();
         const icon = scene.add
           .image(0, 0, iconKey!)
           .setDisplaySize(iconSize, iconSize);
@@ -99,7 +99,7 @@ export class SpellBar {
             if (id) this.onCastRequest(id, slotIndex);
           },
           onLongPress: () => this.onAutoCastToggle(slotIndex),
-          longPressMs: SPELL_BAR.longPressMs,
+          longPressMs: DEFENSE_SPELL_BAR.longPressMs,
         },
         {
           bg: btn.container.list[0] as Phaser.GameObjects.GameObject &
@@ -110,10 +110,10 @@ export class SpellBar {
       );
 
       const autoBorder = scene.add
-        .rectangle(x, y, SPELL_BAR.slotSizePx, SPELL_BAR.slotSizePx)
+        .rectangle(x, y, DEFENSE_SPELL_BAR.slotSizePx, DEFENSE_SPELL_BAR.slotSizePx)
         .setStrokeStyle(
-          SPELL_BAR.autoCastBorderWidthPx,
-          SPELL_BAR.autoCastBorderColor,
+          DEFENSE_SPELL_BAR.autoCastBorderWidthPx,
+          DEFENSE_SPELL_BAR.autoCastBorderColor,
           1,
         )
         .setFillStyle(0x000000, 0)
@@ -124,9 +124,9 @@ export class SpellBar {
       const overlay = scene.add
         .rectangle(
           x,
-          y + SPELL_BAR.slotSizePx / 2,
-          SPELL_BAR.slotSizePx,
-          SPELL_BAR.slotSizePx,
+          y + DEFENSE_SPELL_BAR.slotSizePx / 2,
+          DEFENSE_SPELL_BAR.slotSizePx,
+          DEFENSE_SPELL_BAR.slotSizePx,
           0x101018,
           0.78,
         )
@@ -217,7 +217,7 @@ export class SpellBar {
   }
 
   refreshCooldownOverlays(): void {
-    const slotH = SPELL_BAR.slotSizePx;
+    const slotH = DEFENSE_SPELL_BAR.slotSizePx;
     for (let i = 0; i < this.slots.length; i++) {
       const id = this.slots[i];
       const remaining = id ? this.caster.getCooldownRemaining(id) : 0;
@@ -236,7 +236,7 @@ export class SpellBar {
       const coverH = slotH * ratio;
       const bottomY = btn.container.y + slotH / 2;
       visual.overlay.setPosition(btn.container.x, bottomY);
-      visual.overlay.setSize(SPELL_BAR.slotSizePx, coverH);
+      visual.overlay.setSize(DEFENSE_SPELL_BAR.slotSizePx, coverH);
     }
   }
 
