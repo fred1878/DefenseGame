@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E } from "./helpers/game";
-import { getTapTarget, tapCanvas } from "./helpers/touch";
+import { getTapTarget, tapCanvas, waitForTapTargets } from "./helpers/touch";
+
+const GAME_WIDTH = 540;
+const GAME_HEIGHT = 1200;
+const VIEWPORT_MARGIN = 8;
 
 test("endless training opens from Haunted Well and spawns chosen enemy", async ({
   page,
@@ -48,4 +52,22 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
       { timeout: 10_000 },
     )
     .toEqual({ endless: true, enemyId: "grunt", count: 1 });
+
+  expect(
+    await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.hasLeaveEndlessButton(),
+    ),
+  ).toBe(true);
+  expect(
+    await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.hasReturnButton(),
+    ),
+  ).toBe(false);
+
+  await waitForTapTargets(page, ["defense-leave-endless"]);
+  const leave = await getTapTarget(page, "defense-leave-endless");
+  expect(leave.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+  expect(leave.x).toBeLessThanOrEqual(GAME_WIDTH - VIEWPORT_MARGIN);
+  expect(leave.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+  expect(leave.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
 });

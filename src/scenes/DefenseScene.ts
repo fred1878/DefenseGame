@@ -498,6 +498,30 @@ export class DefenseScene extends Phaser.Scene {
     );
     this.uiBlockers.push(this.debugBtn.container);
 
+    if (endless) {
+      const leaveBtn = nightReturnButtonPosition(this, this.safe);
+      this.leaveEndlessBtn = createTouchButton(
+        this,
+        leaveBtn.x,
+        leaveBtn.y,
+        "Return to town",
+        () => this.endEndlessRun("quit"),
+        {
+          width: leaveBtn.width,
+          height: leaveBtn.height,
+          depth: 210,
+          fontSize: `${scaleUiX(14)}px`,
+          fillColor: 0x52525b,
+          strokeColor: 0xa1a1aa,
+        },
+      );
+      this.leaveEndlessBtn.container.setData(
+        "testid",
+        "defense-leave-endless",
+      );
+      this.uiBlockers.push(this.leaveEndlessBtn.container);
+    }
+
     const w = this.scale.width;
     const spellRect = this.spellBar.getScreenRect();
     const uiMask = buildCombatStickUiMask(
@@ -523,23 +547,6 @@ export class DefenseScene extends Phaser.Scene {
     if (endless) {
       this.spawnPlanComplete = true;
       this.spawnEndlessEnemy();
-      const leavePos = hudTextPosition(this.safe);
-      this.leaveEndlessBtn = createTouchButton(
-        this,
-        leavePos.x + scaleUiX(72),
-        leavePos.y + scaleUiY(88),
-        "Leave",
-        () => this.endEndlessRun("quit"),
-        {
-          width: scaleUiX(88),
-          height: scaleUiX(36),
-          depth: 200,
-          fontSize: `${scaleUiX(14)}px`,
-          fillColor: 0x52525b,
-          strokeColor: 0xa1a1aa,
-        },
-      );
-      this.uiBlockers.push(this.leaveEndlessBtn.container);
     } else if (wave && !isE2EEnabled()) {
       this.scheduleWave(store, wave);
     } else if (isE2EEnabled()) {
@@ -1934,6 +1941,10 @@ export class DefenseScene extends Phaser.Scene {
   private endEndlessRun(reason: "quit" | "player" | "wall"): void {
     if (this.nightEnded) return;
     this.nightEnded = true;
+    if (this.leaveEndlessBtn) {
+      this.leaveEndlessBtn.container.setVisible(false);
+      this.leaveEndlessBtn.container.disableInteractive();
+    }
 
     const survivedHp = Math.max(0, Math.floor(this.player.damageable.hp));
     const finalWallHp = Math.max(0, this.wallHp);
@@ -2187,6 +2198,14 @@ export class DefenseScene extends Phaser.Scene {
     return this.returnToTownBtn !== null;
   }
 
+  e2eHasLeaveEndlessButton(): boolean {
+    return (
+      this.leaveEndlessBtn !== null &&
+      this.leaveEndlessBtn.container.visible &&
+      !this.nightEnded
+    );
+  }
+
   /** Inject a screen-space tap through the scene input manager (e2e / DOM mirrors). */
   e2eSimulateScreenTap(x: number, y: number): void {
     const pointer = this.input.pointer1;
@@ -2226,6 +2245,10 @@ export class DefenseScene extends Phaser.Scene {
       const ret = centerOf(this.returnToTownBtn.container);
       if (ret) out["defense-return-to-town"] = ret;
     }
+    if (this.leaveEndlessBtn?.container.visible) {
+      const leave = centerOf(this.leaveEndlessBtn.container);
+      if (leave) out["defense-leave-endless"] = leave;
+    }
     return out;
   }
 
@@ -2247,6 +2270,9 @@ export class DefenseScene extends Phaser.Scene {
     if (direct) return isTouchButtonVisuallyPressed(direct);
     if (testId === "defense-return-to-town" && this.returnToTownBtn) {
       return isTouchButtonVisuallyPressed(this.returnToTownBtn.container);
+    }
+    if (testId === "defense-leave-endless" && this.leaveEndlessBtn) {
+      return isTouchButtonVisuallyPressed(this.leaveEndlessBtn.container);
     }
     return false;
   }
