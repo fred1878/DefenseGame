@@ -105,11 +105,11 @@ export function updateEnemyCombat(
     }
   }
 
+  const inWallTrigger =
+    target.kind === "wall" && dist <= wall.triggerRange;
   const holdPosition =
-    enemyIsAttacking(c) &&
-    (target.kind === "wall" ||
-      c.phase === "windup" ||
-      c.phase === "recovery");
+    inWallTrigger &&
+    (enemyIsAttacking(c) || c.phase === "idle");
   if (holdPosition) {
     enemy.sprite.setVelocity(0, 0);
   }

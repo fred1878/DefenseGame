@@ -2,7 +2,11 @@ import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyWallMeleeHold,
+  shouldHoldAtWallMelee,
+} from "./movement";
 
 export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -24,10 +28,16 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
+  const holdAtWall = shouldHoldAtWallMelee(enemy, desired);
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
+  if (!holdAtWall && (nav.replanMs <= 0 || nav.path.length === 0)) {
     replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y, waypointRadius, peerAgents);
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
+  }
+
+  if (holdAtWall) {
+    applyWallMeleeHold(enemy);
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
   let moveX = goal.x;
@@ -46,7 +56,11 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
+  applyChaseVelocity(enemy, moveX, moveY, 1, {
+    nav,
+    deltaMs,
+    targetKind: desired,
+  });
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };
 };

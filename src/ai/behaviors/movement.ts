@@ -1,12 +1,43 @@
 import type { EnemyInstance } from "../../entities/Enemy";
-import { WALL_VELOCITY_BLEND_MS } from "../../config";
+import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
-import type { EnemyNavState } from "../EnemyBrain";
+import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
 
 export type ChaseVelocityOptions = {
   nav?: EnemyNavState;
   deltaMs?: number;
+  targetKind?: EnemyTargetKind;
 };
+
+/** Distance to the north-wall swing plane (same x as the enemy). */
+export function wallMeleeDistToAttackPlane(enemy: EnemyInstance): number {
+  return Math.abs(enemy.sprite.y - northWallAttackY());
+}
+
+/** Hold at the wall standoff while in range but not free to close (cooldown / swing). */
+export function shouldHoldAtWallMelee(
+  enemy: EnemyInstance,
+  targetKind: EnemyTargetKind,
+): boolean {
+  if (targetKind !== "wall") return false;
+  const { wall } = enemy.combatTuning;
+  if (wallMeleeDistToAttackPlane(enemy) > wall.triggerRange) return false;
+  if (enemyIsAttacking(enemy.combat)) return true;
+  return enemy.combat.phase === "idle";
+}
+
+export function wallMeleeStandoffY(enemy: EnemyInstance): number {
+  const standoff = Math.max(0, enemy.combatTuning.wall.triggerRange - 6);
+  return northWallAttackY() + standoff;
+}
+
+export function applyWallMeleeHold(enemy: EnemyInstance): void {
+  enemy.sprite.setVelocity(0, 0);
+  const approachY = wallMeleeStandoffY(enemy);
+  if (enemy.sprite.y < approachY + 1) {
+    enemy.sprite.y = approachY;
+  }
+}
 
 function enemyMovementBlocked(enemy: EnemyInstance): boolean {
   if (enemy.behavior === "javelineer") return false;
@@ -20,6 +51,13 @@ export function applyChaseVelocity(
   speedMul = 1,
   opts?: ChaseVelocityOptions,
 ): void {
+  if (
+    opts?.targetKind &&
+    shouldHoldAtWallMelee(enemy, opts.targetKind)
+  ) {
+    applyWallMeleeHold(enemy);
+    return;
+  }
   if (enemyMovementBlocked(enemy)) return;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;

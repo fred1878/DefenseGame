@@ -2,7 +2,11 @@ import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyWallMeleeHold,
+  shouldHoldAtWallMelee,
+} from "./movement";
 
 /** Paths to the north wall; only chases when the player is very close. */
 export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
@@ -27,8 +31,9 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
+  const holdAtWall = shouldHoldAtWallMelee(enemy, resolved.targetKind);
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
+  if (!holdAtWall && (nav.replanMs <= 0 || nav.path.length === 0)) {
     replanEnemyPath(
       nav,
       grid,
@@ -40,6 +45,15 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
       peerAgents,
     );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
+  }
+
+  if (holdAtWall) {
+    applyWallMeleeHold(enemy);
+    return {
+      targetX: goal.x,
+      targetY: goal.y,
+      targetKind: resolved.targetKind,
+    };
   }
 
   let moveX = goal.x;
@@ -58,7 +72,11 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
+  applyChaseVelocity(enemy, moveX, moveY, 1, {
+    nav,
+    deltaMs,
+    targetKind: resolved.targetKind,
+  });
 
   return { targetX: goal.x, targetY: goal.y, targetKind: resolved.targetKind };
 };
