@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../../config";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import {
+  applyChaseVelocity,
   applyWallMeleeHold,
   shouldHoldAtWallMelee,
   wallMeleeStandoffY,
@@ -36,6 +37,25 @@ describe("wall melee hold helpers", () => {
     enemy.sprite.y = wallMeleeStandoffY(enemy);
     enemy.combat.cooldownMs = 300;
     expect(shouldHoldAtWallMelee(enemy, "player")).toBe(false);
+  });
+
+  it("bruiser keeps half chase speed during melee windup", () => {
+    const enemy = mockEnemyInstance({ behavior: "bruiser", speed: 100 });
+    enemy.combat.phase = "windup";
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    applyChaseVelocity(enemy, 100, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx] = setVelocity.mock.calls[0]!;
+    expect(vx).toBeCloseTo(50, 1);
+  });
+
+  it("grunt still stops movement while attacking", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speed: 100 });
+    enemy.combat.phase = "windup";
+    applyChaseVelocity(enemy, 100, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).not.toHaveBeenCalled();
   });
 
   it("zeros velocity and snaps north of standoff back to approach line", () => {

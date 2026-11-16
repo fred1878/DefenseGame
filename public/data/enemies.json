@@ -270,13 +270,52 @@
       "lobber": {
         "preferredRange": 130,
         "attackTriggerRange": 172,
-        "windupMs": 700,
+        "windupMs": 1100,
+        "activeMs": 140,
+        "recoveryMs": 620,
+        "cooldownMs": 2500,
+        "projectileSpeed": 235,
+        "blastRadius": 78,
+        "blastDamageScale": 0.92
+      }
+    }
+  },
+  "reaver": {
+    "hp": 36,
+    "speed": 86,
+    "damage": 9,
+    "behavior": "rangedHybrid",
+    "textureKey": "enemy_javelineer",
+    "displayName": "Reaver",
+    "combat": {
+      "wall": {
+        "damage": 5,
+        "triggerRange": 40,
+        "hitRange": 32
+      },
+      "melee": {
+        "triggerRange": 48,
+        "range": 32,
+        "arcDeg": 72,
+        "windupMs": 320,
         "activeMs": 100,
-        "recoveryMs": 520,
-        "cooldownMs": 2300,
-        "projectileSpeed": 255,
-        "blastRadius": 60,
-        "blastDamageScale": 0.88
+        "recoveryMs": 420,
+        "cooldownMs": 280
+      },
+      "stationaryRanged": {
+        "attackTriggerRange": 148,
+        "windupMs": 500,
+        "activeMs": 70,
+        "recoveryMs": 480,
+        "cooldownMs": 1400,
+        "projectileSpeed": 360,
+        "projectileMaxTravel": 210
+      },
+      "hybrid": {
+        "closeMeleeRadius": 54,
+        "preferredRange": 112,
+        "maxMeleeSwings": 3,
+        "retreatRangeSlack": 18
       }
     }
   },

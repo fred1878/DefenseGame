@@ -33,7 +33,8 @@
       { "atMs": 4200, "enemyId": "charger", "count": 1, "intervalMs": 0 },
       { "atMs": 4800, "enemyId": "bruiser", "count": 1, "intervalMs": 1200 },
       { "atMs": 5200, "enemyId": "arrow_rain_archer", "count": 1, "intervalMs": 1300 },
-      { "atMs": 7000, "enemyId": "javelineer", "count": 1, "intervalMs": 1300 }
+      { "atMs": 7000, "enemyId": "javelineer", "count": 1, "intervalMs": 1300 },
+      { "atMs": 8200, "enemyId": "reaver", "count": 1, "intervalMs": 0 }
     ]
   },
   "4": {
