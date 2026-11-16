@@ -86,13 +86,21 @@ export function townSpellBarIconDisplayPx(): number {
   return TOWN_SPELL_SORT_BAR.slotSizePx - pad;
 }
 
+export type CastBarPhase = "windup" | "channeling";
+
 export const CAST_BAR = {
   width: scaleUiX(48),
   height: scaleUiY(6),
   offsetY: scaleUiY(26),
-  fillColor: 0xfef9c3,
   fillAlpha: 0.95,
-  bgColor: 0x3f3f46,
-  bgAlpha: 0.7,
-  borderColor: 0xfffbeb,
+  bgColor: 0x27272a,
+  bgAlpha: 0.82,
+  windup: {
+    fillColor: 0xfbbf24,
+    borderColor: 0xfde68a,
+  },
+  channeling: {
+    fillColor: 0x38bdf8,
+    borderColor: 0x7dd3fc,
+  },
 } as const;

@@ -38,6 +38,15 @@ export class SpellCastController {
     return Math.min(1, this.channelElapsedMs / this.channelDurationMs);
   }
 
+  /** Windup vs effect channel for HUD and cast bar styling. */
+  getCastPhase(): "windup" | "channeling" | null {
+    if (!this.activeSpellId) return null;
+    if (this.inChannel) return "channeling";
+    if (this.windupDurationMs > 0) return "windup";
+    if (this.channelDurationMs > 0) return "channeling";
+    return null;
+  }
+
   getCooldownRemaining(spellId: SpellId): number {
     return this.cooldownRemainingMs.get(spellId) ?? 0;
   }

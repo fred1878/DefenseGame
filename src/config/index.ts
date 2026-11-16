@@ -28,6 +28,7 @@ export {
 export { DEFENSE_RENDER_DEPTH } from "./renderDepth";
 export {
   CAST_BAR,
+  type CastBarPhase,
   DEFENSE_SPELL_BAR,
   SPELL_BAR,
   TOWN_SPELL_SORT_PANEL,
