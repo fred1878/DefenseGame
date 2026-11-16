@@ -18,10 +18,33 @@ export const SPELL_BAR = {
   fontSize: `${scaleUiX(11)}px`,
 } as const;
 
-/** On-screen spell icon size inside a slot (defense HUD + town sort panel). */
+const TOWN_SORT_BAR_SCALE = 2;
+
+/** Town spell-sort overlay: 2× defense bar slots (icons + hit targets). */
+export const TOWN_SPELL_SORT_BAR = {
+  columnCount: SPELL_BAR.columnCount,
+  rowCount: SPELL_BAR.rowCount,
+  slotSizePx: SPELL_BAR.slotSizePx * TOWN_SORT_BAR_SCALE,
+  slotGapPx: SPELL_BAR.slotGapPx * TOWN_SORT_BAR_SCALE,
+  rowGapPx: SPELL_BAR.rowGapPx * TOWN_SORT_BAR_SCALE,
+  autoCastBorderWidthPx: SPELL_BAR.autoCastBorderWidthPx * TOWN_SORT_BAR_SCALE,
+  autoCastBorderColor: SPELL_BAR.autoCastBorderColor,
+  longPressMs: SPELL_BAR.longPressMs,
+  iconInsetFrac: SPELL_BAR.iconInsetFrac,
+} as const;
+
+/** On-screen spell icon size inside a slot (defense HUD). */
 export function spellBarIconDisplayPx(): number {
   const pad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
   return SPELL_BAR.slotSizePx - pad;
+}
+
+/** On-screen spell icon size in the town sort overlay (2× defense). */
+export function townSpellBarIconDisplayPx(): number {
+  const pad = Math.round(
+    TOWN_SPELL_SORT_BAR.slotSizePx * TOWN_SPELL_SORT_BAR.iconInsetFrac,
+  );
+  return TOWN_SPELL_SORT_BAR.slotSizePx - pad;
 }
 
 export const CAST_BAR = {

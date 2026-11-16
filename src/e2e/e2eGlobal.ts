@@ -62,6 +62,14 @@ export type DefenseGameE2EApi = {
   getTownBuildingDebugRectCount(): number;
   openSpellSortPanel(): void;
   isSpellSortPanelOpen(): boolean;
+  getSpellSortSlotHitRects(): Array<{
+    index: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
+  getSpellSortBarSlots(): string[];
   getObstacleAlignment(): Array<{
     textureKey: string;
     configX: number;
