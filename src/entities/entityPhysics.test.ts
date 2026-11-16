@@ -1,10 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
-import { ENTITY_BODY_RADIUS, tuneArcadeDynamicBody } from "./entityPhysics";
+import {
+  ENTITY_BODY_RADIUS,
+  enemyCollisionBodyRadius,
+  tuneArcadeDynamicBody,
+} from "./entityPhysics";
 
 describe("entityPhysics", () => {
   it("uses 28px-class collision diameters", () => {
     expect(ENTITY_BODY_RADIUS.player).toBe(14);
     expect(ENTITY_BODY_RADIUS.enemy).toBe(14);
+    expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(17);
+  });
+
+  it("widens collision for melee archetypes only", () => {
+    expect(enemyCollisionBodyRadius("meleeChaser")).toBe(17);
+    expect(enemyCollisionBodyRadius("wallSiege")).toBe(17);
+    expect(enemyCollisionBodyRadius("stationaryRanged")).toBe(14);
+    expect(enemyCollisionBodyRadius("lobber")).toBe(14);
   });
 
   it("tunes bounce, friction, and pushable", () => {

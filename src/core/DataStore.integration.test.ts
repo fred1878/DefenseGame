@@ -22,6 +22,19 @@ describe("public data fixtures", () => {
     expect(grunt!.damage).toBeGreaterThan(0);
   });
 
+  it("enemies.json defines displayName for every type", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      { displayName: string }
+    >;
+    expect(Object.keys(enemies)).toHaveLength(11);
+    for (const row of Object.values(enemies)) {
+      expect(row.displayName.trim().length).toBeGreaterThan(0);
+      expect(row.displayName).not.toMatch(/_/);
+    }
+    expect(enemies.sentry_archer?.displayName).toBe("Sentry Archer");
+  });
+
   it("enemies.json bruiser is slower than grunt with long reach behavior id", () => {
     const enemies = readJson("enemies.json") as Record<
       string,

@@ -4,7 +4,23 @@ import Phaser from "phaser";
 export const ENTITY_BODY_RADIUS = {
   player: 14,
   enemy: 14,
+  /** Slightly wider circle for melee / wall-rush archetypes (collision only). */
+  enemyMelee: 17,
 } as const;
+
+const MELEE_COLLISION_BEHAVIORS = new Set([
+  "meleeChaser",
+  "bruiser",
+  "charger",
+  "ward",
+  "wallSiege",
+]);
+
+export function enemyCollisionBodyRadius(behavior: string): number {
+  return MELEE_COLLISION_BEHAVIORS.has(behavior)
+    ? ENTITY_BODY_RADIUS.enemyMelee
+    : ENTITY_BODY_RADIUS.enemy;
+}
 
 export function tuneArcadeDynamicBody(
   sprite: Phaser.Physics.Arcade.Sprite,

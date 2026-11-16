@@ -4,7 +4,8 @@
     "speed": 85,
     "damage": 8,
     "behavior": "meleeChaser",
-    "textureKey": "enemy_grunt"
+    "textureKey": "enemy_grunt",
+    "displayName": "Grunt"
   },
   "bruiser": {
     "hp": 48,
@@ -12,6 +13,7 @@
     "damage": 11,
     "behavior": "bruiser",
     "textureKey": "enemy_bruiser",
+    "displayName": "Bruiser",
     "combat": {
       "wall": {
         "damage": 8,
@@ -35,6 +37,7 @@
     "damage": 9,
     "behavior": "arrowRainArcher",
     "textureKey": "enemy_arrow_rain_archer",
+    "displayName": "Arrow Rain Archer",
     "combat": {
       "wall": {
         "damage": 6,
@@ -70,6 +73,7 @@
     "damage": 5,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
+    "displayName": "Skirmisher",
     "combat": {
       "wall": {
         "damage": 4,
@@ -93,6 +97,7 @@
     "damage": 10,
     "behavior": "stationaryRanged",
     "textureKey": "enemy_sentry_archer",
+    "displayName": "Sentry Archer",
     "combat": {
       "wall": {
         "damage": 5,
@@ -125,6 +130,7 @@
     "damage": 11,
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer",
+    "displayName": "Javelineer",
     "combat": {
       "wall": {
         "damage": 6,
@@ -160,6 +166,7 @@
     "damage": 14,
     "behavior": "wallSiege",
     "textureKey": "enemy_slow_siege",
+    "displayName": "Slow Siege",
     "combat": {
       "wall": {
         "damage": 12,
@@ -186,6 +193,7 @@
     "damage": 6,
     "behavior": "wallSiege",
     "textureKey": "enemy_fast_sapper",
+    "displayName": "Fast Sapper",
     "combat": {
       "wall": {
         "damage": 5,
@@ -212,6 +220,7 @@
     "damage": 12,
     "behavior": "charger",
     "textureKey": "enemy_charger",
+    "displayName": "Charger",
     "combat": {
       "wall": {
         "damage": 7,
@@ -242,6 +251,7 @@
     "damage": 13,
     "behavior": "lobber",
     "textureKey": "enemy_lobber",
+    "displayName": "Lobber",
     "combat": {
       "wall": {
         "damage": 6,
@@ -276,6 +286,7 @@
     "damage": 9,
     "behavior": "ward",
     "textureKey": "enemy_ward",
+    "displayName": "Ward",
     "combat": {
       "wall": {
         "damage": 5,

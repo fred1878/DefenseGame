@@ -22,7 +22,16 @@ import {
 
 import type { EnemyNavState } from "../ai/EnemyBrain";
 import { createEnemyNav } from "../ai/EnemyBrain";
-import { ENTITY_BODY_RADIUS, tuneArcadeDynamicBody } from "./entityPhysics";
+import {
+  enemyCollisionBodyRadius,
+  tuneArcadeDynamicBody,
+} from "./entityPhysics";
+import {
+  createEnemyNameplate,
+  hideEnemyNameplateOnDeath,
+  updateEnemyNameplate,
+  type EnemyNameplate,
+} from "../ui/enemyNameplate";
 
 export type EnemyBehaviorExtra = {
   strafeSign: 1 | -1;
@@ -49,6 +58,8 @@ export type EnemyInstance = {
   javelineer?: JavelineerCombatState;
   stationaryRanged?: StationaryRangedCombatState;
   lobber?: LobberCombatState;
+  nameplate: EnemyNameplate;
+  displayName: string;
 };
 
 export function spawnEnemy(
@@ -64,9 +75,11 @@ export function spawnEnemy(
   const sprite = scene.physics.add.sprite(x, y, def.textureKey);
   const side = worldDisplayPx(SPRITE_DISPLAY.enemy, scene.registry);
   sprite.setDisplaySize(side, side);
-  tuneArcadeDynamicBody(sprite, worldUnit(ENTITY_BODY_RADIUS.enemy, scene.registry), {
-    pushable: true,
-  });
+  tuneArcadeDynamicBody(
+    sprite,
+    worldUnit(enemyCollisionBodyRadius(def.behavior), scene.registry),
+    { pushable: true },
+  );
   sprite.setDepth(5);
   sprite.setInteractive(
     new Phaser.Geom.Circle(0, 0, worldUnit(26, scene.registry)),
@@ -92,9 +105,21 @@ export function spawnEnemy(
     maxHp: def.hp,
     alive: true,
     team: "enemy",
-    onDeath,
+    onDeath: () => {
+      hideEnemyNameplateOnDeath(nameplate, scene);
+      onDeath();
+    },
   };
   const combatTuning = resolveEnemyCombat(def.behavior, def.combat);
+  const nameplate = createEnemyNameplate(
+    scene,
+    x,
+    y,
+    def.displayName,
+    side,
+  );
+  updateEnemyNameplate(nameplate, x, y, side, damageable);
+
   const enemy: EnemyInstance = {
     id,
     defId,
@@ -102,11 +127,13 @@ export function spawnEnemy(
     speed: def.speed ?? DEFAULT_ENEMY_BASE.speed,
     damage: def.damage ?? DEFAULT_ENEMY_BASE.damage,
     textureKey: def.textureKey,
+    displayName: def.displayName,
     combatTuning,
     sprite,
     damageable,
     combat: createEnemyCombat(),
     nav: createEnemyNav(),
+    nameplate,
     behaviorExtra: {
       strafeSign: 1,
       strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 1400,

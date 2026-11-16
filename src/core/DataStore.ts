@@ -10,6 +10,8 @@ export type EnemyDef = {
   damage: number;
   behavior: string;
   textureKey: string;
+  /** HUD / nameplate label (Title Case); not the content id. */
+  displayName: string;
   /** Optional overrides; missing fields use per-behavior defaults. */
   combat?: EnemyCombatPartial;
 };
