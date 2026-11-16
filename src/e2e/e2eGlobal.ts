@@ -80,7 +80,11 @@ export type DefenseGameE2EApi = {
     listTop: number;
     listViewportH: number;
     contentHeight: number;
+    scrollbarVisible: boolean;
+    maxVisibleRows: number;
   } | null;
+  getEndlessSelectedEnemyId(): string | null;
+  getEndlessRosterEnemyIds(): string[];
   isEndlessDefense(): boolean;
   getEndlessEnemyId(): string | null;
   hasLeaveEndlessButton(): boolean;
