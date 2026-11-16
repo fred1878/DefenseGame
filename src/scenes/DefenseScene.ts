@@ -35,6 +35,7 @@ import {
   showPlayerMeleeSwipe,
 } from "../combat/MeleeSwipeFx";
 import { pickAutoCastSpell } from "../combat/spellAutoCast";
+import { isStickMoving, SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
 import {
@@ -221,6 +222,7 @@ export class DefenseScene extends Phaser.Scene {
   private focusEnemyId: string | null = null;
   private targetIndicator!: TargetIndicator;
   private spellCaster = new SpellCastController();
+  private spellInputQueue = new SpellInputQueue();
   private enemySpellStatus = new EnemySpellStatusMap();
   private spellChannelArea: { x: number; y: number } | null = null;
   private spellGroundZones: SpellGroundZone[] = [];
@@ -279,6 +281,7 @@ export class DefenseScene extends Phaser.Scene {
     this.autoAttackEnabled = false;
     this.playerInvulnMs = 0;
     this.spellCaster = new SpellCastController();
+    this.spellInputQueue = new SpellInputQueue();
     this.enemySpellStatus = new EnemySpellStatusMap();
     this.spellChannelArea = null;
     this.spellGroundZones = [];
@@ -673,6 +676,7 @@ export class DefenseScene extends Phaser.Scene {
       this.tryAutoCastSpells(dir.x, dir.y);
     }
     this.player.updateAttack(delta);
+    this.tryFlushQueuedSpellCast(dir.x, dir.y);
     this.syncMeleeSwipeFx();
 
     const mult = playerDamageMult(this.save.buildings);
@@ -1137,7 +1141,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private tryAutoCastSpells(stickX: number, stickY: number): void {
-    const moving = Math.hypot(stickX, stickY) > 0.12;
+    const moving = isStickMoving(stickX, stickY);
     const pick = pickAutoCastSpell(
       this.save.spellBar.slots,
       this.save.spellBar.autoCastSpellIds,
@@ -1158,6 +1162,17 @@ export class DefenseScene extends Phaser.Scene {
     const def = spellById(spellId);
     if (!def) return;
     if (
+      def.requireEnemyTarget &&
+      spellTargetMode(def) === "enemy" &&
+      !this.focusEnemyId
+    ) {
+      return;
+    }
+    if (!this.player.canAttack()) {
+      this.spellInputQueue.enqueue(spellId);
+      return;
+    }
+    if (
       spellRequiresManualTarget(def) &&
       spellTargetMode(def) === "ground" &&
       !this.pendingGroundCast
@@ -1173,12 +1188,25 @@ export class DefenseScene extends Phaser.Scene {
       );
       return;
     }
+    this.beginSpellCast(spellId);
+  }
+
+  private tryFlushQueuedSpellCast(stickX: number, stickY: number): void {
+    if (!this.player.canAttack()) return;
+    if (this.spellCaster.isChanneling()) return;
+    const spellId = this.spellInputQueue.consumeIfReady(stickX, stickY, spellById);
+    if (!spellId) return;
+    const def = spellById(spellId);
+    if (!def) return;
     if (
       def.requireEnemyTarget &&
       spellTargetMode(def) === "enemy" &&
       !this.focusEnemyId
     ) {
       return;
+    }
+    if (spellTargetMode(def) === "ground") {
+      this.groundAim = this.defaultGroundTarget(def);
     }
     this.beginSpellCast(spellId);
   }

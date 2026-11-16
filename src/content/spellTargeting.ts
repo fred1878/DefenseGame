@@ -35,3 +35,11 @@ export function spellChannelTickMs(def: SpellDefinition): number {
 export function spellCastMs(def: SpellDefinition): number {
   return def.castMs ?? 0;
 }
+
+/** Channeled or cast-windup spells need the player still to start (movement interrupt). */
+export function spellRequiresStationary(def: SpellDefinition): boolean {
+  return spellCastMs(def) > 0 || def.channelMs > 0;
+}
+
+/** Stick magnitude above this counts as moving for spell queue / auto-cast. */
+export const SPELL_MOVE_INTERRUPT_EPS = 0.12;

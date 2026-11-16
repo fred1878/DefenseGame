@@ -1,5 +1,5 @@
 import { spellById, type SpellId } from "../content/spells";
-import { spellCastMs } from "../content/spellTargeting";
+import { spellRequiresStationary } from "../content/spellTargeting";
 
 export type SpellAutoCastCandidate = {
   slotIndex: number;
@@ -25,7 +25,7 @@ export function pickAutoCastSpell(
     const def = spellById(spellId);
     if (!def) continue;
     if ((cooldownRemaining(spellId) ?? 0) > 0) continue;
-    if (isMoving && (spellCastMs(def) > 0 || def.channelMs > 0)) continue;
+    if (isMoving && spellRequiresStationary(def)) continue;
     return { slotIndex: i, spellId };
   }
   return null;
