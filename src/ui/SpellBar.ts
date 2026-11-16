@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SPELL_BAR } from "../config";
+import { SPELL_BAR, spellBarIconDisplayPx } from "../config";
 import { spellById, type SpellId } from "../content/spells";
 import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../core/displayScale";
@@ -75,16 +75,12 @@ export class SpellBar {
         strokeColor: 0x818cf8,
         tapPadding: SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
-        ...(hasIcon ? { frameTextureKey: "ui_spell_slot" } : {}),
       });
       if (hasIcon) {
-        const iconPad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
+        const iconSize = spellBarIconDisplayPx();
         const icon = scene.add
           .image(0, 0, iconKey!)
-          .setDisplaySize(
-            SPELL_BAR.slotSizePx - iconPad,
-            SPELL_BAR.slotSizePx - iconPad,
-          );
+          .setDisplaySize(iconSize, iconSize);
         btn.container.add(icon);
         btn.container.bringToTop(icon);
         scene.textures.get(iconKey!).setFilter(Phaser.Textures.FilterMode.NEAREST);
