@@ -26,10 +26,23 @@ describe("pickAutoCastSpell", () => {
     ).toBeNull();
   });
 
-  it("casts instant nova while moving", () => {
+  it("casts true instant spells while moving", () => {
     const auto = [true, true, false, false, false, false];
     const pick = pickAutoCastSpell(slots, auto, true, () => 0, false);
     expect(pick?.spellId).toBe("fire_nova");
+  });
+
+  it("skips cast-windup spells while moving", () => {
+    const boltSlots = ["", "fire_bolt", "water_bolt", "", "", ""];
+    const auto = [false, true, true, false, false, false];
+    const pick = pickAutoCastSpell(boltSlots, auto, true, () => 0, false);
+    expect(pick?.spellId).toBe("water_bolt");
+  });
+
+  it("skips all rooted spells while moving when only windups enabled", () => {
+    const boltSlots = ["fire_bolt", "ice_bolt", "", "", "", ""];
+    const auto = [true, true, false, false, false, false];
+    expect(pickAutoCastSpell(boltSlots, auto, true, () => 0, false)).toBeNull();
   });
 
   it("skips spells on cooldown", () => {

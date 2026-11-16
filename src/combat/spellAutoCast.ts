@@ -1,4 +1,5 @@
 import { spellById, type SpellId } from "../content/spells";
+import { spellCastMs } from "../content/spellTargeting";
 
 export type SpellAutoCastCandidate = {
   slotIndex: number;
@@ -7,7 +8,7 @@ export type SpellAutoCastCandidate = {
 
 /**
  * Spell auto-cast priority: top row left→right, then bottom row (indices 0–5).
- * When moving, channeled spells are skipped for the next candidate.
+ * When moving, spells with a cast or channel wind-up are skipped so movement can interrupt them.
  */
 export function pickAutoCastSpell(
   slots: SpellId[],
@@ -25,7 +26,7 @@ export function pickAutoCastSpell(
     const def = spellById(spellId);
     if (!def) continue;
     if ((cooldownRemaining(spellId) ?? 0) > 0) continue;
-    if (isMoving && def.kind === "channeled" && def.channelMs > 0) continue;
+    if (isMoving && (spellCastMs(def) > 0 || def.channelMs > 0)) continue;
     return { slotIndex: i, spellId };
   }
   return null;

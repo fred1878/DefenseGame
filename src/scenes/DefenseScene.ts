@@ -558,6 +558,14 @@ export class DefenseScene extends Phaser.Scene {
       } else if (channel.type === "interrupted") {
         this.castBar.setVisible(false);
         this.clearSpellChannelState();
+        const lockMeleeAim = this.shouldLockMeleeAimFacing();
+        this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed, {
+          lockMeleeAim,
+        });
+        if (lockMeleeAim) {
+          const target = this.facingTarget("melee", false);
+          if (target) this.player.faceToward(target.x, target.y);
+        }
       } else if (channel.type === "completed") {
         this.castBar.setVisible(false);
         this.resolveSpellEffect(channel.def);

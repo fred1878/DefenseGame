@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import { SpellCastController } from "./SpellCastController";
 
 describe("SpellCastController", () => {
+  it("interrupts cast windup when stick moves", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("fire_bolt")).toBe("windup");
+    const cut = c.updateChannel(50, 0.5, 0);
+    expect(cut.type).toBe("interrupted");
+    expect(c.isChanneling()).toBe(false);
+  });
+
   it("interrupts channel when stick moves", () => {
     const c = new SpellCastController();
     expect(c.tryBeginCast("heal")).toBe("channel");
