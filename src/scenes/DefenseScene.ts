@@ -116,6 +116,11 @@ import {
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
 import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
+import { getEndlessConcurrentCap } from "../systems/endlessEnemyRoster";
+import {
+  countLivingWithDefId,
+  endlessSpawnDeficit,
+} from "../systems/endlessSpawnScheduler";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
@@ -546,7 +551,7 @@ export class DefenseScene extends Phaser.Scene {
 
     if (endless) {
       this.spawnPlanComplete = true;
-      this.spawnEndlessEnemy();
+      this.ensureEndlessSpawnCap();
     } else if (wave && !isE2EEnabled()) {
       this.scheduleWave(store, wave);
     } else if (isE2EEnabled()) {
@@ -1847,20 +1852,27 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
-  private spawnEndlessEnemy(): void {
+  private countLivingEndlessEnemies(): number {
+    if (!this.endlessEnemyId) return 0;
+    return countLivingWithDefId(this.enemies, this.endlessEnemyId);
+  }
+
+  private ensureEndlessSpawnCap(): void {
     if (!this.endlessEnemyId || this.nightEnded) return;
     const store = this.registry.get("dataStore") as DataStore;
     const def = store.enemies[this.endlessEnemyId];
     if (!def) return;
-    const living = this.enemies.filter((e) => e.damageable.alive).length;
-    if (living > 0) return;
-    const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
-    this.spawnEnemyAt(x, y, def, this.endlessEnemyId);
+    const cap = getEndlessConcurrentCap(this.endlessEnemyId, def);
+    const deficit = endlessSpawnDeficit(this.countLivingEndlessEnemies(), cap);
+    for (let i = 0; i < deficit; i++) {
+      const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
+      this.spawnEnemyAt(x, y, def, this.endlessEnemyId);
+    }
   }
 
   private scheduleEndlessRespawn(): void {
     if (!this.isEndlessMode() || this.nightEnded) return;
-    this.time.delayedCall(0, () => this.spawnEndlessEnemy());
+    this.time.delayedCall(0, () => this.ensureEndlessSpawnCap());
   }
 
   private scheduleWave(
