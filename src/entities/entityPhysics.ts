@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 
-/** Arcade physics circle radius (diameter ≈ 28px at 14). */
+/** Arcade physics circle radius (diameter ≈ 34px at 17 for player). */
 export const ENTITY_BODY_RADIUS = {
-  player: 14,
+  player: 17,
   enemy: 14,
   /** Slightly wider circle for melee / wall-rush archetypes (collision only). */
   enemyMelee: 17,

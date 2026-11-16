@@ -6,8 +6,8 @@ import {
 } from "./entityPhysics";
 
 describe("entityPhysics", () => {
-  it("uses 28px-class collision diameters", () => {
-    expect(ENTITY_BODY_RADIUS.player).toBe(14);
+  it("uses tuned collision diameters", () => {
+    expect(ENTITY_BODY_RADIUS.player).toBe(17);
     expect(ENTITY_BODY_RADIUS.enemy).toBe(14);
     expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(17);
   });
