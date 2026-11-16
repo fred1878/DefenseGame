@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_WALL_SIEGE_COMBAT } from "../../core/enemyTuning";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { northWallAttackY } from "../../config";
 import { wallSiegeBehavior } from "./wallSiege";
 import { PLAYER_AGGRO_RADIUS } from "../../config";
+import { wallMeleeStandoffY } from "./movement";
 
 describe("wallSiegeBehavior", () => {
   const openGrid = {
@@ -35,6 +37,33 @@ describe("wallSiegeBehavior", () => {
       deltaMs: 16,
     });
     expect(enemy.nav.targetKind).toBe("wall");
+  });
+
+  it("holds still at wall during melee cooldown", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "wallSiege",
+      sprite: {
+        x: 10,
+        y: northWallAttackY(),
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
+    });
+    enemy.combatTuning.wallSiege = DEFAULT_WALL_SIEGE_COMBAT;
+    enemy.sprite.y = wallMeleeStandoffY(enemy);
+    enemy.combat.cooldownMs = 250;
+    enemy.nav = { ...createEnemyNav(), targetKind: "wall" };
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    setVelocity.mockClear();
+    wallSiegeBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 400,
+      playerY: 300,
+      deltaMs: 16,
+    });
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
   });
 
   it("paths when player is inside default aggro band", () => {
