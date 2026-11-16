@@ -240,6 +240,8 @@
       "kind": "channeled",
       "baseDamage": 12,
       "blastRadius": 80,
+      "blastTextureKey": "fx_spell_blizzard",
+      "blastFile": "blizzard-mrpg-32.png",
       "iconFile": "blizzard.png",
       "damageFlavor": "default",
       "castMs": 800,

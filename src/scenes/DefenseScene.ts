@@ -81,6 +81,15 @@ import {
 } from "../entities/Enemy";
 import { updateEnemyCombat } from "../entities/EnemyCombat";
 import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
+import { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
+import {
+  destroySpellGroundAoeTelegraph,
+  spellGroundAoePalette,
+  spellNeedsGroundAoeTelegraph,
+  spawnSpellGroundAoeTelegraph,
+  updateSpellGroundAoeTelegraph,
+  type SpellGroundAoeTelegraph,
+} from "../combat/SpellGroundAoeTelegraph";
 import {
   updateArrowRainCombat,
   updateJavelineerCombat,
@@ -116,6 +125,7 @@ import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 import { GroundTargetReticle } from "../ui/GroundTargetReticle";
 import {
+  spellCastMs,
   spellRequiresManualTarget,
   spellTargetMode,
 } from "../content/spellTargeting";
@@ -206,6 +216,9 @@ export class DefenseScene extends Phaser.Scene {
   private pendingGroundCast: string | null = null;
   private groundAim: { x: number; y: number } | null = null;
   private groundReticle!: GroundTargetReticle;
+  private groundAoeTelegraph: SpellGroundAoeTelegraph | null = null;
+  private lingerAoeTelegraph: SpellGroundAoeTelegraph | null = null;
+  private blizzardChannelFx: SpellBlizzardChannelFx | null = null;
   private channelAreaStarted = false;
   private shadowformEndsAt = 0;
   private iceWallExpires: Array<{
@@ -523,6 +536,8 @@ export class DefenseScene extends Phaser.Scene {
       this.stick.destroy(this);
       this.targetIndicator.destroy();
       this.groundReticle.destroy();
+      this.clearGroundCastTelegraphs();
+      this.clearLingerAoeTelegraph();
       this.castBar.destroy();
       this.spellBar.destroy();
       this.hitboxDebug.destroy();
@@ -554,11 +569,15 @@ export class DefenseScene extends Phaser.Scene {
         this.castBar.setWorldPosition(px, py);
         this.castBar.setProgress(channel.progress);
         const chDef = spellById(channel.spellId);
+        if (chDef) {
+          this.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
+        }
         if (channel.type === "channeling" && chDef && !this.channelAreaStarted) {
           this.startChanneledGroundZone(chDef);
         }
       } else if (channel.type === "interrupted") {
         this.castBar.setVisible(false);
+        this.clearGroundCastTelegraphs();
         this.clearSpellChannelState();
         const lockMeleeAim = this.shouldLockMeleeAimFacing();
         this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed, {
@@ -570,8 +589,16 @@ export class DefenseScene extends Phaser.Scene {
         }
       } else if (channel.type === "completed") {
         this.castBar.setVisible(false);
+        const impactCenter = this.spellChannelArea;
         this.resolveSpellEffect(channel.def);
         this.spawnPostChannelLinger(channel.def);
+        if (
+          impactCenter &&
+          spellNeedsGroundAoeTelegraph(channel.def)
+        ) {
+          this.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
+        }
+        this.clearGroundCastTelegraphs();
         this.clearSpellChannelState();
       }
     } else {
@@ -707,6 +734,14 @@ export class DefenseScene extends Phaser.Scene {
       this.enemySpellStatus,
       this.spellDamageMult(),
     );
+    if (this.lingerAoeTelegraph) {
+      updateSpellGroundAoeTelegraph(
+        this.lingerAoeTelegraph,
+        delta,
+        "channel",
+        1,
+      );
+    }
     this.tickIceWalls();
 
     this.enemyPathGoals.clear();
@@ -1059,6 +1094,7 @@ export class DefenseScene extends Phaser.Scene {
         aim.x,
         aim.y,
         GroundTargetReticle.radiusForSpell(this, def.blastRadius),
+        GroundTargetReticle.styleForSpellId(spellId),
       );
       return;
     }
@@ -1098,8 +1134,10 @@ export class DefenseScene extends Phaser.Scene {
       this.resolveSpellEffect(begun);
     }
     this.pendingGroundCast = null;
-    this.groundAim = null;
-    this.groundReticle.hide();
+    if (!spellNeedsGroundAoeTelegraph(def)) {
+      this.groundAim = null;
+      this.groundReticle.hide();
+    }
   }
 
   private defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {
@@ -1122,6 +1160,94 @@ export class DefenseScene extends Phaser.Scene {
   private clearSpellChannelState(): void {
     this.spellChannelArea = null;
     this.channelAreaStarted = false;
+    this.groundAim = null;
+    this.groundReticle.hide();
+  }
+
+  private clearGroundCastTelegraphs(): void {
+    destroySpellGroundAoeTelegraph(this.groundAoeTelegraph);
+    this.groundAoeTelegraph = null;
+    this.blizzardChannelFx?.destroy();
+    this.blizzardChannelFx = null;
+  }
+
+  private clearLingerAoeTelegraph(): void {
+    destroySpellGroundAoeTelegraph(this.lingerAoeTelegraph);
+    this.lingerAoeTelegraph = null;
+  }
+
+  private syncGroundCastTelegraphs(
+    def: SpellDefinition,
+    phase: "windup" | "channeling",
+    progress: number,
+    deltaMs: number,
+  ): void {
+    if (!spellNeedsGroundAoeTelegraph(def)) return;
+    const center =
+      this.spellChannelArea ??
+      this.groundAim ??
+      this.defaultGroundTarget(def);
+    const radiusWu = this.wu(def.blastRadius ?? 72);
+    const reticleStyle = GroundTargetReticle.styleForSpellId(def.id);
+    if (phase === "windup") {
+      this.groundReticle.showAt(center.x, center.y, radiusWu, reticleStyle);
+    } else {
+      this.groundReticle.hide();
+    }
+    const telegraphMode = phase === "windup" ? "windup" : "channel";
+    if (!this.groundAoeTelegraph) {
+      this.groundAoeTelegraph = spawnSpellGroundAoeTelegraph(
+        this,
+        center.x,
+        center.y,
+        radiusWu,
+        spellGroundAoePalette(def),
+        spellCastMs(def),
+        telegraphMode,
+      );
+    } else {
+      this.groundAoeTelegraph.zoneX = center.x;
+      this.groundAoeTelegraph.zoneY = center.y;
+      this.groundAoeTelegraph.zoneRadius = radiusWu;
+    }
+    updateSpellGroundAoeTelegraph(
+      this.groundAoeTelegraph,
+      deltaMs,
+      telegraphMode,
+      progress,
+    );
+    if (def.id === "blizzard" && phase === "channeling") {
+      if (!this.blizzardChannelFx) {
+        this.blizzardChannelFx = new SpellBlizzardChannelFx(this);
+        this.blizzardChannelFx.start(
+          center.x,
+          center.y,
+          radiusWu,
+          SpellBlizzardChannelFx.defaultTextureKey(),
+        );
+      }
+    } else if (this.blizzardChannelFx) {
+      this.blizzardChannelFx.stop();
+    }
+  }
+
+  private pulseImpactAoeTelegraph(
+    def: SpellDefinition,
+    x: number,
+    y: number,
+  ): void {
+    const radiusWu = this.wu(def.blastRadius ?? 72);
+    const impact = spawnSpellGroundAoeTelegraph(
+      this,
+      x,
+      y,
+      radiusWu,
+      spellGroundAoePalette(def),
+      1,
+      "impact",
+    );
+    updateSpellGroundAoeTelegraph(impact, 0, "impact", 1);
+    this.time.delayedCall(360, () => destroySpellGroundAoeTelegraph(impact));
   }
 
   private startChanneledGroundZone(def: SpellDefinition): void {
@@ -1139,11 +1265,6 @@ export class DefenseScene extends Phaser.Scene {
         }),
       );
       this.channelAreaStarted = true;
-      if (def.mechanicType === "channeled" && def.id === "blizzard") {
-        this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 80), {
-          blastTextureKey: COMBAT_FX_TEXTURE.spellBlizzard,
-        });
-      }
       if (def.mechanicType === "channeled_area") {
         this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
           blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
@@ -1173,9 +1294,25 @@ export class DefenseScene extends Phaser.Scene {
         },
       ),
     );
-    this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
+    this.clearLingerAoeTelegraph();
+    const radiusWu = this.wu(def.blastRadius ?? 78);
+    this.lingerAoeTelegraph = spawnSpellGroundAoeTelegraph(
+      this,
+      center.x,
+      center.y,
+      radiusWu,
+      spellGroundAoePalette(def),
+      1,
+      "channel",
+    );
+    updateSpellGroundAoeTelegraph(this.lingerAoeTelegraph, 0, "channel", 1);
+    this.flashNova(center.x, center.y, radiusWu, {
       blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
     });
+    const lingerMs = def.lingerMs ?? 0;
+    if (lingerMs > 0) {
+      this.time.delayedCall(lingerMs, () => this.clearLingerAoeTelegraph());
+    }
   }
 
   private spellDamageMult(): number {

@@ -67,6 +67,9 @@ FX_OUT: dict[str, str] = {
     "blizzard-mrpg-32.png": "blizzard_01",
 }
 
+# Optional strip export for Boot-time blizzard channel anim (blizzard_01 … blizzard_10).
+BLIZZARD_ANIM_FRAMES = [f"blizzard_{i:02d}" for i in range(1, 11)]
+
 # Pristine atlas.tga still has garbage at some icon_spell_* "rest" rects (atlas.txt stale).
 # Fall back to the paired *_down art MobileRPG uses when pressed.
 ICON_FRAME_FALLBACK: dict[str, str] = {
@@ -126,6 +129,21 @@ def main() -> int:
         x, y, rw, rh = frames[frame]
         rgba = read_tga_region_rgba(atlas_path, x, y, rw, rh)
         save_rgba(rgba, rw, rh, OUT_FX / filename)
+
+    strip_path = OUT_FX / "blizzard-mrpg-anim-32.png"
+    if all(name in frames for name in BLIZZARD_ANIM_FRAMES):
+        slices: list[Image.Image] = []
+        for name in BLIZZARD_ANIM_FRAMES:
+            x, y, rw, rh = frames[name]
+            rgba = read_tga_region_rgba(atlas_path, x, y, rw, rh)
+            slices.append(Image.frombytes("RGBA", (rw, rh), rgba))
+        w, h = slices[0].size
+        sheet = Image.new("RGBA", (w * len(slices), h))
+        for i, img in enumerate(slices):
+            sheet.paste(img, (i * w, 0))
+        strip_path.parent.mkdir(parents=True, exist_ok=True)
+        sheet.save(strip_path, format="PNG")
+        print(f"wrote blizzard anim strip -> {strip_path}")
 
     print(f"atlas.txt: {atlas_txt}")
     print(f"wrote icons -> {OUT_ICONS}")
