@@ -1,8 +1,9 @@
 import { PLAYER_TUNING, SPELL_BAR } from "../config";
 import {
-  createDefaultSpellBarAutoCast,
-  createDefaultSpellBarSlots,
-} from "../content/spells";
+  createDefaultAutoCastSpellIds,
+  normalizeAutoCastSpellIds,
+} from "../content/spellBarAutoCast";
+import { createDefaultSpellBarSlots } from "../content/spells";
 import {
   SAVE_VERSION,
   type NightResult,
@@ -32,7 +33,7 @@ export function createNewSave(): SaveGame {
     },
     spellBar: {
       slots: createDefaultSpellBarSlots(),
-      autoCast: createDefaultSpellBarAutoCast(),
+      autoCastSpellIds: createDefaultAutoCastSpellIds(),
     },
     flags: [],
   };
@@ -61,11 +62,9 @@ function normalizeSpellBar(raw?: Partial<SaveSpellBar>): SaveSpellBar {
   while (slots.length < SPELL_BAR.slotCount) slots.push("");
   if (slots.length > SPELL_BAR.slotCount) slots.length = SPELL_BAR.slotCount;
 
-  const autoCast = [...(raw?.autoCast ?? base.autoCast)];
-  while (autoCast.length < SPELL_BAR.slotCount) autoCast.push(false);
-  if (autoCast.length > SPELL_BAR.slotCount) autoCast.length = SPELL_BAR.slotCount;
+  const autoCastSpellIds = normalizeAutoCastSpellIds(slots, raw);
 
-  return { slots, autoCast };
+  return { slots, autoCastSpellIds };
 }
 
 const LEGACY_SPELL_ID: Record<string, string> = {
@@ -125,7 +124,7 @@ export function prepareDefenseNight(save: SaveGame): SaveGame {
     buildings: { ...save.buildings },
     spellBar: {
       slots: [...save.spellBar.slots],
-      autoCast: [...save.spellBar.autoCast],
+      autoCastSpellIds: [...save.spellBar.autoCastSpellIds],
     },
     flags: [...save.flags],
   };

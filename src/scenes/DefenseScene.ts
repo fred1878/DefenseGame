@@ -9,6 +9,7 @@ import {
   SPELL_BAR,
   type AttackMode,
 } from "../config";
+import { toggleAutoCastSpellId } from "../content/spellBarAutoCast";
 import {
   createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
@@ -282,11 +283,11 @@ export class DefenseScene extends Phaser.Scene {
     if (!this.save.spellBar?.slots?.length) {
       this.save.spellBar = {
         slots: createDefaultSpellBarSlots(),
-        autoCast: createDefaultSpellBarAutoCast(),
+        autoCastSpellIds: createDefaultSpellBarAutoCast(),
       };
     }
-    if (!this.save.spellBar.autoCast?.length) {
-      this.save.spellBar.autoCast = createDefaultSpellBarAutoCast();
+    if (!this.save.spellBar.autoCastSpellIds) {
+      this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
     }
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
@@ -418,14 +419,17 @@ export class DefenseScene extends Phaser.Scene {
     this.spellBar = new SpellBar(
       this,
       this.save.spellBar.slots,
-      this.save.spellBar.autoCast,
+      this.save.spellBar.autoCastSpellIds,
       this.spellCaster,
       {
         onCastRequest: (id) => this.onSpellCastRequest(id),
         onAutoCastToggle: (slot) => this.onSpellAutoCastToggle(slot),
       },
     );
-    this.spellBar.refreshAutoCastBorders(this.save.spellBar.autoCast);
+    this.spellBar.refreshAutoCastBorders(
+      this.save.spellBar.slots,
+      this.save.spellBar.autoCastSpellIds,
+    );
 
     if (isE2EEnabled() && typeof window !== "undefined") {
       const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
@@ -1079,11 +1083,16 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private onSpellAutoCastToggle(slotIndex: number): void {
-    const next = [...this.save.spellBar.autoCast];
-    while (next.length < this.save.spellBar.slots.length) next.push(false);
-    next[slotIndex] = !next[slotIndex];
-    this.save.spellBar.autoCast = next;
-    this.spellBar.refreshAutoCastBorders(next);
+    const id = this.save.spellBar.slots[slotIndex] ?? "";
+    if (!id) return;
+    this.save.spellBar.autoCastSpellIds = toggleAutoCastSpellId(
+      this.save.spellBar.autoCastSpellIds,
+      id,
+    );
+    this.spellBar.refreshAutoCastBorders(
+      this.save.spellBar.slots,
+      this.save.spellBar.autoCastSpellIds,
+    );
     persistSave(this.save);
   }
 
@@ -1091,7 +1100,7 @@ export class DefenseScene extends Phaser.Scene {
     const moving = Math.hypot(stickX, stickY) > 0.12;
     const pick = pickAutoCastSpell(
       this.save.spellBar.slots,
-      this.save.spellBar.autoCast,
+      this.save.spellBar.autoCastSpellIds,
       moving,
       (id) => this.spellCaster.getCooldownRemaining(id),
       this.spellCaster.isChanneling(),

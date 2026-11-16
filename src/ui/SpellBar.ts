@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { SPELL_BAR, spellBarIconDisplayPx } from "../config";
+import { autoCastFlagsForSlots } from "../content/spellBarAutoCast";
 import { spellById, type SpellId } from "../content/spells";
 import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../core/displayScale";
@@ -28,7 +29,6 @@ type SlotChrome = {
 export class SpellBar {
   private readonly caster: SpellCastController;
   private readonly slots: SpellId[];
-  private readonly autoCast: boolean[];
   private readonly slotChrome: SlotChrome[] = [];
   private readonly cooldownVisuals: CooldownVisual[] = [];
   private readonly onCastRequest: (spellId: SpellId, slotIndex: number) => void;
@@ -37,7 +37,7 @@ export class SpellBar {
   constructor(
     scene: Phaser.Scene,
     slotIds: SpellId[],
-    autoCast: boolean[],
+    autoCastSpellIds: SpellId[],
     caster: SpellCastController,
     callbacks: SpellBarCallbacks,
     depth = 200,
@@ -45,8 +45,7 @@ export class SpellBar {
     this.caster = caster;
     this.slots = slotIds.slice(0, SPELL_BAR.slotCount);
     while (this.slots.length < SPELL_BAR.slotCount) this.slots.push("");
-    this.autoCast = autoCast.slice(0, SPELL_BAR.slotCount);
-    while (this.autoCast.length < SPELL_BAR.slotCount) this.autoCast.push(false);
+    const autoFlags = autoCastFlagsForSlots(this.slots, autoCastSpellIds);
     this.onCastRequest = callbacks.onCastRequest;
     this.onAutoCastToggle = callbacks.onAutoCastToggle;
 
@@ -120,7 +119,7 @@ export class SpellBar {
         .setFillStyle(0x000000, 0)
         .setScrollFactor(0)
         .setDepth(depth + 2)
-        .setVisible(this.autoCast[i] ?? false);
+        .setVisible(autoFlags[i] ?? false);
 
       const overlay = scene.add
         .rectangle(
@@ -145,9 +144,13 @@ export class SpellBar {
     return this.slotChrome.map((s) => s.button.container);
   }
 
-  refreshAutoCastBorders(autoCast: readonly boolean[]): void {
+  refreshAutoCastBorders(
+    slots: readonly SpellId[],
+    autoCastSpellIds: readonly SpellId[],
+  ): void {
+    const flags = autoCastFlagsForSlots(slots, autoCastSpellIds);
     for (let i = 0; i < this.slotChrome.length; i++) {
-      this.slotChrome[i]!.autoBorder.setVisible(Boolean(autoCast[i]));
+      this.slotChrome[i]!.autoBorder.setVisible(Boolean(flags[i]));
     }
   }
 

@@ -12,17 +12,16 @@ export type SpellAutoCastCandidate = {
  */
 export function pickAutoCastSpell(
   slots: SpellId[],
-  autoCast: readonly boolean[],
+  autoCastSpellIds: readonly SpellId[],
   isMoving: boolean,
   cooldownRemaining: (id: SpellId) => number,
   isChanneling: boolean,
 ): SpellAutoCastCandidate | null {
   if (isChanneling) return null;
-  const n = Math.min(slots.length, autoCast.length);
-  for (let i = 0; i < n; i++) {
-    if (!autoCast[i]) continue;
+  const auto = new Set(autoCastSpellIds);
+  for (let i = 0; i < slots.length; i++) {
     const spellId = slots[i] ?? "";
-    if (!spellId) continue;
+    if (!spellId || !auto.has(spellId)) continue;
     const def = spellById(spellId);
     if (!def) continue;
     if ((cooldownRemaining(spellId) ?? 0) > 0) continue;

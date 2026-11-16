@@ -8,6 +8,14 @@ import {
 } from "../config";
 import { spellIconTextureKey } from "../content/assets";
 import {
+  autoCastFlagsForSlots,
+  toggleAutoCastSpellId,
+} from "../content/spellBarAutoCast";
+import {
+  isSpellPoolSelectable,
+  poolSpellIconAlpha,
+} from "../content/spellPoolReadiness";
+import {
   getSpellCatalog,
   spellById,
   type SpellDefinition,
@@ -21,7 +29,7 @@ import { uiTextStyle } from "./uiTextStyle";
 
 export type SpellBarSortResult = {
   slots: SpellId[];
-  autoCast: boolean[];
+  autoCastSpellIds: SpellId[];
 };
 
 type DragState = {
@@ -32,20 +40,23 @@ type DragState = {
 type SlotView = {
   frame: Phaser.GameObjects.Rectangle;
   icon: Phaser.GameObjects.Image;
+  nameLabel: Phaser.GameObjects.Text;
   indexLabel: Phaser.GameObjects.Text;
   autoBorder: Phaser.GameObjects.Rectangle;
 };
 
 type PoolChip = {
   spellId: SpellId;
-  castable: boolean;
+  poolSelectable: boolean;
   frame: Phaser.GameObjects.Rectangle;
   icon: Phaser.GameObjects.Image | null;
+  nameLabel: Phaser.GameObjects.Text;
 };
 
 const POOL_COLUMNS = 7;
-const SLOTTED_POOL_ALPHA = 0.5;
-const COMING_SOON_ALPHA = 0.48;
+const SLOT_NAME_FONT_PX = 10;
+const POOL_NAME_FONT_PX = 9;
+const POOL_LABEL_BELOW_ICON_Y = 30;
 
 /**
  * Town overlay: drag spells between the 4-slot bar and the full catalog pool.
@@ -54,7 +65,7 @@ export class SpellBarSortPanel {
   private readonly root: Phaser.GameObjects.Container;
   private readonly scene: Phaser.Scene;
   private slots: SpellId[];
-  private autoCast: boolean[];
+  private autoCastSpellIds: SpellId[];
   private readonly onDone: (result: SpellBarSortResult) => void;
   private readonly slotViews: SlotView[] = [];
   private readonly poolChips: PoolChip[] = [];
@@ -63,15 +74,14 @@ export class SpellBarSortPanel {
   constructor(
     scene: Phaser.Scene,
     initialSlots: SpellId[],
-    autoCast: boolean[],
+    autoCastSpellIds: SpellId[],
     onDone: (result: SpellBarSortResult) => void,
   ) {
     this.scene = scene;
     this.onDone = onDone;
     this.slots = initialSlots.slice(0, SPELL_BAR.slotCount);
     while (this.slots.length < SPELL_BAR.slotCount) this.slots.push("");
-    this.autoCast = autoCast.slice(0, SPELL_BAR.slotCount);
-    while (this.autoCast.length < SPELL_BAR.slotCount) this.autoCast.push(false);
+    this.autoCastSpellIds = [...autoCastSpellIds];
 
     this.root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
 
@@ -97,7 +107,7 @@ export class SpellBarSortPanel {
       .text(
         GAME.width / 2,
         scaleUiY(panelLayout.hintY),
-        "4×2 night bar — 8 slots, same order as defense. Drag bright icons on; dim = on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
+        "4×2 night bar — 8 slots, same order as defense. Labels name each spell. Drag bright pool icons on; dim = already on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
           color: "#a1a1aa",
@@ -134,7 +144,7 @@ export class SpellBarSortPanel {
           1,
         )
         .setFillStyle(0x000000, 0)
-        .setVisible(this.autoCast[i] ?? false);
+        .setVisible(autoCastFlagsForSlots(this.slots, this.autoCastSpellIds)[i] ?? false);
 
       const slotIndex = i;
       bindTapOrLongPress(
@@ -152,6 +162,17 @@ export class SpellBarSortPanel {
       );
 
       const icon = scene.add.image(x, y, "spell_icon_fire_bolt").setVisible(false);
+      const nameLabel = scene.add
+        .text(
+          x,
+          y + barCell * 0.36,
+          "",
+          uiTextStyle(scene, {
+            fontSize: `${scaleUiX(SLOT_NAME_FONT_PX)}px`,
+            color: "#e4e4e7",
+          }),
+        )
+        .setOrigin(0.5, 0);
       const indexLabel = scene.add
         .text(
           x,
@@ -164,9 +185,9 @@ export class SpellBarSortPanel {
         )
         .setOrigin(0.5);
 
-      this.slotViews.push({ frame, icon, indexLabel, autoBorder });
+      this.slotViews.push({ frame, icon, nameLabel, indexLabel, autoBorder });
       // Auto-cast ring drawn above the icon so it is not covered.
-      this.root.add([frame, icon, indexLabel, autoBorder]);
+      this.root.add([frame, icon, nameLabel, indexLabel, autoBorder]);
     }
 
     const barRows =
@@ -197,44 +218,64 @@ export class SpellBarSortPanel {
     const poolLeft = GAME.width / 2 - poolGridW / 2 + poolCell / 2;
 
     const catalog = [...getSpellCatalog()].sort((a, b) => {
-      if (a.castableInDefense !== b.castableInDefense) {
-        return a.castableInDefense ? -1 : 1;
-      }
+      const aReady = isSpellPoolSelectable(a);
+      const bReady = isSpellPoolSelectable(b);
+      if (aReady !== bReady) return aReady ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
+
+    const poolRowStride = poolCell + scaleUiY(POOL_LABEL_BELOW_ICON_Y);
 
     for (let i = 0; i < catalog.length; i++) {
       const def = catalog[i]!;
       const col = i % POOL_COLUMNS;
       const row = Math.floor(i / POOL_COLUMNS);
       const x = poolLeft + col * (poolCell + poolGap);
-      const y = poolTop + row * (poolCell + poolGap);
-      const castable = def.castableInDefense;
+      const y = poolTop + row * poolRowStride;
+      const poolSelectable = isSpellPoolSelectable(def);
       const frame = scene.add
         .rectangle(
           x,
           y,
           poolCell,
           poolCell,
-          castable ? 0x312e81 : 0x27272a,
-          castable ? 1 : 0.85,
+          poolSelectable ? 0x312e81 : 0x27272a,
+          poolSelectable ? 1 : 0.85,
         )
-        .setStrokeStyle(2, castable ? 0x818cf8 : 0x52525b);
+        .setStrokeStyle(2, poolSelectable ? 0x818cf8 : 0x52525b);
       const icon = this.tryAddSpellIcon(scene, x, y, def, poolCell);
-      if (castable) {
+      const nameLabel = scene.add
+        .text(
+          x,
+          y + poolCell / 2 + scaleUiY(4),
+          def.shortLabel || def.name,
+          uiTextStyle(scene, {
+            fontSize: `${scaleUiX(POOL_NAME_FONT_PX)}px`,
+            color: poolSelectable ? "#e4e4e7" : "#71717a",
+          }),
+        )
+        .setOrigin(0.5, 0);
+      if (poolSelectable) {
         frame.setInteractive({ useHandCursor: true });
         frame.on("pointerdown", (p: Phaser.Input.Pointer) => this.beginDrag(def.id, p));
         icon?.setInteractive({ useHandCursor: true });
         icon?.on("pointerdown", (p: Phaser.Input.Pointer) => this.beginDrag(def.id, p));
       }
-      this.poolChips.push({ spellId: def.id, castable, frame, icon });
+      this.poolChips.push({
+        spellId: def.id,
+        poolSelectable,
+        frame,
+        icon,
+        nameLabel,
+      });
       this.root.add(frame);
       if (icon) this.root.add(icon);
+      this.root.add(nameLabel);
     }
 
     const poolRows = Math.ceil(catalog.length / POOL_COLUMNS);
     const doneY =
-      poolTop + poolRows * (poolCell + poolGap) + scaleUiY(panelLayout.doneBelowPoolGapY);
+      poolTop + poolRows * poolRowStride + scaleUiY(panelLayout.doneBelowPoolGapY);
 
     const done = createTouchButton(
       scene,
@@ -281,6 +322,7 @@ export class SpellBarSortPanel {
       const view = this.slotViews[i]!;
       const id = this.slots[i] ?? "";
       if (id) {
+        const def = spellById(id);
         const key = spellIconTextureKey(id);
         if (this.scene.textures.exists(key)) {
           view.icon.setTexture(key).setDisplaySize(iconSize, iconSize).setVisible(true);
@@ -289,9 +331,13 @@ export class SpellBarSortPanel {
         } else {
           view.icon.setVisible(false);
         }
+        view.nameLabel
+          .setVisible(true)
+          .setText(def?.shortLabel || def?.name || "");
         view.indexLabel.setVisible(false);
       } else {
         view.icon.setVisible(false);
+        view.nameLabel.setVisible(false).setText("");
         view.indexLabel.setVisible(true).setText(`${i + 1}`);
       }
     }
@@ -300,34 +346,37 @@ export class SpellBarSortPanel {
   }
 
   private refreshAutoCastBorders(): void {
+    const flags = autoCastFlagsForSlots(this.slots, this.autoCastSpellIds);
     for (let i = 0; i < this.slotViews.length; i++) {
       const border = this.slotViews[i]!.autoBorder;
-      border.setVisible(Boolean(this.autoCast[i]));
-      if (this.autoCast[i]) this.root.bringToTop(border);
+      border.setVisible(Boolean(flags[i]));
+      if (flags[i]) this.root.bringToTop(border);
     }
   }
 
   private toggleAutoCast(slotIndex: number): void {
     const id = this.slots[slotIndex] ?? "";
     if (!id) return;
-    this.autoCast[slotIndex] = !this.autoCast[slotIndex];
+    this.autoCastSpellIds = toggleAutoCastSpellId(this.autoCastSpellIds, id);
     this.refreshAutoCastBorders();
   }
 
   private refreshPoolAssignmentState(): void {
     for (const chip of this.poolChips) {
-      const onBar = this.slots.includes(chip.spellId);
-      const base = chip.castable ? 1 : COMING_SOON_ALPHA;
-      const alpha = onBar ? base * SLOTTED_POOL_ALPHA : base;
+      const alpha = poolSpellIconAlpha(
+        chip.spellId,
+        this.slots,
+        chip.poolSelectable,
+      );
       chip.icon?.setAlpha(alpha);
-      chip.frame.setAlpha(chip.castable ? 1 : 0.72);
+      chip.frame.setAlpha(chip.poolSelectable ? 1 : 0.72);
     }
   }
 
   private beginDrag(spellId: SpellId, pointer: Phaser.Input.Pointer): void {
     if (this.drag) return;
     const def = spellById(spellId);
-    if (!def?.castableInDefense) return;
+    if (!def || !isSpellPoolSelectable(def)) return;
     const ghost = this.scene.add.container(pointer.x, pointer.y).setDepth(600).setScrollFactor(0);
     const cell = TOWN_SPELL_SORT_BAR.slotSizePx;
     const bg = this.scene.add
@@ -397,7 +446,10 @@ export class SpellBarSortPanel {
 
   private finish(): void {
     this.finishCleanup();
-    this.onDone({ slots: [...this.slots], autoCast: [...this.autoCast] });
+    this.onDone({
+      slots: [...this.slots],
+      autoCastSpellIds: [...this.autoCastSpellIds],
+    });
     this.destroy();
   }
 
@@ -422,7 +474,7 @@ export class SpellBarSortPanel {
       };
     }
     for (const chip of this.poolChips) {
-      if (!chip.castable) continue;
+      if (!chip.poolSelectable) continue;
       const r = interactiveObjectScreenRect(chip.frame);
       if (!r) continue;
       out[`spell-sort-pool-${chip.spellId}`] = {

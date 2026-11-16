@@ -65,8 +65,8 @@ export class TownScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     this.save = this.registry.get("save") as SaveGame;
-    if (!this.save.spellBar.autoCast?.length) {
-      this.save.spellBar.autoCast = createDefaultSpellBarAutoCast();
+    if (!this.save.spellBar.autoCastSpellIds) {
+      this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
     }
     const store = this.registry.get("dataStore") as DataStore;
 
@@ -260,7 +260,7 @@ export class TownScene extends Phaser.Scene {
     this.spellSortPanel = new SpellBarSortPanel(
       this,
       this.save.spellBar.slots,
-      this.save.spellBar.autoCast,
+      this.save.spellBar.autoCastSpellIds,
       (result) => {
         this.save.spellBar = result;
         persistSave(this.save);
