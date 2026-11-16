@@ -25,7 +25,8 @@ test.describe("visual regression", () => {
     });
     await expectViewportScreenshot(page, testInfo, "defense-540x1200.png", {
       clip: VIEWPORT_CLIP,
-      maxDiffPixelRatio: 0.04,
+      // Ubuntu CI vs local Chromium: ~5% on enlarged HUD (town uses 0.05).
+      maxDiffPixelRatio: 0.05,
     });
   });
 });
