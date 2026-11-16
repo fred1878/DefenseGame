@@ -6,6 +6,7 @@ import {
   updateArrowRainTelegraph,
   type ArrowRainTelegraph,
 } from "../combat/ArrowRainTelegraph";
+import { updateEnemyCombat } from "./EnemyCombat";
 import type { EnemyInstance } from "./Enemy";
 import {
   enemyIsAttacking,
@@ -30,6 +31,16 @@ export type LobberCombatState = {
   lobThrown: boolean;
   aimX: number;
   aimY: number;
+  telegraph?: ArrowRainTelegraph;
+};
+
+export type RangedHybridMode = "ranged" | "melee" | "retreat";
+
+export type RangedHybridCombatState = {
+  mode: RangedHybridMode;
+  meleeSwings: number;
+  shotFired: boolean;
+  prevPhase: EnemyAttackPhase;
 };
 
 export type StationaryRangedCombatState = {
@@ -87,6 +98,15 @@ export function createJavelineerCombatState(): JavelineerCombatState {
 
 export function createLobberCombatState(): LobberCombatState {
   return { lobThrown: false, aimX: 0, aimY: 0 };
+}
+
+export function createRangedHybridCombatState(): RangedHybridCombatState {
+  return {
+    mode: "ranged",
+    meleeSwings: 0,
+    shotFired: false,
+    prevPhase: "idle",
+  };
 }
 
 export function createStationaryRangedCombatState(): StationaryRangedCombatState {
@@ -372,6 +392,23 @@ export function updateLobberCombat(
     c.hitThisSwing = false;
     extra.aimX = target.x;
     extra.aimY = target.y;
+    destroyArrowRainTelegraph(extra.telegraph);
+    extra.telegraph = spawnArrowRainTelegraph(
+      enemy.sprite.scene,
+      extra.aimX,
+      extra.aimY,
+      tune.windupMs,
+      tune.blastRadius,
+    );
+  }
+
+  if (c.phase === "windup" && extra.telegraph) {
+    updateArrowRainTelegraph(
+      extra.telegraph,
+      deltaMs,
+      false,
+      tune.blastRadius,
+    );
   }
 
   advanceCombatPhase(
@@ -384,6 +421,17 @@ export function updateLobberCombat(
   );
 
   let spawnLob: LobSpawnRequest | undefined;
+
+  if (c.phase === "active") {
+    if (extra.telegraph) {
+      updateArrowRainTelegraph(
+        extra.telegraph,
+        deltaMs,
+        true,
+        tune.blastRadius,
+      );
+    }
+  }
 
   if (c.phase === "active" && !extra.lobThrown) {
     extra.lobThrown = true;
@@ -414,8 +462,84 @@ export function updateLobberCombat(
     }
   }
 
+  if (c.phase === "idle" || c.phase === "recovery") {
+    destroyArrowRainTelegraph(extra.telegraph);
+    extra.telegraph = undefined;
+  }
+
   freezeWindupRecovery(enemy, c.phase, target.kind);
   return { spawnLob };
+}
+
+export function resetHybridCombatPhase(c: EnemyCombatState): void {
+  c.phase = "idle";
+  c.phaseMs = 0;
+  c.cooldownMs = 0;
+  c.hitThisSwing = false;
+}
+
+export function updateRangedHybridCombat(
+  enemy: EnemyInstance,
+  target: EnemyAttackTarget,
+  extra: RangedHybridCombatState,
+  deltaMs: number,
+  onWallHit?: () => void,
+): { spawnBolt?: JavelinSpawnRequest; meleeHit: boolean } {
+  const hybrid = enemy.combatTuning.hybrid!;
+  const c = enemy.combat;
+  const dx = target.x - enemy.sprite.x;
+  const dy = target.y - enemy.sprite.y;
+  const dist = Math.hypot(dx, dy);
+
+  if (target.kind === "player") {
+  const close = dist <= hybrid.closeMeleeRadius;
+  const atPreferred =
+    dist >= hybrid.preferredRange - hybrid.retreatRangeSlack;
+
+    if (extra.mode === "melee" && !close) {
+      extra.mode = "ranged";
+      extra.meleeSwings = 0;
+      resetHybridCombatPhase(c);
+      extra.shotFired = false;
+    } else if (extra.mode === "ranged" && close) {
+      extra.mode = "melee";
+      extra.meleeSwings = 0;
+      resetHybridCombatPhase(c);
+      extra.shotFired = false;
+    } else if (extra.mode === "retreat" && atPreferred) {
+      extra.mode = "ranged";
+      extra.meleeSwings = 0;
+      resetHybridCombatPhase(c);
+      extra.shotFired = false;
+    }
+  }
+
+  if (extra.mode === "retreat") {
+    extra.prevPhase = c.phase;
+    return { meleeHit: false };
+  }
+
+  if (extra.mode === "melee") {
+    const hitPlayer = updateEnemyCombat(enemy, target, deltaMs, onWallHit);
+    if (extra.prevPhase === "recovery" && c.phase === "idle") {
+      extra.meleeSwings += 1;
+      if (extra.meleeSwings >= hybrid.maxMeleeSwings) {
+        extra.mode = "retreat";
+      }
+    }
+    extra.prevPhase = c.phase;
+    return { meleeHit: hitPlayer };
+  }
+
+  const bolt = updateStationaryRangedCombat(
+    enemy,
+    target,
+    extra,
+    deltaMs,
+    onWallHit,
+  );
+  extra.prevPhase = c.phase;
+  return { spawnBolt: bolt.spawnBolt, meleeHit: false };
 }
 
 export function playerInsideArrowRain(

@@ -82,6 +82,13 @@ export type EnemyCombatPartial = {
     screenBlend?: number;
     playerAggroRadius?: number;
   };
+  /** Close-in melee burst then retreat (`rangedHybrid` behavior). */
+  hybrid?: {
+    closeMeleeRadius?: number;
+    preferredRange?: number;
+    maxMeleeSwings?: number;
+    retreatRangeSlack?: number;
+  };
 };
 
 export type EnemyWallCombat = {
@@ -166,6 +173,13 @@ export type EnemyWardCombat = {
   playerAggroRadius: number;
 };
 
+export type EnemyHybridCombat = {
+  closeMeleeRadius: number;
+  preferredRange: number;
+  maxMeleeSwings: number;
+  retreatRangeSlack: number;
+};
+
 export type ResolvedEnemyCombat = {
   wall: EnemyWallCombat;
   melee: EnemyMeleeCombat;
@@ -176,6 +190,7 @@ export type ResolvedEnemyCombat = {
   charger?: EnemyChargerCombat;
   lobber?: EnemyLobberCombat;
   ward?: EnemyWardCombat;
+  hybrid?: EnemyHybridCombat;
 };
 
 /** Default melee grunt row stats when JSON omits fields. */
@@ -265,6 +280,13 @@ export const DEFAULT_WARD_COMBAT: EnemyWardCombat = {
   protectRadius: 220,
   screenBlend: 0.42,
   playerAggroRadius: 120,
+};
+
+export const DEFAULT_HYBRID_COMBAT: EnemyHybridCombat = {
+  closeMeleeRadius: 52,
+  preferredRange: 118,
+  maxMeleeSwings: 3,
+  retreatRangeSlack: 16,
 };
 
 function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
@@ -395,6 +417,18 @@ function mergeWard(
   };
 }
 
+function mergeHybrid(
+  partial?: EnemyCombatPartial["hybrid"],
+): EnemyHybridCombat {
+  const d = DEFAULT_HYBRID_COMBAT;
+  return {
+    closeMeleeRadius: partial?.closeMeleeRadius ?? d.closeMeleeRadius,
+    preferredRange: partial?.preferredRange ?? d.preferredRange,
+    maxMeleeSwings: partial?.maxMeleeSwings ?? d.maxMeleeSwings,
+    retreatRangeSlack: partial?.retreatRangeSlack ?? d.retreatRangeSlack,
+  };
+}
+
 export function resolveEnemyCombat(
   behavior: string,
   combat?: EnemyCombatPartial,
@@ -425,6 +459,12 @@ export function resolveEnemyCombat(
   }
   if (behavior === "ward") {
     resolved.ward = mergeWard(combat?.ward);
+  }
+  if (behavior === "rangedHybrid") {
+    resolved.stationaryRanged = mergeStationaryRanged(
+      combat?.stationaryRanged,
+    );
+    resolved.hybrid = mergeHybrid(combat?.hybrid);
   }
   return resolved;
 }

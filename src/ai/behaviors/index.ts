@@ -7,6 +7,7 @@ import { stationaryRangedBehavior } from "./stationaryRanged";
 import { wallSiegeBehavior } from "./wallSiege";
 import { chargerBehavior } from "./charger";
 import { lobberBehavior } from "./lobber";
+import { rangedHybridBehavior } from "./rangedHybrid";
 import { wardBehavior } from "./ward";
 
 const BEHAVIORS: Record<string, EnemyBehavior> = {
@@ -18,6 +19,7 @@ const BEHAVIORS: Record<string, EnemyBehavior> = {
   wallSiege: wallSiegeBehavior,
   charger: chargerBehavior,
   lobber: lobberBehavior,
+  rangedHybrid: rangedHybridBehavior,
   ward: wardBehavior,
 };
 

@@ -39,9 +39,22 @@ export function applyWallMeleeHold(enemy: EnemyInstance): void {
   }
 }
 
+const BRUISER_ATTACK_MOVE_MUL = 0.5;
+
 function enemyMovementBlocked(enemy: EnemyInstance): boolean {
-  if (enemy.behavior === "javelineer") return false;
+  if (enemy.behavior === "javelineer" || enemy.behavior === "bruiser") {
+    return false;
+  }
   return enemyIsAttacking(enemy.combat);
+}
+
+function chasePhaseScale(enemy: EnemyInstance): number {
+  if (enemy.behavior === "javelineer") return 1;
+  if (enemy.behavior === "bruiser" && enemyIsAttacking(enemy.combat)) {
+    return BRUISER_ATTACK_MOVE_MUL;
+  }
+  if (enemy.combat.phase === "active") return 0.35;
+  return 1;
 }
 
 export function applyChaseVelocity(
@@ -61,8 +74,7 @@ export function applyChaseVelocity(
   if (enemyMovementBlocked(enemy)) return;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
-  const chaseScale =
-    enemy.behavior !== "javelineer" && enemy.combat.phase === "active" ? 0.35 : 1;
+  const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
   const speed = enemy.speed * speedMul * chaseScale * statusMul;
   const angle = Math.atan2(moveY - ey, moveX - ex);
@@ -96,8 +108,7 @@ export function applyDirectVelocity(
     enemy.sprite.setVelocity(0, 0);
     return;
   }
-  const chaseScale =
-    enemy.behavior !== "javelineer" && enemy.combat.phase === "active" ? 0.35 : 1;
+  const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
   const speed = enemy.speed * speedMul * chaseScale * statusMul;
   enemy.sprite.setVelocity((dirX / len) * speed, (dirY / len) * speed);

@@ -5,6 +5,7 @@ import {
   DEFAULT_STATIONARY_RANGED_COMBAT,
   DEFAULT_WALL_SIEGE_COMBAT,
   DEFAULT_LOBBER_COMBAT,
+  DEFAULT_HYBRID_COMBAT,
   DEFAULT_MELEE_COMBAT,
   DEFAULT_WALL_COMBAT,
   resolveEnemyCombat,
@@ -48,6 +49,10 @@ describe("resolveEnemyCombat", () => {
 
     const lob = resolveEnemyCombat("lobber", {});
     expect(lob.lobber).toEqual(DEFAULT_LOBBER_COMBAT);
+
+    const hybrid = resolveEnemyCombat("rangedHybrid", {});
+    expect(hybrid.stationaryRanged).toEqual(DEFAULT_STATIONARY_RANGED_COMBAT);
+    expect(hybrid.hybrid).toEqual(DEFAULT_HYBRID_COMBAT);
   });
 });
 

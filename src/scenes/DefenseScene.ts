@@ -85,6 +85,7 @@ import {
   updateArrowRainCombat,
   updateJavelineerCombat,
   updateLobberCombat,
+  updateRangedHybridCombat,
   updateStationaryRangedCombat,
 } from "../entities/EnemyRangedCombat";
 import {
@@ -534,6 +535,7 @@ export class DefenseScene extends Phaser.Scene {
       this.enemyProjectiles = [];
       for (const e of this.enemies) {
         destroyArrowRainTelegraph(e.arrowRain?.telegraph);
+        destroyArrowRainTelegraph(e.lobber?.telegraph);
       }
     });
   }
@@ -827,6 +829,47 @@ export class DefenseScene extends Phaser.Scene {
               tune.projectileMaxTravel,
               id,
             ),
+          );
+        }
+      } else if (e.behavior === "rangedHybrid" && e.rangedHybrid) {
+        const hybrid = updateRangedHybridCombat(
+          e,
+          attackTarget,
+          e.rangedHybrid,
+          delta,
+          onWallHit,
+        );
+        if (hybrid.spawnBolt) {
+          const req = hybrid.spawnBolt;
+          const tune = e.combatTuning.stationaryRanged!;
+          const id = `eh_${this.projectileSerial++}`;
+          this.enemyProjectiles.push(
+            spawnEnemyProjectile(
+              this,
+              req.fromX,
+              req.fromY,
+              req.toX,
+              req.toY,
+              tune.projectileSpeed,
+              req.damage,
+              tune.projectileMaxTravel,
+              id,
+            ),
+          );
+        }
+        if (hybrid.meleeHit) playerHitDamage += e.damage;
+        if (
+          e.rangedHybrid.mode === "melee" &&
+          e.combat.phase === "active" &&
+          !e.combat.slashFxShown
+        ) {
+          e.combat.slashFxShown = true;
+          showGruntMeleeSwipe(
+            this,
+            e.sprite.x,
+            e.sprite.y,
+            e.combat.facing,
+            e.combatTuning.melee.activeMs,
           );
         }
       } else if (e.behavior === "lobber" && e.lobber) {
@@ -1804,6 +1847,7 @@ export class DefenseScene extends Phaser.Scene {
       defId,
       () => {
         destroyArrowRainTelegraph(enemy.arrowRain?.telegraph);
+        destroyArrowRainTelegraph(enemy.lobber?.telegraph);
         enemy.sprite.destroy();
       },
       () => this.setFocusEnemy(id),

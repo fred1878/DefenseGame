@@ -27,7 +27,7 @@ describe("public data fixtures", () => {
       string,
       { displayName: string }
     >;
-    expect(Object.keys(enemies)).toHaveLength(11);
+    expect(Object.keys(enemies)).toHaveLength(12);
     for (const row of Object.values(enemies)) {
       expect(row.displayName.trim().length).toBeGreaterThan(0);
       expect(row.displayName).not.toMatch(/_/);
@@ -74,16 +74,18 @@ describe("public data fixtures", () => {
     expect(archer?.combat?.arrowRain?.zoneRadius).toBe(72);
   });
 
-  it("enemies.json assigns a unique textureKey per id", () => {
+  it("enemies.json assigns textureKey per id (reuse allowed when documented)", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
       { textureKey: string }
     >;
-    const keys = Object.values(enemies).map((e) => e.textureKey);
-    expect(new Set(keys).size).toBe(keys.length);
+    const textureReuse: Record<string, string> = {
+      reaver: "enemy_javelineer",
+    };
     for (const [id, row] of Object.entries(enemies)) {
-      expect(row.textureKey).toBe(`enemy_${id}`);
+      expect(row.textureKey).toBe(textureReuse[id] ?? `enemy_${id}`);
     }
+    expect(enemies.reaver?.textureKey).toBe("enemy_javelineer");
   });
 
   it("waves.json night 1 has groups", () => {

@@ -19,9 +19,11 @@ import {
   createJavelineerCombatState,
   createStationaryRangedCombatState,
   createLobberCombatState,
+  createRangedHybridCombatState,
   type ArrowRainCombatState,
   type JavelineerCombatState,
   type LobberCombatState,
+  type RangedHybridCombatState,
   type StationaryRangedCombatState,
 } from "./EnemyRangedCombat";
 
@@ -64,6 +66,7 @@ export type EnemyInstance = {
   javelineer?: JavelineerCombatState;
   stationaryRanged?: StationaryRangedCombatState;
   lobber?: LobberCombatState;
+  rangedHybrid?: RangedHybridCombatState;
   nameplate: EnemyNameplate;
   displayName: string;
   /** Per-frame status slow from spells (do not persist). */
@@ -167,6 +170,9 @@ export function spawnEnemy(
   }
   if (def.behavior === "lobber") {
     enemy.lobber = createLobberCombatState();
+  }
+  if (def.behavior === "rangedHybrid") {
+    enemy.rangedHybrid = createRangedHybridCombatState();
   }
   return enemy;
 }
