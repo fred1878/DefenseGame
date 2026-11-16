@@ -18,6 +18,12 @@ export const SPELL_BAR = {
   fontSize: `${scaleUiX(11)}px`,
 } as const;
 
+/** On-screen spell icon size inside a slot (defense HUD + town sort panel). */
+export function spellBarIconDisplayPx(): number {
+  const pad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
+  return SPELL_BAR.slotSizePx - pad;
+}
+
 export const CAST_BAR = {
   width: scaleUiX(48),
   height: scaleUiY(6),

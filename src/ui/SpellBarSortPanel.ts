@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME, SPELL_BAR } from "../config";
+import { GAME, SPELL_BAR, spellBarIconDisplayPx } from "../config";
 import { spellIconTextureKey } from "../content/assets";
 import {
   getSpellCatalog,
@@ -155,7 +155,8 @@ export class SpellBarSortPanel {
         .setOrigin(0.5);
 
       this.slotViews.push({ frame, icon, indexLabel, autoBorder });
-      this.root.add([autoBorder, frame, icon, indexLabel]);
+      // Auto-cast ring drawn above the icon so it is not covered.
+      this.root.add([frame, icon, indexLabel, autoBorder]);
     }
 
     const barRows =
@@ -262,8 +263,7 @@ export class SpellBarSortPanel {
   }
 
   private refreshSlotDisplay(): void {
-    const barCell = scaleUiX(56);
-    const iconSize = Math.round(barCell * 0.82);
+    const iconSize = spellBarIconDisplayPx();
     for (let i = 0; i < this.slotViews.length; i++) {
       const view = this.slotViews[i]!;
       const id = this.slots[i] ?? "";
@@ -288,7 +288,9 @@ export class SpellBarSortPanel {
 
   private refreshAutoCastBorders(): void {
     for (let i = 0; i < this.slotViews.length; i++) {
-      this.slotViews[i]!.autoBorder.setVisible(Boolean(this.autoCast[i]));
+      const border = this.slotViews[i]!.autoBorder;
+      border.setVisible(Boolean(this.autoCast[i]));
+      if (this.autoCast[i]) this.root.bringToTop(border);
     }
   }
 

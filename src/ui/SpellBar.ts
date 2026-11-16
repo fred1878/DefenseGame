@@ -75,7 +75,7 @@ export class SpellBar {
         strokeColor: 0x818cf8,
         tapPadding: SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
-        frameTextureKey: "ui_spell_slot",
+        ...(hasIcon ? { frameTextureKey: "ui_spell_slot" } : {}),
       });
       if (hasIcon) {
         const iconPad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
@@ -123,7 +123,7 @@ export class SpellBar {
         )
         .setFillStyle(0x000000, 0)
         .setScrollFactor(0)
-        .setDepth(depth - 1)
+        .setDepth(depth + 2)
         .setVisible(this.autoCast[i] ?? false);
 
       const overlay = scene.add

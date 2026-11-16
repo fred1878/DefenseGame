@@ -25,4 +25,4 @@ export {
   type DefenseObstacleRect,
   type ObstaclePhysicsLayout,
 } from "./defense";
-export { CAST_BAR, SPELL_BAR } from "./spellBar";
+export { CAST_BAR, SPELL_BAR, spellBarIconDisplayPx } from "./spellBar";
