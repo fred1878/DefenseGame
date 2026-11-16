@@ -69,8 +69,11 @@ export class BootScene extends Phaser.Scene {
       loader.image("player_e", `${ASSET_ROOT}/sprites/player_e.png`);
       loader.image("player_n", `${ASSET_ROOT}/sprites/player_n.png`);
       loader.image("player_w", `${ASSET_ROOT}/sprites/player_w.png`);
-      for (const { key, file } of ENEMY_SPRITE_ASSETS) {
-        loader.image(key, `${ASSET_ROOT}/sprites/${file}`);
+      for (const { key, file, enemyId } of ENEMY_SPRITE_ASSETS) {
+        loader.image(
+          key,
+          `${ASSET_ROOT}/sprites/enemies/${enemyId}/${file}`,
+        );
       }
       for (const { key, file } of DEFENSE_OBSTACLE_ASSETS) {
         loader.image(key, `${ASSET_ROOT}/sprites/obstacles/${file}`);

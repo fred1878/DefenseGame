@@ -16,6 +16,7 @@ export function mockEnemyInstance(
     speed: 85,
     damage: 8,
     textureKey: "enemy_grunt",
+    cardinalFacing: "s",
     displayName: "Grunt",
     nameplate: {
       container: {} as EnemyInstance["nameplate"]["container"],

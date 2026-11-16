@@ -19,6 +19,6 @@ Counts below are per-night totals (grunt groups summed). Nights **1–10** inclu
 
 Grunts, bruisers, and skirmishers path toward the **north wall** unless the player is within aggro with line of sight. Siege and sapper units use a tighter aggro disc. Wards screen nearby arrow/javelin/sentry allies.
 
-Each enemy id has a unique `textureKey` and matching PNG in `public/assets/sprites/`.
+Each enemy id has a unique `textureKey` (`enemy_<id>`) and four facing PNGs in `public/assets/sprites/enemies/<id>/`.
 
 If a night is missing from JSON, `DataStore.getWaveForNight` falls back to the highest defined night ≤ requested night, then night `1`.
