@@ -375,6 +375,14 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       return town?.scene.isActive() ? town.e2eIsSpellSortPanelOpen() : false;
     },
+    getSpellSortSlotHitRects() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive() ? town.e2eGetSpellSortSlotHitRects() : [];
+    },
+    getSpellSortBarSlots() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive() ? town.e2eGetSpellSortBarSlots() : [];
+    },
     getObstacleAlignment() {
       return activeDefense(game)?.e2eGetObstacleAlignment() ?? [];
     },

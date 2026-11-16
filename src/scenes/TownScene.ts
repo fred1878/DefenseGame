@@ -196,7 +196,18 @@ export class TownScene extends Phaser.Scene {
         out["start-night"] = pt;
       }
     }
+    if (this.spellSortPanel) {
+      Object.assign(out, this.spellSortPanel.e2eTapTargets());
+    }
     return out;
+  }
+
+  e2eGetSpellSortSlotHitRects(): ReturnType<SpellBarSortPanel["e2eSlotHitRects"]> {
+    return this.spellSortPanel?.e2eSlotHitRects() ?? [];
+  }
+
+  e2eGetSpellSortBarSlots(): string[] {
+    return this.spellSortPanel?.e2eBarSlots() ?? [];
   }
 
   e2eTownBuildingDebugRectCount(): number {

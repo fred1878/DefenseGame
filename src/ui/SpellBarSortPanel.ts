@@ -1,5 +1,10 @@
 import Phaser from "phaser";
-import { GAME, SPELL_BAR, spellBarIconDisplayPx } from "../config";
+import {
+  GAME,
+  SPELL_BAR,
+  TOWN_SPELL_SORT_BAR,
+  townSpellBarIconDisplayPx,
+} from "../config";
 import { spellIconTextureKey } from "../content/assets";
 import {
   getSpellCatalog,
@@ -8,7 +13,9 @@ import {
   type SpellId,
 } from "../content/spells";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
-import { bindTapOrLongPress, createTouchButton } from "./touchButton";
+import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../input/inputTuning";
+import { bindTapOrLongPress, createTouchButton, interactiveObjectScreenRect } from "./touchButton";
+import { releaseOnSameButton } from "./touchButtonGesture";
 import { uiTextStyle } from "./uiTextStyle";
 
 export type SpellBarSortResult = {
@@ -99,16 +106,17 @@ export class SpellBarSortPanel {
       .setOrigin(0.5, 0);
     this.root.add(hint);
 
-    const barCell = SPELL_BAR.slotSizePx;
-    const barGap = SPELL_BAR.slotGapPx;
-    const barRowGap = SPELL_BAR.rowGapPx;
-    const gridTop = scaleUiY(168);
-    const gridW = SPELL_BAR.columnCount * barCell + (SPELL_BAR.columnCount - 1) * barGap;
+    const bar = TOWN_SPELL_SORT_BAR;
+    const barCell = bar.slotSizePx;
+    const barGap = bar.slotGapPx;
+    const barRowGap = bar.rowGapPx;
+    const gridTop = scaleUiY(148);
+    const gridW = bar.columnCount * barCell + (bar.columnCount - 1) * barGap;
     const gridLeft = GAME.width / 2 - gridW / 2 + barCell / 2;
 
     for (let i = 0; i < SPELL_BAR.slotCount; i++) {
-      const col = i % SPELL_BAR.columnCount;
-      const row = Math.floor(i / SPELL_BAR.columnCount);
+      const col = i % bar.columnCount;
+      const row = Math.floor(i / bar.columnCount);
       const x = gridLeft + col * (barCell + barGap);
       const y = gridTop + row * (barCell + barRowGap);
       const frame = scene.add
@@ -119,8 +127,8 @@ export class SpellBarSortPanel {
       const autoBorder = scene.add
         .rectangle(x, y, barCell, barCell)
         .setStrokeStyle(
-          SPELL_BAR.autoCastBorderWidthPx,
-          SPELL_BAR.autoCastBorderColor,
+          bar.autoCastBorderWidthPx,
+          bar.autoCastBorderColor,
           1,
         )
         .setFillStyle(0x000000, 0)
@@ -133,7 +141,7 @@ export class SpellBarSortPanel {
         {
           onTap: () => this.onDropOnSlot(slotIndex),
           onLongPress: () => this.toggleAutoCast(slotIndex),
-          longPressMs: SPELL_BAR.longPressMs,
+          longPressMs: bar.longPressMs,
         },
         {
           bg: frame,
@@ -148,7 +156,7 @@ export class SpellBarSortPanel {
           y,
           `${i + 1}`,
           uiTextStyle(scene, {
-            fontSize: `${scaleUiX(18)}px`,
+            fontSize: `${scaleUiX(22)}px`,
             color: "#6366f1",
           }),
         )
@@ -160,11 +168,11 @@ export class SpellBarSortPanel {
     }
 
     const barRows =
-      SPELL_BAR.rowCount > 0
-        ? SPELL_BAR.rowCount
-        : Math.ceil(SPELL_BAR.slotCount / SPELL_BAR.columnCount);
+      bar.rowCount > 0
+        ? bar.rowCount
+        : Math.ceil(SPELL_BAR.slotCount / bar.columnCount);
     const poolHeaderY =
-      gridTop + barRows * barCell + (barRows - 1) * barRowGap + scaleUiY(36);
+      gridTop + barRows * barCell + (barRows - 1) * barRowGap + scaleUiY(28);
     scene.add
       .text(
         GAME.width / 2,
@@ -263,7 +271,7 @@ export class SpellBarSortPanel {
   }
 
   private refreshSlotDisplay(): void {
-    const iconSize = spellBarIconDisplayPx();
+    const iconSize = townSpellBarIconDisplayPx();
     for (let i = 0; i < this.slotViews.length; i++) {
       const view = this.slotViews[i]!;
       const id = this.slots[i] ?? "";
@@ -316,7 +324,7 @@ export class SpellBarSortPanel {
     const def = spellById(spellId);
     if (!def?.castableInDefense) return;
     const ghost = this.scene.add.container(pointer.x, pointer.y).setDepth(600).setScrollFactor(0);
-    const cell = scaleUiX(48);
+    const cell = TOWN_SPELL_SORT_BAR.slotSizePx;
     const bg = this.scene.add
       .rectangle(0, 0, cell, cell, 0x4c1d95, 0.92)
       .setStrokeStyle(2, 0xe879f9);
@@ -336,8 +344,24 @@ export class SpellBarSortPanel {
     this.drag.ghost.setPosition(pointer.x, pointer.y);
   };
 
-  private onPointerUp = (): void => {
+  private slotIndexAtPointer(pointer: Phaser.Input.Pointer): number {
+    const slopPx = scaleUiX(TOUCH_BUTTON_RELEASE_SLOP_PX);
+    for (let i = 0; i < this.slotViews.length; i++) {
+      const rect = interactiveObjectScreenRect(this.slotViews[i]!.frame);
+      if (rect && releaseOnSameButton(rect, pointer.x, pointer.y, slopPx)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private onPointerUp = (pointer: Phaser.Input.Pointer): void => {
     if (!this.drag) return;
+    const slotIndex = this.slotIndexAtPointer(pointer);
+    if (slotIndex >= 0) {
+      this.onDropOnSlot(slotIndex);
+      return;
+    }
     this.drag.ghost.destroy();
     this.drag = null;
   };
@@ -379,5 +403,54 @@ export class SpellBarSortPanel {
     }
     this.finishCleanup();
     this.root.destroy();
+  }
+
+  /** E2E: slot centers in game coords (540×1200). */
+  e2eTapTargets(): Record<string, { x: number; y: number }> {
+    const out: Record<string, { x: number; y: number }> = {};
+    for (let i = 0; i < this.slotViews.length; i++) {
+      const r = interactiveObjectScreenRect(this.slotViews[i]!.frame);
+      if (!r) continue;
+      out[`spell-sort-slot-${i}`] = {
+        x: r.x + r.width / 2,
+        y: r.y + r.height / 2,
+      };
+    }
+    for (const chip of this.poolChips) {
+      if (!chip.castable) continue;
+      const r = interactiveObjectScreenRect(chip.frame);
+      if (!r) continue;
+      out[`spell-sort-pool-${chip.spellId}`] = {
+        x: r.x + r.width / 2,
+        y: r.y + r.height / 2,
+      };
+    }
+    return out;
+  }
+
+  e2eSlotHitRects(): Array<{
+    index: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }> {
+    const rects: Array<{
+      index: number;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }> = [];
+    for (let i = 0; i < this.slotViews.length; i++) {
+      const r = interactiveObjectScreenRect(this.slotViews[i]!.frame);
+      if (!r) continue;
+      rects.push({ index: i, ...r });
+    }
+    return rects;
+  }
+
+  e2eBarSlots(): SpellId[] {
+    return [...this.slots];
   }
 }
