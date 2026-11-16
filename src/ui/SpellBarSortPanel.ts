@@ -8,7 +8,7 @@ import {
   type SpellId,
 } from "../content/spells";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
-import { createTouchButton } from "./touchButton";
+import { bindTapOrLongPress, createTouchButton } from "./touchButton";
 import { uiTextStyle } from "./uiTextStyle";
 
 export type SpellBarSortResult = {
@@ -25,6 +25,7 @@ type SlotView = {
   frame: Phaser.GameObjects.Rectangle;
   icon: Phaser.GameObjects.Image;
   indexLabel: Phaser.GameObjects.Text;
+  autoBorder: Phaser.GameObjects.Rectangle;
 };
 
 type PoolChip = {
@@ -87,7 +88,7 @@ export class SpellBarSortPanel {
       .text(
         GAME.width / 2,
         scaleUiY(98),
-        "4×2 night bar — 8 slots, same order as defense. Drag bright icons on; dim = on bar; faded = coming soon.",
+        "4×2 night bar — 8 slots, same order as defense. Drag bright icons on; dim = on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
           color: "#a1a1aa",
@@ -114,7 +115,31 @@ export class SpellBarSortPanel {
         .rectangle(x, y, barCell, barCell, 0x1e1b4b, 0.92)
         .setStrokeStyle(2, 0x6366f1);
       frame.setInteractive({ useHandCursor: true });
-      frame.on("pointerup", () => this.onDropOnSlot(i));
+
+      const autoBorder = scene.add
+        .rectangle(x, y, barCell, barCell)
+        .setStrokeStyle(
+          SPELL_BAR.autoCastBorderWidthPx,
+          SPELL_BAR.autoCastBorderColor,
+          1,
+        )
+        .setFillStyle(0x000000, 0)
+        .setVisible(this.autoCast[i] ?? false);
+
+      const slotIndex = i;
+      bindTapOrLongPress(
+        scene,
+        frame,
+        {
+          onTap: () => this.onDropOnSlot(slotIndex),
+          onLongPress: () => this.toggleAutoCast(slotIndex),
+          longPressMs: SPELL_BAR.longPressMs,
+        },
+        {
+          bg: frame,
+          colors: { rest: 0x1e1b4b, pressed: 0x2e2b5b },
+        },
+      );
 
       const icon = scene.add.image(x, y, "spell_icon_fire_bolt").setVisible(false);
       const indexLabel = scene.add
@@ -129,8 +154,8 @@ export class SpellBarSortPanel {
         )
         .setOrigin(0.5);
 
-      this.slotViews.push({ frame, icon, indexLabel });
-      this.root.add([frame, icon, indexLabel]);
+      this.slotViews.push({ frame, icon, indexLabel, autoBorder });
+      this.root.add([autoBorder, frame, icon, indexLabel]);
     }
 
     const barRows =
@@ -208,6 +233,7 @@ export class SpellBarSortPanel {
     this.root.add(done.container);
 
     this.refreshSlotDisplay();
+    this.refreshAutoCastBorders();
 
     scene.input.on("pointermove", this.onPointerMove);
     scene.input.on("pointerup", this.onPointerUp);
@@ -257,6 +283,20 @@ export class SpellBarSortPanel {
       }
     }
     this.refreshPoolAssignmentState();
+    this.refreshAutoCastBorders();
+  }
+
+  private refreshAutoCastBorders(): void {
+    for (let i = 0; i < this.slotViews.length; i++) {
+      this.slotViews[i]!.autoBorder.setVisible(Boolean(this.autoCast[i]));
+    }
+  }
+
+  private toggleAutoCast(slotIndex: number): void {
+    const id = this.slots[slotIndex] ?? "";
+    if (!id) return;
+    this.autoCast[slotIndex] = !this.autoCast[slotIndex];
+    this.refreshAutoCastBorders();
   }
 
   private refreshPoolAssignmentState(): void {
