@@ -398,6 +398,16 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       town?.e2eStartEndless(enemyId);
     },
+    scrollEndlessEnemyList(deltaY: number) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eScrollEndlessEnemyList(deltaY);
+    },
+    getEndlessEnemyListScrollState() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive()
+        ? town.e2eEndlessEnemyListScrollState()
+        : null;
+    },
     isEndlessDefense() {
       return activeDefense(game)?.e2eIsEndlessMode() ?? false;
     },
