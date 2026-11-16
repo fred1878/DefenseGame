@@ -70,6 +70,11 @@ export type DefenseGameE2EApi = {
     height: number;
   }>;
   getSpellSortBarSlots(): string[];
+  openEndlessPanel(): void;
+  isEndlessPanelOpen(): boolean;
+  startEndless(enemyId: string): void;
+  isEndlessDefense(): boolean;
+  getEndlessEnemyId(): string | null;
   getObstacleAlignment(): Array<{
     textureKey: string;
     configX: number;

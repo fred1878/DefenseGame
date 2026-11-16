@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SPELL_BAR } from "../config";
 import {
+  applyEndlessRunExit,
   applyNightResult,
   createNewSave,
   playerDamageMult,
@@ -44,6 +45,17 @@ describe("GameState", () => {
     expect(ready.townWallHp).toBe(save.townWallHpMax);
     expect(ready.player.hp).toBe(save.player.hpMax);
     expect(ready.night).toBe(1);
+  });
+
+  it("applyEndlessRunExit updates hp without gold or night", () => {
+    const save = createNewSave();
+    save.gold = 12;
+    save.night = 3;
+    const next = applyEndlessRunExit(save, 88, 45);
+    expect(next.gold).toBe(12);
+    expect(next.night).toBe(3);
+    expect(next.townWallHp).toBe(88);
+    expect(next.player.hp).toBe(45);
   });
 
   it("keeps partial wall hp when retrying after player death", () => {
