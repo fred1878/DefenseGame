@@ -60,5 +60,6 @@ describe("normalizeEnemyRow", () => {
     expect(row.hp).toBe(30);
     expect(row.speed).toBe(85);
     expect(row.damage).toBe(8);
+    expect(row.displayName).toBe("Grunt");
   });
 });

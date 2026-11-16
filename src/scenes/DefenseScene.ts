@@ -132,14 +132,16 @@ import {
 } from "../ui/screenLayout";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { uiTextStyle } from "../ui/uiTextStyle";
+import { updateEnemyNameplate } from "../ui/enemyNameplate";
 import {
   scaledDefenseObstacles,
+  worldDisplayPx,
   worldUnit,
 } from "../core/worldPixelScale";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { COMBAT_FX_TEXTURE, UI_TEXTURE } from "../content/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY, UI_TEXTURE } from "../content/assets";
 import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
 import {
   DefenseMinimap,
@@ -842,6 +844,18 @@ export class DefenseScene extends Phaser.Scene {
         }
         this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
       }
+    }
+
+    const enemySpriteSide = worldDisplayPx(SPRITE_DISPLAY.enemy, this.registry);
+    for (const e of this.enemies) {
+      if (!e.damageable.alive || e.nameplate.dying) continue;
+      updateEnemyNameplate(
+        e.nameplate,
+        e.sprite.x,
+        e.sprite.y,
+        enemySpriteSide,
+        e.damageable,
+      );
     }
 
     this.drawDebugHitboxes();
@@ -1625,6 +1639,7 @@ export class DefenseScene extends Phaser.Scene {
         damage: DEFAULT_ENEMY_BASE.damage,
         behavior: "meleeChaser",
         textureKey: "enemy_grunt",
+        displayName: "Grunt",
       }
     );
   }

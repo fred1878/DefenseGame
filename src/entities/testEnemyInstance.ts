@@ -16,6 +16,17 @@ export function mockEnemyInstance(
     speed: 85,
     damage: 8,
     textureKey: "enemy_grunt",
+    displayName: "Grunt",
+    nameplate: {
+      container: {} as EnemyInstance["nameplate"]["container"],
+      nameText: {} as EnemyInstance["nameplate"]["nameText"],
+      hpText: {} as EnemyInstance["nameplate"]["hpText"],
+      barGfx: {} as EnemyInstance["nameplate"]["barGfx"],
+      barW: 52,
+      barH: 4,
+      barY: 3,
+      dying: false,
+    },
     sprite: {
       x: 0,
       y: 0,
