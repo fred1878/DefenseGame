@@ -1,9 +1,18 @@
 import { SPELL_BAR } from "../config/spellBar";
 import type { DamageFlavor } from "../combat/DamageSystem";
+import type { SpellTargetMode } from "./spellTargeting";
 import bundledSpells from "../../public/data/spells.json";
 
 export type SpellId = string;
 export type SpellCastKind = "instant" | "channeled";
+
+export type SpellOnHitEffects = {
+  slowPct?: number;
+  slowMs?: number;
+  dotDps?: number;
+  dotMs?: number;
+  rootMs?: number;
+};
 
 export type SpellMechanicType =
   | "projectile"
@@ -29,8 +38,20 @@ export type SpellDefinition = {
   castableInDefense: boolean;
   implementationPhase: number;
   cooldownMs: number;
+  /** Windup before channel or instant resolution (MobileRPG startupDuration). */
+  castMs?: number;
   channelMs: number;
   kind: SpellCastKind;
+  channelTickMs?: number;
+  targetMode?: SpellTargetMode;
+  requireEnemyTarget?: boolean;
+  centerOnCaster?: boolean;
+  groundTargetMaxRangeWu?: number;
+  burstDamage?: number;
+  lingerMs?: number;
+  lingerTickMs?: number;
+  coneRangeWu?: number;
+  onHit?: SpellOnHitEffects;
   baseDamage?: number;
   projectileSpeed?: number;
   blastRadius?: number;

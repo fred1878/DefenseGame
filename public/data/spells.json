@@ -7,7 +7,7 @@
       "mechanicType": "projectile",
       "castableInDefense": true,
       "implementationPhase": 1,
-      "cooldownMs": 800,
+      "cooldownMs": 0,
       "channelMs": 0,
       "kind": "instant",
       "baseDamage": 14,
@@ -15,7 +15,12 @@
       "iconFile": "fire_bolt.png",
       "projectileTextureKey": "fx_spell_fire_bolt",
       "projectileFile": "fire-bolt-mrpg-16.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "castMs": 300,
+      "onHit": {
+        "dotDps": 4,
+        "dotMs": 2500
+      }
     },
     {
       "id": "ice_bolt",
@@ -24,7 +29,7 @@
       "mechanicType": "projectile",
       "castableInDefense": true,
       "implementationPhase": 1,
-      "cooldownMs": 900,
+      "cooldownMs": 0,
       "channelMs": 0,
       "kind": "instant",
       "baseDamage": 12,
@@ -32,7 +37,12 @@
       "iconFile": "ice_bolt.png",
       "projectileTextureKey": "fx_spell_ice_bolt",
       "projectileFile": "ice-bolt-mrpg-16.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 200,
+      "onHit": {
+        "slowPct": 0.4,
+        "slowMs": 4000
+      }
     },
     {
       "id": "lightning_bolt",
@@ -49,7 +59,8 @@
       "iconFile": "lightning_bolt.png",
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 550
     },
     {
       "id": "fire_nova",
@@ -58,15 +69,20 @@
       "mechanicType": "blast",
       "castableInDefense": true,
       "implementationPhase": 1,
-      "cooldownMs": 5000,
+      "cooldownMs": 30000,
       "channelMs": 0,
       "kind": "instant",
       "baseDamage": 22,
-      "blastRadius": 88,
+      "blastRadius": 50,
       "iconFile": "fire_nova.png",
       "blastTextureKey": "fx_spell_fire_nova",
       "blastFile": "fire-nova-mrpg-64.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "centerOnCaster": true,
+      "onHit": {
+        "dotDps": 8,
+        "dotMs": 3000
+      }
     },
     {
       "id": "heal",
@@ -79,7 +95,9 @@
       "channelMs": 1500,
       "kind": "channeled",
       "healAmount": 24,
-      "iconFile": "heal.png"
+      "iconFile": "heal.png",
+      "targetMode": "self",
+      "channelTickMs": 0
     },
     {
       "id": "water_bolt",
@@ -96,7 +114,8 @@
       "iconFile": "water_bolt.png",
       "projectileTextureKey": "fx_spell_water_bolt",
       "projectileFile": "water-bolt-mrpg-16.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 0
     },
     {
       "id": "arc_bomb",
@@ -114,7 +133,8 @@
       "iconFile": "arc_bomb.png",
       "projectileTextureKey": "fx_spell_arc_bomb",
       "projectileFile": "arc-bomb-mrpg-16.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 300
     },
     {
       "id": "swing",
@@ -128,7 +148,8 @@
       "kind": "instant",
       "baseDamage": 20,
       "iconFile": "swing.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "targetMode": "enemy"
     },
     {
       "id": "rend",
@@ -138,11 +159,16 @@
       "castableInDefense": true,
       "implementationPhase": 3,
       "cooldownMs": 600,
-      "channelMs": 200,
+      "channelMs": 0,
       "kind": "instant",
       "baseDamage": 14,
       "iconFile": "rend.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 200,
+      "onHit": {
+        "dotDps": 8,
+        "dotMs": 3000
+      }
     },
     {
       "id": "cone_of_cold",
@@ -156,7 +182,12 @@
       "kind": "instant",
       "baseDamage": 12,
       "iconFile": "cone_of_cold.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "coneRangeWu": 130,
+      "onHit": {
+        "slowPct": 0.4,
+        "slowMs": 2000
+      }
     },
     {
       "id": "cone_of_fire",
@@ -167,10 +198,16 @@
       "implementationPhase": 3,
       "cooldownMs": 6000,
       "channelMs": 400,
-      "kind": "instant",
+      "kind": "channeled",
       "baseDamage": 8,
       "iconFile": "cone_of_fire.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "castMs": 400,
+      "coneRangeWu": 180,
+      "onHit": {
+        "dotDps": 5,
+        "dotMs": 5000
+      }
     },
     {
       "id": "fire_blast",
@@ -187,7 +224,9 @@
       "blastTextureKey": "fx_spell_shockwave",
       "blastFile": "shockwave-mrpg-64.png",
       "iconFile": "fire_blast.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "centerOnCaster": false,
+      "targetMode": "none"
     },
     {
       "id": "blizzard",
@@ -202,7 +241,15 @@
       "baseDamage": 12,
       "blastRadius": 80,
       "iconFile": "blizzard.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 800,
+      "channelTickMs": 250,
+      "targetMode": "ground",
+      "groundTargetMaxRangeWu": 240,
+      "onHit": {
+        "slowPct": 0.4,
+        "slowMs": 2000
+      }
     },
     {
       "id": "meteor",
@@ -212,14 +259,20 @@
       "castableInDefense": true,
       "implementationPhase": 4,
       "cooldownMs": 20000,
-      "channelMs": 1100,
-      "kind": "channeled",
+      "channelMs": 0,
+      "kind": "instant",
       "baseDamage": 24,
-      "blastRadius": 88,
+      "blastRadius": 44,
       "blastTextureKey": "fx_spell_shockwave",
       "blastFile": "shockwave-mrpg-64.png",
       "iconFile": "meteor.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "castMs": 1100,
+      "targetMode": "ground",
+      "onHit": {
+        "dotDps": 8,
+        "dotMs": 3000
+      }
     },
     {
       "id": "frost_nova",
@@ -236,7 +289,11 @@
       "blastTextureKey": "fx_spell_shockwave",
       "blastFile": "shockwave-mrpg-64.png",
       "iconFile": "frost_nova.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "centerOnCaster": true,
+      "onHit": {
+        "rootMs": 1400
+      }
     },
     {
       "id": "ice_wall",
@@ -264,7 +321,18 @@
       "baseDamage": 8,
       "blastRadius": 78,
       "iconFile": "flamestrike.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "castMs": 650,
+      "burstDamage": 24,
+      "channelTickMs": 250,
+      "lingerMs": 3000,
+      "lingerTickMs": 250,
+      "targetMode": "ground",
+      "groundTargetMaxRangeWu": 240,
+      "onHit": {
+        "dotDps": 6,
+        "dotMs": 3000
+      }
     },
     {
       "id": "shadowform",
@@ -287,11 +355,19 @@
       "castableInDefense": true,
       "implementationPhase": 4,
       "cooldownMs": 9000,
-      "channelMs": 550,
-      "kind": "channeled",
+      "channelMs": 0,
+      "kind": "instant",
       "baseDamage": 12,
       "iconFile": "deep_freeze.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 550,
+      "targetMode": "enemy",
+      "requireEnemyTarget": true,
+      "onHit": {
+        "dotDps": 7,
+        "dotMs": 4000,
+        "rootMs": 2000
+      }
     },
     {
       "id": "chain_lightning",
@@ -301,14 +377,17 @@
       "castableInDefense": true,
       "implementationPhase": 4,
       "cooldownMs": 7500,
-      "channelMs": 450,
-      "kind": "channeled",
+      "channelMs": 0,
+      "kind": "instant",
       "baseDamage": 11,
       "projectileSpeed": 420,
       "iconFile": "chain_lightning.png",
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "castMs": 450,
+      "targetMode": "enemy",
+      "requireEnemyTarget": true
     },
     {
       "id": "blink",
@@ -331,12 +410,20 @@
       "castableInDefense": true,
       "implementationPhase": 4,
       "cooldownMs": 8000,
-      "channelMs": 450,
-      "kind": "channeled",
+      "channelMs": 0,
+      "kind": "instant",
       "baseDamage": 22,
       "blastRadius": 64,
       "iconFile": "combustion.png",
-      "damageFlavor": "fire"
+      "damageFlavor": "fire",
+      "castMs": 450,
+      "burstDamage": 22,
+      "targetMode": "enemy",
+      "requireEnemyTarget": true,
+      "onHit": {
+        "dotDps": 2.5,
+        "dotMs": 3500
+      }
     }
   ]
 }

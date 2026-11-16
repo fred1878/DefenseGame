@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   blinkDestination,
+  clampGroundTarget,
   enemiesInCone,
   enemiesInDisk,
   pickChainLightningTargets,
@@ -28,6 +29,12 @@ describe("spellMechanics", () => {
     const chain = pickChainLightningTargets(0, 0, enemies, 3, 120);
     expect(chain[0]?.id).toBe("a");
     expect(chain.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("clampGroundTarget clamps to max range", () => {
+    const p = clampGroundTarget(0, 0, 300, 0, 100);
+    expect(p.x).toBe(100);
+    expect(p.y).toBe(0);
   });
 
   it("blink clamps to bounds", () => {

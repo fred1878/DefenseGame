@@ -66,6 +66,8 @@ export type EnemyInstance = {
   lobber?: LobberCombatState;
   nameplate: EnemyNameplate;
   displayName: string;
+  /** Per-frame status slow from spells (do not persist). */
+  statusSpeedMul: number;
 };
 
 export function spawnEnemy(
@@ -145,6 +147,7 @@ export function spawnEnemy(
     combat: createEnemyCombat(),
     nav: createEnemyNav(),
     nameplate,
+    statusSpeedMul: 1,
     behaviorExtra: {
       strafeSign: 1,
       strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 1400,

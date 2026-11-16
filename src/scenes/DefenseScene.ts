@@ -43,7 +43,6 @@ import {
 import {
   blinkDestination,
   BLINK_DISTANCE_WU,
-  DEEP_FREEZE_ROOT_MS,
   FROST_ROOT_MS,
   ICE_WALL_DISTANCE_WU,
   ICE_WALL_DURATION_MS,
@@ -114,6 +113,19 @@ import { evaluateNightEnd } from "./defenseNightLogic";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
+import { GroundTargetReticle } from "../ui/GroundTargetReticle";
+import {
+  spellRequiresManualTarget,
+  spellTargetMode,
+} from "../content/spellTargeting";
+import {
+  clampGroundTarget,
+} from "../combat/spellMechanics";
+import {
+  spawnGroundZone,
+  tickSpellGroundZones,
+  type SpellGroundZone,
+} from "../combat/spellGroundZone";
 import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../world/buildGroundLayer";
 import { configureDefenseFollowCamera } from "../world/defenseCamera";
@@ -189,7 +201,11 @@ export class DefenseScene extends Phaser.Scene {
   private spellCaster = new SpellCastController();
   private enemySpellStatus = new EnemySpellStatusMap();
   private spellChannelArea: { x: number; y: number } | null = null;
-  private spellChannelTickMs = 0;
+  private spellGroundZones: SpellGroundZone[] = [];
+  private pendingGroundCast: string | null = null;
+  private groundAim: { x: number; y: number } | null = null;
+  private groundReticle!: GroundTargetReticle;
+  private channelAreaStarted = false;
   private shadowformEndsAt = 0;
   private iceWallExpires: Array<{
     sprite: Phaser.Physics.Arcade.Image;
@@ -238,7 +254,9 @@ export class DefenseScene extends Phaser.Scene {
     this.spellCaster = new SpellCastController();
     this.enemySpellStatus = new EnemySpellStatusMap();
     this.spellChannelArea = null;
-    this.spellChannelTickMs = 0;
+    this.spellGroundZones = [];
+    this.pendingGroundCast = null;
+    this.groundAim = null;
     this.shadowformEndsAt = 0;
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
@@ -406,6 +424,7 @@ export class DefenseScene extends Phaser.Scene {
     ];
 
     this.targetIndicator = new TargetIndicator(this);
+    this.groundReticle = new GroundTargetReticle(this);
     this.minimap = new DefenseMinimap(this);
     this.minimapLayout = defenseMinimapLayout(this, this.safe);
     if (isE2EEnabled() && typeof window !== "undefined") {
@@ -502,6 +521,7 @@ export class DefenseScene extends Phaser.Scene {
       this.input.off("pointerup", this.onPointerUpBound);
       this.stick.destroy(this);
       this.targetIndicator.destroy();
+      this.groundReticle.destroy();
       this.castBar.destroy();
       this.spellBar.destroy();
       this.hitboxDebug.destroy();
@@ -527,21 +547,22 @@ export class DefenseScene extends Phaser.Scene {
     if (this.spellCaster.isChanneling()) {
       this.player.sprite.setVelocity(0, 0);
       const channel = this.spellCaster.updateChannel(delta, dir.x, dir.y);
-      if (channel.type === "channeling") {
+      if (channel.type === "windup" || channel.type === "channeling") {
         this.castBar.setVisible(true);
         this.castBar.setWorldPosition(px, py);
         this.castBar.setProgress(channel.progress);
         const chDef = spellById(channel.spellId);
-        if (chDef) this.tickChanneledSpell(chDef, delta);
+        if (channel.type === "channeling" && chDef && !this.channelAreaStarted) {
+          this.startChanneledGroundZone(chDef);
+        }
       } else if (channel.type === "interrupted") {
         this.castBar.setVisible(false);
-        this.spellChannelArea = null;
-        this.spellChannelTickMs = 0;
+        this.clearSpellChannelState();
       } else if (channel.type === "completed") {
         this.castBar.setVisible(false);
-        this.spellChannelArea = null;
-        this.spellChannelTickMs = 0;
         this.resolveSpellEffect(channel.def);
+        this.spawnPostChannelLinger(channel.def);
+        this.clearSpellChannelState();
       }
     } else {
       const lockMeleeAim = this.shouldLockMeleeAimFacing();
@@ -660,7 +681,22 @@ export class DefenseScene extends Phaser.Scene {
 
     this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
     this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
-    this.enemySpellStatus.tick(delta);
+    this.enemySpellStatus.tick(delta, (enemyId, amount, flavor) => {
+      const e = this.getEnemyById(enemyId);
+      if (e?.damageable.alive) applyDamage(e.damageable, amount, flavor);
+    });
+    for (const e of this.enemies) {
+      e.statusSpeedMul = this.enemySpellStatus.moveSpeedMultiplier(e.id);
+    }
+    this.spellGroundZones = tickSpellGroundZones(
+      this,
+      this.spellGroundZones,
+      this.time.now,
+      delta,
+      this.enemyTargets(),
+      this.enemySpellStatus,
+      this.spellDamageMult(),
+    );
     this.tickIceWalls();
 
     this.enemyPathGoals.clear();
@@ -949,30 +985,146 @@ export class DefenseScene extends Phaser.Scene {
       this.spellCaster.isChanneling(),
     );
     if (!pick) return;
-    this.onSpellCastRequest(pick.spellId);
+    const def = spellById(pick.spellId);
+    if (def && spellTargetMode(def) === "ground") {
+      this.groundAim = this.defaultGroundTarget(def);
+    }
+    this.beginSpellCast(pick.spellId);
   }
 
   private onSpellCastRequest(spellId: string): void {
     if (this.spellCaster.isChanneling()) return;
-    const begun = this.spellCaster.tryBeginCast(spellId);
-    if (begun === false) return;
-    if (begun === "channel") {
-      this.player.sprite.setVelocity(0, 0);
-      const chDef = spellById(spellId);
-      const target = this.facingTarget("ranged", true);
-      if (target) this.player.faceToward(target.x, target.y);
-      if (
-        chDef &&
-        (chDef.mechanicType === "channeled_area" || chDef.id === "meteor")
-      ) {
-        this.spellChannelArea = target
-          ? { x: target.x, y: target.y }
-          : { x: this.player.sprite.x, y: this.player.sprite.y };
-      }
-      this.spellChannelTickMs = 0;
+    const def = spellById(spellId);
+    if (!def) return;
+    if (
+      spellRequiresManualTarget(def) &&
+      spellTargetMode(def) === "ground" &&
+      !this.pendingGroundCast
+    ) {
+      this.pendingGroundCast = spellId;
+      const aim = this.defaultGroundTarget(def);
+      this.groundAim = aim;
+      this.groundReticle.showAt(
+        aim.x,
+        aim.y,
+        GroundTargetReticle.radiusForSpell(this, def.blastRadius),
+      );
       return;
     }
-    this.resolveSpellEffect(begun);
+    if (
+      def.requireEnemyTarget &&
+      spellTargetMode(def) === "enemy" &&
+      !this.focusEnemyId
+    ) {
+      return;
+    }
+    this.beginSpellCast(spellId);
+  }
+
+  private beginSpellCast(spellId: string): void {
+    const def = spellById(spellId);
+    if (!def || this.spellCaster.isChanneling()) return;
+    if (spellTargetMode(def) === "ground") {
+      this.spellChannelArea =
+        this.groundAim ??
+        this.defaultGroundTarget(def);
+    } else if (def.mechanicType === "channeled_area") {
+      const target = this.facingTarget("ranged", true);
+      this.spellChannelArea = target
+        ? { x: target.x, y: target.y }
+        : { x: this.player.sprite.x, y: this.player.sprite.y };
+    }
+    const begun = this.spellCaster.tryBeginCast(spellId);
+    if (begun === false) return;
+    this.channelAreaStarted = false;
+    if (begun === "windup" || begun === "channel") {
+      this.player.sprite.setVelocity(0, 0);
+      const target = this.facingTarget("ranged", true);
+      if (target) this.player.faceToward(target.x, target.y);
+      return;
+    }
+    if (typeof begun === "object") {
+      this.resolveSpellEffect(begun);
+    }
+    this.pendingGroundCast = null;
+    this.groundAim = null;
+    this.groundReticle.hide();
+  }
+
+  private defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
+    const focus = this.focusEnemyId
+      ? this.getEnemyById(this.focusEnemyId)
+      : null;
+    let tx = focus?.sprite.x ?? px;
+    let ty = focus?.sprite.y ?? py;
+    if (!focus) {
+      const ang = this.player.getFacingAngle();
+      tx = px + Math.cos(ang) * maxR * 0.55;
+      ty = py + Math.sin(ang) * maxR * 0.55;
+    }
+    return clampGroundTarget(px, py, tx, ty, maxR);
+  }
+
+  private clearSpellChannelState(): void {
+    this.spellChannelArea = null;
+    this.channelAreaStarted = false;
+  }
+
+  private startChanneledGroundZone(def: SpellDefinition): void {
+    if (this.channelAreaStarted) return;
+    const mult = this.spellDamageMult();
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const center = this.spellChannelArea ?? { x: px, y: py };
+    if (def.mechanicType === "channeled_area" || def.mechanicType === "channeled") {
+      this.spellGroundZones.push(
+        spawnGroundZone(this, def, center.x, center.y, mult, this.time.now, {
+          durationMs: def.channelMs,
+          tickDamageScale: def.mechanicType === "channeled" ? 0.35 : 0.4,
+          includeBurst: Boolean(def.burstDamage),
+        }),
+      );
+      this.channelAreaStarted = true;
+      if (def.mechanicType === "channeled" && def.id === "blizzard") {
+        this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 80), {
+          blastTextureKey: COMBAT_FX_TEXTURE.spellBlizzard,
+        });
+      }
+      if (def.mechanicType === "channeled_area") {
+        this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
+          blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
+        });
+      }
+    }
+  }
+
+  private spawnPostChannelLinger(def: SpellDefinition): void {
+    if (!def.lingerMs || def.lingerMs <= 0) return;
+    const center = this.spellChannelArea ?? {
+      x: this.player.sprite.x,
+      y: this.player.sprite.y,
+    };
+    this.spellGroundZones.push(
+      spawnGroundZone(
+        this,
+        def,
+        center.x,
+        center.y,
+        this.spellDamageMult(),
+        this.time.now,
+        {
+          durationMs: def.lingerMs,
+          lingerDot: true,
+          tickDamageScale: 0,
+        },
+      ),
+    );
+    this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
+      blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
+    });
   }
 
   private spellDamageMult(): number {
@@ -991,7 +1143,7 @@ export class DefenseScene extends Phaser.Scene {
         const remote = def.id === "meteor" ? this.spellChannelArea : null;
         const bx = remote?.x ?? px;
         const by = remote?.y ?? py;
-        applySpellBlastAt(this, bx, by, def, targets, mult);
+        applySpellBlastAt(this, bx, by, def, targets, mult, 140, this.enemySpellStatus);
         this.flashNova(bx, by, this.wu(def.blastRadius ?? 80), {
           blastTextureKey:
             def.id === "meteor"
@@ -1045,28 +1197,16 @@ export class DefenseScene extends Phaser.Scene {
           def,
           targets,
           mult,
+          this.enemySpellStatus,
         );
         break;
       }
       case "cone":
-        applySpellCone(this, px, py, angle, def, targets, mult);
+        applySpellCone(this, px, py, angle, def, targets, mult, this.enemySpellStatus);
         break;
       case "channeled":
-        if (def.id === "blizzard") {
-          applySpellBlastAt(this, px, py, def, targets, mult);
-          this.flashNova(px, py, this.wu(def.blastRadius ?? 80), {
-            blastTextureKey: COMBAT_FX_TEXTURE.spellBlizzard,
-          });
-        }
+      case "channeled_area":
         break;
-      case "channeled_area": {
-        const center = this.spellChannelArea ?? { x: px, y: py };
-        applySpellBlastAt(this, center.x, center.y, def, targets, mult);
-        this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
-          blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
-        });
-        break;
-      }
       case "instant_targeted": {
         const hitId = applyInstantTargeted(
           this,
@@ -1076,10 +1216,8 @@ export class DefenseScene extends Phaser.Scene {
           px,
           py,
           mult,
+          this.enemySpellStatus,
         );
-        if (def.id === "deep_freeze" && hitId) {
-          this.enemySpellStatus.applyRoot(hitId, DEEP_FREEZE_ROOT_MS);
-        }
         if (def.projectileTextureKey) {
           const t = hitId ? this.getEnemyById(hitId) : null;
           const tx = t?.sprite.x ?? px + Math.cos(angle) * 40;
@@ -1112,44 +1250,17 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
   }
 
-  private tickChanneledSpell(def: SpellDefinition, deltaMs: number): void {
-    if (def.kind !== "channeled" || def.channelMs <= 0) return;
-  const tickEvery =
-      def.mechanicType === "channeled" || def.mechanicType === "channeled_area"
-        ? 450
-        : 0;
-    if (tickEvery <= 0) return;
-    this.spellChannelTickMs += deltaMs;
-    if (this.spellChannelTickMs < tickEvery) return;
-    this.spellChannelTickMs -= tickEvery;
-    const mult = this.spellDamageMult();
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    if (def.mechanicType === "channeled" && def.id === "blizzard") {
-      applySpellBlastAt(this, px, py, def, this.enemyTargets(), mult * 0.35);
-      this.flashNova(px, py, this.wu(def.blastRadius ?? 80), {
-        blastTextureKey: COMBAT_FX_TEXTURE.spellBlizzard,
-      });
-      return;
-    }
-    if (def.mechanicType === "channeled_area") {
-      const center = this.spellChannelArea ?? { x: px, y: py };
-      applySpellBlastAt(this, center.x, center.y, def, this.enemyTargets(), mult * 0.4);
-      this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
-        blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
-      });
-    }
-  }
-
   private applyFrostNovaRoot(): void {
+    const def = spellById("frost_nova");
+    const rootMs = def?.onHit?.rootMs ?? FROST_ROOT_MS;
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
-    const r = this.wu(spellById("frost_nova")?.blastRadius ?? 85);
+    const r = this.wu(def?.blastRadius ?? 85);
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
       if (d <= r + this.wu(ENTITY_BODY_RADIUS.enemy)) {
-        this.enemySpellStatus.applyRoot(e.id, FROST_ROOT_MS);
+        this.enemySpellStatus.applyRoot(e.id, rootMs);
       }
     }
   }
@@ -1281,6 +1392,22 @@ export class DefenseScene extends Phaser.Scene {
   private onScreenTap(pointer: Phaser.Input.Pointer): void {
     const tapResult = this.stick.tryConsumeTap(pointer);
     if (this.isPointerOverUi(pointer)) return;
+    if (this.pendingGroundCast && tapResult.kind !== "drag") {
+      const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
+      const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
+      const world = cameraWorldPoint(this.cameras.main, screenX, screenY);
+      const def = spellById(this.pendingGroundCast);
+      if (def) {
+        const px = this.player.sprite.x;
+        const py = this.player.sprite.y;
+        const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
+        this.groundAim = clampGroundTarget(px, py, world.x, world.y, maxR);
+        const spellId = this.pendingGroundCast;
+        this.pendingGroundCast = null;
+        this.beginSpellCast(spellId);
+      }
+      return;
+    }
     if (this.focusSelectLockMs > 0) return;
     if (tapResult.kind === "drag") return;
 
