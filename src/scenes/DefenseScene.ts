@@ -142,8 +142,10 @@ import {
   spellTargetMode,
 } from "../content/spellTargeting";
 import {
-  clampGroundTarget,
-} from "../combat/spellMechanics";
+  resolveAutoCastGroundAim,
+  resolveManualDefaultGroundAim,
+} from "../combat/spellGroundAim";
+import { clampGroundTarget } from "../combat/spellMechanics";
 import {
   spawnGroundZone,
   tickSpellGroundZones,
@@ -1152,7 +1154,7 @@ export class DefenseScene extends Phaser.Scene {
     if (!pick) return;
     const def = spellById(pick.spellId);
     if (def && spellTargetMode(def) === "ground") {
-      this.groundAim = this.defaultGroundTarget(def);
+      this.groundAim = this.autoCastGroundTarget(def);
     }
     this.beginSpellCast(pick.spellId);
   }
@@ -1243,21 +1245,52 @@ export class DefenseScene extends Phaser.Scene {
     }
   }
 
+  private groundAimEnemies(): {
+    id: string;
+    x: number;
+    y: number;
+    radius: number;
+    alive: boolean;
+  }[] {
+    return this.enemies.map((e) => ({
+      id: e.id,
+      x: e.sprite.x,
+      y: e.sprite.y,
+      radius: e.sprite.displayWidth * 0.25,
+      alive: e.damageable.alive,
+    }));
+  }
+
+  private autoCastGroundTarget(def: SpellDefinition): { x: number; y: number } {
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
+    const strike = this.resolveStrikeMode(this.player.mode === "auto");
+    return resolveAutoCastGroundAim(
+      px,
+      py,
+      this.player.getFacingAngle(),
+      this.focusEnemyId,
+      this.groundAimEnemies(),
+      strike,
+      this.wu(PLAYER_TUNING.autoAttackMeleeRange),
+      this.wu(PLAYER_TUNING.autoAttackRangedRange),
+      maxR,
+    );
+  }
+
   private defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
     const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
-    const focus = this.focusEnemyId
-      ? this.getEnemyById(this.focusEnemyId)
-      : null;
-    let tx = focus?.sprite.x ?? px;
-    let ty = focus?.sprite.y ?? py;
-    if (!focus) {
-      const ang = this.player.getFacingAngle();
-      tx = px + Math.cos(ang) * maxR * 0.55;
-      ty = py + Math.sin(ang) * maxR * 0.55;
-    }
-    return clampGroundTarget(px, py, tx, ty, maxR);
+    return resolveManualDefaultGroundAim(
+      px,
+      py,
+      this.player.getFacingAngle(),
+      this.focusEnemyId,
+      this.groundAimEnemies(),
+      maxR,
+    );
   }
 
   private clearSpellChannelState(): void {
