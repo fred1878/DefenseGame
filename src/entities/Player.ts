@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { PLAYER_TUNING, type AttackMode } from "../config";
+import { DEFENSE_RENDER_DEPTH, PLAYER_TUNING, type AttackMode } from "../config";
 import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../content/assets";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
@@ -35,7 +35,7 @@ export class Player {
       pushable: false,
       worldBounds: true,
     });
-    this.sprite.setDepth(10);
+    this.sprite.setDepth(DEFENSE_RENDER_DEPTH.player);
 
     this.damageable = {
       id: "player",

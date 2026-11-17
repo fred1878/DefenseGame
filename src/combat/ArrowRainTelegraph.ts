@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 
 export type ArrowRainTelegraph = {
   gfx: Phaser.GameObjects.Graphics;
@@ -17,7 +18,7 @@ export function spawnArrowRainTelegraph(
   zoneRadius: number,
 ): ArrowRainTelegraph {
   const gfx = scene.add.graphics();
-  gfx.setDepth(3);
+  gfx.setDepth(DEFENSE_RENDER_DEPTH.floorTelegraph);
   return { gfx, zoneX, zoneY, phaseMs: 0, windupMs, zoneRadius };
 }
 

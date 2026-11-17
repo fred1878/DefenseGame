@@ -1,9 +1,8 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { Damageable } from "../combat/DamageSystem";
 import { uiSmallLabelShadow, uiTextStyle } from "./uiTextStyle";
-
-const PLATE_DEPTH = 6;
 
 export type EnemyNameplate = {
   container: Phaser.GameObjects.Container;
@@ -52,7 +51,7 @@ export function createEnemyNameplate(
   const oy = plateOffsetY(spriteDisplaySide);
   const container = scene.add
     .container(x, y + oy, [nameText, barGfx, hpText])
-    .setDepth(PLATE_DEPTH);
+    .setDepth(DEFENSE_RENDER_DEPTH.enemyNameplate);
 
   return {
     container,

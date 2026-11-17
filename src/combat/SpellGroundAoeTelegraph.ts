@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import type { SpellDefinition } from "../content/spells";
 import { spellCastMs, spellTargetMode } from "../content/spellTargeting";
 
@@ -62,7 +63,7 @@ export function spawnSpellGroundAoeTelegraph(
   mode: "windup" | "channel" | "impact" = "windup",
 ): SpellGroundAoeTelegraph {
   const gfx = scene.add.graphics();
-  gfx.setDepth(4);
+  gfx.setDepth(DEFENSE_RENDER_DEPTH.spellGroundTelegraph);
   return {
     gfx,
     zoneX,

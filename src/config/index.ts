@@ -25,6 +25,7 @@ export {
   type DefenseObstacleRect,
   type ObstaclePhysicsLayout,
 } from "./defense";
+export { DEFENSE_RENDER_DEPTH } from "./renderDepth";
 export {
   CAST_BAR,
   SPELL_BAR,
