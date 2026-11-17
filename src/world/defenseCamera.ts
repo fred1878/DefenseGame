@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { DEFENSE_FIELD_PX, defenseHalfWidth } from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
-import { adoptDefenseWorldObject } from "./defenseWorldLayer";
+import { adoptDefenseWorldObject, isInDefenseWorldLayer } from "./defenseWorldLayer";
 
 export const DEFENSE_UI_CAMERA_NAME = "defenseUi";
 
@@ -63,6 +63,9 @@ export function setupDefenseCameraRig(
   uiCamera.ignore(worldLayer);
 
   const registerUi = (go: Phaser.GameObjects.GameObject): void => {
+    if (isInDefenseWorldLayer(go, worldLayer)) {
+      worldLayer.remove(go);
+    }
     worldCamera.ignore(go);
   };
   const registerWorld = (go: Phaser.GameObjects.GameObject): void => {

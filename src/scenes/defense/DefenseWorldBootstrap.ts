@@ -15,6 +15,10 @@ import {
   setupDefenseCameraRig,
   type DefenseCameraRig,
 } from "../../world/defenseCamera";
+import {
+  DEFENSE_WORLD_LAYER_REGISTRY_KEY,
+  setDefenseWorldLayerTarget,
+} from "../../world/defenseWorldAddHook";
 import { configureDefenseObstacleSprite } from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
 import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
@@ -43,6 +47,7 @@ export function bootstrapDefenseWorld(
   const { scene, night, playerHpMax, endless } = input;
   const halfW = defenseHalfWidth();
   const halfH = defenseHalfHeight();
+  scene.registry.remove(DEFENSE_WORLD_LAYER_REGISTRY_KEY);
   scene.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
   const groundLayer = buildGroundLayer(scene, halfW, halfH);
   const decorLayer = buildGroundDecorLayer(scene, halfW, halfH, night);
@@ -56,7 +61,8 @@ export function bootstrapDefenseWorld(
   player.damageable.alive = true;
 
   const cameraRig = setupDefenseCameraRig(scene, player.sprite, playArea);
-  const { registerUi, registerWorld } = cameraRig;
+  const { registerUi, registerWorld, worldLayer } = cameraRig;
+  setDefenseWorldLayerTarget(scene, worldLayer);
 
   registerWorld(groundLayer);
   registerWorld(decorLayer);
