@@ -638,6 +638,7 @@ export class DefenseScene extends Phaser.Scene {
       const channel = this.spellCaster.updateChannel(delta, dir.x, dir.y);
       if (channel.type === "windup" || channel.type === "channeling") {
         this.castBar.setVisible(true);
+        this.castBar.setPhase(channel.type);
         this.castBar.setWorldPosition(px, py);
         this.castBar.setProgress(channel.progress);
         const chDef = spellById(channel.spellId);
@@ -1083,23 +1084,29 @@ export class DefenseScene extends Phaser.Scene {
           ? "Ranged"
           : "Auto combat";
     const auto = this.autoAttackEnabled ? "ON" : "OFF";
-    const casting = this.spellCaster.isChanneling();
+    const castPhase = this.spellCaster.getCastPhase();
+    const castPct = Math.floor(this.spellCaster.getChannelProgress() * 100);
     this.spellBar.refreshCooldownOverlays();
     if (!this.nightEnded) {
       const dataStore = this.registry.get("dataStore") as DataStore;
       const header = this.isEndlessMode()
         ? this.endlessHudHeader(dataStore)
         : `Night ${this.save.night}`;
+      const castLine = (() => {
+        if (!castPhase) {
+          return this.player.attackPhaseNow !== "idle"
+            ? `ATK: ${this.player.attackPhaseNow}`
+            : "Spells · tap enemy to focus · drag to move";
+        }
+        const verb = castPhase === "windup" ? "Casting" : "Channeling";
+        return `${verb}… ${castPct}%`;
+      })();
       this.hudText.setText(
         [
           `${header} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
           `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
           `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
-          casting
-            ? `Channeling… ${Math.floor(this.spellCaster.getChannelProgress() * 100)}%`
-            : this.player.attackPhaseNow !== "idle"
-              ? `ATK: ${this.player.attackPhaseNow}`
-              : "Spells · tap enemy to focus · drag to move",
+          castLine,
         ].join("\n"),
       );
     }
