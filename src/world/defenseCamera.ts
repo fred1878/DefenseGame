@@ -1,13 +1,17 @@
 import Phaser from "phaser";
 import { DEFENSE_FIELD_PX, defenseHalfWidth } from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
+import { adoptDefenseWorldObject } from "./defenseWorldLayer";
 
 export const DEFENSE_UI_CAMERA_NAME = "defenseUi";
 
 export type DefenseCameraRig = {
   worldCamera: Phaser.Cameras.Scene2D.Camera;
   uiCamera: Phaser.Cameras.Scene2D.Camera;
+  /** Scene-graph root for combat field coordinates; excluded from the UI camera once. */
+  worldLayer: Phaser.GameObjects.Layer;
   registerUi: (go: Phaser.GameObjects.GameObject) => void;
+  /** Reparent legacy/pre-hook objects into {@link worldLayer}. */
   registerWorld: (go: Phaser.GameObjects.GameObject) => void;
 };
 
@@ -24,8 +28,9 @@ export function defenseWorldToScreen(
 }
 
 /**
- * Play-area viewport on the main camera; full-canvas UI camera.
- * World draws only in the middle band — no per-sprite geometry mask.
+ * Play-area viewport on the main camera; full-canvas UI camera for HUD-only roots.
+ * Combat art lives under `worldLayer` so the UI camera does not paint world coordinates
+ * as screen coordinates (in-band ghost duplicates inside the play band).
  */
 export function setupDefenseCameraRig(
   scene: Phaser.Scene,
@@ -43,6 +48,8 @@ export function setupDefenseCameraRig(
   uiCamera.setScroll(0, 0);
   uiCamera.setZoom(1);
 
+  const worldLayer = scene.add.layer();
+
   worldCamera.setViewport(
     playArea.x,
     playArea.y,
@@ -53,14 +60,16 @@ export function setupDefenseCameraRig(
 
   configureDefenseFollowCamera(worldCamera, follow, playArea);
 
+  uiCamera.ignore(worldLayer);
+
   const registerUi = (go: Phaser.GameObjects.GameObject): void => {
     worldCamera.ignore(go);
   };
   const registerWorld = (go: Phaser.GameObjects.GameObject): void => {
-    uiCamera.ignore(go);
+    adoptDefenseWorldObject(go, worldLayer);
   };
 
-  return { worldCamera, uiCamera, registerUi, registerWorld };
+  return { worldCamera, uiCamera, worldLayer, registerUi, registerWorld };
 }
 
 /**

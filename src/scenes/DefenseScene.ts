@@ -78,6 +78,7 @@ import {
   tickSpellGroundZones,
   type SpellGroundZone,
 } from "../combat/spellGroundZone";
+import { installDefenseWorldLayerHook } from "../world/defenseWorldAddHook";
 import { pickWaveSpawnPoint } from "../world/defenseSpawns";
 import { cameraWorldPoint, type SafeInsets } from "../ui/screenLayout";
 import {
@@ -259,6 +260,7 @@ export class DefenseScene extends Phaser.Scene {
   private registerWorldDraw!: (go: Phaser.GameObjects.GameObject) => void;
   private registerUiDraw!: (go: Phaser.GameObjects.GameObject) => void;
   private uiCamera!: Phaser.Cameras.Scene2D.Camera;
+  private worldLayer!: Phaser.GameObjects.Layer;
 
   constructor() {
     super({ key: "Defense" });
@@ -356,6 +358,7 @@ export class DefenseScene extends Phaser.Scene {
     this.registerWorldDraw = world.registerWorldDraw;
     this.registerUiDraw = world.registerUiDraw;
     this.uiCamera = world.cameraRig.uiCamera;
+    this.worldLayer = world.cameraRig.worldLayer;
 
     const hud = createDefenseHudController({
       scene: this,
@@ -418,6 +421,7 @@ export class DefenseScene extends Phaser.Scene {
     for (const go of this.castBar.worldRoots()) {
       this.registerWorldDraw(go);
     }
+    installDefenseWorldLayerHook(this, this.worldLayer);
     this.input.on("pointerup", this.onPointerUpBound);
 
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
