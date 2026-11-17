@@ -63,7 +63,7 @@ export function noteEnemyPathProgress(
   ey: number,
   deltaMs: number,
   waypointRadius: number,
-  stallThresholdMs = 650,
+  stallThresholdMs = DEFENSE_MAP.pathStallMs,
   minProgressPx = 3,
 ): void {
   if (nav.path.length === 0 || nav.pathIndex >= nav.path.length) {
@@ -249,7 +249,7 @@ export function updateEnemyBrain(
     enemy.sprite.y,
     deltaMs,
     worldUnit(DEFENSE_MAP.pathWaypointRadius, reg),
-    650,
+    DEFENSE_MAP.pathStallMs,
     worldUnit(3, reg),
   );
   const behavior = getEnemyBehavior(enemy.behavior);

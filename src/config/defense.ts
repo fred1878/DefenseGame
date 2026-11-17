@@ -126,6 +126,8 @@ export const DEFENSE_MAP = {
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */
   pathReplanMs: 450,
+  /** No meaningful progress toward the current waypoint for this long → emergency replan. */
+  pathStallMs: 400,
 } as const;
 
 export type DefenseObstacleRect = {
