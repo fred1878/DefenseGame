@@ -15,6 +15,7 @@ import {
   townBuildingGridColumnX,
   townBuildingGridFootY,
   BOTTOM_HUD_STRIP_H,
+  defenseBottomHudStripHeight,
 } from "./screenLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
 import { scaleUiX } from "../core/displayScale";
@@ -42,7 +43,9 @@ describe("screenLayout", () => {
     expect(play.y).toBe(chrome.hudBand);
     expect(play.y + play.height).toBe(chrome.bottomStrip.stripTop);
     expect(play.bottomBandTop).toBe(chrome.bottomStrip.stripTop);
-    expect(play.height).toBe(GAME.height - hudBandHeight(0) - BOTTOM_HUD_STRIP_H);
+    expect(play.height).toBe(
+      GAME.height - hudBandHeight(0) - defenseBottomHudStripHeight(),
+    );
     expect(play.width).toBe(GAME.width);
   });
 
