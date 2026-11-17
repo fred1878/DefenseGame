@@ -2,25 +2,69 @@ import Phaser from "phaser";
 import { DEFENSE_FIELD_PX, defenseHalfWidth } from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
 
-/** Screen-fixed mask: world sprites draw only in the middle play band. */
-export function createDefenseWorldDisplayMask(
-  scene: Phaser.Scene,
-  playArea: DefensePlayArea,
-): {
-  mask: Phaser.Display.Masks.GeometryMask;
-  maskShape: Phaser.GameObjects.Graphics;
-} {
-  const g = scene.add.graphics();
-  g.fillStyle(0xffffff, 1);
-  g.fillRect(playArea.x, playArea.y, playArea.width, playArea.height);
-  g.setScrollFactor(0);
-  g.setVisible(false);
-  g.setDepth(-1000);
-  return { mask: g.createGeometryMask(), maskShape: g };
+export const DEFENSE_UI_CAMERA_NAME = "defenseUi";
+
+export type DefenseCameraRig = {
+  worldCamera: Phaser.Cameras.Scene2D.Camera;
+  uiCamera: Phaser.Cameras.Scene2D.Camera;
+  registerUi: (go: Phaser.GameObjects.GameObject) => void;
+  registerWorld: (go: Phaser.GameObjects.GameObject) => void;
+};
+
+/** World-space point → canvas coordinates (accounts for play-area viewport). */
+export function defenseWorldToScreen(
+  camera: Phaser.Cameras.Scene2D.Camera,
+  worldX: number,
+  worldY: number,
+): { x: number; y: number } {
+  return {
+    x: (worldX - camera.scrollX) * camera.zoom + camera.x,
+    y: (worldY - camera.scrollY) * camera.zoom + camera.y,
+  };
 }
 
 /**
- * Portrait defense: follow player on full canvas; world is clipped with a play-area mask.
+ * Play-area viewport on the main camera; full-canvas UI camera.
+ * World draws only in the middle band — no per-sprite geometry mask.
+ */
+export function setupDefenseCameraRig(
+  scene: Phaser.Scene,
+  follow: Phaser.GameObjects.GameObject,
+  playArea: DefensePlayArea,
+): DefenseCameraRig {
+  const worldCamera = scene.cameras.main;
+  const uiCamera = scene.cameras.add(
+    0,
+    0,
+    scene.scale.width,
+    scene.scale.height,
+  );
+  uiCamera.setName(DEFENSE_UI_CAMERA_NAME);
+  uiCamera.setScroll(0, 0);
+  uiCamera.setZoom(1);
+
+  worldCamera.setViewport(
+    playArea.x,
+    playArea.y,
+    playArea.width,
+    playArea.height,
+  );
+  worldCamera.setBackgroundColor(0x0c0c0e);
+
+  configureDefenseFollowCamera(worldCamera, follow, playArea);
+
+  const registerUi = (go: Phaser.GameObjects.GameObject): void => {
+    worldCamera.ignore(go);
+  };
+  const registerWorld = (go: Phaser.GameObjects.GameObject): void => {
+    uiCamera.ignore(go);
+  };
+
+  return { worldCamera, uiCamera, registerUi, registerWorld };
+}
+
+/**
+ * Portrait defense: follow player; render target is the play-area viewport.
  */
 export function configureDefenseFollowCamera(
   camera: Phaser.Cameras.Scene2D.Camera,

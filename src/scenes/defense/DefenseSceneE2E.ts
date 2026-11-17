@@ -21,7 +21,6 @@ import {
 } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 import { scaledDefenseObstacles } from "../../core/worldPixelScale";
-import { scaleUiY } from "../../core/displayScale";
 import { defenseMinimapLayout } from "../../ui/defenseMinimap";
 import {
   combatChromeLayout,
@@ -29,6 +28,7 @@ import {
   hudTextPosition,
   type SafeInsets,
 } from "../../ui/screenLayout";
+import { defenseWorldToScreen } from "../../world/defenseCamera";
 
 /**
  * Scene surface required by Playwright / `installE2E` hooks.
@@ -383,11 +383,7 @@ export function defenseSceneE2eWorldPointToScreen(
   worldX: number,
   worldY: number,
 ): { x: number; y: number } {
-  const cam = scene.cameras.main;
-  return {
-    x: (worldX - cam.scrollX) * cam.zoom,
-    y: (worldY - cam.scrollY) * cam.zoom,
-  };
+  return defenseWorldToScreen(scene.cameras.main, worldX, worldY);
 }
 
 export function defenseSceneE2eHudLayoutProbe(scene: DefenseSceneE2eDelegate): {
@@ -421,8 +417,11 @@ function defenseSceneE2eHudBandPixelProbePoints(
       y: Math.max(8, Math.round(probe.playArea.topBandBottom * 0.42)),
     },
     bottomBand: {
-      x: Math.round(scene.scale.width * 0.5),
-      y: Math.round(probe.playArea.bottomBandTop + scaleUiY(22)),
+      x: Math.round(scene.scale.width * 0.28),
+      y: Math.round(
+        probe.playArea.bottomBandTop +
+          (scene.scale.height - probe.playArea.bottomBandTop) * 0.22,
+      ),
     },
     playArea: {
       x: Math.round(scene.scale.width / 2),

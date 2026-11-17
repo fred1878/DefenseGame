@@ -27,6 +27,8 @@ export type VirtualStickOptions = {
   dragThresholdPx?: number;
   /** Screen rects that always block the stick (button clusters). */
   uiScreenRects?: ScreenRect[];
+  /** Defense UI camera: do not draw stick on world viewport. */
+  registerUiDraw?: (go: Phaser.GameObjects.GameObject) => void;
 };
 
 /**
@@ -74,6 +76,9 @@ export class VirtualStick {
       .setScrollFactor(0)
       .setDepth(51)
       .setVisible(false);
+
+    options.registerUiDraw?.(this.base);
+    options.registerUiDraw?.(this.knob);
 
     scene.input.on("pointerdown", this.onDown, this);
     scene.input.on("pointermove", this.onMove, this);

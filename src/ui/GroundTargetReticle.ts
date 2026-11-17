@@ -32,6 +32,10 @@ export class GroundTargetReticle {
     this.redraw(x, y);
   }
 
+  worldGraphics(): Phaser.GameObjects.Graphics {
+    return this.gfx;
+  }
+
   hide(): void {
     this.visible = false;
     this.gfx.clear();
