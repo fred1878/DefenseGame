@@ -1,11 +1,9 @@
 import Phaser from "phaser";
 import {
   DEFENSE_MAP,
-  DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
   defenseHalfHeight,
   defenseHalfWidth,
-  defenseObstacleSpriteAnchor,
   PLAYER_TUNING,
   type AttackMode,
 } from "../config";
@@ -142,14 +140,7 @@ import {
   tickSpellGroundZones,
   type SpellGroundZone,
 } from "../combat/spellGroundZone";
-import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
-import { buildGroundLayer } from "../world/buildGroundLayer";
-import { configureDefenseFollowCamera } from "../world/defenseCamera";
-import { configureDefenseObstacleSprite } from "../world/defenseObstacleSprite";
-import {
-  defensePlayerStart,
-  pickWaveSpawnPoint,
-} from "../world/defenseSpawns";
+import { pickWaveSpawnPoint } from "../world/defenseSpawns";
 import { cameraWorldPoint, type SafeInsets } from "../ui/screenLayout";
 import { updateEnemyNameplate } from "../ui/enemyNameplate";
 import {
@@ -210,6 +201,7 @@ import {
 } from "./defense/DefenseNightEnd";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
 import { createDefenseHudController } from "./defense/DefenseHudController";
+import { bootstrapDefenseWorld } from "./defense/DefenseWorldBootstrap";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -361,45 +353,15 @@ export class DefenseScene extends Phaser.Scene {
     const wave = endless ? undefined : store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
 
-    const halfW = defenseHalfWidth();
-    const halfH = defenseHalfHeight();
-    this.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
-    buildGroundLayer(this, halfW, halfH);
-    buildGroundDecorLayer(this, halfW, halfH, this.save.night);
-
-    this.add
-      .rectangle(0, -halfH + 20, halfW * 2, worldUnit(40, this.registry), 0x52525b)
-      .setOrigin(0.5, 0);
-
-    this.obstacleGroup = this.physics.add.staticGroup();
-    const scaledObstacles = scaledDefenseObstacles(this.registry);
-    for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
-      const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
-      const obs = scaledObstacles[i]!;
-      const anchor = defenseObstacleSpriteAnchor(placement);
-      const rock = this.physics.add.staticImage(
-        anchor.x,
-        anchor.y,
-        placement.textureKey,
-      );
-      configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
-      rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
-      this.obstacleGroup.add(rock);
-    }
-
-    this.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
-
-    const start = defensePlayerStart();
-    this.player = new Player(this, start.x, start.y, this.save.player.hpMax);
-    this.player.damageable.hp = this.save.player.hpMax;
-    this.player.damageable.alive = true;
-    this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
-    this.physics.add.collider(this.player.sprite, this.obstacleGroup);
-    this.enemyGroup = this.physics.add.group();
-    this.physics.add.collider(this.player.sprite, this.enemyGroup);
-    this.physics.add.collider(this.enemyGroup, this.enemyGroup);
-    this.physics.add.collider(this.enemyGroup, this.obstacleGroup);
-    configureDefenseFollowCamera(this.cameras.main, this.player.sprite);
+    const world = bootstrapDefenseWorld({
+      scene: this,
+      night: this.save.night,
+      playerHpMax: this.save.player.hpMax,
+    });
+    this.player = world.player;
+    this.playerInvulnMs = world.playerInvulnMs;
+    this.obstacleGroup = world.obstacleGroup;
+    this.enemyGroup = world.enemyGroup;
 
     const hud = createDefenseHudController({
       scene: this,
