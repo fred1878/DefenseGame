@@ -110,8 +110,9 @@ describe("noteEnemyPathProgress", () => {
     nav.path = [{ x: 0, y: 0 }, { x: 100, y: -200 }];
     nav.pathIndex = 1;
     nav.replanMs = 200;
-    noteEnemyPathProgress(nav, 10, 10, 16, 14, 650, 3);
-    noteEnemyPathProgress(nav, 10, 10, 700, 14, 650, 3);
+    const stallMs = DEFENSE_MAP.pathStallMs;
+    noteEnemyPathProgress(nav, 10, 10, 16, 14, stallMs, 3);
+    noteEnemyPathProgress(nav, 10, 10, stallMs + 20, 14, stallMs, 3);
     expect(nav.replanMs).toBe(0);
   });
 });
