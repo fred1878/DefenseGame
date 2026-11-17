@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { spellRequiresManualTarget, spellTargetMode } from "./spellTargeting";
+import {
+  spellAutoCastNeedsEnemyTarget,
+  spellRequiresManualTarget,
+  spellTargetMode,
+} from "./spellTargeting";
 import type { SpellDefinition } from "./spells";
 
 function def(partial: Partial<SpellDefinition>): SpellDefinition {
@@ -27,5 +31,23 @@ describe("spellTargeting", () => {
     });
     expect(spellTargetMode(d)).toBe("ground");
     expect(spellRequiresManualTarget(d)).toBe(true);
+  });
+
+  it("flags enemy, cone, and swing spells for auto-cast enemy aim", () => {
+    expect(
+      spellAutoCastNeedsEnemyTarget(
+        def({ id: "combustion", mechanicType: "instant_targeted", targetMode: "enemy" }),
+      ),
+    ).toBe(true);
+    expect(spellAutoCastNeedsEnemyTarget(def({ id: "cone_of_cold", mechanicType: "cone" }))).toBe(
+      true,
+    );
+    expect(spellAutoCastNeedsEnemyTarget(def({ id: "rend", mechanicType: "swing" }))).toBe(true);
+    expect(spellAutoCastNeedsEnemyTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
+    expect(
+      spellAutoCastNeedsEnemyTarget(
+        def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
+      ),
+    ).toBe(false);
   });
 });

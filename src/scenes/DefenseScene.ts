@@ -139,10 +139,12 @@ import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 import { GroundTargetReticle } from "../ui/GroundTargetReticle";
 import {
+  spellAutoCastNeedsEnemyTarget,
   spellCastMs,
   spellRequiresManualTarget,
   spellTargetMode,
 } from "../content/spellTargeting";
+import { resolveAutoCastEnemyAim } from "../combat/spellAutoCastEnemyAim";
 import {
   resolveAutoCastGroundAim,
   resolveManualDefaultGroundAim,
@@ -1162,8 +1164,14 @@ export class DefenseScene extends Phaser.Scene {
     );
     if (!pick) return;
     const def = spellById(pick.spellId);
-    if (def && spellTargetMode(def) === "ground") {
+    if (!def) return;
+    if (spellTargetMode(def) === "ground") {
       this.groundAim = this.autoCastGroundTarget(def);
+    } else if (spellAutoCastNeedsEnemyTarget(def)) {
+      const target = this.autoCastEnemyTarget(def);
+      if (!target) return;
+      this.setFocusEnemy(target.id);
+      this.player.faceToward(target.x, target.y);
     }
     this.beginSpellCast(pick.spellId);
   }
@@ -1285,6 +1293,27 @@ export class DefenseScene extends Phaser.Scene {
       this.wu(PLAYER_TUNING.autoAttackMeleeRange),
       this.wu(PLAYER_TUNING.autoAttackRangedRange),
       maxR,
+    );
+  }
+
+  private autoCastEnemyTarget(
+    def: SpellDefinition,
+  ): { id: string; x: number; y: number } | null {
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const searchR = this.wu(
+      def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
+    );
+    const strike = this.resolveStrikeMode(this.player.mode === "auto");
+    return resolveAutoCastEnemyAim(
+      px,
+      py,
+      this.focusEnemyId,
+      this.groundAimEnemies(),
+      strike,
+      this.wu(PLAYER_TUNING.autoAttackMeleeRange),
+      this.wu(PLAYER_TUNING.autoAttackRangedRange),
+      searchR,
     );
   }
 
