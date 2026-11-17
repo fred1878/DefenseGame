@@ -29,20 +29,20 @@ Refactor (**step 1**) runs **immediately after step 0**, before new feature poli
 
 Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 
-- [x] PR1 — `DefenseSceneE2E.ts` (e2e methods) — [#116](https://github.com/fred1878/DefenseGame/pull/116)
-- [x] PR2 — `DefenseWaveSpawner.ts` — [#128](https://github.com/fred1878/DefenseGame/pull/128)
-- [x] PR3 — `DefenseEnemySpawner.ts` — [#129](https://github.com/fred1878/DefenseGame/pull/129)
-- [x] PR4 — `DefenseNightEnd.ts` — [#130](https://github.com/fred1878/DefenseGame/pull/130)
-- [x] PR5 — `DefenseTargeting.ts` (direct to `main`, commit `4cc9a49` / `0688dbc`)
-- [x] PR6 — `DefenseHudController.ts` (direct to `main`, commit `53801f7`)
-- [x] PR7 — `DefenseWorldBootstrap.ts` (commit `8089543`, PR pending automation)
-- [x] PR8 — `DefenseProjectileTick.ts` (commit `781479a`, paired with PR9)
-- [x] PR9 — `DefenseEnemyTick.ts` (commit `781479a`, paired with PR8)
-- [ ] PR10 — `DefenseSpellDirector.ts` (not started — spell block still in `DefenseScene.ts`)
-- [x] PR11 — `systems/WaveSpawner.ts` promotion (re-export via `defense/DefenseWaveSpawner.ts`)
-- [ ] PR12 — Pooling (skipped per plan — behavior-changing track)
-- [ ] P1 — Split `touchButton.ts` (deferred)
-- [ ] P2 — Split `EnemyRangedCombat.ts` (deferred)
+- [x] PR1 — `DefenseSceneE2E.ts` ([#116](https://github.com/fred1878/DefenseGame/pull/116))
+- [x] PR2 — `DefenseWaveSpawner.ts` ([#128](https://github.com/fred1878/DefenseGame/pull/128))
+- [x] PR3 — `DefenseEnemySpawner.ts` ([#129](https://github.com/fred1878/DefenseGame/pull/129))
+- [x] PR4 — `DefenseNightEnd.ts` ([#130](https://github.com/fred1878/DefenseGame/pull/130))
+- [x] PR5 — `DefenseTargeting.ts` (direct `main`, `0688dbc`)
+- [x] PR6 — `DefenseHudController.ts` (direct `main`, `53801f7`)
+- [x] PR7 — `DefenseWorldBootstrap.ts` (branch `cursor/defense-world-bootstrap-4e8e`, pending merge)
+- [x] PR8 — `DefenseProjectileTick.ts` (with PR9 branch below)
+- [x] PR9 — `DefenseEnemyTick.ts` (with PR8 branch below)
+- [x] PR10 — `DefenseSpellDirector.ts` (with completion branch below)
+- [x] PR11 — `systems/WaveSpawner.ts` promotion
+- [ ] PR12 — Pooling (**skipped** — separate track per plan)
+- [ ] P1 — `touchButtonPress.ts` (**deferred** — extract aborted; monolith unchanged at 663 lines)
+- [x] P2 — `enemyRanged/combatPhase.ts` (phase helper only; behaviors remain in `EnemyRangedCombat.ts`)
 
 ---
 

@@ -213,6 +213,26 @@ State types and **per-behavior update functions** for ranged enemies:
 
 ---
 
+## Status (completed)
+
+**DefenseScene decomposition (PR1–PR11):** Landed on `main` or queued on `cursor/*-4e8e` branches. `DefenseScene.ts` reduced from **~2176** to **~1152** lines (`wc -l`). New modules under `src/scenes/defense/` plus `src/systems/WaveSpawner.ts`.
+
+| Step | Module | Lines (approx.) |
+|------|--------|----------------:|
+| PR7 | `DefenseWorldBootstrap.ts` | 76 |
+| PR8 | `DefenseProjectileTick.ts` | 129 |
+| PR9 | `DefenseEnemyTick.ts` | 287 |
+| PR10 | `DefenseSpellDirector.ts` | 670 |
+| PR11 | `systems/WaveSpawner.ts` | 39 |
+
+**Skipped:** PR12 pooling (AGENTS.md convention; not required for file split).
+
+**P1:** `touchButton.ts` split **not completed** (663 lines unchanged).
+
+**P2:** Partial — `src/entities/enemyRanged/combatPhase.ts` extracted; per-behavior files remain future work.
+
+---
+
 ## Related docs
 
 - [AGENTS.md](./AGENTS.md) — architecture and implementation order

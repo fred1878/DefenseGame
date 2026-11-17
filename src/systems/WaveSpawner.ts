@@ -2,17 +2,17 @@ import type Phaser from "phaser";
 import type { DataStore, EnemyDef, WaveDef } from "../core/DataStore";
 import { pickWaveSpawnPoint } from "../world/defenseSpawns";
 
-export type WaveSpawnCallbacks = {
+export type WaveSpawnerCallbacks = {
   spawnEnemy: (x: number, y: number, def: EnemyDef, defId: string) => void;
   markSpawnPlanComplete: () => void;
 };
 
-/** Timed wave groups via Phaser `delayedCall` (AGENTS.md / REFACTOR_PLAN PR11). */
-export function scheduleDefenseWave(
+/** Timed wave groups via Phaser `delayedCall` (REFACTOR_PLAN PR11 / AGENTS.md). */
+export function scheduleWave(
   scene: Phaser.Scene,
   store: DataStore,
   wave: WaveDef,
-  callbacks: WaveSpawnCallbacks,
+  callbacks: WaveSpawnerCallbacks,
   e2eMode: boolean,
 ): void {
   let maxAt = 0;
@@ -38,5 +38,3 @@ export function scheduleDefenseWave(
     callbacks.markSpawnPlanComplete();
   });
 }
-
-export type { WaveSpawnCallbacks as DefenseWaveSpawnCallbacks };
