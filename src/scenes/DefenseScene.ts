@@ -32,7 +32,6 @@ import {
   resolveEndlessRunSelections,
 } from "../core/defenseRunMode";
 import { applyDamage } from "../combat/DamageSystem";
-import { flashSpriteTint } from "../combat/HitFlash";
 import {
   showGruntMeleeSwipe,
   showPlayerMeleeSwipe,
@@ -64,7 +63,6 @@ import {
   updateEnemyBrain,
   wallCombatPoint,
 } from "../ai/EnemyBrain";
-import { DEFAULT_ENEMY_BASE } from "../core/enemyTuning";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import {
   showEnemyPaths,
@@ -84,7 +82,6 @@ import {
 } from "../debug/TouchInputDebugDraw";
 import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
 import {
-  spawnEnemy,
   updateEnemySpriteFacing,
   type EnemyInstance,
 } from "../entities/Enemy";
@@ -227,6 +224,10 @@ import {
   defenseSceneE2eTapRanged,
   defenseSceneE2eWallHp,
 } from "./defense/DefenseSceneE2E";
+import {
+  spawnDefenseEnemyAt,
+  type DefenseEnemySpawnerHost,
+} from "./defense/DefenseEnemySpawner";
 import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
 
 export class DefenseScene extends Phaser.Scene {
@@ -2199,21 +2200,21 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
-  private defaultEnemyDef(): EnemyDef {
+  private enemySpawnerHost(): DefenseEnemySpawnerHost {
     const store = this.registry.get("dataStore") as DataStore;
-    return (
-      store.enemies.grunt ?? {
-        hp: DEFAULT_ENEMY_BASE.hp,
-        speed: DEFAULT_ENEMY_BASE.speed,
-        damage: DEFAULT_ENEMY_BASE.damage,
-        behavior: "meleeChaser",
-        textureKey: "enemy_grunt",
-        displayName: "Grunt",
-      }
-    );
+    return {
+      scene: this,
+      dataStore: store,
+      enemies: this.enemies,
+      enemyGroup: this.enemyGroup,
+      hooks: {
+        onRemovedFromPlay: () => this.scheduleEndlessRespawn(),
+        onFocusEnemy: (id) => this.setFocusEnemy(id),
+      },
+    };
   }
 
-  /** @internal Used by e2e and wave spawner until `DefenseEnemySpawner` lands */
+  /** @internal Used by e2e and wave spawner until spawner API stabilizes */
   spawnEnemyAt(
     x: number,
     y: number,
@@ -2221,30 +2222,7 @@ export class DefenseScene extends Phaser.Scene {
     defId = "grunt",
     hpOverride?: number,
   ): void {
-    const base = def ?? this.defaultEnemyDef();
-    const spawnDef =
-      hpOverride !== undefined ? { ...base, hp: hpOverride } : base;
-    const id = `e_${this.enemies.length}_${Date.now()}`;
-    const enemy = spawnEnemy(
-      this,
-      id,
-      x,
-      y,
-      spawnDef,
-      defId,
-      () => {
-        destroyArrowRainTelegraph(enemy.arrowRain?.telegraph);
-        destroyArrowRainTelegraph(enemy.lobber?.telegraph);
-        enemy.sprite.destroy();
-        this.scheduleEndlessRespawn();
-      },
-      () => this.setFocusEnemy(id),
-    );
-    enemy.damageable.onDamaged = (_amount, flavor = "default") => {
-      flashSpriteTint(this, enemy.sprite, flavor);
-    };
-    this.enemyGroup.add(enemy.sprite);
-    this.enemies.push(enemy);
+    spawnDefenseEnemyAt(this.enemySpawnerHost(), x, y, def, defId, hpOverride);
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
