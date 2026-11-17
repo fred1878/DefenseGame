@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { applyDamage } from "../../combat/DamageSystem";
+import { playEnemyMeleeSlashSfx } from "../../audio/enemyMeleeSlashSfx";
 import { showGruntMeleeSwipe } from "../../combat/MeleeSwipeFx";
 import {
   pickEnemyCombatTarget,
@@ -228,6 +229,7 @@ export function tickDefenseEnemies(
           e.combat.facing,
           e.combatTuning.melee.activeMs,
         );
+        playEnemyMeleeSlashSfx(host.scene);
       }
     } else if (e.behavior === "lobber" && e.lobber) {
       const lob = updateLobberCombat(
@@ -268,6 +270,7 @@ export function tickDefenseEnemies(
           e.combat.facing,
           e.combatTuning.melee.activeMs,
         );
+        playEnemyMeleeSlashSfx(host.scene);
       }
       if (hitPlayer) playerHitDamage += e.damage;
     }
