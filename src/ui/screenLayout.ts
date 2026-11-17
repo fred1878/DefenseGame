@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
-import { SPELL_BAR } from "../config/spellBar";
+import { DEFENSE_SPELL_BAR } from "../config/spellBar";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { containerScreenRect } from "./touchButton";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";
@@ -125,16 +125,26 @@ export type CombatChromeLayout = {
 
 export const BOTTOM_HUD_STRIP_H = scaleUiY(156);
 
+/** Tall enough for 2×4 defense spell grid + combat cluster in the bottom band. */
+export function defenseBottomHudStripHeight(): number {
+  const bar = DEFENSE_SPELL_BAR;
+  const gridH =
+    bar.rowCount * bar.slotSizePx + (bar.rowCount - 1) * bar.rowGapPx;
+  return Math.max(BOTTOM_HUD_STRIP_H, gridH + scaleUiY(14));
+}
+
 /** Gothic `action-mode-rect` / AUTO slabs — source art is 64×64; display ~50% wider on X. */
 export const COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX = 64;
 export const COMBAT_MODE_TOGGLE_WIDTH_DESIGN_PX = 96;
+/** Narrower combat row so 2× spell slots fit beside AUTO | MEL | ATK on 540-wide. */
+const DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX = 48;
 
 /** Shared bottom HUD strip geometry (spell row + combat controls sit inside). */
 export function bottomHudStripLayout(
   scene: Phaser.Scene,
   safe: SafeInsets,
 ): BottomHudStrip {
-  const stripH = BOTTOM_HUD_STRIP_H;
+  const stripH = defenseBottomHudStripHeight();
   const stripCenterY = scene.scale.height - safe.bottom - stripH / 2;
   return {
     stripH,
@@ -161,7 +171,7 @@ export type SpellBarOrigin = {
 /** Minimum inset from canvas left/right edges for spell slot visuals and hit rects. */
 export const SPELL_BAR_VIEWPORT_MARGIN_PX = 8;
 
-/** First spell slot center X — left-packed, ends before MEL hit box (combat cluster locked). */
+/** First spell slot center X — left-packed, ends before AUTO/MEL/ATK cluster. */
 export function spellBarSlotOrigin(
   scene: Phaser.Scene,
   safe: SafeInsets,
@@ -170,12 +180,11 @@ export function spellBarSlotOrigin(
   slotGapPx: number,
 ): SpellBarOrigin {
   const chrome = combatChromeLayout(scene, safe);
-  const cols = Math.min(slotCount, SPELL_BAR.columnCount);
+  const cols = Math.min(slotCount, DEFENSE_SPELL_BAR.columnCount);
   const leftPad = scaleUiX(16) + safe.left;
-  const tapPad = SPELL_BAR.tapPaddingPx;
+  const tapPad = DEFENSE_SPELL_BAR.tapPaddingPx;
   const rowWidth = cols * slotSizePx + (cols - 1) * slotGapPx;
-  const melGuard = scaleUiX(12) + chrome.toggleW / 2 + scaleUiX(10);
-  const rowEndMax = chrome.modeX - melGuard;
+  const rowEndMax = chrome.combatClusterLeft - scaleUiX(10);
   const viewportMargin = SPELL_BAR_VIEWPORT_MARGIN_PX;
   const minFirstCenter =
     safe.left + viewportMargin + tapPad + slotSizePx / 2;
@@ -186,9 +195,13 @@ export function spellBarSlotOrigin(
     Math.min(packedFirst, melLimitedFirst),
   );
   const rowSpan =
-    slotSizePx * SPELL_BAR.rowCount +
-    SPELL_BAR.rowGapPx * (SPELL_BAR.rowCount - 1);
-  const centerY = chrome.bottomStrip.stripCenterY - rowSpan / 2 + slotSizePx / 2;
+    slotSizePx * DEFENSE_SPELL_BAR.rowCount +
+    DEFENSE_SPELL_BAR.rowGapPx * (DEFENSE_SPELL_BAR.rowCount - 1);
+  const centerY =
+    chrome.bottomStrip.stripCenterY -
+    rowSpan / 2 +
+    slotSizePx / 2 -
+    tapPad / 2;
   return {
     centerY,
     firstSlotCenterX,
@@ -207,12 +220,12 @@ export function spellBarSlotCenter(
   const { firstSlotCenterX, centerY } = spellBarSlotOrigin(
     scene,
     safe,
-    SPELL_BAR.slotCount,
+    DEFENSE_SPELL_BAR.slotCount,
     slotSizePx,
     slotGapPx,
   );
-  const col = slotIndex % SPELL_BAR.columnCount;
-  const row = Math.floor(slotIndex / SPELL_BAR.columnCount);
+  const col = slotIndex % DEFENSE_SPELL_BAR.columnCount;
+  const row = Math.floor(slotIndex / DEFENSE_SPELL_BAR.columnCount);
   const x = firstSlotCenterX + col * (slotSizePx + slotGapPx);
   const y = centerY + row * (slotSizePx + rowGapPx);
   return { x, y };
@@ -226,9 +239,9 @@ export function expectedSpellBarCenterY(
   return spellBarSlotOrigin(
     scene,
     safe,
-    SPELL_BAR.slotCount,
-    SPELL_BAR.slotSizePx,
-    SPELL_BAR.slotGapPx,
+    DEFENSE_SPELL_BAR.slotCount,
+    DEFENSE_SPELL_BAR.slotSizePx,
+    DEFENSE_SPELL_BAR.slotGapPx,
   ).centerY;
 }
 
@@ -240,19 +253,20 @@ export function combatChromeLayout(
   const sideMargin = scaleUiX(6);
   const clusterPullLeft = scaleUiX(28);
   const atkRadius = scaleUiX(38);
-  const toggleW = scaleUiX(COMBAT_MODE_TOGGLE_WIDTH_DESIGN_PX);
+  const toggleW = scaleUiX(DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX);
   const toggleH = scaleUiY(COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX);
+  const toggleGap = scaleUiX(6);
   const atkX =
     scene.scale.width - sideMargin - safe.right - atkRadius - clusterPullLeft;
-  const modeX = atkX - atkRadius - scaleUiX(6) - toggleW / 2;
+  const modeX = atkX - atkRadius - toggleGap - toggleW / 2;
+  const autoX = modeX - toggleW / 2 - toggleGap - toggleW / 2;
   const rowY = bottomStrip.stripCenterY + scaleUiY(10);
   const btnY = rowY;
   const modeY = rowY;
-  const autoX = atkX;
-  const autoY = bottomStrip.stripTop + toggleH / 2 + scaleUiY(4);
-  const autoOffsetY = btnY - autoY;
-  const modeOffsetX = atkX - modeX;
-  const combatClusterLeft = modeX - toggleW / 2;
+  const autoY = rowY;
+  const autoOffsetY = 0;
+  const modeOffsetX = modeX - autoX;
+  const combatClusterLeft = autoX - toggleW / 2;
   const hudBand = hudBandHeight(safe.top);
   const w = scene.scale.width;
   const clusterW = w - combatClusterLeft + safe.right;

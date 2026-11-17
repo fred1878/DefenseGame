@@ -28,9 +28,11 @@ export {
 export { DEFENSE_RENDER_DEPTH } from "./renderDepth";
 export {
   CAST_BAR,
+  DEFENSE_SPELL_BAR,
   SPELL_BAR,
   TOWN_SPELL_SORT_PANEL,
   TOWN_SPELL_SORT_BAR,
+  defenseSpellBarIconDisplayPx,
   spellBarIconDisplayPx,
   townSpellBarIconDisplayPx,
 } from "./spellBar";
