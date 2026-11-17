@@ -235,6 +235,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eOpenSpellSortPanel(): void {
+    this.save = this.registry.get("save") as SaveGame;
     this.openSpellSortPanel();
   }
 
