@@ -1,6 +1,6 @@
 # Refactor plan — splitting large source files
 
-**Status (2026-11-17):** PR1–PR9 and PR11 are merged or committed on `main`; PR10 (`DefenseSpellDirector`), PR12 (pooling), and P1/P2 splits remain. See [ROADMAP.md](../ROADMAP.md) checklist for PR URLs.
+**Status (2026-11-17):** DefenseScene decomposition **PR1–PR11 complete** on `main` ([#131](https://github.com/fred1878/DefenseGame/pull/131) for PR10). **Skipped / deferred:** PR12 pooling (behavior track), P1 full `touchButton` split. P2 partial (`combatPhase.ts` in #131). See [ROADMAP.md](../ROADMAP.md).
 
 Goal: shrink scene-sized files into testable modules without changing behavior. Each step should be a small PR that keeps `npm run typecheck`, `npm run test`, `npm run build`, and CI e2e green.
 
@@ -8,7 +8,7 @@ Goal: shrink scene-sized files into testable modules without changing behavior. 
 
 | File | Lines | Priority |
 |------|------:|----------|
-| `src/scenes/DefenseScene.ts` | **~1675** (post PR1–9) | P0 — primary target |
+| `src/scenes/DefenseScene.ts` | **~1152** (post PR1–11) | P0 — coordinator only |
 | `src/ui/touchButton.ts` | **663** | P1 |
 | `src/entities/EnemyRangedCombat.ts` | **562** | P2 |
 
