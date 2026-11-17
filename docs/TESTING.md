@@ -9,16 +9,28 @@
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
 | `npm run test:e2e` | Playwright browser suites (`e2e/`) |
 
-CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` and build):
+CI runs **`verify`** on every push/PR to `main`. **`e2e`** runs only when the `e2e-gate` job says the diff needs browser coverage (see below). When both run, they are independent jobs (each runs its own `npm ci` and build).
 
 | Job | Steps |
 |-----|--------|
-| `verify` | `typecheck`, `test`, production `build` |
-| `e2e` | E2E `build`, Playwright (Chromium) |
+| `e2e-gate` | Path filters + merge heuristics → output `run_e2e` |
+| `verify` | `typecheck`, `test:coverage`, production `build` |
+| `e2e` | E2E `build`, Playwright (Chromium) — **if** `run_e2e` |
 
-Wall-clock time is roughly **max(verify, e2e)** instead of the sum.
+Wall-clock time is roughly **max(verify, e2e)** when e2e runs; docs-only merges to `main` often finish after `verify` only.
 
-**Parallel jobs:** `verify` and `e2e` run independently; a failure in one job leaves that job (and the workflow) at conclusion **failure**, not self-cancelled. PR pushes use workflow **concurrency** (`cancel-in-progress`) to drop superseded runs on the same PR.
+### When CI runs Playwright e2e
+
+Path filters (via `dorny/paths-filter`) match **runtime / toolchain** files: `src/`, `e2e/`, `public/`, `scripts/`, `index.html`, `package.json`, `package-lock.json`, Vite/Vitest/TS configs, `.nvmrc`, and `.github/workflows/**`.
+
+| Event | E2e runs when |
+|-------|----------------|
+| **Pull request → `main`** | Any changed file matches the runtime or workflow paths above. **Skipped** when the PR only touches docs/markdown, licenses, or other paths outside those globs. |
+| **Push to `main`** | Same path match **or** a **heavy merge** on `main`: merge commit whose message mentions conflicts **or** ≥20 files differ between merge parents (catches large conflict resolutions that path filters might miss). |
+
+`verify` (typecheck, Vitest, production build) still runs on every trigger.
+
+**Parallel jobs:** When enabled, `verify` and `e2e` run independently; a failure in one job leaves that job (and the workflow) at conclusion **failure**, not self-cancelled. PR pushes use workflow **concurrency** (`cancel-in-progress`) to drop superseded runs on the same PR. A skipped `e2e` job counts as success for branch protection.
 
 Locally, run the same checks in sequence (or in two terminals): `npm run typecheck && npm run test && npm run build` and `npm run build:e2e && npm run test:e2e`.
 

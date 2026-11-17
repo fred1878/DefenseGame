@@ -16,6 +16,75 @@ permissions:
   contents: read
 
 jobs:
+  e2e-gate:
+    runs-on: ubuntu-24.04
+    outputs:
+      run_e2e: ${{ steps.decide.outputs.run_e2e }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: paths
+        with:
+          filters: |
+            runtime:
+              - 'src/**'
+              - 'e2e/**'
+              - 'public/**'
+              - 'scripts/**'
+              - 'index.html'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.*'
+              - 'playwright.config.ts'
+              - 'tsconfig*.json'
+              - 'vitest.config.*'
+              - '.nvmrc'
+            workflow:
+              - '.github/workflows/**'
+      - name: Decide whether to run Playwright e2e
+        id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PATHS_RUNTIME: ${{ steps.paths.outputs.runtime }}
+          PATHS_WORKFLOW: ${{ steps.paths.outputs.workflow }}
+        run: |
+          set -euo pipefail
+          run=false
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            # PRs: always gate with e2e unless the diff is docs/metadata-only.
+            if [ "$PATHS_RUNTIME" = "true" ] || [ "$PATHS_WORKFLOW" = "true" ]; then
+              run=true
+            fi
+          else
+            # Push to main: verify always runs; e2e only for runtime/workflow paths or a heavy merge signal.
+            if [ "$PATHS_RUNTIME" = "true" ] || [ "$PATHS_WORKFLOW" = "true" ]; then
+              run=true
+            else
+              parent_count=$(git rev-list --parents -1 HEAD | awk '{print NF - 1}')
+              if [ "$parent_count" -ge 2 ]; then
+                msg=$(git log -1 --format=%B)
+                if printf '%s' "$msg" | grep -qiE '(^|\\b)(conflict|conflicts|resolve conflicts|merge conflict)'; then
+                  run=true
+                else
+                  merge_files=$(git diff --name-only HEAD^1 HEAD^2 | wc -l | tr -d ' ')
+                  if [ "${merge_files:-0}" -ge 20 ]; then
+                    run=true
+                  fi
+                fi
+              fi
+            fi
+          fi
+
+          echo "run_e2e=$run" >> "$GITHUB_OUTPUT"
+          if [ "$run" = true ]; then
+            echo "Playwright e2e: enabled for this event."
+          else
+            echo "Playwright e2e: skipped (no runtime/workflow paths; no heavy merge signal on main)."
+          fi
+
   verify:
     runs-on: ubuntu-24.04
     steps:
@@ -40,6 +109,8 @@ jobs:
           VITE_BUILD_ID: ${{ github.sha }}
 
   e2e:
+    needs: e2e-gate
+    if: needs.e2e-gate.outputs.run_e2e == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
