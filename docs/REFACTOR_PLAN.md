@@ -1,6 +1,6 @@
 # Refactor plan — splitting large source files
 
-**Status (2026-11-17):** DefenseScene decomposition **PR1–PR11 complete** on `main` ([#131](https://github.com/fred1878/DefenseGame/pull/131) for PR10). **Skipped / deferred:** PR12 pooling (behavior track), P1 full `touchButton` split. P2 partial (`combatPhase.ts` in #131). See [ROADMAP.md](../ROADMAP.md).
+**Status (2026-11-17):** **Plan complete** on `main` — DefenseScene PR1–11, **P1** ([#133](https://github.com/fred1878/DefenseGame/pull/133)), **P2** ([#134](https://github.com/fred1878/DefenseGame/pull/134)). **Skipped:** PR12 pooling (behavior track). See [ROADMAP.md](../ROADMAP.md).
 
 Goal: shrink scene-sized files into testable modules without changing behavior. Each step should be a small PR that keeps `npm run typecheck`, `npm run test`, `npm run build`, and CI e2e green.
 
@@ -8,9 +8,9 @@ Goal: shrink scene-sized files into testable modules without changing behavior. 
 
 | File | Lines | Priority |
 |------|------:|----------|
-| `src/scenes/DefenseScene.ts` | **~1152** (post PR1–11) | P0 — coordinator only |
-| `src/ui/touchButton.ts` | **663** | P1 |
-| `src/entities/EnemyRangedCombat.ts` | **562** | P2 |
+| `src/scenes/DefenseScene.ts` | **1152** | done — coordinator |
+| `src/ui/touchButton.ts` | **21** (barrel; modules 267+280+117) | done — P1 |
+| `src/entities/EnemyRangedCombat.ts` | **35** (barrel; behaviors under `enemyRanged/`) | done — P2 |
 
 **Watch list (400–499 lines):** `SpellBarSortPanel.ts` (460), `enemyTuning.ts` (469), `screenLayout.ts` (418), `Projectile.ts` (417), `installE2E.ts` (417), `TownScene.ts` (381), `SpellEffects.ts` (325). No dedicated split until one grows past ~500 or gains a second owner team.
 
@@ -227,9 +227,9 @@ State types and **per-behavior update functions** for ranged enemies:
 
 **Skipped:** PR12 pooling (AGENTS.md convention; not required for file split).
 
-**P1:** `touchButton.ts` split **not completed** (663 lines unchanged).
+**P1 complete** ([#133](https://github.com/fred1878/DefenseGame/pull/133)): `touchButtonPress.ts` (280), `touchButtonFactories.ts` (267), `touchButtonGeometry.ts` (117), `touchButton.ts` (21).
 
-**P2:** Partial — `src/entities/enemyRanged/combatPhase.ts` extracted; per-behavior files remain future work.
+**P2 complete** ([#134](https://github.com/fred1878/DefenseGame/pull/134)): `enemyRanged/types.ts` (76), `arrowRainCombat.ts` (123), `javelineerCombat.ts` (74), `stationaryRangedCombat.ts` (71), `lobberCombat.ts` (113), `rangedHybridCombat.ts` (74), `combatPhase.ts` (42), `EnemyRangedCombat.ts` (35).
 
 ---
 
