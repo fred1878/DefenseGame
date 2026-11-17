@@ -49,6 +49,35 @@ export function hudBandHeight(safeTop = 0): number {
   return scaleUiY(112) + safeTop;
 }
 
+/** World camera rect between top status band and bottom spell/combat band. */
+export type DefensePlayArea = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  topBandBottom: number;
+  bottomBandTop: number;
+};
+
+export function defensePlayAreaLayout(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): DefensePlayArea {
+  const topBandBottom = hudBandHeight(safe.top);
+  const bottomBandTop = bottomHudStripLayout(scene, safe).stripTop;
+  const x = safe.left;
+  const width = scene.scale.width - safe.left - safe.right;
+  const height = Math.max(1, bottomBandTop - topBandBottom);
+  return {
+    x,
+    y: topBandBottom,
+    width,
+    height,
+    topBandBottom,
+    bottomBandTop,
+  };
+}
+
 export function hudTextPosition(safe: SafeInsets): { x: number; y: number } {
   return { x: HUD_SIDE + safe.left, y: HUD_SIDE + safe.top };
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GAME } from "../config";
 import {
   combatChromeLayout,
+  defensePlayAreaLayout,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
@@ -13,6 +14,7 @@ import {
   townBuildingGridClearsStatus,
   townBuildingGridColumnX,
   townBuildingGridFootY,
+  BOTTOM_HUD_STRIP_H,
 } from "./screenLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
 import { scaleUiX } from "../core/displayScale";
@@ -32,6 +34,16 @@ describe("screenLayout", () => {
 
   it("hudBandHeight grows with safe top", () => {
     expect(hudBandHeight(20)).toBeGreaterThan(hudBandHeight(0));
+  });
+
+  it("defensePlayAreaLayout sits between HUD bands", () => {
+    const play = defensePlayAreaLayout(scene, safe);
+    const chrome = combatChromeLayout(scene, safe);
+    expect(play.y).toBe(chrome.hudBand);
+    expect(play.y + play.height).toBe(chrome.bottomStrip.stripTop);
+    expect(play.bottomBandTop).toBe(chrome.bottomStrip.stripTop);
+    expect(play.height).toBe(GAME.height - hudBandHeight(0) - BOTTOM_HUD_STRIP_H);
+    expect(play.width).toBe(GAME.width);
   });
 
   it("hudTextPosition respects safe insets", () => {

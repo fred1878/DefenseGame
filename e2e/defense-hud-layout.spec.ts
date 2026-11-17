@@ -27,10 +27,14 @@ test.describe("defense HUD layout", () => {
     );
     expect(chromeKey).toBeNull();
 
-    const { targets, stripCenterY, stripH, slotCount, hitRects } =
+    const { targets, stripCenterY, stripH, slotCount, hitRects, playAreaBottom } =
       await page.evaluate(() => {
         const hud = window.__HUD_DEBUG__ as
-          | { stripCenterY: number; stripH: number }
+          | {
+              stripCenterY: number;
+              stripH: number;
+              playAreaBottom?: number;
+            }
           | undefined;
         const api = window.__DEFENSEGAME_E2E__?.api;
         const rects = api?.getSpellSlotHitRects() ?? [];
@@ -38,6 +42,7 @@ test.describe("defense HUD layout", () => {
           targets: api?.getUiTapTargets() ?? {},
           stripCenterY: hud?.stripCenterY ?? 0,
           stripH: hud?.stripH ?? 0,
+          playAreaBottom: hud?.playAreaBottom ?? 0,
           slotCount: rects.length,
           hitRects: rects,
         };
@@ -45,6 +50,8 @@ test.describe("defense HUD layout", () => {
 
     expect(slotCount).toBe(8);
     expect(stripCenterY).toBeGreaterThan(900);
+    expect(playAreaBottom).toBeGreaterThan(400);
+    expect(playAreaBottom).toBeLessThan(stripCenterY);
     const bandHalf = stripH / 2 + 48;
 
     for (let i = 0; i < slotCount; i++) {

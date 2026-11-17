@@ -22,6 +22,12 @@ import {
 describe("pickEnemyTarget", () => {
   const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
 
+  it("huntPlayer always targets the player", () => {
+    expect(
+      pickEnemyTarget(grid, 400, 0, 0, 0, PLAYER_AGGRO_RADIUS, "huntPlayer"),
+    ).toBe("player");
+  });
+
   it("prefers wall when player is far", () => {
     expect(pickEnemyTarget(grid, 400, 0, 0, 0)).toBe("wall");
     expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(300);

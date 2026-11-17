@@ -6,6 +6,7 @@ import {
   defenseHalfHeight,
   defenseHalfWidth,
   defenseObstacleSpriteAnchor,
+  PLAYER_AGGRO_RADIUS,
   PLAYER_TUNING,
   DEFENSE_SPELL_BAR,
   type AttackMode,
@@ -171,6 +172,7 @@ import {
   combatChromeLayout,
   bottomHudStripLayout,
   debugButtonPosition,
+  defensePlayAreaLayout,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
@@ -349,9 +351,11 @@ export class DefenseScene extends Phaser.Scene {
     buildGroundLayer(this, halfW, halfH);
     buildGroundDecorLayer(this, halfW, halfH, this.save.night);
 
-    this.add
-      .rectangle(0, -halfH + 20, halfW * 2, worldUnit(40, this.registry), 0x52525b)
-      .setOrigin(0.5, 0);
+    if (!endless) {
+      this.add
+        .rectangle(0, -halfH + 20, halfW * 2, worldUnit(40, this.registry), 0x52525b)
+        .setOrigin(0.5, 0);
+    }
 
     this.obstacleGroup = this.physics.add.staticGroup();
     const scaledObstacles = scaledDefenseObstacles(this.registry);
@@ -371,6 +375,9 @@ export class DefenseScene extends Phaser.Scene {
 
     this.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
 
+    this.safe = readSafeInsets();
+    const playArea = defensePlayAreaLayout(this, this.safe);
+
     const start = defensePlayerStart();
     this.player = new Player(this, start.x, start.y, this.save.player.hpMax);
     this.player.damageable.hp = this.save.player.hpMax;
@@ -381,11 +388,10 @@ export class DefenseScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, this.enemyGroup);
     this.physics.add.collider(this.enemyGroup, this.enemyGroup);
     this.physics.add.collider(this.enemyGroup, this.obstacleGroup);
-    configureDefenseFollowCamera(this.cameras.main, this.player.sprite);
+    configureDefenseFollowCamera(this.cameras.main, this.player.sprite, playArea);
 
-    this.safe = readSafeInsets();
     const chrome = combatChromeLayout(this, this.safe);
-    this.hudChrome = createCombatHudChrome(this);
+    this.hudChrome = createCombatHudChrome(this, this.safe);
 
     const bottomStrip = bottomHudStripLayout(this, this.safe);
     if (isE2EEnabled() && typeof window !== "undefined") {
@@ -394,6 +400,9 @@ export class DefenseScene extends Phaser.Scene {
           bottomChromeTextureKey: null,
           stripCenterY: bottomStrip.stripCenterY,
           stripH: bottomStrip.stripH,
+          playAreaY: playArea.y,
+          playAreaBottom: playArea.y + playArea.height,
+          playAreaHeight: playArea.height,
         };
     }
 
@@ -837,6 +846,7 @@ export class DefenseScene extends Phaser.Scene {
           x: o.sprite.x,
           y: o.sprite.y,
         }));
+      const objective = this.isEndlessMode() ? "huntPlayer" : "defendWall";
       const brain = updateEnemyBrain(
         e,
         e.nav,
@@ -846,6 +856,7 @@ export class DefenseScene extends Phaser.Scene {
         delta,
         peerAgents,
         peerAllies,
+        objective,
       );
       this.enemyPathGoals.set(e.id, {
         targetKind: brain.targetKind,
@@ -859,6 +870,8 @@ export class DefenseScene extends Phaser.Scene {
         e.sprite.y,
         px,
         py,
+        worldUnit(PLAYER_AGGRO_RADIUS, this.registry),
+        this.isEndlessMode() ? "huntPlayer" : "defendWall",
       );
       const attackTarget =
         combatTargetKind === "player"
@@ -876,6 +889,7 @@ export class DefenseScene extends Phaser.Scene {
 
       let playerHitDamage = 0;
       const onWallHit = () => {
+        if (this.isEndlessMode()) return;
         const wallDamage = e.combatTuning.wall.damage;
         this.wallHp = Math.max(0, this.wallHp - wallDamage);
       };
@@ -1093,6 +1107,9 @@ export class DefenseScene extends Phaser.Scene {
       const header = this.isEndlessMode()
         ? this.endlessHudHeader(dataStore)
         : `Night ${this.save.night}`;
+      const wallLine = this.isEndlessMode()
+        ? header
+        : `${header} · Wall ${Math.max(0, Math.floor(this.wallHp))}`;
       const castLine = (() => {
         if (!castPhase) {
           return this.player.attackPhaseNow !== "idle"
@@ -1104,8 +1121,8 @@ export class DefenseScene extends Phaser.Scene {
       })();
       this.hudText.setText(
         [
-          `${header} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
-          `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
+          wallLine,
+          `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.endlessInfiniteHp ? " · ∞" : ""}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
           `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
           castLine,
         ].join("\n"),
@@ -1115,7 +1132,6 @@ export class DefenseScene extends Phaser.Scene {
     if (this.isEndlessMode()) {
       const endlessEnd = evaluateEndlessEnd({
         nightEnded: this.nightEnded,
-        wallHp: this.wallHp,
         playerHp: this.player.damageable.hp,
       });
       if (endlessEnd) {
@@ -2219,7 +2235,7 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies.push(enemy);
   }
 
-  private endEndlessRun(reason: "quit" | "player" | "wall"): void {
+  private endEndlessRun(reason: "quit" | "player"): void {
     if (this.nightEnded) return;
     this.nightEnded = true;
     if (this.leaveEndlessBtn) {
@@ -2243,11 +2259,7 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     const headline =
-      reason === "quit"
-        ? "Training ended"
-        : reason === "wall"
-          ? "Wall breached — training over"
-          : "You fell — training over";
+      reason === "quit" ? "Training ended" : "You fell — training over";
     this.hudText.setText(
       [
         headline,

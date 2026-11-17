@@ -51,6 +51,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     playerY,
     deltaMs,
     worldUnit(PLAYER_AGGRO_RADIUS, reg),
+    ctx.objective ?? "defendWall",
   );
   const goal = { x: resolved.goalX, y: resolved.goalY };
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);

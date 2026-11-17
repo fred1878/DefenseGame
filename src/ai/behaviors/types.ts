@@ -1,6 +1,10 @@
 import type { NavGrid } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
-import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
+import type {
+  EnemyNavState,
+  EnemyObjectiveMode,
+  EnemyTargetKind,
+} from "../EnemyBrain";
 
 export type BehaviorMoveResult = {
   targetX: number;
@@ -24,6 +28,7 @@ export type EnemyBehaviorContext = {
   deltaMs: number;
   peerAgents?: readonly { x: number; y: number }[];
   peerAllies?: readonly EnemyPeerAlly[];
+  objective?: EnemyObjectiveMode;
 };
 
 export type EnemyBehavior = (ctx: EnemyBehaviorContext) => BehaviorMoveResult;

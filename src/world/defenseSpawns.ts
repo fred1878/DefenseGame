@@ -16,8 +16,7 @@ export function pickWaveSpawnPoint(e2e: boolean): { x: number; y: number } {
   };
 }
 
-/** Player start — mid-south, room to kite north toward the wall. */
+/** Player start — vertical center of the scrollable field (night + endless). */
 export function defensePlayerStart(): { x: number; y: number } {
-  const halfH = defenseHalfHeight();
-  return { x: 0, y: halfH - 220 };
+  return { x: 0, y: 0 };
 }
