@@ -49,6 +49,7 @@ test.describe("obstacle sprite vs blocking", () => {
       const anchor = defenseObstacleSpriteAnchor(DEFENSE_OBSTACLE_PLACEMENTS[i]!);
       expect(Math.abs(row.spriteX - anchor.x)).toBeLessThan(0.01);
       expect(Math.abs(row.spriteY - anchor.y)).toBeLessThan(0.01);
+      expect(Math.abs(row.configY - row.bodyCenterY)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyW - row.configW)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyH - row.configH)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyCenterX - row.configX)).toBeLessThan(0.51);
@@ -90,5 +91,31 @@ test.describe("obstacle sprite vs blocking", () => {
       contentType: "image/png",
     });
     expect(shot.byteLength).toBeGreaterThan(8_000);
+  });
+
+  test("obstacle feet anchor matches sprite y with hitboxes on", async ({
+    page,
+  }) => {
+    await gotoE2E(page);
+    await startDefense(page);
+    const api = e2eApi(page);
+    await api.eval<void>("api.setShowHitboxes(true)");
+    const rows = await api.eval<
+      Array<{
+        spriteY: number;
+        bodyCenterY: number;
+        bodyH: number;
+        displayH: number;
+      }>
+    >("api.getObstacleAlignment()");
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]!;
+      const anchor = defenseObstacleSpriteAnchor(DEFENSE_OBSTACLE_PLACEMENTS[i]!);
+      expect(Math.abs(row.spriteY - anchor.y)).toBeLessThan(0.01);
+      const bodyBottom = row.bodyCenterY + row.bodyH / 2;
+      expect(Math.abs(bodyBottom - row.spriteY)).toBeLessThan(0.51);
+      const bodyTop = row.bodyCenterY - row.bodyH / 2;
+      expect(bodyTop).toBeGreaterThan(row.spriteY - row.displayH - 0.51);
+    }
   });
 });

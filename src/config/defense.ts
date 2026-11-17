@@ -69,9 +69,8 @@ export type ObstaclePhysicsLayout = {
   displayW: number;
   displayH: number;
   /**
-   * Collider center offset from sprite anchor (origin 0.5 at crop center).
-   * Positive Y moves the body south — feet align to the crop baseline (see
-   * {@link obstacleArcadeBodyOffset} + StaticBody.reset).
+   * Collider center offset from sprite anchor (origin 0.5×1 — feet on tile center).
+   * Negative Y raises the body when feet sit on the anchor.
    */
   bodyCenterOffsetX: number;
   bodyCenterOffsetY: number;
@@ -94,7 +93,7 @@ export function obstaclePhysicsLayout(textureKey: ObstacleTextureKey): ObstacleP
     displayW,
     displayH,
     bodyCenterOffsetX: 0,
-    bodyCenterOffsetY: (displayH - bodyH) / 2,
+    bodyCenterOffsetY: -bodyH / 2,
   };
 }
 
@@ -144,7 +143,7 @@ export type DefenseObstaclePlacement = {
   textureKey: ObstacleTextureKey;
 };
 
-/** Sprite anchor (tile center); collider rect is feet-aligned via {@link obstaclePhysicsLayout}. */
+/** Sprite feet (origin y=1) on tile center; collider sits on that anchor. */
 export const DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
   { tileX: 2, tileY: 3, textureKey: OBSTACLE_TEXTURE.wideSlab },
   { tileX: 10, tileY: 4, textureKey: OBSTACLE_TEXTURE.tallRock },

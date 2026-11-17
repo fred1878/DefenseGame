@@ -1,4 +1,4 @@
-import type Phaser from "phaser";
+import Phaser from "phaser";
 import {
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
@@ -9,7 +9,7 @@ import {
   type ObstaclePhysicsLayout,
 } from "../config/defense";
 
-/** StaticBody offset from sprite top-left; paired with {@link Phaser.Physics.Arcade.StaticBody#reset}. */
+/** StaticBody offset from sprite top-left (feet origin); see {@link syncDefenseObstacleStaticBody}. */
 export function obstacleArcadeBodyOffset(
   layout: ObstaclePhysicsLayout,
   displayW: number,
@@ -24,7 +24,7 @@ export function obstacleArcadeBodyOffset(
   const offY = layout.bodyCenterOffsetY * sizeScale;
   return {
     x: displayW / 2 - halfW + offX,
-    y: displayH / 2 - halfH + offY,
+    y: displayH + offY - halfH,
   };
 }
 
@@ -41,7 +41,7 @@ export function configureDefenseObstacleSprite(
 
   rock.setCrop(crop.x, crop.y, crop.w, crop.h);
   rock.setDisplaySize(disp.w, disp.h);
-  rock.setOrigin(0.5);
+  rock.setOrigin(0.5, 1);
 
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
   body.setSize(blockW, blockH, false);
@@ -53,7 +53,29 @@ export function configureDefenseObstacleSprite(
     blockH,
   );
   body.setOffset(offset.x, offset.y);
-  body.reset(rock.x, rock.y);
+  syncDefenseObstacleStaticBody(rock);
+}
+
+/**
+ * Arcade StaticBody.reset uses getTopLeft() in local space. World-layer parenting needs world coords
+ * or colliders drift south of cropped sprites (DefenseScene dual-camera rig, #142).
+ */
+export function syncDefenseObstacleStaticBody(
+  rock: Phaser.Physics.Arcade.Image,
+): void {
+  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
+  const world = body.world;
+  const tree = world.staticTree as unknown as {
+    remove(b: Phaser.Physics.Arcade.StaticBody): void;
+    insert(b: Phaser.Physics.Arcade.StaticBody): void;
+  };
+  tree.remove(body);
+  const topLeft = new Phaser.Math.Vector2();
+  rock.getTopLeft(topLeft, true);
+  body.position.x = topLeft.x + body.offset.x;
+  body.position.y = topLeft.y + body.offset.y;
+  body.updateCenter();
+  tree.insert(body);
 }
 
 /** Expected Arcade body center for a sprite at the given anchor (unit-test / debug). */

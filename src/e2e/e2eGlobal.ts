@@ -56,6 +56,7 @@ export type DefenseGameE2EApi = {
   setSpawnPlanComplete(): void;
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
+  getPlayerPosition(): { x: number; y: number };
   getDefenseCameraScroll(): { x: number; y: number };
   getDefenseHudLayoutProbe(): ReturnType<
     import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]
@@ -72,6 +73,7 @@ export type DefenseGameE2EApi = {
     >
   >;
   setShowEnemyPaths(on: boolean): void;
+  setShowHitboxes(on: boolean): void;
   setShowTouchInput(on: boolean): void;
   getTownBuildingDebugRectCount(): number;
   openSpellSortPanel(): void;
