@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { getEmbeddedBuildId, urlBuildParamLine } from "../buildId";
 import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
 import { DataStore } from "../core/DataStore";
@@ -465,11 +466,19 @@ export class TownScene extends Phaser.Scene {
       wall < (wallDef?.maxLevel ?? 0)
         ? wallDef?.costByLevel[wall]
         : undefined;
+    const embedded = getEmbeddedBuildId();
+    const urlB =
+      typeof window !== "undefined"
+        ? new URL(window.location.href).searchParams.get("b")
+        : null;
+    const buildLines = [`Build ${embedded}`, urlBuildParamLine(embedded, urlB)]
+      .filter((line): line is string => line !== null);
     this.statusText.setText(
       [
         `Night ${this.save.night} · Gold ${this.save.gold}`,
         `Wall L${wall} (HP ${this.save.townWallHp}/${this.save.townWallHpMax})${wallCost !== undefined ? ` — next ${wallCost}g` : ""}`,
         `Blacksmith L${smith} (damage x${dmg})`,
+        ...buildLines,
         "Reset save: fresh start + latest build",
       ].join("\n"),
     );
