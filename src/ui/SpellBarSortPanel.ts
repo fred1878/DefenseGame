@@ -15,6 +15,7 @@ import {
   isSpellPoolSelectable,
   poolSpellIconAlpha,
 } from "../content/spellPoolReadiness";
+import { toggleSpellOnDefenseBar } from "../content/spellBarSortSlots";
 import {
   getSpellCatalog,
   spellById,
@@ -32,10 +33,19 @@ export type SpellBarSortResult = {
   autoCastSpellIds: SpellId[];
 };
 
+type PoolPressState = {
+  spellId: SpellId;
+  startX: number;
+  startY: number;
+  dragAccumPx: number;
+};
+
 type DragState = {
   spellId: SpellId;
   ghost: Phaser.GameObjects.Container;
 };
+
+const POOL_TAP_DRAG_THRESHOLD_PX = 10;
 
 type SlotView = {
   frame: Phaser.GameObjects.Rectangle;
@@ -69,6 +79,7 @@ export class SpellBarSortPanel {
   private readonly onDone: (result: SpellBarSortResult) => void;
   private readonly slotViews: SlotView[] = [];
   private readonly poolChips: PoolChip[] = [];
+  private poolPress: PoolPressState | null = null;
   private drag: DragState | null = null;
 
   constructor(
@@ -107,7 +118,7 @@ export class SpellBarSortPanel {
       .text(
         GAME.width / 2,
         scaleUiY(panelLayout.hintY),
-        "4×2 night bar — 8 slots, same order as defense. Labels name each spell. Drag bright pool icons on; dim = already on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
+        "4×2 night bar — 8 slots, same order as defense. Labels name each spell. Tap or drag bright pool icons on; tap again to remove. Dim = already on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
           color: "#a1a1aa",
@@ -257,9 +268,13 @@ export class SpellBarSortPanel {
         .setOrigin(0.5, 0);
       if (poolSelectable) {
         frame.setInteractive({ useHandCursor: true });
-        frame.on("pointerdown", (p: Phaser.Input.Pointer) => this.beginDrag(def.id, p));
+        frame.on("pointerdown", (p: Phaser.Input.Pointer) =>
+          this.onPoolPointerDown(def.id, p),
+        );
         icon?.setInteractive({ useHandCursor: true });
-        icon?.on("pointerdown", (p: Phaser.Input.Pointer) => this.beginDrag(def.id, p));
+        icon?.on("pointerdown", (p: Phaser.Input.Pointer) =>
+          this.onPoolPointerDown(def.id, p),
+        );
       }
       this.poolChips.push({
         spellId: def.id,
@@ -373,11 +388,26 @@ export class SpellBarSortPanel {
     }
   }
 
-  private beginDrag(spellId: SpellId, pointer: Phaser.Input.Pointer): void {
-    if (this.drag) return;
+  private onPoolPointerDown(spellId: SpellId, pointer: Phaser.Input.Pointer): void {
+    if (this.poolPress || this.drag) return;
     const def = spellById(spellId);
     if (!def || !isSpellPoolSelectable(def)) return;
-    const ghost = this.scene.add.container(pointer.x, pointer.y).setDepth(600).setScrollFactor(0);
+    this.poolPress = {
+      spellId,
+      startX: pointer.x,
+      startY: pointer.y,
+      dragAccumPx: 0,
+    };
+  }
+
+  private createDragGhost(
+    spellId: SpellId,
+    pointer: Phaser.Input.Pointer,
+  ): Phaser.GameObjects.Container {
+    const ghost = this.scene.add
+      .container(pointer.x, pointer.y)
+      .setDepth(600)
+      .setScrollFactor(0);
     const cell = TOWN_SPELL_SORT_BAR.slotSizePx;
     const bg = this.scene.add
       .rectangle(0, 0, cell, cell, 0x4c1d95, 0.92)
@@ -390,12 +420,33 @@ export class SpellBarSortPanel {
         .setDisplaySize(Math.round(cell * 0.82), Math.round(cell * 0.82));
       ghost.add(icon);
     }
+    return ghost;
+  }
+
+  private promotePoolPressToDrag(pointer: Phaser.Input.Pointer): void {
+    if (!this.poolPress) return;
+    const { spellId } = this.poolPress;
+    const ghost = this.createDragGhost(spellId, pointer);
     this.drag = { spellId, ghost };
+    this.poolPress = null;
   }
 
   private onPointerMove = (pointer: Phaser.Input.Pointer): void => {
-    if (!this.drag) return;
-    this.drag.ghost.setPosition(pointer.x, pointer.y);
+    if (this.drag) {
+      this.drag.ghost.setPosition(pointer.x, pointer.y);
+      return;
+    }
+    if (!this.poolPress) return;
+    const dx = pointer.x - this.poolPress.startX;
+    const dy = pointer.y - this.poolPress.startY;
+    this.poolPress.dragAccumPx = Math.max(
+      this.poolPress.dragAccumPx,
+      Math.hypot(dx, dy),
+    );
+    const threshold = scaleUiX(POOL_TAP_DRAG_THRESHOLD_PX);
+    if (this.poolPress.dragAccumPx >= threshold) {
+      this.promotePoolPressToDrag(pointer);
+    }
   };
 
   private slotIndexAtPointer(pointer: Phaser.Input.Pointer): number {
@@ -410,15 +461,35 @@ export class SpellBarSortPanel {
   }
 
   private onPointerUp = (pointer: Phaser.Input.Pointer): void => {
-    if (!this.drag) return;
-    const slotIndex = this.slotIndexAtPointer(pointer);
-    if (slotIndex >= 0) {
-      this.onDropOnSlot(slotIndex);
+    if (this.drag) {
+      const slotIndex = this.slotIndexAtPointer(pointer);
+      if (slotIndex >= 0) {
+        this.onDropOnSlot(slotIndex);
+      } else {
+        this.drag.ghost.destroy();
+        this.drag = null;
+      }
       return;
     }
-    this.drag.ghost.destroy();
-    this.drag = null;
+    if (!this.poolPress) return;
+    const { spellId, dragAccumPx } = this.poolPress;
+    this.poolPress = null;
+    const threshold = scaleUiX(POOL_TAP_DRAG_THRESHOLD_PX);
+    if (dragAccumPx < threshold) {
+      this.togglePoolSpell(spellId);
+    }
   };
+
+  private togglePoolSpell(spellId: SpellId): void {
+    const def = spellById(spellId);
+    if (!def || !isSpellPoolSelectable(def)) return;
+    const wasOnBar = this.slots.includes(spellId);
+    this.slots = toggleSpellOnDefenseBar(this.slots, spellId);
+    if (wasOnBar) {
+      this.autoCastSpellIds = this.autoCastSpellIds.filter((id) => id !== spellId);
+    }
+    this.refreshSlotDisplay();
+  }
 
   private onDropOnSlot(index: number): void {
     if (!this.drag) {
@@ -454,6 +525,7 @@ export class SpellBarSortPanel {
   }
 
   destroy(): void {
+    this.poolPress = null;
     if (this.drag) {
       this.drag.ghost.destroy();
       this.drag = null;
