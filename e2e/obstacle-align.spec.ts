@@ -93,9 +93,7 @@ test.describe("obstacle sprite vs blocking", () => {
     expect(shot.byteLength).toBeGreaterThan(8_000);
   });
 
-  test("obstacle feet anchor matches sprite y with hitboxes on", async ({
-    page,
-  }) => {
+  test("obstacle feet on tile center with hitboxes on", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);
     const api = e2eApi(page);
@@ -112,10 +110,11 @@ test.describe("obstacle sprite vs blocking", () => {
       const row = rows[i]!;
       const anchor = defenseObstacleSpriteAnchor(DEFENSE_OBSTACLE_PLACEMENTS[i]!);
       expect(Math.abs(row.spriteY - anchor.y)).toBeLessThan(0.01);
+      const feetY = row.spriteY + row.displayH / 2;
       const bodyBottom = row.bodyCenterY + row.bodyH / 2;
-      expect(Math.abs(bodyBottom - row.spriteY)).toBeLessThan(0.51);
+      expect(Math.abs(bodyBottom - feetY)).toBeLessThan(0.51);
       const bodyTop = row.bodyCenterY - row.bodyH / 2;
-      expect(bodyTop).toBeGreaterThan(row.spriteY - row.displayH - 0.51);
+      expect(bodyTop).toBeGreaterThan(row.spriteY - row.displayH / 2 - 0.51);
     }
   });
 });

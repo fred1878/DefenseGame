@@ -69,8 +69,8 @@ export type ObstaclePhysicsLayout = {
   displayW: number;
   displayH: number;
   /**
-   * Collider center offset from sprite anchor (origin 0.5×1 — feet on tile center).
-   * Negative Y raises the body when feet sit on the anchor.
+   * Collider center offset from the sprite anchor (origin 0.5 at crop center).
+   * Positive Y moves the body south — feet align to the crop baseline.
    */
   bodyCenterOffsetX: number;
   bodyCenterOffsetY: number;
@@ -93,7 +93,7 @@ export function obstaclePhysicsLayout(textureKey: ObstacleTextureKey): ObstacleP
     displayW,
     displayH,
     bodyCenterOffsetX: 0,
-    bodyCenterOffsetY: -bodyH / 2,
+    bodyCenterOffsetY: (displayH - bodyH) / 2,
   };
 }
 
@@ -143,7 +143,7 @@ export type DefenseObstaclePlacement = {
   textureKey: ObstacleTextureKey;
 };
 
-/** Sprite feet (origin y=1) on tile center; collider sits on that anchor. */
+/** Tile placements; sprite center is raised so crop feet sit on the tile center. */
 export const DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
   { tileX: 2, tileY: 3, textureKey: OBSTACLE_TEXTURE.wideSlab },
   { tileX: 10, tileY: 4, textureKey: OBSTACLE_TEXTURE.tallRock },
@@ -158,7 +158,12 @@ export const DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
 export function defenseObstacleSpriteAnchor(
   placement: DefenseObstaclePlacement,
 ): { x: number; y: number } {
-  return defenseTileCenter(placement.tileX, placement.tileY);
+  const tile = defenseTileCenter(placement.tileX, placement.tileY);
+  const { displayH } = obstaclePhysicsLayout(placement.textureKey);
+  return {
+    x: tile.x,
+    y: tile.y - displayH / 2,
+  };
 }
 
 export function defenseObstacleColliderFromPlacement(
