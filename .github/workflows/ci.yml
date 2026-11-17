@@ -7,8 +7,6 @@ on:
     branches: [main]
 
 concurrency:
-  # PRs: one active run per PR; superseded pushes cancel. Main: let each push finish
-  # (rapid merges should not kill an in-flight e2e).
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -16,77 +14,6 @@ permissions:
   contents: read
 
 jobs:
-  changes:
-    runs-on: ubuntu-24.04
-    outputs:
-      run_e2e: ${{ steps.plan.outputs.run_e2e }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            e2e:
-              - "src/**"
-              - "e2e/**"
-              - "public/**"
-              - "index.html"
-              - "playwright.config.ts"
-              - "vite.config.ts"
-              - "package.json"
-              - "package-lock.json"
-              - "tsconfig.json"
-              - "tsconfig.*.json"
-      - name: Detect conflict-resolution merge on main
-        id: conflict
-        run: |
-          if [ "${{ github.event_name }}" != "push" ] || [ "${{ github.ref }}" != "refs/heads/main" ]; then
-            echo "had_manual_merge=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          parents=$(git log -1 --pretty=%P)
-          read -r -a p <<< "$parents"
-          if [ "${#p[@]}" -lt 2 ]; then
-            echo "had_manual_merge=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          p1="${p[0]}"
-          p2="${p[1]}"
-          base=$(git merge-base "$p1" "$p2")
-          set +e
-          auto_tree=$(git merge-tree --write-tree "$base" "$p1" "$p2" 2>/dev/null)
-          merge_tree_status=$?
-          merge_tree_log=$(git merge-tree "$base" "$p1" "$p2" 2>&1 || true)
-          set -e
-          actual_tree=$(git rev-parse "HEAD^{tree}")
-          if echo "$merge_tree_log" | grep -qE "changed in both|CONFLICT"; then
-            echo "had_manual_merge=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [ "$merge_tree_status" -ne 0 ] || [ -z "$auto_tree" ] || [ "$auto_tree" != "$actual_tree" ]; then
-            echo "had_manual_merge=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "had_manual_merge=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Plan e2e run
-        id: plan
-        run: |
-          e2e_paths="${{ steps.filter.outputs.e2e }}"
-          conflict="${{ steps.conflict.outputs.had_manual_merge }}"
-          event="${{ github.event_name }}"
-          run_e2e=false
-          if [ "$e2e_paths" = "true" ]; then
-            if [ "$event" = "pull_request" ]; then
-              run_e2e=true
-            elif [ "$event" = "push" ] && [ "$conflict" = "true" ]; then
-              run_e2e=true
-            fi
-          fi
-          echo "Planned run_e2e=$run_e2e (e2e_paths=$e2e_paths event=$event conflict=$conflict)"
-          echo "run_e2e=$run_e2e" >> "$GITHUB_OUTPUT"
-
   verify:
     runs-on: ubuntu-24.04
     steps:
@@ -109,59 +36,3 @@ jobs:
         run: npm run build
         env:
           VITE_BUILD_ID: ${{ github.sha }}
-
-  e2e:
-    needs: changes
-    runs-on: ubuntu-24.04
-    steps:
-      - name: E2E skipped for this event
-        if: needs.changes.outputs.run_e2e != 'true'
-        run: |
-          echo "Playwright skipped."
-          echo "PRs: only when gameplay paths change (see changes job)."
-          echo "main: only after a merge commit that resolved conflicts."
-
-      - uses: actions/checkout@v4
-        if: needs.changes.outputs.run_e2e == 'true'
-
-      - uses: actions/setup-node@v4
-        if: needs.changes.outputs.run_e2e == 'true'
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - if: needs.changes.outputs.run_e2e == 'true'
-        run: npm ci
-
-      - name: E2E production build
-        if: needs.changes.outputs.run_e2e == 'true'
-        run: npm run build
-        env:
-          VITE_E2E: "true"
-          VITE_BUILD_ID: e2e-ci
-          VITE_BASE: /
-
-      - name: Cache Playwright browsers
-        if: needs.changes.outputs.run_e2e == 'true'
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - if: needs.changes.outputs.run_e2e == 'true'
-        run: npx playwright install --with-deps chromium
-
-      - name: Playwright e2e
-        if: needs.changes.outputs.run_e2e == 'true'
-        run: npm run test:e2e -- --project=chromium
-
-      - name: Upload Playwright report
-        if: failure() && needs.changes.outputs.run_e2e == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7

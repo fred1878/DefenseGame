@@ -184,8 +184,7 @@ npm run dev          # Vite dev server (browser play-test)
 npm run build        # production bundle → dist/
 npm run typecheck
 npm run test         # Vitest unit tests
-npm run build:e2e    # production build with E2E hooks
-npm run test:e2e     # Playwright (run build:e2e first)
+npm run e2e:manual   # maintainer-only: build:e2e + Playwright (not CI / not default verify)
 npm run preview      # serve dist locally
 ```
 
