@@ -34,14 +34,15 @@ export const TOWN_SPELL_SORT_PANEL = {
   doneBelowPoolGapY: 28,
 } as const;
 
-/** Defense night HUD: 2× slot size; 2×4 grid fits beside AUTO/MEL/ATK on 540-wide. */
+/** Defense night HUD: 2× slot/tap metrics, 4×2 grid beside vertical AUTO/MEL/ATK on 540-wide. */
 export const DEFENSE_SPELL_BAR = {
-  columnCount: 2,
-  rowCount: 4,
+  columnCount: SPELL_BAR.columnCount,
+  rowCount: SPELL_BAR.rowCount,
   slotCount: SPELL_BAR.slotCount,
   slotSizePx: SPELL_BAR.slotSizePx * HUD_SPELL_BAR_2X_SCALE,
-  slotGapPx: SPELL_BAR.slotGapPx * HUD_SPELL_BAR_2X_SCALE,
-  rowGapPx: SPELL_BAR.rowGapPx * HUD_SPELL_BAR_2X_SCALE,
+  /** Column gap stays 1× so four 2× slots fit before the combat column on 540-wide. */
+  slotGapPx: SPELL_BAR.slotGapPx,
+  rowGapPx: SPELL_BAR.rowGapPx,
   tapPaddingPx: SPELL_BAR.tapPaddingPx * HUD_SPELL_BAR_2X_SCALE,
   iconInsetFrac: SPELL_BAR.iconInsetFrac,
   cooldownRingWidthPx: SPELL_BAR.cooldownRingWidthPx * HUD_SPELL_BAR_2X_SCALE,
@@ -70,7 +71,7 @@ export function spellBarIconDisplayPx(): number {
   return SPELL_BAR.slotSizePx - pad;
 }
 
-/** On-screen spell icon size in the defense night HUD (2× base). */
+/** On-screen spell icon size in the defense night HUD (2× base bar). */
 export function defenseSpellBarIconDisplayPx(): number {
   const pad = Math.round(
     DEFENSE_SPELL_BAR.slotSizePx * DEFENSE_SPELL_BAR.iconInsetFrac,

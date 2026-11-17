@@ -422,7 +422,7 @@ function defenseSceneE2eHudBandPixelProbePoints(
     },
     bottomBand: {
       x: Math.round(scene.scale.width * 0.5),
-      y: Math.round(probe.playArea.bottomBandTop + scaleUiY(36)),
+      y: Math.round(probe.playArea.bottomBandTop + scaleUiY(22)),
     },
     playArea: {
       x: Math.round(scene.scale.width / 2),

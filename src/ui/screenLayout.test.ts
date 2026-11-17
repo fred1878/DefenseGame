@@ -68,8 +68,10 @@ describe("screenLayout", () => {
     const chrome = combatChromeLayout(scene, safe);
     expect(y).toBe(chrome.bottomStrip.stripCenterY);
     expect(chrome.btnY).toBeGreaterThanOrEqual(chrome.bottomStrip.stripTop);
-    expect(chrome.autoY).toBe(chrome.btnY);
-    expect(chrome.modeX).toBeGreaterThan(chrome.autoX);
+    expect(chrome.btnY).toBeLessThanOrEqual(chrome.bottomStrip.stripBottom);
+    expect(chrome.autoY).toBeLessThan(chrome.modeY);
+    expect(chrome.modeY).toBeLessThan(chrome.btnY);
+    expect(chrome.modeX).toBe(chrome.autoX);
   });
 
   it("spell slots target bottom 15% of portrait canvas", () => {
@@ -88,13 +90,14 @@ describe("screenLayout", () => {
         (DEFENSE_SPELL_BAR.slotSizePx + DEFENSE_SPELL_BAR.rowGapPx);
     const gridBottom =
       lastRowCenterY + DEFENSE_SPELL_BAR.slotSizePx / 2;
-    expect(gridBottom).toBeGreaterThan(GAME.height * 0.88);
+    expect(gridBottom).toBeGreaterThan(GAME.height * 0.84);
+    expect(gridBottom).toBeLessThanOrEqual(chrome.bottomStrip.stripBottom + 2);
     const lastCenterX =
       firstSlotCenterX +
       (DEFENSE_SPELL_BAR.columnCount - 1) *
         (DEFENSE_SPELL_BAR.slotSizePx + DEFENSE_SPELL_BAR.slotGapPx);
     const rowRight = lastCenterX + DEFENSE_SPELL_BAR.slotSizePx / 2;
-    const rowEndMax = chrome.combatClusterLeft - scaleUiX(10);
+    const rowEndMax = chrome.combatClusterLeft - scaleUiX(4);
     expect(rowRight).toBeLessThanOrEqual(rowEndMax + 0.5);
   });
 

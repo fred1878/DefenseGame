@@ -254,12 +254,17 @@ export function createDefenseHudController(
   }
 
   const w = scene.scale.width;
+  const h = scene.scale.height;
   const spellRect = spellBar.getScreenRect();
   const uiMask = buildCombatStickUiMask(scene, chrome, spellRect, debugBtn.container);
   const minimapRect = defenseMinimapScreenRect(scene, safe);
+  const playBelowY = playArea.y + playArea.height;
   const stick = new VirtualStick(scene, {
     blockers: uiBlockers,
-    excludeZones: [{ x: 0, y: 0, width: w, height: chrome.hudBand }],
+    excludeZones: [
+      { x: 0, y: 0, width: w, height: playArea.y },
+      { x: 0, y: playBelowY, width: w, height: Math.max(0, h - playBelowY) },
+    ],
     uiScreenRects: [...uiMask, minimapRect],
     dragThresholdPx: chrome.stickDragThreshold,
     radius: chrome.stickRadius,
