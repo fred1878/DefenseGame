@@ -6,6 +6,7 @@ import {
   northWallApproachY,
   northWallAttackY,
 } from "../config";
+import { worldUnit } from "../core/worldPixelScale";
 import { findPath, type PathPoint } from "../pathfinding/astar";
 import { hasLineOfSight } from "../pathfinding/los";
 import type { NavGrid } from "../pathfinding/grid";
@@ -27,6 +28,10 @@ export type EnemyNavState = {
   lastKnownPlayerY: number;
   chaseMemoryMs: number;
   wallTransitionMs: number;
+  /** Accumulated ms while not gaining on the active path waypoint (physics stuck). */
+  pathStallMs: number;
+  /** Closest distance to the active waypoint since last replan / advance. */
+  pathStallBestDist: number;
 };
 
 export type EnemyTargetResolution = {
@@ -45,7 +50,44 @@ export function createEnemyNav(): EnemyNavState {
     lastKnownPlayerY: 0,
     chaseMemoryMs: 0,
     wallTransitionMs: 0,
+    pathStallMs: 0,
+    pathStallBestDist: Infinity,
   };
+}
+
+/** Force an early A* replan when arcade collision keeps the enemy from reaching waypoints. */
+export function noteEnemyPathProgress(
+  nav: EnemyNavState,
+  ex: number,
+  ey: number,
+  deltaMs: number,
+  waypointRadius: number,
+  stallThresholdMs = 650,
+  minProgressPx = 3,
+): void {
+  if (nav.path.length === 0 || nav.pathIndex >= nav.path.length) {
+    nav.pathStallMs = 0;
+    nav.pathStallBestDist = Infinity;
+    return;
+  }
+  const wp = nav.path[nav.pathIndex]!;
+  const d = Math.hypot(wp.x - ex, wp.y - ey);
+  if (d <= waypointRadius) {
+    nav.pathStallMs = 0;
+    nav.pathStallBestDist = Infinity;
+    return;
+  }
+  if (d < nav.pathStallBestDist - minProgressPx) {
+    nav.pathStallBestDist = d;
+    nav.pathStallMs = 0;
+    return;
+  }
+  nav.pathStallMs += deltaMs;
+  if (nav.pathStallMs >= stallThresholdMs) {
+    nav.replanMs = 0;
+    nav.pathStallMs = 0;
+    nav.pathStallBestDist = d;
+  }
 }
 
 /** Instantaneous aggro check (LOS + radius); does not apply chase memory. */
@@ -155,6 +197,8 @@ export function replanEnemyPath(
   const path = findPath(grid, ex, ey, goalX, goalY, peerAgents);
   nav.path = path;
   nav.pathIndex = 0;
+  nav.pathStallMs = 0;
+  nav.pathStallBestDist = Infinity;
   const first = path[0];
   if (first && Math.hypot(first.x - ex, first.y - ey) < waypointRadius) {
     nav.pathIndex = 1;
@@ -172,6 +216,16 @@ export function updateEnemyBrain(
   peerAllies?: readonly EnemyPeerAlly[],
   objective: EnemyObjectiveMode = "defendWall",
 ): { targetX: number; targetY: number; targetKind: EnemyTargetKind } {
+  const reg = enemy.sprite.scene.registry;
+  noteEnemyPathProgress(
+    nav,
+    enemy.sprite.x,
+    enemy.sprite.y,
+    deltaMs,
+    worldUnit(DEFENSE_MAP.pathWaypointRadius, reg),
+    650,
+    worldUnit(3, reg),
+  );
   const behavior = getEnemyBehavior(enemy.behavior);
   return behavior({
     enemy,

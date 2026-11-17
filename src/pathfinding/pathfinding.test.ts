@@ -36,6 +36,27 @@ describe("nav grid", () => {
 });
 
 describe("A*", () => {
+  it("does not cut corners on diagonal steps", () => {
+    const grid = {
+      cellSize: 10,
+      cols: 3,
+      rows: 3,
+      minX: 0,
+      minY: 0,
+      clearancePx: 0,
+      blocked: new Uint8Array([
+        0, 1, 0,
+        1, 0, 0,
+        0, 0, 0,
+      ]),
+    };
+    const path = findPath(grid, 5, 5, 25, 25);
+    const cutsCorner = path.some(
+      (p) => Math.abs(p.x - 15) < 0.01 && Math.abs(p.y - 15) < 0.01,
+    );
+    expect(cutsCorner).toBe(false);
+  });
+
   it("routes around peer agents occupying the direct corridor", () => {
     const grid = buildNavGrid(
       [],

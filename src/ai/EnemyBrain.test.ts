@@ -13,6 +13,7 @@ import {
 import { buildNavGrid } from "../pathfinding/grid";
 import {
   createEnemyNav,
+  noteEnemyPathProgress,
   pickEnemyTarget,
   replanEnemyPath,
   resolveEnemyTarget,
@@ -100,6 +101,18 @@ describe("wallTargetPoint", () => {
     expect(pt.x).toBe(100);
     expect(pt.y).toBe(northWallApproachY());
     expect(pt.y).toBeGreaterThan(northWallAttackY());
+  });
+});
+
+describe("noteEnemyPathProgress", () => {
+  it("forces replan when the enemy stalls on a waypoint", () => {
+    const nav = createEnemyNav();
+    nav.path = [{ x: 0, y: 0 }, { x: 100, y: -200 }];
+    nav.pathIndex = 1;
+    nav.replanMs = 200;
+    noteEnemyPathProgress(nav, 10, 10, 16, 14, 650, 3);
+    noteEnemyPathProgress(nav, 10, 10, 700, 14, 650, 3);
+    expect(nav.replanMs).toBe(0);
   });
 });
 
