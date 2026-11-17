@@ -22,6 +22,7 @@ export const ENEMY_SPRITE_IDS = [
   "charger",
   "lobber",
   "ward",
+  "reaver",
 ] as const;
 
 export type EnemySpriteId = (typeof ENEMY_SPRITE_IDS)[number];
@@ -39,6 +40,7 @@ export const ENEMY_SPRITE_ROSTER: Record<EnemySpriteId, string> = {
   charger: "melee_03",
   lobber: "caster_06",
   ward: "melee_07",
+  reaver: "melee_05",
 };
 
 const ENEMY_CARDINALS: PlayerCardinal[] = ["n", "e", "s", "w"];
