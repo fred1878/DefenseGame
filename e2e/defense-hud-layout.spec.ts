@@ -47,7 +47,7 @@ test.describe("defense HUD layout", () => {
       });
 
     expect(slotCount).toBe(8);
-    expect(stripCenterY).toBeGreaterThan(900);
+    expect(stripCenterY).toBeGreaterThan(1020);
     expect(playAreaBottom).toBeGreaterThan(400);
     expect(playAreaBottom).toBeLessThan(stripCenterY);
     const bandHalf = stripH / 2 + 48;
@@ -118,12 +118,21 @@ test.describe("defense HUD layout", () => {
     const mel = t["combat-mode"];
     const atk = t["combat-atk"];
     if (!auto || !mel || !atk) return null;
-    return { autoX: auto.x, melX: mel.x, atkX: atk.x, rowY: Math.round(mel.y) };
+    return {
+      autoX: auto.x,
+      melX: mel.x,
+      atkX: atk.x,
+      autoY: auto.y,
+      melY: mel.y,
+      atkY: atk.y,
+    };
   });
   expect(combatOrder).not.toBeNull();
-  expect(combatOrder!.autoX).toBeLessThan(combatOrder!.melX);
-  expect(combatOrder!.melX).toBeLessThan(combatOrder!.atkX);
-  expect(combatOrder!.rowY).toBeGreaterThan(900);
+  expect(Math.abs(combatOrder!.autoX - combatOrder!.melX)).toBeLessThanOrEqual(6);
+  expect(Math.abs(combatOrder!.melX - combatOrder!.atkX)).toBeLessThanOrEqual(6);
+  expect(combatOrder!.autoY).toBeLessThan(combatOrder!.melY);
+  expect(combatOrder!.melY).toBeLessThan(combatOrder!.atkY);
+  expect(combatOrder!.atkY).toBeGreaterThan(980);
   });
 
   test("combat controls match combatChromeLayout anchors", async ({ page }) => {
@@ -156,7 +165,7 @@ test.describe("defense HUD layout", () => {
     expect(Math.abs(t["combat-auto"].y - chrome.autoY)).toBeLessThanOrEqual(
       tol,
     );
-    expect(chrome.bottomStrip.stripCenterY).toBeGreaterThan(900);
+    expect(chrome.bottomStrip.stripCenterY).toBeGreaterThan(1020);
     expect(layout.probe!.playArea.bottomBandTop).toBe(
       chrome.bottomStrip.stripTop,
     );
@@ -200,7 +209,7 @@ test.describe("defense HUD layout", () => {
     expect(minimap).not.toBeNull();
     expect(minimap!.width).toBeGreaterThan(0);
     expect(minimap!.x + minimap!.width).toBeLessThanOrEqual(GAME_WIDTH + 2);
-    expect(minimap!.y).toBeGreaterThan(80);
-    expect(minimap!.y).toBeLessThan(220);
+    expect(minimap!.y).toBeGreaterThan(60);
+    expect(minimap!.y).toBeLessThan(200);
   });
 });
