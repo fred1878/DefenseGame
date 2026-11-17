@@ -1060,6 +1060,19 @@ export class DefenseScene extends Phaser.Scene {
         this.hitboxDebug.drawCircle(p.sprite.x, p.sprite.y, 10);
       }
     }
+
+    for (const child of this.obstacleGroup.getChildren()) {
+      const body = (child as Phaser.Physics.Arcade.Image).body as
+        | Phaser.Physics.Arcade.StaticBody
+        | null;
+      if (!body) continue;
+      this.hitboxDebug.drawObstacleRect(
+        body.center.x,
+        body.center.y,
+        body.width,
+        body.height,
+      );
+    }
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until HUD controller lands */

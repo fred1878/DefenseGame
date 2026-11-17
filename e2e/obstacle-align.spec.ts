@@ -53,6 +53,13 @@ test.describe("obstacle sprite vs blocking", () => {
       expect(Math.abs(row.bodyH - row.configH)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyCenterX - row.configX)).toBeLessThan(0.51);
       expect(Math.abs(row.bodyCenterY - row.configY)).toBeLessThan(0.51);
+      const configTop = row.configY - row.configH / 2;
+      const configBottom = row.configY + row.configH / 2;
+      const bodyTop = row.bodyCenterY - row.bodyH / 2;
+      const bodyBottom = row.bodyCenterY + row.bodyH / 2;
+      expect(bodyTop - configTop).toBeGreaterThan(-0.51);
+      expect(bodyBottom - configBottom).toBeLessThan(0.51);
+      expect(Math.abs(bodyBottom - configBottom)).toBeLessThan(0.51);
       expect(row.bodyW).toBeLessThanOrEqual(row.displayW + 0.51);
       expect(row.bodyH).toBeLessThanOrEqual(row.displayH + 0.51);
       expect(row.displayW).toBeGreaterThan(row.bodyW);
