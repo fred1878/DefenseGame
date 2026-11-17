@@ -2,6 +2,11 @@ import Phaser from "phaser";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 
 /** MobileRPG blizzard slices scattered over the ground AoE while channeling. */
+const BLIZZARD_PARTICLE_BASE_SIZE_MIN = 22;
+const BLIZZARD_PARTICLE_BASE_SIZE_MAX = 36;
+/** Display-size multiplier for channel particles (timing/behavior unchanged). */
+const BLIZZARD_PARTICLE_VISUAL_SCALE = 2;
+
 export class SpellBlizzardChannelFx {
   private readonly sprites: Phaser.GameObjects.Image[] = [];
   private readonly tweens: Phaser.Tweens.Tween[] = [];
@@ -17,7 +22,10 @@ export class SpellBlizzardChannelFx {
       const dist = radiusWu * Phaser.Math.FloatBetween(0.15, 0.92);
       const x = centerX + Math.cos(ang) * dist;
       const y = centerY + Math.sin(ang) * dist;
-      const size = Phaser.Math.Between(22, 36);
+      const size = Phaser.Math.Between(
+        BLIZZARD_PARTICLE_BASE_SIZE_MIN,
+        BLIZZARD_PARTICLE_BASE_SIZE_MAX,
+      ) * BLIZZARD_PARTICLE_VISUAL_SCALE;
       const sprite = this.scene.add
         .image(x, y, textureKey)
         .setDepth(6)
