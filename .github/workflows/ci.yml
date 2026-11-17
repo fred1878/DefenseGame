@@ -39,7 +39,6 @@ jobs:
               - "package-lock.json"
               - "tsconfig.json"
               - "tsconfig.*.json"
-              - ".github/workflows/ci.yml"
       - name: Detect conflict-resolution merge on main
         id: conflict
         run: |
@@ -85,6 +84,7 @@ jobs:
               run_e2e=true
             fi
           fi
+          echo "Planned run_e2e=$run_e2e (e2e_paths=$e2e_paths event=$event conflict=$conflict)"
           echo "run_e2e=$run_e2e" >> "$GITHUB_OUTPUT"
 
   verify:

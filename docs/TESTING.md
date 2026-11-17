@@ -21,7 +21,7 @@ CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` a
 
 | Event | E2E |
 |--------|-----|
-| **PR → `main`** | Only if the diff touches gameplay paths (`src/`, `e2e/`, `public/`, `index.html`, Vite/TS/Playwright config, `package*.json`, `ci.yml`). Docs-only / unrelated workflows → skipped. |
+| **PR → `main`** | Only if the diff touches gameplay paths (`src/`, `e2e/`, `public/`, `index.html`, Vite/TS/Playwright config, `package*.json`). Docs / other `.github/workflows` → skipped. |
 | **Push to `main`** | Only if paths match **and** the commit is a **merge commit that resolved conflicts** (auto-merge tree ≠ landed tree, or `merge-tree` reports conflicts). Clean squash/merge → skipped on `main`. |
 
 Wall-clock time is roughly **max(verify, e2e)** when e2e runs; doc-only PRs are usually **`verify` only**.
