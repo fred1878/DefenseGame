@@ -5,6 +5,10 @@ const FILL = 0xff3333;
 const FILL_ALPHA = 0.35;
 const LINE = 0xff5555;
 const LINE_ALPHA = 0.85;
+const OBSTACLE_LINE = 0x38bdf8;
+const OBSTACLE_FILL = 0x38bdf8;
+const OBSTACLE_FILL_ALPHA = 0.12;
+const OBSTACLE_LINE_ALPHA = 0.9;
 
 /** Clears and redraws combat hitboxes in world space. */
 export class HitboxDebugDraw {
@@ -31,6 +35,16 @@ export class HitboxDebugDraw {
     this.g.fillCircle(x, y, radius);
     this.g.lineStyle(1.5, LINE, LINE_ALPHA);
     this.g.strokeCircle(x, y, radius);
+  }
+
+  /** Arcade static blocker AABB (world center + size) — matches physics colliders. */
+  drawObstacleRect(cx: number, cy: number, w: number, h: number): void {
+    const left = cx - w / 2;
+    const top = cy - h / 2;
+    this.g.fillStyle(OBSTACLE_FILL, OBSTACLE_FILL_ALPHA);
+    this.g.fillRect(left, top, w, h);
+    this.g.lineStyle(2, OBSTACLE_LINE, OBSTACLE_LINE_ALPHA);
+    this.g.strokeRect(left + 0.5, top + 0.5, w - 1, h - 1);
   }
 
   drawMeleeArc(

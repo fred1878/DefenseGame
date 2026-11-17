@@ -18,7 +18,10 @@ import {
   obstaclePhysicsLayout,
 } from "../config/defense";
 import { DEFENSE_FIELD_TILES } from "../config/defense";
-import { obstacleBodyCenterAtAnchor } from "./defenseObstacleSprite";
+import {
+  obstacleArcadeBodyOffset,
+  obstacleBodyCenterAtAnchor,
+} from "./defenseObstacleSprite";
 
 describe("defense obstacle art vs colliders", () => {
   it("keeps crop rects inside each texture frame", () => {
@@ -73,6 +76,27 @@ describe("defense obstacle art vs colliders", () => {
    * Convention: sprite origin 0.5 sits on tile center (crop center). Collider is
    * bottom-aligned inside the crop so opaque art feet share the crop baseline.
    */
+  it("derives Arcade offset so Phaser center matches config AABB", () => {
+    for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
+      const layout = obstaclePhysicsLayout(placement.textureKey);
+      const collider = defenseObstacleColliderFromPlacement(placement);
+      const offset = obstacleArcadeBodyOffset(
+        layout,
+        layout.displayW,
+        layout.displayH,
+        collider.w,
+        collider.h,
+      );
+      const halfW = Math.floor(collider.w / 2);
+      const halfH = Math.floor(collider.h / 2);
+      const cx = -layout.displayW / 2 + offset.x + halfW;
+      const cy = -layout.displayH / 2 + offset.y + halfH;
+      const anchor = defenseObstacleSpriteAnchor(placement);
+      expect(cx + anchor.x).toBeCloseTo(collider.x, 3);
+      expect(cy + anchor.y).toBeCloseTo(collider.y, 3);
+    }
+  });
+
   it("aligns collider AABB center with feet baseline under display bounds", () => {
     const tol = 0.01;
     for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {

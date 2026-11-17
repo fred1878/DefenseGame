@@ -70,7 +70,8 @@ export type ObstaclePhysicsLayout = {
   displayH: number;
   /**
    * Collider center offset from sprite anchor (origin 0.5 at crop center).
-   * Positive Y moves the body south — feet sit on the crop baseline.
+   * Positive Y moves the body south — feet align to the crop baseline (see
+   * {@link obstacleArcadeBodyOffset} + StaticBody.reset).
    */
   bodyCenterOffsetX: number;
   bodyCenterOffsetY: number;
@@ -119,9 +120,10 @@ export const DEFENSE_MAP = {
   cellSize: 16,
   /**
    * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than the
-   * widest rush collision circle ({@link ENTITY_BODY_RADIUS.enemyMelee}).
+   * widest rush collision circle ({@link ENTITY_BODY_RADIUS.enemyMelee}), plus
+   * {@link DEFENSE_MAP.cellSize} / 2 − 1 px so 16px cells do not pinch melee grunts.
    */
-  pathClearancePx: ENTITY_BODY_RADIUS.enemyMelee,
+  pathClearancePx: ENTITY_BODY_RADIUS.enemyMelee + 7,
   /** How close an enemy must be to a path node before advancing. */
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */

@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES, defenseHalfHeight } from "../config";
+import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
 import { buildNavGrid, cellBlocked, cellToWorldCenter } from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
+  it("clears melee rush radius plus nav cell margin", () => {
+    expect(DEFENSE_MAP.pathClearancePx).toBeGreaterThanOrEqual(
+      ENTITY_BODY_RADIUS.enemyMelee,
+    );
+    expect(DEFENSE_MAP.pathClearancePx).toBe(
+      ENTITY_BODY_RADIUS.enemyMelee + 7,
+    );
+  });
+
   it("marks obstacle cells blocked", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,

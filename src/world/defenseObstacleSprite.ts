@@ -6,7 +6,27 @@ import {
 import {
   obstacleDisplaySize,
   obstaclePhysicsLayout,
+  type ObstaclePhysicsLayout,
 } from "../config/defense";
+
+/** StaticBody offset from sprite top-left; paired with {@link Phaser.Physics.Arcade.StaticBody#reset}. */
+export function obstacleArcadeBodyOffset(
+  layout: ObstaclePhysicsLayout,
+  displayW: number,
+  displayH: number,
+  blockW: number,
+  blockH: number,
+): { x: number; y: number } {
+  const sizeScale = blockW / layout.bodyW;
+  const halfW = Math.floor(blockW / 2);
+  const halfH = Math.floor(blockH / 2);
+  const offX = layout.bodyCenterOffsetX * sizeScale;
+  const offY = layout.bodyCenterOffsetY * sizeScale;
+  return {
+    x: displayW / 2 - halfW + offX,
+    y: displayH / 2 - halfH + offY,
+  };
+}
 
 /** Crop art for display; Arcade body matches nav blocker (feet-aligned, may be smaller than sprite). */
 export function configureDefenseObstacleSprite(
@@ -18,22 +38,22 @@ export function configureDefenseObstacleSprite(
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
   const disp = obstacleDisplaySize(textureKey);
   const layout = obstaclePhysicsLayout(textureKey);
-  const sizeScale = blockW / layout.bodyW;
 
   rock.setCrop(crop.x, crop.y, crop.w, crop.h);
   rock.setDisplaySize(disp.w, disp.h);
   rock.setOrigin(0.5);
-  rock.refreshBody();
+
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
   body.setSize(blockW, blockH, false);
-  const ox = rock.displayWidth / 2;
-  const oy = rock.displayHeight / 2;
-  const halfW = Math.floor(blockW / 2);
-  const halfH = Math.floor(blockH / 2);
-  const offX = layout.bodyCenterOffsetX * sizeScale;
-  const offY = layout.bodyCenterOffsetY * sizeScale;
-  body.setOffset(ox - halfW + offX, oy - halfH + offY);
-  body.updateCenter();
+  const offset = obstacleArcadeBodyOffset(
+    layout,
+    rock.displayWidth,
+    rock.displayHeight,
+    blockW,
+    blockH,
+  );
+  body.setOffset(offset.x, offset.y);
+  body.reset(rock.x, rock.y);
 }
 
 /** Expected Arcade body center for a sprite at the given anchor (unit-test / debug). */
