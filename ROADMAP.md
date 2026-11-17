@@ -35,14 +35,14 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 - [x] PR4 — `DefenseNightEnd.ts` ([#130](https://github.com/fred1878/DefenseGame/pull/130))
 - [x] PR5 — `DefenseTargeting.ts` (direct `main`, `0688dbc`)
 - [x] PR6 — `DefenseHudController.ts` (direct `main`, `53801f7`)
-- [x] PR7 — `DefenseWorldBootstrap.ts` (branch `cursor/defense-world-bootstrap-4e8e`, pending merge)
-- [x] PR8 — `DefenseProjectileTick.ts` (with PR9 branch below)
-- [x] PR9 — `DefenseEnemyTick.ts` (with PR8 branch below)
-- [x] PR10 — `DefenseSpellDirector.ts` (with completion branch below)
+- [x] PR7 — `DefenseWorldBootstrap.ts` (`main`)
+- [x] PR8 — `DefenseProjectileTick.ts`
+- [x] PR9 — `DefenseEnemyTick.ts`
+- [x] PR10 — `DefenseSpellDirector.ts` ([#131](https://github.com/fred1878/DefenseGame/pull/131))
 - [x] PR11 — `systems/WaveSpawner.ts` promotion
 - [ ] PR12 — Pooling (**skipped** — separate track per plan)
-- [ ] P1 — `touchButtonPress.ts` (**deferred** — extract aborted; monolith unchanged at 663 lines)
-- [x] P2 — `enemyRanged/combatPhase.ts` (phase helper only; behaviors remain in `EnemyRangedCombat.ts`)
+- [x] P1 — `touchButtonPress.ts`, `touchButtonFactories.ts`, `touchButtonGeometry.ts` ([#133](https://github.com/fred1878/DefenseGame/pull/133))
+- [x] P2 — `enemyRanged/*` per-behavior modules ([#134](https://github.com/fred1878/DefenseGame/pull/134))
 
 ---
 
@@ -106,7 +106,7 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
 | `DefenseScene` decomposition | L | Plan in REFACTOR_PLAN | **Execute steps 0→1 now** |
-| `touchButton` / `EnemyRangedCombat` splits | M | Monolith files | After DefenseScene PR9–10 or when touching |
+| `touchButton` / `EnemyRangedCombat` splits | — | Done ([#133](https://github.com/fred1878/DefenseGame/pull/133), [#134](https://github.com/fred1878/DefenseGame/pull/134)) | — |
 | `defenseNightLogic` pure guard | S | Yes | Keep covered when moving `endNight` |
 
 ---
