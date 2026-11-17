@@ -28,7 +28,7 @@ Tagged releases (`v*.*.*`) also deploy the same way and add an optional zip on t
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci.yml` | Push/PR to `main` | Parallel `verify` (typecheck, test, build) + `e2e` (Playwright); jobs run independently to completion |
+| `ci.yml` | Push/PR to `main` | Parallel `verify` (always) + conditional `e2e` (path filter on PR; on `main` only after conflict-resolution merge) |
 
 **CI dependency caching:** `setup-node` caches **npm** (`~/.npm`) in both jobs. The **e2e** job also caches Playwright **browser binaries** under `~/.cache/ms-playwright`, keyed by runner OS plus `package-lock.json` (so the resolved `@playwright/test` version). `npx playwright install --with-deps chromium` still runs each time; on a cache hit it skips re-downloading browsers.
 | `pages.yml` | Push to `main` | Publish playable site |
@@ -41,7 +41,7 @@ CI does **not** upload Actions artifacts (large Phaser bundles were hitting acco
 ## Day-to-day development
 
 1. Branch from `main` (cloud agents: `cursor/<name>-ee24`).
-2. Open PR → **CI** runs parallel **verify** and **e2e** (see `docs/TESTING.md`).
+2. Open PR → **CI** runs **verify** always; **e2e** when gameplay paths change (see `docs/TESTING.md`).
 3. Merge to `main` → **Pages** updates the public link within a few minutes.
 
 ---
