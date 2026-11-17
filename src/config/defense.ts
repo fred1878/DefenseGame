@@ -6,7 +6,7 @@ import {
   type ObstacleTextureKey,
 } from "../content/assets";
 import { DEFAULT_WALL_COMBAT } from "../core/enemyTuning";
-import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
+import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 
 /** Playable defense footprint in 64px ground tiles (source of truth). */
 export const DEFENSE_FIELD_TILES = {
@@ -119,10 +119,9 @@ export const DEFENSE_MAP = {
   cellSize: 16,
   /**
    * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than the
-   * widest rush collision circle ({@link ENTITY_BODY_RADIUS.enemyMelee}), plus
-   * {@link DEFENSE_MAP.cellSize} / 2 − 1 px so 16px cells do not pinch melee grunts.
+   * widest rush collision circle (grunt), plus {@link DEFENSE_MAP.cellSize} / 2 − 1 px.
    */
-  pathClearancePx: ENTITY_BODY_RADIUS.enemyMelee + 7,
+  pathClearancePx: maxNavObstacleClearancePx(),
   /** How close an enemy must be to a path node before advancing. */
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */

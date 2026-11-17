@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES, defenseHalfHeight } from "../config";
-import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
+import {
+  ENTITY_BODY_RADIUS,
+  enemyPathClearancePx,
+  maxNavObstacleClearancePx,
+} from "../entities/entityPhysics";
 import { buildNavGrid, cellBlocked, cellToWorldCenter } from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
-  it("clears melee rush radius plus nav cell margin", () => {
+  it("clears widest grunt rush radius plus nav cell margin", () => {
     expect(DEFENSE_MAP.pathClearancePx).toBeGreaterThanOrEqual(
-      ENTITY_BODY_RADIUS.enemyMelee,
+      ENTITY_BODY_RADIUS.grunt,
     );
-    expect(DEFENSE_MAP.pathClearancePx).toBe(
-      ENTITY_BODY_RADIUS.enemyMelee + 7,
+    expect(DEFENSE_MAP.pathClearancePx).toBe(maxNavObstacleClearancePx());
+    expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(
+      DEFENSE_MAP.pathClearancePx,
     );
   });
 
@@ -77,9 +82,16 @@ describe("A*", () => {
     const goal = cellToWorldCenter(grid, 18, 10);
     const mid = cellToWorldCenter(grid, 10, 10);
     const direct = findPath(grid, start.x, start.y, goal.x, goal.y);
-    const detour = findPath(grid, start.x, start.y, goal.x, goal.y, [
-      { x: mid.x, y: mid.y },
-    ]);
+    const gruntClearance = enemyPathClearancePx("grunt", "meleeChaser");
+    const detour = findPath(
+      grid,
+      start.x,
+      start.y,
+      goal.x,
+      goal.y,
+      [{ x: mid.x, y: mid.y }],
+      gruntClearance,
+    );
     const nearMid = (path: ReturnType<typeof findPath>) =>
       path.some((p) => Math.hypot(p.x - mid.x, p.y - mid.y) < 8);
     expect(nearMid(direct)).toBe(true);

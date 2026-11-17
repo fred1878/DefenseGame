@@ -14,6 +14,7 @@ import { buildNavGrid } from "../pathfinding/grid";
 import {
   createEnemyNav,
   noteEnemyPathProgress,
+  pathingPeerAgents,
   pickEnemyTarget,
   replanEnemyPath,
   resolveEnemyTarget,
@@ -113,6 +114,17 @@ describe("noteEnemyPathProgress", () => {
     noteEnemyPathProgress(nav, 10, 10, 16, 14, 650, 3);
     noteEnemyPathProgress(nav, 10, 10, 700, 14, 650, 3);
     expect(nav.replanMs).toBe(0);
+  });
+});
+
+describe("pathingPeerAgents", () => {
+  it("adds player as blocker only for wall routing", () => {
+    const peers = [{ x: 1, y: 2 }];
+    expect(pathingPeerAgents(peers, "wall", 9, 9)).toEqual([
+      { x: 1, y: 2 },
+      { x: 9, y: 9 },
+    ]);
+    expect(pathingPeerAgents(peers, "player", 9, 9)).toEqual(peers);
   });
 });
 

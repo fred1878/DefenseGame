@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ENTITY_BODY_RADIUS,
   enemyCollisionBodyRadius,
+  enemyPathClearancePx,
+  maxNavObstacleClearancePx,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
 
@@ -10,13 +12,21 @@ describe("entityPhysics", () => {
     expect(ENTITY_BODY_RADIUS.player).toBe(17);
     expect(ENTITY_BODY_RADIUS.enemy).toBe(14);
     expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(21);
+    expect(ENTITY_BODY_RADIUS.grunt).toBe(28);
   });
 
   it("widens collision for melee archetypes only", () => {
     expect(enemyCollisionBodyRadius("meleeChaser")).toBe(21);
+    expect(enemyCollisionBodyRadius("meleeChaser", "grunt")).toBe(28);
     expect(enemyCollisionBodyRadius("wallSiege")).toBe(21);
     expect(enemyCollisionBodyRadius("stationaryRanged")).toBe(14);
     expect(enemyCollisionBodyRadius("lobber")).toBe(14);
+  });
+
+  it("grunt path clearance exceeds other melee grunts archetypes", () => {
+    expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(35);
+    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(28);
+    expect(maxNavObstacleClearancePx()).toBe(35);
   });
 
   it("tunes bounce, friction, and pushable", () => {

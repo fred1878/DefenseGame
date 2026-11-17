@@ -11,6 +11,7 @@ import { findPath, type PathPoint } from "../pathfinding/astar";
 import { hasLineOfSight } from "../pathfinding/los";
 import type { NavGrid } from "../pathfinding/grid";
 import type { EnemyInstance } from "../entities/Enemy";
+import { enemyPathClearancePx } from "../entities/entityPhysics";
 import { getEnemyBehavior } from "./behaviors";
 import type { EnemyPeerAlly } from "./behaviors/types";
 
@@ -184,6 +185,17 @@ export function wallCombatPoint(ex: number): { x: number; y: number } {
   return { x: ex, y: northWallAttackY() };
 }
 
+/** Optional player position when routing to the wall so peers do not path through the hero. */
+export function pathingPeerAgents(
+  peerAgents: readonly { x: number; y: number }[] | undefined,
+  targetKind: EnemyTargetKind,
+  playerX: number,
+  playerY: number,
+): readonly { x: number; y: number }[] {
+  if (targetKind !== "wall") return peerAgents ?? [];
+  return [...(peerAgents ?? []), { x: playerX, y: playerY }];
+}
+
 export function replanEnemyPath(
   nav: EnemyNavState,
   grid: NavGrid,
@@ -193,8 +205,22 @@ export function replanEnemyPath(
   goalY: number,
   waypointRadius: number = DEFENSE_MAP.pathWaypointRadius,
   peerAgents?: readonly { x: number; y: number }[],
+  enemy?: Pick<EnemyInstance, "defId" | "behavior" | "sprite">,
 ): void {
-  const path = findPath(grid, ex, ey, goalX, goalY, peerAgents);
+  const reg = enemy?.sprite.scene.registry;
+  const agentClearancePx =
+    enemy && reg
+      ? worldUnit(enemyPathClearancePx(enemy.defId, enemy.behavior), reg)
+      : grid.clearancePx;
+  const path = findPath(
+    grid,
+    ex,
+    ey,
+    goalX,
+    goalY,
+    peerAgents,
+    agentClearancePx,
+  );
   nav.path = path;
   nav.pathIndex = 0;
   nav.pathStallMs = 0;

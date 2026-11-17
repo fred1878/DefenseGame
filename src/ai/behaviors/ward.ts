@@ -1,6 +1,10 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
-import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
+import {
+  pathingPeerAgents,
+  replanEnemyPath,
+  resolveEnemyTarget,
+} from "../EnemyBrain";
 import type { EnemyBehavior, EnemyPeerAlly } from "./types";
 import { applyChaseVelocity } from "./movement";
 
@@ -108,7 +112,8 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       goalX,
       goalY,
       waypointRadius,
-      peerAgents,
+      pathingPeerAgents(peerAgents, targetKind, playerX, playerY),
+      enemy,
     );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }

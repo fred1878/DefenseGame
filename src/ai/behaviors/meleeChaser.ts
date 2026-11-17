@@ -1,6 +1,10 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
-import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
+import {
+  pathingPeerAgents,
+  replanEnemyPath,
+  resolveEnemyTarget,
+} from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
@@ -32,7 +36,17 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   const holdAtWall = shouldHoldAtWallMelee(enemy, desired);
 
   if (!holdAtWall && (nav.replanMs <= 0 || nav.path.length === 0)) {
-    replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y, waypointRadius, peerAgents);
+    replanEnemyPath(
+      nav,
+      grid,
+      ex,
+      ey,
+      goal.x,
+      goal.y,
+      waypointRadius,
+      pathingPeerAgents(peerAgents, resolved.targetKind, playerX, playerY),
+      enemy,
+    );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }
 
