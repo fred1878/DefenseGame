@@ -1073,12 +1073,11 @@ export class DefenseScene extends Phaser.Scene {
         | Phaser.Physics.Arcade.StaticBody
         | null;
       if (!body) continue;
-      this.hitboxDebug.drawObstacleRect(
-        body.center.x,
-        body.center.y,
-        body.width,
-        body.height,
-      );
+      const b = { x: 0, y: 0, right: 0, bottom: 0 };
+      body.getBounds(b);
+      const w = body.width;
+      const h = body.height;
+      this.hitboxDebug.drawObstacleRect(b.x + w / 2, b.y + h / 2, w, h);
     }
   }
 
