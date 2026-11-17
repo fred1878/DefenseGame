@@ -79,13 +79,11 @@ describe("public data fixtures", () => {
       string,
       { textureKey: string }
     >;
-    const textureReuse: Record<string, string> = {
-      reaver: "enemy_javelineer",
-    };
+    const textureReuse: Record<string, string> = {};
     for (const [id, row] of Object.entries(enemies)) {
       expect(row.textureKey).toBe(textureReuse[id] ?? `enemy_${id}`);
     }
-    expect(enemies.reaver?.textureKey).toBe("enemy_javelineer");
+    expect(enemies.reaver?.textureKey).toBe("enemy_reaver");
   });
 
   it("waves.json night 1 has groups", () => {
