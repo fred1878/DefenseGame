@@ -1,12 +1,14 @@
 # Refactor plan — splitting large source files
 
-This document is **planning only** (no code moves yet). Goal: shrink scene-sized files into testable modules without changing behavior. Each step should be a small PR that keeps `npm run typecheck`, `npm run test`, `npm run build`, and CI e2e green.
+**Status (2026-11-17):** PR1–PR9 and PR11 are merged or committed on `main`; PR10 (`DefenseSpellDirector`), PR12 (pooling), and P1/P2 splits remain. See [ROADMAP.md](../ROADMAP.md) checklist for PR URLs.
+
+Goal: shrink scene-sized files into testable modules without changing behavior. Each step should be a small PR that keeps `npm run typecheck`, `npm run test`, `npm run build`, and CI e2e green.
 
 **Measurement date:** line counts from `wc -l` on `src/**/*.ts` (rounded).
 
 | File | Lines | Priority |
 |------|------:|----------|
-| `src/scenes/DefenseScene.ts` | **2176** | P0 — primary target |
+| `src/scenes/DefenseScene.ts` | **~1675** (post PR1–9) | P0 — primary target |
 | `src/ui/touchButton.ts` | **663** | P1 |
 | `src/entities/EnemyRangedCombat.ts` | **562** | P2 |
 

@@ -29,20 +29,20 @@ Refactor (**step 1**) runs **immediately after step 0**, before new feature poli
 
 Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 
-- [ ] PR1 — `DefenseSceneE2E.ts` (e2e methods)
-- [ ] PR2 — `DefenseWaveSpawner.ts`
-- [ ] PR3 — `DefenseEnemySpawner.ts`
-- [ ] PR4 — `DefenseNightEnd.ts`
-- [ ] PR5 — `DefenseTargeting.ts`
-- [ ] PR6 — `DefenseHudController.ts`
-- [ ] PR7 — `DefenseWorldBootstrap.ts`
-- [ ] PR8 — `DefenseProjectileTick.ts`
-- [ ] PR9 — `DefenseEnemyTick.ts`
-- [ ] PR10 — `DefenseSpellDirector.ts`
-- [ ] PR11 — Optional `systems/WaveSpawner.ts` promotion
-- [ ] PR12 — Pooling (enemies / projectiles)
-- [ ] P1 — Split `touchButton.ts`
-- [ ] P2 — Split `EnemyRangedCombat.ts`
+- [x] PR1 — `DefenseSceneE2E.ts` (e2e methods) — [#116](https://github.com/fred1878/DefenseGame/pull/116)
+- [x] PR2 — `DefenseWaveSpawner.ts` — [#128](https://github.com/fred1878/DefenseGame/pull/128)
+- [x] PR3 — `DefenseEnemySpawner.ts` — [#129](https://github.com/fred1878/DefenseGame/pull/129)
+- [x] PR4 — `DefenseNightEnd.ts` — [#130](https://github.com/fred1878/DefenseGame/pull/130)
+- [x] PR5 — `DefenseTargeting.ts` (direct to `main`, commit `4cc9a49` / `0688dbc`)
+- [x] PR6 — `DefenseHudController.ts` (direct to `main`, commit `53801f7`)
+- [x] PR7 — `DefenseWorldBootstrap.ts` (commit `8089543`, PR pending automation)
+- [x] PR8 — `DefenseProjectileTick.ts` (commit `781479a`, paired with PR9)
+- [x] PR9 — `DefenseEnemyTick.ts` (commit `781479a`, paired with PR8)
+- [ ] PR10 — `DefenseSpellDirector.ts` (not started — spell block still in `DefenseScene.ts`)
+- [x] PR11 — `systems/WaveSpawner.ts` promotion (re-export via `defense/DefenseWaveSpawner.ts`)
+- [ ] PR12 — Pooling (skipped per plan — behavior-changing track)
+- [ ] P1 — Split `touchButton.ts` (deferred)
+- [ ] P2 — Split `EnemyRangedCombat.ts` (deferred)
 
 ---
 
