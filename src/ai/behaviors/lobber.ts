@@ -1,6 +1,10 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
-import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
+import {
+  pathingPeerAgents,
+  replanEnemyPath,
+  resolveEnemyTarget,
+} from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, applyDirectVelocity } from "./movement";
 
@@ -36,7 +40,8 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
       goal.x,
       goal.y,
       waypointRadius,
-      peerAgents,
+      pathingPeerAgents(peerAgents, resolved.targetKind, playerX, playerY),
+      enemy,
     );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }

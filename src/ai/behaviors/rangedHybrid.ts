@@ -31,7 +31,17 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
   const goal = { x: resolved.goalX, y: resolved.goalY };
 
   if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(nav, grid, ex, ey, goal.x, goal.y, waypointRadius, peerAgents);
+    replanEnemyPath(
+      nav,
+      grid,
+      ex,
+      ey,
+      goal.x,
+      goal.y,
+      waypointRadius,
+      peerAgents,
+      enemy,
+    );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }
 

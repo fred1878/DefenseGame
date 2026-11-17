@@ -41,7 +41,10 @@ import {
   TouchInputDebugDraw,
   type FocusTapFlash,
 } from "../debug/TouchInputDebugDraw";
-import { ENTITY_BODY_RADIUS } from "../entities/entityPhysics";
+import {
+  ENTITY_BODY_RADIUS,
+  enemyCollisionBodyRadius,
+} from "../entities/entityPhysics";
 import {
   updateEnemySpriteFacing,
   type EnemyInstance,
@@ -1045,7 +1048,7 @@ export class DefenseScene extends Phaser.Scene {
       this.hitboxDebug.drawCircle(
         e.sprite.x,
         e.sprite.y,
-        this.wu(ENTITY_BODY_RADIUS.enemy),
+        this.wu(enemyCollisionBodyRadius(e.behavior, e.defId)),
       );
       if (e.combat.phase === "active") {
         const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);

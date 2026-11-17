@@ -78,14 +78,15 @@ export function cellBlocked(
   col: number,
   row: number,
   peerAgents?: readonly { x: number; y: number }[],
+  agentClearancePx?: number,
 ): boolean {
   if (col < 0 || row < 0 || col >= grid.cols || row >= grid.rows) return true;
   if (grid.blocked[cellIndex(grid, col, row)] === 1) return true;
-  if (peerAgents && peerAgents.length > 0 && grid.clearancePx > 0) {
+  const peerR = agentClearancePx ?? grid.clearancePx;
+  if (peerAgents && peerAgents.length > 0 && peerR > 0) {
     const { x, y } = cellToWorldCenter(grid, col, row);
-    const r = grid.clearancePx;
     for (const p of peerAgents) {
-      if ((x - p.x) ** 2 + (y - p.y) ** 2 < r * r) return true;
+      if ((x - p.x) ** 2 + (y - p.y) ** 2 < peerR * peerR) return true;
     }
   }
   return false;
@@ -96,8 +97,11 @@ export function nearestWalkable(
   col: number,
   row: number,
   peerAgents?: readonly { x: number; y: number }[],
+  agentClearancePx?: number,
 ): { col: number; row: number } {
-  if (!cellBlocked(grid, col, row, peerAgents)) return { col, row };
+  if (!cellBlocked(grid, col, row, peerAgents, agentClearancePx)) {
+    return { col, row };
+  }
   const maxR = Math.max(grid.cols, grid.rows);
   for (let radius = 1; radius <= maxR; radius++) {
     for (let dr = -radius; dr <= radius; dr++) {
@@ -105,7 +109,9 @@ export function nearestWalkable(
         if (Math.abs(dc) !== radius && Math.abs(dr) !== radius) continue;
         const c = col + dc;
         const r = row + dr;
-        if (!cellBlocked(grid, c, r, peerAgents)) return { col: c, row: r };
+        if (!cellBlocked(grid, c, r, peerAgents, agentClearancePx)) {
+          return { col: c, row: r };
+        }
       }
     }
   }
