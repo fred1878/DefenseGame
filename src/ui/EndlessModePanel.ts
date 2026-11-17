@@ -1,8 +1,16 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
 import type { DataStore } from "../core/DataStore";
+import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
-import { listPlayableDefenseEnemyIds } from "../systems/endlessEnemyRoster";
+import {
+  getEndlessConcurrentCap,
+  listPlayableDefenseEnemyIds,
+} from "../systems/endlessEnemyRoster";
+import {
+  clampEndlessConcurrent,
+  ENDLESS_CONCURRENT_MIN,
+} from "../systems/endlessSpawnScheduler";
 import {
   createTouchButton,
   interactiveObjectScreenRect,
@@ -10,18 +18,24 @@ import {
 import { uiTextStyle } from "./uiTextStyle";
 
 const TAP_DRAG_THRESHOLD_PX = 10;
-/** Max roster rows visible before scrolling (tighter list viewport). */
-const MAX_VISIBLE_ROWS = 4;
+/** Max roster rows visible before scrolling. */
+const MAX_VISIBLE_ROWS = 6;
 
 type EnemyRow = {
   enemyId: string;
   label: string;
   bg: Phaser.GameObjects.Rectangle;
   text: Phaser.GameObjects.Text;
+  check: Phaser.GameObjects.Text;
+  capBg: Phaser.GameObjects.Rectangle;
+  capMinus: Phaser.GameObjects.Rectangle;
+  capPlus: Phaser.GameObjects.Rectangle;
+  capValue: Phaser.GameObjects.Text;
+  capLocalY: number;
 };
 
 /**
- * Town overlay: pick an enemy roster entry, then start endless defense.
+ * Town overlay: multi-select foes, per-type concurrent caps, then start endless defense.
  */
 export class EndlessModePanel {
   private readonly scene: Phaser.Scene;
@@ -29,16 +43,20 @@ export class EndlessModePanel {
   private readonly listContent: Phaser.GameObjects.Container;
   private readonly listViewport: Phaser.GameObjects.Rectangle;
   private readonly rows: EnemyRow[] = [];
-  private selectedId: string | null = null;
+  private readonly selectedIds = new Set<string>();
+  private readonly caps = new Map<string, number>();
   private startBtn: ReturnType<typeof createTouchButton> | null = null;
   private closeBtn: ReturnType<typeof createTouchButton> | null = null;
-  private readonly onStart: (enemyId: string) => void;
+  private readonly onStart: (selections: EndlessRunSelection[]) => void;
   private readonly listTop: number;
   private readonly listViewportH: number;
   private readonly contentHeight: number;
   private readonly rowH: number;
   private readonly rowStride: number;
   private readonly rowW: number;
+  private readonly nameColW: number;
+  private readonly capColW: number;
+  private readonly listLeft: number;
   private scrollY = 0;
   private readonly maxScroll: number;
   private dragPointerId: number | null = null;
@@ -58,7 +76,7 @@ export class EndlessModePanel {
   constructor(
     scene: Phaser.Scene,
     store: DataStore,
-    onStart: (enemyId: string) => void,
+    onStart: (selections: EndlessRunSelection[]) => void,
   ) {
     this.scene = scene;
     this.onStart = onStart;
@@ -89,7 +107,7 @@ export class EndlessModePanel {
       .text(
         GAME.width / 2,
         scaleUiY(98),
-        "Pick a foe — one at a time until you fall or leave. No gold, no night advance.",
+        "Pick one or more foes — set on-screen caps — train until you fall or leave. No gold, no night advance.",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
           color: "#a1a1aa",
@@ -101,6 +119,9 @@ export class EndlessModePanel {
     this.root.add(hint);
 
     this.rowW = GAME.width - scaleUiX(48);
+    this.capColW = scaleUiX(96);
+    this.nameColW = this.rowW - this.capColW - scaleUiX(4);
+    this.listLeft = (GAME.width - this.rowW) / 2;
     this.rowH = scaleUiY(44);
     const gap = scaleUiY(8);
     this.rowStride = this.rowH + gap;
@@ -134,17 +155,80 @@ export class EndlessModePanel {
       const def = store.enemies[enemyId];
       const label = def?.displayName ?? enemyId;
       const cy = localY + this.rowH / 2;
+      const nameCx = this.listLeft + this.nameColW / 2;
+      const capCx = this.listLeft + this.nameColW + scaleUiX(4) + this.capColW / 2;
+
       const bg = scene.add
-        .rectangle(GAME.width / 2, cy, this.rowW, this.rowH, 0x3f3f46, 1)
+        .rectangle(nameCx, cy, this.nameColW, this.rowH, 0x3f3f46, 1)
         .setStrokeStyle(2, 0x71717a);
+      const check = scene.add
+        .text(
+          this.listLeft + scaleUiX(14),
+          cy,
+          "☐",
+          uiTextStyle(scene, {
+            fontSize: `${scaleUiX(18)}px`,
+            color: "#a1a1aa",
+          }),
+        )
+        .setOrigin(0.5);
       const text = scene.add
-        .text(GAME.width / 2, cy, label, uiTextStyle(scene, {
-          fontSize: `${scaleUiX(16)}px`,
+        .text(nameCx + scaleUiX(8), cy, label, uiTextStyle(scene, {
+          fontSize: `${scaleUiX(15)}px`,
           color: "#fafafa",
         }))
         .setOrigin(0.5);
-      this.rows.push({ enemyId, label, bg, text });
-      this.listContent.add([bg, text]);
+
+      const capBg = scene.add
+        .rectangle(capCx, cy, this.capColW, this.rowH, 0x27272a, 1)
+        .setStrokeStyle(2, 0x52525b);
+
+      const capBtnW = scaleUiX(28);
+      const capBtnH = scaleUiY(30);
+      const minusX = capCx - scaleUiX(24);
+      const plusX = capCx + scaleUiX(24);
+      const capMinus = scene.add
+        .rectangle(minusX, cy, capBtnW, capBtnH, 0x3f3f46, 1)
+        .setStrokeStyle(1, 0x71717a)
+        .setInteractive({ useHandCursor: true });
+      const capPlus = scene.add
+        .rectangle(plusX, cy, capBtnW, capBtnH, 0x3f3f46, 1)
+        .setStrokeStyle(1, 0x71717a)
+        .setInteractive({ useHandCursor: true });
+      const capDefault = getEndlessConcurrentCap(enemyId, def);
+      this.caps.set(enemyId, capDefault);
+      const capValue = scene.add
+        .text(capCx, cy, `${capDefault}`, uiTextStyle(scene, {
+          fontSize: `${scaleUiX(15)}px`,
+          color: "#e4e4e7",
+        }))
+        .setOrigin(0.5);
+
+      capMinus.on("pointerup", () => this.bumpCap(enemyId, -1));
+      capPlus.on("pointerup", () => this.bumpCap(enemyId, 1));
+
+      const row: EnemyRow = {
+        enemyId,
+        label,
+        bg,
+        text,
+        check,
+        capBg,
+        capMinus,
+        capPlus,
+        capValue,
+        capLocalY: localY,
+      };
+      this.rows.push(row);
+      this.listContent.add([
+        bg,
+        check,
+        text,
+        capBg,
+        capMinus,
+        capValue,
+        capPlus,
+      ]);
       localY += this.rowStride;
     }
 
@@ -174,7 +258,7 @@ export class EndlessModePanel {
     this.maskGraphics = scene.make.graphics({ x: 0, y: 0 }, false);
     this.maskGraphics.fillStyle(0xffffff);
     this.maskGraphics.fillRect(
-      (GAME.width - this.rowW) / 2,
+      this.listLeft,
       this.listTop,
       this.rowW,
       this.listViewportH,
@@ -191,8 +275,9 @@ export class EndlessModePanel {
       startY,
       "Start endless",
       () => {
-        if (!this.selectedId) return;
-        this.onStart(this.selectedId);
+        const selections = this.buildSelections();
+        if (selections.length === 0) return;
+        this.onStart(selections);
         this.destroy();
       },
       {
@@ -221,8 +306,10 @@ export class EndlessModePanel {
     );
     this.root.add([this.startBtn.container, this.closeBtn.container]);
 
-    this.selectedId = enemyIds[0] ?? null;
+    const first = enemyIds[0];
+    if (first) this.selectedIds.add(first);
     this.refreshSelection();
+    this.refreshStartButton();
     this.applyScroll(0);
 
     this.onWheel = (_pointer, _objects, _dx, deltaY) => {
@@ -230,6 +317,21 @@ export class EndlessModePanel {
       this.applyScroll(this.scrollY + deltaY * 0.35);
     };
     scene.input.on("wheel", this.onWheel);
+  }
+
+  private bumpCap(enemyId: string, delta: number): void {
+    const cur = this.caps.get(enemyId) ?? ENDLESS_CONCURRENT_MIN;
+    const next = clampEndlessConcurrent(cur + delta);
+    this.caps.set(enemyId, next);
+    const row = this.rows.find((r) => r.enemyId === enemyId);
+    row?.capValue.setText(`${next}`);
+  }
+
+  private buildSelections(): EndlessRunSelection[] {
+    return [...this.selectedIds].map((enemyId) => ({
+      enemyId,
+      concurrentCap: this.caps.get(enemyId) ?? ENDLESS_CONCURRENT_MIN,
+    }));
   }
 
   private wireListViewportDrag(): void {
@@ -245,7 +347,7 @@ export class EndlessModePanel {
       const tapped = this.endDrag();
       if (tapped) {
         const enemyId = this.pickVisibleRowAtScreenY(pointer.y);
-        if (enemyId) this.select(enemyId);
+        if (enemyId) this.toggleSelect(enemyId);
       }
     });
   }
@@ -303,7 +405,20 @@ export class EndlessModePanel {
     if (cy + half < this.listTop || cy - half > this.listTop + this.listViewportH) {
       return null;
     }
-    return { x: GAME.width / 2, y: cy };
+    return { x: row.bg.x, y: cy };
+  }
+
+  private capControlCenter(
+    row: EnemyRow,
+    which: "minus" | "plus",
+  ): { x: number; y: number } | null {
+    const cy = this.listContent.y + row.capBg.y;
+    const half = this.rowH / 2;
+    if (cy + half < this.listTop || cy - half > this.listTop + this.listViewportH) {
+      return null;
+    }
+    const obj = which === "minus" ? row.capMinus : row.capPlus;
+    return { x: obj.x, y: cy };
   }
 
   private applyScroll(next: number): void {
@@ -331,17 +446,34 @@ export class EndlessModePanel {
     this.scrollThumb.y = thumbY;
   }
 
-  private select(enemyId: string): void {
-    this.selectedId = enemyId;
+  private toggleSelect(enemyId: string): void {
+    if (this.selectedIds.has(enemyId)) {
+      if (this.selectedIds.size <= 1) return;
+      this.selectedIds.delete(enemyId);
+    } else {
+      this.selectedIds.add(enemyId);
+    }
     this.refreshSelection();
+    this.refreshStartButton();
   }
 
   private refreshSelection(): void {
     for (const row of this.rows) {
-      const on = row.enemyId === this.selectedId;
+      const on = this.selectedIds.has(row.enemyId);
       row.bg.setFillStyle(on ? 0x1e3a5f : 0x3f3f46);
       row.bg.setStrokeStyle(2, on ? 0x60a5fa : 0x71717a);
+      row.check.setText(on ? "☑" : "☐");
+      row.check.setColor(on ? "#93c5fd" : "#a1a1aa");
+      row.capBg.setStrokeStyle(2, on ? 0x52525b : 0x3f3f46);
+      row.capMinus.setAlpha(on ? 1 : 0.65);
+      row.capPlus.setAlpha(on ? 1 : 0.65);
+      row.capValue.setAlpha(on ? 1 : 0.65);
     }
+  }
+
+  private refreshStartButton(): void {
+    const enabled = this.selectedIds.size > 0;
+    this.startBtn?.container.setAlpha(enabled ? 1 : 0.45);
   }
 
   destroy(): void {
@@ -353,11 +485,20 @@ export class EndlessModePanel {
   }
 
   e2eSelectedEnemyId(): string | null {
-    return this.selectedId;
+    const first = [...this.selectedIds][0];
+    return first ?? null;
+  }
+
+  e2eSelectedEnemyIds(): string[] {
+    return [...this.selectedIds].sort();
   }
 
   e2eRosterEnemyIds(): string[] {
     return this.rows.map((r) => r.enemyId);
+  }
+
+  e2eEnemyConcurrentCap(enemyId: string): number | null {
+    return this.caps.get(enemyId) ?? null;
   }
 
   e2eTapTargets(): Record<string, { x: number; y: number }> {
@@ -366,6 +507,10 @@ export class EndlessModePanel {
       const center = this.rowScreenCenter(row);
       if (!center) continue;
       out[`endless-enemy-${row.enemyId}`] = center;
+      const minus = this.capControlCenter(row, "minus");
+      const plus = this.capControlCenter(row, "plus");
+      if (minus) out[`endless-cap-minus-${row.enemyId}`] = minus;
+      if (plus) out[`endless-cap-plus-${row.enemyId}`] = plus;
     }
     if (this.startBtn) {
       const r = interactiveObjectScreenRect(this.startBtn.container);
@@ -413,8 +558,21 @@ export class EndlessModePanel {
   }
 
   e2eStartWithEnemy(enemyId: string): void {
-    this.select(enemyId);
-    this.onStart(enemyId);
+    this.selectedIds.clear();
+    this.selectedIds.add(enemyId);
+    this.refreshSelection();
+    const selections = this.buildSelections();
+    this.onStart(selections);
     this.destroy();
+  }
+
+  e2eToggleEnemy(enemyId: string): void {
+    this.toggleSelect(enemyId);
+  }
+
+  e2eSetEnemyCap(enemyId: string, cap: number): void {
+    this.caps.set(enemyId, clampEndlessConcurrent(cap));
+    const row = this.rows.find((r) => r.enemyId === enemyId);
+    row?.capValue.setText(`${this.caps.get(enemyId)}`);
   }
 }

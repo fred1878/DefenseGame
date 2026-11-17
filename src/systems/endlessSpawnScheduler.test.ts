@@ -5,6 +5,7 @@ import {
   endlessSpawnDeficit,
   ENDLESS_CONCURRENT_MAX,
   ENDLESS_CONCURRENT_MIN,
+  planEndlessSpawns,
 } from "./endlessSpawnScheduler";
 
 describe("clampEndlessConcurrent", () => {
@@ -37,5 +38,21 @@ describe("countLivingWithDefId", () => {
     ];
     expect(countLivingWithDefId(entries, "grunt")).toBe(2);
     expect(countLivingWithDefId(entries, "javelineer")).toBe(1);
+  });
+});
+
+describe("planEndlessSpawns", () => {
+  it("plans per-type deficits independently", () => {
+    const plan = planEndlessSpawns(
+      [
+        { enemyId: "grunt", concurrentCap: 10 },
+        { enemyId: "javelineer", concurrentCap: 3 },
+      ],
+      { grunt: 8, javelineer: 3 },
+    );
+    expect(plan).toEqual([
+      { enemyId: "grunt", spawnCount: 2 },
+      { enemyId: "javelineer", spawnCount: 0 },
+    ]);
   });
 });
