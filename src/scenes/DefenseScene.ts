@@ -160,7 +160,11 @@ import {
 } from "../combat/spellGroundZone";
 import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../world/buildGroundLayer";
-import { configureDefenseFollowCamera } from "../world/defenseCamera";
+import {
+  configureDefenseFollowCamera,
+  markDefenseWorldObject,
+  wireDefenseDualCameras,
+} from "../world/defenseCamera";
 import { configureDefenseObstacleSprite } from "../world/defenseObstacleSprite";
 import {
   defensePlayerStart,
@@ -266,6 +270,7 @@ export class DefenseScene extends Phaser.Scene {
   private endlessSelections: EndlessRunSelection[] | null = null;
   private endlessInfiniteHp = false;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
+  private uiCamera: Phaser.Cameras.Scene2D.Camera | null = null;
 
   constructor() {
     super({ key: "Defense" });
@@ -308,6 +313,10 @@ export class DefenseScene extends Phaser.Scene {
 
   private isEndlessMode(): boolean {
     return (this.endlessSelections?.length ?? 0) > 0;
+  }
+
+  private trackWorldObject(go: Phaser.GameObjects.GameObject): void {
+    if (this.uiCamera) markDefenseWorldObject(this.uiCamera, go);
   }
 
   private applyPlayerDamage(amount: number): void {
@@ -617,6 +626,8 @@ export class DefenseScene extends Phaser.Scene {
       this.spawnPlanComplete = true;
     }
 
+    this.uiCamera = wireDefenseDualCameras(this);
+
     if (isE2EEnabled()) {
       publishE2E({
         scene: "Defense",
@@ -639,6 +650,10 @@ export class DefenseScene extends Phaser.Scene {
       this.pathDebug.destroy();
       this.touchDebug.destroy();
       this.minimap.destroy();
+      if (this.uiCamera) {
+        this.cameras.remove(this.uiCamera);
+        this.uiCamera = null;
+      }
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
       for (const p of this.enemyProjectiles) p.sprite.destroy();
@@ -927,19 +942,19 @@ export class DefenseScene extends Phaser.Scene {
         if (jav.spawnJavelin) {
           const req = jav.spawnJavelin;
           const id = `ej_${this.projectileSerial++}`;
-          this.enemyProjectiles.push(
-            spawnEnemyProjectile(
-              this,
-              req.fromX,
-              req.fromY,
-              req.toX,
-              req.toY,
-              e.combatTuning.javelineer!.projectileSpeed,
-              req.damage,
-              e.combatTuning.javelineer!.projectileMaxTravel,
-              id,
-            ),
+          const javProj = spawnEnemyProjectile(
+            this,
+            req.fromX,
+            req.fromY,
+            req.toX,
+            req.toY,
+            e.combatTuning.javelineer!.projectileSpeed,
+            req.damage,
+            e.combatTuning.javelineer!.projectileMaxTravel,
+            id,
           );
+          this.enemyProjectiles.push(javProj);
+          this.trackWorldObject(javProj.sprite);
         }
         if (jav.meleeHit) playerHitDamage += e.damage;
       } else if (e.behavior === "stationaryRanged" && e.stationaryRanged) {
@@ -954,19 +969,19 @@ export class DefenseScene extends Phaser.Scene {
           const req = bolt.spawnBolt;
           const tune = e.combatTuning.stationaryRanged!;
           const id = `es_${this.projectileSerial++}`;
-          this.enemyProjectiles.push(
-            spawnEnemyProjectile(
-              this,
-              req.fromX,
-              req.fromY,
-              req.toX,
-              req.toY,
-              tune.projectileSpeed,
-              req.damage,
-              tune.projectileMaxTravel,
-              id,
-            ),
+          const boltProj = spawnEnemyProjectile(
+            this,
+            req.fromX,
+            req.fromY,
+            req.toX,
+            req.toY,
+            tune.projectileSpeed,
+            req.damage,
+            tune.projectileMaxTravel,
+            id,
           );
+          this.enemyProjectiles.push(boltProj);
+          this.trackWorldObject(boltProj.sprite);
         }
       } else if (e.behavior === "rangedHybrid" && e.rangedHybrid) {
         const hybrid = updateRangedHybridCombat(
@@ -980,19 +995,19 @@ export class DefenseScene extends Phaser.Scene {
           const req = hybrid.spawnBolt;
           const tune = e.combatTuning.stationaryRanged!;
           const id = `eh_${this.projectileSerial++}`;
-          this.enemyProjectiles.push(
-            spawnEnemyProjectile(
-              this,
-              req.fromX,
-              req.fromY,
-              req.toX,
-              req.toY,
-              tune.projectileSpeed,
-              req.damage,
-              tune.projectileMaxTravel,
-              id,
-            ),
+          const hybridProj = spawnEnemyProjectile(
+            this,
+            req.fromX,
+            req.fromY,
+            req.toX,
+            req.toY,
+            tune.projectileSpeed,
+            req.damage,
+            tune.projectileMaxTravel,
+            id,
           );
+          this.enemyProjectiles.push(hybridProj);
+          this.trackWorldObject(hybridProj.sprite);
         }
         if (hybrid.meleeHit) playerHitDamage += e.damage;
         if (
@@ -1035,6 +1050,7 @@ export class DefenseScene extends Phaser.Scene {
           (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =
             req.blastDamageScale;
           this.enemyProjectiles.push(proj);
+          this.trackWorldObject(proj.sprite);
         }
       } else {
         const hitPlayer = updateEnemyCombat(
@@ -1551,20 +1567,20 @@ export class DefenseScene extends Phaser.Scene {
       case "projectile":
       case "projectile_aoe": {
         const id = `spell_proj_${this.projectileSerial++}`;
-        this.projectiles.push(
-          spawnSpellProjectile(this, px, py, angle, def, mult, id),
-        );
+        const projSpell = spawnSpellProjectile(this, px, py, angle, def, mult, id);
+        this.projectiles.push(projSpell);
+        this.trackWorldObject(projSpell.sprite);
         break;
       }
       case "tracking_projectile": {
         const focus = this.focusEnemyId;
         const id = `spell_proj_${this.projectileSerial++}`;
-        this.projectiles.push(
-          spawnSpellProjectile(this, px, py, angle, def, mult, id, {
-            behavior: "tracking",
-            trackEnemyId: focus,
-          }),
-        );
+        const trackingProj = spawnSpellProjectile(this, px, py, angle, def, mult, id, {
+          behavior: "tracking",
+          trackEnemyId: focus,
+        });
+        this.projectiles.push(trackingProj);
+        this.trackWorldObject(trackingProj.sprite);
         if (def.id === "chain_lightning") {
           applyChainLightning(
             this,
@@ -1619,9 +1635,9 @@ export class DefenseScene extends Phaser.Scene {
           const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
           const aim = Math.atan2(ty - py, tx - px);
           const id = `spell_proj_${this.projectileSerial++}`;
-          this.projectiles.push(
-            spawnSpellProjectile(this, px, py, aim, def, mult, id),
-          );
+          const aimedProj = spawnSpellProjectile(this, px, py, aim, def, mult, id);
+          this.projectiles.push(aimedProj);
+          this.trackWorldObject(aimedProj.sprite);
         }
         break;
       }
@@ -2016,6 +2032,7 @@ export class DefenseScene extends Phaser.Scene {
       id,
     );
     this.projectiles.push(p);
+    this.trackWorldObject(p.sprite);
   }
 
   private enemyTargets() {
@@ -2240,6 +2257,7 @@ export class DefenseScene extends Phaser.Scene {
       flashSpriteTint(this, enemy.sprite, flavor);
     };
     this.enemyGroup.add(enemy.sprite);
+    this.trackWorldObject(enemy.sprite);
     this.enemies.push(enemy);
   }
 
