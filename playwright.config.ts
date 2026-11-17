@@ -12,14 +12,6 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   timeout: 90_000,
-  expect: {
-    toHaveScreenshot: {
-      maxDiffPixelRatio: 0.02,
-      // Playwright treats unset maxDiffPixels as 0 (any mismatch fails). Set to the
-      // 2% pixel budget so maxDiffPixelRatio is the real gate (see GAME 540×1200).
-      maxDiffPixels: Math.ceil(540 * 1200 * 0.02),
-    },
-  },
   use: {
     baseURL,
     trace: "retain-on-failure",
@@ -39,7 +31,7 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // Device preset defaults to 1280×720; game + screenshots are 540×1200.
+        // Device preset defaults to 1280×720; game viewport is 540×1200.
         viewport: { width: 540, height: 1200 },
         hasTouch: true,
       },
