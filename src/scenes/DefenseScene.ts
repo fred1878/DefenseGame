@@ -17,16 +17,13 @@ import {
   spellById,
   type SpellDefinition,
 } from "../content/spells";
-import type { NightResult, SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/saveTypes";
 import { DataStore, type EnemyDef } from "../core/DataStore";
 import {
-  applyEndlessRunExit,
-  applyNightResult,
   persistSave,
   playerDamageMult,
 } from "../core/GameState";
 import {
-  clearDefenseRunMode,
   type EndlessRunSelection,
   readDefenseRunMode,
   resolveEndlessRunSelections,
@@ -229,6 +226,11 @@ import {
   type DefenseEnemySpawnerHost,
 } from "./defense/DefenseEnemySpawner";
 import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
+import {
+  runDefenseCampaignNightEnd,
+  runDefenseEndlessNightEnd,
+  transitionDefenseToTown,
+} from "./defense/DefenseNightEnd";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -260,7 +262,7 @@ export class DefenseScene extends Phaser.Scene {
   private rewardGold = 40;
   private spawnPlanComplete = false;
   private nightEnded = false;
-  private returnToTownBtn: TouchButtonHandle | null = null;
+  returnToTownBtn: TouchButtonHandle | null = null;
   private focusEnemyId: string | null = null;
   private targetIndicator!: TargetIndicator;
   private spellCaster = new SpellCastController();
@@ -1852,12 +1854,35 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private transitionToTown(): void {
-    if (this.scene.get("DebugMenu")?.scene.isActive()) {
-      this.scene.stop("DebugMenu");
-    }
-    clearDefenseRunMode(this.registry);
-    this.scene.stop();
-    this.scene.start("Town");
+    transitionDefenseToTown(this);
+  }
+
+  private nightEndContext() {
+    return {
+      scene: this,
+      registry: this.registry,
+      save: this.save,
+      player: this.player,
+      wallHp: this.wallHp,
+      hudText: this.hudText,
+      safe: this.safe,
+      markNightEnded: () => {
+        this.nightEnded = true;
+      },
+      setEndlessSelectionsNull: () => {
+        this.endlessSelections = null;
+      },
+      hideLeaveEndlessBtn: () => {
+        if (this.leaveEndlessBtn) {
+          this.leaveEndlessBtn.container.setVisible(false);
+          this.leaveEndlessBtn.container.disableInteractive();
+        }
+      },
+      setReturnToTownBtn: (btn: TouchButtonHandle | null) => {
+        this.returnToTownBtn = btn;
+      },
+      onReturnToTown: () => this.transitionToTown(),
+    };
   }
 
   private trySelectEnemyAt(worldX: number, worldY: number): void {
@@ -2228,123 +2253,19 @@ export class DefenseScene extends Phaser.Scene {
   /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
   endEndlessRun(reason: "quit" | "player" | "wall"): void {
     if (this.nightEnded) return;
-    this.nightEnded = true;
-    if (this.leaveEndlessBtn) {
-      this.leaveEndlessBtn.container.setVisible(false);
-      this.leaveEndlessBtn.container.disableInteractive();
-    }
-
-    const survivedHp = Math.max(0, Math.floor(this.player.damageable.hp));
-    const finalWallHp = Math.max(0, this.wallHp);
-    const next = applyEndlessRunExit(this.save, finalWallHp, survivedHp);
-    this.save.player.hp = next.player.hp;
-    persistSave(next);
-    this.registry.set("save", next);
-    clearDefenseRunMode(this.registry);
-    this.endlessSelections = null;
-
-    if (isE2EEnabled() && !this.registry.get("e2eManualReturn")) {
-      this.transitionToTown();
-      publishE2E({ scene: "Town", ready: true, player: null });
-      return;
-    }
-
-    const headline =
-      reason === "quit"
-        ? "Training ended"
-        : reason === "wall"
-          ? "Wall breached — training over"
-          : "You fell — training over";
-    this.hudText.setText(
-      [
-        headline,
-        "No gold earned · night unchanged",
-        `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
-      ].join("\n"),
-    );
-    this.hudText.setColor(reason === "quit" ? "#a1a1aa" : "#fca5a5");
-
-    const btn = nightReturnButtonPosition(this, this.safe);
-    this.returnToTownBtn = createTouchButton(
-      this,
-      btn.x,
-      btn.y,
-      "Return to town",
-      () => this.transitionToTown(),
-      {
-        width: btn.width,
-        height: btn.height,
-        depth: 260,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x15803d,
-        strokeColor: 0x4ade80,
-      },
-    );
+    runDefenseEndlessNightEnd(this.nightEndContext(), reason);
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
   endNight(won: boolean): void {
     if (this.nightEnded) return;
-    this.nightEnded = true;
-    clearDefenseRunMode(this.registry);
-
-    const endPenalty = won ? 2 : 0;
-    const finalWallHp = Math.max(0, this.wallHp - endPenalty);
-    const wallDamage = this.wallHpStart - finalWallHp;
-    const baseGold = this.rewardGold;
-    const result: NightResult = {
+    runDefenseCampaignNightEnd(this.nightEndContext(), {
       won,
-      goldEarned: won ? baseGold : Math.floor(baseGold * 0.25),
-      wallDamage,
-      night: this.save.night,
-    };
-    const next = applyNightResult(this.save, result);
-    const survivedHp = Math.max(0, Math.floor(this.player.damageable.hp));
-    this.save.player.hp = survivedHp;
-    next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
-    next.townWallHp = finalWallHp;
-    persistSave(next);
-    this.registry.set("save", next);
-
-    if (isE2EEnabled() && !this.registry.get("e2eManualReturn")) {
-      this.transitionToTown();
-      publishE2E({ scene: "Town", ready: true, player: null });
-      return;
-    }
-
-    const headline = won ? "Night defended!" : "You fell — night lost";
-    this.hudText.setText(
-      [
-        headline,
-        `Night ${result.night} · +${result.goldEarned} gold`,
-        `Wall damage ${result.wallDamage} · Wall ${next.townWallHp} HP`,
-        won ? "Dawn breaks over the settlement." : "Scouts recover what they can.",
-      ].join("\n"),
-    );
-    this.hudText.setColor(won ? "#fbbf24" : "#fca5a5");
-
-    const btn = nightReturnButtonPosition(this, this.safe);
-    this.returnToTownBtn = createTouchButton(
-      this,
-      btn.x,
-      btn.y,
-      "Return to town",
-      () => this.transitionToTown(),
-      {
-        width: btn.width,
-        height: btn.height,
-        depth: 260,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x15803d,
-        strokeColor: 0x4ade80,
-      },
-    );
-    this.returnToTownBtn.container.setData("testid", "defense-return-to-town");
-    if (isE2EEnabled()) {
-      publishE2E({
-        flags: { nightEnded: true, hasReturnButton: true },
-      });
-    }
+      wallHp: this.wallHp,
+      wallHpStart: this.wallHpStart,
+      rewardGold: this.rewardGold,
+      save: this.save,
+    });
   }
 
   private e2eDelegate(): DefenseSceneE2eDelegate {
