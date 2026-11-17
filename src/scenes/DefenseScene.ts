@@ -67,7 +67,6 @@ import {
 import { DEFAULT_ENEMY_BASE } from "../core/enemyTuning";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import {
-  setShowEnemyPaths,
   showEnemyPaths,
   showHitboxes,
   showTouchInput,
@@ -126,8 +125,6 @@ import {
   createTouchButton,
   createTouchCircleButton,
   createTouchToggleButton,
-  interactiveObjectScreenRect,
-  isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
 import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
 import { getEndlessConcurrentCap } from "../systems/endlessEnemyRoster";
@@ -195,6 +192,41 @@ import {
   defenseMinimapLayout,
   defenseMinimapScreenRect,
 } from "../ui/defenseMinimap";
+import {
+  type DefenseSceneE2eDelegate,
+  defenseSceneE2eAttackPhase,
+  defenseSceneE2eAutoAttackEnabled,
+  defenseSceneE2eBottomChromeTextureKey,
+  defenseSceneE2eCastSpellSlot,
+  defenseSceneE2eDamagePlayer,
+  defenseSceneE2eEndlessEnemyId,
+  defenseSceneE2eEndlessEnemyIds,
+  defenseSceneE2eEnemyCount,
+  defenseSceneE2eForceWinNight,
+  defenseSceneE2eGetDefenseCameraScroll,
+  defenseSceneE2eGetObstacleAlignment,
+  defenseSceneE2eGetSpellSlotHitRects,
+  defenseSceneE2eGetUiTapTargets,
+  defenseSceneE2eHasLeaveEndlessButton,
+  defenseSceneE2eHasReturnButton,
+  defenseSceneE2eIsEndlessMode,
+  defenseSceneE2eIsReady,
+  defenseSceneE2eIsTouchButtonPressed,
+  defenseSceneE2eKillAllEnemies,
+  defenseSceneE2eNightEnded,
+  defenseSceneE2ePlayerPosition,
+  defenseSceneE2eProjectileCount,
+  defenseSceneE2eSetManualReturn,
+  defenseSceneE2eSetPlayerPosition,
+  defenseSceneE2eSetShowEnemyPaths,
+  defenseSceneE2eSetSpawnPlanComplete,
+  defenseSceneE2eSetStick,
+  defenseSceneE2eSimulateScreenTap,
+  defenseSceneE2eSpawnEnemy,
+  defenseSceneE2eTapMelee,
+  defenseSceneE2eTapRanged,
+  defenseSceneE2eWallHp,
+} from "./defense/DefenseSceneE2E";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -302,7 +334,8 @@ export class DefenseScene extends Phaser.Scene {
     this.leaveEndlessBtn = null;
   }
 
-  private isEndlessMode(): boolean {
+  /** @internal Used by `defense/DefenseSceneE2E` until night/spawn modules land */
+  isEndlessMode(): boolean {
     return (this.endlessSelections?.length ?? 0) > 0;
   }
 
@@ -1185,7 +1218,8 @@ export class DefenseScene extends Phaser.Scene {
     this.beginSpellCast(pick.spellId);
   }
 
-  private onSpellCastRequest(spellId: string): void {
+  /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
+  onSpellCastRequest(spellId: string): void {
     if (this.spellCaster.isChanneling()) return;
     const def = spellById(spellId);
     if (!def) return;
@@ -1760,7 +1794,8 @@ export class DefenseScene extends Phaser.Scene {
     return bestMelee !== null ? "melee" : "ranged";
   }
 
-  private onScreenTap(pointer: Phaser.Input.Pointer): void {
+  /** @internal Used by `defense/DefenseSceneE2E` until targeting module lands */
+  onScreenTap(pointer: Phaser.Input.Pointer): void {
     const tapResult = this.stick.tryConsumeTap(pointer);
     if (this.isPointerOverUi(pointer)) return;
     if (this.pendingGroundCast && tapResult.kind !== "drag") {
@@ -2093,7 +2128,8 @@ export class DefenseScene extends Phaser.Scene {
     }
   }
 
-  private refreshModeToggle(mode: AttackMode): void {
+  /** @internal Used by `defense/DefenseSceneE2E` until HUD controller lands */
+  refreshModeToggle(mode: AttackMode): void {
     const label =
       mode === "melee" ? "MEL" : mode === "ranged" ? "RNG" : "A.COM";
     this.modeToggle.setLabel(label);
@@ -2186,7 +2222,8 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
-  private spawnEnemyAt(
+  /** @internal Used by e2e and wave spawner until `DefenseEnemySpawner` lands */
+  spawnEnemyAt(
     x: number,
     y: number,
     def?: EnemyDef,
@@ -2219,7 +2256,8 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies.push(enemy);
   }
 
-  private endEndlessRun(reason: "quit" | "player" | "wall"): void {
+  /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
+  endEndlessRun(reason: "quit" | "player" | "wall"): void {
     if (this.nightEnded) return;
     this.nightEnded = true;
     if (this.leaveEndlessBtn) {
@@ -2275,7 +2313,8 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
-  private endNight(won: boolean): void {
+  /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
+  endNight(won: boolean): void {
     if (this.nightEnded) return;
     this.nightEnded = true;
     clearDefenseRunMode(this.registry);
@@ -2339,289 +2378,41 @@ export class DefenseScene extends Phaser.Scene {
     }
   }
 
-  e2eIsReady(): boolean {
-    return Boolean(this.player?.sprite);
+  private e2eDelegate(): DefenseSceneE2eDelegate {
+    return this as unknown as DefenseSceneE2eDelegate;
   }
 
-  e2eBottomChromeTextureKey(): string | null {
-    return null;
-  }
+  e2eIsReady(): boolean { return defenseSceneE2eIsReady(this.e2eDelegate()); }
+  e2eBottomChromeTextureKey(): string | null { return defenseSceneE2eBottomChromeTextureKey(); }
+  e2eSetStick(dx: number, dy: number): void { defenseSceneE2eSetStick(this.e2eDelegate(), dx, dy); }
+  e2ePlayerPosition() { return defenseSceneE2ePlayerPosition(this.e2eDelegate()); }
+  e2eAttackPhase(): string { return defenseSceneE2eAttackPhase(this.e2eDelegate()); }
+  e2eProjectileCount(): number { return defenseSceneE2eProjectileCount(this.e2eDelegate()); }
+  e2eEnemyCount(): number { return defenseSceneE2eEnemyCount(this.e2eDelegate()); }
+  e2eWallHp(): number { return defenseSceneE2eWallHp(this.e2eDelegate()); }
+  e2eTapMelee(): void { defenseSceneE2eTapMelee(this.e2eDelegate()); }
+  e2eTapRanged(): void { defenseSceneE2eTapRanged(this.e2eDelegate()); }
+  e2eCastSpellSlot(slot: number): Promise<void> { return defenseSceneE2eCastSpellSlot(this.e2eDelegate(), slot); }
+  e2eSpawnEnemy(offX?: number, offY?: number): void { defenseSceneE2eSpawnEnemy(this.e2eDelegate(), offX, offY); }
+  e2eDamagePlayer(amount: number): void { defenseSceneE2eDamagePlayer(this.e2eDelegate(), amount); }
+  e2eIsEndlessMode(): boolean { return defenseSceneE2eIsEndlessMode(this.e2eDelegate()); }
+  e2eEndlessEnemyId(): string | null { return defenseSceneE2eEndlessEnemyId(this.e2eDelegate()); }
+  e2eEndlessEnemyIds(): string[] { return defenseSceneE2eEndlessEnemyIds(this.e2eDelegate()); }
+  e2eKillAllEnemies(): void { defenseSceneE2eKillAllEnemies(this.e2eDelegate()); }
+  e2eSetSpawnPlanComplete(): void { defenseSceneE2eSetSpawnPlanComplete(this.e2eDelegate()); }
+  e2eForceWinNight(): void { defenseSceneE2eForceWinNight(this.e2eDelegate()); }
+  e2eSetManualReturn(on: boolean): void { defenseSceneE2eSetManualReturn(this.e2eDelegate(), on); }
+  e2eNightEnded(): boolean { return defenseSceneE2eNightEnded(this.e2eDelegate()); }
+  e2eHasReturnButton(): boolean { return defenseSceneE2eHasReturnButton(this.e2eDelegate()); }
+  e2eHasLeaveEndlessButton(): boolean { return defenseSceneE2eHasLeaveEndlessButton(this.e2eDelegate()); }
+  e2eSimulateScreenTap(x: number, y: number): void { defenseSceneE2eSimulateScreenTap(this.e2eDelegate(), x, y); }
+  e2eGetUiTapTargets() { return defenseSceneE2eGetUiTapTargets(this.e2eDelegate()); }
+  e2eGetSpellSlotHitRects() { return defenseSceneE2eGetSpellSlotHitRects(this.e2eDelegate()); }
+  e2eAutoAttackEnabled(): boolean { return defenseSceneE2eAutoAttackEnabled(this.e2eDelegate()); }
+  e2eIsTouchButtonPressed(testId: string): boolean { return defenseSceneE2eIsTouchButtonPressed(this.e2eDelegate(), testId); }
+  e2eSetPlayerPosition(x: number, y: number): void { defenseSceneE2eSetPlayerPosition(this.e2eDelegate(), x, y); }
+  e2eGetDefenseCameraScroll() { return defenseSceneE2eGetDefenseCameraScroll(this.e2eDelegate()); }
+  e2eSetShowEnemyPaths(on: boolean): void { defenseSceneE2eSetShowEnemyPaths(this.e2eDelegate(), on); }
+  e2eGetObstacleAlignment() { return defenseSceneE2eGetObstacleAlignment(this.e2eDelegate()); }
 
-  e2eSetStick(dx: number, dy: number): void {
-    this.stick.setE2eOverride(dx, dy);
-  }
-
-  e2ePlayerPosition(): { x: number; y: number } {
-    return { x: this.player.sprite.x, y: this.player.sprite.y };
-  }
-
-  e2eAttackPhase(): string {
-    return this.player.attackPhaseNow;
-  }
-
-  e2eProjectileCount(): number {
-    return this.projectiles.filter((p) => p.sprite.active).length;
-  }
-
-  e2eEnemyCount(): number {
-    return this.enemies.filter((e) => e.damageable.alive).length;
-  }
-
-  e2eWallHp(): number {
-    return Math.max(0, Math.floor(this.wallHp));
-  }
-
-  e2eTapMelee(): void {
-    this.player.setAttackMode("melee");
-    this.refreshModeToggle("melee");
-    if (this.enemies.length === 0) {
-      this.spawnEnemyAt(
-        this.player.sprite.x + 48,
-        this.player.sprite.y,
-        undefined,
-        "grunt",
-        1,
-      );
-    }
-    this.player.faceToward(this.player.sprite.x + 48, this.player.sprite.y);
-    this.player.tryStartAttack();
-  }
-
-  e2eTapRanged(): void {
-    this.player.setAttackMode("ranged");
-    this.refreshModeToggle("ranged");
-    if (this.enemies.length === 0) {
-      this.spawnEnemyAt(
-        this.player.sprite.x + 80,
-        this.player.sprite.y,
-        undefined,
-        "grunt",
-        1,
-      );
-    }
-    const e = this.enemies[0];
-    if (e) this.player.faceToward(e.sprite.x, e.sprite.y);
-    this.player.tryStartAttack();
-  }
-
-  e2eCastSpellSlot(slot: number): Promise<void> {
-    const id = this.save.spellBar.slots[slot];
-    if (!id) return Promise.resolve();
-    this.onSpellCastRequest(id);
-    const def = spellById(id);
-    if (!def || def.channelMs <= 0) return Promise.resolve();
-    const waitMs = def.channelMs + 120;
-    return new Promise((resolve) => {
-      this.time.delayedCall(waitMs, () => resolve());
-    });
-  }
-
-  e2eSpawnEnemy(offX = 48, offY = 0): void {
-    this.spawnEnemyAt(
-      this.player.sprite.x + offX,
-      this.player.sprite.y + offY,
-      undefined,
-      "grunt",
-      5,
-    );
-  }
-
-  e2eDamagePlayer(amount: number): void {
-    applyDamage(this.player.damageable, amount);
-    if (this.player.damageable.hp <= 0) {
-      this.player.damageable.alive = false;
-      if (this.isEndlessMode()) {
-        this.endEndlessRun("player");
-      } else {
-        this.endNight(false);
-      }
-    }
-  }
-
-  e2eIsEndlessMode(): boolean {
-    return this.isEndlessMode();
-  }
-
-  e2eEndlessEnemyId(): string | null {
-    return this.endlessSelections?.[0]?.enemyId ?? null;
-  }
-
-  e2eEndlessEnemyIds(): string[] {
-    return (this.endlessSelections ?? []).map((s) => s.enemyId);
-  }
-
-  e2eKillAllEnemies(): void {
-    for (const e of this.enemies) {
-      e.damageable.alive = false;
-      e.sprite.destroy();
-    }
-    this.enemies = [];
-  }
-
-  e2eSetSpawnPlanComplete(): void {
-    this.spawnPlanComplete = true;
-  }
-
-  e2eForceWinNight(): void {
-    this.e2eKillAllEnemies();
-    this.spawnPlanComplete = true;
-    const living = this.enemies.filter((e) => e.damageable.alive).length;
-    if (living === 0 && !this.nightEnded) {
-      this.endNight(true);
-    }
-  }
-
-  e2eSetManualReturn(on: boolean): void {
-    this.registry.set("e2eManualReturn", on);
-  }
-
-  e2eNightEnded(): boolean {
-    return this.nightEnded;
-  }
-
-  e2eHasReturnButton(): boolean {
-    return this.returnToTownBtn !== null;
-  }
-
-  e2eHasLeaveEndlessButton(): boolean {
-    return (
-      this.leaveEndlessBtn !== null &&
-      this.leaveEndlessBtn.container.visible &&
-      !this.nightEnded
-    );
-  }
-
-  /** Inject a screen-space tap through the scene input manager (e2e / DOM mirrors). */
-  e2eSimulateScreenTap(x: number, y: number): void {
-    const pointer = this.input.pointer1;
-    pointer.x = x;
-    pointer.y = y;
-    pointer.downTime = performance.now();
-    pointer.isDown = true;
-    this.input.emit("pointerdown", pointer, []);
-    pointer.isDown = false;
-    pointer.upTime = performance.now();
-    this.input.emit("pointerup", pointer, []);
-    this.onScreenTap(pointer);
-  }
-
-  /** Canvas-space tap centers for Playwright pointer tests (matches pointer.x/y). */
-  e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const centerOf = (
-      obj: Phaser.GameObjects.GameObject,
-    ): { x: number; y: number } | null => {
-      const r = interactiveObjectScreenRect(obj);
-      if (!r) return null;
-      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-    };
-    const out: Record<string, { x: number; y: number }> = {};
-    const atk = centerOf(this.attackButton);
-    if (atk) out["combat-atk"] = atk;
-    const mode = centerOf(this.modeToggle.container);
-    if (mode) out["combat-mode"] = mode;
-    const auto = centerOf(this.autoToggle.container);
-    if (auto) out["combat-auto"] = auto;
-    for (const slot of this.spellBar.e2eSlotTapCenters()) {
-      out[`spell-slot-${slot.index}`] = { x: slot.x, y: slot.y };
-    }
-    const dbg = centerOf(this.debugBtn.container);
-    if (dbg) out["defense-debug"] = dbg;
-    if (this.returnToTownBtn) {
-      const ret = centerOf(this.returnToTownBtn.container);
-      if (ret) out["defense-return-to-town"] = ret;
-    }
-    if (this.leaveEndlessBtn?.container.visible) {
-      const leave = centerOf(this.leaveEndlessBtn.container);
-      if (leave) out["defense-leave-endless"] = leave;
-    }
-    return out;
-  }
-
-  e2eGetSpellSlotHitRects(): ReturnType<SpellBar["e2eSlotHitRects"]> {
-    return this.spellBar.e2eSlotHitRects();
-  }
-
-  e2eAutoAttackEnabled(): boolean {
-    return this.autoAttackEnabled;
-  }
-
-  e2eIsTouchButtonPressed(testId: string): boolean {
-    const map: Record<string, Phaser.GameObjects.Container | undefined> = {
-      "combat-atk": this.attackButton,
-      "combat-mode": this.modeToggle.container,
-      "combat-auto": this.autoToggle.container,
-    };
-    const direct = map[testId];
-    if (direct) return isTouchButtonVisuallyPressed(direct);
-    if (testId === "defense-return-to-town" && this.returnToTownBtn) {
-      return isTouchButtonVisuallyPressed(this.returnToTownBtn.container);
-    }
-    if (testId === "defense-leave-endless" && this.leaveEndlessBtn) {
-      return isTouchButtonVisuallyPressed(this.leaveEndlessBtn.container);
-    }
-    return false;
-  }
-
-  e2eSetPlayerPosition(x: number, y: number): void {
-    this.player.sprite.setPosition(x, y);
-    const body = this.player.sprite.body as Phaser.Physics.Arcade.Body | null;
-    body?.reset(x, y);
-    // E2E teleports skip follow lerp — tests assert scroll vs position, not easing.
-    this.cameras.main.centerOn(x, y);
-  }
-
-  e2eGetDefenseCameraScroll(): { x: number; y: number } {
-    return {
-      x: this.cameras.main.scrollX,
-      y: this.cameras.main.scrollY,
-    };
-  }
-
-  e2eSetShowEnemyPaths(on: boolean): void {
-    setShowEnemyPaths(this.registry, on);
-  }
-
-  e2eGetObstacleAlignment(): Array<{
-    textureKey: string;
-    configX: number;
-    configY: number;
-    configW: number;
-    configH: number;
-    anchorX: number;
-    anchorY: number;
-    spriteX: number;
-    spriteY: number;
-    displayW: number;
-    displayH: number;
-    bodyW: number;
-    bodyH: number;
-    bodyCenterX: number;
-    bodyCenterY: number;
-  }> {
-    const children = this.obstacleGroup.getChildren() as Phaser.Physics.Arcade.Image[];
-    const scaled = scaledDefenseObstacles(this.registry);
-    return DEFENSE_OBSTACLE_PLACEMENTS.map((placement, i) => {
-      const cfg = scaled[i]!;
-      const anchor = defenseObstacleSpriteAnchor(placement);
-      const img = children[i]!;
-      const body = img.body as Phaser.Physics.Arcade.StaticBody;
-      return {
-        textureKey: placement.textureKey,
-        configX: cfg.x,
-        configY: cfg.y,
-        configW: cfg.w,
-        configH: cfg.h,
-        anchorX: anchor.x,
-        anchorY: anchor.y,
-        spriteX: img.x,
-        spriteY: img.y,
-        displayW: img.displayWidth,
-        displayH: img.displayHeight,
-        bodyW: body.width,
-        bodyH: body.height,
-        bodyCenterX: body.center.x,
-        bodyCenterY: body.center.y,
-      };
-    });
-  }
 }
