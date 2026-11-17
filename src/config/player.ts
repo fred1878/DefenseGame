@@ -14,7 +14,7 @@ export const PLAYER_TUNING = {
   meleeRecoveryMs: 280,
   meleeRange,
   meleeStrikeRange,
-  meleeArcDeg: 126,
+  meleeArcDeg: 121,
   meleeDamage: 15,
   rangedWindupMs: 100,
   rangedActiveMs: 50,

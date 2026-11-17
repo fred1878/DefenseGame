@@ -79,6 +79,10 @@ export function findPath(
       const nc = col + dc;
       const nr = row + dr;
       if (cellBlocked(grid, nc, nr, peerAgents)) continue;
+      if (dc !== 0 && dr !== 0) {
+        if (cellBlocked(grid, col + dc, row, peerAgents)) continue;
+        if (cellBlocked(grid, col, row + dr, peerAgents)) continue;
+      }
       const neighbor = nr * grid.cols + nc;
       const stepCost = dc !== 0 && dr !== 0 ? 1.414 : 1;
         const gCur = gScore[current] ?? Infinity;
