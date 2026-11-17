@@ -112,7 +112,6 @@ import {
 import { Player, type AttackPhase } from "../entities/Player";
 import {
   configureSceneInput,
-  FOCUS_SELECT_LOCK_MS,
 } from "../input/inputTuning";
 import { VirtualStick } from "../input/VirtualStick";
 import {
@@ -162,7 +161,6 @@ import {
   combatChromeLayout,
   bottomHudStripLayout,
   debugButtonPosition,
-  hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
   readSafeInsets,
@@ -231,6 +229,7 @@ import {
   runDefenseEndlessNightEnd,
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
+import { DefenseTargeting } from "./defense/DefenseTargeting";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -258,12 +257,11 @@ export class DefenseScene extends Phaser.Scene {
     { targetKind: "wall" | "player"; x: number; y: number }
   >();
   private focusTapFlash: FocusTapFlash | null = null;
-  private focusSelectLockMs = 0;
   private rewardGold = 40;
   private spawnPlanComplete = false;
   private nightEnded = false;
   returnToTownBtn: TouchButtonHandle | null = null;
-  private focusEnemyId: string | null = null;
+  private targeting!: DefenseTargeting;
   private targetIndicator!: TargetIndicator;
   private spellCaster = new SpellCastController();
   private spellInputQueue = new SpellInputQueue();
@@ -318,8 +316,7 @@ export class DefenseScene extends Phaser.Scene {
     this.enemyProjectiles = [];
     this.projectileSerial = 0;
     this.enemyPathGoals.clear();
-    this.focusEnemyId = null;
-    this.focusSelectLockMs = 0;
+    this.targeting?.resetForNewRun();
     this.focusTapFlash = null;
     this.prevPlayerAttackPhase = "idle";
     this.autoAttackEnabled = false;
@@ -521,6 +518,18 @@ export class DefenseScene extends Phaser.Scene {
     ];
 
     this.targetIndicator = new TargetIndicator(this);
+    this.targeting = new DefenseTargeting({
+      scene: this,
+      registry: this.registry,
+      scale: this.scale,
+      input: this.input,
+      player: this.player,
+      enemies: this.enemies,
+      targetIndicator: this.targetIndicator,
+      uiBlockers: this.uiBlockers,
+      safe: this.safe,
+      wu: (n) => this.wu(n),
+    });
     this.groundReticle = new GroundTargetReticle(this);
     this.minimap = new DefenseMinimap(this);
     this.minimapLayout = defenseMinimapLayout(this, this.safe);
@@ -695,7 +704,7 @@ export class DefenseScene extends Phaser.Scene {
           lockMeleeAim,
         });
         if (lockMeleeAim) {
-          const target = this.facingTarget("melee", false);
+          const target = this.targeting.facingTarget("melee", false);
           if (target) this.player.faceToward(target.x, target.y);
         }
       } else if (channel.type === "completed") {
@@ -718,7 +727,7 @@ export class DefenseScene extends Phaser.Scene {
         lockMeleeAim,
       });
       if (lockMeleeAim) {
-        const target = this.facingTarget("melee", false);
+        const target = this.targeting.facingTarget("melee", false);
         if (target) this.player.faceToward(target.x, target.y);
       }
       this.castBar.setVisible(false);
@@ -748,7 +757,7 @@ export class DefenseScene extends Phaser.Scene {
       enemies: this.enemyTargets(),
       knockback: PLAYER_TUNING.rangedKnockback,
       findEnemy: (id: string) => {
-        const e = this.getEnemyById(id);
+        const e = this.targeting.getEnemyById(id);
         if (!e) return undefined;
         return {
           id: e.id,
@@ -829,9 +838,9 @@ export class DefenseScene extends Phaser.Scene {
     });
 
     this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
-    this.focusSelectLockMs = Math.max(0, this.focusSelectLockMs - delta);
+    this.targeting.focusSelectLockMs = Math.max(0, this.targeting.focusSelectLockMs - delta);
     this.enemySpellStatus.tick(delta, (enemyId, amount, flavor) => {
-      const e = this.getEnemyById(enemyId);
+      const e = this.targeting.getEnemyById(enemyId);
       if (e?.damageable.alive) applyDamage(e.damageable, amount, flavor);
     });
     for (const e of this.enemies) {
@@ -1108,11 +1117,11 @@ export class DefenseScene extends Phaser.Scene {
     );
 
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
-    this.syncFocusTarget();
+    this.targeting.syncFocusTarget();
 
     const living = this.enemies.filter((e) => e.damageable.alive).length;
     const focus =
-      this.focusEnemyId && this.getEnemyById(this.focusEnemyId)?.damageable.alive
+      this.targeting.focusEnemyId && this.targeting.getEnemyById(this.targeting.focusEnemyId)?.damageable.alive
         ? " (focus)"
         : "";
     const mode =
@@ -1216,7 +1225,7 @@ export class DefenseScene extends Phaser.Scene {
     } else if (spellAutoCastNeedsEnemyTarget(def)) {
       const target = this.autoCastEnemyTarget(def);
       if (!target) return;
-      this.setFocusEnemy(target.id);
+      this.targeting.setFocusEnemy(target.id);
       this.player.faceToward(target.x, target.y);
     }
     this.beginSpellCast(pick.spellId);
@@ -1230,7 +1239,7 @@ export class DefenseScene extends Phaser.Scene {
     if (
       def.requireEnemyTarget &&
       spellTargetMode(def) === "enemy" &&
-      !this.focusEnemyId
+      !this.targeting.focusEnemyId
     ) {
       return;
     }
@@ -1267,7 +1276,7 @@ export class DefenseScene extends Phaser.Scene {
     if (
       def.requireEnemyTarget &&
       spellTargetMode(def) === "enemy" &&
-      !this.focusEnemyId
+      !this.targeting.focusEnemyId
     ) {
       return;
     }
@@ -1285,7 +1294,7 @@ export class DefenseScene extends Phaser.Scene {
         this.groundAim ??
         this.defaultGroundTarget(def);
     } else if (def.mechanicType === "channeled_area") {
-      const target = this.facingTarget("ranged", true);
+      const target = this.targeting.facingTarget("ranged", true);
       this.spellChannelArea = target
         ? { x: target.x, y: target.y }
         : { x: this.player.sprite.x, y: this.player.sprite.y };
@@ -1295,7 +1304,7 @@ export class DefenseScene extends Phaser.Scene {
     this.channelAreaStarted = false;
     if (begun === "windup" || begun === "channel") {
       this.player.sprite.setVelocity(0, 0);
-      const target = this.facingTarget("ranged", true);
+      const target = this.targeting.facingTarget("ranged", true);
       if (target) this.player.faceToward(target.x, target.y);
       return;
     }
@@ -1334,7 +1343,7 @@ export class DefenseScene extends Phaser.Scene {
       px,
       py,
       this.player.getFacingAngle(),
-      this.focusEnemyId,
+      this.targeting.focusEnemyId,
       this.groundAimEnemies(),
       strike,
       this.wu(PLAYER_TUNING.autoAttackMeleeRange),
@@ -1355,7 +1364,7 @@ export class DefenseScene extends Phaser.Scene {
     return resolveAutoCastEnemyAim(
       px,
       py,
-      this.focusEnemyId,
+      this.targeting.focusEnemyId,
       this.groundAimEnemies(),
       strike,
       this.wu(PLAYER_TUNING.autoAttackMeleeRange),
@@ -1372,7 +1381,7 @@ export class DefenseScene extends Phaser.Scene {
       px,
       py,
       this.player.getFacingAngle(),
-      this.focusEnemyId,
+      this.targeting.focusEnemyId,
       this.groundAimEnemies(),
       maxR,
     );
@@ -1571,7 +1580,7 @@ export class DefenseScene extends Phaser.Scene {
         break;
       }
       case "tracking_projectile": {
-        const focus = this.focusEnemyId;
+        const focus = this.targeting.focusEnemyId;
         const id = `spell_proj_${this.projectileSerial++}`;
         this.projectiles.push(
           spawnSpellProjectile(this, px, py, angle, def, mult, id, {
@@ -1595,7 +1604,7 @@ export class DefenseScene extends Phaser.Scene {
       case "swing":
       case "tracking_swing": {
         if (def.mechanicType === "tracking_swing") {
-          const t = this.facingTarget("melee", true);
+          const t = this.targeting.facingTarget("melee", true);
           if (t) this.player.faceToward(t.x, t.y);
         }
         applySpellSwing(
@@ -1621,14 +1630,14 @@ export class DefenseScene extends Phaser.Scene {
           this,
           def,
           targets,
-          this.focusEnemyId,
+          this.targeting.focusEnemyId,
           px,
           py,
           mult,
           this.enemySpellStatus,
         );
         if (def.projectileTextureKey) {
-          const t = hitId ? this.getEnemyById(hitId) : null;
+          const t = hitId ? this.targeting.getEnemyById(hitId) : null;
           const tx = t?.sprite.x ?? px + Math.cos(angle) * 40;
           const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
           const aim = Math.atan2(ty - py, tx - px);
@@ -1758,7 +1767,7 @@ export class DefenseScene extends Phaser.Scene {
         : this.player.mode === "ranged"
           ? "ranged"
           : "melee";
-    const target = this.facingTarget(strike, true);
+    const target = this.targeting.facingTarget(strike, true);
     if (target) this.player.faceToward(target.x, target.y);
     this.player.tryStartAttack(this.player.mode === "auto" ? strike : undefined);
   }
@@ -1776,7 +1785,7 @@ export class DefenseScene extends Phaser.Scene {
     if (!this.autoAttackEnabled && !autoCombat) return;
     if (!this.player.canAttack()) return;
     const strike = this.resolveStrikeMode(autoCombat);
-    const target = this.facingTarget(strike, false);
+    const target = this.targeting.facingTarget(strike, false);
     if (!target) return;
     this.player.faceToward(target.x, target.y);
     this.player.tryStartAttack(autoCombat ? strike : undefined);
@@ -1801,7 +1810,7 @@ export class DefenseScene extends Phaser.Scene {
   /** @internal Used by `defense/DefenseSceneE2E` until targeting module lands */
   onScreenTap(pointer: Phaser.Input.Pointer): void {
     const tapResult = this.stick.tryConsumeTap(pointer);
-    if (this.isPointerOverUi(pointer)) return;
+    if (this.targeting.isPointerOverUi(pointer)) return;
     if (this.pendingGroundCast && tapResult.kind !== "drag") {
       const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
       const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
@@ -1818,14 +1827,14 @@ export class DefenseScene extends Phaser.Scene {
       }
       return;
     }
-    if (this.focusSelectLockMs > 0) return;
+    if (this.targeting.focusSelectLockMs > 0) return;
     if (tapResult.kind === "drag") return;
 
     const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
     const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
 
     const world = cameraWorldPoint(this.cameras.main, screenX, screenY);
-    const pick = this.findEnemyNearWorldPoint(world.x, world.y);
+    const pick = this.targeting.findEnemyNearWorldPoint(world.x, world.y);
     if (showTouchInput(this.registry)) {
       this.focusTapFlash = {
         screenX,
@@ -1837,7 +1846,7 @@ export class DefenseScene extends Phaser.Scene {
         ageMs: 0,
       };
     }
-    this.trySelectEnemyAt(world.x, world.y);
+    this.targeting.trySelectEnemyAt(world.x, world.y);
   }
 
   private openDebugMenu(): void {
@@ -1883,142 +1892,6 @@ export class DefenseScene extends Phaser.Scene {
       },
       onReturnToTown: () => this.transitionToTown(),
     };
-  }
-
-  private trySelectEnemyAt(worldX: number, worldY: number): void {
-    const pick = this.findEnemyNearWorldPoint(worldX, worldY);
-    if (pick) {
-      this.setFocusEnemy(pick.id);
-      return;
-    }
-    this.setFocusEnemy(null);
-  }
-
-  private findEnemyNearWorldPoint(worldX: number, worldY: number): EnemyInstance | null {
-    const r = this.wu(PLAYER_TUNING.targetTapRadiusWorld);
-    let best: { e: EnemyInstance; d: number } | null = null;
-    for (const e of this.enemies) {
-      if (!e.damageable.alive) continue;
-      const d = Phaser.Math.Distance.Between(worldX, worldY, e.sprite.x, e.sprite.y);
-      if (d > r) continue;
-      if (!best || d < best.d) best = { e, d };
-    }
-    return best?.e ?? null;
-  }
-
-  private setFocusEnemy(id: string | null): void {
-    if (id) this.focusSelectLockMs = FOCUS_SELECT_LOCK_MS;
-    this.focusEnemyId = id;
-    if (!id) {
-      this.targetIndicator.detach();
-      return;
-    }
-    const enemy = this.getEnemyById(id);
-    if (!enemy || !enemy.damageable.alive) {
-      this.focusEnemyId = null;
-      this.targetIndicator.detach();
-      return;
-    }
-    this.targetIndicator.attachTo(enemy.sprite);
-    this.targetIndicator.updateWorldPosition();
-  }
-
-  private syncFocusTarget(): void {
-    if (!this.focusEnemyId) return;
-    const enemy = this.getEnemyById(this.focusEnemyId);
-    if (!enemy || !enemy.damageable.alive) {
-      this.setFocusEnemy(null);
-      return;
-    }
-    this.targetIndicator.updateWorldPosition();
-  }
-
-  private getEnemyById(id: string): EnemyInstance | undefined {
-    return this.enemies.find((e) => e.id === id);
-  }
-
-  /** Selected enemy if alive; else nearest in range. Manual allows focus out of range for facing. */
-  private facingTarget(
-    mode: AttackMode | "melee" | "ranged",
-    manual: boolean,
-  ): { x: number; y: number } | null {
-    const strike: "melee" | "ranged" =
-      mode === "auto" ? "ranged" : mode;
-    const focused = this.focusedEnemyPosition(strike, manual);
-    if (focused) return focused;
-    return this.nearestEnemyForMode(strike);
-  }
-
-  private focusedEnemyPosition(
-    mode: "melee" | "ranged",
-    manual: boolean,
-  ): { x: number; y: number } | null {
-    if (!this.focusEnemyId) return null;
-    const e = this.getEnemyById(this.focusEnemyId);
-    if (!e || !e.damageable.alive) return null;
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-    const maxR =
-      mode === "melee"
-        ? this.wu(PLAYER_TUNING.autoAttackMeleeRange)
-        : this.wu(PLAYER_TUNING.autoAttackRangedRange);
-    if (!manual && d > maxR) return null;
-    return { x: e.sprite.x, y: e.sprite.y };
-  }
-
-  private isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
-    const hudBand = hudBandHeight(this.safe.top);
-    if (
-      pointer.y <= hudBand &&
-      pointer.x >= 0 &&
-      pointer.x <= this.scale.width
-    ) {
-      return true;
-    }
-    const hits = this.input.hitTestPointer(pointer);
-    for (const hit of hits) {
-      if (this.uiBlockers.some((b) => this.isSameOrChild(hit, b))) return true;
-    }
-    return false;
-  }
-
-  private isSameOrChild(
-    hit: Phaser.GameObjects.GameObject,
-    blocker: Phaser.GameObjects.GameObject,
-  ): boolean {
-    if (hit === blocker) return true;
-    if (blocker instanceof Phaser.GameObjects.Container) {
-      if (blocker.list.includes(hit)) return true;
-    }
-    let node: Phaser.GameObjects.GameObject | null = hit;
-    while (node) {
-      if (node === blocker) return true;
-      const parent: Phaser.GameObjects.Container | null =
-        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-          .parentContainer ?? null;
-      node = parent;
-    }
-    return false;
-  }
-
-  private nearestEnemyForMode(mode: "melee" | "ranged"): { x: number; y: number } | null {
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const maxR =
-      mode === "melee"
-        ? this.wu(PLAYER_TUNING.autoAttackMeleeRange)
-        : this.wu(PLAYER_TUNING.autoAttackRangedRange);
-    let best: { x: number; y: number; d: number } | null = null;
-    for (const e of this.enemies) {
-      if (!e.damageable.alive) continue;
-      const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-      if (d > maxR) continue;
-      if (!best || d < best.d) {
-        best = { x: e.sprite.x, y: e.sprite.y, d };
-      }
-    }
-    return best ? { x: best.x, y: best.y } : null;
   }
 
   private syncMeleeSwipeFx(): void {
@@ -2082,7 +1955,7 @@ export class DefenseScene extends Phaser.Scene {
     }
     this.touchDebug.draw({
       stick: this.stick,
-      pointerUiBlocked: (p) => this.isPointerOverUi(p),
+      pointerUiBlocked: (p) => this.targeting.isPointerOverUi(p),
       focusFlash: this.focusTapFlash,
     });
   }
@@ -2234,7 +2107,7 @@ export class DefenseScene extends Phaser.Scene {
       enemyGroup: this.enemyGroup,
       hooks: {
         onRemovedFromPlay: () => this.scheduleEndlessRespawn(),
-        onFocusEnemy: (id) => this.setFocusEnemy(id),
+        onFocusEnemy: (id) => this.targeting.setFocusEnemy(id),
       },
     };
   }
