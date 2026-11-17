@@ -179,7 +179,6 @@ export class DefenseSpellDirector {
 
   /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
   onSpellCastRequest(spellId: string): void {
-    if (this.host.spellCaster.isChanneling()) return;
     const def = spellById(spellId);
     if (!def) return;
     if (
@@ -189,7 +188,7 @@ export class DefenseSpellDirector {
     ) {
       return;
     }
-    if (!this.host.player.canAttack()) {
+    if (!this.host.player.canAttack() || this.host.spellCaster.isChanneling()) {
       this.host.spellInputQueue.enqueue(spellId);
       return;
     }

@@ -32,6 +32,23 @@ describe("SpellInputQueue", () => {
     expect(q.consumeIfReady(0.9, 0, spellById)).toBe("fire_nova");
   });
 
+  it("models post-channel activation: queue during cast, consume after channel", () => {
+    let castingBusy = true;
+    const q = new SpellInputQueue();
+
+    const onSpellPress = (spellId: string) => {
+      if (castingBusy) {
+        q.enqueue(spellId);
+        return "queued" as const;
+      }
+      return "cast_now" as const;
+    };
+
+    expect(onSpellPress("fire_nova")).toBe("queued");
+    castingBusy = false;
+    expect(q.consumeIfReady(0, 0, spellById)).toBe("fire_nova");
+  });
+
   it("models post-attack activation: queue during busy, consume after attack", () => {
     let attackBusy = true;
     const q = new SpellInputQueue();
