@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { GAME, SPELL_BAR } from "../config";
 import type { SaveGame } from "../core/saveTypes";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
-import { setShowTouchInput } from "../debug/DebugState";
+import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import { persistSave } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
@@ -355,6 +355,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     setPlayerPosition(x: number, y: number) {
       activeDefense(game)?.e2eSetPlayerPosition(x, y);
     },
+    getPlayerPosition() {
+      return activeDefense(game)?.e2ePlayerPosition() ?? { x: 0, y: 0 };
+    },
     getDefenseCameraScroll() {
       return (
         activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
@@ -380,6 +383,11 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     setShowEnemyPaths(on: boolean) {
       activeDefense(game)?.e2eSetShowEnemyPaths(on);
+    },
+    setShowHitboxes(on: boolean) {
+      const scene = activeDefense(game);
+      if (!scene) return;
+      setShowHitboxes(scene.registry, on);
     },
     setShowTouchInput(on: boolean) {
       setShowTouchInput(game.registry, on);

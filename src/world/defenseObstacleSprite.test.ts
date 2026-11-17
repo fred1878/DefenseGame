@@ -73,8 +73,7 @@ describe("defense obstacle art vs colliders", () => {
   });
 
   /**
-   * Convention: sprite origin 0.5 sits on tile center (crop center). Collider is
-   * bottom-aligned inside the crop so opaque art feet share the crop baseline.
+   * Convention: sprite origin 0.5×1 (feet) sits on tile center. Collider bottom matches feet.
    */
   it("derives Arcade offset so Phaser center matches config AABB", () => {
     for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
@@ -90,14 +89,14 @@ describe("defense obstacle art vs colliders", () => {
       const halfW = Math.floor(collider.w / 2);
       const halfH = Math.floor(collider.h / 2);
       const cx = -layout.displayW / 2 + offset.x + halfW;
-      const cy = -layout.displayH / 2 + offset.y + halfH;
+      const cy = -layout.displayH + offset.y + halfH;
       const anchor = defenseObstacleSpriteAnchor(placement);
       expect(cx + anchor.x).toBeCloseTo(collider.x, 3);
       expect(cy + anchor.y).toBeCloseTo(collider.y, 3);
     }
   });
 
-  it("aligns collider AABB center with feet baseline under display bounds", () => {
+  it("places collider feet on tile anchor under crop display", () => {
     const tol = 0.01;
     for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
       const anchor = defenseObstacleSpriteAnchor(placement);
@@ -112,15 +111,18 @@ describe("defense obstacle art vs colliders", () => {
       expect(collider.x).toBeCloseTo(expected.x, 5);
       expect(collider.y).toBeCloseTo(expected.y, 5);
 
-      const displayBottom = anchor.y + layout.displayH / 2;
+      const feetY = anchor.y;
       const bodyBottom = collider.y + collider.h / 2;
-      expect(Math.abs(bodyBottom - displayBottom)).toBeLessThanOrEqual(tol);
+      expect(Math.abs(bodyBottom - feetY)).toBeLessThanOrEqual(tol);
 
       const displayLeft = anchor.x - layout.displayW / 2;
+      const displayTop = anchor.y - layout.displayH;
       const bodyLeft = collider.x - collider.w / 2;
       const bodyRight = collider.x + collider.w / 2;
       expect(bodyLeft).toBeGreaterThanOrEqual(displayLeft - tol);
       expect(bodyRight).toBeLessThanOrEqual(anchor.x + layout.displayW / 2 + tol);
+      expect(bodyBottom).toBeLessThanOrEqual(feetY + tol);
+      expect(collider.y - collider.h / 2).toBeGreaterThanOrEqual(displayTop - tol);
     }
   });
 });
