@@ -36,8 +36,13 @@ import {
 } from "../../combat/SpellGroundAoeTelegraph";
 import { spawnGroundZone, type SpellGroundZone } from "../../combat/spellGroundZone";
 import { DEFENSE_RENDER_DEPTH, PLAYER_TUNING, defenseHalfHeight, defenseHalfWidth } from "../../config";
-import { spellAutoCastNeedsEnemyTarget, spellCastMs, spellRequiresManualTarget, spellTargetMode } from "../../content/spellTargeting";
-import { resolveAutoCastEnemyAim } from "../../combat/spellAutoCastEnemyAim";
+import {
+  spellAutoCastRequiresCombatTarget,
+  spellCastMs,
+  spellRequiresManualTarget,
+  spellTargetMode,
+} from "../../content/spellTargeting";
+import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
 import { resolveAutoCastGroundAim, resolveManualDefaultGroundAim } from "../../combat/spellGroundAim";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import { ENTITY_BODY_RADIUS } from "../../entities/entityPhysics";
@@ -172,13 +177,15 @@ export class DefenseSpellDirector {
     if (!pick) return;
     const def = spellById(pick.spellId);
     if (!def) return;
-    if (spellTargetMode(def) === "ground") {
-      this.host.groundAim = this.autoCastGroundTarget(def);
-    } else if (spellAutoCastNeedsEnemyTarget(def)) {
-      const target = this.autoCastEnemyTarget(def);
+    if (spellAutoCastRequiresCombatTarget(def)) {
+      const target = this.autoCastCombatTarget(def);
       if (!target) return;
-      this.host.targeting.setFocusEnemy(target.id);
-      this.host.player.faceToward(target.x, target.y);
+      if (spellTargetMode(def) === "ground") {
+        this.host.groundAim = { x: target.x, y: target.y };
+      } else {
+        this.host.targeting.setFocusEnemy(target.id);
+        this.host.player.faceToward(target.x, target.y);
+      }
     }
     this.beginSpellCast(pick.spellId);
   }
@@ -306,21 +313,32 @@ export class DefenseSpellDirector {
   autoCastEnemyTarget(
     def: SpellDefinition,
   ): { id: string; x: number; y: number } | null {
+    return this.autoCastCombatTarget(def);
+  }
+
+  autoCastCombatTarget(def: SpellDefinition): {
+    id: string;
+    x: number;
+    y: number;
+  } | null {
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
     const searchR = this.host.wu(
       def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
     );
     const strike = this.host.resolveStrikeMode(this.host.player.mode === "auto");
-    return resolveAutoCastEnemyAim(
-      px,
-      py,
-      this.host.targeting.focusEnemyId,
-      this.groundAimEnemies(),
-      strike,
-      this.host.wu(PLAYER_TUNING.autoAttackMeleeRange),
-      this.host.wu(PLAYER_TUNING.autoAttackRangedRange),
-      searchR,
+    return (
+      pickAutoCastCombatEnemy(
+        px,
+        py,
+        this.host.targeting.focusEnemyId,
+        this.groundAimEnemies(),
+        strike,
+        this.host.wu(PLAYER_TUNING.autoAttackMeleeRange),
+        this.host.wu(PLAYER_TUNING.autoAttackRangedRange),
+        searchR,
+      ) ??
+      null
     );
   }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   spellAutoCastNeedsEnemyTarget,
+  spellAutoCastRequiresCombatTarget,
   spellRequiresManualTarget,
   spellTargetMode,
 } from "./spellTargeting";
@@ -46,6 +47,28 @@ describe("spellTargeting", () => {
     expect(spellAutoCastNeedsEnemyTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
     expect(
       spellAutoCastNeedsEnemyTarget(
+        def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
+      ),
+    ).toBe(false);
+  });
+
+  it("requires a combat target for auto-cast ground, enemy, and directional spells", () => {
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "flamestrike", mechanicType: "channeled_area", targetMode: "ground" }),
+      ),
+    ).toBe(true);
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "combustion", mechanicType: "instant_targeted", targetMode: "enemy" }),
+      ),
+    ).toBe(true);
+    expect(spellAutoCastRequiresCombatTarget(def({ id: "fireball", mechanicType: "projectile" }))).toBe(
+      true,
+    );
+    expect(spellAutoCastRequiresCombatTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
+    expect(
+      spellAutoCastRequiresCombatTarget(
         def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
       ),
     ).toBe(false);
