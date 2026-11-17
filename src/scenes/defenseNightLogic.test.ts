@@ -40,7 +40,7 @@ describe("evaluateNightEnd", () => {
 });
 
 describe("evaluateEndlessEnd", () => {
-  const base = { nightEnded: false, wallHp: 50, playerHp: 40 };
+  const base = { nightEnded: false, playerHp: 40 };
 
   it("does not end when spawns are clear", () => {
     expect(evaluateEndlessEnd(base)).toBe(false);
@@ -49,12 +49,6 @@ describe("evaluateEndlessEnd", () => {
   it("ends on player death", () => {
     expect(evaluateEndlessEnd({ ...base, playerHp: 0 })).toEqual({
       reason: "player",
-    });
-  });
-
-  it("ends when wall is breached", () => {
-    expect(evaluateEndlessEnd({ ...base, wallHp: 0 })).toEqual({
-      reason: "wall",
     });
   });
 });

@@ -107,6 +107,9 @@ import {
   defenseSceneE2eGetObstacleAlignment,
   defenseSceneE2eGetSpellSlotHitRects,
   defenseSceneE2eGetUiTapTargets,
+  defenseSceneE2eHudLayoutProbe,
+  defenseSceneE2eSampleHudBandPixelsAsync,
+  defenseSceneE2eWorldPointToScreen,
   defenseSceneE2eHasLeaveEndlessButton,
   defenseSceneE2eHasReturnButton,
   defenseSceneE2eIsEndlessMode,
@@ -217,6 +220,9 @@ export class DefenseScene extends Phaser.Scene {
   private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
   private endlessSelections: EndlessRunSelection[] | null = null;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
+  private endlessInfiniteHp = false;
+  private applyWorldMask!: (go: Phaser.GameObjects.GameObject) => void;
+  private worldMaskShape!: Phaser.GameObjects.Graphics;
 
   constructor() {
     super({ key: "Defense" });
@@ -253,6 +259,7 @@ export class DefenseScene extends Phaser.Scene {
     this.iceWallExpires = [];
     this.endlessSelections = null;
     this.leaveEndlessBtn = null;
+    this.endlessInfiniteHp = false;
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until night/spawn modules land */
@@ -293,6 +300,9 @@ export class DefenseScene extends Phaser.Scene {
           ),
       );
       this.rewardGold = 0;
+      if (runMode.infiniteHp === true) {
+        this.endlessInfiniteHp = true;
+      }
     }
     const wave = endless ? undefined : store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
@@ -301,11 +311,14 @@ export class DefenseScene extends Phaser.Scene {
       scene: this,
       night: this.save.night,
       playerHpMax: this.save.player.hpMax,
+      endless,
     });
     this.player = world.player;
     this.playerInvulnMs = world.playerInvulnMs;
     this.obstacleGroup = world.obstacleGroup;
     this.enemyGroup = world.enemyGroup;
+    this.applyWorldMask = world.applyWorldMask;
+    this.worldMaskShape = world.maskShape;
 
     const hud = createDefenseHudController({
       scene: this,
@@ -395,6 +408,7 @@ export class DefenseScene extends Phaser.Scene {
       this.pathDebug.destroy();
       this.touchDebug.destroy();
       this.minimap.destroy();
+      this.worldMaskShape?.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
       for (const p of this.enemyProjectiles) p.sprite.destroy();
@@ -469,6 +483,7 @@ export class DefenseScene extends Phaser.Scene {
           };
         },
         flashNova: (x, y, r, def) => this.flashNova(x, y, r, def),
+        endlessInfiniteHp: this.endlessInfiniteHp,
       },
       delta,
     );
@@ -524,6 +539,8 @@ export class DefenseScene extends Phaser.Scene {
         playerInvulnMs: this.playerInvulnMs,
         playerHurtbox,
         nextProjectileId: (prefix) => `${prefix}${this.projectileSerial++}`,
+        maskWorldObject: (go) => this.applyWorldMask(go),
+        endlessInfiniteHp: this.endlessInfiniteHp,
       },
       delta,
     );
@@ -589,7 +606,7 @@ export class DefenseScene extends Phaser.Scene {
       this.hudText.setText(
         [
           `${header} · Wall ${Math.max(0, Math.floor(this.wallHp))}`,
-          `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
+          `HP ${Math.floor(this.player.damageable.hp)}/${this.player.damageable.maxHp}${this.endlessInfiniteHp ? " · ∞" : ""}${this.playerInvulnMs > 0 ? " (i-frames)" : ""}`,
           `Enemies ${living}${focus} · ${mode} · Auto ${auto}`,
           castLine,
         ].join("\n"),
@@ -599,7 +616,6 @@ export class DefenseScene extends Phaser.Scene {
     if (this.isEndlessMode()) {
       const endlessEnd = evaluateEndlessEnd({
         nightEnded: this.nightEnded,
-        wallHp: this.wallHp,
         playerHp: this.player.damageable.hp,
       });
       if (endlessEnd) {
@@ -680,6 +696,7 @@ export class DefenseScene extends Phaser.Scene {
       },
       timeNow: () => scene.time.now,
       delayedCall: (ms, fn) => scene.time.delayedCall(ms, fn),
+      maskWorldObject: (go) => scene.applyWorldMask(go),
     };
   }
 
@@ -909,6 +926,7 @@ export class DefenseScene extends Phaser.Scene {
       this.wu(PLAYER_TUNING.rangedMaxRange),
       id,
     );
+    this.applyWorldMask(p.sprite);
     this.projectiles.push(p);
   }
 
@@ -1080,6 +1098,7 @@ export class DefenseScene extends Phaser.Scene {
         onRemovedFromPlay: () => this.scheduleEndlessRespawn(),
         onFocusEnemy: (id) => this.targeting.setFocusEnemy(id),
       },
+      maskWorldObject: (go) => this.applyWorldMask(go),
     };
   }
 
@@ -1148,5 +1167,20 @@ export class DefenseScene extends Phaser.Scene {
   e2eGetDefenseCameraScroll() { return defenseSceneE2eGetDefenseCameraScroll(this.e2eDelegate()); }
   e2eSetShowEnemyPaths(on: boolean): void { defenseSceneE2eSetShowEnemyPaths(this.e2eDelegate(), on); }
   e2eGetObstacleAlignment() { return defenseSceneE2eGetObstacleAlignment(this.e2eDelegate()); }
+  e2eWorldPointToScreen(worldX: number, worldY: number) {
+    return defenseSceneE2eWorldPointToScreen(this.e2eDelegate(), worldX, worldY);
+  }
+  e2eHudLayoutProbe() {
+    return defenseSceneE2eHudLayoutProbe(this.e2eDelegate());
+  }
+  e2eSampleHudBandPixelsAsync() {
+    return defenseSceneE2eSampleHudBandPixelsAsync(this.e2eDelegate());
+  }
+  e2eIsEndlessInfiniteHp(): boolean {
+    return this.endlessInfiniteHp;
+  }
+  e2ePlayerHp(): number {
+    return Math.floor(this.player.damageable.hp);
+  }
 
 }

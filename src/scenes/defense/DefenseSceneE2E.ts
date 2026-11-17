@@ -21,6 +21,14 @@ import {
 } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 import { scaledDefenseObstacles } from "../../core/worldPixelScale";
+import { scaleUiY } from "../../core/displayScale";
+import { defenseMinimapLayout } from "../../ui/defenseMinimap";
+import {
+  combatChromeLayout,
+  defensePlayAreaLayout,
+  hudTextPosition,
+  type SafeInsets,
+} from "../../ui/screenLayout";
 
 /**
  * Scene surface required by Playwright / `installE2E` hooks.
@@ -59,6 +67,9 @@ export type DefenseSceneE2eDelegate = Phaser.Scene & {
   endNight(won: boolean): void;
   endEndlessRun(reason: "quit" | "player" | "wall"): void;
   isEndlessMode(): boolean;
+  readonly endlessInfiniteHp: boolean;
+  readonly safe: SafeInsets;
+  readonly minimapLayout: ReturnType<typeof defenseMinimapLayout>;
 };
 
 export function defenseSceneE2eIsReady(scene: DefenseSceneE2eDelegate): boolean {
@@ -171,6 +182,7 @@ export function defenseSceneE2eDamagePlayer(
   scene: DefenseSceneE2eDelegate,
   amount: number,
 ): void {
+  if (amount <= 0 || scene.endlessInfiniteHp) return;
   applyDamage(scene.player.damageable, amount);
   if (scene.player.damageable.hp <= 0) {
     scene.player.damageable.alive = false;
@@ -364,6 +376,132 @@ export function defenseSceneE2eSetShowEnemyPaths(
   on: boolean,
 ): void {
   setShowEnemyPaths(scene.registry, on);
+}
+
+export function defenseSceneE2eWorldPointToScreen(
+  scene: DefenseSceneE2eDelegate,
+  worldX: number,
+  worldY: number,
+): { x: number; y: number } {
+  const cam = scene.cameras.main;
+  return {
+    x: (worldX - cam.scrollX) * cam.zoom,
+    y: (worldY - cam.scrollY) * cam.zoom,
+  };
+}
+
+export function defenseSceneE2eHudLayoutProbe(scene: DefenseSceneE2eDelegate): {
+  playArea: ReturnType<typeof defensePlayAreaLayout>;
+  chrome: ReturnType<typeof combatChromeLayout>;
+  hudText: { x: number; y: number };
+  minimap: ReturnType<typeof defenseMinimapLayout>;
+} {
+  const playArea = defensePlayAreaLayout(scene, scene.safe);
+  const chrome = combatChromeLayout(scene, scene.safe);
+  const hud = hudTextPosition(scene.safe);
+  return {
+    playArea,
+    chrome,
+    hudText: hud,
+    minimap: scene.minimapLayout,
+  };
+}
+
+function defenseSceneE2eHudBandPixelProbePoints(
+  scene: DefenseSceneE2eDelegate,
+): {
+  topBand: { x: number; y: number };
+  bottomBand: { x: number; y: number };
+  playArea: { x: number; y: number };
+} {
+  const probe = defenseSceneE2eHudLayoutProbe(scene);
+  return {
+    topBand: {
+      x: Math.round(scene.scale.width * 0.22),
+      y: Math.max(8, Math.round(probe.playArea.topBandBottom * 0.42)),
+    },
+    bottomBand: {
+      x: Math.round(scene.scale.width * 0.5),
+      y: Math.round(probe.playArea.bottomBandTop + scaleUiY(36)),
+    },
+    playArea: {
+      x: Math.round(scene.scale.width / 2),
+      y: Math.round(probe.playArea.y + probe.playArea.height * 0.55),
+    },
+  };
+}
+
+function readPixelFromSnapshot(
+  scene: DefenseSceneE2eDelegate,
+  image: HTMLImageElement,
+  gameX: number,
+  gameY: number,
+): { r: number; g: number; b: number; a: number; luminance: number } {
+  const w = scene.scale.width;
+  const h = scene.scale.height;
+  const bufW = image.width;
+  const bufH = image.height;
+  const bx = Math.min(bufW - 1, Math.max(0, Math.round((gameX / w) * bufW)));
+  const by = Math.min(bufH - 1, Math.max(0, Math.round((gameY / h) * bufH)));
+  const scratch = document.createElement("canvas");
+  scratch.width = bufW;
+  scratch.height = bufH;
+  const ctx = scratch.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    return { r: 0, g: 0, b: 0, a: 0, luminance: 0 };
+  }
+  ctx.drawImage(image, 0, 0);
+  const d = ctx.getImageData(bx, by, 1, 1).data;
+  const r = d[0] ?? 0;
+  const g = d[1] ?? 0;
+  const b = d[2] ?? 0;
+  const a = d[3] ?? 0;
+  return { r, g, b, a, luminance: (r + g + b) / 3 };
+}
+
+export function defenseSceneE2eSampleHudBandPixelsAsync(
+  scene: DefenseSceneE2eDelegate,
+): Promise<{
+  points: {
+    topBand: { x: number; y: number };
+    bottomBand: { x: number; y: number };
+    playArea: { x: number; y: number };
+  };
+  topBand: { r: number; g: number; b: number; a: number; luminance: number };
+  bottomBand: { r: number; g: number; b: number; a: number; luminance: number };
+  playArea: { r: number; g: number; b: number; a: number; luminance: number };
+}> {
+  const points = defenseSceneE2eHudBandPixelProbePoints(scene);
+  return new Promise((resolve) => {
+    scene.game.renderer.snapshot((image: HTMLImageElement | Phaser.Display.Color) => {
+      if (!(image instanceof HTMLImageElement)) {
+        const zero = { r: 0, g: 0, b: 0, a: 0, luminance: 0 };
+        resolve({
+          points,
+          topBand: zero,
+          bottomBand: zero,
+          playArea: zero,
+        });
+        return;
+      }
+      resolve({
+        points,
+        topBand: readPixelFromSnapshot(scene, image, points.topBand.x, points.topBand.y),
+        bottomBand: readPixelFromSnapshot(
+          scene,
+          image,
+          points.bottomBand.x,
+          points.bottomBand.y,
+        ),
+        playArea: readPixelFromSnapshot(
+          scene,
+          image,
+          points.playArea.x,
+          points.playArea.y,
+        ),
+      });
+    });
+  });
 }
 
 export function defenseSceneE2eGetObstacleAlignment(

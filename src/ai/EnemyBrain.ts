@@ -15,6 +15,9 @@ import type { EnemyPeerAlly } from "./behaviors/types";
 
 export type EnemyTargetKind = "wall" | "player";
 
+/** Night defense protects the wall; endless training hunts the player only. */
+export type EnemyObjectiveMode = "defendWall" | "huntPlayer";
+
 export type EnemyNavState = {
   targetKind: EnemyTargetKind;
   path: PathPoint[];
@@ -53,7 +56,11 @@ export function pickEnemyTarget(
   px: number,
   py: number,
   aggroRadius: number = PLAYER_AGGRO_RADIUS,
+  objective: EnemyObjectiveMode = "defendWall",
 ): EnemyTargetKind {
+  if (objective === "huntPlayer") {
+    return "player";
+  }
   if (hasLivePlayerAggro(grid, ex, ey, px, py, aggroRadius)) {
     return "player";
   }
@@ -85,7 +92,16 @@ export function resolveEnemyTarget(
   py: number,
   deltaMs: number,
   aggroRadius: number = PLAYER_AGGRO_RADIUS,
+  objective: EnemyObjectiveMode = "defendWall",
 ): EnemyTargetResolution {
+  if (objective === "huntPlayer") {
+    nav.lastKnownPlayerX = px;
+    nav.lastKnownPlayerY = py;
+    nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
+    nav.targetKind = "player";
+    nav.wallTransitionMs = 0;
+    return { targetKind: "player", goalX: px, goalY: py };
+  }
   if (hasLivePlayerAggro(grid, ex, ey, px, py, aggroRadius)) {
     nav.lastKnownPlayerX = px;
     nav.lastKnownPlayerY = py;
@@ -154,6 +170,7 @@ export function updateEnemyBrain(
   deltaMs: number,
   peerAgents?: readonly { x: number; y: number }[],
   peerAllies?: readonly EnemyPeerAlly[],
+  objective: EnemyObjectiveMode = "defendWall",
 ): { targetX: number; targetY: number; targetKind: EnemyTargetKind } {
   const behavior = getEnemyBehavior(enemy.behavior);
   return behavior({
@@ -165,5 +182,6 @@ export function updateEnemyBrain(
     deltaMs,
     peerAgents,
     peerAllies,
+    objective,
   });
 }

@@ -88,6 +88,7 @@ export type DefenseSpellDirectorHost = {
   filterDeadEnemies: () => void;
   timeNow: () => number;
   delayedCall: (ms: number, fn: () => void) => void;
+  maskWorldObject?: (go: Phaser.GameObjects.GameObject) => void;
 };
 
 
@@ -515,20 +516,37 @@ export class DefenseSpellDirector {
       case "projectile":
       case "projectile_aoe": {
         const id = `spell_proj_${this.host.nextProjectileId()}`;
-        this.host.projectiles.push(
-          spawnSpellProjectile(this.host.scene, px, py, angle, def, mult, id),
+        const projSpell = spawnSpellProjectile(
+          this.host.scene,
+          px,
+          py,
+          angle,
+          def,
+          mult,
+          id,
         );
+        this.host.maskWorldObject?.(projSpell.sprite);
+        this.host.projectiles.push(projSpell);
         break;
       }
       case "tracking_projectile": {
         const focus = this.host.targeting.focusEnemyId;
         const id = `spell_proj_${this.host.nextProjectileId()}`;
-        this.host.projectiles.push(
-          spawnSpellProjectile(this.host.scene, px, py, angle, def, mult, id, {
+        const trackingProj = spawnSpellProjectile(
+          this.host.scene,
+          px,
+          py,
+          angle,
+          def,
+          mult,
+          id,
+          {
             behavior: "tracking",
             trackEnemyId: focus,
-          }),
+          },
         );
+        this.host.maskWorldObject?.(trackingProj.sprite);
+        this.host.projectiles.push(trackingProj);
         if (def.id === "chain_lightning") {
           applyChainLightning(this.host.scene,
             px,
@@ -580,9 +598,17 @@ export class DefenseSpellDirector {
           const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
           const aim = Math.atan2(ty - py, tx - px);
           const id = `spell_proj_${this.host.nextProjectileId()}`;
-          this.host.projectiles.push(
-            spawnSpellProjectile(this.host.scene, px, py, aim, def, mult, id),
+          const aimedProj = spawnSpellProjectile(
+            this.host.scene,
+            px,
+            py,
+            aim,
+            def,
+            mult,
+            id,
           );
+          this.host.maskWorldObject?.(aimedProj.sprite);
+          this.host.projectiles.push(aimedProj);
         }
         break;
       }

@@ -27,6 +27,7 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
     playerY,
     deltaMs,
     worldUnit(aggro, reg),
+    ctx.objective ?? "defendWall",
   );
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 

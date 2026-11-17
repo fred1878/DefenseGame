@@ -360,6 +360,24 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
       );
     },
+    getDefenseHudLayoutProbe() {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eHudLayoutProbe();
+    },
+    worldPointToDefenseScreen(worldX: number, worldY: number) {
+      return (
+        activeDefense(game)?.e2eWorldPointToScreen(worldX, worldY) ?? {
+          x: 0,
+          y: 0,
+        }
+      );
+    },
+    async sampleDefenseHudBandPixelsAsync() {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eSampleHudBandPixelsAsync();
+    },
     setShowEnemyPaths(on: boolean) {
       activeDefense(game)?.e2eSetShowEnemyPaths(on);
     },
@@ -394,9 +412,30 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       return town?.scene.isActive() ? town.e2eIsEndlessPanelOpen() : false;
     },
-    startEndless(enemyId: string) {
+    startEndless(enemyId: string, infiniteHp = false) {
       const town = game.scene.getScene("Town") as TownScene | null;
-      town?.e2eStartEndless(enemyId);
+      town?.e2eStartEndless(enemyId, infiniteHp);
+    },
+    setEndlessInfiniteHp(enabled: boolean) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eSetEndlessInfiniteHp(enabled);
+    },
+    getEndlessInfiniteHp() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive()
+        ? town.e2eEndlessInfiniteHpEnabled()
+        : false;
+    },
+    isEndlessInfiniteHp() {
+      return activeDefense(game)?.e2eIsEndlessInfiniteHp() ?? false;
+    },
+    getPlayerHp() {
+      const defense = activeDefense(game);
+      if (defense) return defense.e2ePlayerHp();
+      const town = game.scene.getScene("Town") as TownScene | null;
+      if (!town?.scene.isActive()) return 0;
+      const save = game.registry.get("save") as { player?: { hp?: number } };
+      return Math.floor(save?.player?.hp ?? 0);
     },
     scrollEndlessEnemyList(deltaY: number) {
       const town = game.scene.getScene("Town") as TownScene | null;

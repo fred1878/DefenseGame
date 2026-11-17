@@ -23,7 +23,7 @@ test.describe("endless mode panel layout", () => {
     const targets = await page.evaluate(
       () => window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {},
     );
-    for (const key of ["endless-start", "endless-close"]) {
+    for (const key of ["endless-infinite-hp", "endless-start", "endless-close"]) {
       const pt = targets[key];
       expect(pt, `missing ${key}`).toBeTruthy();
       expect(pt!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);

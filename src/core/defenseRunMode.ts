@@ -8,7 +8,12 @@ export type EndlessRunSelection = {
 
 export type DefenseRunMode =
   | { kind: "night" }
-  | { kind: "endless"; selections: EndlessRunSelection[] };
+  | {
+      kind: "endless";
+      selections: EndlessRunSelection[];
+      /** When true, player HP does not drop during endless defense. */
+      infiniteHp?: boolean;
+    };
 
 export const DEFENSE_RUN_MODE_KEY = "defenseRunMode";
 
@@ -16,9 +21,13 @@ type LegacyEndlessRunMode = { kind: "endless"; enemyId: string };
 
 function isEndlessSelections(
   raw: unknown,
-): raw is { kind: "endless"; selections: EndlessRunSelection[] } {
+): raw is {
+  kind: "endless";
+  selections: EndlessRunSelection[];
+  infiniteHp?: boolean;
+} {
   if (typeof raw !== "object" || raw === null) return false;
-  const r = raw as { kind?: string; selections?: unknown };
+  const r = raw as { kind?: string; selections?: unknown; infiniteHp?: unknown };
   return (
     r.kind === "endless" &&
     Array.isArray(r.selections) &&
@@ -28,7 +37,8 @@ function isEndlessSelections(
         typeof s === "object" &&
         s !== null &&
         typeof (s as EndlessRunSelection).enemyId === "string",
-    )
+    ) &&
+    (r.infiniteHp === undefined || r.infiniteHp === true)
   );
 }
 
@@ -53,7 +63,9 @@ export function readDefenseRunMode(
     | LegacyEndlessRunMode
     | undefined;
   if (isEndlessSelections(raw)) {
-    return raw;
+    return raw.infiniteHp
+      ? { kind: "endless", selections: raw.selections, infiniteHp: true }
+      : { kind: "endless", selections: raw.selections };
   }
   const legacy = raw as LegacyEndlessRunMode | undefined;
   if (legacy?.kind === "endless" && legacy.enemyId) {
@@ -72,11 +84,12 @@ export function setNightDefenseRun(registry: Phaser.Data.DataManager): void {
 export function setEndlessDefenseRun(
   registry: Phaser.Data.DataManager,
   selections: EndlessRunSelection[],
+  infiniteHp = false,
 ): void {
-  registry.set(DEFENSE_RUN_MODE_KEY, {
-    kind: "endless",
-    selections,
-  } satisfies DefenseRunMode);
+  const payload: DefenseRunMode = infiniteHp
+    ? { kind: "endless", selections, infiniteHp: true }
+    : { kind: "endless", selections };
+  registry.set(DEFENSE_RUN_MODE_KEY, payload);
 }
 
 export function clearDefenseRunMode(registry: Phaser.Data.DataManager): void {

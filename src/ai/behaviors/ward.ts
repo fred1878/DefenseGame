@@ -89,6 +89,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       playerY,
       deltaMs,
       worldUnit(aggro, reg),
+      ctx.objective ?? "defendWall",
     );
     goalX = resolved.goalX;
     goalY = resolved.goalY;

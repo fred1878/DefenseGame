@@ -45,6 +45,8 @@ export type DefenseEnemyTickHost = {
     damageable: Damageable;
   };
   nextProjectileId: (prefix: string) => string;
+  maskWorldObject?: (go: Phaser.GameObjects.GameObject) => void;
+  endlessInfiniteHp?: boolean;
 };
 
 export type DefenseEnemyTickResult = {
@@ -145,19 +147,19 @@ export function tickDefenseEnemies(
       if (jav.spawnJavelin) {
         const req = jav.spawnJavelin;
         const id = host.nextProjectileId("ej_");
-        enemyProjectiles.push(
-          spawnEnemyProjectile(
-            host.scene,
-            req.fromX,
-            req.fromY,
-            req.toX,
-            req.toY,
-            e.combatTuning.javelineer!.projectileSpeed,
-            req.damage,
-            e.combatTuning.javelineer!.projectileMaxTravel,
-            id,
-          ),
+        const javProj = spawnEnemyProjectile(
+          host.scene,
+          req.fromX,
+          req.fromY,
+          req.toX,
+          req.toY,
+          e.combatTuning.javelineer!.projectileSpeed,
+          req.damage,
+          e.combatTuning.javelineer!.projectileMaxTravel,
+          id,
         );
+        host.maskWorldObject?.(javProj.sprite);
+        enemyProjectiles.push(javProj);
       }
       if (jav.meleeHit) playerHitDamage += e.damage;
     } else if (e.behavior === "stationaryRanged" && e.stationaryRanged) {
@@ -172,19 +174,19 @@ export function tickDefenseEnemies(
         const req = bolt.spawnBolt;
         const tune = e.combatTuning.stationaryRanged!;
         const id = host.nextProjectileId("es_");
-        enemyProjectiles.push(
-          spawnEnemyProjectile(
-            host.scene,
-            req.fromX,
-            req.fromY,
-            req.toX,
-            req.toY,
-            tune.projectileSpeed,
-            req.damage,
-            tune.projectileMaxTravel,
-            id,
-          ),
+        const boltProj = spawnEnemyProjectile(
+          host.scene,
+          req.fromX,
+          req.fromY,
+          req.toX,
+          req.toY,
+          tune.projectileSpeed,
+          req.damage,
+          tune.projectileMaxTravel,
+          id,
         );
+        host.maskWorldObject?.(boltProj.sprite);
+        enemyProjectiles.push(boltProj);
       }
     } else if (e.behavior === "rangedHybrid" && e.rangedHybrid) {
       const hybrid = updateRangedHybridCombat(
@@ -198,19 +200,19 @@ export function tickDefenseEnemies(
         const req = hybrid.spawnBolt;
         const tune = e.combatTuning.stationaryRanged!;
         const id = host.nextProjectileId("eh_");
-        enemyProjectiles.push(
-          spawnEnemyProjectile(
-            host.scene,
-            req.fromX,
-            req.fromY,
-            req.toX,
-            req.toY,
-            tune.projectileSpeed,
-            req.damage,
-            tune.projectileMaxTravel,
-            id,
-          ),
+        const hybridProj = spawnEnemyProjectile(
+          host.scene,
+          req.fromX,
+          req.fromY,
+          req.toX,
+          req.toY,
+          tune.projectileSpeed,
+          req.damage,
+          tune.projectileMaxTravel,
+          id,
         );
+        host.maskWorldObject?.(hybridProj.sprite);
+        enemyProjectiles.push(hybridProj);
       }
       if (hybrid.meleeHit) playerHitDamage += e.damage;
       if (
@@ -252,6 +254,7 @@ export function tickDefenseEnemies(
         );
         (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =
           req.blastDamageScale;
+        host.maskWorldObject?.(proj.sprite);
         enemyProjectiles.push(proj);
       }
     } else {
@@ -272,6 +275,7 @@ export function tickDefenseEnemies(
     if (
       playerHitDamage > 0 &&
       playerInvulnMs <= 0 &&
+      !host.endlessInfiniteHp &&
       !host.registry.get("e2eGodMode")
     ) {
       applyDamage(playerDamageable, playerHitDamage);

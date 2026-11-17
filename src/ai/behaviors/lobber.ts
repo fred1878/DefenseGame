@@ -20,6 +20,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
     playerY,
     deltaMs,
     worldUnit(PLAYER_AGGRO_RADIUS, reg),
+    ctx.objective ?? "defendWall",
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);

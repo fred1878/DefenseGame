@@ -40,6 +40,7 @@ export type DefenseProjectileTickHost = {
     radius: number,
     def?: { blastTextureKey?: string },
   ) => void;
+  endlessInfiniteHp?: boolean;
 };
 
 export type DefenseProjectileTickResult = {
@@ -110,6 +111,7 @@ export function tickDefenseProjectiles(
       if (
         inBlast &&
         playerInvulnMs <= 0 &&
+        !host.endlessInfiniteHp &&
         !host.registry.get("e2eGodMode") &&
         host.player.damageable.alive
       ) {

@@ -57,6 +57,20 @@ export type DefenseGameE2EApi = {
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
   getDefenseCameraScroll(): { x: number; y: number };
+  getDefenseHudLayoutProbe(): ReturnType<
+    import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]
+  >;
+  worldPointToDefenseScreen(
+    worldX: number,
+    worldY: number,
+  ): { x: number; y: number };
+  sampleDefenseHudBandPixelsAsync(): Promise<
+    Awaited<
+      ReturnType<
+        import("../scenes/DefenseScene").DefenseScene["e2eSampleHudBandPixelsAsync"]
+      >
+    >
+  >;
   setShowEnemyPaths(on: boolean): void;
   setShowTouchInput(on: boolean): void;
   getTownBuildingDebugRectCount(): number;
@@ -72,7 +86,11 @@ export type DefenseGameE2EApi = {
   getSpellSortBarSlots(): string[];
   openEndlessPanel(): void;
   isEndlessPanelOpen(): boolean;
-  startEndless(enemyId: string): void;
+  startEndless(enemyId: string, infiniteHp?: boolean): void;
+  setEndlessInfiniteHp(enabled: boolean): void;
+  getEndlessInfiniteHp(): boolean;
+  isEndlessInfiniteHp(): boolean;
+  getPlayerHp(): number;
   scrollEndlessEnemyList(deltaY: number): void;
   getEndlessEnemyListScrollState(): {
     scrollY: number;

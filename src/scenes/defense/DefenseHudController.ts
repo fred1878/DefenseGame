@@ -16,6 +16,7 @@ import {
   defenseMinimapLayout,
   defenseMinimapScreenRect,
 } from "../../ui/defenseMinimap";
+import { defensePlayAreaLayout } from "../../ui/screenLayout";
 import {
   buildCombatStickUiMask,
   bottomHudStripLayout,
@@ -76,15 +77,19 @@ export function createDefenseHudController(
   const { scene } = deps;
   const safe = readSafeInsets();
   const chrome = combatChromeLayout(scene, safe);
-  const hudChrome = createCombatHudChrome(scene);
+  const hudChrome = createCombatHudChrome(scene, safe);
 
   const bottomStrip = bottomHudStripLayout(scene, safe);
+  const playArea = defensePlayAreaLayout(scene, safe);
   if (isE2EEnabled() && typeof window !== "undefined") {
     (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
       {
         bottomChromeTextureKey: null,
         stripCenterY: bottomStrip.stripCenterY,
         stripH: bottomStrip.stripH,
+        playAreaY: playArea.y,
+        playAreaBottom: playArea.y + playArea.height,
+        playAreaHeight: playArea.height,
       };
   }
 

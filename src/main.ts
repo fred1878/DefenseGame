@@ -16,6 +16,7 @@ import { DefenseScene } from "./scenes/DefenseScene";
 import { TownScene } from "./scenes/TownScene";
 
 const parent = "game";
+const e2eBuild = import.meta.env.VITE_E2E === "true";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -41,6 +42,7 @@ const config: Phaser.Types.Core.GameConfig = {
   render: {
     roundPixels: true,
     antialias: false,
+    preserveDrawingBuffer: e2eBuild,
   },
   input: {
     activePointers: 2,

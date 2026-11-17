@@ -16,6 +16,7 @@ export type DefenseEnemySpawnerHost = {
   enemies: EnemyInstance[];
   enemyGroup: Phaser.Physics.Arcade.Group;
   hooks: DefenseEnemySpawnerHooks;
+  maskWorldObject?: (go: Phaser.GameObjects.GameObject) => void;
 };
 
 export function defaultDefenseEnemyDef(store: DataStore): EnemyDef {
@@ -63,5 +64,6 @@ export function spawnDefenseEnemyAt(
     flashSpriteTint(host.scene, enemy.sprite, flavor);
   };
   host.enemyGroup.add(enemy.sprite);
+  host.maskWorldObject?.(enemy.sprite);
   host.enemies.push(enemy);
 }

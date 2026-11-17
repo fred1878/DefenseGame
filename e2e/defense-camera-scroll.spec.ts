@@ -28,7 +28,7 @@ test.describe("defense vertical camera scroll", () => {
 
     const afterNorthY = await api.eval<number>("api.getDefenseCameraScroll().y");
 
-    // South band far from spawn (spawn ≈ halfH − 220) so scroll must differ from north.
+    // South band far from center spawn (y = 0) so scroll must differ from north.
     const southY = defenseHalfHeight() - 96;
     await api.eval<void>("api.setPlayerPosition(0, arg)", southY);
 
