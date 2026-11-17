@@ -1,4 +1,7 @@
-/** Combat one-shots under `public/assets/audio/sfx/`. */
+/**
+ * Combat one-shots under `public/assets/audio/sfx/`.
+ * Player melee slash clips: Zapsplat cartoon whoosh (Standard License; https://www.zapsplat.com).
+ */
 export const COMBAT_SFX_ASSETS = [
   { key: "sfx_player_melee_slash_01", file: "player_melee_slash_01.mp3" },
   { key: "sfx_player_melee_slash_02", file: "player_melee_slash_02.mp3" },
