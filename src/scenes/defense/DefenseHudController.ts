@@ -1,8 +1,7 @@
 import Phaser from "phaser";
 import type { AttackMode } from "../../config";
-import { DEFENSE_SPELL_BAR } from "../../config";
 import type { SaveGame } from "../../core/saveTypes";
-import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import { scaleUiX } from "../../core/displayScale";
 import { UI_TEXTURE } from "../../content/assets";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { VirtualStick } from "../../input/VirtualStick";
@@ -21,7 +20,7 @@ import {
   buildCombatStickUiMask,
   bottomHudStripLayout,
   combatChromeLayout,
-  debugButtonPosition,
+  combatDebugButtonPosition,
   hudTextPosition,
   nightReturnButtonPosition,
   readSafeInsets,
@@ -40,6 +39,7 @@ export type DefenseHudControllerDeps = {
   save: SaveGame;
   player: Player;
   endless: boolean;
+  registerUiDraw: (go: Phaser.GameObjects.GameObject) => void;
   onManualAttack: () => void;
   onSpellCastRequest: (spellId: string) => void;
   onSpellAutoCastToggle: (slotIndex: number) => void;
@@ -75,9 +75,13 @@ export function createDefenseHudController(
   deps: DefenseHudControllerDeps,
 ): DefenseHudBuild {
   const { scene } = deps;
+  const registerUi = deps.registerUiDraw;
   const safe = readSafeInsets();
   const chrome = combatChromeLayout(scene, safe);
   const hudChrome = createCombatHudChrome(scene, safe);
+  for (const root of hudChrome.roots) {
+    registerUi(root);
+  }
 
   const bottomStrip = bottomHudStripLayout(scene, safe);
   const playArea = defensePlayAreaLayout(scene, safe);
@@ -103,6 +107,7 @@ export function createDefenseHudController(
     210,
     UI_TEXTURE.atkCircle,
   );
+  registerUi(attackButton);
 
   let refreshModeToggle!: (mode: AttackMode) => void;
   let refreshAutoToggle!: () => void;
@@ -127,6 +132,7 @@ export function createDefenseHudController(
       offTextColor: "#e8dcc8",
     },
   );
+  registerUi(modeToggle.container);
 
   const autoToggle = createTouchToggleButton(
     scene,
@@ -148,6 +154,7 @@ export function createDefenseHudController(
       offTextColor: "#a8a29e",
     },
   );
+  registerUi(autoToggle.container);
 
   const spellCaster = new SpellCastController();
   const castBar = new CastBar(scene);
@@ -165,6 +172,9 @@ export function createDefenseHudController(
     deps.save.spellBar.slots,
     deps.save.spellBar.autoCastSpellIds,
   );
+  for (const c of spellBar.getUiContainers()) {
+    registerUi(c);
+  }
 
   if (isE2EEnabled() && typeof window !== "undefined") {
     const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
@@ -195,15 +205,9 @@ export function createDefenseHudController(
     )
     .setScrollFactor(0)
     .setDepth(200);
+  registerUi(hudText);
 
-  const dbgPos = debugButtonPosition(scene, safe);
-  const strip = bottomHudStripLayout(scene, safe);
-  const spellClearY =
-    strip.stripCenterY +
-    DEFENSE_SPELL_BAR.slotSizePx / 2 +
-    scaleUiY(14) +
-    scaleUiX(36) / 2;
-  dbgPos.y = Math.max(dbgPos.y, spellClearY) + scaleUiY(8);
+  const dbgPos = combatDebugButtonPosition(scene, safe);
   const debugBtn = createTouchButton(
     scene,
     dbgPos.x,
@@ -219,6 +223,7 @@ export function createDefenseHudController(
       strokeColor: 0xa1a1aa,
     },
   );
+  registerUi(debugBtn.container);
   uiBlockers.push(debugBtn.container);
 
   let leaveEndlessBtn: TouchButtonHandle | null = null;
@@ -240,10 +245,11 @@ export function createDefenseHudController(
       },
     );
     leaveEndlessBtn.container.setData("testid", "defense-leave-endless");
+    registerUi(leaveEndlessBtn.container);
     uiBlockers.push(leaveEndlessBtn.container);
   }
 
-  const minimap = new DefenseMinimap(scene);
+  const minimap = new DefenseMinimap(scene, registerUi);
   const minimapLayout = defenseMinimapLayout(scene, safe);
   if (isE2EEnabled() && typeof window !== "undefined") {
     const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
@@ -268,6 +274,7 @@ export function createDefenseHudController(
     uiScreenRects: [...uiMask, minimapRect],
     dragThresholdPx: chrome.stickDragThreshold,
     radius: chrome.stickRadius,
+    registerUiDraw: registerUi,
   });
 
   refreshModeToggle = (mode: AttackMode) => {

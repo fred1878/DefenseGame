@@ -77,11 +77,15 @@ export function worldToMinimapPoint(
 export class DefenseMinimap {
   private readonly g: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(
+    scene: Phaser.Scene,
+    registerUiDraw?: (go: Phaser.GameObjects.GameObject) => void,
+  ) {
     this.g = scene.add
       .graphics()
       .setScrollFactor(0)
       .setDepth(MINIMAP_DEPTH);
+    registerUiDraw?.(this.g);
   }
 
   clear(): void {

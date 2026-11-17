@@ -23,6 +23,7 @@ export function showPlayerMeleeSwipe(
   y: number,
   facingRad: number,
   activeMs: number,
+  registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   spawnSlashFade(
     scene,
@@ -34,6 +35,7 @@ export function showPlayerMeleeSwipe(
     worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
     activeMs,
     PLAYER_MELEE_FX_DEPTH,
+    registerWorldDraw,
   );
 }
 
@@ -71,6 +73,7 @@ function spawnSlashFade(
   displaySize: number,
   holdMs: number,
   depth: number,
+  registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   const ox = x + Math.cos(facingRad) * offset;
   const oy = y + Math.sin(facingRad) * offset;
@@ -80,6 +83,7 @@ function spawnSlashFade(
   img.setRotation(meleeSwipeRotation(facingRad));
   img.setDepth(depth);
   img.setAlpha(0.92);
+  registerWorldDraw?.(img);
   if (isE2EEnabled() && textureKey === COMBAT_FX_TEXTURE.playerMelee) {
     publishE2E({ flags: { meleeFxSpawned: 1 } });
   }

@@ -128,9 +128,8 @@ test.describe("defense HUD layout", () => {
     };
   });
   expect(combatOrder).not.toBeNull();
-  expect(Math.abs(combatOrder!.autoX - combatOrder!.melX)).toBeLessThanOrEqual(6);
-  expect(Math.abs(combatOrder!.melX - combatOrder!.atkX)).toBeLessThanOrEqual(6);
-  expect(combatOrder!.autoY).toBeLessThan(combatOrder!.melY);
+  expect(Math.abs(combatOrder!.autoY - combatOrder!.melY)).toBeLessThanOrEqual(6);
+  expect(combatOrder!.autoX).toBeLessThan(combatOrder!.melX);
   expect(combatOrder!.melY).toBeLessThan(combatOrder!.atkY);
   expect(combatOrder!.atkY).toBeGreaterThan(980);
   });

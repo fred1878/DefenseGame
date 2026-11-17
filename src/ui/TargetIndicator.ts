@@ -46,6 +46,10 @@ export class TargetIndicator {
     this.root.setPosition(this.follow.x, this.follow.y);
   }
 
+  worldRoot(): Phaser.GameObjects.Container {
+    return this.root;
+  }
+
   destroy(): void {
     this.root.destroy();
   }

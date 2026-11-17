@@ -22,6 +22,10 @@ export class PathDebugDraw {
     this.g.clear();
   }
 
+  graphics(): Phaser.GameObjects.Graphics {
+    return this.g;
+  }
+
   destroy(): void {
     this.g.destroy();
   }

@@ -221,8 +221,9 @@ export class DefenseScene extends Phaser.Scene {
   private endlessSelections: EndlessRunSelection[] | null = null;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
   private endlessInfiniteHp = false;
-  private applyWorldMask!: (go: Phaser.GameObjects.GameObject) => void;
-  private worldMaskShape!: Phaser.GameObjects.Graphics;
+  private registerWorldDraw!: (go: Phaser.GameObjects.GameObject) => void;
+  private registerUiDraw!: (go: Phaser.GameObjects.GameObject) => void;
+  private uiCamera!: Phaser.Cameras.Scene2D.Camera;
 
   constructor() {
     super({ key: "Defense" });
@@ -317,14 +318,16 @@ export class DefenseScene extends Phaser.Scene {
     this.playerInvulnMs = world.playerInvulnMs;
     this.obstacleGroup = world.obstacleGroup;
     this.enemyGroup = world.enemyGroup;
-    this.applyWorldMask = world.applyWorldMask;
-    this.worldMaskShape = world.maskShape;
+    this.registerWorldDraw = world.registerWorldDraw;
+    this.registerUiDraw = world.registerUiDraw;
+    this.uiCamera = world.cameraRig.uiCamera;
 
     const hud = createDefenseHudController({
       scene: this,
       save: this.save,
       player: this.player,
       endless,
+      registerUiDraw: world.registerUiDraw,
       onManualAttack: () => this.manualAttack(),
       onSpellCastRequest: (id) => this.onSpellCastRequest(id),
       onSpellAutoCastToggle: (slot) => this.onSpellAutoCastToggle(slot),
@@ -354,6 +357,7 @@ export class DefenseScene extends Phaser.Scene {
     this.refreshModeToggle = hud.refreshModeToggle;
 
     this.targetIndicator = new TargetIndicator(this);
+    this.registerWorldDraw(this.targetIndicator.worldRoot());
     this.targeting = new DefenseTargeting({
       scene: this,
       registry: this.registry,
@@ -367,10 +371,18 @@ export class DefenseScene extends Phaser.Scene {
       wu: (n) => this.wu(n),
     });
     this.groundReticle = new GroundTargetReticle(this);
+    this.registerWorldDraw(this.groundReticle.worldGraphics());
     this.spellDirector = new DefenseSpellDirector(this.buildSpellHost());
     this.hitboxDebug = new HitboxDebugDraw(this);
     this.pathDebug = new PathDebugDraw(this);
     this.touchDebug = new TouchInputDebugDraw(this);
+    this.registerWorldDraw(this.hitboxDebug.graphics());
+    this.registerWorldDraw(this.pathDebug.graphics());
+    this.registerWorldDraw(this.touchDebug.worldGraphics());
+    this.registerUiDraw(this.touchDebug.uiGraphics());
+    for (const go of this.castBar.worldRoots()) {
+      this.registerWorldDraw(go);
+    }
     this.input.on("pointerup", this.onPointerUpBound);
 
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
@@ -408,7 +420,7 @@ export class DefenseScene extends Phaser.Scene {
       this.pathDebug.destroy();
       this.touchDebug.destroy();
       this.minimap.destroy();
-      this.worldMaskShape?.destroy();
+      this.uiCamera?.destroy();
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
       for (const p of this.enemyProjectiles) p.sprite.destroy();
@@ -539,7 +551,7 @@ export class DefenseScene extends Phaser.Scene {
         playerInvulnMs: this.playerInvulnMs,
         playerHurtbox,
         nextProjectileId: (prefix) => `${prefix}${this.projectileSerial++}`,
-        maskWorldObject: (go) => this.applyWorldMask(go),
+        maskWorldObject: (go) => this.registerWorldDraw(go),
         endlessInfiniteHp: this.endlessInfiniteHp,
       },
       delta,
@@ -697,7 +709,7 @@ export class DefenseScene extends Phaser.Scene {
       },
       timeNow: () => scene.time.now,
       delayedCall: (ms, fn) => scene.time.delayedCall(ms, fn),
-      maskWorldObject: (go) => scene.applyWorldMask(go),
+      maskWorldObject: (go) => scene.registerWorldDraw(go),
     };
   }
 
@@ -757,6 +769,7 @@ export class DefenseScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.ADD);
     const size = radius * 2.2;
     sprite.setDisplaySize(size, size);
+    this.registerWorldDraw(sprite);
     this.tweens.add({
       targets: sprite,
       alpha: 0,
@@ -908,6 +921,7 @@ export class DefenseScene extends Phaser.Scene {
         this.player.sprite.y,
         this.player.getFacingAngle(),
         PLAYER_TUNING.meleeActiveMs,
+        this.registerWorldDraw,
       );
       playPlayerMeleeSlashSfx(this);
     }
@@ -927,7 +941,7 @@ export class DefenseScene extends Phaser.Scene {
       this.wu(PLAYER_TUNING.rangedMaxRange),
       id,
     );
-    this.applyWorldMask(p.sprite);
+    this.registerWorldDraw(p.sprite);
     this.projectiles.push(p);
   }
 
@@ -1099,7 +1113,7 @@ export class DefenseScene extends Phaser.Scene {
         onRemovedFromPlay: () => this.scheduleEndlessRespawn(),
         onFocusEnemy: (id) => this.targeting.setFocusEnemy(id),
       },
-      maskWorldObject: (go) => this.applyWorldMask(go),
+      maskWorldObject: (go) => this.registerWorldDraw(go),
     };
   }
 

@@ -69,9 +69,9 @@ describe("screenLayout", () => {
     expect(y).toBe(chrome.bottomStrip.stripCenterY);
     expect(chrome.btnY).toBeGreaterThanOrEqual(chrome.bottomStrip.stripTop);
     expect(chrome.btnY).toBeLessThanOrEqual(chrome.bottomStrip.stripBottom);
-    expect(chrome.autoY).toBeLessThan(chrome.modeY);
-    expect(chrome.modeY).toBeLessThan(chrome.btnY);
-    expect(chrome.modeX).toBe(chrome.autoX);
+    expect(chrome.autoY).toBe(chrome.modeY);
+    expect(chrome.autoY).toBeLessThan(chrome.btnY);
+    expect(chrome.autoX).toBeLessThan(chrome.modeX);
   });
 
   it("spell slots target bottom 15% of portrait canvas", () => {

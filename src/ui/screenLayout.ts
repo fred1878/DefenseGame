@@ -111,17 +111,13 @@ export function debugButtonPosition(
   };
 }
 
-/** Defense: left edge above bottom HUD strip — clears spell row inside the panel. */
+/** Defense: top of right combat column (former MEL stack slot), below minimap band. */
 export function combatDebugButtonPosition(
   scene: Phaser.Scene,
   safe: SafeInsets,
 ): { x: number; y: number } {
-  const strip = bottomHudStripLayout(scene, safe);
-  const margin = scaleUiX(12);
-  return {
-    x: margin + safe.left + scaleUiX(44),
-    y: strip.stripTop - scaleUiY(14),
-  };
+  const chrome = combatChromeLayout(scene, safe);
+  return { x: chrome.debugX, y: chrome.debugY };
 }
 
 export type BottomHudStrip = {
@@ -140,6 +136,8 @@ export type CombatChromeLayout = {
   modeY: number;
   autoX: number;
   autoY: number;
+  debugX: number;
+  debugY: number;
   modeOffsetX: number;
   toggleW: number;
   toggleH: number;
@@ -160,7 +158,7 @@ const DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX = 48;
 
 export const BOTTOM_HUD_STRIP_H = scaleUiY(118);
 
-/** Fits 2× 4×2 spell grid + vertical AUTO/MEL/ATK stack in the bottom band. */
+/** Fits 2× 4×2 spell grid + horizontal AUTO/MEL row + ATK in the bottom band. */
 export function defenseBottomHudStripHeight(): number {
   const bar = DEFENSE_SPELL_BAR;
   const gridH =
@@ -168,9 +166,9 @@ export function defenseBottomHudStripHeight(): number {
     (bar.rowCount - 1) * bar.rowGapPx +
     bar.tapPaddingPx * 2;
   const combatStackH =
-    scaleUiY(COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX) * 2 +
-    scaleUiX(38) * 2 +
-    scaleUiY(16);
+    scaleUiY(COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX) +
+    scaleUiX(36) * 2 +
+    scaleUiY(14);
   return Math.max(
     BOTTOM_HUD_STRIP_H,
     gridH + scaleUiY(6),
@@ -209,6 +207,25 @@ export type SpellBarOrigin = {
 
 /** Minimum inset from canvas left/right edges for spell slot visuals and hit rects. */
 export const SPELL_BAR_VIEWPORT_MARGIN_PX = 8;
+
+/** Top edge (Y) of the defense spell grid in screen space. */
+export function defenseSpellBarGridTopY(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): number {
+  const bottomStrip = bottomHudStripLayout(scene, safe);
+  const bar = DEFENSE_SPELL_BAR;
+  const rowSpan =
+    bar.slotSizePx * bar.rowCount + bar.rowGapPx * (bar.rowCount - 1);
+  const lowerBias = scaleUiY(6);
+  const centerY =
+    bottomStrip.stripBottom -
+    lowerBias -
+    rowSpan +
+    bar.slotSizePx / 2 -
+    bar.tapPaddingPx / 2;
+  return centerY - bar.slotSizePx / 2 - bar.tapPaddingPx;
+}
 
 /** First spell slot center X — left-packed, ends before AUTO/MEL/ATK cluster. */
 export function spellBarSlotOrigin(
@@ -297,21 +314,33 @@ export function combatChromeLayout(
   const toggleW = scaleUiX(DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX);
   const toggleH = scaleUiY(COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX);
   const vGap = scaleUiY(4);
+  const hGap = scaleUiX(4);
   const atkX =
     scene.scale.width - sideMargin - safe.right - atkRadius - clusterPullLeft;
-  const modeX = atkX;
-  const autoX = atkX;
   const stripInset = scaleUiY(6);
   const btnY = bottomStrip.stripBottom - stripInset - atkRadius;
-  const modeY = btnY - atkRadius - vGap - toggleH / 2;
-  const autoY = modeY - toggleH / 2 - vGap - toggleH / 2;
-  const autoOffsetY = autoY - modeY;
-  const modeOffsetX = 0;
-  const combatClusterLeft = atkX - atkRadius - scaleUiX(4);
+  let modeY = btnY - atkRadius - vGap - toggleH / 2;
+  const pairSpan = toggleW + hGap;
+  const autoX = atkX - pairSpan / 2;
+  const modeX = atkX + pairSpan / 2;
+  const autoY = modeY;
+  const autoOffsetY = 0;
+  const modeOffsetX = pairSpan;
+
+  const spellTop = defenseSpellBarGridTopY(scene, safe);
+  const toggleTop = modeY - toggleH / 2;
+  if (toggleTop < spellTop) {
+    modeY = spellTop + toggleH / 2 + scaleUiY(1);
+  }
+
+  const combatClusterLeft = autoX - toggleW / 2 - scaleUiX(4);
   const hudBand = hudBandHeight(safe.top);
   const w = scene.scale.width;
   const clusterW = w - combatClusterLeft + safe.right;
   const clusterH = bottomStrip.stripH + scaleUiY(8);
+  const debugY = modeY - toggleH / 2 - vGap - scaleUiY(18);
+  const debugX = atkX;
+
   return {
     margin: sideMargin,
     atkX,
@@ -321,6 +350,8 @@ export function combatChromeLayout(
     modeY,
     autoX,
     autoY,
+    debugX,
+    debugY,
     modeOffsetX,
     toggleW,
     toggleH,

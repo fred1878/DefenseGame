@@ -51,6 +51,10 @@ export class CastBar {
     this.fill.width = this.maxFillWidth * clamped;
   }
 
+  worldRoots(): Phaser.GameObjects.Rectangle[] {
+    return [this.bg, this.fill];
+  }
+
   setVisible(visible: boolean): void {
     this.bg.setVisible(visible);
     this.fill.setVisible(visible);

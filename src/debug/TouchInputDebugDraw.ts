@@ -40,6 +40,14 @@ export class TouchInputDebugDraw {
     this.world = scene.add.graphics().setDepth(WORLD_DEPTH);
   }
 
+  worldGraphics(): Phaser.GameObjects.Graphics {
+    return this.world;
+  }
+
+  uiGraphics(): Phaser.GameObjects.Graphics {
+    return this.screen;
+  }
+
   clear(): void {
     this.screen.clear();
     this.world.clear();
