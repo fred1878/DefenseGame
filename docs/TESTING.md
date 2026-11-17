@@ -9,14 +9,22 @@
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
 | `npm run test:e2e` | Playwright browser suites (`e2e/`) |
 
-CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` and build):
+CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` and build when e2e is not skipped):
 
 | Job | Steps |
 |-----|--------|
-| `verify` | `typecheck`, `test`, production `build` |
-| `e2e` | E2E `build`, Playwright (Chromium) |
+| `verify` | Always: `typecheck`, `test`, production `build` |
+| `changes` | Path filter + (on `main` only) conflict-merge detection → `run_e2e` |
+| `e2e` | When `run_e2e`: E2E `build`, Playwright (Chromium). Otherwise one skip step (job still green). |
 
-Wall-clock time is roughly **max(verify, e2e)** instead of the sum.
+**When Playwright runs**
+
+| Event | E2E |
+|--------|-----|
+| **PR → `main`** | Only if the diff touches gameplay paths (`src/`, `e2e/`, `public/`, `index.html`, Vite/TS/Playwright config, `package*.json`, `ci.yml`). Docs-only / unrelated workflows → skipped. |
+| **Push to `main`** | Only if paths match **and** the commit is a **merge commit that resolved conflicts** (auto-merge tree ≠ landed tree, or `merge-tree` reports conflicts). Clean squash/merge → skipped on `main`. |
+
+Wall-clock time is roughly **max(verify, e2e)** when e2e runs; doc-only PRs are usually **`verify` only**.
 
 **Parallel jobs:** `verify` and `e2e` run independently; a failure in one job leaves that job (and the workflow) at conclusion **failure**, not self-cancelled. PR pushes use workflow **concurrency** (`cancel-in-progress`) to drop superseded runs on the same PR.
 
