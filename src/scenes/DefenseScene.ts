@@ -26,10 +26,7 @@ import {
   resolveEndlessRunSelections,
 } from "../core/defenseRunMode";
 import { applyDamage } from "../combat/DamageSystem";
-import {
-  showGruntMeleeSwipe,
-  showPlayerMeleeSwipe,
-} from "../combat/MeleeSwipeFx";
+import { showPlayerMeleeSwipe } from "../combat/MeleeSwipeFx";
 import { pickAutoCastSpell } from "../combat/spellAutoCast";
 import { isStickMoving, SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
@@ -52,11 +49,6 @@ import {
   SHADOWFORM_DAMAGE_MULT,
   SHADOWFORM_DURATION_MS,
 } from "../combat/spellMechanics";
-import {
-  pickEnemyCombatTarget,
-  updateEnemyBrain,
-  wallCombatPoint,
-} from "../ai/EnemyBrain";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import {
   showEnemyPaths,
@@ -79,7 +71,6 @@ import {
   updateEnemySpriteFacing,
   type EnemyInstance,
 } from "../entities/Enemy";
-import { updateEnemyCombat } from "../entities/EnemyCombat";
 import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
 import { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
 import {
@@ -91,18 +82,7 @@ import {
   type SpellGroundAoeTelegraph,
 } from "../combat/SpellGroundAoeTelegraph";
 import {
-  updateArrowRainCombat,
-  updateJavelineerCombat,
-  updateLobberCombat,
-  updateRangedHybridCombat,
-  updateStationaryRangedCombat,
-} from "../entities/EnemyRangedCombat";
-import {
-  spawnEnemyLobProjectile,
-  spawnEnemyProjectile,
   spawnPlayerProjectile,
-  updateEnemyProjectile,
-  updateSpellProjectile,
   type EnemyProjectile,
   type PlayerProjectile,
 } from "../entities/Projectile";
@@ -202,6 +182,8 @@ import {
 import { DefenseTargeting } from "./defense/DefenseTargeting";
 import { createDefenseHudController } from "./defense/DefenseHudController";
 import { bootstrapDefenseWorld } from "./defense/DefenseWorldBootstrap";
+import { tickDefenseProjectiles } from "./defense/DefenseProjectileTick";
+import { tickDefenseEnemies } from "./defense/DefenseEnemyTick";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -539,45 +521,38 @@ export class DefenseScene extends Phaser.Scene {
       this.fireProjectile(PLAYER_TUNING.rangedDamage * mult);
     }
 
-    const spellProjCtx = {
-      deltaMs: delta,
-      enemies: this.enemyTargets(),
-      knockback: PLAYER_TUNING.rangedKnockback,
-      findEnemy: (id: string) => {
-        const e = this.targeting.getEnemyById(id);
-        if (!e) return undefined;
-        return {
-          id: e.id,
-          x: e.sprite.x,
-          y: e.sprite.y,
-          damageable: e.damageable,
-          sprite: e.sprite,
-        };
+    const projTick = tickDefenseProjectiles(
+      {
+        scene: this,
+        registry: this.registry,
+        player: this.player,
+        playerInvulnMs: this.playerInvulnMs,
+        projectiles: this.projectiles,
+        enemyProjectiles: this.enemyProjectiles,
+        enemyTargets: () => this.enemyTargets(),
+        spellDamageMult: () => this.spellDamageMult(),
+        wu: (n) => this.wu(n),
+        findEnemy: (id) => {
+          const e = this.targeting.getEnemyById(id);
+          if (!e) return undefined;
+          return {
+            id: e.id,
+            x: e.sprite.x,
+            y: e.sprite.y,
+            radius: this.wu(ENTITY_BODY_RADIUS.enemy),
+            damageable: e.damageable,
+            sprite: e.sprite,
+          };
+        },
+        flashNova: (x, y, r, def) => this.flashNova(x, y, r, def),
       },
-    };
-    this.projectiles = this.projectiles.filter((p) => {
-      const result = updateSpellProjectile(p, spellProjCtx);
-      if (result.detonation) {
-        const def = spellById(p.spellId ?? "arc_bomb");
-        if (def) {
-          applySpellBlastAt(
-            this,
-            result.detonation.x,
-            result.detonation.y,
-            def,
-            this.enemyTargets(),
-            this.spellDamageMult(),
-          );
-          this.flashNova(
-            result.detonation.x,
-            result.detonation.y,
-            result.detonation.radiusWu,
-            { blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave },
-          );
-        }
-      }
-      return result.alive;
-    });
+      delta,
+    );
+    this.projectiles = projTick.projectiles;
+    this.enemyProjectiles = projTick.enemyProjectiles;
+    this.playerInvulnMs = projTick.playerInvulnMs;
+
+    this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
 
     const playerHurtbox = {
       x: px,
@@ -585,46 +560,6 @@ export class DefenseScene extends Phaser.Scene {
       radius: this.wu(ENTITY_BODY_RADIUS.player),
       damageable: this.player.damageable,
     };
-
-    this.enemyProjectiles = this.enemyProjectiles.filter((p) => {
-      const alive = updateEnemyProjectile(
-        p,
-        delta,
-        {
-          x: px,
-          y: py,
-          radius: playerHurtbox.radius,
-          damageable: this.player.damageable,
-          sprite: this.player.sprite,
-        },
-        PLAYER_TUNING.rangedKnockback * 0.65,
-      );
-      const det = p.pendingDetonation;
-      if (!alive && det) {
-        const blastR = this.wu(det.radiusWu);
-        const inBlast =
-          Phaser.Math.Distance.Between(px, py, det.x, det.y) <=
-          blastR + playerHurtbox.radius;
-        if (
-          inBlast &&
-          this.playerInvulnMs <= 0 &&
-          !this.registry.get("e2eGodMode") &&
-          this.player.damageable.alive
-        ) {
-          const scale =
-            (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ??
-            1;
-          applyDamage(this.player.damageable, det.damage * scale);
-          this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
-        }
-        this.flashNova(det.x, det.y, blastR, {
-          blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave,
-        });
-      }
-      return alive;
-    });
-
-    this.playerInvulnMs = Math.max(0, this.playerInvulnMs - delta);
     this.targeting.focusSelectLockMs = Math.max(0, this.targeting.focusSelectLockMs - delta);
     this.enemySpellStatus.tick(delta, (enemyId, amount, flavor) => {
       const e = this.targeting.getEnemyById(enemyId);
@@ -652,233 +587,25 @@ export class DefenseScene extends Phaser.Scene {
     }
     this.tickIceWalls();
 
-    this.enemyPathGoals.clear();
-    const liveEnemies = this.enemies.filter((e) => e.damageable.alive);
-    for (const e of liveEnemies) {
-      if (this.enemySpellStatus.isRooted(e.id)) {
-        e.sprite.setVelocity(0, 0);
-        continue;
-      }
-      const peerAgents = liveEnemies
-        .filter((o) => o.id !== e.id)
-        .map((o) => ({ x: o.sprite.x, y: o.sprite.y }));
-      const peerAllies = liveEnemies
-        .filter((o) => o.id !== e.id)
-        .map((o) => ({
-          id: o.id,
-          behavior: o.behavior,
-          x: o.sprite.x,
-          y: o.sprite.y,
-        }));
-      const brain = updateEnemyBrain(
-        e,
-        e.nav,
-        this.navGrid,
-        px,
-        py,
-        delta,
-        peerAgents,
-        peerAllies,
-      );
-      this.enemyPathGoals.set(e.id, {
-        targetKind: brain.targetKind,
-        x: brain.targetX,
-        y: brain.targetY,
-      });
-
-      const combatTargetKind = pickEnemyCombatTarget(
-        this.navGrid,
-        e.sprite.x,
-        e.sprite.y,
-        px,
-        py,
-      );
-      const attackTarget =
-        combatTargetKind === "player"
-          ? {
-              kind: "player" as const,
-              x: px,
-              y: py,
-              radius: playerHurtbox.radius,
-              damageable: this.player.damageable,
-            }
-          : {
-              kind: "wall" as const,
-              ...wallCombatPoint(e.sprite.x),
-            };
-
-      let playerHitDamage = 0;
-      const onWallHit = () => {
-        const wallDamage = e.combatTuning.wall.damage;
-        this.wallHp = Math.max(0, this.wallHp - wallDamage);
-      };
-
-      if (e.behavior === "arrowRainArcher" && e.arrowRain) {
-        const rain = updateArrowRainCombat(
-          e,
-          attackTarget,
-          e.arrowRain,
-          delta,
-          onWallHit,
-        );
-        if (rain.hitPlayer) playerHitDamage += rain.damage;
-      } else if (e.behavior === "javelineer" && e.javelineer) {
-        const jav = updateJavelineerCombat(
-          e,
-          attackTarget,
-          e.javelineer,
-          delta,
-          onWallHit,
-        );
-        if (jav.spawnJavelin) {
-          const req = jav.spawnJavelin;
-          const id = `ej_${this.projectileSerial++}`;
-          this.enemyProjectiles.push(
-            spawnEnemyProjectile(
-              this,
-              req.fromX,
-              req.fromY,
-              req.toX,
-              req.toY,
-              e.combatTuning.javelineer!.projectileSpeed,
-              req.damage,
-              e.combatTuning.javelineer!.projectileMaxTravel,
-              id,
-            ),
-          );
-        }
-        if (jav.meleeHit) playerHitDamage += e.damage;
-      } else if (e.behavior === "stationaryRanged" && e.stationaryRanged) {
-        const bolt = updateStationaryRangedCombat(
-          e,
-          attackTarget,
-          e.stationaryRanged,
-          delta,
-          onWallHit,
-        );
-        if (bolt.spawnBolt) {
-          const req = bolt.spawnBolt;
-          const tune = e.combatTuning.stationaryRanged!;
-          const id = `es_${this.projectileSerial++}`;
-          this.enemyProjectiles.push(
-            spawnEnemyProjectile(
-              this,
-              req.fromX,
-              req.fromY,
-              req.toX,
-              req.toY,
-              tune.projectileSpeed,
-              req.damage,
-              tune.projectileMaxTravel,
-              id,
-            ),
-          );
-        }
-      } else if (e.behavior === "rangedHybrid" && e.rangedHybrid) {
-        const hybrid = updateRangedHybridCombat(
-          e,
-          attackTarget,
-          e.rangedHybrid,
-          delta,
-          onWallHit,
-        );
-        if (hybrid.spawnBolt) {
-          const req = hybrid.spawnBolt;
-          const tune = e.combatTuning.stationaryRanged!;
-          const id = `eh_${this.projectileSerial++}`;
-          this.enemyProjectiles.push(
-            spawnEnemyProjectile(
-              this,
-              req.fromX,
-              req.fromY,
-              req.toX,
-              req.toY,
-              tune.projectileSpeed,
-              req.damage,
-              tune.projectileMaxTravel,
-              id,
-            ),
-          );
-        }
-        if (hybrid.meleeHit) playerHitDamage += e.damage;
-        if (
-          e.rangedHybrid.mode === "melee" &&
-          e.combat.phase === "active" &&
-          !e.combat.slashFxShown
-        ) {
-          e.combat.slashFxShown = true;
-          showGruntMeleeSwipe(
-            this,
-            e.sprite.x,
-            e.sprite.y,
-            e.combat.facing,
-            e.combatTuning.melee.activeMs,
-          );
-        }
-      } else if (e.behavior === "lobber" && e.lobber) {
-        const lob = updateLobberCombat(
-          e,
-          attackTarget,
-          e.lobber,
-          delta,
-          onWallHit,
-        );
-        if (lob.spawnLob) {
-          const req = lob.spawnLob;
-          const tune = e.combatTuning.lobber!;
-          const id = `el_${this.projectileSerial++}`;
-          const proj = spawnEnemyLobProjectile(
-            this,
-            req.fromX,
-            req.fromY,
-            req.toX,
-            req.toY,
-            tune.projectileSpeed,
-            req.damage,
-            tune.blastRadius,
-            id,
-          );
-          (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =
-            req.blastDamageScale;
-          this.enemyProjectiles.push(proj);
-        }
-      } else {
-        const hitPlayer = updateEnemyCombat(
-          e,
-          attackTarget,
-          delta,
-          onWallHit,
-        );
-        if (
-          e.combat.phase === "active" &&
-          !e.combat.slashFxShown
-        ) {
-          e.combat.slashFxShown = true;
-          showGruntMeleeSwipe(
-            this,
-            e.sprite.x,
-            e.sprite.y,
-            e.combat.facing,
-            e.combatTuning.melee.activeMs,
-          );
-        }
-        if (hitPlayer) playerHitDamage += e.damage;
-      }
-
-      if (
-        playerHitDamage > 0 &&
-        this.playerInvulnMs <= 0 &&
-        !this.registry.get("e2eGodMode")
-      ) {
-        applyDamage(this.player.damageable, playerHitDamage);
-        if (this.player.damageable.hp <= 0) {
-          this.player.damageable.alive = false;
-        } else {
-          this.player.damageable.alive = true;
-        }
-        this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
-      }
-    }
+    const enemyTick = tickDefenseEnemies(
+      {
+        scene: this,
+        registry: this.registry,
+        navGrid: this.navGrid,
+        enemies: this.enemies,
+        enemyProjectiles: this.enemyProjectiles,
+        enemySpellStatus: this.enemySpellStatus,
+        enemyPathGoals: this.enemyPathGoals,
+        wallHp: this.wallHp,
+        playerInvulnMs: this.playerInvulnMs,
+        playerHurtbox,
+        nextProjectileId: (prefix) => `${prefix}${this.projectileSerial++}`,
+      },
+      delta,
+    );
+    this.wallHp = enemyTick.wallHp;
+    this.playerInvulnMs = enemyTick.playerInvulnMs;
+    this.enemyProjectiles = enemyTick.enemyProjectiles;
 
     const enemySpriteSide = worldDisplayPx(SPRITE_DISPLAY.enemy, this.registry);
     for (const e of this.enemies) {
