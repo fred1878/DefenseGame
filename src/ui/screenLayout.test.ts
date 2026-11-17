@@ -14,7 +14,6 @@ import {
   townBuildingGridClearsStatus,
   townBuildingGridColumnX,
   townBuildingGridFootY,
-  BOTTOM_HUD_STRIP_H,
   defenseBottomHudStripHeight,
 } from "./screenLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
