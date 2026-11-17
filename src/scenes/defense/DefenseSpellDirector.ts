@@ -48,6 +48,12 @@ import type { SpellBar } from "../../ui/SpellBar";
 import type { CastBar } from "../../ui/CastBar";
 import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
 import type { DefenseTargeting } from "./DefenseTargeting";
+import {
+  playFireWhooshSfx,
+  spellPlaysFireWhooshOnChanneledAreaStart,
+  spellPlaysFireWhooshOnChannelLinger,
+  spellPlaysFireWhooshOnResolve,
+} from "../../audio/fireWhooshSfx";
 
 export type DefenseSpellDirectorHost = {
   scene: Phaser.Scene;
@@ -442,6 +448,9 @@ export class DefenseSpellDirector {
         this.host.flashNova(center.x, center.y, this.host.wu(def.blastRadius ?? 78), {
           blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
         });
+        if (spellPlaysFireWhooshOnChanneledAreaStart(def)) {
+          playFireWhooshSfx(this.host.scene);
+        }
       }
     }
   }
@@ -480,6 +489,9 @@ export class DefenseSpellDirector {
     this.host.flashNova(center.x, center.y, radiusWu, {
       blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
     });
+    if (spellPlaysFireWhooshOnChannelLinger(def)) {
+      playFireWhooshSfx(this.host.scene);
+    }
     const lingerMs = def.lingerMs ?? 0;
     if (lingerMs > 0) {
       this.host.delayedCall(lingerMs, () => this.clearLingerAoeTelegraph());
@@ -492,6 +504,9 @@ export class DefenseSpellDirector {
   }
 
   resolveSpellEffect(def: SpellDefinition): void {
+    if (spellPlaysFireWhooshOnResolve(def)) {
+      playFireWhooshSfx(this.host.scene);
+    }
     const mult = this.spellDamageMult();
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
