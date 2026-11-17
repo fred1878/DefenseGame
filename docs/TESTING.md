@@ -89,28 +89,24 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | `combat-real.spec.ts` | Spawn + kill enemies, wall HP drop (no god mode) |
 | `night-end.spec.ts` | Return button + manual town transition |
 | `town-touch.spec.ts` | Start night tap; drag-off cancel on Start night |
-| `visual.spec.ts` / `fps.spec.ts` | Screenshots, FPS hook |
+| `defense-hud-layout.spec.ts` | HUD geometry, spell row in viewport, no bottom chrome |
+| `spellbar-textures.spec.ts` | Spell icon textures loaded at 64×64 |
+| `town-spell-panel-*.spec.ts` | Town spell editor layout, tap, drag |
+| `fps.spec.ts` | FPS sampling hook |
 
-## Visual regression baselines
+CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks.
 
-`e2e/visual.spec.ts` uses Playwright `toHaveScreenshot()`; PNGs live next to the spec in **`e2e/visual.spec.ts-snapshots/`** and are the **source of truth** for CI. Do not rely on Agent Store or manual PNG copies in `media/`—those are review artifacts only and are not compared in CI.
+## Manual review captures vs e2e
 
-**CI runs Chromium only** (`npm run test:e2e -- --project=chromium` in `.github/workflows/ci.yml`). The `mobile-chrome` project is for optional local checks; updating only mobile snapshots will not refresh what CI compares.
-
-When a PR changes pixels (sprites, HUD chrome, layout, debug overlays):
-
-1. `npm run build:e2e`
-2. `npx playwright test e2e/visual.spec.ts --project=chromium --update-snapshots`
-3. Commit the changed files under `e2e/visual.spec.ts-snapshots/` in the same PR.
-
-On intentional UI PRs (not on `main`/CI), you can set `VISUAL_EXPECT_UI_CHANGE=1` when running the visual spec locally; `e2e/helpers/visualSnapshot.ts` logs each baseline path and **warns** if the capture is byte-identical to the committed PNG (a sign the Chromium baselines were not refreshed).
+- **CI:** No `toHaveScreenshot` and **no committed snapshot PNGs** under `e2e/`. UI correctness is covered by tap targets, layout probes, texture audits, and related specs.
+- **Human review:** After intentional UI changes, run `scripts/capture-ui-visual.mjs` (or `capture-defense-hud.mjs`). See **[MANUAL_UI_CAPTURE.md](./MANUAL_UI_CAPTURE.md)** for paths, md5 checks, and stale-hash policy.
 
 ## Adding a Playwright spec
 
 1. `gotoE2E(page)` — waits for Town + `ready`.
-2. Prefer `api` over canvas coordinates.
+2. Prefer `api` over raw canvas coordinates.
 3. Wait on `__DEFENSEGAME_E2E__` fields, not fixed `sleep`.
-4. Put screenshots under `e2e/` with `toHaveScreenshot()`; see **Visual regression baselines** above when updating PNGs.
+4. Assert behavior, layout, or asset hooks — not full-page pixels.
 
 ## Local workflow
 

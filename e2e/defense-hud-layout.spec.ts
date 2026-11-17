@@ -1,9 +1,7 @@
 /**
- * Defense HUD geometry + asset checks (not full-page pixels).
- *
- * Visual regression pixels live in `e2e/visual.spec.ts`. CI runs Playwright with
- * `--project=chromium` only (`.github/workflows/ci.yml`). Run `mobile-chrome`
- * locally when checking DPR-scaled snapshots.
+ * Defense HUD geometry + asset checks (layout probes, not pixel regression).
+ * CI: `npm run test:e2e -- --project=chromium` (see `.github/workflows/ci.yml`).
+ * Human UI proof: `docs/MANUAL_UI_CAPTURE.md`.
  */
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
