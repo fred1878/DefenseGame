@@ -65,5 +65,6 @@ export function spawnDefenseEnemyAt(
   };
   host.enemyGroup.add(enemy.sprite);
   host.maskWorldObject?.(enemy.sprite);
+  host.maskWorldObject?.(enemy.nameplate.container);
   host.enemies.push(enemy);
 }

@@ -28,6 +28,7 @@ type DefenseNightEndUi = {
   scene: Phaser.Scene;
   hudText: Phaser.GameObjects.Text;
   safe: SafeInsets;
+  registerUiDraw: (go: Phaser.GameObjects.GameObject) => void;
   setReturnToTownBtn: (btn: TouchButtonHandle | null) => void;
   onReturnToTown: () => void;
 };
@@ -80,23 +81,24 @@ export function runDefenseEndlessNightEnd(
   ctx.hudText.setColor(reason === "quit" ? "#a1a1aa" : "#fca5a5");
 
   const btn = nightReturnButtonPosition(ctx.scene, ctx.safe);
-  ctx.setReturnToTownBtn(
-    createTouchButton(
-      ctx.scene,
-      btn.x,
-      btn.y,
-      "Return to town",
-      ctx.onReturnToTown,
-      {
-        width: btn.width,
-        height: btn.height,
-        depth: 260,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x15803d,
-        strokeColor: 0x4ade80,
-      },
-    ),
+  const returnBtn = createTouchButton(
+    ctx.scene,
+    btn.x,
+    btn.y,
+    "Return to town",
+    ctx.onReturnToTown,
+    {
+      width: btn.width,
+      height: btn.height,
+      depth: 260,
+      fontSize: `${scaleUiX(14)}px`,
+      fillColor: 0x15803d,
+      strokeColor: 0x4ade80,
+    },
   );
+  returnBtn.container.setData("testid", "defense-return-to-town");
+  ctx.registerUiDraw(returnBtn.container);
+  ctx.setReturnToTownBtn(returnBtn);
 }
 
 export type DefenseCampaignNightEndInput = {
@@ -167,6 +169,7 @@ export function runDefenseCampaignNightEnd(
     },
   );
   returnBtn.container.setData("testid", "defense-return-to-town");
+  ctx.registerUiDraw(returnBtn.container);
   ctx.setReturnToTownBtn(returnBtn);
   if (isE2EEnabled()) {
     publishE2E({
