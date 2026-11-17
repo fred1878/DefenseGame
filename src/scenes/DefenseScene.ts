@@ -7,7 +7,6 @@ import {
   defenseHalfWidth,
   defenseObstacleSpriteAnchor,
   PLAYER_TUNING,
-  DEFENSE_SPELL_BAR,
   type AttackMode,
 } from "../config";
 import { toggleAutoCastSpellId } from "../content/spellBarAutoCast";
@@ -114,11 +113,7 @@ import {
   configureSceneInput,
 } from "../input/inputTuning";
 import { VirtualStick } from "../input/VirtualStick";
-import {
-  createTouchButton,
-  createTouchCircleButton,
-  createTouchToggleButton,
-} from "../ui/touchButton";
+import { createTouchToggleButton } from "../ui/touchButton";
 import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
 import { getEndlessConcurrentCap } from "../systems/endlessEnemyRoster";
 import {
@@ -155,19 +150,7 @@ import {
   defensePlayerStart,
   pickWaveSpawnPoint,
 } from "../world/defenseSpawns";
-import {
-  cameraWorldPoint,
-  buildCombatStickUiMask,
-  combatChromeLayout,
-  bottomHudStripLayout,
-  debugButtonPosition,
-  hudTextPosition,
-  nightReturnButtonPosition,
-  readSafeInsets,
-  type SafeInsets,
-} from "../ui/screenLayout";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
-import { uiTextStyle } from "../ui/uiTextStyle";
+import { cameraWorldPoint, type SafeInsets } from "../ui/screenLayout";
 import { updateEnemyNameplate } from "../ui/enemyNameplate";
 import {
   scaledDefenseObstacles,
@@ -177,13 +160,9 @@ import {
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY, UI_TEXTURE } from "../content/assets";
-import { createCombatHudChrome, type CombatHudChrome } from "../ui/combatHudChrome";
-import {
-  DefenseMinimap,
-  defenseMinimapLayout,
-  defenseMinimapScreenRect,
-} from "../ui/defenseMinimap";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
+import type { CombatHudChrome } from "../ui/combatHudChrome";
+import { DefenseMinimap, defenseMinimapLayout } from "../ui/defenseMinimap";
 import {
   type DefenseSceneE2eDelegate,
   defenseSceneE2eAttackPhase,
@@ -230,6 +209,7 @@ import {
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
+import { createDefenseHudController } from "./defense/DefenseHudController";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -240,10 +220,10 @@ export class DefenseScene extends Phaser.Scene {
   private enemyProjectiles: EnemyProjectile[] = [];
   private projectileSerial = 0;
   private hudText!: Phaser.GameObjects.Text;
-  private attackButton!: Phaser.GameObjects.Container;
+  attackButton!: Phaser.GameObjects.Container;
   private autoAttackEnabled = false;
-  private autoToggle!: ReturnType<typeof createTouchToggleButton>;
-  private modeToggle!: ReturnType<typeof createTouchToggleButton>;
+  autoToggle!: ReturnType<typeof createTouchToggleButton>;
+  modeToggle!: ReturnType<typeof createTouchToggleButton>;
   private uiBlockers: Phaser.GameObjects.GameObject[] = [];
   private wallHp = 0;
   private wallHpStart = 0;
@@ -282,9 +262,13 @@ export class DefenseScene extends Phaser.Scene {
   }> = [];
   private spellBar!: SpellBar;
   private castBar!: CastBar;
-  private debugBtn!: TouchButtonHandle;
+  debugBtn!: TouchButtonHandle;
   private safe!: SafeInsets;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
+  private setHudChromeVisible = (visible: boolean): void => {
+    this.hudSetChromeVisible?.(visible);
+  };
+  private hudSetChromeVisible: ((visible: boolean) => void) | null = null;
   private onDebugMenuClose = (): void => {
     this.setHudChromeVisible(true);
     resumeFromDebugMenu(this);
@@ -292,7 +276,7 @@ export class DefenseScene extends Phaser.Scene {
   private prevPlayerAttackPhase: AttackPhase = "idle";
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
   private enemyGroup!: Phaser.Physics.Arcade.Group;
-  private hudChrome!: CombatHudChrome;
+  hudChrome!: CombatHudChrome;
   private minimap!: DefenseMinimap;
   private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
   private endlessSelections: EndlessRunSelection[] | null = null;
@@ -417,105 +401,38 @@ export class DefenseScene extends Phaser.Scene {
     this.physics.add.collider(this.enemyGroup, this.obstacleGroup);
     configureDefenseFollowCamera(this.cameras.main, this.player.sprite);
 
-    this.safe = readSafeInsets();
-    const chrome = combatChromeLayout(this, this.safe);
-    this.hudChrome = createCombatHudChrome(this);
-
-    const bottomStrip = bottomHudStripLayout(this, this.safe);
-    if (isE2EEnabled() && typeof window !== "undefined") {
-      (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
-        {
-          bottomChromeTextureKey: null,
-          stripCenterY: bottomStrip.stripCenterY,
-          stripH: bottomStrip.stripH,
-        };
-    }
-
-    this.attackButton = createTouchCircleButton(
-      this,
-      chrome.atkX,
-      chrome.btnY,
-      "ATK",
-      chrome.atkRadius,
-      () => this.manualAttack(),
-      210,
-      UI_TEXTURE.atkCircle,
-    );
-
-    this.modeToggle = createTouchToggleButton(
-      this,
-      chrome.modeX,
-      chrome.modeY,
-      "MEL",
-      chrome.toggleW,
-      chrome.toggleH,
-      () => {
-        const mode = this.player.cycleAttackMode();
-        this.refreshModeToggle(mode);
+    const hud = createDefenseHudController({
+      scene: this,
+      save: this.save,
+      player: this.player,
+      endless,
+      onManualAttack: () => this.manualAttack(),
+      onSpellCastRequest: (id) => this.onSpellCastRequest(id),
+      onSpellAutoCastToggle: (slot) => this.onSpellAutoCastToggle(slot),
+      onOpenDebugMenu: () => this.openDebugMenu(),
+      onLeaveEndless: () => this.endEndlessRun("quit"),
+      getAutoAttackEnabled: () => this.autoAttackEnabled,
+      setAutoAttackEnabled: (on) => {
+        this.autoAttackEnabled = on;
       },
-      210,
-      {
-        frameTextureKey: UI_TEXTURE.modeRect,
-        onBgTint: 0xe8d4a8,
-        offBgTint: 0xffffff,
-        onTextColor: "#fde68a",
-        offTextColor: "#e8dcc8",
-      },
-    );
-
-    this.autoToggle = createTouchToggleButton(
-      this,
-      chrome.autoX,
-      chrome.autoY,
-      "AUTO\nOFF",
-      chrome.toggleW,
-      chrome.toggleH,
-      () => {
-        this.autoAttackEnabled = !this.autoAttackEnabled;
-        this.refreshAutoToggle();
-      },
-      210,
-      {
-        frameTextureKey: UI_TEXTURE.autoRect,
-        onBgTint: 0xa8d8a0,
-        offBgTint: 0xffffff,
-        onTextColor: "#bef264",
-        offTextColor: "#a8a29e",
-      },
-    );
-
-    this.spellCaster = new SpellCastController();
-    this.castBar = new CastBar(this);
-    this.spellBar = new SpellBar(
-      this,
-      this.save.spellBar.slots,
-      this.save.spellBar.autoCastSpellIds,
-      this.spellCaster,
-      {
-        onCastRequest: (id) => this.onSpellCastRequest(id),
-        onAutoCastToggle: (slot) => this.onSpellAutoCastToggle(slot),
-      },
-    );
-    this.spellBar.refreshAutoCastBorders(
-      this.save.spellBar.slots,
-      this.save.spellBar.autoCastSpellIds,
-    );
-
-    if (isE2EEnabled() && typeof window !== "undefined") {
-      const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
-        .__HUD_DEBUG__;
-      const spell0 = this.spellBar.e2eSlotTapCenters()[0];
-      if (dbg) {
-        dbg.spellSlot0CanvasY = spell0?.y ?? null;
-      }
-    }
-
-    this.uiBlockers = [
-      this.attackButton,
-      this.modeToggle.container,
-      this.autoToggle.container,
-      ...this.spellBar.getUiContainers(),
-    ];
+    });
+    this.safe = hud.safe;
+    this.hudChrome = hud.hudChrome;
+    this.attackButton = hud.attackButton;
+    this.modeToggle = hud.modeToggle;
+    this.autoToggle = hud.autoToggle;
+    this.spellCaster = hud.spellCaster;
+    this.castBar = hud.castBar;
+    this.spellBar = hud.spellBar;
+    this.hudText = hud.hudText;
+    this.debugBtn = hud.debugBtn;
+    this.leaveEndlessBtn = hud.leaveEndlessBtn;
+    this.minimap = hud.minimap;
+    this.minimapLayout = hud.minimapLayout;
+    this.stick = hud.stick;
+    this.uiBlockers = hud.uiBlockers;
+    this.hudSetChromeVisible = hud.setHudChromeVisible;
+    this.refreshModeToggle = hud.refreshModeToggle;
 
     this.targetIndicator = new TargetIndicator(this);
     this.targeting = new DefenseTargeting({
@@ -531,104 +448,12 @@ export class DefenseScene extends Phaser.Scene {
       wu: (n) => this.wu(n),
     });
     this.groundReticle = new GroundTargetReticle(this);
-    this.minimap = new DefenseMinimap(this);
-    this.minimapLayout = defenseMinimapLayout(this, this.safe);
-    if (isE2EEnabled() && typeof window !== "undefined") {
-      const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
-        .__HUD_DEBUG__;
-      if (dbg) {
-        dbg.minimap = this.minimapLayout;
-      }
-    }
     this.hitboxDebug = new HitboxDebugDraw(this);
     this.pathDebug = new PathDebugDraw(this);
     this.touchDebug = new TouchInputDebugDraw(this);
     this.input.on("pointerup", this.onPointerUpBound);
 
-    const hudPos = hudTextPosition(this.safe);
-    this.hudText = this.add
-      .text(
-        hudPos.x,
-        hudPos.y,
-        "",
-        uiTextStyle(this, {
-          fontSize: `${scaleUiX(16)}px`,
-          color: "#fafafa",
-        }),
-      )
-      .setScrollFactor(0)
-      .setDepth(200);
-
-    const dbgPos = debugButtonPosition(this, this.safe);
-    const strip = bottomHudStripLayout(this, this.safe);
-    const spellClearY =
-      strip.stripCenterY +
-      DEFENSE_SPELL_BAR.slotSizePx / 2 +
-      scaleUiY(14) +
-      scaleUiX(36) / 2;
-    dbgPos.y = Math.max(dbgPos.y, spellClearY) + scaleUiY(8);
-    this.debugBtn = createTouchButton(
-      this,
-      dbgPos.x,
-      dbgPos.y,
-      "Debug",
-      () => this.openDebugMenu(),
-      {
-        width: scaleUiX(88),
-        height: scaleUiX(36),
-        depth: 200,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x3f3f46,
-        strokeColor: 0xa1a1aa,
-      },
-    );
-    this.uiBlockers.push(this.debugBtn.container);
-
-    if (endless) {
-      const leaveBtn = nightReturnButtonPosition(this, this.safe);
-      this.leaveEndlessBtn = createTouchButton(
-        this,
-        leaveBtn.x,
-        leaveBtn.y,
-        "Return to town",
-        () => this.endEndlessRun("quit"),
-        {
-          width: leaveBtn.width,
-          height: leaveBtn.height,
-          depth: 210,
-          fontSize: `${scaleUiX(14)}px`,
-          fillColor: 0x52525b,
-          strokeColor: 0xa1a1aa,
-        },
-      );
-      this.leaveEndlessBtn.container.setData(
-        "testid",
-        "defense-leave-endless",
-      );
-      this.uiBlockers.push(this.leaveEndlessBtn.container);
-    }
-
-    const w = this.scale.width;
-    const spellRect = this.spellBar.getScreenRect();
-    const uiMask = buildCombatStickUiMask(
-      this,
-      chrome,
-      spellRect,
-      this.debugBtn.container,
-    );
-    const minimapRect = defenseMinimapScreenRect(this, this.safe);
-    this.stick = new VirtualStick(this, {
-      blockers: this.uiBlockers,
-      excludeZones: [{ x: 0, y: 0, width: w, height: chrome.hudBand }],
-      uiScreenRects: [...uiMask, minimapRect],
-      dragThresholdPx: chrome.stickDragThreshold,
-      radius: chrome.stickRadius,
-    });
-
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
-
-    this.refreshModeToggle(this.player.mode);
-    this.refreshAutoToggle();
 
     if (endless) {
       this.spawnPlanComplete = true;
@@ -1855,13 +1680,6 @@ export class DefenseScene extends Phaser.Scene {
     this.scene.launch("DebugMenu");
   }
 
-  private setHudChromeVisible(visible: boolean): void {
-    this.hudText.setVisible(visible);
-    this.debugBtn.container.setVisible(visible);
-    this.hudChrome?.setVisible(visible);
-    this.minimap?.setVisible(visible);
-  }
-
   private transitionToTown(): void {
     transitionDefenseToTown(this);
   }
@@ -2029,19 +1847,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until HUD controller lands */
-  refreshModeToggle(mode: AttackMode): void {
-    const label =
-      mode === "melee" ? "MEL" : mode === "ranged" ? "RNG" : "A.COM";
-    this.modeToggle.setLabel(label);
-    this.modeToggle.setOn(mode === "ranged" || mode === "auto");
-  }
-
-  private refreshAutoToggle(): void {
-    this.autoToggle.setOn(this.autoAttackEnabled);
-    this.autoToggle.setLabel(
-      this.autoAttackEnabled ? "AUTO\nON" : "AUTO\nOFF",
-    );
-  }
+  refreshModeToggle!: (mode: AttackMode) => void;
 
   private endlessHudHeader(store: DataStore): string {
     const sels = this.endlessSelections ?? [];
