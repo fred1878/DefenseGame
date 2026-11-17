@@ -57,6 +57,13 @@ export type DefenseGameE2EApi = {
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
   getDefenseCameraScroll(): { x: number; y: number };
+  getDefenseHudLayoutProbe(): ReturnType<
+    import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]
+  >;
+  worldPointToDefenseScreen(
+    worldX: number,
+    worldY: number,
+  ): { x: number; y: number };
   setShowEnemyPaths(on: boolean): void;
   setShowTouchInput(on: boolean): void;
   getTownBuildingDebugRectCount(): number;

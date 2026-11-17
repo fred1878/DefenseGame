@@ -2550,6 +2550,33 @@ export class DefenseScene extends Phaser.Scene {
     this.onScreenTap(pointer);
   }
 
+  /** Layout probe for e2e: same numbers as `combatChromeLayout` / `defensePlayAreaLayout`. */
+  e2eWorldPointToScreen(worldX: number, worldY: number): { x: number; y: number } {
+    const cam = this.cameras.main;
+    const play = defensePlayAreaLayout(this, this.safe);
+    return {
+      x: (worldX - cam.scrollX) * cam.zoom + play.x,
+      y: (worldY - cam.scrollY) * cam.zoom + play.y,
+    };
+  }
+
+  e2eHudLayoutProbe(): {
+    playArea: ReturnType<typeof defensePlayAreaLayout>;
+    chrome: ReturnType<typeof combatChromeLayout>;
+    hudText: { x: number; y: number };
+    minimap: ReturnType<typeof defenseMinimapLayout>;
+  } {
+    const playArea = defensePlayAreaLayout(this, this.safe);
+    const chrome = combatChromeLayout(this, this.safe);
+    const hud = hudTextPosition(this.safe);
+    return {
+      playArea,
+      chrome,
+      hudText: hud,
+      minimap: this.minimapLayout,
+    };
+  }
+
   /** Canvas-space tap centers for Playwright pointer tests (matches pointer.x/y). */
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
     const centerOf = (

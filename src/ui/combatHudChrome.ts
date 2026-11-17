@@ -14,10 +14,11 @@ const PANEL_ALPHA = 0.94;
 const BORDER = 0xffffff;
 
 /** Top/bottom UI bands (status + spell row) with white borders; world draws between them. */
+/** Behind HUD controls (status, minimap, spell row, combat buttons) — layout unchanged. */
 export function createCombatHudChrome(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  depth = 42,
+  depth = 1,
 ): CombatHudChrome {
   const play = defensePlayAreaLayout(scene, safe);
   const w = scene.scale.width;

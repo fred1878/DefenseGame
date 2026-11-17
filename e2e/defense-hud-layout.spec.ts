@@ -128,6 +128,68 @@ test.describe("defense HUD layout", () => {
   expect(combatOrder!.rowY).toBeGreaterThan(900);
   });
 
+  test("combat controls match combatChromeLayout anchors", async ({ page }) => {
+    await gotoE2E(page);
+    await startDefense(page);
+
+    const layout = await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const probe = api?.getDefenseHudLayoutProbe();
+      const targets = api?.getUiTapTargets() ?? {};
+      return { probe, targets };
+    });
+
+    expect(layout.probe).toBeTruthy();
+    const chrome = layout.probe!.chrome;
+    const t = layout.targets;
+    const tol = 4;
+
+    expect(Math.abs(t["combat-atk"].x - chrome.atkX)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(t["combat-atk"].y - chrome.btnY)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(t["combat-mode"].x - chrome.modeX)).toBeLessThanOrEqual(
+      tol,
+    );
+    expect(Math.abs(t["combat-mode"].y - chrome.modeY)).toBeLessThanOrEqual(
+      tol,
+    );
+    expect(Math.abs(t["combat-auto"].x - chrome.autoX)).toBeLessThanOrEqual(
+      tol,
+    );
+    expect(Math.abs(t["combat-auto"].y - chrome.autoY)).toBeLessThanOrEqual(
+      tol,
+    );
+    expect(chrome.bottomStrip.stripCenterY).toBeGreaterThan(900);
+    expect(layout.probe!.playArea.bottomBandTop).toBe(
+      chrome.bottomStrip.stripTop,
+    );
+  });
+
+  test("world sprites project inside play area band", async ({ page }) => {
+    await gotoE2E(page);
+    await startDefense(page);
+    await page.evaluate(async () => {
+      await window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(160, 0);
+    });
+
+    const clip = await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const play = api?.getDefenseHudLayoutProbe()?.playArea;
+      const screen = api?.worldPointToDefenseScreen(160, 0);
+      return { play, screen };
+    });
+
+    expect(clip.play).toBeTruthy();
+    const top = clip.play!.y;
+    const bottom = clip.play!.y + clip.play!.height;
+    expect(clip.screen!.y).toBeGreaterThanOrEqual(top - 4);
+    expect(clip.screen!.y).toBeLessThanOrEqual(bottom + 4);
+    expect(clip.screen!.x).toBeGreaterThanOrEqual(clip.play!.x - 4);
+    expect(clip.screen!.x).toBeLessThanOrEqual(
+      clip.play!.x + clip.play!.width + 4,
+    );
+    expect(bottom).toBeLessThan(clip.play!.bottomBandTop + 1);
+  });
+
   test("minimap frame is top-right below HUD", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);

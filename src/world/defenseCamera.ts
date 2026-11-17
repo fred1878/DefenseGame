@@ -94,6 +94,7 @@ export function configureDefenseFollowCamera(
     Math.round(playArea.width),
     Math.round(playArea.height),
   );
+  camera.setBackgroundColor(0x0c0c0e);
   camera.startFollow(follow, true, 0.14, 0.14);
   camera.setDeadzone(0, 0);
 

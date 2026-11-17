@@ -360,6 +360,19 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
       );
     },
+    getDefenseHudLayoutProbe() {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eHudLayoutProbe();
+    },
+    worldPointToDefenseScreen(worldX: number, worldY: number) {
+      return (
+        activeDefense(game)?.e2eWorldPointToScreen(worldX, worldY) ?? {
+          x: 0,
+          y: 0,
+        }
+      );
+    },
     setShowEnemyPaths(on: boolean) {
       activeDefense(game)?.e2eSetShowEnemyPaths(on);
     },
