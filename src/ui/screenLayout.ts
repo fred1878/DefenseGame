@@ -158,18 +158,24 @@ export const COMBAT_MODE_TOGGLE_WIDTH_DESIGN_PX = 96;
 /** Narrower combat column so 4×2 spell grid fits beside vertical AUTO/MEL/ATK on 540-wide. */
 const DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX = 48;
 
-export const BOTTOM_HUD_STRIP_H = scaleUiY(108);
+export const BOTTOM_HUD_STRIP_H = scaleUiY(118);
 
-/** Fits 4×2 spell grid + vertical AUTO/MEL/ATK stack in a compact bottom band. */
+/** Fits 2× 4×2 spell grid + vertical AUTO/MEL/ATK stack in the bottom band. */
 export function defenseBottomHudStripHeight(): number {
   const bar = DEFENSE_SPELL_BAR;
   const gridH =
-    bar.rowCount * bar.slotSizePx + (bar.rowCount - 1) * bar.rowGapPx;
+    bar.rowCount * bar.slotSizePx +
+    (bar.rowCount - 1) * bar.rowGapPx +
+    bar.tapPaddingPx * 2;
   const combatStackH =
     scaleUiY(COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX) * 2 +
     scaleUiX(38) * 2 +
-    scaleUiY(20);
-  return Math.max(BOTTOM_HUD_STRIP_H, gridH + scaleUiY(8), combatStackH + scaleUiY(8));
+    scaleUiY(16);
+  return Math.max(
+    BOTTOM_HUD_STRIP_H,
+    gridH + scaleUiY(6),
+    combatStackH + scaleUiY(6),
+  );
 }
 
 /** Shared bottom HUD strip geometry (spell row + combat controls sit inside). */
@@ -217,7 +223,7 @@ export function spellBarSlotOrigin(
   const leftPad = scaleUiX(16) + safe.left;
   const tapPad = DEFENSE_SPELL_BAR.tapPaddingPx;
   const rowWidth = cols * slotSizePx + (cols - 1) * slotGapPx;
-  const rowEndMax = chrome.combatClusterLeft - scaleUiX(10);
+  const rowEndMax = chrome.combatClusterLeft - scaleUiX(4);
   const viewportMargin = SPELL_BAR_VIEWPORT_MARGIN_PX;
   const minFirstCenter =
     safe.left + viewportMargin + tapPad + slotSizePx / 2;
@@ -230,7 +236,7 @@ export function spellBarSlotOrigin(
   const rowSpan =
     slotSizePx * DEFENSE_SPELL_BAR.rowCount +
     DEFENSE_SPELL_BAR.rowGapPx * (DEFENSE_SPELL_BAR.rowCount - 1);
-  const lowerBias = scaleUiY(10);
+  const lowerBias = scaleUiY(6);
   const centerY =
     chrome.bottomStrip.stripBottom -
     lowerBias -
@@ -285,9 +291,9 @@ export function combatChromeLayout(
   safe: SafeInsets,
 ): CombatChromeLayout {
   const bottomStrip = bottomHudStripLayout(scene, safe);
-  const sideMargin = scaleUiX(6);
-  const clusterPullLeft = scaleUiX(20);
-  const atkRadius = scaleUiX(38);
+  const sideMargin = scaleUiX(4);
+  const clusterPullLeft = 0;
+  const atkRadius = scaleUiX(36);
   const toggleW = scaleUiX(DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX);
   const toggleH = scaleUiY(COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX);
   const vGap = scaleUiY(4);
@@ -301,7 +307,7 @@ export function combatChromeLayout(
   const autoY = modeY - toggleH / 2 - vGap - toggleH / 2;
   const autoOffsetY = autoY - modeY;
   const modeOffsetX = 0;
-  const combatClusterLeft = atkX - atkRadius - scaleUiX(10);
+  const combatClusterLeft = atkX - atkRadius - scaleUiX(4);
   const hudBand = hudBandHeight(safe.top);
   const w = scene.scale.width;
   const clusterW = w - combatClusterLeft + safe.right;

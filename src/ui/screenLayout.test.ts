@@ -97,7 +97,7 @@ describe("screenLayout", () => {
       (DEFENSE_SPELL_BAR.columnCount - 1) *
         (DEFENSE_SPELL_BAR.slotSizePx + DEFENSE_SPELL_BAR.slotGapPx);
     const rowRight = lastCenterX + DEFENSE_SPELL_BAR.slotSizePx / 2;
-    const rowEndMax = chrome.combatClusterLeft - scaleUiX(10);
+    const rowEndMax = chrome.combatClusterLeft - scaleUiX(4);
     expect(rowRight).toBeLessThanOrEqual(rowEndMax + 0.5);
   });
 

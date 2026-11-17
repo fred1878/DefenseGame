@@ -34,21 +34,22 @@ export const TOWN_SPELL_SORT_PANEL = {
   doneBelowPoolGapY: 28,
 } as const;
 
-/** Defense night HUD: same 4×2 grid as town bar — fits beside vertical AUTO/MEL/ATK on 540-wide. */
+/** Defense night HUD: 2× slot/tap metrics, 4×2 grid beside vertical AUTO/MEL/ATK on 540-wide. */
 export const DEFENSE_SPELL_BAR = {
   columnCount: SPELL_BAR.columnCount,
   rowCount: SPELL_BAR.rowCount,
   slotCount: SPELL_BAR.slotCount,
-  slotSizePx: SPELL_BAR.slotSizePx,
+  slotSizePx: SPELL_BAR.slotSizePx * HUD_SPELL_BAR_2X_SCALE,
+  /** Column gap stays 1× so four 2× slots fit before the combat column on 540-wide. */
   slotGapPx: SPELL_BAR.slotGapPx,
   rowGapPx: SPELL_BAR.rowGapPx,
-  tapPaddingPx: SPELL_BAR.tapPaddingPx,
+  tapPaddingPx: SPELL_BAR.tapPaddingPx * HUD_SPELL_BAR_2X_SCALE,
   iconInsetFrac: SPELL_BAR.iconInsetFrac,
-  cooldownRingWidthPx: SPELL_BAR.cooldownRingWidthPx,
-  autoCastBorderWidthPx: SPELL_BAR.autoCastBorderWidthPx,
+  cooldownRingWidthPx: SPELL_BAR.cooldownRingWidthPx * HUD_SPELL_BAR_2X_SCALE,
+  autoCastBorderWidthPx: SPELL_BAR.autoCastBorderWidthPx * HUD_SPELL_BAR_2X_SCALE,
   autoCastBorderColor: SPELL_BAR.autoCastBorderColor,
   longPressMs: SPELL_BAR.longPressMs,
-  fontSize: SPELL_BAR.fontSize,
+  fontSize: `${scaleUiX(11 * HUD_SPELL_BAR_2X_SCALE)}px`,
 } as const;
 
 /** Town spell-sort overlay: 2× defense bar slots (icons + hit targets). */
@@ -70,7 +71,7 @@ export function spellBarIconDisplayPx(): number {
   return SPELL_BAR.slotSizePx - pad;
 }
 
-/** On-screen spell icon size in the defense night HUD (matches town bar). */
+/** On-screen spell icon size in the defense night HUD (2× base bar). */
 export function defenseSpellBarIconDisplayPx(): number {
   const pad = Math.round(
     DEFENSE_SPELL_BAR.slotSizePx * DEFENSE_SPELL_BAR.iconInsetFrac,
