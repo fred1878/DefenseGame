@@ -1,12 +1,12 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import { worldUnit } from "../core/worldPixelScale";
 import {
   SPELL_CONE_ARC_DEG,
   SPELL_CONE_RANGE_WU,
 } from "./spellMechanics";
 
-/** Same depth as player melee swipe FX in `MeleeSwipeFx.ts`. */
-const SPELL_CONE_FX_DEPTH = 15;
+const SPELL_CONE_FX_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 const CONE_FILL = 0xff6622;
 const CONE_EDGE = 0xff4422;

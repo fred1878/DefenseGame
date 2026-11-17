@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import { worldDisplayPx } from "../core/worldPixelScale";
 import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
@@ -83,7 +84,7 @@ export function spawnPlayerProjectile(
   const display = worldDisplayPx(base, scene.registry);
   sprite.setDisplaySize(display, display);
   sprite.setCircle(worldDisplayPx(4, scene.registry) / 2);
-  sprite.setDepth(8);
+  sprite.setDepth(DEFENSE_RENDER_DEPTH.projectile);
   const vx = Math.cos(angleRad) * speed;
   const vy = Math.sin(angleRad) * speed;
   sprite.setVelocity(vx, vy);

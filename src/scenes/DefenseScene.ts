@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import {
   DEFENSE_MAP,
   DEFENSE_OBSTACLE_PLACEMENTS,
+  DEFENSE_RENDER_DEPTH,
   defenseHalfHeight,
   defenseHalfWidth,
   defenseObstacleSpriteAnchor,
@@ -361,7 +362,7 @@ export class DefenseScene extends Phaser.Scene {
         placement.textureKey,
       );
       configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
-      rock.setDepth(2);
+      rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
       this.obstacleGroup.add(rock);
     }
 
@@ -1625,7 +1626,7 @@ export class DefenseScene extends Phaser.Scene {
       const block = this.physics.add.staticImage(x, y, key);
       const size = this.wu(20);
       block.setDisplaySize(size, size);
-      block.setDepth(3);
+      block.setDepth(DEFENSE_RENDER_DEPTH.obstacleBlock);
       block.refreshBody();
       this.obstacleGroup.add(block);
       this.iceWallExpires.push({
@@ -1659,7 +1660,7 @@ export class DefenseScene extends Phaser.Scene {
     }
     const sprite = this.add
       .image(x, y, key)
-      .setDepth(7)
+      .setDepth(DEFENSE_RENDER_DEPTH.playerCombatFx)
       .setAlpha(0.9)
       .setBlendMode(Phaser.BlendModes.ADD);
     const size = radius * 2.2;

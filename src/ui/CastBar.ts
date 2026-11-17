@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { CAST_BAR } from "../config";
+import { CAST_BAR, DEFENSE_RENDER_DEPTH } from "../config";
 
 /** World-space cast progress bar under the player. */
 export class CastBar {
@@ -14,12 +14,12 @@ export class CastBar {
       .rectangle(0, 0, CAST_BAR.width, CAST_BAR.height, CAST_BAR.bgColor, CAST_BAR.bgAlpha)
       .setOrigin(0.5)
       .setStrokeStyle(1, CAST_BAR.borderColor, 0.85)
-      .setDepth(11)
+      .setDepth(DEFENSE_RENDER_DEPTH.castBarBg)
       .setVisible(false);
     this.fill = scene.add
       .rectangle(-halfW + 1, 0, 0, CAST_BAR.height - 2, CAST_BAR.fillColor, CAST_BAR.fillAlpha)
       .setOrigin(0, 0.5)
-      .setDepth(12)
+      .setDepth(DEFENSE_RENDER_DEPTH.castBarFill)
       .setVisible(false);
   }
 

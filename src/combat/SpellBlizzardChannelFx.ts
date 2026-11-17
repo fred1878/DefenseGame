@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 
 /** MobileRPG blizzard slices scattered over the ground AoE while channeling. */
@@ -28,7 +29,7 @@ export class SpellBlizzardChannelFx {
       ) * BLIZZARD_PARTICLE_VISUAL_SCALE;
       const sprite = this.scene.add
         .image(x, y, textureKey)
-        .setDepth(6)
+        .setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx)
         .setAlpha(Phaser.Math.FloatBetween(0.45, 0.85))
         .setBlendMode(Phaser.BlendModes.ADD)
         .setDisplaySize(size, size)

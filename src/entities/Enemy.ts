@@ -6,6 +6,7 @@ import {
 } from "../content/assets";
 import { resolveEnemyCardinal } from "./enemyFacing";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import type { EnemyDef } from "../core/DataStore";
 import {
   DEFAULT_ENEMY_BASE,
@@ -95,7 +96,7 @@ export function spawnEnemy(
     worldUnit(enemyCollisionBodyRadius(def.behavior), scene.registry),
     { pushable: true },
   );
-  sprite.setDepth(5);
+  sprite.setDepth(DEFENSE_RENDER_DEPTH.enemy);
   sprite.setInteractive(
     new Phaser.Geom.Circle(0, 0, worldUnit(26, scene.registry)),
     Phaser.Geom.Circle.Contains,

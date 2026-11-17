@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -10,8 +11,8 @@ const SLASH_ARC_V2_ROT_OFFSET = Math.PI;
 /** Peter pick: v1 `slash-arc-v2` at 48px source, scaled for on-screen melee read. */
 const PLAYER_SLASH_OFFSET = 24;
 
-/** Above player (10) and enemies (5); below CastBar / target rings. */
-const PLAYER_MELEE_FX_DEPTH = 15;
+/** Above entity sprites; below enemy nameplates (see `DEFENSE_RENDER_DEPTH`). */
+const PLAYER_MELEE_FX_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 /** Locked grunt v2 mirror at 32px source. */
 const GRUNT_SLASH_OFFSET = 12;
@@ -56,7 +57,7 @@ export function showGruntMeleeSwipe(
     COMBAT_FX_TEXTURE.gruntMelee,
     worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
     activeMs,
-    8,
+    DEFENSE_RENDER_DEPTH.enemyCombatFx,
   );
 }
 
