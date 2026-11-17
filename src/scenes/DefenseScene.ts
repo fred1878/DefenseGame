@@ -2,24 +2,17 @@ import Phaser from "phaser";
 import {
   DEFENSE_MAP,
   DEFENSE_RENDER_DEPTH,
-  defenseHalfHeight,
-  defenseHalfWidth,
   PLAYER_TUNING,
   type AttackMode,
 } from "../config";
-import { toggleAutoCastSpellId } from "../content/spellBarAutoCast";
 import {
   createDefaultSpellBarAutoCast,
   createDefaultSpellBarSlots,
   spellById,
-  type SpellDefinition,
 } from "../content/spells";
 import type { SaveGame } from "../core/saveTypes";
 import { DataStore, type EnemyDef } from "../core/DataStore";
-import {
-  persistSave,
-  playerDamageMult,
-} from "../core/GameState";
+import { playerDamageMult } from "../core/GameState";
 import {
   type EndlessRunSelection,
   readDefenseRunMode,
@@ -27,28 +20,10 @@ import {
 } from "../core/defenseRunMode";
 import { applyDamage } from "../combat/DamageSystem";
 import { showPlayerMeleeSwipe } from "../combat/MeleeSwipeFx";
-import { pickAutoCastSpell } from "../combat/spellAutoCast";
-import { isStickMoving, SpellInputQueue } from "../combat/spellInputQueue";
+import { SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
-import {
-  applyChanneledHeal,
-  applyChainLightning,
-  applyInstantTargeted,
-  applySpellBlastAt,
-  applySpellCone,
-  applySpellSwing,
-  spawnSpellProjectile,
-} from "../combat/SpellEffects";
-import {
-  blinkDestination,
-  BLINK_DISTANCE_WU,
-  FROST_ROOT_MS,
-  ICE_WALL_DISTANCE_WU,
-  ICE_WALL_DURATION_MS,
-  SHADOWFORM_DAMAGE_MULT,
-  SHADOWFORM_DURATION_MS,
-} from "../combat/spellMechanics";
+import { clampGroundTarget } from "../combat/spellMechanics";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import {
   showEnemyPaths,
@@ -74,10 +49,6 @@ import {
 import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
 import { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
 import {
-  destroySpellGroundAoeTelegraph,
-  spellGroundAoePalette,
-  spellNeedsGroundAoeTelegraph,
-  spawnSpellGroundAoeTelegraph,
   updateSpellGroundAoeTelegraph,
   type SpellGroundAoeTelegraph,
 } from "../combat/SpellGroundAoeTelegraph";
@@ -104,19 +75,6 @@ import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 import { GroundTargetReticle } from "../ui/GroundTargetReticle";
 import {
-  spellAutoCastNeedsEnemyTarget,
-  spellCastMs,
-  spellRequiresManualTarget,
-  spellTargetMode,
-} from "../content/spellTargeting";
-import { resolveAutoCastEnemyAim } from "../combat/spellAutoCastEnemyAim";
-import {
-  resolveAutoCastGroundAim,
-  resolveManualDefaultGroundAim,
-} from "../combat/spellGroundAim";
-import { clampGroundTarget } from "../combat/spellMechanics";
-import {
-  spawnGroundZone,
   tickSpellGroundZones,
   type SpellGroundZone,
 } from "../combat/spellGroundZone";
@@ -131,7 +89,7 @@ import {
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
+import { SPRITE_DISPLAY } from "../content/assets";
 import type { CombatHudChrome } from "../ui/combatHudChrome";
 import { DefenseMinimap, defenseMinimapLayout } from "../ui/defenseMinimap";
 import {
@@ -184,6 +142,10 @@ import { createDefenseHudController } from "./defense/DefenseHudController";
 import { bootstrapDefenseWorld } from "./defense/DefenseWorldBootstrap";
 import { tickDefenseProjectiles } from "./defense/DefenseProjectileTick";
 import { tickDefenseEnemies } from "./defense/DefenseEnemyTick";
+import {
+  DefenseSpellDirector,
+  type DefenseSpellDirectorHost,
+} from "./defense/DefenseSpellDirector";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -392,6 +354,7 @@ export class DefenseScene extends Phaser.Scene {
       wu: (n) => this.wu(n),
     });
     this.groundReticle = new GroundTargetReticle(this);
+    this.spellDirector = new DefenseSpellDirector(this.buildSpellHost());
     this.hitboxDebug = new HitboxDebugDraw(this);
     this.pathDebug = new PathDebugDraw(this);
     this.touchDebug = new TouchInputDebugDraw(this);
@@ -450,46 +413,7 @@ export class DefenseScene extends Phaser.Scene {
     const py = this.player.sprite.y;
 
     if (this.spellCaster.isChanneling()) {
-      this.player.sprite.setVelocity(0, 0);
-      const channel = this.spellCaster.updateChannel(delta, dir.x, dir.y);
-      if (channel.type === "windup" || channel.type === "channeling") {
-        this.castBar.setVisible(true);
-        this.castBar.setPhase(channel.type);
-        this.castBar.setWorldPosition(px, py);
-        this.castBar.setProgress(channel.progress);
-        const chDef = spellById(channel.spellId);
-        if (chDef) {
-          this.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
-        }
-        if (channel.type === "channeling" && chDef && !this.channelAreaStarted) {
-          this.startChanneledGroundZone(chDef);
-        }
-      } else if (channel.type === "interrupted") {
-        this.castBar.setVisible(false);
-        this.clearGroundCastTelegraphs();
-        this.clearSpellChannelState();
-        const lockMeleeAim = this.shouldLockMeleeAimFacing();
-        this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed, {
-          lockMeleeAim,
-        });
-        if (lockMeleeAim) {
-          const target = this.targeting.facingTarget("melee", false);
-          if (target) this.player.faceToward(target.x, target.y);
-        }
-      } else if (channel.type === "completed") {
-        this.castBar.setVisible(false);
-        const impactCenter = this.spellChannelArea;
-        this.resolveSpellEffect(channel.def);
-        this.spawnPostChannelLinger(channel.def);
-        if (
-          impactCenter &&
-          spellNeedsGroundAoeTelegraph(channel.def)
-        ) {
-          this.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
-        }
-        this.clearGroundCastTelegraphs();
-        this.clearSpellChannelState();
-      }
+      this.spellDirector.updateChanneling(delta, dir, () => this.shouldLockMeleeAimFacing());
     } else {
       const lockMeleeAim = this.shouldLockMeleeAimFacing();
       this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed, {
@@ -708,541 +632,93 @@ export class DefenseScene extends Phaser.Scene {
     }
   }
 
+  private spellDirector!: DefenseSpellDirector;
+
+  private buildSpellHost(): DefenseSpellDirectorHost {
+    const scene = this;
+    return {
+      scene,
+      get save() { return scene.save; },
+      get player() { return scene.player; },
+      get enemies() { return scene.enemies; },
+      get projectiles() { return scene.projectiles; },
+      get targeting() { return scene.targeting; },
+      get spellCaster() { return scene.spellCaster; },
+      get spellInputQueue() { return scene.spellInputQueue; },
+      get enemySpellStatus() { return scene.enemySpellStatus; },
+      get spellBar() { return scene.spellBar; },
+      get castBar() { return scene.castBar; },
+      get groundReticle() { return scene.groundReticle; },
+      get obstacleGroup() { return scene.obstacleGroup; },
+      get spellChannelArea() { return scene.spellChannelArea; },
+      set spellChannelArea(v) { scene.spellChannelArea = v; },
+      get spellGroundZones() { return scene.spellGroundZones; },
+      set spellGroundZones(v) { scene.spellGroundZones = v; },
+      get pendingGroundCast() { return scene.pendingGroundCast; },
+      set pendingGroundCast(v) { scene.pendingGroundCast = v; },
+      get groundAim() { return scene.groundAim; },
+      set groundAim(v) { scene.groundAim = v; },
+      get groundAoeTelegraph() { return scene.groundAoeTelegraph; },
+      set groundAoeTelegraph(v) { scene.groundAoeTelegraph = v; },
+      get lingerAoeTelegraph() { return scene.lingerAoeTelegraph; },
+      set lingerAoeTelegraph(v) { scene.lingerAoeTelegraph = v; },
+      get blizzardChannelFx() { return scene.blizzardChannelFx; },
+      set blizzardChannelFx(v) { scene.blizzardChannelFx = v; },
+      get channelAreaStarted() { return scene.channelAreaStarted; },
+      set channelAreaStarted(v) { scene.channelAreaStarted = v; },
+      get shadowformEndsAt() { return scene.shadowformEndsAt; },
+      set shadowformEndsAt(v) { scene.shadowformEndsAt = v; },
+      get iceWallExpires() { return scene.iceWallExpires; },
+      set iceWallExpires(v) { scene.iceWallExpires = v; },
+      wu: (n) => scene.wu(n),
+      enemyTargets: () => scene.enemyTargets(),
+      resolveStrikeMode: (auto) => scene.resolveStrikeMode(auto),
+      flashNova: (x, y, r, def) => scene.flashNova(x, y, r, def),
+      nextProjectileId: () => `spell_proj_${scene.projectileSerial++}`,
+      filterDeadEnemies: () => {
+        scene.enemies = scene.enemies.filter((e) => e.damageable.alive);
+      },
+      timeNow: () => scene.time.now,
+      delayedCall: (ms, fn) => scene.time.delayedCall(ms, fn),
+    };
+  }
+
   private onSpellAutoCastToggle(slotIndex: number): void {
-    const id = this.save.spellBar.slots[slotIndex] ?? "";
-    if (!id) return;
-    this.save.spellBar.autoCastSpellIds = toggleAutoCastSpellId(
-      this.save.spellBar.autoCastSpellIds,
-      id,
-    );
-    this.spellBar.refreshAutoCastBorders(
-      this.save.spellBar.slots,
-      this.save.spellBar.autoCastSpellIds,
-    );
-    persistSave(this.save);
+    this.spellDirector.onSpellAutoCastToggle(slotIndex);
   }
 
   private tryAutoCastSpells(stickX: number, stickY: number): void {
-    const moving = isStickMoving(stickX, stickY);
-    const pick = pickAutoCastSpell(
-      this.save.spellBar.slots,
-      this.save.spellBar.autoCastSpellIds,
-      moving,
-      (id) => this.spellCaster.getCooldownRemaining(id),
-      this.spellCaster.isChanneling(),
-    );
-    if (!pick) return;
-    const def = spellById(pick.spellId);
-    if (!def) return;
-    if (spellTargetMode(def) === "ground") {
-      this.groundAim = this.autoCastGroundTarget(def);
-    } else if (spellAutoCastNeedsEnemyTarget(def)) {
-      const target = this.autoCastEnemyTarget(def);
-      if (!target) return;
-      this.targeting.setFocusEnemy(target.id);
-      this.player.faceToward(target.x, target.y);
-    }
-    this.beginSpellCast(pick.spellId);
+    this.spellDirector.tryAutoCastSpells(stickX, stickY);
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
   onSpellCastRequest(spellId: string): void {
-    if (this.spellCaster.isChanneling()) return;
-    const def = spellById(spellId);
-    if (!def) return;
-    if (
-      def.requireEnemyTarget &&
-      spellTargetMode(def) === "enemy" &&
-      !this.targeting.focusEnemyId
-    ) {
-      return;
-    }
-    if (!this.player.canAttack()) {
-      this.spellInputQueue.enqueue(spellId);
-      return;
-    }
-    if (
-      spellRequiresManualTarget(def) &&
-      spellTargetMode(def) === "ground" &&
-      !this.pendingGroundCast
-    ) {
-      this.pendingGroundCast = spellId;
-      const aim = this.defaultGroundTarget(def);
-      this.groundAim = aim;
-      this.groundReticle.showAt(
-        aim.x,
-        aim.y,
-        GroundTargetReticle.radiusForSpell(this, def.blastRadius),
-        GroundTargetReticle.styleForSpellId(spellId),
-      );
-      return;
-    }
-    this.beginSpellCast(spellId);
+    this.spellDirector.onSpellCastRequest(spellId);
   }
 
   private tryFlushQueuedSpellCast(stickX: number, stickY: number): void {
-    if (!this.player.canAttack()) return;
-    if (this.spellCaster.isChanneling()) return;
-    const spellId = this.spellInputQueue.consumeIfReady(stickX, stickY, spellById);
-    if (!spellId) return;
-    const def = spellById(spellId);
-    if (!def) return;
-    if (
-      def.requireEnemyTarget &&
-      spellTargetMode(def) === "enemy" &&
-      !this.targeting.focusEnemyId
-    ) {
-      return;
-    }
-    if (spellTargetMode(def) === "ground") {
-      this.groundAim = this.defaultGroundTarget(def);
-    }
-    this.beginSpellCast(spellId);
+    this.spellDirector.tryFlushQueuedSpellCast(stickX, stickY);
   }
 
   private beginSpellCast(spellId: string): void {
-    const def = spellById(spellId);
-    if (!def || this.spellCaster.isChanneling()) return;
-    if (spellTargetMode(def) === "ground") {
-      this.spellChannelArea =
-        this.groundAim ??
-        this.defaultGroundTarget(def);
-    } else if (def.mechanicType === "channeled_area") {
-      const target = this.targeting.facingTarget("ranged", true);
-      this.spellChannelArea = target
-        ? { x: target.x, y: target.y }
-        : { x: this.player.sprite.x, y: this.player.sprite.y };
-    }
-    const begun = this.spellCaster.tryBeginCast(spellId);
-    if (begun === false) return;
-    this.channelAreaStarted = false;
-    if (begun === "windup" || begun === "channel") {
-      this.player.sprite.setVelocity(0, 0);
-      const target = this.targeting.facingTarget("ranged", true);
-      if (target) this.player.faceToward(target.x, target.y);
-      return;
-    }
-    if (typeof begun === "object") {
-      this.resolveSpellEffect(begun);
-    }
-    this.pendingGroundCast = null;
-    if (!spellNeedsGroundAoeTelegraph(def)) {
-      this.groundAim = null;
-      this.groundReticle.hide();
-    }
-  }
-
-  private groundAimEnemies(): {
-    id: string;
-    x: number;
-    y: number;
-    radius: number;
-    alive: boolean;
-  }[] {
-    return this.enemies.map((e) => ({
-      id: e.id,
-      x: e.sprite.x,
-      y: e.sprite.y,
-      radius: e.sprite.displayWidth * 0.25,
-      alive: e.damageable.alive,
-    }));
-  }
-
-  private autoCastGroundTarget(def: SpellDefinition): { x: number; y: number } {
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
-    const strike = this.resolveStrikeMode(this.player.mode === "auto");
-    return resolveAutoCastGroundAim(
-      px,
-      py,
-      this.player.getFacingAngle(),
-      this.targeting.focusEnemyId,
-      this.groundAimEnemies(),
-      strike,
-      this.wu(PLAYER_TUNING.autoAttackMeleeRange),
-      this.wu(PLAYER_TUNING.autoAttackRangedRange),
-      maxR,
-    );
-  }
-
-  private autoCastEnemyTarget(
-    def: SpellDefinition,
-  ): { id: string; x: number; y: number } | null {
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const searchR = this.wu(
-      def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
-    );
-    const strike = this.resolveStrikeMode(this.player.mode === "auto");
-    return resolveAutoCastEnemyAim(
-      px,
-      py,
-      this.targeting.focusEnemyId,
-      this.groundAimEnemies(),
-      strike,
-      this.wu(PLAYER_TUNING.autoAttackMeleeRange),
-      this.wu(PLAYER_TUNING.autoAttackRangedRange),
-      searchR,
-    );
-  }
-
-  private defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
-    return resolveManualDefaultGroundAim(
-      px,
-      py,
-      this.player.getFacingAngle(),
-      this.targeting.focusEnemyId,
-      this.groundAimEnemies(),
-      maxR,
-    );
-  }
-
-  private clearSpellChannelState(): void {
-    this.spellChannelArea = null;
-    this.channelAreaStarted = false;
-    this.groundAim = null;
-    this.groundReticle.hide();
+    this.spellDirector.beginSpellCast(spellId);
   }
 
   private clearGroundCastTelegraphs(): void {
-    destroySpellGroundAoeTelegraph(this.groundAoeTelegraph);
-    this.groundAoeTelegraph = null;
-    this.blizzardChannelFx?.destroy();
-    this.blizzardChannelFx = null;
+    this.spellDirector.clearGroundCastTelegraphs();
   }
 
   private clearLingerAoeTelegraph(): void {
-    destroySpellGroundAoeTelegraph(this.lingerAoeTelegraph);
-    this.lingerAoeTelegraph = null;
-  }
-
-  private syncGroundCastTelegraphs(
-    def: SpellDefinition,
-    phase: "windup" | "channeling",
-    progress: number,
-    deltaMs: number,
-  ): void {
-    if (!spellNeedsGroundAoeTelegraph(def)) return;
-    const center =
-      this.spellChannelArea ??
-      this.groundAim ??
-      this.defaultGroundTarget(def);
-    const radiusWu = this.wu(def.blastRadius ?? 72);
-    const reticleStyle = GroundTargetReticle.styleForSpellId(def.id);
-    if (phase === "windup") {
-      this.groundReticle.showAt(center.x, center.y, radiusWu, reticleStyle);
-    } else {
-      this.groundReticle.hide();
-    }
-    const telegraphMode = phase === "windup" ? "windup" : "channel";
-    if (!this.groundAoeTelegraph) {
-      this.groundAoeTelegraph = spawnSpellGroundAoeTelegraph(
-        this,
-        center.x,
-        center.y,
-        radiusWu,
-        spellGroundAoePalette(def),
-        spellCastMs(def),
-        telegraphMode,
-      );
-    } else {
-      this.groundAoeTelegraph.zoneX = center.x;
-      this.groundAoeTelegraph.zoneY = center.y;
-      this.groundAoeTelegraph.zoneRadius = radiusWu;
-    }
-    updateSpellGroundAoeTelegraph(
-      this.groundAoeTelegraph,
-      deltaMs,
-      telegraphMode,
-      progress,
-    );
-    if (def.id === "blizzard" && phase === "channeling") {
-      if (!this.blizzardChannelFx) {
-        this.blizzardChannelFx = new SpellBlizzardChannelFx(this);
-        this.blizzardChannelFx.start(
-          center.x,
-          center.y,
-          radiusWu,
-          SpellBlizzardChannelFx.defaultTextureKey(),
-        );
-      }
-    } else if (this.blizzardChannelFx) {
-      this.blizzardChannelFx.stop();
-    }
-  }
-
-  private pulseImpactAoeTelegraph(
-    def: SpellDefinition,
-    x: number,
-    y: number,
-  ): void {
-    const radiusWu = this.wu(def.blastRadius ?? 72);
-    const impact = spawnSpellGroundAoeTelegraph(
-      this,
-      x,
-      y,
-      radiusWu,
-      spellGroundAoePalette(def),
-      1,
-      "impact",
-    );
-    updateSpellGroundAoeTelegraph(impact, 0, "impact", 1);
-    this.time.delayedCall(360, () => destroySpellGroundAoeTelegraph(impact));
-  }
-
-  private startChanneledGroundZone(def: SpellDefinition): void {
-    if (this.channelAreaStarted) return;
-    const mult = this.spellDamageMult();
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const center = this.spellChannelArea ?? { x: px, y: py };
-    if (def.mechanicType === "channeled_area" || def.mechanicType === "channeled") {
-      this.spellGroundZones.push(
-        spawnGroundZone(this, def, center.x, center.y, mult, this.time.now, {
-          durationMs: def.channelMs,
-          tickDamageScale: def.mechanicType === "channeled" ? 0.35 : 0.4,
-          includeBurst: Boolean(def.burstDamage),
-        }),
-      );
-      this.channelAreaStarted = true;
-      if (def.mechanicType === "channeled_area") {
-        this.flashNova(center.x, center.y, this.wu(def.blastRadius ?? 78), {
-          blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
-        });
-      }
-    }
-  }
-
-  private spawnPostChannelLinger(def: SpellDefinition): void {
-    if (!def.lingerMs || def.lingerMs <= 0) return;
-    const center = this.spellChannelArea ?? {
-      x: this.player.sprite.x,
-      y: this.player.sprite.y,
-    };
-    this.spellGroundZones.push(
-      spawnGroundZone(
-        this,
-        def,
-        center.x,
-        center.y,
-        this.spellDamageMult(),
-        this.time.now,
-        {
-          durationMs: def.lingerMs,
-          lingerDot: true,
-          tickDamageScale: 0,
-        },
-      ),
-    );
-    this.clearLingerAoeTelegraph();
-    const radiusWu = this.wu(def.blastRadius ?? 78);
-    this.lingerAoeTelegraph = spawnSpellGroundAoeTelegraph(
-      this,
-      center.x,
-      center.y,
-      radiusWu,
-      spellGroundAoePalette(def),
-      1,
-      "channel",
-    );
-    updateSpellGroundAoeTelegraph(this.lingerAoeTelegraph, 0, "channel", 1);
-    this.flashNova(center.x, center.y, radiusWu, {
-      blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
-    });
-    const lingerMs = def.lingerMs ?? 0;
-    if (lingerMs > 0) {
-      this.time.delayedCall(lingerMs, () => this.clearLingerAoeTelegraph());
-    }
+    this.spellDirector.clearLingerAoeTelegraph();
   }
 
   private spellDamageMult(): number {
-    const mult = playerDamageMult(this.save.buildings);
-    return this.shadowformEndsAt > this.time.now ? mult * SHADOWFORM_DAMAGE_MULT : mult;
-  }
-
-  private resolveSpellEffect(def: SpellDefinition): void {
-    const mult = this.spellDamageMult();
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const angle = this.player.getFacingAngle();
-    const targets = this.enemyTargets();
-    switch (def.mechanicType) {
-      case "blast": {
-        const remote = def.id === "meteor" ? this.spellChannelArea : null;
-        const bx = remote?.x ?? px;
-        const by = remote?.y ?? py;
-        applySpellBlastAt(this, bx, by, def, targets, mult, 140, this.enemySpellStatus);
-        this.flashNova(bx, by, this.wu(def.blastRadius ?? 80), {
-          blastTextureKey:
-            def.id === "meteor"
-              ? COMBAT_FX_TEXTURE.spellShockwave
-              : def.blastTextureKey,
-        });
-        if (def.id === "frost_nova") this.applyFrostNovaRoot();
-        break;
-      }
-      case "projectile":
-      case "projectile_aoe": {
-        const id = `spell_proj_${this.projectileSerial++}`;
-        this.projectiles.push(
-          spawnSpellProjectile(this, px, py, angle, def, mult, id),
-        );
-        break;
-      }
-      case "tracking_projectile": {
-        const focus = this.targeting.focusEnemyId;
-        const id = `spell_proj_${this.projectileSerial++}`;
-        this.projectiles.push(
-          spawnSpellProjectile(this, px, py, angle, def, mult, id, {
-            behavior: "tracking",
-            trackEnemyId: focus,
-          }),
-        );
-        if (def.id === "chain_lightning") {
-          applyChainLightning(
-            this,
-            px,
-            py,
-            def,
-            targets,
-            mult,
-            focus,
-          );
-        }
-        break;
-      }
-      case "swing":
-      case "tracking_swing": {
-        if (def.mechanicType === "tracking_swing") {
-          const t = this.targeting.facingTarget("melee", true);
-          if (t) this.player.faceToward(t.x, t.y);
-        }
-        applySpellSwing(
-          this,
-          px,
-          py,
-          this.player.getFacingAngle(),
-          def,
-          targets,
-          mult,
-          this.enemySpellStatus,
-        );
-        break;
-      }
-      case "cone":
-        applySpellCone(this, px, py, angle, def, targets, mult, this.enemySpellStatus);
-        break;
-      case "channeled":
-      case "channeled_area":
-        break;
-      case "instant_targeted": {
-        const hitId = applyInstantTargeted(
-          this,
-          def,
-          targets,
-          this.targeting.focusEnemyId,
-          px,
-          py,
-          mult,
-          this.enemySpellStatus,
-        );
-        if (def.projectileTextureKey) {
-          const t = hitId ? this.targeting.getEnemyById(hitId) : null;
-          const tx = t?.sprite.x ?? px + Math.cos(angle) * 40;
-          const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
-          const aim = Math.atan2(ty - py, tx - px);
-          const id = `spell_proj_${this.projectileSerial++}`;
-          this.projectiles.push(
-            spawnSpellProjectile(this, px, py, aim, def, mult, id),
-          );
-        }
-        break;
-      }
-      case "heal":
-        applyChanneledHeal(this.player.damageable, def);
-        break;
-      case "blink":
-        this.castBlink(angle);
-        break;
-      case "buff":
-        if (def.id === "shadowform") {
-          this.shadowformEndsAt = this.time.now + SHADOWFORM_DURATION_MS;
-        }
-        break;
-      case "ice_wall":
-        this.spawnIceWall(angle);
-        break;
-      default:
-        break;
-    }
-    this.enemies = this.enemies.filter((e) => e.damageable.alive);
-  }
-
-  private applyFrostNovaRoot(): void {
-    const def = spellById("frost_nova");
-    const rootMs = def?.onHit?.rootMs ?? FROST_ROOT_MS;
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    const r = this.wu(def?.blastRadius ?? 85);
-    for (const e of this.enemies) {
-      if (!e.damageable.alive) continue;
-      const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-      if (d <= r + this.wu(ENTITY_BODY_RADIUS.enemy)) {
-        this.enemySpellStatus.applyRoot(e.id, rootMs);
-      }
-    }
-  }
-
-  private castBlink(facingRad: number): void {
-    const halfW = defenseHalfWidth();
-    const halfH = defenseHalfHeight();
-    const dst = blinkDestination(
-      this.player.sprite.x,
-      this.player.sprite.y,
-      facingRad,
-      this.wu(BLINK_DISTANCE_WU),
-      { minX: -halfW + 24, maxX: halfW - 24, minY: -halfH + 24, maxY: halfH - 24 },
-    );
-    this.player.sprite.setPosition(dst.x, dst.y);
-  }
-
-  private spawnIceWall(facingRad: number): void {
-    const dist = this.wu(ICE_WALL_DISTANCE_WU);
-    const cx = this.player.sprite.x + Math.cos(facingRad) * dist;
-    const cy = this.player.sprite.y + Math.sin(facingRad) * dist;
-    const perpX = -Math.sin(facingRad);
-    const perpY = Math.cos(facingRad);
-    const gap = this.wu(28);
-    const key = COMBAT_FX_TEXTURE.spellIceBolt;
-    for (let i = -1; i <= 1; i++) {
-      const x = cx + perpX * gap * i;
-      const y = cy + perpY * gap * i;
-      const block = this.physics.add.staticImage(x, y, key);
-      const size = this.wu(20);
-      block.setDisplaySize(size, size);
-      block.setDepth(DEFENSE_RENDER_DEPTH.obstacleBlock);
-      block.refreshBody();
-      this.obstacleGroup.add(block);
-      this.iceWallExpires.push({
-        sprite: block,
-        expiresAt: this.time.now + ICE_WALL_DURATION_MS,
-      });
-    }
+    return this.spellDirector.spellDamageMult();
   }
 
   private tickIceWalls(): void {
-    const now = this.time.now;
-    this.iceWallExpires = this.iceWallExpires.filter((entry) => {
-      if (entry.expiresAt > now) return true;
-      this.obstacleGroup.remove(entry.sprite, true, true);
-      return false;
-    });
+    this.spellDirector.tickIceWalls();
   }
-
   private flashNova(
     x: number,
     y: number,
