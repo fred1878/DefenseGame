@@ -43,3 +43,16 @@ export function spellRequiresStationary(def: SpellDefinition): boolean {
 
 /** Stick magnitude above this counts as moving for spell queue / auto-cast. */
 export const SPELL_MOVE_INTERRUPT_EPS = 0.12;
+
+/** Spells that auto-cast should resolve an enemy target for (manual rules unchanged). */
+export function spellAutoCastNeedsEnemyTarget(def: SpellDefinition): boolean {
+  if (spellTargetMode(def) === "enemy") return true;
+  switch (def.mechanicType) {
+    case "cone":
+    case "swing":
+    case "tracking_swing":
+      return true;
+    default:
+      return false;
+  }
+}
