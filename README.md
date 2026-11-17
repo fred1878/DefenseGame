@@ -90,8 +90,7 @@ npm run preview      # serve dist locally
 npm run typecheck
 npm run test         # Vitest (src/**/*.test.ts)
 npm run test:coverage
-npm run build:e2e    # build with VITE_E2E hooks
-npm run test:e2e     # Playwright (run build:e2e first)
+npm run e2e:manual   # maintainer-only Playwright (not CI)
 ```
 
 **CI parity (agents):** `npm run typecheck && npm run test && npm run build`
@@ -143,7 +142,7 @@ Spells and waves are the primary content levers; prefer new JSON rows over growi
 
 | Workflow | Trigger | What runs |
 |----------|---------|-----------|
-| `ci.yml` | Push/PR to `main` | Parallel **verify** (typecheck, Vitest, build) and **e2e** (Playwright) |
+| `ci.yml` | Push/PR to `main` | **verify** (typecheck, Vitest, build) |
 | `pages.yml` | Push to `main` | Publish `dist/` to GitHub Pages |
 | `release.yml` | Tag `v*.*.*` | Pages deploy + GitHub Release notes |
 
