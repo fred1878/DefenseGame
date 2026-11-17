@@ -373,6 +373,11 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         }
       );
     },
+    async sampleDefenseHudBandPixelsAsync() {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eSampleHudBandPixelsAsync();
+    },
     setShowEnemyPaths(on: boolean) {
       activeDefense(game)?.e2eSetShowEnemyPaths(on);
     },

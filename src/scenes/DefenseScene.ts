@@ -162,9 +162,7 @@ import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../world/buildGroundLayer";
 import {
   configureDefenseFollowCamera,
-  markDefenseUiFixed,
-  markDefenseWorldObject,
-  wireDefenseDualCameras,
+  createDefenseWorldDisplayMask,
 } from "../world/defenseCamera";
 import { configureDefenseObstacleSprite } from "../world/defenseObstacleSprite";
 import {
@@ -271,7 +269,10 @@ export class DefenseScene extends Phaser.Scene {
   private endlessSelections: EndlessRunSelection[] | null = null;
   private endlessInfiniteHp = false;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
-  private uiCamera: Phaser.Cameras.Scene2D.Camera | null = null;
+  private worldDisplayMask: Phaser.Display.Masks.GeometryMask | null = null;
+  private worldMaskShape: Phaser.GameObjects.Graphics | null = null;
+  private groundLayer: Phaser.GameObjects.Container | null = null;
+  private decorLayer: Phaser.GameObjects.Container | null = null;
 
   constructor() {
     super({ key: "Defense" });
@@ -317,7 +318,11 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private trackWorldObject(go: Phaser.GameObjects.GameObject): void {
-    if (this.uiCamera) markDefenseWorldObject(this.uiCamera, go);
+    if (this.worldDisplayMask && "setMask" in go) {
+      (go as Phaser.GameObjects.Components.Mask & Phaser.GameObjects.GameObject).setMask(
+        this.worldDisplayMask,
+      );
+    }
   }
 
   private applyPlayerDamage(amount: number): void {
@@ -371,13 +376,14 @@ export class DefenseScene extends Phaser.Scene {
     const halfW = defenseHalfWidth();
     const halfH = defenseHalfHeight();
     this.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
-    buildGroundLayer(this, halfW, halfH);
-    buildGroundDecorLayer(this, halfW, halfH, this.save.night);
+    this.groundLayer = buildGroundLayer(this, halfW, halfH);
+    this.decorLayer = buildGroundDecorLayer(this, halfW, halfH, this.save.night);
 
     if (!endless) {
-      this.add
+      const wall = this.add
         .rectangle(0, -halfH + 20, halfW * 2, worldUnit(40, this.registry), 0x52525b)
         .setOrigin(0.5, 0);
+      this.trackWorldObject(wall);
     }
 
     this.obstacleGroup = this.physics.add.staticGroup();
@@ -393,6 +399,7 @@ export class DefenseScene extends Phaser.Scene {
       );
       configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
       rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
+      this.trackWorldObject(rock);
       this.obstacleGroup.add(rock);
     }
 
@@ -400,9 +407,15 @@ export class DefenseScene extends Phaser.Scene {
 
     this.safe = readSafeInsets();
     const playArea = defensePlayAreaLayout(this, this.safe);
+    const worldMask = createDefenseWorldDisplayMask(this, playArea);
+    this.worldDisplayMask = worldMask.mask;
+    this.worldMaskShape = worldMask.maskShape;
+    this.groundLayer?.setMask(this.worldDisplayMask);
+    this.decorLayer?.setMask(this.worldDisplayMask);
 
     const start = defensePlayerStart();
     this.player = new Player(this, start.x, start.y, this.save.player.hpMax);
+    this.trackWorldObject(this.player.sprite);
     this.player.damageable.hp = this.save.player.hpMax;
     this.player.damageable.alive = true;
     this.playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
@@ -414,6 +427,7 @@ export class DefenseScene extends Phaser.Scene {
     configureDefenseFollowCamera(this.cameras.main, this.player.sprite, playArea);
 
     const chrome = combatChromeLayout(this, this.safe);
+    this.hudChrome = createCombatHudChrome(this, this.safe);
 
     const bottomStrip = bottomHudStripLayout(this, this.safe);
     if (isE2EEnabled() && typeof window !== "undefined") {
@@ -626,10 +640,6 @@ export class DefenseScene extends Phaser.Scene {
       this.spawnPlanComplete = true;
     }
 
-    this.uiCamera = wireDefenseDualCameras(this);
-    this.hudChrome = createCombatHudChrome(this, this.safe);
-    markDefenseUiFixed(this.uiCamera, ...this.hudChrome.roots);
-
     if (isE2EEnabled()) {
       publishE2E({
         scene: "Defense",
@@ -652,10 +662,9 @@ export class DefenseScene extends Phaser.Scene {
       this.pathDebug.destroy();
       this.touchDebug.destroy();
       this.minimap.destroy();
-      if (this.uiCamera) {
-        this.cameras.remove(this.uiCamera);
-        this.uiCamera = null;
-      }
+      this.worldMaskShape?.destroy();
+      this.worldMaskShape = null;
+      this.worldDisplayMask = null;
       for (const p of this.projectiles) p.sprite.destroy();
       this.projectiles = [];
       for (const p of this.enemyProjectiles) p.sprite.destroy();
@@ -2555,11 +2564,102 @@ export class DefenseScene extends Phaser.Scene {
   /** Layout probe for e2e: same numbers as `combatChromeLayout` / `defensePlayAreaLayout`. */
   e2eWorldPointToScreen(worldX: number, worldY: number): { x: number; y: number } {
     const cam = this.cameras.main;
-    const play = defensePlayAreaLayout(this, this.safe);
     return {
-      x: (worldX - cam.scrollX) * cam.zoom + play.x,
-      y: (worldY - cam.scrollY) * cam.zoom + play.y,
+      x: (worldX - cam.scrollX) * cam.zoom,
+      y: (worldY - cam.scrollY) * cam.zoom,
     };
+  }
+
+  private e2eHudBandPixelProbePoints(): {
+    topBand: { x: number; y: number };
+    bottomBand: { x: number; y: number };
+    playArea: { x: number; y: number };
+  } {
+    const probe = this.e2eHudLayoutProbe();
+    return {
+      topBand: {
+        x: Math.round(this.scale.width * 0.22),
+        y: Math.max(8, Math.round(probe.playArea.topBandBottom * 0.42)),
+      },
+      bottomBand: {
+        x: Math.round(this.scale.width * 0.5),
+        y: Math.round(probe.playArea.bottomBandTop + scaleUiY(36)),
+      },
+      playArea: {
+        x: Math.round(this.scale.width / 2),
+        y: Math.round(probe.playArea.y + probe.playArea.height * 0.55),
+      },
+    };
+  }
+
+  private readPixelFromSnapshot(
+    image: HTMLImageElement,
+    gameX: number,
+    gameY: number,
+  ): { r: number; g: number; b: number; a: number; luminance: number } {
+    const w = this.scale.width;
+    const h = this.scale.height;
+    const bufW = image.width;
+    const bufH = image.height;
+    const bx = Math.min(bufW - 1, Math.max(0, Math.round((gameX / w) * bufW)));
+    const by = Math.min(bufH - 1, Math.max(0, Math.round((gameY / h) * bufH)));
+    const scratch = document.createElement("canvas");
+    scratch.width = bufW;
+    scratch.height = bufH;
+    const ctx = scratch.getContext("2d", { willReadFrequently: true });
+    if (!ctx) {
+      return { r: 0, g: 0, b: 0, a: 0, luminance: 0 };
+    }
+    ctx.drawImage(image, 0, 0);
+    const d = ctx.getImageData(bx, by, 1, 1).data;
+    const r = d[0] ?? 0;
+    const g = d[1] ?? 0;
+    const b = d[2] ?? 0;
+    const a = d[3] ?? 0;
+    return { r, g, b, a, luminance: (r + g + b) / 3 };
+  }
+
+  async e2eSampleHudBandPixelsAsync(): Promise<{
+    points: {
+      topBand: { x: number; y: number };
+      bottomBand: { x: number; y: number };
+      playArea: { x: number; y: number };
+    };
+    topBand: { r: number; g: number; b: number; a: number; luminance: number };
+    bottomBand: { r: number; g: number; b: number; a: number; luminance: number };
+    playArea: { r: number; g: number; b: number; a: number; luminance: number };
+  }> {
+    const points = this.e2eHudBandPixelProbePoints();
+    return new Promise((resolve) => {
+      this.game.renderer.snapshot((image: HTMLImageElement | Phaser.Display.Color) => {
+        if (!(image instanceof HTMLImageElement)) {
+          const zero = { r: 0, g: 0, b: 0, a: 0, luminance: 0 };
+          resolve({
+            points,
+            topBand: zero,
+            bottomBand: zero,
+            playArea: zero,
+          });
+          return;
+        }
+        const topBand = this.readPixelFromSnapshot(
+          image,
+          points.topBand.x,
+          points.topBand.y,
+        );
+        const bottomBand = this.readPixelFromSnapshot(
+          image,
+          points.bottomBand.x,
+          points.bottomBand.y,
+        );
+        const playArea = this.readPixelFromSnapshot(
+          image,
+          points.playArea.x,
+          points.playArea.y,
+        );
+        resolve({ points, topBand, bottomBand, playArea });
+      });
+    });
   }
 
   e2eHudLayoutProbe(): {

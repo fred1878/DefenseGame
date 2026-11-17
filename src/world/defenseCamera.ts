@@ -2,115 +2,25 @@ import Phaser from "phaser";
 import { DEFENSE_FIELD_PX, defenseHalfWidth } from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
 
-type ScrollFactorObj = Phaser.GameObjects.GameObject & {
-  scrollFactorX?: number;
-  scrollFactorY?: number;
-};
-
-function isScreenFixed(go: Phaser.GameObjects.GameObject): boolean {
-  const s = go as ScrollFactorObj;
-  return (s.scrollFactorX ?? 1) === 0 && (s.scrollFactorY ?? 1) === 0;
-}
-
-type CameraFilteredObject = Phaser.GameObjects.GameObject & {
-  cameraFilter?: number;
-};
-
-function applyCameraLayer(
-  worldCam: Phaser.Cameras.Scene2D.Camera,
-  uiCam: Phaser.Cameras.Scene2D.Camera,
-  go: Phaser.GameObjects.GameObject,
-): void {
-  const fixed = isScreenFixed(go);
-  if (fixed) {
-    worldCam.ignore(go);
-  } else {
-    uiCam.ignore(go);
-  }
-}
-
-function applyUiCameraOnly(
-  worldCam: Phaser.Cameras.Scene2D.Camera,
-  uiCam: Phaser.Cameras.Scene2D.Camera,
-  go: Phaser.GameObjects.GameObject,
-): void {
-  worldCam.ignore(go);
-  (go as CameraFilteredObject).cameraFilter = uiCam.id;
-}
-
-function walkCameraLayers(
-  worldCam: Phaser.Cameras.Scene2D.Camera,
-  uiCam: Phaser.Cameras.Scene2D.Camera,
-  go: Phaser.GameObjects.GameObject,
-): void {
-  applyCameraLayer(worldCam, uiCam, go);
-  const list = (go as Phaser.GameObjects.Container).list;
-  if (!list?.length) return;
-  for (const child of list) {
-    if (child instanceof Phaser.GameObjects.GameObject) {
-      walkCameraLayers(worldCam, uiCam, child);
-    }
-  }
-}
-
-/**
- * World camera uses a reduced viewport; a full-screen UI camera receives HUD input.
- */
-export function wireDefenseDualCameras(
+/** Screen-fixed mask: world sprites draw only in the middle play band. */
+export function createDefenseWorldDisplayMask(
   scene: Phaser.Scene,
-): Phaser.Cameras.Scene2D.Camera {
-  const worldCam = scene.cameras.main;
-  const uiCam = scene.cameras.add(
-    0,
-    0,
-    scene.scale.width,
-    scene.scale.height,
-    false,
-    "defenseUi",
-  );
-  uiCam.setScroll(0, 0);
-  uiCam.setZoom(1);
-
-  for (const child of scene.children.list) {
-    if (child instanceof Phaser.GameObjects.GameObject) {
-      walkCameraLayers(worldCam, uiCam, child);
-    }
-  }
-  return uiCam;
-}
-
-/** Call for world objects created after {@link wireDefenseDualCameras}. */
-export function markDefenseWorldObject(
-  uiCam: Phaser.Cameras.Scene2D.Camera,
-  go: Phaser.GameObjects.GameObject,
-): void {
-  const worldCam = uiCam.scene.cameras.main;
-  uiCam.ignore(go);
-  walkCameraLayers(worldCam, uiCam, go);
-}
-
-/** Screen-fixed HUD overlays (panel fills) — render on the full-screen UI camera only. */
-export function markDefenseUiFixed(
-  uiCam: Phaser.Cameras.Scene2D.Camera,
-  ...objects: Phaser.GameObjects.GameObject[]
-): void {
-  const worldCam = uiCam.scene.cameras.main;
-  for (const go of objects) {
-    applyUiCameraOnly(worldCam, uiCam, go);
-    const list = (go as Phaser.GameObjects.Container).list;
-    if (list?.length) {
-      for (const child of list) {
-        if (child instanceof Phaser.GameObjects.GameObject) {
-          applyUiCameraOnly(worldCam, uiCam, child);
-        }
-      }
-    }
-  }
+  playArea: DefensePlayArea,
+): {
+  mask: Phaser.Display.Masks.GeometryMask;
+  maskShape: Phaser.GameObjects.Graphics;
+} {
+  const g = scene.add.graphics();
+  g.fillStyle(0xffffff, 1);
+  g.fillRect(playArea.x, playArea.y, playArea.width, playArea.height);
+  g.setScrollFactor(0);
+  g.setVisible(false);
+  g.setDepth(-1000);
+  return { mask: g.createGeometryMask(), maskShape: g };
 }
 
 /**
- * Portrait defense: camera follows the player inside the play-area viewport only.
- * HUD bands above/below stay screen-fixed (scrollFactor 0).
+ * Portrait defense: follow player on full canvas; world is clipped with a play-area mask.
  */
 export function configureDefenseFollowCamera(
   camera: Phaser.Cameras.Scene2D.Camera,
@@ -120,12 +30,6 @@ export function configureDefenseFollowCamera(
   const fieldW = DEFENSE_FIELD_PX.width;
 
   camera.setZoom(1);
-  camera.setViewport(
-    Math.round(playArea.x),
-    Math.round(playArea.y),
-    Math.round(playArea.width),
-    Math.round(playArea.height),
-  );
   camera.setBackgroundColor(0x0c0c0e);
   camera.startFollow(follow, true, 0.14, 0.14);
   camera.setDeadzone(0, 0);

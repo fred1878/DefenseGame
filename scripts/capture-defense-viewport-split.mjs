@@ -1,23 +1,47 @@
 #!/usr/bin/env node
 /**
- * Defense full-viewport capture for coordinator artifacts (matches e2e/visual defense test).
+ * Manual defense viewport review shot (not committed visual baselines).
  * Usage: npm run build:e2e && node scripts/capture-defense-viewport-split.mjs
  */
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { execSync, spawn } from "node:child_process";
+import { dirname } from "node:path";
 import { chromium, devices } from "@playwright/test";
 
 const repo = new URL("..", import.meta.url).pathname;
 
-const STALE_MD5 = "28bd19dee61d3e989c5174667bb36951";
 const CLIP = { x: 0, y: 0, width: 540, height: 1200 };
-const defaultOut =
-  process.env.DEFENSE_VIEWPORT_ARTIFACT ??
-  "/opt/cursor/artifacts/defense-viewport-split-540x1200.png";
+const HUD_BAND_MIN_LUMINANCE_LIFT = 22;
+const HUD_BAND_MIN_LUMINANCE = 58;
+
+/** Stale / already-reported review shots — must not re-ship. */
+const MD5_DENYLIST = new Set([
+  "28bd19dee61d3e989c5174667bb36951",
+  "da201664d9fa10cbf31db112ea7ba6b5",
+  "62d865711caf97a6c2ff41c4f6589cae",
+  "a2b9f3ecf744ec39181a84c98bbbb773",
+]);
 
 function md5File(path) {
   return createHash("md5").update(readFileSync(path)).digest("hex");
+}
+
+function isoSlug() {
+  return new Date().toISOString().replace(/[:.]/g, "-");
+}
+
+function hudBandPixelProbesPass(samples) {
+  if (!samples?.playArea || !samples?.topBand || !samples?.bottomBand) return false;
+  const play = samples.playArea.luminance;
+  return (
+    samples.topBand.luminance > play + HUD_BAND_MIN_LUMINANCE_LIFT &&
+    samples.bottomBand.luminance > play + HUD_BAND_MIN_LUMINANCE_LIFT &&
+    samples.topBand.luminance >= HUD_BAND_MIN_LUMINANCE &&
+    samples.bottomBand.luminance >= HUD_BAND_MIN_LUMINANCE &&
+    samples.topBand.r > 52 &&
+    samples.bottomBand.r > 52
+  );
 }
 
 const port = process.env.E2E_PORT ?? "4173";
@@ -25,6 +49,9 @@ const baseURL = `http://127.0.0.1:${port}`;
 const sha = execSync(`git -C ${repo} rev-parse --short HEAD`, {
   encoding: "utf8",
 }).trim();
+const out =
+  process.env.DEFENSE_VIEWPORT_ARTIFACT ??
+  `/opt/cursor/artifacts/review/defense-viewport-${sha}-${isoSlug()}.png`;
 
 function wait(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -44,6 +71,20 @@ async function waitForHttp(url, maxMs = 60_000) {
   throw new Error(`Server not ready: ${url}`);
 }
 
+async function waitForHudBandProbes(page, maxMs = 15_000) {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const samples = await page.evaluate(async () =>
+      window.__DEFENSEGAME_E2E__?.api?.sampleDefenseHudBandPixelsAsync(),
+    );
+    if (samples && hudBandPixelProbesPass(samples)) return samples;
+    await wait(150);
+  }
+  return page.evaluate(async () =>
+    window.__DEFENSEGAME_E2E__?.api?.sampleDefenseHudBandPixelsAsync(),
+  );
+}
+
 const preview = spawn(
   "npm",
   ["run", "preview", "--", "--port", String(port), "--host", "127.0.0.1"],
@@ -52,6 +93,8 @@ const preview = spawn(
 
 try {
   await waitForHttp(`${baseURL}/`);
+  mkdirSync(dirname(out), { recursive: true });
+
   const browser = await chromium.launch();
   const context = await browser.newContext({
     ...devices["Desktop Chrome"],
@@ -83,25 +126,36 @@ try {
     const root = document.getElementById("defensegame-e2e-dom");
     if (root) root.style.visibility = "hidden";
   });
-  await page.screenshot({ path: defaultOut, clip: CLIP });
 
-  const md5 = md5File(defaultOut);
+  const samples = await waitForHudBandProbes(page);
+  if (!hudBandPixelProbesPass(samples)) {
+    console.error("FAIL: HUD band pixel probes did not pass", samples);
+    process.exitCode = 1;
+  }
+
+  await page.screenshot({ path: out, clip: CLIP });
+
+  const md5 = md5File(out);
   console.log(
     JSON.stringify(
       {
-        out: defaultOut,
+        out,
         md5,
-        staleMd5: STALE_MD5,
-        md5Changed: md5 !== STALE_MD5,
         sha,
+        pixelProbesPass: hudBandPixelProbesPass(samples),
+        pixelSamples: samples,
+        denylisted: MD5_DENYLIST.has(md5),
       },
       null,
       2,
     ),
   );
 
-  if (md5 === STALE_MD5) {
-    console.error("FAIL: artifact md5 still matches pre-panel-fix baseline");
+  if (MD5_DENYLIST.has(md5)) {
+    console.error("FAIL: artifact md5 is on the stale denylist");
+    process.exitCode = 1;
+  }
+  if (!hudBandPixelProbesPass(samples)) {
     process.exitCode = 1;
   }
 

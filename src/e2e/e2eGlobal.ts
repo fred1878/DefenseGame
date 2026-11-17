@@ -64,6 +64,13 @@ export type DefenseGameE2EApi = {
     worldX: number,
     worldY: number,
   ): { x: number; y: number };
+  sampleDefenseHudBandPixelsAsync(): Promise<
+    Awaited<
+      ReturnType<
+        import("../scenes/DefenseScene").DefenseScene["e2eSampleHudBandPixelsAsync"]
+      >
+    >
+  >;
   setShowEnemyPaths(on: boolean): void;
   setShowTouchInput(on: boolean): void;
   getTownBuildingDebugRectCount(): number;

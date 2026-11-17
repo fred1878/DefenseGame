@@ -11,7 +11,7 @@ export type CombatHudChrome = {
 };
 
 const PANEL_FILL = 0xffffff;
-const PANEL_ALPHA = 0.22;
+const PANEL_ALPHA = 0.38;
 const BORDER = 0xffffff;
 
 /** Top/bottom screen bands behind HUD; world draws only in the middle play area. */
