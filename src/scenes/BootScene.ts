@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
-import { COMBAT_SFX_ASSETS, SFX_ASSET_ROOT } from "../content/audioAssets";
+import { SFX_ASSETS, SFX_ASSET_ROOT } from "../content/audioAssets";
 import {
   COMBAT_FX_ASSETS,
   ENEMY_SPRITE_ASSETS,
@@ -88,7 +88,7 @@ export class BootScene extends Phaser.Scene {
       for (const entry of COMBAT_FX_ASSETS) {
         loader.image(entry.key, `${ASSET_ROOT}/combat/fx/${entry.file}`);
       }
-      for (const { key, file } of COMBAT_SFX_ASSETS) {
+      for (const { key, file } of SFX_ASSETS) {
         loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
       }
       for (const entry of SPELL_FX_ASSETS) {
