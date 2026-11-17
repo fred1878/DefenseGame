@@ -227,6 +227,7 @@ import {
   defenseSceneE2eTapRanged,
   defenseSceneE2eWallHp,
 } from "./defense/DefenseSceneE2E";
+import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -2184,28 +2185,18 @@ export class DefenseScene extends Phaser.Scene {
     store: DataStore,
     wave: import("../core/DataStore").WaveDef,
   ): void {
-    let maxAt = 0;
-    let total = 0;
-    for (const group of wave.groups) {
-      const enemyDef = store.enemies[group.enemyId];
-      if (!enemyDef) continue;
-      for (let i = 0; i < group.count; i++) {
-        total += 1;
-        const at = group.atMs + i * group.intervalMs;
-        maxAt = Math.max(maxAt, at);
-        this.time.delayedCall(at, () => {
-          const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
-          this.spawnEnemyAt(x, y, enemyDef, group.enemyId);
-        });
-      }
-    }
-    if (total === 0) {
-      this.spawnPlanComplete = true;
-      return;
-    }
-    this.time.delayedCall(maxAt + 50, () => {
-      this.spawnPlanComplete = true;
-    });
+    scheduleDefenseWave(
+      this,
+      store,
+      wave,
+      {
+        spawnEnemy: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
+        markSpawnPlanComplete: () => {
+          this.spawnPlanComplete = true;
+        },
+      },
+      isE2EEnabled(),
+    );
   }
 
   private defaultEnemyDef(): EnemyDef {
