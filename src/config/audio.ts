@@ -2,6 +2,7 @@
 export const COMBAT_AUDIO = {
   playerMeleeSlashVolume: 0.52,
   enemyMeleeSlashVolume: 0.48,
+  fireWhooshVolume: 0.55,
 } as const;
 
 /** Economy SFX mix (0–1). */
