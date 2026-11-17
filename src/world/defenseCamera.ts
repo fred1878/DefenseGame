@@ -76,6 +76,19 @@ export function markDefenseWorldObject(
   walkCameraLayers(worldCam, uiCam, go);
 }
 
+/** Screen-fixed HUD overlays (panel fills) — must not render on the clipped world camera. */
+export function markDefenseUiFixed(
+  uiCam: Phaser.Cameras.Scene2D.Camera,
+  ...objects: Phaser.GameObjects.GameObject[]
+): void {
+  const worldCam = uiCam.scene.cameras.main;
+  for (const go of objects) {
+    worldCam.ignore(go);
+    applyCameraLayer(worldCam, uiCam, go);
+    walkCameraLayers(worldCam, uiCam, go);
+  }
+}
+
 /**
  * Portrait defense: camera follows the player inside the play-area viewport only.
  * HUD bands above/below stay screen-fixed (scrollFactor 0).

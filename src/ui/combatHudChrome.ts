@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import {
   defensePlayAreaLayout,
+  hudBandHeight,
   type SafeInsets,
 } from "./screenLayout";
 
@@ -9,43 +10,53 @@ export type CombatHudChrome = {
   setVisible: (visible: boolean) => void;
 };
 
-const PANEL_FILL = 0x0c0c0e;
-const PANEL_ALPHA = 0.94;
+const PANEL_FILL = 0xffffff;
+const PANEL_ALPHA = 0.22;
 const BORDER = 0xffffff;
 
-/** Top/bottom UI bands (status + spell row) with white borders; world draws between them. */
-/** Behind HUD controls (status, minimap, spell row, combat buttons) — layout unchanged. */
+/** Top/bottom screen bands behind HUD; world draws only in the middle play area. */
 export function createCombatHudChrome(
   scene: Phaser.Scene,
   safe: SafeInsets,
-  depth = 1,
+  depth = 40,
 ): CombatHudChrome {
   const play = defensePlayAreaLayout(scene, safe);
   const w = scene.scale.width;
   const h = scene.scale.height;
-  const g = scene.add.graphics().setScrollFactor(0).setDepth(depth);
+  const topH = hudBandHeight(safe.top);
+  const bottomY = play.bottomBandTop;
+  const bottomH = Math.max(0, h - bottomY);
 
-  g.fillStyle(PANEL_FILL, PANEL_ALPHA);
-  g.fillRect(0, 0, w, play.topBandBottom);
-  const bottomH = h - play.bottomBandTop;
-  g.fillRect(0, play.bottomBandTop, w, bottomH);
+  const topPanel = scene.add
+    .rectangle(w / 2, topH / 2, w, topH, PANEL_FILL, PANEL_ALPHA)
+    .setScrollFactor(0)
+    .setDepth(depth);
 
-  g.lineStyle(2, BORDER, 1);
-  if (play.topBandBottom > 1) {
-    g.strokeRect(0.5, 0.5, w - 1, play.topBandBottom - 1);
+  const bottomPanel = scene.add
+    .rectangle(w / 2, bottomY + bottomH / 2, w, bottomH, PANEL_FILL, PANEL_ALPHA)
+    .setScrollFactor(0)
+    .setDepth(depth);
+
+  const border = scene.add.graphics().setScrollFactor(0).setDepth(depth + 1);
+  border.lineStyle(2, BORDER, 1);
+  if (topH > 1) {
+    border.strokeRect(0.5, 0.5, w - 1, topH - 1);
   }
   if (bottomH > 1) {
-    g.strokeRect(0.5, play.bottomBandTop + 0.5, w - 1, bottomH - 1);
+    border.strokeRect(0.5, bottomY + 0.5, w - 1, bottomH - 1);
   }
-  g.beginPath();
-  g.moveTo(0, play.bottomBandTop + 0.5);
-  g.lineTo(w, play.bottomBandTop + 0.5);
-  g.strokePath();
+  if (bottomY > 0) {
+    border.beginPath();
+    border.moveTo(0, bottomY + 0.5);
+    border.lineTo(w, bottomY + 0.5);
+    border.strokePath();
+  }
 
+  const roots = [topPanel, bottomPanel, border];
   return {
-    roots: [g],
+    roots,
     setVisible: (visible) => {
-      g.setVisible(visible);
+      for (const root of roots) root.setVisible(visible);
     },
   };
 }

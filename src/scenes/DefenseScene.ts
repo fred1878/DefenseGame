@@ -162,6 +162,7 @@ import { buildGroundDecorLayer } from "../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../world/buildGroundLayer";
 import {
   configureDefenseFollowCamera,
+  markDefenseUiFixed,
   markDefenseWorldObject,
   wireDefenseDualCameras,
 } from "../world/defenseCamera";
@@ -413,7 +414,6 @@ export class DefenseScene extends Phaser.Scene {
     configureDefenseFollowCamera(this.cameras.main, this.player.sprite, playArea);
 
     const chrome = combatChromeLayout(this, this.safe);
-    this.hudChrome = createCombatHudChrome(this, this.safe);
 
     const bottomStrip = bottomHudStripLayout(this, this.safe);
     if (isE2EEnabled() && typeof window !== "undefined") {
@@ -627,6 +627,8 @@ export class DefenseScene extends Phaser.Scene {
     }
 
     this.uiCamera = wireDefenseDualCameras(this);
+    this.hudChrome = createCombatHudChrome(this, this.safe);
+    markDefenseUiFixed(this.uiCamera, ...this.hudChrome.roots);
 
     if (isE2EEnabled()) {
       publishE2E({
