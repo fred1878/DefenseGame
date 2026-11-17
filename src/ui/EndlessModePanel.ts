@@ -16,6 +16,11 @@ import {
   interactiveObjectScreenRect,
 } from "./touchButton";
 import { uiTextStyle } from "./uiTextStyle";
+import {
+  createUiRoundedRect,
+  paintUiRoundedRect,
+  type UiRoundedRect,
+} from "./uiRoundedRect";
 
 const TAP_DRAG_THRESHOLD_PX = 10;
 /** Max roster rows visible before scrolling. */
@@ -28,8 +33,8 @@ type EnemyRow = {
   text: Phaser.GameObjects.Text;
   check: Phaser.GameObjects.Text;
   capBg: Phaser.GameObjects.Rectangle;
-  capMinus: Phaser.GameObjects.Rectangle;
-  capPlus: Phaser.GameObjects.Rectangle;
+  capMinus: UiRoundedRect;
+  capPlus: UiRoundedRect;
   capValue: Phaser.GameObjects.Text;
   capLocalY: number;
 };
@@ -52,7 +57,7 @@ export class EndlessModePanel {
     infiniteHp: boolean,
   ) => void;
   private infiniteHp = false;
-  private infiniteHpBg!: Phaser.GameObjects.Rectangle;
+  private infiniteHpBg!: UiRoundedRect;
   private infiniteHpCheck!: Phaser.GameObjects.Text;
   private infiniteHpRowY = 0;
   private readonly listTop: number;
@@ -200,14 +205,32 @@ export class EndlessModePanel {
       const capBtnH = scaleUiY(30);
       const minusX = capCx - scaleUiX(24);
       const plusX = capCx + scaleUiX(24);
-      const capMinus = scene.add
-        .rectangle(minusX, cy, capBtnW, capBtnH, 0x3f3f46, 1)
-        .setStrokeStyle(1, 0x71717a)
-        .setInteractive({ useHandCursor: true });
-      const capPlus = scene.add
-        .rectangle(plusX, cy, capBtnW, capBtnH, 0x3f3f46, 1)
-        .setStrokeStyle(1, 0x71717a)
-        .setInteractive({ useHandCursor: true });
+      const capMinus = createUiRoundedRect(
+        scene,
+        capBtnW,
+        capBtnH,
+        0x3f3f46,
+        0x71717a,
+      );
+      capMinus
+        .setPosition(minusX, cy)
+        .setInteractive(
+          new Phaser.Geom.Rectangle(-capBtnW / 2, -capBtnH / 2, capBtnW, capBtnH),
+          Phaser.Geom.Rectangle.Contains,
+        );
+      const capPlus = createUiRoundedRect(
+        scene,
+        capBtnW,
+        capBtnH,
+        0x3f3f46,
+        0x71717a,
+      );
+      capPlus
+        .setPosition(plusX, cy)
+        .setInteractive(
+          new Phaser.Geom.Rectangle(-capBtnW / 2, -capBtnH / 2, capBtnW, capBtnH),
+          Phaser.Geom.Rectangle.Contains,
+        );
       const capDefault = getEndlessConcurrentCap(enemyId, def);
       this.caps.set(enemyId, capDefault);
       const capValue = scene.add
@@ -282,10 +305,24 @@ export class EndlessModePanel {
     this.wireListViewportDrag();
 
     this.infiniteHpRowY = listBottom + scaleUiY(12) + infiniteRowH / 2;
-    this.infiniteHpBg = scene.add
-      .rectangle(GAME.width / 2, this.infiniteHpRowY, this.rowW, infiniteRowH, 0x27272a, 1)
-      .setStrokeStyle(2, 0x52525b)
-      .setInteractive({ useHandCursor: true });
+    this.infiniteHpBg = createUiRoundedRect(
+      scene,
+      this.rowW,
+      infiniteRowH,
+      0x27272a,
+      0x52525b,
+    );
+    this.infiniteHpBg
+      .setPosition(GAME.width / 2, this.infiniteHpRowY)
+      .setInteractive(
+        new Phaser.Geom.Rectangle(
+          -this.rowW / 2,
+          -infiniteRowH / 2,
+          this.rowW,
+          infiniteRowH,
+        ),
+        Phaser.Geom.Rectangle.Contains,
+      );
     this.infiniteHpBg.on("pointerup", () => this.toggleInfiniteHp());
     this.infiniteHpCheck = scene.add
       .text(
@@ -525,8 +562,11 @@ export class EndlessModePanel {
 
   private toggleInfiniteHp(): void {
     this.infiniteHp = !this.infiniteHp;
-    this.infiniteHpBg.setFillStyle(this.infiniteHp ? 0x1e3a5f : 0x27272a);
-    this.infiniteHpBg.setStrokeStyle(2, this.infiniteHp ? 0x60a5fa : 0x52525b);
+    paintUiRoundedRect(
+      this.infiniteHpBg,
+      this.infiniteHp ? 0x1e3a5f : 0x27272a,
+      this.infiniteHp ? 0x60a5fa : 0x52525b,
+    );
     this.infiniteHpCheck.setText(this.infiniteHp ? "☑" : "☐");
     this.infiniteHpCheck.setColor(this.infiniteHp ? "#93c5fd" : "#a1a1aa");
   }

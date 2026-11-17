@@ -4,6 +4,8 @@ export type AttackMode = "melee" | "ranged" | "auto";
 const MELEE_ENGAGE_TARGET_RADIUS = 14;
 
 const meleeRange = 62;
+/** Damage / connect arc reach (+50% vs base melee range). */
+const meleeStrikeRange = Math.round(meleeRange * 1.5);
 
 export const PLAYER_TUNING = {
   moveSpeed: 220,
@@ -11,6 +13,7 @@ export const PLAYER_TUNING = {
   meleeActiveMs: 100,
   meleeRecoveryMs: 280,
   meleeRange,
+  meleeStrikeRange,
   meleeArcDeg: 126,
   meleeDamage: 15,
   rangedWindupMs: 100,
@@ -22,7 +25,7 @@ export const PLAYER_TUNING = {
   meleeKnockback: 320,
   rangedKnockback: 110,
   maxHp: 100,
-  autoAttackMeleeRange: meleeRange + MELEE_ENGAGE_TARGET_RADIUS,
+  autoAttackMeleeRange: meleeStrikeRange + MELEE_ENGAGE_TARGET_RADIUS,
   autoAttackRangedRange: 300,
   targetTapRadiusWorld: 56,
   playerHitInvulnMs: 900,

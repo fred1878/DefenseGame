@@ -194,7 +194,7 @@ export class Player {
         this.sprite.x,
         this.sprite.y,
         this.facing,
-        worldUnit(PLAYER_TUNING.meleeRange, this.sprite.scene.registry),
+        worldUnit(PLAYER_TUNING.meleeStrikeRange, this.sprite.scene.registry),
         arcHalf,
         e.x,
         e.y,

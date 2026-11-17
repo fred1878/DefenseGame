@@ -14,7 +14,8 @@ export type DefenseTargetingHost = {
   scale: Phaser.Scale.ScaleManager;
   input: Phaser.Input.InputPlugin;
   player: Player;
-  enemies: EnemyInstance[];
+  /** Live list — DefenseScene may reassign `enemies` when culling dead units. */
+  getEnemies: () => EnemyInstance[];
   targetIndicator: TargetIndicator;
   uiBlockers: Phaser.GameObjects.GameObject[];
   safe: SafeInsets;
@@ -34,13 +35,13 @@ export class DefenseTargeting {
   }
 
   getEnemyById(id: string): EnemyInstance | undefined {
-    return this.host.enemies.find((e) => e.id === id);
+    return this.host.getEnemies().find((e) => e.id === id);
   }
 
   findEnemyNearWorldPoint(worldX: number, worldY: number): EnemyInstance | null {
     const r = this.host.wu(PLAYER_TUNING.targetTapRadiusWorld);
     let best: { e: EnemyInstance; d: number } | null = null;
-    for (const e of this.host.enemies) {
+    for (const e of this.host.getEnemies()) {
       if (!e.damageable.alive) continue;
       const d = Phaser.Math.Distance.Between(worldX, worldY, e.sprite.x, e.sprite.y);
       if (d > r) continue;
@@ -122,7 +123,7 @@ export class DefenseTargeting {
         ? this.host.wu(PLAYER_TUNING.autoAttackMeleeRange)
         : this.host.wu(PLAYER_TUNING.autoAttackRangedRange);
     let best: { x: number; y: number; d: number } | null = null;
-    for (const e of this.host.enemies) {
+    for (const e of this.host.getEnemies()) {
       if (!e.damageable.alive) continue;
       const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
       if (d > maxR) continue;

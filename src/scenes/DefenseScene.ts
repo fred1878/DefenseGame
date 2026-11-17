@@ -360,7 +360,7 @@ export class DefenseScene extends Phaser.Scene {
       scale: this.scale,
       input: this.input,
       player: this.player,
-      enemies: this.enemies,
+      getEnemies: () => this.enemies,
       targetIndicator: this.targetIndicator,
       uiBlockers: this.uiBlockers,
       safe: this.safe,
@@ -617,6 +617,7 @@ export class DefenseScene extends Phaser.Scene {
       const endlessEnd = evaluateEndlessEnd({
         nightEnded: this.nightEnded,
         playerHp: this.player.damageable.hp,
+        infiniteHp: this.endlessInfiniteHp,
       });
       if (endlessEnd) {
         this.endEndlessRun(endlessEnd.reason);
@@ -998,7 +999,7 @@ export class DefenseScene extends Phaser.Scene {
         px,
         py,
         this.player.getFacingAngle(),
-        this.wu(PLAYER_TUNING.meleeRange),
+        this.wu(PLAYER_TUNING.meleeStrikeRange),
         arcHalf,
       );
     }
@@ -1181,6 +1182,20 @@ export class DefenseScene extends Phaser.Scene {
   }
   e2ePlayerHp(): number {
     return Math.floor(this.player.damageable.hp);
+  }
+
+  /** Playwright: targeting must see respawned endless enemies after dead culls. */
+  e2eCanFocusFirstLivingEnemy(): boolean {
+    const e = this.enemies.find((entry) => entry.damageable.alive);
+    if (!e) return false;
+    const pick = this.targeting.findEnemyNearWorldPoint(e.sprite.x, e.sprite.y);
+    return pick?.id === e.id;
+  }
+
+  e2eDamageFirstLivingEnemy(amount: number): void {
+    const e = this.enemies.find((entry) => entry.damageable.alive);
+    if (!e) return;
+    applyDamage(e.damageable, amount);
   }
 
 }

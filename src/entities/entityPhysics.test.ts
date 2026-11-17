@@ -9,12 +9,12 @@ describe("entityPhysics", () => {
   it("uses tuned collision diameters", () => {
     expect(ENTITY_BODY_RADIUS.player).toBe(17);
     expect(ENTITY_BODY_RADIUS.enemy).toBe(14);
-    expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(17);
+    expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(21);
   });
 
   it("widens collision for melee archetypes only", () => {
-    expect(enemyCollisionBodyRadius("meleeChaser")).toBe(17);
-    expect(enemyCollisionBodyRadius("wallSiege")).toBe(17);
+    expect(enemyCollisionBodyRadius("meleeChaser")).toBe(21);
+    expect(enemyCollisionBodyRadius("wallSiege")).toBe(21);
     expect(enemyCollisionBodyRadius("stationaryRanged")).toBe(14);
     expect(enemyCollisionBodyRadius("lobber")).toBe(14);
   });

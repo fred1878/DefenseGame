@@ -487,6 +487,12 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     hasLeaveEndlessButton() {
       return activeDefense(game)?.e2eHasLeaveEndlessButton() ?? false;
     },
+    canFocusFirstLivingEnemy() {
+      return activeDefense(game)?.e2eCanFocusFirstLivingEnemy() ?? false;
+    },
+    damageFirstLivingEnemy(amount: number) {
+      activeDefense(game)?.e2eDamageFirstLivingEnemy(amount);
+    },
     getObstacleAlignment() {
       return activeDefense(game)?.e2eGetObstacleAlignment() ?? [];
     },
