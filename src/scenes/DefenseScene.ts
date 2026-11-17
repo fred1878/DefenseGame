@@ -135,6 +135,7 @@ import {
   countLivingWithDefId,
   planEndlessSpawns,
 } from "../systems/endlessSpawnScheduler";
+import { playPlayerMeleeSlashSfx } from "../audio/playerMeleeSlashSfx";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
@@ -1972,6 +1973,7 @@ export class DefenseScene extends Phaser.Scene {
         this.player.getFacingAngle(),
         PLAYER_TUNING.meleeActiveMs,
       );
+      playPlayerMeleeSlashSfx(this);
     }
     this.prevPlayerAttackPhase = phase;
   }
