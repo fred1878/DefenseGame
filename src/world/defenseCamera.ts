@@ -12,6 +12,10 @@ function isScreenFixed(go: Phaser.GameObjects.GameObject): boolean {
   return (s.scrollFactorX ?? 1) === 0 && (s.scrollFactorY ?? 1) === 0;
 }
 
+type CameraFilteredObject = Phaser.GameObjects.GameObject & {
+  cameraFilter?: number;
+};
+
 function applyCameraLayer(
   worldCam: Phaser.Cameras.Scene2D.Camera,
   uiCam: Phaser.Cameras.Scene2D.Camera,
@@ -23,6 +27,15 @@ function applyCameraLayer(
   } else {
     uiCam.ignore(go);
   }
+}
+
+function applyUiCameraOnly(
+  worldCam: Phaser.Cameras.Scene2D.Camera,
+  uiCam: Phaser.Cameras.Scene2D.Camera,
+  go: Phaser.GameObjects.GameObject,
+): void {
+  worldCam.ignore(go);
+  (go as CameraFilteredObject).cameraFilter = uiCam.id;
 }
 
 function walkCameraLayers(
@@ -76,16 +89,22 @@ export function markDefenseWorldObject(
   walkCameraLayers(worldCam, uiCam, go);
 }
 
-/** Screen-fixed HUD overlays (panel fills) — must not render on the clipped world camera. */
+/** Screen-fixed HUD overlays (panel fills) — render on the full-screen UI camera only. */
 export function markDefenseUiFixed(
   uiCam: Phaser.Cameras.Scene2D.Camera,
   ...objects: Phaser.GameObjects.GameObject[]
 ): void {
   const worldCam = uiCam.scene.cameras.main;
   for (const go of objects) {
-    worldCam.ignore(go);
-    applyCameraLayer(worldCam, uiCam, go);
-    walkCameraLayers(worldCam, uiCam, go);
+    applyUiCameraOnly(worldCam, uiCam, go);
+    const list = (go as Phaser.GameObjects.Container).list;
+    if (list?.length) {
+      for (const child of list) {
+        if (child instanceof Phaser.GameObjects.GameObject) {
+          applyUiCameraOnly(worldCam, uiCam, child);
+        }
+      }
+    }
   }
 }
 
