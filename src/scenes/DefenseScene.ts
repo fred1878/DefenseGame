@@ -26,7 +26,9 @@ import {
 } from "../core/GameState";
 import {
   clearDefenseRunMode,
+  type EndlessRunSelection,
   readDefenseRunMode,
+  resolveEndlessRunSelections,
 } from "../core/defenseRunMode";
 import { applyDamage } from "../combat/DamageSystem";
 import { flashSpriteTint } from "../combat/HitFlash";
@@ -130,7 +132,7 @@ import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
 import { getEndlessConcurrentCap } from "../systems/endlessEnemyRoster";
 import {
   countLivingWithDefId,
-  endlessSpawnDeficit,
+  planEndlessSpawns,
 } from "../systems/endlessSpawnScheduler";
 import { CastBar } from "../ui/CastBar";
 import { SpellBar } from "../ui/SpellBar";
@@ -255,7 +257,7 @@ export class DefenseScene extends Phaser.Scene {
   private hudChrome!: CombatHudChrome;
   private minimap!: DefenseMinimap;
   private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
-  private endlessEnemyId: string | null = null;
+  private endlessSelections: EndlessRunSelection[] | null = null;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
 
   constructor() {
@@ -292,12 +294,12 @@ export class DefenseScene extends Phaser.Scene {
     this.shadowformEndsAt = 0;
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
-    this.endlessEnemyId = null;
+    this.endlessSelections = null;
     this.leaveEndlessBtn = null;
   }
 
   private isEndlessMode(): boolean {
-    return this.endlessEnemyId !== null;
+    return (this.endlessSelections?.length ?? 0) > 0;
   }
 
   create(): void {
@@ -324,7 +326,14 @@ export class DefenseScene extends Phaser.Scene {
     const runMode = readDefenseRunMode(this.registry);
     const endless = runMode.kind === "endless";
     if (endless) {
-      this.endlessEnemyId = runMode.enemyId;
+      this.endlessSelections = resolveEndlessRunSelections(
+        runMode.selections,
+        (enemyId) =>
+          getEndlessConcurrentCap(
+            enemyId,
+            store.enemies[enemyId],
+          ),
+      );
       this.rewardGold = 0;
     }
     const wave = endless ? undefined : store.getWaveForNight(this.save.night);
@@ -1076,7 +1085,7 @@ export class DefenseScene extends Phaser.Scene {
     if (!this.nightEnded) {
       const dataStore = this.registry.get("dataStore") as DataStore;
       const header = this.isEndlessMode()
-        ? `Endless · ${dataStore.enemies[this.endlessEnemyId!]?.displayName ?? this.endlessEnemyId}`
+        ? this.endlessHudHeader(dataStore)
         : `Night ${this.save.night}`;
       this.hudText.setText(
         [
@@ -2059,21 +2068,35 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
-  private countLivingEndlessEnemies(): number {
-    if (!this.endlessEnemyId) return 0;
-    return countLivingWithDefId(this.enemies, this.endlessEnemyId);
+  private endlessHudHeader(store: DataStore): string {
+    const sels = this.endlessSelections ?? [];
+    if (sels.length === 0) return "Endless";
+    const first = store.enemies[sels[0]!.enemyId]?.displayName ?? sels[0]!.enemyId;
+    if (sels.length === 1) return `Endless · ${first}`;
+    return `Endless · ${first} +${sels.length - 1}`;
+  }
+
+  private livingCountByEndlessEnemyId(): Map<string, number> {
+    const map = new Map<string, number>();
+    for (const sel of this.endlessSelections ?? []) {
+      map.set(sel.enemyId, countLivingWithDefId(this.enemies, sel.enemyId));
+    }
+    return map;
   }
 
   private ensureEndlessSpawnCap(): void {
-    if (!this.endlessEnemyId || this.nightEnded) return;
+    if (!this.endlessSelections?.length || this.nightEnded) return;
     const store = this.registry.get("dataStore") as DataStore;
-    const def = store.enemies[this.endlessEnemyId];
-    if (!def) return;
-    const cap = getEndlessConcurrentCap(this.endlessEnemyId, def);
-    const deficit = endlessSpawnDeficit(this.countLivingEndlessEnemies(), cap);
-    for (let i = 0; i < deficit; i++) {
-      const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
-      this.spawnEnemyAt(x, y, def, this.endlessEnemyId);
+    const living = this.livingCountByEndlessEnemyId();
+    const plan = planEndlessSpawns(this.endlessSelections, living);
+    for (const entry of plan) {
+      if (entry.spawnCount <= 0) continue;
+      const def = store.enemies[entry.enemyId];
+      if (!def) continue;
+      for (let i = 0; i < entry.spawnCount; i++) {
+        const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
+        this.spawnEnemyAt(x, y, def, entry.enemyId);
+      }
     }
   }
 
@@ -2172,7 +2195,7 @@ export class DefenseScene extends Phaser.Scene {
     persistSave(next);
     this.registry.set("save", next);
     clearDefenseRunMode(this.registry);
-    this.endlessEnemyId = null;
+    this.endlessSelections = null;
 
     if (isE2EEnabled() && !this.registry.get("e2eManualReturn")) {
       this.transitionToTown();
@@ -2381,7 +2404,11 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   e2eEndlessEnemyId(): string | null {
-    return this.endlessEnemyId;
+    return this.endlessSelections?.[0]?.enemyId ?? null;
+  }
+
+  e2eEndlessEnemyIds(): string[] {
+    return (this.endlessSelections ?? []).map((s) => s.enemyId);
   }
 
   e2eKillAllEnemies(): void {

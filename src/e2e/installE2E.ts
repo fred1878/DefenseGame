@@ -414,15 +414,36 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         ? town.e2eEndlessSelectedEnemyId()
         : null;
     },
+    getEndlessSelectedEnemyIds() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive() ? town.e2eEndlessSelectedEnemyIds() : [];
+    },
     getEndlessRosterEnemyIds() {
       const town = game.scene.getScene("Town") as TownScene | null;
       return town?.scene.isActive() ? town.e2eEndlessRosterEnemyIds() : [];
+    },
+    getEndlessEnemyConcurrentCap(enemyId: string) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive()
+        ? town.e2eEndlessEnemyConcurrentCap(enemyId)
+        : null;
+    },
+    toggleEndlessEnemy(enemyId: string) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eToggleEndlessEnemy(enemyId);
+    },
+    setEndlessEnemyCap(enemyId: string, cap: number) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eSetEndlessEnemyCap(enemyId, cap);
     },
     isEndlessDefense() {
       return activeDefense(game)?.e2eIsEndlessMode() ?? false;
     },
     getEndlessEnemyId() {
       return activeDefense(game)?.e2eEndlessEnemyId() ?? null;
+    },
+    getEndlessEnemyIds() {
+      return activeDefense(game)?.e2eEndlessEnemyIds() ?? [];
     },
     hasLeaveEndlessButton() {
       return activeDefense(game)?.e2eHasLeaveEndlessButton() ?? false;

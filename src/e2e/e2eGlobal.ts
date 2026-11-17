@@ -84,9 +84,14 @@ export type DefenseGameE2EApi = {
     maxVisibleRows: number;
   } | null;
   getEndlessSelectedEnemyId(): string | null;
+  getEndlessSelectedEnemyIds(): string[];
   getEndlessRosterEnemyIds(): string[];
+  getEndlessEnemyConcurrentCap(enemyId: string): number | null;
+  toggleEndlessEnemy(enemyId: string): void;
+  setEndlessEnemyCap(enemyId: string, cap: number): void;
   isEndlessDefense(): boolean;
   getEndlessEnemyId(): string | null;
+  getEndlessEnemyIds(): string[];
   hasLeaveEndlessButton(): boolean;
   getObstacleAlignment(): Array<{
     textureKey: string;

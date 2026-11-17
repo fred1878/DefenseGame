@@ -49,7 +49,7 @@ test.describe("endless mode panel layout", () => {
       scrollState.state!.maxVisibleRows,
     );
     expect(scrollState.state).toBeTruthy();
-    expect(scrollState.state!.maxVisibleRows).toBe(4);
+    expect(scrollState.state!.maxVisibleRows).toBe(6);
     if (scrollState.state!.maxScroll > 0) {
       expect(scrollState.state!.scrollbarVisible).toBe(true);
     }
@@ -66,18 +66,28 @@ test.describe("endless mode panel layout", () => {
 
       const lastInView = await page.evaluate((enemyId) => {
         const targets = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
-        return targets[`endless-enemy-${enemyId}`] ?? null;
+        return {
+          row: targets[`endless-enemy-${enemyId}`] ?? null,
+          minus: targets[`endless-cap-minus-${enemyId}`] ?? null,
+          plus: targets[`endless-cap-plus-${enemyId}`] ?? null,
+        };
       }, scrollState.lastEnemyId);
 
-      expect(lastInView).toBeTruthy();
-      expect(lastInView!.y).toBeGreaterThanOrEqual(
-        scrollState.state.listTop + VIEWPORT_MARGIN,
-      );
-      expect(lastInView!.y).toBeLessThanOrEqual(
-        scrollState.state.listTop +
-          scrollState.state.listViewportH -
-          VIEWPORT_MARGIN,
-      );
+      expect(lastInView.row).toBeTruthy();
+      expect(lastInView.minus).toBeTruthy();
+      expect(lastInView.plus).toBeTruthy();
+      for (const pt of [lastInView.row, lastInView.minus, lastInView.plus]) {
+        expect(pt!.y).toBeGreaterThanOrEqual(
+          scrollState.state.listTop + VIEWPORT_MARGIN,
+        );
+        expect(pt!.y).toBeLessThanOrEqual(
+          scrollState.state.listTop +
+            scrollState.state.listViewportH -
+            VIEWPORT_MARGIN,
+        );
+        expect(pt!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
+        expect(pt!.x).toBeLessThanOrEqual(GAME_WIDTH - VIEWPORT_MARGIN);
+      }
     }
 
     await page.evaluate(() => {
@@ -140,5 +150,80 @@ test.describe("endless mode panel layout", () => {
         { timeout: 3_000 },
       )
       .toBe(true);
+  });
+
+  test("multi-select and per-type caps reach defense spawn", async ({
+    page,
+  }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const pair = await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const roster = api?.getEndlessRosterEnemyIds() ?? [];
+      const primary =
+        api?.getEndlessSelectedEnemyIds()[0] ?? roster[0] ?? "grunt";
+      const secondary =
+        roster.find((id) => id !== primary && id === "javelineer") ??
+        roster.find((id) => id !== primary) ??
+        primary;
+      return { primary, secondary };
+    });
+
+    await page.evaluate((secondary) => {
+      window.__DEFENSEGAME_E2E__?.api?.toggleEndlessEnemy(secondary);
+    }, pair.secondary);
+
+    await page.evaluate(
+      ({ primary, secondary, primaryCap, secondaryCap }) => {
+        window.__DEFENSEGAME_E2E__?.api?.setEndlessEnemyCap(primary, primaryCap);
+        window.__DEFENSEGAME_E2E__?.api?.setEndlessEnemyCap(secondary, secondaryCap);
+      },
+      {
+        primary: pair.primary,
+        secondary: pair.secondary,
+        primaryCap: 5,
+        secondaryCap: 3,
+      },
+    );
+
+    const selected = await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyIds().sort(),
+    );
+    expect(selected).toContain(pair.primary);
+    expect(selected).toContain(pair.secondary);
+
+    const start = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-start"],
+    );
+    expect(start).toBeTruthy();
+    await tapCanvas(page, start!.x, start!.y);
+
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => ({
+            scene: window.__DEFENSEGAME_E2E__?.scene,
+            ready: window.__DEFENSEGAME_E2E__?.ready,
+            ids: window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyIds().sort(),
+            count: window.__DEFENSEGAME_E2E__?.flags?.enemyCount,
+          })),
+        { timeout: 30_000 },
+      )
+      .toMatchObject({
+        scene: "Defense",
+        ready: true,
+        ids: expect.arrayContaining([pair.primary, pair.secondary]),
+        count: 8,
+      });
   });
 });

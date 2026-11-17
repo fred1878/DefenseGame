@@ -34,6 +34,7 @@ import { EndlessModePanel } from "../ui/EndlessModePanel";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
+  type EndlessRunSelection,
 } from "../core/defenseRunMode";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
 import {
@@ -269,8 +270,24 @@ export class TownScene extends Phaser.Scene {
     return this.endlessPanel?.e2eSelectedEnemyId() ?? null;
   }
 
+  e2eEndlessSelectedEnemyIds(): string[] {
+    return this.endlessPanel?.e2eSelectedEnemyIds() ?? [];
+  }
+
   e2eEndlessRosterEnemyIds(): string[] {
     return this.endlessPanel?.e2eRosterEnemyIds() ?? [];
+  }
+
+  e2eEndlessEnemyConcurrentCap(enemyId: string): number | null {
+    return this.endlessPanel?.e2eEnemyConcurrentCap(enemyId) ?? null;
+  }
+
+  e2eToggleEndlessEnemy(enemyId: string): void {
+    this.endlessPanel?.e2eToggleEnemy(enemyId);
+  }
+
+  e2eSetEndlessEnemyCap(enemyId: string, cap: number): void {
+    this.endlessPanel?.e2eSetEnemyCap(enemyId, cap);
   }
 
   private openSpellSortPanel(): void {
@@ -291,9 +308,9 @@ export class TownScene extends Phaser.Scene {
   private openEndlessPanel(): void {
     if (this.endlessPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    this.endlessPanel = new EndlessModePanel(this, store, (enemyId) => {
+    this.endlessPanel = new EndlessModePanel(this, store, (selections) => {
       this.endlessPanel = null;
-      this.beginEndlessDefense(enemyId);
+      this.beginEndlessDefense(selections);
     });
   }
 
@@ -305,11 +322,11 @@ export class TownScene extends Phaser.Scene {
     this.scene.start("Defense");
   }
 
-  private beginEndlessDefense(enemyId: string): void {
+  private beginEndlessDefense(selections: EndlessRunSelection[]): void {
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
     this.registry.set("save", this.save);
-    setEndlessDefenseRun(this.registry, enemyId);
+    setEndlessDefenseRun(this.registry, selections);
     this.scene.start("Defense");
   }
 
