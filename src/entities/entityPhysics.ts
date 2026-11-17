@@ -4,8 +4,8 @@ import Phaser from "phaser";
 export const ENTITY_BODY_RADIUS = {
   player: 17,
   enemy: 14,
-  /** Slightly wider circle for melee / wall-rush archetypes (collision only). */
-  enemyMelee: 17,
+  /** Wider circle for melee / wall-rush archetypes (collision only). */
+  enemyMelee: 21,
 } as const;
 
 const MELEE_COLLISION_BEHAVIORS = new Set([

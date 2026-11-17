@@ -111,6 +111,8 @@ export type DefenseGameE2EApi = {
   getEndlessEnemyId(): string | null;
   getEndlessEnemyIds(): string[];
   hasLeaveEndlessButton(): boolean;
+  canFocusFirstLivingEnemy(): boolean;
+  damageFirstLivingEnemy(amount: number): void;
   getObstacleAlignment(): Array<{
     textureKey: string;
     configX: number;

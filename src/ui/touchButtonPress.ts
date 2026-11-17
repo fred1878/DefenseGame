@@ -3,6 +3,7 @@ import { scaleUiX } from "../core/displayScale";
 import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../input/inputTuning";
 import { releaseOnSameButton } from "./touchButtonGesture";
 import { interactiveObjectScreenRect } from "./touchButtonGeometry";
+import { isUiRoundedRect, paintUiRoundedRect } from "./uiRoundedRect";
 
 export type TapOrLongPressCallbacks = {
   onTap: () => void;
@@ -14,7 +15,8 @@ export type BgVisual =
   | Phaser.GameObjects.Rectangle
   | Phaser.GameObjects.Arc
   | Phaser.GameObjects.Ellipse
-  | Phaser.GameObjects.Image;
+  | Phaser.GameObjects.Image
+  | Phaser.GameObjects.Graphics;
 
 export type PressVisual = {
   bg?: BgVisual;
@@ -44,6 +46,10 @@ function applyBgTint(bg: BgVisual | undefined, tint: number): void {
   if (!bg) return;
   if (isImageBg(bg)) {
     bg.setTint(tint);
+    return;
+  }
+  if (isUiRoundedRect(bg)) {
+    paintUiRoundedRect(bg, tint);
     return;
   }
   if ("setFillStyle" in bg && typeof bg.setFillStyle === "function") {

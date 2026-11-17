@@ -208,7 +208,8 @@ export const SPRITE_DISPLAY = {
   enemy: 64,
   fireBolt: 16,
   stoneThrow: 16,
-  playerMeleeSlash: 68,
+  /** World display px; +40% vs 68px baseline. */
+  playerMeleeSlash: 95,
   gruntMeleeSlash: 40,
 } as const;
 

@@ -14,6 +14,11 @@ import {
   darkenTint,
   isImageBg,
 } from "./touchButtonPress";
+import {
+  createUiRoundedRect,
+  isUiRoundedRect,
+  paintUiRoundedRect,
+} from "./uiRoundedRect";
 
 export type TouchButtonRectOptions = {
   width: number;
@@ -55,9 +60,7 @@ function createButtonBackground(
       .image(0, 0, frameTextureKey)
       .setDisplaySize(width, height);
   }
-  return scene.add
-    .rectangle(0, 0, width, height, fill, 1)
-    .setStrokeStyle(STROKE_PX, stroke);
+  return createUiRoundedRect(scene, width, height, fill, stroke);
 }
 
 function labelStyle(scene: Phaser.Scene, fontSize: string, textured: boolean) {
@@ -202,7 +205,10 @@ export function createTouchToggleButton(
     }
     colors.rest = on ? 0x15803d : 0x3f3f46;
     colors.pressed = darkenColor(colors.rest, 0.75);
-    if (!isImageBg(bg)) {
+    if (isUiRoundedRect(bg)) {
+      const stroke = on ? 0x4ade80 : 0x71717a;
+      paintUiRoundedRect(bg, colors.rest, stroke);
+    } else if (!isImageBg(bg) && bg instanceof Phaser.GameObjects.Rectangle) {
       bg.setFillStyle(colors.rest, 1);
       bg.setStrokeStyle(STROKE_PX, on ? 0x4ade80 : 0x71717a);
     }

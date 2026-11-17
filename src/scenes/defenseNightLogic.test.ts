@@ -51,4 +51,10 @@ describe("evaluateEndlessEnd", () => {
       reason: "player",
     });
   });
+
+  it("does not end on player death when infinite HP is enabled", () => {
+    expect(evaluateEndlessEnd({ ...base, playerHp: 0, infiniteHp: true })).toBe(
+      false,
+    );
+  });
 });

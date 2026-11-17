@@ -8,8 +8,10 @@ export type EndlessEndEvaluation = false | { reason: "player" };
 export function evaluateEndlessEnd(input: {
   nightEnded: boolean;
   playerHp: number;
+  infiniteHp?: boolean;
 }): EndlessEndEvaluation {
   if (input.nightEnded) return false;
+  if (input.infiniteHp) return false;
   if (input.playerHp <= 0) return { reason: "player" };
   return false;
 }
