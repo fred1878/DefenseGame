@@ -14,6 +14,7 @@ import type { TouchButtonHandle } from "../../ui/touchButton";
 import { nightReturnButtonPosition } from "../../ui/screenLayout";
 import { scaleUiX } from "../../core/displayScale";
 import type { SafeInsets } from "../../ui/screenLayout";
+import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
 
 export function transitionDefenseToTown(scene: Phaser.Scene): void {
   if (scene.scene.get("DebugMenu")?.scene.isActive()) {
@@ -125,7 +126,11 @@ export function runDefenseCampaignNightEnd(
     wallDamage,
     night: input.save.night,
   };
+  const goldBefore = input.save.gold;
   const next = applyNightResult(input.save, result);
+  if (result.goldEarned > 0) {
+    playCoinDeltaSfx(ctx.scene, goldBefore, next.gold);
+  }
   const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
   ctx.save.player.hp = survivedHp;
   next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));

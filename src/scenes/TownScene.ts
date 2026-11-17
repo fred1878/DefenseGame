@@ -46,6 +46,7 @@ import {
   handleTownBuildingTap,
   townBuildingSubtitle,
 } from "../systems/townBuildingMenu";
+import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -406,6 +407,7 @@ export class TownScene extends Phaser.Scene {
     _buildingId: string,
     def: (typeof store.townBuildings)[string],
   ): void {
+    const goldBefore = this.save.gold;
     const { save, result } = handleTownBuildingTap(store, this.save, def);
     if (result.kind === "startNight") {
       this.beginDefenseNight();
@@ -421,6 +423,7 @@ export class TownScene extends Phaser.Scene {
     }
     if (result.kind === "upgraded") {
       this.save = save;
+      playCoinDeltaSfx(this, goldBefore, save.gold);
       persistSave(this.save);
       this.registry.set("save", this.save);
       this.refreshBuildingOverlays(store);
