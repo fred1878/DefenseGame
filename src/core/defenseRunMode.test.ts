@@ -63,6 +63,28 @@ describe("resolveEndlessRunSelections", () => {
 });
 
 describe("setEndlessDefenseRun", () => {
+  it("persists infiniteHp when enabled", () => {
+    const data: Record<string, unknown> = {};
+    const registry = {
+      set: (k: string, v: unknown) => {
+        data[k] = v;
+      },
+      get: (k: string) => data[k],
+    } as Phaser.Data.DataManager;
+
+    setEndlessDefenseRun(
+      registry,
+      [{ enemyId: "grunt", concurrentCap: 5 }],
+      true,
+    );
+
+    expect(readDefenseRunMode(registry)).toEqual({
+      kind: "endless",
+      selections: [{ enemyId: "grunt", concurrentCap: 5 }],
+      infiniteHp: true,
+    });
+  });
+
   it("writes selections array", () => {
     const data: Record<string, unknown> = {};
     const registry = {

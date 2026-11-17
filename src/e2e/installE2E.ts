@@ -394,9 +394,30 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       return town?.scene.isActive() ? town.e2eIsEndlessPanelOpen() : false;
     },
-    startEndless(enemyId: string) {
+    startEndless(enemyId: string, infiniteHp = false) {
       const town = game.scene.getScene("Town") as TownScene | null;
-      town?.e2eStartEndless(enemyId);
+      town?.e2eStartEndless(enemyId, infiniteHp);
+    },
+    setEndlessInfiniteHp(enabled: boolean) {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      town?.e2eSetEndlessInfiniteHp(enabled);
+    },
+    getEndlessInfiniteHp() {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive()
+        ? town.e2eEndlessInfiniteHpEnabled()
+        : false;
+    },
+    isEndlessInfiniteHp() {
+      return activeDefense(game)?.e2eIsEndlessInfiniteHp() ?? false;
+    },
+    getPlayerHp() {
+      const defense = activeDefense(game);
+      if (defense) return defense.e2ePlayerHp();
+      const town = game.scene.getScene("Town") as TownScene | null;
+      if (!town?.scene.isActive()) return 0;
+      const save = game.registry.get("save") as { player?: { hp?: number } };
+      return Math.floor(save?.player?.hp ?? 0);
     },
     scrollEndlessEnemyList(deltaY: number) {
       const town = game.scene.getScene("Town") as TownScene | null;

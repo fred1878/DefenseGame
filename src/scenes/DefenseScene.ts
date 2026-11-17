@@ -264,6 +264,7 @@ export class DefenseScene extends Phaser.Scene {
   private minimap!: DefenseMinimap;
   private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
   private endlessSelections: EndlessRunSelection[] | null = null;
+  private endlessInfiniteHp = false;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
 
   constructor() {
@@ -301,11 +302,22 @@ export class DefenseScene extends Phaser.Scene {
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
     this.endlessSelections = null;
+    this.endlessInfiniteHp = false;
     this.leaveEndlessBtn = null;
   }
 
   private isEndlessMode(): boolean {
     return (this.endlessSelections?.length ?? 0) > 0;
+  }
+
+  private applyPlayerDamage(amount: number): void {
+    if (amount <= 0 || this.endlessInfiniteHp) return;
+    applyDamage(this.player.damageable, amount);
+    if (this.player.damageable.hp <= 0) {
+      this.player.damageable.alive = false;
+    } else {
+      this.player.damageable.alive = true;
+    }
   }
 
   create(): void {
@@ -341,6 +353,7 @@ export class DefenseScene extends Phaser.Scene {
           ),
       );
       this.rewardGold = 0;
+      this.endlessInfiniteHp = runMode.infiniteHp === true;
     }
     const wave = endless ? undefined : store.getWaveForNight(this.save.night);
     if (wave) this.rewardGold = wave.rewardGold;
@@ -790,7 +803,7 @@ export class DefenseScene extends Phaser.Scene {
           const scale =
             (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ??
             1;
-          applyDamage(this.player.damageable, det.damage * scale);
+          this.applyPlayerDamage(det.damage * scale);
           this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
         }
         this.flashNova(det.x, det.y, blastR, {
@@ -1051,12 +1064,7 @@ export class DefenseScene extends Phaser.Scene {
         this.playerInvulnMs <= 0 &&
         !this.registry.get("e2eGodMode")
       ) {
-        applyDamage(this.player.damageable, playerHitDamage);
-        if (this.player.damageable.hp <= 0) {
-          this.player.damageable.alive = false;
-        } else {
-          this.player.damageable.alive = true;
-        }
+        this.applyPlayerDamage(playerHitDamage);
         this.playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
       }
     }
@@ -2439,9 +2447,8 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   e2eDamagePlayer(amount: number): void {
-    applyDamage(this.player.damageable, amount);
+    this.applyPlayerDamage(amount);
     if (this.player.damageable.hp <= 0) {
-      this.player.damageable.alive = false;
       if (this.isEndlessMode()) {
         this.endEndlessRun("player");
       } else {
@@ -2452,6 +2459,14 @@ export class DefenseScene extends Phaser.Scene {
 
   e2eIsEndlessMode(): boolean {
     return this.isEndlessMode();
+  }
+
+  e2eIsEndlessInfiniteHp(): boolean {
+    return this.endlessInfiniteHp;
+  }
+
+  e2ePlayerHp(): number {
+    return Math.floor(this.player.damageable.hp);
   }
 
   e2eEndlessEnemyId(): string | null {

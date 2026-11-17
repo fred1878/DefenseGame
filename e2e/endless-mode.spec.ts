@@ -71,3 +71,47 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
   expect(leave.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
   expect(leave.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
 });
+
+test("endless infinite HP blocks player damage", async ({ page }) => {
+  await gotoE2E(page);
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.startEndless("grunt", true);
+  });
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            window.__DEFENSEGAME_E2E__?.scene === "Defense" &&
+            window.__DEFENSEGAME_E2E__?.ready === true,
+        ),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+
+  expect(
+    await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.isEndlessInfiniteHp(),
+    ),
+  ).toBe(true);
+
+  const hp0 = await page.evaluate(
+    () => window.__DEFENSEGAME_E2E__?.api?.getPlayerHp() ?? 0,
+  );
+  expect(hp0).toBeGreaterThan(0);
+
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.damagePlayer(40);
+  });
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () => window.__DEFENSEGAME_E2E__?.api?.getPlayerHp() ?? 0,
+        ),
+      { timeout: 5_000 },
+    )
+    .toBe(hp0);
+});

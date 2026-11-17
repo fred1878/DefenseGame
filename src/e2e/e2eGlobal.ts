@@ -72,7 +72,11 @@ export type DefenseGameE2EApi = {
   getSpellSortBarSlots(): string[];
   openEndlessPanel(): void;
   isEndlessPanelOpen(): boolean;
-  startEndless(enemyId: string): void;
+  startEndless(enemyId: string, infiniteHp?: boolean): void;
+  setEndlessInfiniteHp(enabled: boolean): void;
+  getEndlessInfiniteHp(): boolean;
+  isEndlessInfiniteHp(): boolean;
+  getPlayerHp(): number;
   scrollEndlessEnemyList(deltaY: number): void;
   getEndlessEnemyListScrollState(): {
     scrollY: number;

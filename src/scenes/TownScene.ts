@@ -251,10 +251,18 @@ export class TownScene extends Phaser.Scene {
     return this.endlessPanel !== null;
   }
 
-  e2eStartEndless(enemyId: string): void {
+  e2eStartEndless(enemyId: string, infiniteHp = false): void {
     if (!this.endlessPanel) this.openEndlessPanel();
-    this.endlessPanel?.e2eStartWithEnemy(enemyId);
+    this.endlessPanel?.e2eStartWithEnemy(enemyId, infiniteHp);
     this.endlessPanel = null;
+  }
+
+  e2eEndlessInfiniteHpEnabled(): boolean {
+    return this.endlessPanel?.e2eInfiniteHpEnabled() ?? false;
+  }
+
+  e2eSetEndlessInfiniteHp(enabled: boolean): void {
+    this.endlessPanel?.e2eSetInfiniteHp(enabled);
   }
 
   e2eScrollEndlessEnemyList(deltaY: number): void {
@@ -309,9 +317,9 @@ export class TownScene extends Phaser.Scene {
   private openEndlessPanel(): void {
     if (this.endlessPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    this.endlessPanel = new EndlessModePanel(this, store, (selections) => {
+    this.endlessPanel = new EndlessModePanel(this, store, (selections, infiniteHp) => {
       this.endlessPanel = null;
-      this.beginEndlessDefense(selections);
+      this.beginEndlessDefense(selections, infiniteHp);
     });
   }
 
@@ -323,11 +331,14 @@ export class TownScene extends Phaser.Scene {
     this.scene.start("Defense");
   }
 
-  private beginEndlessDefense(selections: EndlessRunSelection[]): void {
+  private beginEndlessDefense(
+    selections: EndlessRunSelection[],
+    infiniteHp: boolean,
+  ): void {
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
     this.registry.set("save", this.save);
-    setEndlessDefenseRun(this.registry, selections);
+    setEndlessDefenseRun(this.registry, selections, infiniteHp);
     this.scene.start("Defense");
   }
 

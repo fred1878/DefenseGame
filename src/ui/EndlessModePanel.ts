@@ -47,7 +47,14 @@ export class EndlessModePanel {
   private readonly caps = new Map<string, number>();
   private startBtn: ReturnType<typeof createTouchButton> | null = null;
   private closeBtn: ReturnType<typeof createTouchButton> | null = null;
-  private readonly onStart: (selections: EndlessRunSelection[]) => void;
+  private readonly onStart: (
+    selections: EndlessRunSelection[],
+    infiniteHp: boolean,
+  ) => void;
+  private infiniteHp = false;
+  private infiniteHpBg!: Phaser.GameObjects.Rectangle;
+  private infiniteHpCheck!: Phaser.GameObjects.Text;
+  private infiniteHpRowY = 0;
   private readonly listTop: number;
   private readonly listViewportH: number;
   private readonly contentHeight: number;
@@ -76,7 +83,7 @@ export class EndlessModePanel {
   constructor(
     scene: Phaser.Scene,
     store: DataStore,
-    onStart: (selections: EndlessRunSelection[]) => void,
+    onStart: (selections: EndlessRunSelection[], infiniteHp: boolean) => void,
   ) {
     this.scene = scene;
     this.onStart = onStart;
@@ -126,8 +133,14 @@ export class EndlessModePanel {
     const gap = scaleUiY(8);
     this.rowStride = this.rowH + gap;
 
+    const infiniteRowH = scaleUiY(44);
     const footerBlockH =
-      scaleUiY(48) + scaleUiY(56) + scaleUiY(28);
+      scaleUiY(12) +
+      infiniteRowH +
+      scaleUiY(16) +
+      scaleUiY(48) +
+      scaleUiY(56) +
+      scaleUiY(28);
     this.listTop = scaleUiY(148);
     const listBottom = GAME.height - footerBlockH;
     const listBudget = Math.max(scaleUiY(120), listBottom - this.listTop);
@@ -268,7 +281,41 @@ export class EndlessModePanel {
 
     this.wireListViewportDrag();
 
-    const startY = listBottom + scaleUiY(24);
+    this.infiniteHpRowY = listBottom + scaleUiY(12) + infiniteRowH / 2;
+    this.infiniteHpBg = scene.add
+      .rectangle(GAME.width / 2, this.infiniteHpRowY, this.rowW, infiniteRowH, 0x27272a, 1)
+      .setStrokeStyle(2, 0x52525b)
+      .setInteractive({ useHandCursor: true });
+    this.infiniteHpBg.on("pointerup", () => this.toggleInfiniteHp());
+    this.infiniteHpCheck = scene.add
+      .text(
+        this.listLeft + scaleUiX(14),
+        this.infiniteHpRowY,
+        "☐",
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(18)}px`,
+          color: "#a1a1aa",
+        }),
+      )
+      .setOrigin(0.5);
+    const infiniteLabel = scene.add
+      .text(
+        this.listLeft + scaleUiX(36),
+        this.infiniteHpRowY,
+        "Infinite HP",
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(15)}px`,
+          color: "#fafafa",
+        }),
+      )
+      .setOrigin(0, 0.5);
+    this.root.add([
+      this.infiniteHpBg,
+      this.infiniteHpCheck,
+      infiniteLabel,
+    ]);
+
+    const startY = listBottom + scaleUiY(12) + infiniteRowH + scaleUiY(16) + scaleUiY(24);
     this.startBtn = createTouchButton(
       scene,
       GAME.width / 2,
@@ -277,7 +324,7 @@ export class EndlessModePanel {
       () => {
         const selections = this.buildSelections();
         if (selections.length === 0) return;
-        this.onStart(selections);
+        this.onStart(selections, this.infiniteHp);
         this.destroy();
       },
       {
@@ -476,6 +523,14 @@ export class EndlessModePanel {
     this.startBtn?.container.setAlpha(enabled ? 1 : 0.45);
   }
 
+  private toggleInfiniteHp(): void {
+    this.infiniteHp = !this.infiniteHp;
+    this.infiniteHpBg.setFillStyle(this.infiniteHp ? 0x1e3a5f : 0x27272a);
+    this.infiniteHpBg.setStrokeStyle(2, this.infiniteHp ? 0x60a5fa : 0x52525b);
+    this.infiniteHpCheck.setText(this.infiniteHp ? "☑" : "☐");
+    this.infiniteHpCheck.setColor(this.infiniteHp ? "#93c5fd" : "#a1a1aa");
+  }
+
   destroy(): void {
     this.scene.input.off("wheel", this.onWheel);
     this.maskGraphics.destroy();
@@ -530,7 +585,19 @@ export class EndlessModePanel {
         };
       }
     }
+    out["endless-infinite-hp"] = {
+      x: GAME.width / 2,
+      y: this.infiniteHpRowY,
+    };
     return out;
+  }
+
+  e2eInfiniteHpEnabled(): boolean {
+    return this.infiniteHp;
+  }
+
+  e2eSetInfiniteHp(enabled: boolean): void {
+    if (this.infiniteHp !== enabled) this.toggleInfiniteHp();
   }
 
   e2eScrollEnemyList(deltaY: number): void {
@@ -557,12 +624,13 @@ export class EndlessModePanel {
     };
   }
 
-  e2eStartWithEnemy(enemyId: string): void {
+  e2eStartWithEnemy(enemyId: string, infiniteHp = false): void {
     this.selectedIds.clear();
     this.selectedIds.add(enemyId);
     this.refreshSelection();
+    this.e2eSetInfiniteHp(infiniteHp);
     const selections = this.buildSelections();
-    this.onStart(selections);
+    this.onStart(selections, this.infiniteHp);
     this.destroy();
   }
 
