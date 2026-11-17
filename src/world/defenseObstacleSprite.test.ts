@@ -19,6 +19,7 @@ import {
 } from "../config/defense";
 import { DEFENSE_FIELD_TILES } from "../config/defense";
 import {
+  defenseObstacleConfigAabb,
   obstacleArcadeBodyOffset,
   obstacleBodyCenterAtAnchor,
 } from "./defenseObstacleSprite";
@@ -95,6 +96,18 @@ describe("defense obstacle art vs colliders", () => {
       expect(cx + anchor.x).toBeCloseTo(collider.x, 3);
       expect(cy + anchor.y).toBeCloseTo(collider.y, 3);
       expect(collider.x).toBeCloseTo(anchor.x, 3);
+    }
+  });
+
+  it("maps config center rects to world AABB edges for debug / nav", () => {
+    for (const obs of DEFENSE_OBSTACLES) {
+      const aabb = defenseObstacleConfigAabb(obs);
+      expect(aabb.cx).toBe(obs.x);
+      expect(aabb.cy).toBe(obs.y);
+      expect(aabb.left).toBeCloseTo(obs.x - obs.w / 2, 5);
+      expect(aabb.right).toBeCloseTo(obs.x + obs.w / 2, 5);
+      expect(aabb.top).toBeCloseTo(obs.y - obs.h / 2, 5);
+      expect(aabb.bottom).toBeCloseTo(obs.y + obs.h / 2, 5);
     }
   });
 

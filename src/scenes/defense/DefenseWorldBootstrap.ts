@@ -88,7 +88,7 @@ export function bootstrapDefenseWorld(
     );
     rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
     registerWorld(rock);
-    configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
+    configureDefenseObstacleSprite(rock, placement.textureKey, obs);
     obstacleGroup.add(rock);
   }
 

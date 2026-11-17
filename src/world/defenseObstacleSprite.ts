@@ -9,7 +9,57 @@ import {
   type ObstaclePhysicsLayout,
 } from "../config/defense";
 
-/** StaticBody offset from sprite top-left (center origin); see {@link syncDefenseObstacleStaticBody}. */
+export type ArcadeWorldAabb = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+};
+
+/** World-space Arcade StaticBody AABB (what collision + `getBounds()` use). */
+export function readArcadeStaticBodyWorldAabb(
+  body: Phaser.Physics.Arcade.StaticBody,
+): ArcadeWorldAabb {
+  const b = { x: 0, y: 0, right: 0, bottom: 0 };
+  body.getBounds(b);
+  return {
+    left: b.x,
+    top: b.y,
+    right: b.right,
+    bottom: b.bottom,
+    w: body.width,
+    h: body.height,
+    cx: b.x + body.width / 2,
+    cy: b.y + body.height / 2,
+  };
+}
+
+/** Config / nav blocker rect as world AABB (center x,y — same as PathDebugDraw). */
+export function defenseObstacleConfigAabb(collider: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}): ArcadeWorldAabb {
+  const halfW = collider.w / 2;
+  const halfH = collider.h / 2;
+  return {
+    left: collider.x - halfW,
+    top: collider.y - halfH,
+    right: collider.x + halfW,
+    bottom: collider.y + halfH,
+    w: collider.w,
+    h: collider.h,
+    cx: collider.x,
+    cy: collider.y,
+  };
+}
+
+/** StaticBody offset from sprite top-left (center origin); see {@link seatDefenseObstacleStaticBodyFromCollider}. */
 export function obstacleArcadeBodyOffset(
   layout: ObstaclePhysicsLayout,
   displayW: number,
@@ -28,12 +78,32 @@ export function obstacleArcadeBodyOffset(
   };
 }
 
+/**
+ * Forces Arcade tree bounds to match the nav/debug collider (authoritative gameplay rect).
+ * `body.reset` uses local `getTopLeft`; that can diverge from `DEFENSE_OBSTACLES` after display setup.
+ */
+export function seatDefenseObstacleStaticBodyFromCollider(
+  rock: Phaser.Physics.Arcade.Image,
+  collider: { x: number; y: number; w: number; h: number },
+): void {
+  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
+  const tree = body.world.staticTree as unknown as {
+    remove(b: Phaser.Physics.Arcade.StaticBody): void;
+    insert(b: Phaser.Physics.Arcade.StaticBody): void;
+  };
+  tree.remove(body);
+  const halfW = Math.floor(collider.w / 2);
+  const halfH = Math.floor(collider.h / 2);
+  body.position.set(collider.x - halfW, collider.y - halfH);
+  body.updateCenter();
+  tree.insert(body);
+}
+
 /** Crop art for display; Arcade body matches nav blocker (feet-aligned, may be smaller than sprite). */
 export function configureDefenseObstacleSprite(
   rock: Phaser.Physics.Arcade.Image,
   textureKey: ObstacleTextureKey,
-  blockW: number,
-  blockH: number,
+  collider: { x: number; y: number; w: number; h: number },
 ): void {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
   const disp = obstacleDisplaySize(textureKey);
@@ -44,24 +114,16 @@ export function configureDefenseObstacleSprite(
   rock.setOrigin(0.5);
 
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
-  body.setSize(blockW, blockH, false);
+  body.setSize(collider.w, collider.h, false);
   const offset = obstacleArcadeBodyOffset(
     layout,
     rock.displayWidth,
     rock.displayHeight,
-    blockW,
-    blockH,
+    collider.w,
+    collider.h,
   );
   body.setOffset(offset.x, offset.y);
-  syncDefenseObstacleStaticBody(rock);
-}
-
-/** Re-seat Arcade tree position after crop, origin, and custom body size (Layer children use scene space). */
-export function syncDefenseObstacleStaticBody(
-  rock: Phaser.Physics.Arcade.Image,
-): void {
-  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
-  body.reset(rock.x, rock.y);
+  seatDefenseObstacleStaticBodyFromCollider(rock, collider);
 }
 
 /** Expected Arcade body center for a sprite at the given anchor (unit-test / debug). */
