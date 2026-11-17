@@ -80,7 +80,10 @@ import {
 } from "../combat/spellGroundZone";
 import { pickWaveSpawnPoint } from "../world/defenseSpawns";
 import { cameraWorldPoint, type SafeInsets } from "../ui/screenLayout";
-import { updateEnemyNameplate } from "../ui/enemyNameplate";
+import {
+  destroyEnemyNameplate,
+  updateEnemyNameplate,
+} from "../ui/enemyNameplate";
 import {
   scaledDefenseObstacles,
   worldDisplayPx,
@@ -211,6 +214,38 @@ export class DefenseScene extends Phaser.Scene {
   private onDebugMenuClose = (): void => {
     this.setHudChromeVisible(true);
     resumeFromDebugMenu(this);
+  };
+  private onDefenseShutdown = (): void => {
+    this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
+    this.input.off("pointerup", this.onPointerUpBound);
+    this.stick?.destroy(this);
+    this.targetIndicator?.destroy();
+    this.groundReticle?.destroy();
+    this.clearGroundCastTelegraphs();
+    this.clearLingerAoeTelegraph();
+    this.castBar?.destroy();
+    this.spellBar?.destroy();
+    this.hitboxDebug?.destroy();
+    this.pathDebug?.destroy();
+    this.touchDebug?.destroy();
+    this.minimap?.destroy();
+    this.returnToTownBtn?.container.destroy();
+    this.returnToTownBtn = null;
+    this.leaveEndlessBtn?.container.destroy();
+    this.leaveEndlessBtn = null;
+    this.debugBtn?.container.destroy();
+    this.uiCamera?.destroy();
+    for (const p of this.projectiles) p.sprite.destroy();
+    this.projectiles = [];
+    for (const p of this.enemyProjectiles) p.sprite.destroy();
+    this.enemyProjectiles = [];
+    for (const e of this.enemies) {
+      destroyArrowRainTelegraph(e.arrowRain?.telegraph);
+      destroyArrowRainTelegraph(e.lobber?.telegraph);
+      e.sprite.destroy();
+      destroyEnemyNameplate(e.nameplate);
+    }
+    this.enemies = [];
   };
   private prevPlayerAttackPhase: AttackPhase = "idle";
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
@@ -406,30 +441,8 @@ export class DefenseScene extends Phaser.Scene {
       });
     }
 
-    this.events.on("shutdown", () => {
-      this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
-      this.input.off("pointerup", this.onPointerUpBound);
-      this.stick.destroy(this);
-      this.targetIndicator.destroy();
-      this.groundReticle.destroy();
-      this.clearGroundCastTelegraphs();
-      this.clearLingerAoeTelegraph();
-      this.castBar.destroy();
-      this.spellBar.destroy();
-      this.hitboxDebug.destroy();
-      this.pathDebug.destroy();
-      this.touchDebug.destroy();
-      this.minimap.destroy();
-      this.uiCamera?.destroy();
-      for (const p of this.projectiles) p.sprite.destroy();
-      this.projectiles = [];
-      for (const p of this.enemyProjectiles) p.sprite.destroy();
-      this.enemyProjectiles = [];
-      for (const e of this.enemies) {
-        destroyArrowRainTelegraph(e.arrowRain?.telegraph);
-        destroyArrowRainTelegraph(e.lobber?.telegraph);
-      }
-    });
+    this.events.off("shutdown", this.onDefenseShutdown);
+    this.events.once("shutdown", this.onDefenseShutdown);
   }
 
   update(_time: number, delta: number): void {
@@ -901,7 +914,12 @@ export class DefenseScene extends Phaser.Scene {
           this.leaveEndlessBtn.container.disableInteractive();
         }
       },
+      registerUiDraw: (go: Phaser.GameObjects.GameObject) =>
+        this.registerUiDraw(go),
       setReturnToTownBtn: (btn: TouchButtonHandle | null) => {
+        if (this.returnToTownBtn && this.returnToTownBtn !== btn) {
+          this.returnToTownBtn.container.destroy();
+        }
         this.returnToTownBtn = btn;
       },
       onReturnToTown: () => this.transitionToTown(),
