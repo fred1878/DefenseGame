@@ -1,9 +1,5 @@
 import Phaser from "phaser";
-import {
-  DEFENSE_OBSTACLE_PLACEMENTS,
-  defenseObstacleSpriteAnchor,
-  type AttackMode,
-} from "../../config";
+import { type AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
 import type { EnemyDef } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
@@ -500,74 +496,5 @@ export function defenseSceneE2eSampleHudBandPixelsAsync(
         ),
       });
     });
-  });
-}
-
-export function defenseSceneE2eGetObstacleAlignment(
-  scene: DefenseSceneE2eDelegate,
-): Array<{
-  textureKey: string;
-  configX: number;
-  configY: number;
-  configW: number;
-  configH: number;
-  configLeft: number;
-  configTop: number;
-  configRight: number;
-  configBottom: number;
-  anchorX: number;
-  anchorY: number;
-  spriteX: number;
-  spriteY: number;
-  displayW: number;
-  displayH: number;
-  bodyW: number;
-  bodyH: number;
-  bodyCenterX: number;
-  bodyCenterY: number;
-  boundsLeft: number;
-  boundsTop: number;
-  boundsRight: number;
-  boundsBottom: number;
-  bodyOffsetX: number;
-  bodyOffsetY: number;
-}> {
-  const children = scene.obstacleGroup.getChildren() as Phaser.Physics.Arcade.Image[];
-  return DEFENSE_OBSTACLE_PLACEMENTS.map((placement, i) => {
-    const cfg = scene.obstacleBlockers[i]!;
-    const anchor = defenseObstacleSpriteAnchor(placement);
-    const img = children[i]!;
-    const body = img.body as Phaser.Physics.Arcade.StaticBody;
-    const b = { x: 0, y: 0, right: 0, bottom: 0 };
-    body.getBounds(b);
-    const halfW = cfg.w / 2;
-    const halfH = cfg.h / 2;
-    return {
-      textureKey: placement.textureKey,
-      configX: cfg.x,
-      configY: cfg.y,
-      configW: cfg.w,
-      configH: cfg.h,
-      configLeft: cfg.x - halfW,
-      configTop: cfg.y - halfH,
-      configRight: cfg.x + halfW,
-      configBottom: cfg.y + halfH,
-      anchorX: anchor.x,
-      anchorY: anchor.y,
-      spriteX: img.x,
-      spriteY: img.y,
-      displayW: img.displayWidth,
-      displayH: img.displayHeight,
-      bodyW: body.width,
-      bodyH: body.height,
-      bodyCenterX: body.center.x,
-      bodyCenterY: body.center.y,
-      boundsLeft: b.x,
-      boundsTop: b.y,
-      boundsRight: b.right,
-      boundsBottom: b.bottom,
-      bodyOffsetX: body.offset.x,
-      bodyOffsetY: body.offset.y,
-    };
   });
 }

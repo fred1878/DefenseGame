@@ -3,15 +3,8 @@ import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   type DefenseObstacleRect,
   defenseObstacleColliderFromPlacement,
-  obstaclePhysicsLayout,
 } from "../config/defense";
 import { worldScaleFactor } from "../core/worldPixelScale";
-import {
-  obstacleArcadeBodyOffset,
-  readArcadeStaticBodyWorldAabb,
-} from "./defenseObstacleSprite";
-
-export const DEFENSE_OBSTACLE_BLOCKER_DATA_KEY = "defenseBlocker";
 
 export type DefenseObstacleBlockerAabb = {
   left: number;
@@ -24,7 +17,7 @@ export type DefenseObstacleBlockerAabb = {
   h: number;
 };
 
-/** Authoritative gameplay rects for this run (nav, debug overlays, physics). */
+/** Authoritative gameplay rects for this run (nav, debug overlays, Arcade colliders). */
 export function defenseObstacleBlockerRects(
   registry: Phaser.Data.DataManager,
 ): DefenseObstacleRect[] {
@@ -59,75 +52,27 @@ export function defenseObstacleBlockerAabb(
   };
 }
 
-function writeStaticBodyWorldAabb(
-  body: Phaser.Physics.Arcade.StaticBody,
-  left: number,
-  top: number,
-  w: number,
-  h: number,
-): void {
-  const tree = body.world.staticTree as unknown as {
-    remove(b: Phaser.Physics.Arcade.StaticBody): void;
-    insert(b: Phaser.Physics.Arcade.StaticBody): void;
-  };
-  tree.remove(body);
-  body.position.set(left, top);
-  body.width = w;
-  body.height = h;
-  body.halfWidth = Math.floor(w / 2);
-  body.halfHeight = Math.floor(h / 2);
-  body.updateCenter();
-  tree.insert(body);
-}
-
-/** Seats Arcade tree AABB to the blocker; keeps body offset from {@link obstacleArcadeBodyOffset}. */
-export function applyDefenseObstacleBlockerToBody(
-  rock: Phaser.Physics.Arcade.Image,
+/**
+ * Invisible static rectangle centered on blocker world coords — gameplay collision only.
+ * Art sprites are separate `Image` objects with no physics body.
+ */
+export function createDefenseObstacleCollider(
+  scene: Phaser.Scene,
   blocker: DefenseObstacleRect,
-): void {
-  const layout = obstaclePhysicsLayout(blocker.textureKey);
-  const offset = obstacleArcadeBodyOffset(
-    layout,
-    rock.displayWidth,
-    rock.displayHeight,
+  depth: number,
+): Phaser.GameObjects.Rectangle {
+  const zone = scene.add.rectangle(
+    blocker.x,
+    blocker.y,
     blocker.w,
     blocker.h,
+    0x000000,
+    0,
   );
-  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
-  body.setSize(blocker.w, blocker.h, false);
-  body.setOffset(offset.x, offset.y);
-  const { left, top, w, h } = defenseObstacleBlockerAabb(blocker);
-  writeStaticBodyWorldAabb(body, left, top, w, h);
-}
-
-/** One-time install + lock Phaser sync hooks to the stored blocker rect. */
-export function installDefenseObstacleStaticBody(
-  rock: Phaser.Physics.Arcade.Image,
-  blocker: DefenseObstacleRect,
-): void {
-  applyDefenseObstacleBlockerToBody(rock, blocker);
-  rock.setData(DEFENSE_OBSTACLE_BLOCKER_DATA_KEY, blocker);
-  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
-  const resync = (): Phaser.Physics.Arcade.StaticBody => {
-    const stored = rock.getData(DEFENSE_OBSTACLE_BLOCKER_DATA_KEY) as DefenseObstacleRect;
-    applyDefenseObstacleBlockerToBody(rock, stored);
-    return body;
-  };
-  body.updateFromGameObject = resync;
-  body.reset = resync as typeof body.reset;
-}
-
-export function arcadeBodyMatchesBlocker(
-  body: Phaser.Physics.Arcade.StaticBody,
-  blocker: DefenseObstacleRect,
-  tolPx = 1,
-): boolean {
-  const live = readArcadeStaticBodyWorldAabb(body);
-  const cfg = defenseObstacleBlockerAabb(blocker);
-  return (
-    Math.abs(live.left - cfg.left) <= tolPx &&
-    Math.abs(live.top - cfg.top) <= tolPx &&
-    Math.abs(live.right - cfg.right) <= tolPx &&
-    Math.abs(live.bottom - cfg.bottom) <= tolPx
-  );
+  zone.setDepth(depth);
+  zone.setVisible(false);
+  scene.physics.add.existing(zone, true);
+  const body = zone.body as Phaser.Physics.Arcade.StaticBody;
+  body.setSize(blocker.w, blocker.h, true);
+  return zone;
 }

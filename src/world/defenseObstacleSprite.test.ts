@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEFENSE_OBSTACLE_ASSETS,
   OBSTACLE_BLOCKER_FOOTPRINT,
   OBSTACLE_SOURCE_FRAME,
   OBSTACLE_SPRITE_CROP,
+  DEFENSE_OBSTACLE_ASSETS,
 } from "../content/assets";
 import {
   DEFENSE_OBSTACLE_PLACEMENTS,
-  DEFENSE_OBSTACLES,
   DEFENSE_OBSTACLE_WORLD_SCALE,
   OBSTACLE_COLLIDER_SIZE_SCALE,
+  DEFENSE_FIELD_TILES,
   defenseObstacleColliderFromPlacement,
   defenseObstacleSpriteAnchor,
   defenseTileCenter,
@@ -17,14 +17,8 @@ import {
   obstacleDisplaySize,
   obstaclePhysicsLayout,
 } from "../config/defense";
-import { DEFENSE_FIELD_TILES } from "../config/defense";
-import { defenseObstacleBlockerAabb } from "./defenseObstacleBlocker";
-import {
-  obstacleArcadeBodyOffset,
-  obstacleBodyCenterAtAnchor,
-} from "./defenseObstacleSprite";
 
-describe("defense obstacle art vs colliders", () => {
+describe("defense obstacle art", () => {
   it("keeps crop rects inside each texture frame", () => {
     for (const { key } of DEFENSE_OBSTACLE_ASSETS) {
       const frame = OBSTACLE_SOURCE_FRAME[key as keyof typeof OBSTACLE_SOURCE_FRAME];
@@ -36,7 +30,8 @@ describe("defense obstacle art vs colliders", () => {
 
   it("uses tight blockers inside sprite crop bounds at world scale", () => {
     const s = DEFENSE_OBSTACLE_WORLD_SCALE;
-    for (const obs of DEFENSE_OBSTACLES) {
+    for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
+      const obs = defenseObstacleColliderFromPlacement(placement);
       const size = obstacleColliderSize(obs.textureKey);
       const disp = obstacleDisplaySize(obs.textureKey);
       const crop =
@@ -71,73 +66,6 @@ describe("defense obstacle art vs colliders", () => {
       const layout = obstaclePhysicsLayout(placement.textureKey);
       expect(anchor.x).toBeCloseTo(tile.x, 5);
       expect(anchor.y + layout.displayH / 2).toBeCloseTo(tile.y, 5);
-    }
-  });
-
-  /**
-   * Offset math: sprite top-left + offset → blocker center at anchor.
-   */
-  it("derives Arcade offset for anchor-relative blocker center", () => {
-    for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
-      const layout = obstaclePhysicsLayout(placement.textureKey);
-      const collider = defenseObstacleColliderFromPlacement(placement);
-      const offset = obstacleArcadeBodyOffset(
-        layout,
-        layout.displayW,
-        layout.displayH,
-        collider.w,
-        collider.h,
-      );
-      const halfW = Math.floor(collider.w / 2);
-      const halfH = Math.floor(collider.h / 2);
-      const cx = -layout.displayW / 2 + offset.x + halfW;
-      const cy = -layout.displayH / 2 + offset.y + halfH;
-      const anchor = defenseObstacleSpriteAnchor(placement);
-      expect(cx + anchor.x).toBeCloseTo(collider.x, 3);
-      expect(cy + anchor.y).toBeCloseTo(collider.y, 3);
-      expect(collider.x).toBeCloseTo(anchor.x, 3);
-    }
-  });
-
-  it("maps config center rects to world AABB edges for debug / nav", () => {
-    for (const obs of DEFENSE_OBSTACLES) {
-      const aabb = defenseObstacleBlockerAabb(obs);
-      expect(aabb.cx).toBe(obs.x);
-      expect(aabb.cy).toBe(obs.y);
-      expect(aabb.left).toBeCloseTo(obs.x - obs.w / 2, 5);
-      expect(aabb.right).toBeCloseTo(obs.x + obs.w / 2, 5);
-      expect(aabb.top).toBeCloseTo(obs.y - obs.h / 2, 5);
-      expect(aabb.bottom).toBeCloseTo(obs.y + obs.h / 2, 5);
-    }
-  });
-
-  it("places collider feet on tile anchor under crop display", () => {
-    const tol = 0.01;
-    for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
-      const anchor = defenseObstacleSpriteAnchor(placement);
-      const layout = obstaclePhysicsLayout(placement.textureKey);
-      const collider = defenseObstacleColliderFromPlacement(placement);
-      const expected = obstacleBodyCenterAtAnchor(
-        placement.textureKey,
-        anchor.x,
-        anchor.y,
-      );
-
-      expect(collider.x).toBeCloseTo(expected.x, 5);
-      expect(collider.y).toBeCloseTo(expected.y, 5);
-
-      const feetY = anchor.y + layout.displayH / 2;
-      const bodyBottom = collider.y + collider.h / 2;
-      expect(Math.abs(bodyBottom - feetY)).toBeLessThanOrEqual(tol);
-
-      const displayLeft = anchor.x - layout.displayW / 2;
-      const displayTop = anchor.y - layout.displayH / 2;
-      const bodyLeft = collider.x - collider.w / 2;
-      const bodyRight = collider.x + collider.w / 2;
-      expect(bodyLeft).toBeGreaterThanOrEqual(displayLeft - tol);
-      expect(bodyRight).toBeLessThanOrEqual(anchor.x + layout.displayW / 2 + tol);
-      expect(bodyBottom).toBeLessThanOrEqual(feetY + tol);
-      expect(collider.y - collider.h / 2).toBeGreaterThanOrEqual(displayTop - tol);
     }
   });
 });

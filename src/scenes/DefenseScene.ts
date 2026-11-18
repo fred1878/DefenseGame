@@ -110,7 +110,6 @@ import {
   defenseSceneE2eEnemyCount,
   defenseSceneE2eForceWinNight,
   defenseSceneE2eGetDefenseCameraScroll,
-  defenseSceneE2eGetObstacleAlignment,
   defenseSceneE2eGetSpellSlotHitRects,
   defenseSceneE2eGetUiTapTargets,
   defenseSceneE2eHudLayoutProbe,
@@ -1208,7 +1207,6 @@ export class DefenseScene extends Phaser.Scene {
   e2eSetPlayerPosition(x: number, y: number): void { defenseSceneE2eSetPlayerPosition(this.e2eDelegate(), x, y); }
   e2eGetDefenseCameraScroll() { return defenseSceneE2eGetDefenseCameraScroll(this.e2eDelegate()); }
   e2eSetShowEnemyPaths(on: boolean): void { defenseSceneE2eSetShowEnemyPaths(this.e2eDelegate(), on); }
-  e2eGetObstacleAlignment() { return defenseSceneE2eGetObstacleAlignment(this.e2eDelegate()); }
   e2eWorldPointToScreen(worldX: number, worldY: number) {
     return defenseSceneE2eWorldPointToScreen(this.e2eDelegate(), worldX, worldY);
   }

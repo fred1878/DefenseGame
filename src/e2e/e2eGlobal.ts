@@ -115,23 +115,6 @@ export type DefenseGameE2EApi = {
   hasLeaveEndlessButton(): boolean;
   canFocusFirstLivingEnemy(): boolean;
   damageFirstLivingEnemy(amount: number): void;
-  getObstacleAlignment(): Array<{
-    textureKey: string;
-    configX: number;
-    configY: number;
-    configW: number;
-    configH: number;
-    anchorX: number;
-    anchorY: number;
-    spriteX: number;
-    spriteY: number;
-    displayW: number;
-    displayH: number;
-    bodyW: number;
-    bodyH: number;
-    bodyCenterX: number;
-    bodyCenterY: number;
-  }>;
 };
 
 declare global {
