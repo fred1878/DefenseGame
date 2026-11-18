@@ -7,18 +7,28 @@
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
-| `npm run e2e:manual` | Maintainer-only: `build:e2e` then Playwright (`e2e/`) |
-| `npm run test:e2e` | Playwright only (run `build:e2e` first if dist lacks `VITE_E2E` hooks) |
+| `npm run test:e2e` | Playwright browser suites (`e2e/`) |
 
-**CI** runs a single **`verify`** job: `typecheck`, `test:coverage`, production `build`. Playwright is **not** run in GitHub Actions.
+CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` and build when e2e is not skipped):
 
-Locally, match CI with:
+| Job | Steps |
+|-----|--------|
+| `verify` | Always: `typecheck`, `test`, production `build` |
+| `changes` | Path filter + (on `main` only) conflict-merge detection → `run_e2e` |
+| `e2e` | When `run_e2e`: E2E `build`, Playwright (Chromium). Otherwise one skip step (job still green). |
 
-```bash
-npm run typecheck && npm run test && npm run build
-```
+**When Playwright runs**
 
-Playwright is optional and maintainer-only; it is not part of default PR checks.
+| Event | E2E |
+|--------|-----|
+| **PR → `main`** | Only if the diff touches gameplay paths (`src/`, `e2e/`, `public/`, `index.html`, Vite/TS/Playwright config, `package*.json`). Docs / other `.github/workflows` → skipped. |
+| **Push to `main`** | Only if paths match **and** the commit is a **merge commit that resolved conflicts** (auto-merge tree ≠ landed tree, or `merge-tree` reports conflicts). Clean squash/merge → skipped on `main`. |
+
+Wall-clock time is roughly **max(verify, e2e)** when e2e runs; doc-only PRs are usually **`verify` only**.
+
+**Parallel jobs:** `verify` and `e2e` run independently; a failure in one job leaves that job (and the workflow) at conclusion **failure**, not self-cancelled. PR pushes use workflow **concurrency** (`cancel-in-progress`) to drop superseded runs on the same PR.
+
+Locally, run the same checks in sequence (or in two terminals): `npm run typecheck && npm run test && npm run build` and `npm run build:e2e && npm run test:e2e`.
 
 ## E2E gate
 
@@ -92,7 +102,7 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | `town-spell-panel-*.spec.ts` | Town spell editor layout, tap, drag |
 | `fps.spec.ts` | FPS sampling hook |
 
-Locally, prefer **Chromium only** (`npx playwright test --project=chromium`). The `mobile-chrome` project is optional for device checks.
+CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks.
 
 ## Manual review captures vs e2e
 
@@ -106,17 +116,16 @@ Locally, prefer **Chromium only** (`npx playwright test --project=chromium`). Th
 3. Wait on `__DEFENSEGAME_E2E__` fields, not fixed `sleep`.
 4. Assert behavior, layout, or asset hooks — not full-page pixels.
 
-## Local Playwright (maintainer-only)
-
-Not invoked by CI or default dev scripts.
+## Local workflow
 
 ```bash
-npm run e2e:manual
+npm run build:e2e
+npm run test:e2e
 # or chromium only:
-npm run build:e2e && npx playwright test --project=chromium
+npx playwright test --project=chromium
 ```
 
-Install browsers once: `npx playwright install chromium`. Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `playwright.config.ts`).
+Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `playwright.config.ts`).
 
 ## Coverage notes
 
