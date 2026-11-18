@@ -456,11 +456,6 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    maintainDefenseObstaclePhysics(
-      this.obstacleGroup,
-      scaledDefenseObstacles(this.registry),
-      this.obstacleBlockers,
-    );
     this.spellCaster.tickCooldowns(delta);
     const dir = this.stick.getDirection();
     const px = this.player.sprite.x;
@@ -601,6 +596,11 @@ export class DefenseScene extends Phaser.Scene {
       );
     }
 
+    maintainDefenseObstaclePhysics(
+      this.obstacleGroup,
+      scaledDefenseObstacles(this.registry),
+      this.obstacleBlockers,
+    );
     this.drawDebugHitboxes();
     this.drawEnemyPaths();
     this.drawTouchDebug(delta);

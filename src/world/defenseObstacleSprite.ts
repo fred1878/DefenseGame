@@ -121,8 +121,7 @@ export function applyDefenseObstacleArcadeBody(
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
   body.setSize(collider.w, collider.h, false);
   body.setOffset(offset.x, offset.y);
-  body.reset(rock.x, rock.y);
-  seatDefenseObstacleStaticBodyFromCollider(rock, collider);
+  seatDefenseObstacleStaticBodyFromCollider(rock, collider, { preserveOffset: true });
 }
 
 /** Writes live `getBounds()` centers into `out` (same order as group children). */
@@ -173,6 +172,7 @@ export function maintainDefenseObstaclePhysics(
 export function seatDefenseObstacleStaticBodyFromCollider(
   rock: Phaser.Physics.Arcade.Image,
   collider: { x: number; y: number; w: number; h: number },
+  options?: { preserveOffset?: boolean },
 ): void {
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
   const tree = body.world.staticTree as unknown as {
@@ -187,7 +187,9 @@ export function seatDefenseObstacleStaticBodyFromCollider(
   body.height = collider.h;
   body.halfWidth = Math.floor(collider.w / 2);
   body.halfHeight = Math.floor(collider.h / 2);
-  body.offset.set(0, 0);
+  if (!options?.preserveOffset) {
+    body.offset.set(0, 0);
+  }
   body.updateCenter();
   tree.insert(body);
 }
