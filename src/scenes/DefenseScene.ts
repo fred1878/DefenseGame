@@ -228,7 +228,7 @@ export class DefenseScene extends Phaser.Scene {
   };
   private onDefenseShutdown = (): void => {
     this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
-    this.input.off("pointerup", this.onPointerUpBound);
+    this.input?.off("pointerup", this.onPointerUpBound);
     this.stick?.destroy(this);
     this.targetIndicator?.destroy();
     this.groundReticle?.destroy();
@@ -373,7 +373,7 @@ export class DefenseScene extends Phaser.Scene {
       onObstacleWorldStep,
     );
     this.events.once("shutdown", () => {
-      this.physics.world.off(
+      this.physics.world?.off(
         Phaser.Physics.Arcade.Events.WORLD_STEP,
         onObstacleWorldStep,
       );
@@ -919,6 +919,11 @@ export class DefenseScene extends Phaser.Scene {
     this.setHudChromeVisible(false);
     pauseForDebugMenu(this);
     this.scene.launch("DebugMenu");
+  }
+
+  /** @internal E2E / tests — same path as the Return to town HUD button. */
+  e2eReturnToTown(): void {
+    this.transitionToTown();
   }
 
   private transitionToTown(): void {

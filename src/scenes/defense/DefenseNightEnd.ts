@@ -21,8 +21,18 @@ export function transitionDefenseToTown(scene: Phaser.Scene): void {
     scene.scene.stop("DebugMenu");
   }
   clearDefenseRunMode(scene.registry);
-  scene.scene.stop();
-  scene.scene.start("Town");
+  // Defer so we are not inside a pointer/shutdown handler when the Scene Manager stops Defense
+  // (night-end Return button is created after HUD buttons; stopping synchronously from its
+  // onPress left scene.input null while other touch bindings still called .off).
+  const go = () => {
+    if (!scene.scene.isActive()) return;
+    scene.scene.start("Town");
+  };
+  if (scene.sys?.isActive()) {
+    scene.time.delayedCall(0, go);
+  } else {
+    go();
+  }
 }
 
 type DefenseNightEndUi = {

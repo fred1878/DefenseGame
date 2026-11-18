@@ -202,9 +202,11 @@ export function bindPress(
   scene.input.on("pointercancel", onScenePointerUp);
 
   const cleanup = () => {
-    scene.input.off("pointerup", onScenePointerUp);
-    scene.input.off("pointerupoutside", onScenePointerUp);
-    scene.input.off("pointercancel", onScenePointerUp);
+    const input = scene.input;
+    if (!input) return;
+    input.off("pointerup", onScenePointerUp);
+    input.off("pointerupoutside", onScenePointerUp);
+    input.off("pointercancel", onScenePointerUp);
   };
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
   scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
@@ -278,9 +280,11 @@ export function bindTapOrLongPress(
 
   const cleanup = () => {
     clearTimer();
-    scene.input.off("pointerup", onScenePointerUp);
-    scene.input.off("pointerupoutside", onScenePointerUp);
-    scene.input.off("pointercancel", onScenePointerUp);
+    const input = scene.input;
+    if (!input) return;
+    input.off("pointerup", onScenePointerUp);
+    input.off("pointerupoutside", onScenePointerUp);
+    input.off("pointercancel", onScenePointerUp);
   };
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
   scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
