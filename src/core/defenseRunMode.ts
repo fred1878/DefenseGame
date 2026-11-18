@@ -2,7 +2,7 @@ import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 
 export type EndlessRunSelection = {
   enemyId: string;
-  /** Target living count for this type (3–10). Use 0 to resolve from enemy data at defense start. */
+  /** Target living count for this type (1–99). Use 0 to resolve from enemy data at defense start. */
   concurrentCap: number;
 };
 

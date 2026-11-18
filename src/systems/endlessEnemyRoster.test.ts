@@ -79,6 +79,12 @@ describe("getEndlessConcurrentCap", () => {
         behavior: "meleeChaser",
         endlessConcurrent: 50,
       }),
-    ).toBe(10);
+    ).toBe(50);
+    expect(
+      getEndlessConcurrentCap("y", {
+        behavior: "meleeChaser",
+        endlessConcurrent: 150,
+      }),
+    ).toBe(99);
   });
 });
