@@ -1,7 +1,7 @@
 {
   "grunt": {
-    "hp": 30,
-    "speed": 85,
+    "hp": 55,
+    "speed": 130,
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
@@ -9,8 +9,8 @@
     "endlessConcurrent": 10
   },
   "bruiser": {
-    "hp": 48,
-    "speed": 58,
+    "hp": 90,
+    "speed": 78,
     "damage": 11,
     "behavior": "bruiser",
     "textureKey": "enemy_bruiser",
