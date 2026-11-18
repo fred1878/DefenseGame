@@ -9,9 +9,11 @@ import {
 } from "./endlessSpawnScheduler";
 
 describe("clampEndlessConcurrent", () => {
-  it("clamps to 3–10", () => {
+  it("clamps to 1–99", () => {
+    expect(clampEndlessConcurrent(0)).toBe(ENDLESS_CONCURRENT_MIN);
     expect(clampEndlessConcurrent(1)).toBe(ENDLESS_CONCURRENT_MIN);
     expect(clampEndlessConcurrent(99)).toBe(ENDLESS_CONCURRENT_MAX);
+    expect(clampEndlessConcurrent(120)).toBe(ENDLESS_CONCURRENT_MAX);
     expect(clampEndlessConcurrent(7.4)).toBe(7);
   });
 });

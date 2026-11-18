@@ -532,7 +532,6 @@ export class EndlessModePanel {
 
   private toggleSelect(enemyId: string): void {
     if (this.selectedIds.has(enemyId)) {
-      if (this.selectedIds.size <= 1) return;
       this.selectedIds.delete(enemyId);
     } else {
       this.selectedIds.add(enemyId);
@@ -557,7 +556,11 @@ export class EndlessModePanel {
 
   private refreshStartButton(): void {
     const enabled = this.selectedIds.size > 0;
-    this.startBtn?.container.setAlpha(enabled ? 1 : 0.45);
+    const btn = this.startBtn?.container;
+    if (!btn) return;
+    btn.setAlpha(enabled ? 1 : 0.45);
+    if (enabled) btn.setInteractive();
+    else btn.disableInteractive();
   }
 
   private toggleInfiniteHp(): void {

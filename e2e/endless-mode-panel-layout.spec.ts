@@ -110,6 +110,51 @@ test.describe("endless mode panel layout", () => {
     expect(firstEnemy!.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
   });
 
+  test("start is blocked when no enemies are selected", async ({ page }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const firstId = await page.evaluate(
+      () =>
+        window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyIds()[0] ?? "",
+    );
+    expect(firstId).toBeTruthy();
+    await page.evaluate((enemyId) => {
+      window.__DEFENSEGAME_E2E__?.api?.toggleEndlessEnemy(enemyId);
+    }, firstId);
+
+    const noneSelected = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyIds() ?? [],
+    );
+    expect(noneSelected).toEqual([]);
+
+    const start = await page.evaluate(
+      () =>
+        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-start"],
+    );
+    expect(start).toBeTruthy();
+    await tapCanvas(page, start!.x, start!.y);
+
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 3_000 },
+      )
+      .toBe(true);
+  });
+
   test("footer taps do not change hidden roster selection", async ({
     page,
   }) => {

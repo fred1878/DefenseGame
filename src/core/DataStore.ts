@@ -14,7 +14,7 @@ export type EnemyDef = {
   displayName: string;
   /** Optional overrides; missing fields use per-behavior defaults. */
   combat?: EnemyCombatPartial;
-  /** Endless training: target concurrent living count (3–10). */
+  /** Endless training: target concurrent living count (1–99). */
   endlessConcurrent?: number;
 };
 
