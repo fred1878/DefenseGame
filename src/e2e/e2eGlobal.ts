@@ -39,6 +39,7 @@ export type DefenseGameE2EApi = {
   setManualReturnToTown(on: boolean): void;
   nightEnded(): boolean;
   hasReturnButton(): boolean;
+  returnToTown(): void;
   getUiTapTargets(): Record<string, { x: number; y: number }>;
   getSpellSlotHitRects(): Array<{
     index: number;

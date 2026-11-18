@@ -179,10 +179,13 @@ export class VirtualStick {
   }
 
   destroy(scene: Phaser.Scene): void {
-    scene.input.off("pointerdown", this.onDown, this);
-    scene.input.off("pointermove", this.onMove, this);
-    scene.input.off("pointerup", this.onUp, this);
-    scene.input.off("pointerupoutside", this.onUp, this);
+    const input = scene.input;
+    if (input) {
+      input.off("pointerdown", this.onDown, this);
+      input.off("pointermove", this.onMove, this);
+      input.off("pointerup", this.onUp, this);
+      input.off("pointerupoutside", this.onUp, this);
+    }
     this.base.destroy();
     this.knob.destroy();
   }

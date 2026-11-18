@@ -301,6 +301,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     hasReturnButton() {
       return activeDefense(game)?.e2eHasReturnButton() ?? false;
     },
+    returnToTown() {
+      activeDefense(game)?.e2eReturnToTown();
+    },
     getUiTapTargets() {
       const defense = activeDefense(game);
       if (defense) return defense.e2eGetUiTapTargets();
