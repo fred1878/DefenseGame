@@ -377,6 +377,19 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     centerDefenseCameraOn(worldX: number, worldY: number) {
       activeDefense(game)?.e2eCenterCameraOn(worldX, worldY);
     },
+    getObstacleBumpProbe(obstacleIndex, approach) {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eObstacleBumpProbe(obstacleIndex, approach);
+    },
+    getFlushTangentPosition(obstacleIndex, approach, beyondPx) {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eFlushTangentPosition(obstacleIndex, approach, beyondPx);
+    },
+    resolvePlayerObstacleOverlap() {
+      activeDefense(game)?.e2eResolvePlayerObstacleOverlap();
+    },
     getDefenseCameraScroll() {
       return (
         activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }

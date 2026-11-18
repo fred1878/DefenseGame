@@ -26,10 +26,22 @@ import {
 import { defenseWorldToScreen } from "../../world/defenseCamera";
 import {
   circleRectOverlapDepth,
+  circleRectSurfaceGap,
+  correctPlayerObstacleBlockerOverlap,
   defenseObstacleBlockerAabb,
   type DefenseObstacleBlockerAabb,
   readArcadeStaticBodyWorldAabb,
 } from "../../world/defenseObstacleBlocker";
+
+export type DefenseObstacleBumpCardinal = "north" | "south" | "east" | "west";
+
+export type DefenseObstacleBumpProbe = {
+  player: { x: number; y: number };
+  surfaceGapPx: number;
+  penetrationPx: number;
+  edgeErrPx: number;
+  pastCenter: boolean;
+};
 
 /**
  * Scene surface required by Playwright / `installE2E` hooks.
@@ -357,12 +369,25 @@ export function defenseSceneE2eSetPlayerPosition(
   x: number,
   y: number,
 ): void {
-  scene.player.sprite.setPosition(x, y);
   const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
-  body?.reset(x, y);
+  if (body) {
+    const ddx = x - body.center.x;
+    const ddy = y - body.center.y;
+    scene.player.sprite.setPosition(
+      scene.player.sprite.x + ddx,
+      scene.player.sprite.y + ddy,
+    );
+    body.reset(scene.player.sprite.x, scene.player.sprite.y);
+    body.setVelocity(0, 0);
+    body.updateCenter();
+  } else {
+    scene.player.sprite.setPosition(x, y);
+  }
   scene.physics.world.collide(scene.player.sprite, scene.obstacleGroup);
   // E2E teleports skip follow lerp — tests assert scroll vs position, not easing.
-  scene.cameras.main.centerOn(scene.player.sprite.x, scene.player.sprite.y);
+  const cx = body?.center.x ?? scene.player.sprite.x;
+  const cy = body?.center.y ?? scene.player.sprite.y;
+  scene.cameras.main.centerOn(cx, cy);
 }
 
 export function defenseSceneE2eObstacleBlockerAabb(
@@ -427,6 +452,78 @@ export function defenseSceneE2eCenterCameraOn(
   worldY: number,
 ): void {
   scene.cameras.main.centerOn(worldX, worldY);
+}
+
+export function defenseSceneE2eObstacleBumpProbe(
+  scene: DefenseSceneE2eDelegate,
+  obstacleIndex: number,
+  approach: DefenseObstacleBumpCardinal,
+): DefenseObstacleBumpProbe {
+  const blocker = scene.obstacleBlockers[obstacleIndex];
+  if (!blocker) {
+    throw new Error(`obstacle blocker index ${obstacleIndex} out of range`);
+  }
+  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body;
+  const cx = body.center.x;
+  const cy = body.center.y;
+  const r = body.halfWidth;
+  const aabb = defenseObstacleBlockerAabb(blocker);
+  const surfaceGapPx = circleRectSurfaceGap(cx, cy, r, aabb);
+  const penetrationPx = circleRectOverlapDepth(cx, cy, r, aabb);
+  let edgeErrPx = surfaceGapPx;
+  if (approach === "north" || approach === "south") {
+    edgeErrPx = cy - r - aabb.bottom;
+    if (approach === "south") {
+      edgeErrPx = aabb.top - (cy + r);
+    }
+  } else if (approach === "east") {
+    edgeErrPx = aabb.left - (cx + r);
+  } else if (approach === "west") {
+    edgeErrPx = cx - r - aabb.right;
+  }
+  const pastCenter =
+    approach === "north"
+      ? cy < aabb.cy
+      : approach === "south"
+        ? cy > aabb.cy
+        : approach === "east"
+          ? cx < aabb.cx
+          : cx > aabb.cx;
+  return {
+    player: { x: cx, y: cy },
+    surfaceGapPx,
+    penetrationPx,
+    edgeErrPx,
+    pastCenter,
+  };
+}
+
+export function defenseSceneE2eResolvePlayerObstacleOverlap(
+  scene: DefenseSceneE2eDelegate,
+): void {
+  correctPlayerObstacleBlockerOverlap(scene.player.sprite, scene.obstacleBlockers);
+  scene.physics.world.collide(scene.player.sprite, scene.obstacleGroup);
+  correctPlayerObstacleBlockerOverlap(scene.player.sprite, scene.obstacleBlockers);
+}
+
+export function defenseSceneE2eFlushTangentPosition(
+  scene: DefenseSceneE2eDelegate,
+  obstacleIndex: number,
+  approach: DefenseObstacleBumpCardinal,
+  beyondPx: number,
+): { x: number; y: number } {
+  const aabb = defenseSceneE2eObstacleBlockerAabb(scene, obstacleIndex);
+  const r = defenseSceneE2ePlayerBodyRadius(scene);
+  switch (approach) {
+    case "north":
+      return { x: aabb.cx, y: aabb.bottom + r + beyondPx };
+    case "south":
+      return { x: aabb.cx, y: aabb.top - r - beyondPx };
+    case "east":
+      return { x: aabb.left - r - beyondPx, y: aabb.cy };
+    case "west":
+      return { x: aabb.right + r + beyondPx, y: aabb.cy };
+  }
 }
 
 export function defenseSceneE2eGetDefenseCameraScroll(

@@ -80,6 +80,22 @@ export type DefenseGameE2EApi = {
   getPlayerBodyRadius(): number;
   getMaxPlayerObstacleOverlapPx(obstacleIndex?: number): number;
   centerDefenseCameraOn(worldX: number, worldY: number): void;
+  getObstacleBumpProbe(
+    obstacleIndex: number,
+    approach: "north" | "south" | "east" | "west",
+  ): {
+    player: { x: number; y: number };
+    surfaceGapPx: number;
+    penetrationPx: number;
+    edgeErrPx: number;
+    pastCenter: boolean;
+  };
+  getFlushTangentPosition(
+    obstacleIndex: number,
+    approach: "north" | "south" | "east" | "west",
+    beyondPx: number,
+  ): { x: number; y: number };
+  resolvePlayerObstacleOverlap(): void;
   getDefenseCameraScroll(): { x: number; y: number };
   getDefenseHudLayoutProbe(): ReturnType<
     import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]

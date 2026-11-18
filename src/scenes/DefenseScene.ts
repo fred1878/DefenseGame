@@ -25,6 +25,7 @@ import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
 import { clampGroundTarget } from "../combat/spellMechanics";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
+import { correctPlayerObstacleBlockerOverlap } from "../world/defenseObstacleBlocker";
 import {
   showEnemyPaths,
   showHitboxes,
@@ -131,6 +132,9 @@ import {
   defenseSceneE2ePlayerBodyRadius,
   defenseSceneE2eMaxPlayerObstacleOverlapPx,
   defenseSceneE2eCenterCameraOn,
+  defenseSceneE2eObstacleBumpProbe,
+  defenseSceneE2eFlushTangentPosition,
+  defenseSceneE2eResolvePlayerObstacleOverlap,
   defenseSceneE2eSetShowEnemyPaths,
   defenseSceneE2eSetSpawnPlanComplete,
   defenseSceneE2eSetStick,
@@ -358,6 +362,22 @@ export class DefenseScene extends Phaser.Scene {
     this.obstacleBlockers = world.obstacleBlockers;
     this.obstacleGroup = world.obstacleGroup;
     this.enemyGroup = world.enemyGroup;
+    const onObstacleWorldStep = (): void => {
+      correctPlayerObstacleBlockerOverlap(
+        this.player.sprite,
+        this.obstacleBlockers,
+      );
+    };
+    this.physics.world.on(
+      Phaser.Physics.Arcade.Events.WORLD_STEP,
+      onObstacleWorldStep,
+    );
+    this.events.once("shutdown", () => {
+      this.physics.world.off(
+        Phaser.Physics.Arcade.Events.WORLD_STEP,
+        onObstacleWorldStep,
+      );
+    });
     this.navGrid = buildNavGrid(
       this.obstacleBlockers,
       worldUnit(DEFENSE_MAP.cellSize, this.registry),
@@ -1217,6 +1237,19 @@ export class DefenseScene extends Phaser.Scene {
   e2ePlayerBodyRadius() { return defenseSceneE2ePlayerBodyRadius(this.e2eDelegate()); }
   e2eMaxPlayerObstacleOverlapPx(obstacleIndex?: number) { return defenseSceneE2eMaxPlayerObstacleOverlapPx(this.e2eDelegate(), obstacleIndex); }
   e2eCenterCameraOn(x: number, y: number): void { defenseSceneE2eCenterCameraOn(this.e2eDelegate(), x, y); }
+  e2eObstacleBumpProbe(index: number, approach: import("./defense/DefenseSceneE2E").DefenseObstacleBumpCardinal) {
+    return defenseSceneE2eObstacleBumpProbe(this.e2eDelegate(), index, approach);
+  }
+  e2eFlushTangentPosition(
+    index: number,
+    approach: import("./defense/DefenseSceneE2E").DefenseObstacleBumpCardinal,
+    beyondPx: number,
+  ) {
+    return defenseSceneE2eFlushTangentPosition(this.e2eDelegate(), index, approach, beyondPx);
+  }
+  e2eResolvePlayerObstacleOverlap(): void {
+    defenseSceneE2eResolvePlayerObstacleOverlap(this.e2eDelegate());
+  }
   e2eGetDefenseCameraScroll() { return defenseSceneE2eGetDefenseCameraScroll(this.e2eDelegate()); }
   e2eSetShowEnemyPaths(on: boolean): void { defenseSceneE2eSetShowEnemyPaths(this.e2eDelegate(), on); }
   e2eWorldPointToScreen(worldX: number, worldY: number) {
