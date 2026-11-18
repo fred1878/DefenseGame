@@ -123,6 +123,12 @@ test.describe("obstacle bump metrics capture", () => {
       expect(peakPenetrationDuringPush).toBeLessThan(0.75);
     }
 
+    metrics.pr163Baseline = {
+      note: "Measured on main/PR163 body lock without world-step separation",
+      south: { peakPenetrationDuringPushPx: 2.33 },
+      north: { surfaceGapPx: 1.3333333333333357, edgeErrPx: 1.3333333333333357 },
+    };
+
     const outPath = path.join(MEDIA_DIR, "obstacle-bump-metrics-2026-11-18-v2.json");
     const artifactPath = path.join(
       "/opt/cursor/artifacts",
@@ -135,12 +141,6 @@ test.describe("obstacle bump metrics capture", () => {
       fs.mkdirSync(MEDIA_DIR, { recursive: true });
       fs.writeFileSync(outPath, json);
     }
-
-    metrics.pr163Baseline = {
-      note: "Measured on main/PR163 body lock without world-step separation",
-      south: { peakPenetrationDuringPushPx: 2.33 },
-      north: { surfaceGapPx: 1.3333333333333357, edgeErrPx: 1.3333333333333357 },
-    };
 
     const south = metrics.south as { peakPenetrationDuringPushPx: number };
     const north = metrics.north as { surfaceGapPx: number; edgeErrPx: number };
