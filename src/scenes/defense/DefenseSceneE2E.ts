@@ -24,6 +24,12 @@ import {
   type SafeInsets,
 } from "../../ui/screenLayout";
 import { defenseWorldToScreen } from "../../world/defenseCamera";
+import {
+  circleRectOverlapDepth,
+  defenseObstacleBlockerAabb,
+  type DefenseObstacleBlockerAabb,
+  readArcadeStaticBodyWorldAabb,
+} from "../../world/defenseObstacleBlocker";
 
 /**
  * Scene surface required by Playwright / `installE2E` hooks.
@@ -354,8 +360,73 @@ export function defenseSceneE2eSetPlayerPosition(
   scene.player.sprite.setPosition(x, y);
   const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
   body?.reset(x, y);
+  scene.physics.world.collide(scene.player.sprite, scene.obstacleGroup);
   // E2E teleports skip follow lerp — tests assert scroll vs position, not easing.
-  scene.cameras.main.centerOn(x, y);
+  scene.cameras.main.centerOn(scene.player.sprite.x, scene.player.sprite.y);
+}
+
+export function defenseSceneE2eObstacleBlockerAabb(
+  scene: DefenseSceneE2eDelegate,
+  index: number,
+): DefenseObstacleBlockerAabb {
+  const blocker = scene.obstacleBlockers[index];
+  if (!blocker) {
+    throw new Error(`obstacle blocker index ${index} out of range`);
+  }
+  return defenseObstacleBlockerAabb(blocker);
+}
+
+export function defenseSceneE2eObstacleArcadeBodyAabb(
+  scene: DefenseSceneE2eDelegate,
+  index: number,
+): DefenseObstacleBlockerAabb {
+  const child = scene.obstacleGroup.getChildren()[index] as
+    | Phaser.GameObjects.Rectangle
+    | undefined;
+  const body = child?.body as Phaser.Physics.Arcade.StaticBody | null | undefined;
+  if (!body) {
+    throw new Error(`obstacle arcade body index ${index} missing`);
+  }
+  return readArcadeStaticBodyWorldAabb(body);
+}
+
+export function defenseSceneE2ePlayerBodyRadius(
+  scene: DefenseSceneE2eDelegate,
+): number {
+  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
+  return body?.halfWidth ?? 0;
+}
+
+export function defenseSceneE2eMaxPlayerObstacleOverlapPx(
+  scene: DefenseSceneE2eDelegate,
+  obstacleIndex?: number,
+): number {
+  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
+  if (!body) return 0;
+  const cx = body.center.x;
+  const cy = body.center.y;
+  const r = body.halfWidth;
+  const blockers =
+    obstacleIndex === undefined
+      ? scene.obstacleBlockers
+      : [scene.obstacleBlockers[obstacleIndex]!].filter(Boolean);
+  let max = 0;
+  for (const obs of blockers) {
+    if (!obs) continue;
+    max = Math.max(
+      max,
+      circleRectOverlapDepth(cx, cy, r, defenseObstacleBlockerAabb(obs)),
+    );
+  }
+  return max;
+}
+
+export function defenseSceneE2eCenterCameraOn(
+  scene: DefenseSceneE2eDelegate,
+  worldX: number,
+  worldY: number,
+): void {
+  scene.cameras.main.centerOn(worldX, worldY);
 }
 
 export function defenseSceneE2eGetDefenseCameraScroll(
