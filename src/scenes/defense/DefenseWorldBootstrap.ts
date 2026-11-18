@@ -97,12 +97,7 @@ export function bootstrapDefenseWorld(
     configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
     registerWorld(rock);
     obstacleGroup.add(rock);
-    const blocker = finalizeDefenseObstacleSprite(
-      rock,
-      placement.textureKey,
-      obs.w,
-      obs.h,
-    );
+    const blocker = finalizeDefenseObstacleSprite(rock, placement.textureKey, obs);
     obstacleBlockers.push(blocker);
   }
 

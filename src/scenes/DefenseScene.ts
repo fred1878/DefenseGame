@@ -89,9 +89,11 @@ import {
   updateEnemyNameplate,
 } from "../ui/enemyNameplate";
 import {
+  scaledDefenseObstacles,
   worldDisplayPx,
   worldUnit,
 } from "../core/worldPixelScale";
+import { maintainDefenseObstaclePhysics } from "../world/defenseObstacleSprite";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -594,6 +596,11 @@ export class DefenseScene extends Phaser.Scene {
       );
     }
 
+    maintainDefenseObstaclePhysics(
+      this.obstacleGroup,
+      scaledDefenseObstacles(this.registry),
+      this.obstacleBlockers,
+    );
     this.drawDebugHitboxes();
     this.drawEnemyPaths();
     this.drawTouchDebug(delta);

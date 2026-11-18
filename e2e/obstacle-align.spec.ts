@@ -84,13 +84,25 @@ test.describe("obstacle sprite vs blocking", () => {
       expect(Math.abs(boundsCy - row.configY)).toBeLessThanOrEqual(EDGE_TOL_PX);
       expect(Math.abs(boundsCx - row.bodyCenterX)).toBeLessThanOrEqual(EDGE_TOL_PX);
       expect(Math.abs(boundsCy - row.bodyCenterY)).toBeLessThanOrEqual(EDGE_TOL_PX);
-      expect(Math.abs(row.bodyOffsetX)).toBeLessThanOrEqual(0.01);
-      expect(Math.abs(row.bodyOffsetY)).toBeLessThanOrEqual(0.01);
-
       expect(row.bodyW).toBeLessThanOrEqual(row.displayW + 0.51);
       expect(row.bodyH).toBeLessThanOrEqual(row.displayH + 0.51);
       expect(row.displayW).toBeGreaterThan(row.bodyW);
       expect(row.displayH).toBeGreaterThan(row.bodyH);
+    }
+
+    await page.waitForTimeout(500);
+    const rowsAfterSim = await api.eval<ObstacleAlignRow[]>(
+      "api.getObstacleAlignment()",
+    );
+    expect(rowsAfterSim.length).toBe(rows.length);
+    for (let i = 0; i < rowsAfterSim.length; i++) {
+      const row = rowsAfterSim[i]!;
+      expect(Math.abs(row.boundsLeft - row.configLeft)).toBeLessThanOrEqual(
+        EDGE_TOL_PX,
+      );
+      expect(Math.abs(row.boundsTop - row.configTop)).toBeLessThanOrEqual(
+        EDGE_TOL_PX,
+      );
     }
   });
 
