@@ -25,6 +25,7 @@ import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
 import { clampGroundTarget } from "../combat/spellMechanics";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
+import { correctPlayerObstacleBlockerOverlap } from "../world/defenseObstacleBlocker";
 import {
   showEnemyPaths,
   showHitboxes,
@@ -126,6 +127,14 @@ import {
   defenseSceneE2eProjectileCount,
   defenseSceneE2eSetManualReturn,
   defenseSceneE2eSetPlayerPosition,
+  defenseSceneE2eObstacleBlockerAabb,
+  defenseSceneE2eObstacleArcadeBodyAabb,
+  defenseSceneE2ePlayerBodyRadius,
+  defenseSceneE2eMaxPlayerObstacleOverlapPx,
+  defenseSceneE2eCenterCameraOn,
+  defenseSceneE2eObstacleBumpProbe,
+  defenseSceneE2eFlushTangentPosition,
+  defenseSceneE2eResolvePlayerObstacleOverlap,
   defenseSceneE2eSetShowEnemyPaths,
   defenseSceneE2eSetSpawnPlanComplete,
   defenseSceneE2eSetStick,
@@ -353,6 +362,22 @@ export class DefenseScene extends Phaser.Scene {
     this.obstacleBlockers = world.obstacleBlockers;
     this.obstacleGroup = world.obstacleGroup;
     this.enemyGroup = world.enemyGroup;
+    const onObstacleWorldStep = (): void => {
+      correctPlayerObstacleBlockerOverlap(
+        this.player.sprite,
+        this.obstacleBlockers,
+      );
+    };
+    this.physics.world.on(
+      Phaser.Physics.Arcade.Events.WORLD_STEP,
+      onObstacleWorldStep,
+    );
+    this.events.once("shutdown", () => {
+      this.physics.world.off(
+        Phaser.Physics.Arcade.Events.WORLD_STEP,
+        onObstacleWorldStep,
+      );
+    });
     this.navGrid = buildNavGrid(
       this.obstacleBlockers,
       worldUnit(DEFENSE_MAP.cellSize, this.registry),
@@ -1022,9 +1047,11 @@ export class DefenseScene extends Phaser.Scene {
       return;
     }
     this.hitboxDebug.clear();
-    const px = this.player.sprite.x;
-    const py = this.player.sprite.y;
-    this.hitboxDebug.drawCircle(px, py, this.wu(ENTITY_BODY_RADIUS.player));
+    const pBody = this.player.sprite.body as Phaser.Physics.Arcade.Body;
+    const px = pBody.center.x;
+    const py = pBody.center.y;
+    const playerR = pBody.halfWidth;
+    this.hitboxDebug.drawCircle(px, py, playerR);
 
     if (
       this.player.mode === "melee" &&
@@ -1205,6 +1232,24 @@ export class DefenseScene extends Phaser.Scene {
   e2eAutoAttackEnabled(): boolean { return defenseSceneE2eAutoAttackEnabled(this.e2eDelegate()); }
   e2eIsTouchButtonPressed(testId: string): boolean { return defenseSceneE2eIsTouchButtonPressed(this.e2eDelegate(), testId); }
   e2eSetPlayerPosition(x: number, y: number): void { defenseSceneE2eSetPlayerPosition(this.e2eDelegate(), x, y); }
+  e2eObstacleBlockerAabb(index: number) { return defenseSceneE2eObstacleBlockerAabb(this.e2eDelegate(), index); }
+  e2eObstacleArcadeBodyAabb(index: number) { return defenseSceneE2eObstacleArcadeBodyAabb(this.e2eDelegate(), index); }
+  e2ePlayerBodyRadius() { return defenseSceneE2ePlayerBodyRadius(this.e2eDelegate()); }
+  e2eMaxPlayerObstacleOverlapPx(obstacleIndex?: number) { return defenseSceneE2eMaxPlayerObstacleOverlapPx(this.e2eDelegate(), obstacleIndex); }
+  e2eCenterCameraOn(x: number, y: number): void { defenseSceneE2eCenterCameraOn(this.e2eDelegate(), x, y); }
+  e2eObstacleBumpProbe(index: number, approach: import("./defense/DefenseSceneE2E").DefenseObstacleBumpCardinal) {
+    return defenseSceneE2eObstacleBumpProbe(this.e2eDelegate(), index, approach);
+  }
+  e2eFlushTangentPosition(
+    index: number,
+    approach: import("./defense/DefenseSceneE2E").DefenseObstacleBumpCardinal,
+    beyondPx: number,
+  ) {
+    return defenseSceneE2eFlushTangentPosition(this.e2eDelegate(), index, approach, beyondPx);
+  }
+  e2eResolvePlayerObstacleOverlap(): void {
+    defenseSceneE2eResolvePlayerObstacleOverlap(this.e2eDelegate());
+  }
   e2eGetDefenseCameraScroll() { return defenseSceneE2eGetDefenseCameraScroll(this.e2eDelegate()); }
   e2eSetShowEnemyPaths(on: boolean): void { defenseSceneE2eSetShowEnemyPaths(this.e2eDelegate(), on); }
   e2eWorldPointToScreen(worldX: number, worldY: number) {

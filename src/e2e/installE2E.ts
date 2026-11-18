@@ -358,6 +358,38 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getPlayerPosition() {
       return activeDefense(game)?.e2ePlayerPosition() ?? { x: 0, y: 0 };
     },
+    getObstacleBlockerAabb(index: number) {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eObstacleBlockerAabb(index);
+    },
+    getObstacleArcadeBodyAabb(index: number) {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eObstacleArcadeBodyAabb(index);
+    },
+    getPlayerBodyRadius() {
+      return activeDefense(game)?.e2ePlayerBodyRadius() ?? 0;
+    },
+    getMaxPlayerObstacleOverlapPx(obstacleIndex?: number) {
+      return activeDefense(game)?.e2eMaxPlayerObstacleOverlapPx(obstacleIndex) ?? 0;
+    },
+    centerDefenseCameraOn(worldX: number, worldY: number) {
+      activeDefense(game)?.e2eCenterCameraOn(worldX, worldY);
+    },
+    getObstacleBumpProbe(obstacleIndex, approach) {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eObstacleBumpProbe(obstacleIndex, approach);
+    },
+    getFlushTangentPosition(obstacleIndex, approach, beyondPx) {
+      const scene = activeDefense(game);
+      if (!scene) throw new Error("DefenseScene not active");
+      return scene.e2eFlushTangentPosition(obstacleIndex, approach, beyondPx);
+    },
+    resolvePlayerObstacleOverlap() {
+      activeDefense(game)?.e2eResolvePlayerObstacleOverlap();
+    },
     getDefenseCameraScroll() {
       return (
         activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }

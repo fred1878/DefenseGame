@@ -57,6 +57,45 @@ export type DefenseGameE2EApi = {
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
   getPlayerPosition(): { x: number; y: number };
+  getObstacleBlockerAabb(index: number): {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    cx: number;
+    cy: number;
+    w: number;
+    h: number;
+  };
+  getObstacleArcadeBodyAabb(index: number): {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    cx: number;
+    cy: number;
+    w: number;
+    h: number;
+  };
+  getPlayerBodyRadius(): number;
+  getMaxPlayerObstacleOverlapPx(obstacleIndex?: number): number;
+  centerDefenseCameraOn(worldX: number, worldY: number): void;
+  getObstacleBumpProbe(
+    obstacleIndex: number,
+    approach: "north" | "south" | "east" | "west",
+  ): {
+    player: { x: number; y: number };
+    surfaceGapPx: number;
+    penetrationPx: number;
+    edgeErrPx: number;
+    pastCenter: boolean;
+  };
+  getFlushTangentPosition(
+    obstacleIndex: number,
+    approach: "north" | "south" | "east" | "west",
+    beyondPx: number,
+  ): { x: number; y: number };
+  resolvePlayerObstacleOverlap(): void;
   getDefenseCameraScroll(): { x: number; y: number };
   getDefenseHudLayoutProbe(): ReturnType<
     import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]
