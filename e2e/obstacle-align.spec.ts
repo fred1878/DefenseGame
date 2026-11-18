@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import {
-  DEFENSE_MAP,
   DEFENSE_OBSTACLES,
   DEFENSE_OBSTACLE_PLACEMENTS,
   defenseObstacleSpriteAnchor,
@@ -132,7 +131,7 @@ test.describe("obstacle sprite vs blocking", () => {
       expect(Math.abs(row.spriteY - anchor.y)).toBeLessThan(0.01);
       const feetY = row.spriteY + row.displayH / 2;
       const bodyBottom = row.boundsBottom;
-      expect(Math.abs(bodyBottom - (feetY - DEFENSE_MAP.cellSize))).toBeLessThan(1.01);
+      expect(Math.abs(bodyBottom - feetY)).toBeLessThan(1.01);
       expect(Math.abs(bodyBottom - (row.configY + row.configH / 2))).toBeLessThanOrEqual(
         EDGE_TOL_PX,
       );

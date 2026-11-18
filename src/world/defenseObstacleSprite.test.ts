@@ -8,7 +8,6 @@ import {
 import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_OBSTACLES,
-  DEFENSE_MAP,
   DEFENSE_OBSTACLE_WORLD_SCALE,
   OBSTACLE_COLLIDER_SIZE_SCALE,
   defenseObstacleColliderFromPlacement,
@@ -94,8 +93,9 @@ describe("defense obstacle art vs colliders", () => {
       const cx = -layout.displayW / 2 + offset.x + halfW;
       const cy = -layout.displayH / 2 + offset.y + halfH;
       const anchor = defenseObstacleSpriteAnchor(placement);
-      expect(cx + anchor.x - DEFENSE_MAP.cellSize).toBeCloseTo(collider.x, 3);
-      expect(cy + anchor.y - DEFENSE_MAP.cellSize).toBeCloseTo(collider.y, 3);
+      expect(cx + anchor.x).toBeCloseTo(collider.x, 3);
+      expect(cy + anchor.y).toBeCloseTo(collider.y, 3);
+      expect(collider.x).toBeCloseTo(anchor.x, 3);
     }
   });
 
@@ -128,15 +128,13 @@ describe("defense obstacle art vs colliders", () => {
 
       const feetY = anchor.y + layout.displayH / 2;
       const bodyBottom = collider.y + collider.h / 2;
-      expect(Math.abs(bodyBottom - (feetY - DEFENSE_MAP.cellSize))).toBeLessThanOrEqual(
-        tol,
-      );
+      expect(Math.abs(bodyBottom - feetY)).toBeLessThanOrEqual(tol);
 
       const displayLeft = anchor.x - layout.displayW / 2;
       const displayTop = anchor.y - layout.displayH / 2;
       const bodyLeft = collider.x - collider.w / 2;
       const bodyRight = collider.x + collider.w / 2;
-      expect(bodyLeft).toBeGreaterThanOrEqual(displayLeft - DEFENSE_MAP.cellSize - tol);
+      expect(bodyLeft).toBeGreaterThanOrEqual(displayLeft - tol);
       expect(bodyRight).toBeLessThanOrEqual(anchor.x + layout.displayW / 2 + tol);
       expect(bodyBottom).toBeLessThanOrEqual(feetY + tol);
       expect(collider.y - collider.h / 2).toBeGreaterThanOrEqual(displayTop - tol);

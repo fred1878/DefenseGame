@@ -167,20 +167,14 @@ export function defenseObstacleSpriteAnchor(
   };
 }
 
-/** Blocker centers sit one nav cell NW of sprite-offset math (device: +cell SE blocking). */
-export function defenseObstacleBlockerCenterNudgePx(): number {
-  return DEFENSE_MAP.cellSize;
-}
-
 export function defenseObstacleColliderFromPlacement(
   placement: DefenseObstaclePlacement,
 ): DefenseObstacleRect {
   const anchor = defenseObstacleSpriteAnchor(placement);
   const layout = obstaclePhysicsLayout(placement.textureKey);
-  const nudge = defenseObstacleBlockerCenterNudgePx();
   return {
-    x: anchor.x + layout.bodyCenterOffsetX - nudge,
-    y: anchor.y + layout.bodyCenterOffsetY - nudge,
+    x: anchor.x + layout.bodyCenterOffsetX,
+    y: anchor.y + layout.bodyCenterOffsetY,
     w: layout.bodyW,
     h: layout.bodyH,
     textureKey: placement.textureKey,

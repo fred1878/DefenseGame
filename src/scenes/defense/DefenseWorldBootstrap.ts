@@ -3,6 +3,7 @@ import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
   PLAYER_TUNING,
+  type DefenseObstacleRect,
   defenseHalfHeight,
   defenseHalfWidth,
   defenseObstacleSpriteAnchor,
@@ -21,7 +22,7 @@ import {
 } from "../../world/defenseWorldAddHook";
 import {
   configureDefenseObstacleSprite,
-  seatDefenseObstacleStaticBodyFromCollider,
+  finalizeDefenseObstacleSprite,
 } from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
 import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
@@ -29,6 +30,8 @@ import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
 export type DefenseWorldBootstrapResult = {
   player: Player;
   playerInvulnMs: number;
+  /** Live gameplay blockers (nav + path debug + Arcade) after world-layer adopt. */
+  obstacleBlockers: DefenseObstacleRect[];
   obstacleGroup: Phaser.Physics.Arcade.StaticGroup;
   enemyGroup: Phaser.Physics.Arcade.Group;
   cameraRig: DefenseCameraRig;
@@ -80,6 +83,7 @@ export function bootstrapDefenseWorld(
 
   const obstacleGroup = scene.physics.add.staticGroup();
   const scaledObstacles = scaledDefenseObstacles(scene.registry);
+  const obstacleBlockers: DefenseObstacleRect[] = [];
   for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
     const obs = scaledObstacles[i]!;
@@ -90,10 +94,16 @@ export function bootstrapDefenseWorld(
       placement.textureKey,
     );
     rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
+    configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
     registerWorld(rock);
-    configureDefenseObstacleSprite(rock, placement.textureKey, obs);
     obstacleGroup.add(rock);
-    seatDefenseObstacleStaticBodyFromCollider(rock, obs);
+    const blocker = finalizeDefenseObstacleSprite(
+      rock,
+      placement.textureKey,
+      obs.w,
+      obs.h,
+    );
+    obstacleBlockers.push(blocker);
   }
 
   scene.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
@@ -108,6 +118,7 @@ export function bootstrapDefenseWorld(
   return {
     player,
     playerInvulnMs,
+    obstacleBlockers,
     obstacleGroup,
     enemyGroup,
     cameraRig,

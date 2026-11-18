@@ -20,7 +20,6 @@ import {
   isTouchButtonVisuallyPressed,
 } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
-import { scaledDefenseObstacles } from "../../core/worldPixelScale";
 import { defenseMinimapLayout } from "../../ui/defenseMinimap";
 import {
   combatChromeLayout,
@@ -53,6 +52,7 @@ export type DefenseSceneE2eDelegate = Phaser.Scene & {
   readonly leaveEndlessBtn: TouchButtonHandle | null;
   readonly endlessSelections: EndlessRunSelection[] | null;
   readonly obstacleGroup: Phaser.Physics.Arcade.StaticGroup;
+  readonly obstacleBlockers: import("../../config/defense").DefenseObstacleRect[];
 
   spawnEnemyAt(
     x: number,
@@ -533,9 +533,8 @@ export function defenseSceneE2eGetObstacleAlignment(
   bodyOffsetY: number;
 }> {
   const children = scene.obstacleGroup.getChildren() as Phaser.Physics.Arcade.Image[];
-  const scaled = scaledDefenseObstacles(scene.registry);
   return DEFENSE_OBSTACLE_PLACEMENTS.map((placement, i) => {
-    const cfg = scaled[i]!;
+    const cfg = scene.obstacleBlockers[i]!;
     const anchor = defenseObstacleSpriteAnchor(placement);
     const img = children[i]!;
     const body = img.body as Phaser.Physics.Arcade.StaticBody;
