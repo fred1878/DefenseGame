@@ -18,8 +18,8 @@ import {
   obstaclePhysicsLayout,
 } from "../config/defense";
 import { DEFENSE_FIELD_TILES } from "../config/defense";
+import { defenseObstacleBlockerAabb } from "./defenseObstacleBlocker";
 import {
-  defenseObstacleConfigAabb,
   obstacleArcadeBodyOffset,
   obstacleBodyCenterAtAnchor,
 } from "./defenseObstacleSprite";
@@ -75,7 +75,7 @@ describe("defense obstacle art vs colliders", () => {
   });
 
   /**
-   * Legacy offset math (documented); runtime bodies are seated from config, not offset sync.
+   * Offset math: sprite top-left + offset → blocker center at anchor.
    */
   it("derives Arcade offset for anchor-relative blocker center", () => {
     for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
@@ -101,7 +101,7 @@ describe("defense obstacle art vs colliders", () => {
 
   it("maps config center rects to world AABB edges for debug / nav", () => {
     for (const obs of DEFENSE_OBSTACLES) {
-      const aabb = defenseObstacleConfigAabb(obs);
+      const aabb = defenseObstacleBlockerAabb(obs);
       expect(aabb.cx).toBe(obs.x);
       expect(aabb.cy).toBe(obs.y);
       expect(aabb.left).toBeCloseTo(obs.x - obs.w / 2, 5);
