@@ -9,7 +9,11 @@ import {
   defenseObstacleSpriteAnchor,
 } from "../../config";
 import { Player } from "../../entities/Player";
-import { scaledDefenseObstacles, worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../core/worldPixelScale";
+import {
+  defenseObstacleBlockerRects,
+  installDefenseObstacleStaticBody,
+} from "../../world/defenseObstacleBlocker";
 import { buildGroundDecorLayer } from "../../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../../world/buildGroundLayer";
 import {
@@ -20,10 +24,7 @@ import {
   DEFENSE_WORLD_LAYER_REGISTRY_KEY,
   setDefenseWorldLayerTarget,
 } from "../../world/defenseWorldAddHook";
-import {
-  configureDefenseObstacleSprite,
-  finalizeDefenseObstacleSprite,
-} from "../../world/defenseObstacleSprite";
+import { configureDefenseObstacleSprite } from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
 import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
 
@@ -82,11 +83,10 @@ export function bootstrapDefenseWorld(
   }
 
   const obstacleGroup = scene.physics.add.staticGroup();
-  const scaledObstacles = scaledDefenseObstacles(scene.registry);
-  const obstacleBlockers: DefenseObstacleRect[] = [];
+  const obstacleBlockers = defenseObstacleBlockerRects(scene.registry);
   for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
-    const obs = scaledObstacles[i]!;
+    const blocker = obstacleBlockers[i]!;
     const anchor = defenseObstacleSpriteAnchor(placement);
     const rock = scene.physics.add.staticImage(
       anchor.x,
@@ -94,11 +94,10 @@ export function bootstrapDefenseWorld(
       placement.textureKey,
     );
     rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
-    configureDefenseObstacleSprite(rock, placement.textureKey, obs.w, obs.h);
+    configureDefenseObstacleSprite(rock, placement.textureKey, blocker.w, blocker.h);
     registerWorld(rock);
     obstacleGroup.add(rock);
-    const blocker = finalizeDefenseObstacleSprite(rock, placement.textureKey, obs);
-    obstacleBlockers.push(blocker);
+    installDefenseObstacleStaticBody(rock, blocker);
   }
 
   scene.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);

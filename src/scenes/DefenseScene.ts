@@ -89,11 +89,9 @@ import {
   updateEnemyNameplate,
 } from "../ui/enemyNameplate";
 import {
-  scaledDefenseObstacles,
   worldDisplayPx,
   worldUnit,
 } from "../core/worldPixelScale";
-import { maintainDefenseObstaclePhysics } from "../world/defenseObstacleSprite";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -596,11 +594,6 @@ export class DefenseScene extends Phaser.Scene {
       );
     }
 
-    maintainDefenseObstaclePhysics(
-      this.obstacleGroup,
-      scaledDefenseObstacles(this.registry),
-      this.obstacleBlockers,
-    );
     this.drawDebugHitboxes();
     this.drawEnemyPaths();
     this.drawTouchDebug(delta);
@@ -1073,16 +1066,8 @@ export class DefenseScene extends Phaser.Scene {
       }
     }
 
-    for (const child of this.obstacleGroup.getChildren()) {
-      const body = (child as Phaser.Physics.Arcade.Image).body as
-        | Phaser.Physics.Arcade.StaticBody
-        | null;
-      if (!body) continue;
-      const b = { x: 0, y: 0, right: 0, bottom: 0 };
-      body.getBounds(b);
-      const w = body.width;
-      const h = body.height;
-      this.hitboxDebug.drawObstacleRect(b.x + w / 2, b.y + h / 2, w, h);
+    for (const obs of this.obstacleBlockers) {
+      this.hitboxDebug.drawObstacleRect(obs.x, obs.y, obs.w, obs.h);
     }
   }
 

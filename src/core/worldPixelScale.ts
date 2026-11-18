@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "../config/game";
 import type { DefenseObstacleRect } from "../config/defense";
-import { DEFENSE_OBSTACLES } from "../config/defense";
+import { defenseObstacleBlockerRects } from "../world/defenseObstacleBlocker";
 
 export const WORLD_PIXEL_SCALE_REGISTRY_KEY = "worldPixelScale";
 export const WORLD_PIXEL_SCALE_CHANGED = "world-pixel-scale-changed";
@@ -50,13 +50,7 @@ export function worldScaleDebugLabel(scale: number): string {
 export function scaledDefenseObstacles(
   registry: Phaser.Data.DataManager,
 ): DefenseObstacleRect[] {
-  const f = worldScaleFactor(registry);
-  if (f === 1) return DEFENSE_OBSTACLES;
-  return DEFENSE_OBSTACLES.map((o) => ({
-    ...o,
-    w: o.w * f,
-    h: o.h * f,
-  }));
+  return defenseObstacleBlockerRects(registry);
 }
 
 /** Session-only debug override; restarts an active Defense run so art and colliders rebuild. */
