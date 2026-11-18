@@ -7,7 +7,11 @@ import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { applyKnockbackFrom } from "../combat/Knockback";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
-import { ENTITY_BODY_RADIUS, tuneArcadeDynamicBody } from "./entityPhysics";
+import {
+  ENTITY_BODY_RADIUS,
+  applyArcadeCircleCollider,
+  tuneArcadeDynamicBody,
+} from "./entityPhysics";
 
 export type AttackPhase = "idle" | "windup" | "active" | "recovery";
 
@@ -132,6 +136,10 @@ export class Player {
       const reg = this.sprite.scene.registry;
       const side = worldDisplayPx(SPRITE_DISPLAY.player, reg);
       this.sprite.setDisplaySize(side, side);
+      applyArcadeCircleCollider(
+        this.sprite,
+        worldUnit(ENTITY_BODY_RADIUS.player, reg),
+      );
     }
   }
 

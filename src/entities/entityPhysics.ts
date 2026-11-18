@@ -47,12 +47,22 @@ export function enemyCollisionBodyRadius(
     : ENTITY_BODY_RADIUS.enemy;
 }
 
+/** Centers a circle body on the sprite anchor after {@link Phaser.GameObjects.Components.DisplaySize#setDisplaySize}. */
+export function applyArcadeCircleCollider(
+  sprite: Phaser.Physics.Arcade.Sprite,
+  circleRadius: number,
+): void {
+  const offsetX = sprite.displayWidth / 2 - circleRadius;
+  const offsetY = sprite.displayHeight / 2 - circleRadius;
+  sprite.setCircle(circleRadius, offsetX, offsetY);
+}
+
 export function tuneArcadeDynamicBody(
   sprite: Phaser.Physics.Arcade.Sprite,
   circleRadius: number,
   options: { pushable?: boolean; worldBounds?: boolean } = {},
 ): void {
-  sprite.setCircle(circleRadius);
+  applyArcadeCircleCollider(sprite, circleRadius);
   sprite.setBounce(0, 0);
   const body = sprite.body as Phaser.Physics.Arcade.Body;
   body.setFriction(0, 0);
