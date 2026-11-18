@@ -35,6 +35,8 @@ describe("entityPhysics", () => {
       setFriction: vi.fn(),
     };
     const sprite = {
+      displayWidth: 64,
+      displayHeight: 64,
       setCircle: vi.fn(),
       setBounce: vi.fn(),
       setCollideWorldBounds: vi.fn(),
@@ -43,7 +45,7 @@ describe("entityPhysics", () => {
 
     tuneArcadeDynamicBody(sprite, 14, { pushable: false, worldBounds: true });
 
-    expect(sprite.setCircle).toHaveBeenCalledWith(14);
+    expect(sprite.setCircle).toHaveBeenCalledWith(14, 64 / 2 - 14, 64 / 2 - 14);
     expect(sprite.setBounce).toHaveBeenCalledWith(0, 0);
     expect(body.setFriction).toHaveBeenCalledWith(0, 0);
     expect(body.pushable).toBe(false);
