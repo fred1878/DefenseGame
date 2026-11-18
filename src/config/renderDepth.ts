@@ -5,10 +5,11 @@
  * |-------|-------|
  * | -10 | ground |
  * | -9 | ground decor |
- * | 2–3 | map obstacles |
- * | 3–4 | floor AoE telegraphs (arrow rain, spell windup) |
- * | 4 | player sprite |
+ * | 1–2 | obstacle colliders (invisible gameplay blockers) |
+ * | 3 | obstacleBlock + floor AoE telegraphs (arrow rain, spell windup) |
+ * | 4 | player sprite + spell ground windup |
  * | 5 | enemy sprites |
+ * | 6 | obstacle cosmetic sprites (v2 art above entities) |
  * | 7 | projectiles |
  * | 8 | enemy-attached combat FX (swipes, telegraph particles) |
  * | 12 | player attack / spell cone FX |
@@ -16,7 +17,8 @@
  * | 20 | enemy nameplate + HP bar |
  */
 export const DEFENSE_RENDER_DEPTH = {
-  obstacleRock: 2,
+  /** Cosmetic obstacle art — above player/enemy sprites, below projectiles. */
+  obstacleRock: 6,
   obstacleBlock: 3,
   floorTelegraph: 3,
   spellGroundTelegraph: 4,
