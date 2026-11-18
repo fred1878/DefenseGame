@@ -209,8 +209,8 @@ export const SPRITE_DISPLAY = {
   fireBolt: 16,
   stoneThrow: 16,
   /** World display px; +40% vs 68px baseline. */
-  playerMeleeSlash: 95,
-  gruntMeleeSlash: 40,
+  playerMeleeSlash: 93,
+  gruntMeleeSlash: 38,
 } as const;
 
 /** Gothic fantasy HUD under `public/assets/ui/gothic/` (UI-REVIEW v01 picks). */

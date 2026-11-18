@@ -2,6 +2,8 @@ export type AttackMode = "melee" | "ranged" | "auto";
 
 /** Matches `ENTITY_BODY_RADIUS.enemy`; added to strike reach for auto-melee engage. */
 const MELEE_ENGAGE_TARGET_RADIUS = 14;
+/** Engage slack (WU); lower tightens `autoAttackMeleeRange` only — not `meleeStrikeRange`. */
+const MELEE_ACTIVATION_SLACK_WU = 6;
 
 /** Base melee tuning export; arc hits use `meleeStrikeRange`. */
 const meleeRange = 58;
@@ -26,8 +28,9 @@ export const PLAYER_TUNING = {
   meleeKnockback: 320,
   rangedKnockback: 110,
   maxHp: 100,
-  /** Center-to-center gate for auto/melee windup (strike + enemy radius, −4px vs prior). */
-  autoAttackMeleeRange: meleeStrikeRange + MELEE_ENGAGE_TARGET_RADIUS - 4,
+  /** Center-to-center engage gate (auto windup / facing pick); does not shrink hit arc. */
+  autoAttackMeleeRange:
+    meleeStrikeRange + MELEE_ENGAGE_TARGET_RADIUS - MELEE_ACTIVATION_SLACK_WU,
   autoAttackRangedRange: 300,
   targetTapRadiusWorld: 56,
   playerHitInvulnMs: 900,
