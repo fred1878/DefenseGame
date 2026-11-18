@@ -89,9 +89,11 @@ import {
   updateEnemyNameplate,
 } from "../ui/enemyNameplate";
 import {
+  scaledDefenseObstacles,
   worldDisplayPx,
   worldUnit,
 } from "../core/worldPixelScale";
+import { maintainDefenseObstaclePhysics } from "../world/defenseObstacleSprite";
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -454,6 +456,11 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
+    maintainDefenseObstaclePhysics(
+      this.obstacleGroup,
+      scaledDefenseObstacles(this.registry),
+      this.obstacleBlockers,
+    );
     this.spellCaster.tickCooldowns(delta);
     const dir = this.stick.getDirection();
     const px = this.player.sprite.x;
