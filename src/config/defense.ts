@@ -60,6 +60,9 @@ export function defenseTileCenter(tileX: number, tileY: number): {
 /** On-field scale for defense obstacle sprites and matching nav/physics blockers. */
 export const DEFENSE_OBSTACLE_WORLD_SCALE = 2;
 
+/** Cosmetic-only shift for obstacle art (world px); blockers and nav use the anchor. */
+export const DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET = 6;
+
 /** Uniform shrink vs authored blocker footprints (tighter than transparent crop halo). */
 export const OBSTACLE_COLLIDER_SIZE_SCALE = 0.8;
 
@@ -164,6 +167,17 @@ export function defenseObstacleSpriteAnchor(
   return {
     x: tile.x,
     y: tile.y - displayH / 2,
+  };
+}
+
+/** Screen position for obstacle `Image` sprites — anchor plus cosmetic Y only. */
+export function defenseObstacleSpriteDisplayPosition(
+  placement: DefenseObstaclePlacement,
+): { x: number; y: number } {
+  const anchor = defenseObstacleSpriteAnchor(placement);
+  return {
+    x: anchor.x,
+    y: anchor.y + DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET,
   };
 }
 

@@ -15,6 +15,8 @@ export {
   defenseHalfWidth,
   defenseObstacleColliderFromPlacement,
   defenseObstacleSpriteAnchor,
+  defenseObstacleSpriteDisplayPosition,
+  DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET,
   defenseTileCenter,
   northWallAttackY,
   northWallApproachY,

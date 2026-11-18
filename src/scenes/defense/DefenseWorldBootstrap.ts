@@ -6,7 +6,7 @@ import {
   type DefenseObstacleRect,
   defenseHalfHeight,
   defenseHalfWidth,
-  defenseObstacleSpriteAnchor,
+  defenseObstacleSpriteDisplayPosition,
 } from "../../config";
 import { Player } from "../../entities/Player";
 import { worldUnit } from "../../core/worldPixelScale";
@@ -87,8 +87,8 @@ export function bootstrapDefenseWorld(
   for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
     const blocker = obstacleBlockers[i]!;
-    const anchor = defenseObstacleSpriteAnchor(placement);
-    const art = scene.add.image(anchor.x, anchor.y, placement.textureKey);
+    const displayPos = defenseObstacleSpriteDisplayPosition(placement);
+    const art = scene.add.image(displayPos.x, displayPos.y, placement.textureKey);
     art.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
     configureDefenseObstacleArt(art, placement.textureKey);
     registerWorld(art);
