@@ -4,7 +4,7 @@ import {
   type ObstacleTextureKey,
 } from "../content/assets";
 import {
-  defenseObstacleBlockerCenterNudgePx,
+  type DefenseObstacleRect,
   obstacleDisplaySize,
   obstaclePhysicsLayout,
   type ObstaclePhysicsLayout,
@@ -60,7 +60,7 @@ export function defenseObstacleConfigAabb(collider: {
   };
 }
 
-/** StaticBody offset from sprite top-left (center origin); see {@link seatDefenseObstacleStaticBodyFromCollider}. */
+/** StaticBody offset from sprite top-left (center origin); unit tests only. */
 export function obstacleArcadeBodyOffset(
   layout: ObstaclePhysicsLayout,
   displayW: number,
@@ -80,8 +80,30 @@ export function obstacleArcadeBodyOffset(
 }
 
 /**
+ * Gameplay blocker center from the live sprite transform (world top-left).
+ * Authoritative after `registerWorld` / layer parenting — anchor math alone can
+ * drift one nav cell on device vs Arcade `getBounds()`.
+ */
+export function defenseObstacleBlockerFromSprite(
+  rock: Phaser.Physics.Arcade.Image,
+  textureKey: ObstacleTextureKey,
+  blockW: number,
+  blockH: number,
+): Pick<DefenseObstacleRect, "x" | "y" | "w" | "h"> {
+  const layout = obstaclePhysicsLayout(textureKey);
+  const sizeScale = blockW / layout.bodyW;
+  const topLeft = new Phaser.Math.Vector2();
+  rock.getTopLeft(topLeft, true);
+  return {
+    x: topLeft.x + rock.displayWidth / 2 + layout.bodyCenterOffsetX * sizeScale,
+    y: topLeft.y + rock.displayHeight / 2 + layout.bodyCenterOffsetY * sizeScale,
+    w: blockW,
+    h: blockH,
+  };
+}
+
+/**
  * Forces Arcade tree bounds to match the nav/debug collider (authoritative gameplay rect).
- * `body.reset` uses local `getTopLeft`; that can diverge from `DEFENSE_OBSTACLES` after display setup.
  */
 export function seatDefenseObstacleStaticBodyFromCollider(
   rock: Phaser.Physics.Arcade.Image,
@@ -96,16 +118,21 @@ export function seatDefenseObstacleStaticBodyFromCollider(
   const left = collider.x - collider.w / 2;
   const top = collider.y - collider.h / 2;
   body.position.set(left, top);
+  body.width = collider.w;
+  body.height = collider.h;
+  body.halfWidth = Math.floor(collider.w / 2);
+  body.halfHeight = Math.floor(collider.h / 2);
   body.offset.set(0, 0);
   body.updateCenter();
   tree.insert(body);
 }
 
-/** Crop art for display; Arcade body matches nav blocker (feet-aligned, may be smaller than sprite). */
+/** Visual crop only; call {@link defenseObstacleBlockerFromSprite} then seat after world-layer adopt. */
 export function configureDefenseObstacleSprite(
   rock: Phaser.Physics.Arcade.Image,
   textureKey: ObstacleTextureKey,
-  collider: { x: number; y: number; w: number; h: number },
+  blockW: number,
+  blockH: number,
 ): void {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
   const disp = obstacleDisplaySize(textureKey);
@@ -115,8 +142,27 @@ export function configureDefenseObstacleSprite(
   rock.setOrigin(0.5);
 
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
-  body.setSize(collider.w, collider.h, false);
-  seatDefenseObstacleStaticBodyFromCollider(rock, collider);
+  body.setSize(blockW, blockH, false);
+  body.offset.set(0, 0);
+}
+
+/** After visual setup + layer adopt: seat body and return gameplay rect for nav/debug. */
+export function finalizeDefenseObstacleSprite(
+  rock: Phaser.Physics.Arcade.Image,
+  textureKey: ObstacleTextureKey,
+  blockW: number,
+  blockH: number,
+): DefenseObstacleRect {
+  const blocker = defenseObstacleBlockerFromSprite(rock, textureKey, blockW, blockH);
+  seatDefenseObstacleStaticBodyFromCollider(rock, blocker);
+  const aabb = readArcadeStaticBodyWorldAabb(rock.body as Phaser.Physics.Arcade.StaticBody);
+  return {
+    x: aabb.cx,
+    y: aabb.cy,
+    w: aabb.w,
+    h: aabb.h,
+    textureKey,
+  };
 }
 
 /** Expected Arcade body center for a sprite at the given anchor (unit-test / debug). */
@@ -131,10 +177,9 @@ export function obstacleBodyCenterAtAnchor(
   const w = blockW ?? layout.bodyW;
   const h = blockH ?? layout.bodyH;
   const sizeScale = w / layout.bodyW;
-  const nudge = defenseObstacleBlockerCenterNudgePx();
   return {
-    x: anchorX + layout.bodyCenterOffsetX * sizeScale - nudge,
-    y: anchorY + layout.bodyCenterOffsetY * sizeScale - nudge,
+    x: anchorX + layout.bodyCenterOffsetX * sizeScale,
+    y: anchorY + layout.bodyCenterOffsetY * sizeScale,
     w,
     h,
   };

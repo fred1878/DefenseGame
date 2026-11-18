@@ -89,7 +89,6 @@ import {
   updateEnemyNameplate,
 } from "../ui/enemyNameplate";
 import {
-  scaledDefenseObstacles,
   worldDisplayPx,
   worldUnit,
 } from "../core/worldPixelScale";
@@ -252,6 +251,7 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies = [];
   };
   private prevPlayerAttackPhase: AttackPhase = "idle";
+  obstacleBlockers: import("../config/defense").DefenseObstacleRect[] = [];
   private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
   private enemyGroup!: Phaser.Physics.Arcade.Group;
   hudChrome!: CombatHudChrome;
@@ -323,11 +323,6 @@ export class DefenseScene extends Phaser.Scene {
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
     this.wallHpStart = this.wallHp;
-    this.navGrid = buildNavGrid(
-      scaledDefenseObstacles(this.registry),
-      worldUnit(DEFENSE_MAP.cellSize, this.registry),
-      worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
-    );
     const store = this.registry.get("dataStore") as DataStore;
     const runMode = readDefenseRunMode(this.registry);
     const endless = runMode.kind === "endless";
@@ -356,8 +351,14 @@ export class DefenseScene extends Phaser.Scene {
     });
     this.player = world.player;
     this.playerInvulnMs = world.playerInvulnMs;
+    this.obstacleBlockers = world.obstacleBlockers;
     this.obstacleGroup = world.obstacleGroup;
     this.enemyGroup = world.enemyGroup;
+    this.navGrid = buildNavGrid(
+      this.obstacleBlockers,
+      worldUnit(DEFENSE_MAP.cellSize, this.registry),
+      worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
+    );
     this.registerWorldDraw = world.registerWorldDraw;
     this.registerUiDraw = world.registerUiDraw;
     this.uiCamera = world.cameraRig.uiCamera;
@@ -1007,10 +1008,7 @@ export class DefenseScene extends Phaser.Scene {
       return;
     }
     this.pathDebug.clear();
-    this.pathDebug.drawObstacleZones(
-      this.navGrid,
-      scaledDefenseObstacles(this.registry),
-    );
+    this.pathDebug.drawObstacleZones(this.navGrid, this.obstacleBlockers);
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       const goal = this.enemyPathGoals.get(e.id);
