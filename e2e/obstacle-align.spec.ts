@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import {
+  DEFENSE_MAP,
   DEFENSE_OBSTACLES,
   DEFENSE_OBSTACLE_PLACEMENTS,
   defenseObstacleSpriteAnchor,
@@ -35,6 +36,8 @@ type ObstacleAlignRow = {
   boundsTop: number;
   boundsRight: number;
   boundsBottom: number;
+  bodyOffsetX: number;
+  bodyOffsetY: number;
 };
 
 test.describe("obstacle sprite vs blocking", () => {
@@ -82,6 +85,8 @@ test.describe("obstacle sprite vs blocking", () => {
       expect(Math.abs(boundsCy - row.configY)).toBeLessThanOrEqual(EDGE_TOL_PX);
       expect(Math.abs(boundsCx - row.bodyCenterX)).toBeLessThanOrEqual(EDGE_TOL_PX);
       expect(Math.abs(boundsCy - row.bodyCenterY)).toBeLessThanOrEqual(EDGE_TOL_PX);
+      expect(Math.abs(row.bodyOffsetX)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs(row.bodyOffsetY)).toBeLessThanOrEqual(0.01);
 
       expect(row.bodyW).toBeLessThanOrEqual(row.displayW + 0.51);
       expect(row.bodyH).toBeLessThanOrEqual(row.displayH + 0.51);
@@ -127,7 +132,7 @@ test.describe("obstacle sprite vs blocking", () => {
       expect(Math.abs(row.spriteY - anchor.y)).toBeLessThan(0.01);
       const feetY = row.spriteY + row.displayH / 2;
       const bodyBottom = row.boundsBottom;
-      expect(Math.abs(bodyBottom - feetY)).toBeLessThan(1.01);
+      expect(Math.abs(bodyBottom - (feetY - DEFENSE_MAP.cellSize))).toBeLessThan(1.01);
       expect(Math.abs(bodyBottom - (row.configY + row.configH / 2))).toBeLessThanOrEqual(
         EDGE_TOL_PX,
       );

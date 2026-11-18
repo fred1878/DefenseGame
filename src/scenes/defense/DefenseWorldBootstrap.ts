@@ -19,7 +19,10 @@ import {
   DEFENSE_WORLD_LAYER_REGISTRY_KEY,
   setDefenseWorldLayerTarget,
 } from "../../world/defenseWorldAddHook";
-import { configureDefenseObstacleSprite } from "../../world/defenseObstacleSprite";
+import {
+  configureDefenseObstacleSprite,
+  seatDefenseObstacleStaticBodyFromCollider,
+} from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
 import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
 
@@ -90,6 +93,7 @@ export function bootstrapDefenseWorld(
     registerWorld(rock);
     configureDefenseObstacleSprite(rock, placement.textureKey, obs);
     obstacleGroup.add(rock);
+    seatDefenseObstacleStaticBodyFromCollider(rock, obs);
   }
 
   scene.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
