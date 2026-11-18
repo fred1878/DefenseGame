@@ -529,6 +529,8 @@ export function defenseSceneE2eGetObstacleAlignment(
   boundsTop: number;
   boundsRight: number;
   boundsBottom: number;
+  bodyOffsetX: number;
+  bodyOffsetY: number;
 }> {
   const children = scene.obstacleGroup.getChildren() as Phaser.Physics.Arcade.Image[];
   const scaled = scaledDefenseObstacles(scene.registry);
@@ -565,6 +567,8 @@ export function defenseSceneE2eGetObstacleAlignment(
       boundsTop: b.y,
       boundsRight: b.right,
       boundsBottom: b.bottom,
+      bodyOffsetX: body.offset.x,
+      bodyOffsetY: body.offset.y,
     };
   });
 }

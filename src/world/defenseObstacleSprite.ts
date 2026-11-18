@@ -4,6 +4,7 @@ import {
   type ObstacleTextureKey,
 } from "../content/assets";
 import {
+  defenseObstacleBlockerCenterNudgePx,
   obstacleDisplaySize,
   obstaclePhysicsLayout,
   type ObstaclePhysicsLayout,
@@ -92,9 +93,10 @@ export function seatDefenseObstacleStaticBodyFromCollider(
     insert(b: Phaser.Physics.Arcade.StaticBody): void;
   };
   tree.remove(body);
-  const halfW = Math.floor(collider.w / 2);
-  const halfH = Math.floor(collider.h / 2);
-  body.position.set(collider.x - halfW, collider.y - halfH);
+  const left = collider.x - collider.w / 2;
+  const top = collider.y - collider.h / 2;
+  body.position.set(left, top);
+  body.offset.set(0, 0);
   body.updateCenter();
   tree.insert(body);
 }
@@ -107,7 +109,6 @@ export function configureDefenseObstacleSprite(
 ): void {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
   const disp = obstacleDisplaySize(textureKey);
-  const layout = obstaclePhysicsLayout(textureKey);
 
   rock.setCrop(crop.x, crop.y, crop.w, crop.h);
   rock.setDisplaySize(disp.w, disp.h);
@@ -115,14 +116,6 @@ export function configureDefenseObstacleSprite(
 
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
   body.setSize(collider.w, collider.h, false);
-  const offset = obstacleArcadeBodyOffset(
-    layout,
-    rock.displayWidth,
-    rock.displayHeight,
-    collider.w,
-    collider.h,
-  );
-  body.setOffset(offset.x, offset.y);
   seatDefenseObstacleStaticBodyFromCollider(rock, collider);
 }
 
@@ -138,9 +131,10 @@ export function obstacleBodyCenterAtAnchor(
   const w = blockW ?? layout.bodyW;
   const h = blockH ?? layout.bodyH;
   const sizeScale = w / layout.bodyW;
+  const nudge = defenseObstacleBlockerCenterNudgePx();
   return {
-    x: anchorX + layout.bodyCenterOffsetX * sizeScale,
-    y: anchorY + layout.bodyCenterOffsetY * sizeScale,
+    x: anchorX + layout.bodyCenterOffsetX * sizeScale - nudge,
+    y: anchorY + layout.bodyCenterOffsetY * sizeScale - nudge,
     w,
     h,
   };
