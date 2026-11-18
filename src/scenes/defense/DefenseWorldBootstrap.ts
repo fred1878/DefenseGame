@@ -11,8 +11,8 @@ import {
 import { Player } from "../../entities/Player";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
+  createDefenseObstacleCollider,
   defenseObstacleBlockerRects,
-  installDefenseObstacleStaticBody,
 } from "../../world/defenseObstacleBlocker";
 import { buildGroundDecorLayer } from "../../world/buildGroundDecorLayer";
 import { buildGroundLayer } from "../../world/buildGroundLayer";
@@ -24,7 +24,7 @@ import {
   DEFENSE_WORLD_LAYER_REGISTRY_KEY,
   setDefenseWorldLayerTarget,
 } from "../../world/defenseWorldAddHook";
-import { configureDefenseObstacleSprite } from "../../world/defenseObstacleSprite";
+import { configureDefenseObstacleArt } from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
 import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
 
@@ -88,16 +88,18 @@ export function bootstrapDefenseWorld(
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
     const blocker = obstacleBlockers[i]!;
     const anchor = defenseObstacleSpriteAnchor(placement);
-    const rock = scene.physics.add.staticImage(
-      anchor.x,
-      anchor.y,
-      placement.textureKey,
+    const art = scene.add.image(anchor.x, anchor.y, placement.textureKey);
+    art.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
+    configureDefenseObstacleArt(art, placement.textureKey);
+    registerWorld(art);
+
+    const collider = createDefenseObstacleCollider(
+      scene,
+      blocker,
+      DEFENSE_RENDER_DEPTH.obstacleRock - 1,
     );
-    rock.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
-    configureDefenseObstacleSprite(rock, placement.textureKey, blocker.w, blocker.h);
-    registerWorld(rock);
-    obstacleGroup.add(rock);
-    installDefenseObstacleStaticBody(rock, blocker);
+    registerWorld(collider);
+    obstacleGroup.add(collider);
   }
 
   scene.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);

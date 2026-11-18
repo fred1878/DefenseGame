@@ -501,9 +501,6 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     damageFirstLivingEnemy(amount: number) {
       activeDefense(game)?.e2eDamageFirstLivingEnemy(amount);
     },
-    getObstacleAlignment() {
-      return activeDefense(game)?.e2eGetObstacleAlignment() ?? [];
-    },
   };
 }
 
