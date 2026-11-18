@@ -103,6 +103,71 @@ export function defenseObstacleBlockerFromSprite(
 }
 
 /**
+ * Arcade StaticBody: center origin + crop feet alignment via offset (survives `reset()` / group refresh).
+ */
+export function applyDefenseObstacleArcadeBody(
+  rock: Phaser.Physics.Arcade.Image,
+  textureKey: ObstacleTextureKey,
+  collider: { x: number; y: number; w: number; h: number },
+): void {
+  const layout = obstaclePhysicsLayout(textureKey);
+  const offset = obstacleArcadeBodyOffset(
+    layout,
+    rock.displayWidth,
+    rock.displayHeight,
+    collider.w,
+    collider.h,
+  );
+  const body = rock.body as Phaser.Physics.Arcade.StaticBody;
+  body.setSize(collider.w, collider.h, false);
+  body.setOffset(offset.x, offset.y);
+  body.reset(rock.x, rock.y);
+  seatDefenseObstacleStaticBodyFromCollider(rock, collider);
+}
+
+/** Writes live `getBounds()` centers into `out` (same order as group children). */
+export function syncDefenseObstacleBlockersFromPhysics(
+  group: Phaser.Physics.Arcade.StaticGroup,
+  placements: ReadonlyArray<{ textureKey: ObstacleTextureKey }>,
+  out: DefenseObstacleRect[],
+): void {
+  const children = group.getChildren() as Phaser.Physics.Arcade.Image[];
+  for (let i = 0; i < children.length; i++) {
+    const rock = children[i]!;
+    const placement = placements[i]!;
+    const aabb = readArcadeStaticBodyWorldAabb(rock.body as Phaser.Physics.Arcade.StaticBody);
+    const next: DefenseObstacleRect = {
+      x: aabb.cx,
+      y: aabb.cy,
+      w: aabb.w,
+      h: aabb.h,
+      textureKey: placement.textureKey,
+    };
+    if (out[i]) {
+      out[i] = next;
+    } else {
+      out.push(next);
+    }
+  }
+  out.length = children.length;
+}
+
+/** Placement colliders + offset; call each frame so `reset()` drift cannot desync overlays. */
+export function maintainDefenseObstaclePhysics(
+  group: Phaser.Physics.Arcade.StaticGroup,
+  scaledColliders: DefenseObstacleRect[],
+  obstacleBlockers: DefenseObstacleRect[],
+): void {
+  const children = group.getChildren() as Phaser.Physics.Arcade.Image[];
+  for (let i = 0; i < children.length; i++) {
+    const rock = children[i]!;
+    const collider = scaledColliders[i]!;
+    applyDefenseObstacleArcadeBody(rock, collider.textureKey, collider);
+  }
+  syncDefenseObstacleBlockersFromPhysics(group, scaledColliders, obstacleBlockers);
+}
+
+/**
  * Forces Arcade tree bounds to match the nav/debug collider (authoritative gameplay rect).
  */
 export function seatDefenseObstacleStaticBodyFromCollider(
@@ -143,18 +208,15 @@ export function configureDefenseObstacleSprite(
 
   const body = rock.body as Phaser.Physics.Arcade.StaticBody;
   body.setSize(blockW, blockH, false);
-  body.offset.set(0, 0);
 }
 
-/** After visual setup + layer adopt: seat body and return gameplay rect for nav/debug. */
+/** After visual setup + layer adopt: seat from placement collider (not sprite-only math). */
 export function finalizeDefenseObstacleSprite(
   rock: Phaser.Physics.Arcade.Image,
   textureKey: ObstacleTextureKey,
-  blockW: number,
-  blockH: number,
+  collider: Pick<DefenseObstacleRect, "x" | "y" | "w" | "h">,
 ): DefenseObstacleRect {
-  const blocker = defenseObstacleBlockerFromSprite(rock, textureKey, blockW, blockH);
-  seatDefenseObstacleStaticBodyFromCollider(rock, blocker);
+  applyDefenseObstacleArcadeBody(rock, textureKey, collider);
   const aabb = readArcadeStaticBodyWorldAabb(rock.body as Phaser.Physics.Arcade.StaticBody);
   return {
     x: aabb.cx,
