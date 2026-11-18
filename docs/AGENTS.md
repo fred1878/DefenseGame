@@ -57,7 +57,7 @@ docs/                  # AGENTS, TESTING, CI_RELEASES, REFACTOR_PLAN; ROADMAP at
 |-------|------|--------|
 | **Tuning** | `src/config/` | `GAME`, `PLAYER_TUNING`, `PLAYER_AGGRO_RADIUS`, `DEFENSE_MAP` / `DEFENSE_OBSTACLES`, spell bar **layout** (`SPELL_BAR`, `CAST_BAR` px). No save schemas, no asset manifests, no spell damage tables. |
 | **Code content** | `src/content/` | `assets.ts` (texture keys, file paths, nine-slice), `spells.ts` (`SPELL_CATALOG`, spell ids). Candidate to move spells → `public/data/spells.json` later. |
-| **Runtime JSON** | `public/data/` | `enemies.json`, `waves.json`, `buildings.json` (fetched in Boot). |
+| **Runtime JSON** | `public/data/` | `enemies.json`, `waves.json`, `buildings.json`, `player.json` (fetched in Boot). |
 
 Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). `src/config.ts` re-exports **tuning only** from `src/config/index.ts`.
 
@@ -132,6 +132,8 @@ New melee enemies can omit `combat` entirely. Override only what you need (e.g. 
   }
 }
 ```
+
+**player.json** — combat/movement tuning (`moveSpeed`, melee/ranged timings, HP, invuln) plus `endlessPanelDefaultConcurrent` (initial cap in the endless roster UI only; spawns use per-type values from the panel at Start).
 
 **buildings.json**:
 

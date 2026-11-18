@@ -46,18 +46,15 @@ describe("readDefenseRunMode", () => {
 });
 
 describe("resolveEndlessRunSelections", () => {
-  it("fills caps from resolver when zero", () => {
+  it("clamps panel caps and does not invent defaults for zero", () => {
     expect(
-      resolveEndlessRunSelections(
-        [
-          { enemyId: "grunt", concurrentCap: 7 },
-          { enemyId: "x", concurrentCap: 0 },
-        ],
-        (id) => (id === "x" ? 5 : 10),
-      ),
+      resolveEndlessRunSelections([
+        { enemyId: "grunt", concurrentCap: 7 },
+        { enemyId: "x", concurrentCap: 0 },
+      ]),
     ).toEqual([
       { enemyId: "grunt", concurrentCap: 7 },
-      { enemyId: "x", concurrentCap: 5 },
+      { enemyId: "x", concurrentCap: 1 },
     ]);
   });
 });

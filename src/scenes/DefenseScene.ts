@@ -68,7 +68,6 @@ import {
 import { VirtualStick } from "../input/VirtualStick";
 import { createTouchToggleButton } from "../ui/touchButton";
 import { evaluateEndlessEnd, evaluateNightEnd } from "./defenseNightLogic";
-import { getEndlessConcurrentCap } from "../systems/endlessEnemyRoster";
 import {
   countLivingWithDefId,
   planEndlessSpawns,
@@ -335,14 +334,7 @@ export class DefenseScene extends Phaser.Scene {
     const runMode = readDefenseRunMode(this.registry);
     const endless = runMode.kind === "endless";
     if (endless) {
-      this.endlessSelections = resolveEndlessRunSelections(
-        runMode.selections,
-        (enemyId) =>
-          getEndlessConcurrentCap(
-            enemyId,
-            store.enemies[enemyId],
-          ),
-      );
+      this.endlessSelections = resolveEndlessRunSelections(runMode.selections);
       this.rewardGold = 0;
       if (runMode.infiniteHp === true) {
         this.endlessInfiniteHp = true;

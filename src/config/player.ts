@@ -1,16 +1,17 @@
 export type AttackMode = "melee" | "ranged" | "auto";
 
-/** Matches `ENTITY_BODY_RADIUS.enemy`; added to strike reach for auto-melee engage. */
 const MELEE_ENGAGE_TARGET_RADIUS = 14;
-/** Engage slack (WU); lower tightens `autoAttackMeleeRange` only — not `meleeStrikeRange`. */
 const MELEE_ACTIVATION_SLACK_WU = 6;
 
-/** Base melee tuning export; arc hits use `meleeStrikeRange`. */
 const meleeRange = 58;
-/** Damage / connect arc reach (world units at 2×). */
 const meleeStrikeRange = 93;
 
-export const PLAYER_TUNING = {
+function deriveAutoAttackMeleeRange(strike: number): number {
+  return strike + MELEE_ENGAGE_TARGET_RADIUS - MELEE_ACTIVATION_SLACK_WU;
+}
+
+/** Code defaults when `public/data/player.json` omits keys (also used before Boot loads). */
+export const PLAYER_TUNING_DEFAULTS = {
   moveSpeed: 220,
   meleeWindupMs: 120,
   meleeActiveMs: 100,
@@ -28,11 +29,26 @@ export const PLAYER_TUNING = {
   meleeKnockback: 320,
   rangedKnockback: 110,
   maxHp: 100,
-  /** Center-to-center engage gate (auto windup / facing pick); does not shrink hit arc. */
-  autoAttackMeleeRange:
-    meleeStrikeRange + MELEE_ENGAGE_TARGET_RADIUS - MELEE_ACTIVATION_SLACK_WU,
+  autoAttackMeleeRange: deriveAutoAttackMeleeRange(meleeStrikeRange),
   autoAttackRangedRange: 300,
   targetTapRadiusWorld: 56,
   playerHitInvulnMs: 900,
   nightSpawnInvulnMs: 1500,
 } as const;
+
+/** Initial concurrent cap shown in endless roster (not used by spawner). */
+export const ENDLESS_PANEL_DEFAULT_CONCURRENT = 5;
+
+export type PlayerTuning = {
+  -readonly [K in keyof typeof PLAYER_TUNING_DEFAULTS]: number;
+};
+
+/** Active tuning (from JSON after Boot; defaults until then). */
+export let PLAYER_TUNING: PlayerTuning = {
+  ...PLAYER_TUNING_DEFAULTS,
+};
+
+/** Replace runtime tuning after `public/data/player.json` loads (Boot). */
+export function applyPlayerTuning(tuning: PlayerTuning): void {
+  PLAYER_TUNING = { ...tuning };
+}

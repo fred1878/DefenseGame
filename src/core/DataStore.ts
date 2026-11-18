@@ -2,6 +2,11 @@ import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
 import type { EnemyCombatPartial } from "./enemyTuning";
 import { normalizeEnemyRow } from "./normalizeEnemy";
+import {
+  normalizePlayerConfig,
+  type PlayerConfig,
+  type PlayerConfigInput,
+} from "./normalizePlayer";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
@@ -14,8 +19,6 @@ export type EnemyDef = {
   displayName: string;
   /** Optional overrides; missing fields use per-behavior defaults. */
   combat?: EnemyCombatPartial;
-  /** Endless training: target concurrent living count (1–99). */
-  endlessConcurrent?: number;
 };
 
 export type WaveGroup = {
@@ -43,20 +46,30 @@ export class DataStore {
   townBuildings: Record<string, TownBuildingDef> = {};
   townLayout: TownLayoutDef = { slots: [] };
   spells: SpellDefinition[] = [];
+  /** From `public/data/player.json` (combat tuning + endless panel UI seed). */
+  player: PlayerConfig = normalizePlayerConfig({});
 
   async loadAll(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
-    const [enemies, waves, buildings, townBuildings, townLayout, spellsFile] =
-      await Promise.all([
-        fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
-        fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
-        fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
-        fetchJson<Record<string, TownBuildingDef>>(
-          `${prefix}data/town_buildings.json`,
-        ),
-        fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
-        fetchJson<{ spells: SpellDefinition[] }>(`${prefix}data/spells.json`),
-      ]);
+    const [
+      enemies,
+      waves,
+      buildings,
+      townBuildings,
+      townLayout,
+      spellsFile,
+      playerFile,
+    ] = await Promise.all([
+      fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
+      fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
+      fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
+      fetchJson<Record<string, TownBuildingDef>>(
+        `${prefix}data/town_buildings.json`,
+      ),
+      fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
+      fetchJson<{ spells: SpellDefinition[] }>(`${prefix}data/spells.json`),
+      fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
+    ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
         id,
@@ -69,6 +82,7 @@ export class DataStore {
     this.townLayout = townLayout;
     this.spells = spellsFile.spells;
     setSpellCatalog(spellsFile.spells);
+    this.player = normalizePlayerConfig(playerFile);
   }
 
   getWaveForNight(night: number): WaveDef | undefined {

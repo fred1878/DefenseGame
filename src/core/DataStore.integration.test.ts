@@ -161,6 +161,16 @@ describe("public data fixtures", () => {
     }
   });
 
+  it("player.json defines moveSpeed and endless panel seed", () => {
+    const player = readJson("player.json") as {
+      moveSpeed: number;
+      endlessPanelDefaultConcurrent: number;
+    };
+    expect(player.moveSpeed).toBeGreaterThan(0);
+    expect(player.endlessPanelDefaultConcurrent).toBeGreaterThanOrEqual(1);
+    expect(player.endlessPanelDefaultConcurrent).toBeLessThanOrEqual(99);
+  });
+
   it("buildings.json defines wall costs", () => {
     const buildings = readJson("buildings.json") as Record<
       string,
@@ -190,6 +200,7 @@ describe("DataStore.loadAll", () => {
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
     expect(store.spells.length).toBeGreaterThan(0);
+    expect(store.player.moveSpeed).toBeGreaterThan(0);
     vi.unstubAllGlobals();
   });
 });

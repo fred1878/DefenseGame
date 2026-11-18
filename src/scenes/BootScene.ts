@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GAME } from "../config";
+import { applyPlayerTuning } from "../config/player";
 import { SFX_ASSETS, SFX_ASSET_ROOT } from "../content/audioAssets";
 import {
   COMBAT_FX_ASSETS,
@@ -41,6 +42,8 @@ export class BootScene extends Phaser.Scene {
     const store = new DataStore();
     try {
       await store.loadAll(import.meta.env.BASE_URL);
+      const { endlessPanelDefaultConcurrent: _uiSeed, ...tuning } = store.player;
+      applyPlayerTuning(tuning);
     } catch (err) {
       this.add
         .text(GAME.width / 2, GAME.height / 2, "Failed to load data", {
