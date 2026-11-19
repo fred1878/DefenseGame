@@ -129,6 +129,7 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | File | Purpose |
 |------|---------|
 | `player.json` | Player combat/movement tuning + `endlessPanelDefaultConcurrent` (UI seed for endless roster) |
+| `enemy-combat-defaults.json` | Baseline `wall` / `melee` / behavior combat tables; per-enemy `combat` in `enemies.json` overrides |
 | `enemies.json` | HP, speed, damage, `behavior`, optional `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
 | `buildings.json` | Upgrade defs: `wall`, `blacksmith` (`costByLevel`, effects) |

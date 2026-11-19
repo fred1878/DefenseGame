@@ -44,6 +44,7 @@ export class BootScene extends Phaser.Scene {
       await store.loadAll(import.meta.env.BASE_URL);
       const { endlessPanelDefaultConcurrent: _uiSeed, ...tuning } = store.player;
       applyPlayerTuning(tuning);
+      // Enemy combat baselines applied inside DataStore.loadAll.
     } catch (err) {
       this.add
         .text(GAME.width / 2, GAME.height / 2, "Failed to load data", {

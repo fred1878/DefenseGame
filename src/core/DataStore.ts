@@ -1,6 +1,8 @@
 import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
+import { applyEnemyCombatDefaults } from "./enemyTuning";
 import type { EnemyCombatPartial } from "./enemyTuning";
+import type { EnemyCombatDefaultsInput } from "./normalizeEnemyCombatDefaults";
 import { normalizeEnemyRow } from "./normalizeEnemy";
 import {
   normalizePlayerConfig,
@@ -59,6 +61,7 @@ export class DataStore {
       townLayout,
       spellsFile,
       playerFile,
+      enemyCombatDefaults,
     ] = await Promise.all([
       fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
@@ -69,6 +72,9 @@ export class DataStore {
       fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
       fetchJson<{ spells: SpellDefinition[] }>(`${prefix}data/spells.json`),
       fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
+      fetchJson<EnemyCombatDefaultsInput>(
+        `${prefix}data/enemy-combat-defaults.json`,
+      ),
     ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
@@ -83,6 +89,7 @@ export class DataStore {
     this.spells = spellsFile.spells;
     setSpellCatalog(spellsFile.spells);
     this.player = normalizePlayerConfig(playerFile);
+    applyEnemyCombatDefaults(enemyCombatDefaults);
   }
 
   getWaveForNight(night: number): WaveDef | undefined {

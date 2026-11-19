@@ -1,0 +1,81 @@
+{
+  "wall": {
+    "damage": 6,
+    "triggerRange": 42,
+    "hitRange": 34
+  },
+  "melee": {
+    "triggerRange": 36,
+    "range": 26,
+    "arcDeg": 70,
+    "windupMs": 380,
+    "activeMs": 110,
+    "recoveryMs": 480,
+    "cooldownMs": 350
+  },
+  "arrowRain": {
+    "preferredRange": 150,
+    "attackTriggerRange": 168,
+    "windupMs": 900,
+    "activeMs": 1200,
+    "recoveryMs": 520,
+    "cooldownMs": 2200,
+    "zoneRadius": 72,
+    "tickIntervalMs": 300,
+    "tickDamageScale": 0.55,
+    "maxTicks": 4
+  },
+  "javelineer": {
+    "minRange": 52,
+    "maxRange": 198,
+    "strafeSpeedMul": 0.92,
+    "orbitFlipMs": 1400,
+    "windupMs": 340,
+    "activeMs": 120,
+    "recoveryMs": 420,
+    "cooldownMs": 1100,
+    "projectileSpeed": 340,
+    "projectileMaxTravel": 240
+  },
+  "stationaryRanged": {
+    "attackTriggerRange": 155,
+    "windupMs": 520,
+    "activeMs": 80,
+    "recoveryMs": 480,
+    "cooldownMs": 1400,
+    "projectileSpeed": 380,
+    "projectileMaxTravel": 220
+  },
+  "wallSiege": {
+    "playerAggroRadius": 72
+  },
+  "charger": {
+    "dashTriggerRange": 148,
+    "dashWindupMs": 320,
+    "dashDurationMs": 420,
+    "dashSpeedMul": 2.35,
+    "dashCooldownMs": 2800
+  },
+  "lobber": {
+    "preferredRange": 128,
+    "attackTriggerRange": 168,
+    "windupMs": 680,
+    "activeMs": 100,
+    "recoveryMs": 520,
+    "cooldownMs": 2400,
+    "projectileSpeed": 260,
+    "blastRadius": 58,
+    "blastDamageScale": 0.85
+  },
+  "ward": {
+    "protectRadius": 220,
+    "screenBlend": 0.42,
+    "playerAggroRadius": 120
+  },
+  "hybrid": {
+    "closeMeleeRadius": 52,
+    "preferredRange": 118,
+    "maxMeleeSwings": 3,
+    "retreatRangeSlack": 16
+  }
+}

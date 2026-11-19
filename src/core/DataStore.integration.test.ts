@@ -161,6 +161,15 @@ describe("public data fixtures", () => {
     }
   });
 
+  it("enemy-combat-defaults.json defines wall and melee baselines", () => {
+    const defs = readJson("enemy-combat-defaults.json") as {
+      wall: { damage: number };
+      melee: { range: number };
+    };
+    expect(defs.wall.damage).toBeGreaterThan(0);
+    expect(defs.melee.range).toBeGreaterThan(0);
+  });
+
   it("player.json defines moveSpeed and endless panel seed", () => {
     const player = readJson("player.json") as {
       moveSpeed: number;
