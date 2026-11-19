@@ -40,7 +40,7 @@
       "damageFlavor": "default",
       "castMs": 200,
       "onHit": {
-        "slowPct": 0.4,
+        "slowPct": 0.5,
         "slowMs": 4000
       }
     },

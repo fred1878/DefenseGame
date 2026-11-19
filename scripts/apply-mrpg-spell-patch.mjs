@@ -18,7 +18,7 @@ const PATCH = {
   ice_bolt: {
     castMs: 200,
     cooldownMs: 0,
-    onHit: { slowPct: 0.4, slowMs: 4000 },
+    onHit: { slowPct: 0.5, slowMs: 4000 },
   },
   lightning_bolt: { castMs: 550, cooldownMs: 3000 },
   water_bolt: { castMs: 0, cooldownMs: 350 },

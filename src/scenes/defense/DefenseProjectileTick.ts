@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import type { Damageable } from "../../combat/DamageSystem";
 import { applyDamage } from "../../combat/DamageSystem";
 import { applySpellBlastAt } from "../../combat/SpellEffects";
+import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
+import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { PLAYER_TUNING } from "../../config";
 import { spellById } from "../../content/spells";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
@@ -34,6 +36,7 @@ export type DefenseProjectileTickHost = {
   spellDamageMult: () => number;
   wu: (atDefault2x: number) => number;
   findEnemy: (id: string) => DefenseProjectileEnemyTarget | undefined;
+  enemySpellStatus: EnemySpellStatusMap;
   flashNova: (
     x: number,
     y: number,
@@ -66,6 +69,17 @@ export function tickDefenseProjectiles(
   };
   const projectiles = host.projectiles.filter((p) => {
     const result = updateSpellProjectile(p, spellProjCtx);
+    if (result.hitEnemyId && p.spellId) {
+      const def = spellById(p.spellId);
+      if (def?.onHit) {
+        applySpellOnHitEffects(
+          host.enemySpellStatus,
+          result.hitEnemyId,
+          def.onHit,
+          def.damageFlavor ?? "default",
+        );
+      }
+    }
     if (result.detonation) {
       const def = spellById(p.spellId ?? "arc_bomb");
       if (def) {
@@ -76,6 +90,8 @@ export function tickDefenseProjectiles(
           def,
           host.enemyTargets(),
           host.spellDamageMult(),
+          140,
+          host.enemySpellStatus,
         );
         host.flashNova(
           result.detonation.x,
