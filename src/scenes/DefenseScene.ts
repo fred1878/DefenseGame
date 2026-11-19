@@ -23,7 +23,10 @@ import { showPlayerMeleeSwipe } from "../combat/MeleeSwipeFx";
 import { SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
-import { clampGroundTarget } from "../combat/spellMechanics";
+import {
+  groundAimFromWorldPoint,
+  pointerInDefensePlayArea,
+} from "./defense/defenseGroundAimInput";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { correctPlayerObstacleBlockerOverlap } from "../world/defenseObstacleBlocker";
 import {
@@ -82,7 +85,11 @@ import {
   type SpellGroundZone,
 } from "../combat/spellGroundZone";
 import { pickWaveSpawnPoint } from "../world/defenseSpawns";
-import { cameraWorldPoint, type SafeInsets } from "../ui/screenLayout";
+import {
+  cameraWorldPoint,
+  defensePlayAreaLayout,
+  type SafeInsets,
+} from "../ui/screenLayout";
 import {
   destroyEnemyNameplate,
   updateEnemyNameplate,
@@ -201,6 +208,8 @@ export class DefenseScene extends Phaser.Scene {
   private spellGroundZones: SpellGroundZone[] = [];
   private pendingGroundCast: string | null = null;
   private groundAim: { x: number; y: number } | null = null;
+  private groundAimPointerId: number | null = null;
+  private groundAimFromUiBand = false;
   private groundReticle!: GroundTargetReticle;
   private groundAoeTelegraph: SpellGroundAoeTelegraph | null = null;
   private lingerAoeTelegraph: SpellGroundAoeTelegraph | null = null;
@@ -216,6 +225,10 @@ export class DefenseScene extends Phaser.Scene {
   debugBtn!: TouchButtonHandle;
   private safe!: SafeInsets;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
+  private onPointerDownBound = (p: Phaser.Input.Pointer) =>
+    this.onGroundAimPointerDown(p);
+  private onPointerMoveBound = (p: Phaser.Input.Pointer) =>
+    this.onGroundAimPointerMove(p);
   private setHudChromeVisible = (visible: boolean): void => {
     this.hudSetChromeVisible?.(visible);
   };
@@ -227,6 +240,8 @@ export class DefenseScene extends Phaser.Scene {
   private onDefenseShutdown = (): void => {
     this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
     this.input?.off("pointerup", this.onPointerUpBound);
+    this.input?.off("pointerdown", this.onPointerDownBound);
+    this.input?.off("pointermove", this.onPointerMoveBound);
     this.stick?.destroy(this);
     this.targetIndicator?.destroy();
     this.groundReticle?.destroy();
@@ -300,6 +315,8 @@ export class DefenseScene extends Phaser.Scene {
     this.spellGroundZones = [];
     this.pendingGroundCast = null;
     this.groundAim = null;
+    this.groundAimPointerId = null;
+    this.groundAimFromUiBand = false;
     this.shadowformEndsAt = 0;
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
@@ -439,6 +456,8 @@ export class DefenseScene extends Phaser.Scene {
       this.registerWorldDraw(go);
     }
     this.input.on("pointerup", this.onPointerUpBound);
+    this.input.on("pointerdown", this.onPointerDownBound);
+    this.input.on("pointermove", this.onPointerMoveBound);
 
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
 
@@ -870,26 +889,81 @@ export class DefenseScene extends Phaser.Scene {
     return bestMelee !== null ? "melee" : "ranged";
   }
 
-  /** @internal Used by `defense/DefenseSceneE2E` until targeting module lands */
-  onScreenTap(pointer: Phaser.Input.Pointer): void {
-    const tapResult = this.stick.tryConsumeTap(pointer);
-    if (this.targeting.isPointerOverUi(pointer)) return;
-    if (this.pendingGroundCast && tapResult.kind !== "drag") {
-      const screenX = tapResult.kind === "tap" ? tapResult.x : pointer.x;
-      const screenY = tapResult.kind === "tap" ? tapResult.y : pointer.y;
-      const world = cameraWorldPoint(this.cameras.main, screenX, screenY);
-      const def = spellById(this.pendingGroundCast);
-      if (def) {
-        const px = this.player.sprite.x;
-        const py = this.player.sprite.y;
-        const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
-        this.groundAim = clampGroundTarget(px, py, world.x, world.y, maxR);
-        const spellId = this.pendingGroundCast;
-        this.pendingGroundCast = null;
-        this.beginSpellCast(spellId);
-      }
+  private clearGroundAimGesture(): void {
+    this.groundAimPointerId = null;
+    this.groundAimFromUiBand = false;
+    this.stick?.setExternalBlock(null);
+  }
+
+  private syncGroundAimStickBlock(): void {
+    if (!this.stick) return;
+    if (this.pendingGroundCast && this.groundAimFromUiBand) {
+      this.stick.setExternalBlock(() => this.pendingGroundCast !== null);
+    } else {
+      this.stick.setExternalBlock(null);
+    }
+  }
+
+  private onGroundAimPointerDown(pointer: Phaser.Input.Pointer): void {
+    if (!this.pendingGroundCast) return;
+    this.groundAimPointerId = pointer.id;
+    const play = defensePlayAreaLayout(this, this.safe);
+    this.groundAimFromUiBand = !pointerInDefensePlayArea(
+      pointer.x,
+      pointer.y,
+      play,
+    );
+    this.syncGroundAimStickBlock();
+    this.updateGroundAimFromPointer(pointer);
+  }
+
+  private onGroundAimPointerMove(pointer: Phaser.Input.Pointer): void {
+    if (!this.pendingGroundCast || !pointer.isDown) return;
+    if (
+      this.groundAimPointerId !== null &&
+      pointer.id !== this.groundAimPointerId
+    ) {
       return;
     }
+    this.updateGroundAimFromPointer(pointer);
+  }
+
+  private updateGroundAimFromPointer(pointer: Phaser.Input.Pointer): void {
+    const def = spellById(this.pendingGroundCast ?? "");
+    if (!def) return;
+    const world = cameraWorldPoint(this.cameras.main, pointer.x, pointer.y);
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const maxR = this.wu(def.groundTargetMaxRangeWu ?? 240);
+    const aim = groundAimFromWorldPoint(px, py, world.x, world.y, maxR);
+    this.groundAim = aim;
+    this.groundReticle.updatePosition(aim.x, aim.y);
+  }
+
+  private confirmPendingGroundCast(pointer: Phaser.Input.Pointer): boolean {
+    if (!this.pendingGroundCast) return false;
+    const spellId = this.pendingGroundCast;
+    this.updateGroundAimFromPointer(pointer);
+    this.pendingGroundCast = null;
+    this.clearGroundAimGesture();
+    this.beginSpellCast(spellId);
+    return true;
+  }
+
+  /** @internal Used by `defense/DefenseSceneE2E` until targeting module lands */
+  onScreenTap(pointer: Phaser.Input.Pointer): void {
+    if (this.pendingGroundCast) {
+      const aimGesture =
+        this.groundAimPointerId !== null &&
+        pointer.id === this.groundAimPointerId;
+      this.stick.tryConsumeTap(pointer);
+      if (!aimGesture && this.targeting.isPointerOverUi(pointer)) return;
+      if (!aimGesture) return;
+      this.confirmPendingGroundCast(pointer);
+      return;
+    }
+    const tapResult = this.stick.tryConsumeTap(pointer);
+    if (this.targeting.isPointerOverUi(pointer)) return;
     if (this.targeting.focusSelectLockMs > 0) return;
     if (tapResult.kind === "drag") return;
 

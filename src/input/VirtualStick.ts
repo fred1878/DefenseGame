@@ -57,6 +57,7 @@ export class VirtualStick {
   private dragSuppressUntilMs = 0;
   private dir = new Phaser.Math.Vector2(0, 0);
   private e2eOverride: Phaser.Math.Vector2 | null = null;
+  private externalBlock: (() => boolean) | null = null;
 
   constructor(scene: Phaser.Scene, options: VirtualStickOptions = {}) {
     this.scene = scene;
@@ -133,6 +134,11 @@ export class VirtualStick {
   setUiScreenRects(rects: ScreenRect[]): void {
     this.uiScreenRects.length = 0;
     this.uiScreenRects.push(...rects);
+  }
+
+  /** When this returns true, the stick will not start or update (e.g. ground-aim drag). */
+  setExternalBlock(fn: (() => boolean) | null): void {
+    this.externalBlock = fn;
   }
 
   /** Exposed for touch-debug overlay (same rules as stick capture). */
@@ -256,6 +262,7 @@ export class VirtualStick {
   }
 
   private shouldBlock(pointer: Phaser.Input.Pointer): boolean {
+    if (this.externalBlock?.()) return true;
     if (this.isInUiScreenRect(pointer.x, pointer.y)) return true;
     if (this.isInExcludeZone(pointer.x, pointer.y)) return true;
     if (this.pointerOverInteractiveUI(pointer)) return true;

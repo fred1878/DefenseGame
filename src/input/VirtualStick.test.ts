@@ -159,6 +159,16 @@ describe("VirtualStick gesture FSM", () => {
     expect(stick.getDirection().x).toBe(0);
   });
 
+  it("blocks stick start when externalBlock is set", () => {
+    const { stick, down } = makeStickHarness();
+    stick.setExternalBlock(() => true);
+    down(200, 600);
+    expect(stick.getDebugState().pointerId).toBe(null);
+    stick.setExternalBlock(null);
+    down(200, 600);
+    expect(stick.getDebugState().pointerId).toBe(1);
+  });
+
   it("blocks stick start inside configured uiScreenRects", () => {
     const { stick, down } = makeStickHarness({
       uiScreenRects: [{ x: 0, y: 0, width: 120, height: 120 }],
