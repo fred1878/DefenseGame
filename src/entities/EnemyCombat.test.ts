@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../config/defense";
-import { resolveEnemyCombat } from "../core/enemyTuning";
+import { enemyMeleeContactCenterDist, resolveEnemyCombat } from "../core/enemyTuning";
+import { ENTITY_BODY_RADIUS } from "./entityPhysics";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {
   createEnemyCombat,
@@ -34,7 +35,7 @@ function mockEnemy(
   return mockEnemyInstance({
     defId,
     behavior,
-    combatTuning: resolveEnemyCombat(behavior, combatPartial),
+    combatTuning: resolveEnemyCombat(behavior, combatPartial, defId),
     sprite: { x, y, setVelocity: vi.fn() } as unknown as import("./Enemy").EnemyInstance["sprite"],
     combat: combat ?? createEnemyCombat(),
     nav: createEnemyNav(),
@@ -74,6 +75,32 @@ describe("updateEnemyCombat wall target", () => {
 });
 
 describe("updateEnemyCombat player target", () => {
+  it("connects at arcade contact distance for a default grunt", () => {
+    const dist = enemyMeleeContactCenterDist("meleeChaser", "grunt");
+    const enemy = mockEnemy(0, 0, undefined, "grunt", "meleeChaser");
+    enemy.combat.phase = "active";
+    enemy.combat.phaseMs = 0;
+    enemy.combat.hitThisSwing = false;
+    const hit = updateEnemyCombat(
+      enemy,
+      {
+        kind: "player",
+        x: dist,
+        y: 0,
+        radius: ENTITY_BODY_RADIUS.player,
+        damageable: {
+          id: "p",
+          hp: 50,
+          maxHp: 50,
+          alive: true,
+          team: "player",
+        },
+      },
+      0,
+    );
+    expect(hit).toBe(true);
+  });
+
   it("returns true when arc hits the player hurtbox", () => {
     const enemy = mockEnemy(0, 0);
     enemy.combat.phase = "active";
@@ -100,7 +127,7 @@ describe("updateEnemyCombat player target", () => {
   });
 
   it("bruiser connects farther than grunt at the same player offset", () => {
-    const px = 42;
+    const px = 50;
     const target = {
       kind: "player" as const,
       x: px,

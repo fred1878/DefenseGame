@@ -5,13 +5,14 @@
     "hitRange": 34
   },
   "melee": {
-    "triggerRange": 36,
-    "range": 26,
+    "triggerRange": 52,
+    "range": 34,
     "arcDeg": 70,
     "windupMs": 380,
     "activeMs": 110,
     "recoveryMs": 480,
-    "cooldownMs": 350
+    "cooldownMs": 350,
+    "engageBodySlackPx": 0
   },
   "arrowRain": {
     "preferredRange": 150,
