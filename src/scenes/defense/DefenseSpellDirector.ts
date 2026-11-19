@@ -44,7 +44,10 @@ import {
   spellTargetMode,
 } from "../../content/spellTargeting";
 import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
-import { resolveAutoCastGroundAim } from "../../combat/spellGroundAim";
+import {
+  AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE,
+  resolveAutoCastGroundAim,
+} from "../../combat/spellGroundAim";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import type { DefenseObstacleRect } from "../../config/defense";
 import {
@@ -331,9 +334,12 @@ export class DefenseSpellDirector {
   } | null {
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
-    const searchR = this.host.wu(
-      def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
-    );
+    const searchR =
+      spellTargetMode(def) === "ground"
+        ? AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE
+        : this.host.wu(
+            def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
+          );
     const strike = this.host.resolveStrikeMode(this.host.player.mode === "auto");
     return (
       pickAutoCastCombatEnemy(

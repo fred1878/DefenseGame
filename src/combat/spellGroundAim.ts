@@ -3,10 +3,14 @@ import { pickAutoCastCombatEnemy } from "./spellAutoCastCombatEnemy";
 
 export type GroundAimEnemy = EnemyHitTarget & { alive: boolean };
 
+/** Strike-range rules first; tier-3 search is all living enemies (aim clamped to ground max). */
+export const AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE = Number.POSITIVE_INFINITY;
+
 /**
  * Auto-cast ground/AoE aim: same enemy pick as melee/auto attack (focus in strike
- * range, else nearest in strike range), then nearest living enemy within ground
- * range, then a short offset along facing.
+ * range, else nearest in strike range), then nearest living enemy for direction
+ * (any distance). Within ground max range aim at the enemy; beyond it, max range
+ * along that vector. With no enemies, a short offset along facing.
  */
 export function resolveAutoCastGroundAim(
   playerX: number,
@@ -27,7 +31,7 @@ export function resolveAutoCastGroundAim(
     strikeMode,
     meleeRange,
     rangedRange,
-    groundMaxRange,
+    AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE,
   );
 
   let tx: number;

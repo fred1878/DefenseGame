@@ -139,6 +139,28 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
     expect(host.groundAim).toEqual({ x: 0, y: 90 });
   });
 
+  it("auto-casts ground AoE toward max range when enemy is beyond ground max range", () => {
+    const host = spellDirectorTestHost({
+      spellInputQueue: new SpellInputQueue(),
+      spellCaster: new SpellCastController(),
+      enemies: [
+        {
+          id: "e1",
+          sprite: { x: 500, y: 0, displayWidth: 40 },
+          damageable: { alive: true },
+        },
+      ] as unknown as DefenseSpellDirectorHost["enemies"],
+    });
+    const director = new DefenseSpellDirector(host);
+    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+
+    director.tryAutoCastSpells(0, 0);
+
+    expect(beginSpy).toHaveBeenCalledWith("meteor");
+    expect(host.groundAim?.x).toBeCloseTo(240, 5);
+    expect(host.groundAim?.y).toBeCloseTo(0, 5);
+  });
+
   it("still auto-casts self-centered spells with no enemies", () => {
     const save = {
       buildings: {},
