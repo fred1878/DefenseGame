@@ -1,7 +1,7 @@
 {
   "grunt": {
     "hp": 55,
-    "speed": 130,
+    "speed": 91,
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
@@ -9,7 +9,7 @@
   },
   "bruiser": {
     "hp": 90,
-    "speed": 78,
+    "speed": 55,
     "damage": 11,
     "behavior": "bruiser",
     "textureKey": "enemy_bruiser",
@@ -33,7 +33,7 @@
   },
   "arrow_rain_archer": {
     "hp": 40,
-    "speed": 72,
+    "speed": 50,
     "damage": 9,
     "behavior": "arrowRainArcher",
     "textureKey": "enemy_arrow_rain_archer",
@@ -69,7 +69,7 @@
   },
   "skirmisher": {
     "hp": 34,
-    "speed": 160,
+    "speed": 112,
     "damage": 7,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
@@ -93,7 +93,7 @@
   },
   "sentry_archer": {
     "hp": 24,
-    "speed": 62,
+    "speed": 43,
     "damage": 10,
     "behavior": "stationaryRanged",
     "textureKey": "enemy_sentry_archer",
@@ -126,7 +126,7 @@
   },
   "javelineer": {
     "hp": 26,
-    "speed": 199,
+    "speed": 139,
     "damage": 11,
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer",
@@ -162,7 +162,7 @@
   },
   "slow_siege": {
     "hp": 92,
-    "speed": 60,
+    "speed": 42,
     "damage": 14,
     "behavior": "wallSiege",
     "textureKey": "enemy_slow_siege",
@@ -189,7 +189,7 @@
   },
   "fast_sapper": {
     "hp": 50,
-    "speed": 148,
+    "speed": 104,
     "damage": 6,
     "behavior": "wallSiege",
     "textureKey": "enemy_fast_sapper",
@@ -216,7 +216,7 @@
   },
   "charger": {
     "hp": 85,
-    "speed": 140,
+    "speed": 98,
     "damage": 22,
     "behavior": "charger",
     "textureKey": "enemy_charger",
@@ -247,7 +247,7 @@
   },
   "lobber": {
     "hp": 32,
-    "speed": 66,
+    "speed": 46,
     "damage": 13,
     "behavior": "lobber",
     "textureKey": "enemy_lobber",
@@ -282,7 +282,7 @@
   },
   "reaver": {
     "hp": 110,
-    "speed": 145,
+    "speed": 102,
     "damage": 14,
     "behavior": "rangedHybrid",
     "textureKey": "enemy_reaver",
@@ -321,7 +321,7 @@
   },
   "ward": {
     "hp": 44,
-    "speed": 50,
+    "speed": 35,
     "damage": 9,
     "behavior": "ward",
     "textureKey": "enemy_ward",
