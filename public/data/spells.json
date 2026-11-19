@@ -397,7 +397,7 @@
       "shortLabel": "Blink",
       "mechanicType": "blink",
       "castableInDefense": true,
-      "implementationPhase": 5,
+      "implementationPhase": 4,
       "cooldownMs": 10000,
       "channelMs": 0,
       "kind": "instant",

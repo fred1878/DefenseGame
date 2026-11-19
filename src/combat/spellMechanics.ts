@@ -109,12 +109,26 @@ export function pickChainLightningTargets(
   return picked;
 }
 
+export type BlinkPlayBounds = {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
+export type BlinkObstacleAabb = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
 export function blinkDestination(
   fromX: number,
   fromY: number,
   facingRad: number,
   distance: number,
-  bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  bounds: BlinkPlayBounds,
 ): { x: number; y: number } {
   const rawX = fromX + Math.cos(facingRad) * distance;
   const rawY = fromY + Math.sin(facingRad) * distance;
@@ -122,6 +136,87 @@ export function blinkDestination(
     x: Math.min(bounds.maxX, Math.max(bounds.minX, rawX)),
     y: Math.min(bounds.maxY, Math.max(bounds.minY, rawY)),
   };
+}
+
+function clampToBlinkBounds(
+  x: number,
+  y: number,
+  bounds: BlinkPlayBounds,
+): { x: number; y: number } {
+  return {
+    x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
+    y: Math.min(bounds.maxY, Math.max(bounds.minY, y)),
+  };
+}
+
+/** Circle vs axis-aligned rect — true when the circle overlaps the rect. */
+export function circleOverlapsObstacleAabb(
+  cx: number,
+  cy: number,
+  radius: number,
+  rect: BlinkObstacleAabb,
+): boolean {
+  const closestX = Math.max(rect.left, Math.min(cx, rect.right));
+  const closestY = Math.max(rect.top, Math.min(cy, rect.bottom));
+  return Math.hypot(cx - closestX, cy - closestY) < radius;
+}
+
+export function isBlinkLandingBlocked(
+  cx: number,
+  cy: number,
+  playerRadius: number,
+  obstacles: readonly BlinkObstacleAabb[],
+  enemies: readonly EnemyHitTarget[],
+): boolean {
+  for (const rect of obstacles) {
+    if (circleOverlapsObstacleAabb(cx, cy, playerRadius, rect)) return true;
+  }
+  for (const e of enemies) {
+    const d = Phaser.Math.Distance.Between(cx, cy, e.x, e.y);
+    if (d < playerRadius + e.radius) return true;
+  }
+  return false;
+}
+
+/**
+ * Full blink along `facingRad`, then slide back toward the origin until the
+ * landing is in bounds and clear of obstacles and enemies (partial blink).
+ */
+export function resolveBlinkLanding(
+  fromX: number,
+  fromY: number,
+  facingRad: number,
+  distance: number,
+  bounds: BlinkPlayBounds,
+  playerRadius: number,
+  obstacles: readonly BlinkObstacleAabb[],
+  enemies: readonly EnemyHitTarget[],
+): { x: number; y: number; moved: boolean } {
+  const ideal = blinkDestination(fromX, fromY, facingRad, distance, bounds);
+  const landingOk = (x: number, y: number) =>
+    !isBlinkLandingBlocked(x, y, playerRadius, obstacles, enemies);
+
+  if (landingOk(ideal.x, ideal.y)) {
+    const moved = ideal.x !== fromX || ideal.y !== fromY;
+    return { x: ideal.x, y: ideal.y, moved };
+  }
+
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    const rawX = fromX + (ideal.x - fromX) * mid;
+    const rawY = fromY + (ideal.y - fromY) * mid;
+    const { x, y } = clampToBlinkBounds(rawX, rawY, bounds);
+    if (landingOk(x, y)) lo = mid;
+    else hi = mid;
+  }
+
+  const rawX = fromX + (ideal.x - fromX) * lo;
+  const rawY = fromY + (ideal.y - fromY) * lo;
+  const { x, y } = clampToBlinkBounds(rawX, rawY, bounds);
+  const moved = Math.hypot(x - fromX, y - fromY) > 0.5;
+  return { x, y, moved };
 }
 
 export type SpellMechanicsTuning = {

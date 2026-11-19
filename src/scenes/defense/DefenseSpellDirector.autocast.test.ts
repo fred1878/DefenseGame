@@ -45,6 +45,7 @@ function spellDirectorTestHost(
     } as unknown as DefenseSpellDirectorHost["castBar"],
     groundReticle: { showAt: vi.fn(), hide: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
     obstacleGroup: {} as Phaser.Physics.Arcade.StaticGroup,
+    obstacleBlockers: [],
     spellChannelArea: null,
     spellGroundZones: [],
     pendingGroundCast: null,

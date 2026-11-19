@@ -7,6 +7,7 @@ export function spellTargetMode(def: SpellDefinition): SpellTargetMode {
   switch (def.mechanicType) {
     case "heal":
     case "buff":
+    case "blink":
       return "self";
     case "instant_targeted":
     case "tracking_projectile":

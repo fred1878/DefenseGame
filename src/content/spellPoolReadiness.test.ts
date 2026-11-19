@@ -18,12 +18,10 @@ describe("spellPoolReadiness", () => {
     ).toBe(0.5);
   });
 
-  it("fades phase-5 catalog spells as coming soon", () => {
+  it("treats blink as pool-ready", () => {
     const blink = spellById("blink");
     expect(blink).toBeDefined();
-    expect(isSpellPoolSelectable(blink!)).toBe(false);
-    expect(
-      poolSpellIconAlpha("blink", [], false),
-    ).toBe(0.48);
+    expect(isSpellPoolSelectable(blink!)).toBe(true);
+    expect(poolSpellIconAlpha("blink", [], true)).toBe(1);
   });
 });

@@ -716,6 +716,7 @@ export class DefenseScene extends Phaser.Scene {
       get castBar() { return scene.castBar; },
       get groundReticle() { return scene.groundReticle; },
       get obstacleGroup() { return scene.obstacleGroup; },
+      get obstacleBlockers() { return scene.obstacleBlockers; },
       get spellChannelArea() { return scene.spellChannelArea; },
       set spellChannelArea(v) { scene.spellChannelArea = v; },
       get spellGroundZones() { return scene.spellGroundZones; },
