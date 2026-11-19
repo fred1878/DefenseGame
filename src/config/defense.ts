@@ -2,7 +2,6 @@ import {
   GROUND_TILE_SIZE,
   OBSTACLE_BLOCKER_FOOTPRINT,
   OBSTACLE_SPRITE_CROP,
-  OBSTACLE_TEXTURE,
   type ObstacleTextureKey,
 } from "../content/assets";
 import {
