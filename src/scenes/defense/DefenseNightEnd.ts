@@ -16,23 +16,32 @@ import { scaleUiX } from "../../core/displayScale";
 import type { SafeInsets } from "../../ui/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
 
-export function transitionDefenseToTown(scene: Phaser.Scene): void {
-  if (scene.scene.get("DebugMenu")?.scene.isActive()) {
-    scene.scene.stop("DebugMenu");
+/** Run after the current pointer/input handler — scene timers do not run while paused. */
+export function scheduleAfterPointerHandler(
+  scene: Phaser.Scene,
+  fn: () => void,
+): void {
+  if (scene.sys?.isActive()) {
+    scene.time.delayedCall(0, fn);
+    return;
   }
+  scene.sys.game.events.once("poststep", fn);
+}
+
+export function transitionDefenseToTown(scene: Phaser.Scene): void {
   clearDefenseRunMode(scene.registry);
-  // Defer so we are not inside a pointer/shutdown handler when the Scene Manager stops Defense
-  // (night-end Return button is created after HUD buttons; stopping synchronously from its
-  // onPress left scene.input null while other touch bindings still called .off).
+  // Defer scene stop/start so we are not inside a pointer/shutdown handler (see #169).
   const go = () => {
-    if (!scene.scene.isActive()) return;
+    const debugMenu = scene.scene.get("DebugMenu");
+    if (debugMenu?.scene.isActive()) {
+      scene.scene.stop("DebugMenu");
+    }
+    const key = scene.scene.key;
+    if (key !== "Defense") return;
+    if (!scene.scene.isActive(key) && !scene.scene.isPaused(key)) return;
     scene.scene.start("Town");
   };
-  if (scene.sys?.isActive()) {
-    scene.time.delayedCall(0, go);
-  } else {
-    go();
-  }
+  scheduleAfterPointerHandler(scene, go);
 }
 
 type DefenseNightEndUi = {
