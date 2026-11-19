@@ -1,5 +1,5 @@
+import { ConfigLoadError } from "../core/configValidation";
 import {
-  codeDefenseMapsRegistry,
   normalizeDefenseMaps,
   resolveDefenseMap,
   type DefenseMapsFileInput,
@@ -7,8 +7,8 @@ import {
 } from "../core/normalizeDefenseMaps";
 import { applyDefenseMapLayout } from "./defense";
 
-let activeRegistry: DefenseMapsRegistry = codeDefenseMapsRegistry();
-let activeMapId: string = activeRegistry.defaultMapId;
+let activeRegistry: DefenseMapsRegistry | null = null;
+let activeMapId: string | null = null;
 
 /** Load map registry from JSON and apply the default (or selected) layout. */
 export function applyDefenseMaps(raw: DefenseMapsFileInput | null | undefined): void {
@@ -20,18 +20,29 @@ export function applyDefenseMaps(raw: DefenseMapsFileInput | null | undefined): 
 
 /** Read-only registry after Boot (for UI / future map picker). */
 export function getDefenseMapsRegistry(): DefenseMapsRegistry {
+  if (!activeRegistry) {
+    throw new ConfigLoadError(
+      "Defense maps not loaded — Boot must apply public/data/defense-maps.json",
+    );
+  }
   return activeRegistry;
 }
 
 export function getActiveDefenseMapId(): string {
+  if (!activeMapId) {
+    throw new ConfigLoadError(
+      "Defense maps not loaded — Boot must apply public/data/defense-maps.json",
+    );
+  }
   return activeMapId;
 }
 
 /** Switch active layout without reloading JSON (future night modes / map select). */
 export function selectDefenseMapId(mapId: string): boolean {
-  if (!activeRegistry.maps.some((m) => m.id === mapId)) return false;
+  const registry = getDefenseMapsRegistry();
+  if (!registry.maps.some((m) => m.id === mapId)) return false;
   activeMapId = mapId;
-  const map = resolveDefenseMap(activeRegistry, mapId);
+  const map = resolveDefenseMap(registry, mapId);
   applyDefenseMapLayout(map.field, map.obstacles);
   return true;
 }

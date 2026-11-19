@@ -2,7 +2,6 @@ import type Phaser from "phaser";
 import { flashSpriteTint } from "../../combat/HitFlash";
 import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
 import type { DataStore, EnemyDef } from "../../core/DataStore";
-import { DEFAULT_ENEMY_BASE } from "../../core/enemyTuning";
 import { spawnEnemy, type EnemyInstance } from "../../entities/Enemy";
 
 export type DefenseEnemySpawnerHooks = {
@@ -20,16 +19,11 @@ export type DefenseEnemySpawnerHost = {
 };
 
 export function defaultDefenseEnemyDef(store: DataStore): EnemyDef {
-  return (
-    store.enemies.grunt ?? {
-      hp: DEFAULT_ENEMY_BASE.hp,
-      speed: DEFAULT_ENEMY_BASE.speed,
-      damage: DEFAULT_ENEMY_BASE.damage,
-      behavior: "meleeChaser",
-      textureKey: "enemy_grunt",
-      displayName: "Grunt",
-    }
-  );
+  const grunt = store.enemies.grunt;
+  if (!grunt) {
+    throw new Error("enemies.json must define grunt before spawning");
+  }
+  return grunt;
 }
 
 /** Spawn one enemy into the defense scene lists (REFACTOR_PLAN PR3). */

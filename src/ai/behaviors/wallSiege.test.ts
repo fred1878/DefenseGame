@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_WALL_SIEGE_COMBAT } from "../../core/enemyTuning";
+import { testWallSiegeCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import { northWallAttackY } from "../../config";
@@ -26,13 +26,13 @@ describe("wallSiegeBehavior", () => {
         scene: { registry: { get: () => undefined } },
       } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
     });
-    enemy.combatTuning.wallSiege = DEFAULT_WALL_SIEGE_COMBAT;
+    enemy.combatTuning.wallSiege = testWallSiegeCombat;
     enemy.nav = { ...createEnemyNav(), targetKind: "wall" };
     wallSiegeBehavior({
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: DEFAULT_WALL_SIEGE_COMBAT.playerAggroRadius + 40,
+      playerX: testWallSiegeCombat.playerAggroRadius + 40,
       playerY: 0,
       deltaMs: 16,
     });
@@ -49,7 +49,7 @@ describe("wallSiegeBehavior", () => {
         scene: { registry: { get: () => undefined } },
       } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
     });
-    enemy.combatTuning.wallSiege = DEFAULT_WALL_SIEGE_COMBAT;
+    enemy.combatTuning.wallSiege = testWallSiegeCombat;
     enemy.sprite.y = wallMeleeStandoffY(enemy);
     enemy.combat.cooldownMs = 250;
     enemy.nav = { ...createEnemyNav(), targetKind: "wall" };
@@ -71,7 +71,7 @@ describe("wallSiegeBehavior", () => {
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     setVelocity.mockClear();
     expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(
-      DEFAULT_WALL_SIEGE_COMBAT.playerAggroRadius,
+      testWallSiegeCombat.playerAggroRadius,
     );
   });
 });

@@ -1,9 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../../config";
-import {
-  DEFAULT_WALL_COMBAT,
-  wallMeleeApproachStandoffPx,
-} from "../../core/enemyTuning";
+import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
+import { testWallCombat } from "../../test/fixtures/inlineCombat";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import {
   applyChaseVelocity,
@@ -39,7 +37,7 @@ describe("wall melee hold helpers", () => {
 
   it("keeps closing while idle in the trigger band but outside hit range", () => {
     const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
-    const wall = DEFAULT_WALL_COMBAT;
+    const wall = testWallCombat;
     enemy.sprite.y = northWallAttackY() + (wall.hitRange + wall.triggerRange) / 2;
     enemy.combat.phase = "idle";
     enemy.combat.cooldownMs = 0;
@@ -50,8 +48,8 @@ describe("wall melee hold helpers", () => {
 
   it("places standoff inside default wall hit range", () => {
     const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
-    const standoff = wallMeleeApproachStandoffPx(DEFAULT_WALL_COMBAT);
-    expect(standoff).toBeLessThanOrEqual(DEFAULT_WALL_COMBAT.hitRange);
+    const standoff = wallMeleeApproachStandoffPx(testWallCombat);
+    expect(standoff).toBeLessThanOrEqual(testWallCombat.hitRange);
     enemy.sprite.x = 12;
     const y = wallMeleeStandoffY(enemy);
     expect(y - northWallAttackY()).toBe(standoff);

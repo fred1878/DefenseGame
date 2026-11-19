@@ -10,7 +10,6 @@ import {
   type SaveGame,
   type SaveSpellBar,
 } from "./saveTypes";
-import { DEFAULT_ENEMY_BASE } from "./enemyTuning";
 import { saveStorageKey } from "../e2e/e2eMode";
 
 function storageKey(): string {
@@ -172,9 +171,4 @@ export function wallHpBonusFromBuildings(buildings: Record<string, number>): num
 export function playerDamageMult(buildings: Record<string, number>): number {
   const smith = buildings.blacksmith ?? 0;
   return 1 + smith * 0.1;
-}
-
-/** Placeholder tuning hook for tests / content parity with default grunt row. */
-export function gruntMaxHp(): number {
-  return DEFAULT_ENEMY_BASE.hp;
 }

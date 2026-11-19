@@ -9,7 +9,6 @@ import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import type { EnemyDef } from "../core/DataStore";
 import {
-  DEFAULT_ENEMY_BASE,
   resolveEnemyCombat,
   type ResolvedEnemyCombat,
 } from "../core/enemyTuning";
@@ -140,8 +139,8 @@ export function spawnEnemy(
     id,
     defId,
     behavior: def.behavior,
-    speed: def.speed ?? DEFAULT_ENEMY_BASE.speed,
-    damage: def.damage ?? DEFAULT_ENEMY_BASE.damage,
+    speed: def.speed,
+    damage: def.damage,
     textureKey: def.textureKey,
     cardinalFacing: "s",
     displayName: def.displayName,
@@ -154,7 +153,7 @@ export function spawnEnemy(
     statusSpeedMul: 1,
     behaviorExtra: {
       strafeSign: 1,
-      strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 1400,
+      strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 0,
       chargeWindupMs: 0,
       chargeActiveMs: 0,
       chargeCooldownMs: 0,

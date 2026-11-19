@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_ARROW_RAIN_COMBAT } from "../../core/enemyTuning";
+import { testArrowRainCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import { arrowRainArcherBehavior } from "./arrowRainArcher";
@@ -41,7 +41,7 @@ describe("arrowRainArcherBehavior", () => {
 
   it("backs away when player is inside arrow rain preferred range", () => {
     const enemy = mockArcher(0, 0);
-    const preferred = DEFAULT_ARROW_RAIN_COMBAT.preferredRange - 30;
+    const preferred = testArrowRainCombat.preferredRange - 30;
     arrowRainArcherBehavior({
       enemy,
       nav: enemy.nav,
@@ -62,8 +62,8 @@ describe("arrowRainArcherBehavior", () => {
   it("holds position in the attack band at preferred range", () => {
     const enemy = mockArcher(0, 0);
     const inBand =
-      (DEFAULT_ARROW_RAIN_COMBAT.preferredRange +
-        DEFAULT_ARROW_RAIN_COMBAT.attackTriggerRange) /
+      (testArrowRainCombat.preferredRange +
+        testArrowRainCombat.attackTriggerRange) /
       2;
     arrowRainArcherBehavior({
       enemy,

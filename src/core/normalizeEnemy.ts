@@ -1,8 +1,7 @@
-import {
-  DEFAULT_ENEMY_BASE,
-  type EnemyCombatPartial,
-} from "./enemyTuning";
+import { ConfigLoadError, requireFiniteNumber } from "./configValidation";
+import type { EnemyCombatPartial } from "./enemyTuning";
 import type { EnemyDef } from "./DataStore";
+
 export type EnemyDefInput = {
   hp?: number;
   speed?: number;
@@ -22,10 +21,20 @@ function titleCaseFromId(id: string): string {
 }
 
 export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
+  const path = `enemies.${id}`;
+  if (raw.hp === undefined) {
+    throw new ConfigLoadError(`Missing number at ${path}.hp`);
+  }
+  if (raw.speed === undefined) {
+    throw new ConfigLoadError(`Missing number at ${path}.speed`);
+  }
+  if (raw.damage === undefined) {
+    throw new ConfigLoadError(`Missing number at ${path}.damage`);
+  }
   return {
-    hp: raw.hp ?? DEFAULT_ENEMY_BASE.hp,
-    speed: raw.speed ?? DEFAULT_ENEMY_BASE.speed,
-    damage: raw.damage ?? DEFAULT_ENEMY_BASE.damage,
+    hp: requireFiniteNumber(raw.hp, `${path}.hp`),
+    speed: requireFiniteNumber(raw.speed, `${path}.speed`),
+    damage: requireFiniteNumber(raw.damage, `${path}.damage`),
     behavior: raw.behavior,
     textureKey: raw.textureKey,
     displayName: raw.displayName?.trim() || titleCaseFromId(id),

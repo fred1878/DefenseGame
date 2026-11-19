@@ -1,43 +1,36 @@
-import {
-  SPELL_MECHANICS_DEFAULTS,
-  type SpellMechanicsTuning,
-} from "../combat/spellMechanics";
+import type { SpellMechanicsTuning } from "../combat/spellMechanics";
+import { requireRecord, requireFiniteNumber } from "./configValidation";
 
 export type SpellMechanicsInput = Partial<{
   [K in keyof SpellMechanicsTuning]: number;
 }>;
 
+const SPELL_MECHANICS_KEYS = [
+  "swingRangeWu",
+  "swingArcDeg",
+  "coneRangeWu",
+  "coneArcDeg",
+  "chainLightningHops",
+  "chainLightningHopRangeWu",
+  "blinkDistanceWu",
+  "iceWallDistanceWu",
+  "iceWallDurationMs",
+  "shadowformDurationMs",
+  "shadowformDamageMult",
+  "frostRootMs",
+  "deepFreezeRootMs",
+] as const satisfies readonly (keyof SpellMechanicsTuning)[];
+
 export function normalizeSpellMechanics(
   raw: SpellMechanicsInput | null | undefined,
 ): SpellMechanicsTuning {
-  const base = SPELL_MECHANICS_DEFAULTS;
-  if (!raw) return { ...base };
-  return {
-    swingRangeWu: finiteOr(raw.swingRangeWu, base.swingRangeWu),
-    swingArcDeg: finiteOr(raw.swingArcDeg, base.swingArcDeg),
-    coneRangeWu: finiteOr(raw.coneRangeWu, base.coneRangeWu),
-    coneArcDeg: finiteOr(raw.coneArcDeg, base.coneArcDeg),
-    chainLightningHops: finiteOr(raw.chainLightningHops, base.chainLightningHops),
-    chainLightningHopRangeWu: finiteOr(
-      raw.chainLightningHopRangeWu,
-      base.chainLightningHopRangeWu,
-    ),
-    blinkDistanceWu: finiteOr(raw.blinkDistanceWu, base.blinkDistanceWu),
-    iceWallDistanceWu: finiteOr(raw.iceWallDistanceWu, base.iceWallDistanceWu),
-    iceWallDurationMs: finiteOr(raw.iceWallDurationMs, base.iceWallDurationMs),
-    shadowformDurationMs: finiteOr(
-      raw.shadowformDurationMs,
-      base.shadowformDurationMs,
-    ),
-    shadowformDamageMult: finiteOr(
-      raw.shadowformDamageMult,
-      base.shadowformDamageMult,
-    ),
-    frostRootMs: finiteOr(raw.frostRootMs, base.frostRootMs),
-    deepFreezeRootMs: finiteOr(raw.deepFreezeRootMs, base.deepFreezeRootMs),
-  };
-}
-
-function finiteOr(value: number | undefined, fallback: number): number {
-  return Number.isFinite(value) ? value! : fallback;
+  const root = requireRecord(raw, "spell-mechanics");
+  const out = {} as SpellMechanicsTuning;
+  for (const key of SPELL_MECHANICS_KEYS) {
+    (out as Record<string, number>)[key] = requireFiniteNumber(
+      root[key],
+      `spell-mechanics.${key}`,
+    );
+  }
+  return out;
 }

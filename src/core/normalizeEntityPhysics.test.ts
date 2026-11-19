@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { ENTITY_BODY_RADIUS_DEFAULTS } from "../entities/entityPhysics";
+import { ConfigLoadError } from "./configValidation";
 import { normalizeEntityPhysics } from "./normalizeEntityPhysics";
 
 describe("normalizeEntityPhysics", () => {
-  it("uses defaults when input is null", () => {
-    const out = normalizeEntityPhysics(null);
-    expect(out.entityBodyRadius.player).toBe(
-      ENTITY_BODY_RADIUS_DEFAULTS.player,
-    );
+  it("requires entityBodyRadius block", () => {
+    expect(() => normalizeEntityPhysics({})).toThrow(ConfigLoadError);
   });
 
-  it("merges partial radii", () => {
+  it("merges partial radius overrides onto required fields", () => {
     const out = normalizeEntityPhysics({
-      entityBodyRadius: { grunt: 30 },
+      entityBodyRadius: {
+        player: 17,
+        enemy: 14,
+        enemyMelee: 21,
+        grunt: 28,
+      },
+      enemyPathClearanceMarginPx: 7,
     });
-    expect(out.entityBodyRadius.grunt).toBe(30);
-    expect(out.entityBodyRadius.enemy).toBe(ENTITY_BODY_RADIUS_DEFAULTS.enemy);
+    expect(out.entityBodyRadius.player).toBe(17);
+    expect(out.entityBodyRadius.grunt).toBe(28);
+    expect(out.enemyPathClearanceMarginPx).toBe(7);
   });
 });
