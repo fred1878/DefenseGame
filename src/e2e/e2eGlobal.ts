@@ -98,6 +98,9 @@ export type DefenseGameE2EApi = {
   ): { x: number; y: number };
   resolvePlayerObstacleOverlap(): void;
   getDefenseCameraScroll(): { x: number; y: number };
+  /** Field half-extents in world px (after Boot applied `defense-maps.json`). */
+  getDefenseHalfHeight(): number;
+  getDefenseHalfWidth(): number;
   getDefenseHudLayoutProbe(): ReturnType<
     import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]
   >;
