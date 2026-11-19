@@ -1,5 +1,6 @@
 import {
   destroyArrowRainTelegraph,
+  LOBBER_TELEGRAPH_PALETTE,
   spawnArrowRainTelegraph,
   updateArrowRainTelegraph,
 } from "../../combat/ArrowRainTelegraph";
@@ -41,6 +42,7 @@ export function updateLobberCombat(
       extra.aimY,
       tune.windupMs,
       tune.blastRadius,
+      LOBBER_TELEGRAPH_PALETTE,
     );
   }
 
