@@ -27,6 +27,7 @@ import {
 import { worldUnit } from "../core/worldPixelScale";
 import { showPlayerMeleeSwipe } from "./MeleeSwipeFx";
 import { showSpellConeFx } from "./SpellConeFx";
+import { showChainLightningFx } from "./ChainLightningFx";
 
 export function applyNova(
   scene: Phaser.Scene,
@@ -300,6 +301,13 @@ export function applyChainLightning(
     if (!full) continue;
     applyDamage(full.damageable, damage, flavor);
     applyHopHit(full.id);
+  }
+  if (chain.length > 0) {
+    showChainLightningFx(
+      scene,
+      { x: start.x, y: start.y },
+      chain.map((h) => ({ x: h.x, y: h.y })),
+    );
   }
 }
 

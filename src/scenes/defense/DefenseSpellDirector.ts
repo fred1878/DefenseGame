@@ -177,6 +177,7 @@ export class DefenseSpellDirector {
   }
 
   tryAutoCastSpells(stickX: number, stickY: number): void {
+    if (this.host.spellInputQueue.peek()) return;
     const moving = isStickMoving(stickX, stickY);
     const pick = pickAutoCastSpell(
       this.host.save.spellBar.slots,

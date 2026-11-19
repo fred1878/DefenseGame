@@ -54,6 +54,21 @@ function spellDirectorTestHost(
 }
 
 describe("DefenseSpellDirector spell queue", () => {
+  it("enqueues a tap while an instant spell windup is active", () => {
+    const spellInputQueue = new SpellInputQueue();
+    const spellCaster = new SpellCastController();
+    const begun = spellCaster.tryBeginCast("fire_bolt");
+    expect(begun).toBe("windup");
+    expect(spellCaster.isChanneling()).toBe(true);
+
+    const director = new DefenseSpellDirector(
+      spellDirectorTestHost({ spellInputQueue, spellCaster }),
+    );
+
+    director.onSpellCastRequest("fire_nova");
+    expect(spellInputQueue.peek()).toBe("fire_nova");
+  });
+
   it("enqueues a tap while a channeled spell is active", () => {
     const spellInputQueue = new SpellInputQueue();
     const spellCaster = new SpellCastController();
@@ -93,6 +108,71 @@ describe("DefenseSpellDirector spell queue", () => {
       .mockImplementation(() => {});
     director.tryFlushQueuedSpellCast(0, 0);
     expect(spellInputQueue.peek()).toBeNull();
+    expect(beginSpy).toHaveBeenCalledWith("fire_nova");
+  });
+
+  it("does not auto-cast while a manual spell is queued", () => {
+    const spellInputQueue = new SpellInputQueue();
+    const spellCaster = new SpellCastController();
+    const save = {
+      buildings: {},
+      spellBar: {
+        slots: ["fire_bolt", "fire_nova", "", "", "", "", "", ""],
+        autoCastSpellIds: ["fire_bolt"],
+      },
+    };
+    const host = spellDirectorTestHost({
+      spellInputQueue,
+      spellCaster,
+      save: save as unknown as DefenseSpellDirectorHost["save"],
+      enemies: [
+        {
+          id: "e1",
+          sprite: { x: 80, y: 0 },
+          damageable: { alive: true },
+        },
+      ] as unknown as DefenseSpellDirectorHost["enemies"],
+      targeting: {
+        focusEnemyId: "e1",
+        setFocusEnemy: vi.fn(),
+      } as unknown as DefenseSpellDirectorHost["targeting"],
+    });
+    const director = new DefenseSpellDirector(host);
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
+
+    spellInputQueue.enqueue("fire_nova");
+    director.tryAutoCastSpells(0, 0);
+
+    expect(beginSpy).not.toHaveBeenCalled();
+  });
+
+  it("flushes queued spell before auto-cast would fire", () => {
+    const spellInputQueue = new SpellInputQueue();
+    const spellCaster = new SpellCastController();
+    const save = {
+      buildings: {},
+      spellBar: {
+        slots: ["fire_bolt", "fire_nova", "", "", "", "", "", ""],
+        autoCastSpellIds: ["fire_bolt"],
+      },
+    };
+    const host = spellDirectorTestHost({
+      spellInputQueue,
+      spellCaster,
+      save: save as unknown as DefenseSpellDirectorHost["save"],
+    });
+    const director = new DefenseSpellDirector(host);
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
+
+    spellInputQueue.enqueue("fire_nova");
+    director.tryFlushQueuedSpellCast(0, 0);
+    director.tryAutoCastSpells(0, 0);
+
+    expect(beginSpy).toHaveBeenCalledTimes(1);
     expect(beginSpy).toHaveBeenCalledWith("fire_nova");
   });
 });
