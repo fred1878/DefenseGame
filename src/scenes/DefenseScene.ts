@@ -565,7 +565,12 @@ export class DefenseScene extends Phaser.Scene {
       this.enemySpellStatus,
       this.spellDamageMult(),
     );
-    if (this.lingerAoeTelegraph) {
+    const hasActiveLingerGroundZone = this.spellGroundZones.some(
+      (z) => (z.lingerDotDps ?? 0) > 0,
+    );
+    if (this.lingerAoeTelegraph && !hasActiveLingerGroundZone) {
+      this.clearLingerAoeTelegraph();
+    } else if (this.lingerAoeTelegraph) {
       updateSpellGroundAoeTelegraph(
         this.lingerAoeTelegraph,
         delta,

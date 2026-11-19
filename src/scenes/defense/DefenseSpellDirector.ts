@@ -28,6 +28,7 @@ import {
 import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
 import {
   destroySpellGroundAoeTelegraph,
+  registerSpellGroundAoeTelegraphWorld,
   spellGroundAoePalette,
   spellNeedsGroundAoeTelegraph,
   spawnSpellGroundAoeTelegraph,
@@ -403,6 +404,10 @@ export class DefenseSpellDirector {
         spellCastMs(def),
         telegraphMode,
       );
+      registerSpellGroundAoeTelegraphWorld(
+        this.host.groundAoeTelegraph,
+        this.host.maskWorldObject,
+      );
     } else {
       this.host.groundAoeTelegraph.zoneX = center.x;
       this.host.groundAoeTelegraph.zoneY = center.y;
@@ -443,6 +448,7 @@ export class DefenseSpellDirector {
       1,
       "impact",
     );
+    registerSpellGroundAoeTelegraphWorld(impact, this.host.maskWorldObject);
     updateSpellGroundAoeTelegraph(impact, 0, "impact", 1);
     this.host.delayedCall(360, () => destroySpellGroundAoeTelegraph(impact));
   }
@@ -503,16 +509,16 @@ export class DefenseSpellDirector {
       1,
       "channel",
     );
+    registerSpellGroundAoeTelegraphWorld(
+      this.host.lingerAoeTelegraph,
+      this.host.maskWorldObject,
+    );
     updateSpellGroundAoeTelegraph(this.host.lingerAoeTelegraph, 0, "channel", 1);
     this.host.flashNova(center.x, center.y, radiusWu, {
       blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
     });
     if (spellPlaysFireWhooshOnChannelLinger(def)) {
       playFireWhooshSfx(this.host.scene);
-    }
-    const lingerMs = def.lingerMs ?? 0;
-    if (lingerMs > 0) {
-      this.host.delayedCall(lingerMs, () => this.clearLingerAoeTelegraph());
     }
   }
 

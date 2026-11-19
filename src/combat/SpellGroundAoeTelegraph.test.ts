@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { spellNeedsGroundAoeTelegraph } from "./SpellGroundAoeTelegraph";
+import { describe, expect, it, vi } from "vitest";
+import {
+  registerSpellGroundAoeTelegraphWorld,
+  spellNeedsGroundAoeTelegraph,
+  spawnSpellGroundAoeTelegraph,
+  type SpellAoeTelegraphPalette,
+} from "./SpellGroundAoeTelegraph";
 import type { SpellDefinition } from "../content/spells";
 
 function def(partial: Partial<SpellDefinition>): SpellDefinition {
@@ -51,6 +56,22 @@ describe("spellNeedsGroundAoeTelegraph", () => {
         }),
       ),
     ).toBe(true);
+  });
+
+  it("registers telegraph graphics with the defense world layer hook", () => {
+    const gfx = { setDepth: vi.fn() };
+    const scene = {
+      add: { graphics: () => gfx },
+    } as unknown as import("phaser").Scene;
+    const palette: SpellAoeTelegraphPalette = {
+      fill: 0xff5533,
+      stroke: 0xffcc66,
+      inner: 0xffffff,
+    };
+    const telegraph = spawnSpellGroundAoeTelegraph(scene, 10, 20, 40, palette, 500);
+    const registerWorld = vi.fn();
+    registerSpellGroundAoeTelegraphWorld(telegraph, registerWorld);
+    expect(registerWorld).toHaveBeenCalledWith(gfx);
   });
 
   it("skips non-ground and radius-less spells", () => {

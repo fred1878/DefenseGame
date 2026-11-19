@@ -113,3 +113,11 @@ export function destroySpellGroundAoeTelegraph(
 ): void {
   telegraph?.gfx.destroy();
 }
+
+/** Defense dual-camera rig: world-space graphics must live under the world layer. */
+export function registerSpellGroundAoeTelegraphWorld(
+  telegraph: SpellGroundAoeTelegraph,
+  registerWorld?: (go: Phaser.GameObjects.GameObject) => void,
+): void {
+  registerWorld?.(telegraph.gfx);
+}
