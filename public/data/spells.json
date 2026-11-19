@@ -366,7 +366,7 @@
       "onHit": {
         "dotDps": 7,
         "dotMs": 4000,
-        "rootMs": 2000
+        "stunMs": 2000
       }
     },
     {
@@ -387,7 +387,10 @@
       "damageFlavor": "default",
       "castMs": 450,
       "targetMode": "enemy",
-      "requireEnemyTarget": true
+      "requireEnemyTarget": true,
+      "onHit": {
+        "stunMs": 450
+      }
     },
     {
       "id": "blink",

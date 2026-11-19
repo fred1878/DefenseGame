@@ -229,8 +229,8 @@ export const DEFAULT_ENEMY_BASE = {
 export const DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX = 0;
 
 export const DEFAULT_MELEE_COMBAT: EnemyMeleeCombat = {
-  triggerRange: 52,
-  range: 34,
+  triggerRange: 78,
+  range: 52,
   arcDeg: 70,
   windupMs: 380,
   activeMs: 110,
@@ -352,7 +352,7 @@ export const DEFAULT_WARD_COMBAT: EnemyWardCombat = {
 };
 
 export const DEFAULT_HYBRID_COMBAT: EnemyHybridCombat = {
-  closeMeleeRadius: 52,
+  closeMeleeRadius: 78,
   preferredRange: 118,
   maxMeleeSwings: 3,
   retreatRangeSlack: 16,

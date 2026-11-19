@@ -12,6 +12,7 @@ export type SpellOnHitEffects = {
   dotDps?: number;
   dotMs?: number;
   rootMs?: number;
+  stunMs?: number;
 };
 
 export type SpellMechanicType =

@@ -5,8 +5,8 @@
     "hitRange": 34
   },
   "melee": {
-    "triggerRange": 52,
-    "range": 34,
+    "triggerRange": 78,
+    "range": 52,
     "arcDeg": 70,
     "windupMs": 380,
     "activeMs": 110,
@@ -74,7 +74,7 @@
     "playerAggroRadius": 120
   },
   "hybrid": {
-    "closeMeleeRadius": 52,
+    "closeMeleeRadius": 78,
     "preferredRange": 118,
     "maxMeleeSwings": 3,
     "retreatRangeSlack": 16
