@@ -32,7 +32,7 @@
     }
   },
   "arrow_rain_archer": {
-    "hp": 28,
+    "hp": 40,
     "speed": 72,
     "damage": 9,
     "behavior": "arrowRainArcher",
@@ -55,7 +55,7 @@
       },
       "arrowRain": {
         "preferredRange": 150,
-        "attackTriggerRange": 168,
+        "attackTriggerRange": 200,
         "windupMs": 900,
         "activeMs": 1200,
         "recoveryMs": 520,
@@ -68,9 +68,9 @@
     }
   },
   "skirmisher": {
-    "hp": 17,
-    "speed": 122,
-    "damage": 5,
+    "hp": 34,
+    "speed": 160,
+    "damage": 7,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
     "displayName": "Skirmisher",
@@ -114,19 +114,19 @@
         "cooldownMs": 320
       },
       "stationaryRanged": {
-        "attackTriggerRange": 158,
+        "attackTriggerRange": 290,
         "windupMs": 540,
         "activeMs": 70,
         "recoveryMs": 500,
         "cooldownMs": 1500,
-        "projectileSpeed": 390,
-        "projectileMaxTravel": 230
+        "projectileSpeed": 500,
+        "projectileMaxTravel": 490
       }
     }
   },
   "javelineer": {
     "hp": 26,
-    "speed": 128,
+    "speed": 199,
     "damage": 11,
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer",
@@ -147,22 +147,22 @@
         "cooldownMs": 320
       },
       "javelineer": {
-        "minRange": 52,
-        "maxRange": 198,
-        "strafeSpeedMul": 0.95,
+        "minRange": 80,
+        "maxRange": 289,
+        "strafeSpeedMul": 0.85,
         "orbitFlipMs": 880,
         "windupMs": 340,
         "activeMs": 120,
         "recoveryMs": 420,
         "cooldownMs": 1100,
         "projectileSpeed": 340,
-        "projectileMaxTravel": 240
+        "projectileMaxTravel": 350
       }
     }
   },
   "slow_siege": {
     "hp": 92,
-    "speed": 40,
+    "speed": 60,
     "damage": 14,
     "behavior": "wallSiege",
     "textureKey": "enemy_slow_siege",
@@ -183,12 +183,12 @@
         "cooldownMs": 480
       },
       "wallSiege": {
-        "playerAggroRadius": 68
+        "playerAggroRadius": 90
       }
     }
   },
   "fast_sapper": {
-    "hp": 20,
+    "hp": 50,
     "speed": 148,
     "damage": 6,
     "behavior": "wallSiege",
@@ -210,14 +210,14 @@
         "cooldownMs": 260
       },
       "wallSiege": {
-        "playerAggroRadius": 56
+        "playerAggroRadius": 90
       }
     }
   },
   "charger": {
-    "hp": 34,
-    "speed": 78,
-    "damage": 12,
+    "hp": 85,
+    "speed": 140,
+    "damage": 22,
     "behavior": "charger",
     "textureKey": "enemy_charger",
     "displayName": "Charger",
@@ -237,10 +237,10 @@
         "cooldownMs": 380
       },
       "charger": {
-        "dashTriggerRange": 152,
+        "dashTriggerRange": 180,
         "dashWindupMs": 300,
         "dashDurationMs": 400,
-        "dashSpeedMul": 2.4,
+        "dashSpeedMul": 2,
         "dashCooldownMs": 2600
       }
     }
@@ -275,15 +275,15 @@
         "recoveryMs": 620,
         "cooldownMs": 2500,
         "projectileSpeed": 235,
-        "blastRadius": 78,
+        "blastRadius": 90,
         "blastDamageScale": 0.92
       }
     }
   },
   "reaver": {
-    "hp": 36,
-    "speed": 86,
-    "damage": 9,
+    "hp": 110,
+    "speed": 145,
+    "damage": 14,
     "behavior": "rangedHybrid",
     "textureKey": "enemy_reaver",
     "displayName": "Reaver",
@@ -294,26 +294,26 @@
         "hitRange": 32
       },
       "melee": {
-        "triggerRange": 48,
-        "range": 32,
+        "triggerRange": 56,
+        "range": 50,
         "arcDeg": 72,
-        "windupMs": 320,
+        "windupMs": 100,
         "activeMs": 100,
         "recoveryMs": 420,
-        "cooldownMs": 280
+        "cooldownMs": 130
       },
       "stationaryRanged": {
-        "attackTriggerRange": 148,
+        "attackTriggerRange": 200,
         "windupMs": 500,
         "activeMs": 70,
         "recoveryMs": 480,
-        "cooldownMs": 1400,
+        "cooldownMs": 600,
         "projectileSpeed": 360,
         "projectileMaxTravel": 210
       },
       "hybrid": {
-        "closeMeleeRadius": 54,
-        "preferredRange": 112,
+        "closeMeleeRadius": 80,
+        "preferredRange": 160,
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18
       }
