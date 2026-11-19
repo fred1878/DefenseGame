@@ -1,17 +1,39 @@
 import Phaser from "phaser";
 
-/** Arcade physics circle radius (diameter ≈ 34px at 17 for player). */
-export const ENTITY_BODY_RADIUS = {
+export type EntityBodyRadius = {
+  player: number;
+  enemy: number;
+  /** Wider circle for melee / wall-rush archetypes (collision only). */
+  enemyMelee: number;
+  /** Grunt-only rush hitbox — wider than other melee archetypes. */
+  grunt: number;
+};
+
+/** Code defaults when `public/data/entity-physics.json` is absent. */
+export const ENTITY_BODY_RADIUS_DEFAULTS: EntityBodyRadius = {
   player: 17,
   enemy: 14,
-  /** Wider circle for melee / wall-rush archetypes (collision only). */
   enemyMelee: 21,
-  /** Grunt-only rush hitbox — wider than other melee archetypes. */
   grunt: 28,
-} as const;
+};
+
+/** Arcade physics circle radius (diameter ≈ 34px at 17 for player). */
+export let ENTITY_BODY_RADIUS: EntityBodyRadius = {
+  ...ENTITY_BODY_RADIUS_DEFAULTS,
+};
 
 /** Matches {@link DEFENSE_MAP.cellSize} / 2 − 1 px nav margin on obstacle inflation. */
-export const ENEMY_PATH_CLEARANCE_MARGIN_PX = 7;
+export const ENEMY_PATH_CLEARANCE_MARGIN_PX_DEFAULT = 7;
+
+export let ENEMY_PATH_CLEARANCE_MARGIN_PX = ENEMY_PATH_CLEARANCE_MARGIN_PX_DEFAULT;
+
+export function applyEntityPhysics(tuning: {
+  entityBodyRadius: EntityBodyRadius;
+  enemyPathClearanceMarginPx: number;
+}): void {
+  ENTITY_BODY_RADIUS = { ...tuning.entityBodyRadius };
+  ENEMY_PATH_CLEARANCE_MARGIN_PX = tuning.enemyPathClearanceMarginPx;
+}
 
 export function enemyPathClearancePx(defId: string, behavior: string): number {
   return (

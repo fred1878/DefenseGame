@@ -8,25 +8,37 @@ import {
 import { DEFAULT_WALL_COMBAT } from "../core/enemyTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 
-/** Playable defense footprint in 64px ground tiles (source of truth). */
-export const DEFENSE_FIELD_TILES = {
+/** Playable defense footprint in 64px ground tiles (source of truth; mutable after Boot). */
+export let DEFENSE_FIELD_TILES: { cols: number; rows: number } = {
   /** East–west — ~1.5× portrait viewport (540px → 832px @ 13×64). */
   cols: 13,
   /** North–south — tall scrollable field (taller than 1200px viewport). */
   rows: 22,
-} as const;
+};
 
+export function defenseFieldPx(): { width: number; height: number } {
+  return {
+    width: DEFENSE_FIELD_TILES.cols * GROUND_TILE_SIZE,
+    height: DEFENSE_FIELD_TILES.rows * GROUND_TILE_SIZE,
+  };
+}
+
+/** @deprecated Prefer {@link defenseFieldPx} when field size may change per map. */
 export const DEFENSE_FIELD_PX = {
-  width: DEFENSE_FIELD_TILES.cols * GROUND_TILE_SIZE,
-  height: DEFENSE_FIELD_TILES.rows * GROUND_TILE_SIZE,
-} as const;
+  get width() {
+    return defenseFieldPx().width;
+  },
+  get height() {
+    return defenseFieldPx().height;
+  },
+};
 
 export function defenseHalfWidth(): number {
-  return DEFENSE_FIELD_PX.width / 2;
+  return defenseFieldPx().width / 2;
 }
 
 export function defenseHalfHeight(): number {
-  return DEFENSE_FIELD_PX.height / 2;
+  return defenseFieldPx().height / 2;
 }
 
 /** North settlement wall — attack target plane (world y). */
@@ -148,7 +160,7 @@ export type DefenseObstaclePlacement = {
 };
 
 /** Tile placements; sprite center is raised so crop feet sit on the tile center. */
-export const DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
+export let DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
   { tileX: 2, tileY: 3, textureKey: OBSTACLE_TEXTURE.wideSlab },
   { tileX: 10, tileY: 4, textureKey: OBSTACLE_TEXTURE.tallRock },
   { tileX: 2, tileY: 15, textureKey: OBSTACLE_TEXTURE.rubbleLow },
@@ -198,3 +210,20 @@ export function defenseObstacleColliderFromPlacement(
 /** Static rock/wall blockers (world coords = Arcade body AABB center + size). */
 export const DEFENSE_OBSTACLES: DefenseObstacleRect[] =
   DEFENSE_OBSTACLE_PLACEMENTS.map(defenseObstacleColliderFromPlacement);
+
+function refreshDefenseObstacleColliders(): void {
+  DEFENSE_OBSTACLES.length = 0;
+  for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
+    DEFENSE_OBSTACLES.push(defenseObstacleColliderFromPlacement(placement));
+  }
+}
+
+/** Apply field footprint + obstacles from `public/data/defense-maps.json`. */
+export function applyDefenseMapLayout(
+  field: { cols: number; rows: number },
+  obstacles: DefenseObstaclePlacement[],
+): void {
+  DEFENSE_FIELD_TILES = { ...field };
+  DEFENSE_OBSTACLE_PLACEMENTS = obstacles.map((p) => ({ ...p }));
+  refreshDefenseObstacleColliders();
+}

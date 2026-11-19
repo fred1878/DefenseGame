@@ -1,0 +1,5 @@
+{
+  "playerAggroRadius": 320,
+  "playerChaseMemoryMs": 2000,
+  "wallVelocityBlendMs": 420
+}

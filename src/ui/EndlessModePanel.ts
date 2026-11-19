@@ -3,10 +3,7 @@ import { GAME } from "../config";
 import type { DataStore } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
-import {
-  getEndlessConcurrentCap,
-  listPlayableDefenseEnemyIds,
-} from "../systems/endlessEnemyRoster";
+import { listPlayableDefenseEnemyIds } from "../systems/endlessEnemyRoster";
 import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,
@@ -231,7 +228,8 @@ export class EndlessModePanel {
           new Phaser.Geom.Rectangle(-capBtnW / 2, -capBtnH / 2, capBtnW, capBtnH),
           Phaser.Geom.Rectangle.Contains,
         );
-      const capDefault = getEndlessConcurrentCap(enemyId, def);
+      /** UI seed from `player.json` only — defense spawns use `buildSelections()` caps. */
+      const capDefault = store.player.endlessPanelDefaultConcurrent;
       this.caps.set(enemyId, capDefault);
       const capValue = scene.add
         .text(capCx, cy, `${capDefault}`, uiTextStyle(scene, {

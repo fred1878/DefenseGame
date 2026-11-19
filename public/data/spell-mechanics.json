@@ -1,0 +1,15 @@
+{
+  "swingRangeWu": 72,
+  "swingArcDeg": 110,
+  "coneRangeWu": 120,
+  "coneArcDeg": 72,
+  "chainLightningHops": 4,
+  "chainLightningHopRangeWu": 110,
+  "blinkDistanceWu": 96,
+  "iceWallDistanceWu": 64,
+  "iceWallDurationMs": 8000,
+  "shadowformDurationMs": 10000,
+  "shadowformDamageMult": 1.35,
+  "frostRootMs": 2200,
+  "deepFreezeRootMs": 2800
+}

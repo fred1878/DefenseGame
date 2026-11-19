@@ -128,6 +128,12 @@ Loaded at runtime in `BootScene` via `DataStore`:
 
 | File | Purpose |
 |------|---------|
+| `player.json` | Player combat/movement tuning, melee engage slack (`meleeEngageTargetRadius`, `meleeActivationSlackWu`), `endlessPanelDefaultConcurrent` |
+| `defense-maps.json` | `defaultMapId`, per-map `field` (cols/rows) + obstacle placements (`tileX`/`tileY`/`textureKey`); `selectDefenseMapId` for future map pick |
+| `spell-mechanics.json` | Shared spell geometry/timing (cone/swing, chain lightning, blink, ice wall, shadowform, frost root) — not duplicated in `spells.json` |
+| `entity-physics.json` | `entityBodyRadius` (player/enemy/grunt/…) + `enemyPathClearanceMarginPx` |
+| `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`) |
+| `enemy-combat-defaults.json` | Baseline `wall` / `melee` / behavior combat tables; per-enemy `combat` in `enemies.json` overrides |
 | `enemies.json` | HP, speed, damage, `behavior`, optional `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
 | `buildings.json` | Upgrade defs: `wall`, `blacksmith` (`costByLevel`, effects) |

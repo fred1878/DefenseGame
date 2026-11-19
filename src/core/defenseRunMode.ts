@@ -1,8 +1,11 @@
-import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
+import {
+  clampEndlessConcurrent,
+  ENDLESS_CONCURRENT_MIN,
+} from "../systems/endlessSpawnScheduler";
 
 export type EndlessRunSelection = {
   enemyId: string;
-  /** Target living count for this type (1–99). Use 0 to resolve from enemy data at defense start. */
+  /** Target living count for this type (1–99), set in the endless selection panel. */
   concurrentCap: number;
 };
 
@@ -42,16 +45,17 @@ function isEndlessSelections(
   );
 }
 
+/** Clamp panel caps only — spawner must not substitute JSON/code defaults. */
 export function resolveEndlessRunSelections(
   selections: EndlessRunSelection[],
-  defaultCapForEnemy: (enemyId: string) => number,
 ): EndlessRunSelection[] {
   return selections.map((s) => ({
     enemyId: s.enemyId,
-    concurrentCap:
+    concurrentCap: clampEndlessConcurrent(
       s.concurrentCap > 0
-        ? clampEndlessConcurrent(s.concurrentCap)
-        : defaultCapForEnemy(s.enemyId),
+        ? s.concurrentCap
+        : ENDLESS_CONCURRENT_MIN,
+    ),
   }));
 }
 

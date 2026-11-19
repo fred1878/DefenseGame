@@ -5,8 +5,7 @@
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
-    "displayName": "Grunt",
-    "endlessConcurrent": 10
+    "displayName": "Grunt"
   },
   "bruiser": {
     "hp": 90,
@@ -132,7 +131,6 @@
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer",
     "displayName": "Javelineer",
-    "endlessConcurrent": 3,
     "combat": {
       "wall": {
         "damage": 6,

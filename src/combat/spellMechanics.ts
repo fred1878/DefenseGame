@@ -124,19 +124,71 @@ export function blinkDestination(
   };
 }
 
-export const SPELL_SWING_RANGE_WU = 72;
-export const SPELL_SWING_ARC_DEG = 110;
-export const SPELL_CONE_RANGE_WU = 120;
-export const SPELL_CONE_ARC_DEG = 72;
-export const CHAIN_LIGHTNING_HOPS = 4;
-export const CHAIN_LIGHTNING_HOP_RANGE_WU = 110;
-export const BLINK_DISTANCE_WU = 96;
-export const ICE_WALL_DISTANCE_WU = 64;
-export const ICE_WALL_DURATION_MS = 8000;
-export const SHADOWFORM_DURATION_MS = 10000;
-export const SHADOWFORM_DAMAGE_MULT = 1.35;
-export const FROST_ROOT_MS = 2200;
-export const DEEP_FREEZE_ROOT_MS = 2800;
+export type SpellMechanicsTuning = {
+  swingRangeWu: number;
+  swingArcDeg: number;
+  coneRangeWu: number;
+  coneArcDeg: number;
+  chainLightningHops: number;
+  chainLightningHopRangeWu: number;
+  blinkDistanceWu: number;
+  iceWallDistanceWu: number;
+  iceWallDurationMs: number;
+  shadowformDurationMs: number;
+  shadowformDamageMult: number;
+  frostRootMs: number;
+  deepFreezeRootMs: number;
+};
+
+/** Code defaults when `public/data/spell-mechanics.json` is absent (also pre-Boot). */
+export const SPELL_MECHANICS_DEFAULTS: SpellMechanicsTuning = {
+  swingRangeWu: 72,
+  swingArcDeg: 110,
+  coneRangeWu: 120,
+  coneArcDeg: 72,
+  chainLightningHops: 4,
+  chainLightningHopRangeWu: 110,
+  blinkDistanceWu: 96,
+  iceWallDistanceWu: 64,
+  iceWallDurationMs: 8000,
+  shadowformDurationMs: 10000,
+  shadowformDamageMult: 1.35,
+  frostRootMs: 2200,
+  deepFreezeRootMs: 2800,
+};
+
+export let SPELL_SWING_RANGE_WU = SPELL_MECHANICS_DEFAULTS.swingRangeWu;
+export let SPELL_SWING_ARC_DEG = SPELL_MECHANICS_DEFAULTS.swingArcDeg;
+export let SPELL_CONE_RANGE_WU = SPELL_MECHANICS_DEFAULTS.coneRangeWu;
+export let SPELL_CONE_ARC_DEG = SPELL_MECHANICS_DEFAULTS.coneArcDeg;
+export let CHAIN_LIGHTNING_HOPS = SPELL_MECHANICS_DEFAULTS.chainLightningHops;
+export let CHAIN_LIGHTNING_HOP_RANGE_WU =
+  SPELL_MECHANICS_DEFAULTS.chainLightningHopRangeWu;
+export let BLINK_DISTANCE_WU = SPELL_MECHANICS_DEFAULTS.blinkDistanceWu;
+export let ICE_WALL_DISTANCE_WU = SPELL_MECHANICS_DEFAULTS.iceWallDistanceWu;
+export let ICE_WALL_DURATION_MS = SPELL_MECHANICS_DEFAULTS.iceWallDurationMs;
+export let SHADOWFORM_DURATION_MS =
+  SPELL_MECHANICS_DEFAULTS.shadowformDurationMs;
+export let SHADOWFORM_DAMAGE_MULT =
+  SPELL_MECHANICS_DEFAULTS.shadowformDamageMult;
+export let FROST_ROOT_MS = SPELL_MECHANICS_DEFAULTS.frostRootMs;
+export let DEEP_FREEZE_ROOT_MS = SPELL_MECHANICS_DEFAULTS.deepFreezeRootMs;
+
+export function applySpellMechanics(tuning: SpellMechanicsTuning): void {
+  SPELL_SWING_RANGE_WU = tuning.swingRangeWu;
+  SPELL_SWING_ARC_DEG = tuning.swingArcDeg;
+  SPELL_CONE_RANGE_WU = tuning.coneRangeWu;
+  SPELL_CONE_ARC_DEG = tuning.coneArcDeg;
+  CHAIN_LIGHTNING_HOPS = tuning.chainLightningHops;
+  CHAIN_LIGHTNING_HOP_RANGE_WU = tuning.chainLightningHopRangeWu;
+  BLINK_DISTANCE_WU = tuning.blinkDistanceWu;
+  ICE_WALL_DISTANCE_WU = tuning.iceWallDistanceWu;
+  ICE_WALL_DURATION_MS = tuning.iceWallDurationMs;
+  SHADOWFORM_DURATION_MS = tuning.shadowformDurationMs;
+  SHADOWFORM_DAMAGE_MULT = tuning.shadowformDamageMult;
+  FROST_ROOT_MS = tuning.frostRootMs;
+  DEEP_FREEZE_ROOT_MS = tuning.deepFreezeRootMs;
+}
 
 export function clampGroundTarget(
   fromX: number,

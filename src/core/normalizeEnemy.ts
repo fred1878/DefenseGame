@@ -3,8 +3,6 @@ import {
   type EnemyCombatPartial,
 } from "./enemyTuning";
 import type { EnemyDef } from "./DataStore";
-import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
-
 export type EnemyDefInput = {
   hp?: number;
   speed?: number;
@@ -13,7 +11,6 @@ export type EnemyDefInput = {
   textureKey: string;
   displayName?: string;
   combat?: EnemyCombatPartial;
-  endlessConcurrent?: number;
 };
 
 function titleCaseFromId(id: string): string {
@@ -33,8 +30,5 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
     textureKey: raw.textureKey,
     displayName: raw.displayName?.trim() || titleCaseFromId(id),
     ...(raw.combat ? { combat: raw.combat } : {}),
-    ...(raw.endlessConcurrent !== undefined
-      ? { endlessConcurrent: clampEndlessConcurrent(raw.endlessConcurrent) }
-      : {}),
   };
 }

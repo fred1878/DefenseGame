@@ -161,6 +161,48 @@ describe("public data fixtures", () => {
     }
   });
 
+  it("enemy-combat-defaults.json defines wall and melee baselines", () => {
+    const defs = readJson("enemy-combat-defaults.json") as {
+      wall: { damage: number };
+      melee: { range: number };
+    };
+    expect(defs.wall.damage).toBeGreaterThan(0);
+    expect(defs.melee.range).toBeGreaterThan(0);
+  });
+
+  it("defense-maps.json defines default night-field layout", () => {
+    const maps = readJson("defense-maps.json") as {
+      defaultMapId: string;
+      maps: { id: string; obstacles: unknown[] }[];
+    };
+    expect(maps.defaultMapId).toBe("night-field");
+    expect(maps.maps.some((m) => m.id === "night-field")).toBe(true);
+    expect(maps.maps[0]!.obstacles.length).toBeGreaterThan(0);
+  });
+
+  it("spell-mechanics and entity-physics json load", () => {
+    const spellMech = readJson("spell-mechanics.json") as {
+      swingRangeWu: number;
+    };
+    const physics = readJson("entity-physics.json") as {
+      entityBodyRadius: { player: number };
+    };
+    const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
+    expect(spellMech.swingRangeWu).toBeGreaterThan(0);
+    expect(physics.entityBodyRadius.player).toBeGreaterThan(0);
+    expect(ai.playerAggroRadius).toBeGreaterThan(0);
+  });
+
+  it("player.json defines moveSpeed and endless panel seed", () => {
+    const player = readJson("player.json") as {
+      moveSpeed: number;
+      endlessPanelDefaultConcurrent: number;
+    };
+    expect(player.moveSpeed).toBeGreaterThan(0);
+    expect(player.endlessPanelDefaultConcurrent).toBeGreaterThanOrEqual(1);
+    expect(player.endlessPanelDefaultConcurrent).toBeLessThanOrEqual(99);
+  });
+
   it("buildings.json defines wall costs", () => {
     const buildings = readJson("buildings.json") as Record<
       string,
@@ -190,6 +232,7 @@ describe("DataStore.loadAll", () => {
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
     expect(store.spells.length).toBeGreaterThan(0);
+    expect(store.player.moveSpeed).toBeGreaterThan(0);
     vi.unstubAllGlobals();
   });
 });

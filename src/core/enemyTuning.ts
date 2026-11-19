@@ -1,3 +1,8 @@
+import {
+  normalizeEnemyCombatDefaults,
+  type EnemyCombatDefaultsInput,
+} from "./normalizeEnemyCombatDefaults";
+
 /** Partial combat stats as authored in `public/data/enemies.json` (`combat` object). */
 export type EnemyCombatPartial = {
   /** Wall objective attacks (all behaviors). */
@@ -193,6 +198,20 @@ export type ResolvedEnemyCombat = {
   hybrid?: EnemyHybridCombat;
 };
 
+/** Baseline combat tables from `public/data/enemy-combat-defaults.json`. */
+export type EnemyCombatDefaultsBundle = {
+  wall: EnemyWallCombat;
+  melee: EnemyMeleeCombat;
+  arrowRain: EnemyArrowRainCombat;
+  javelineer: EnemyJavelineerCombat;
+  stationaryRanged: EnemyStationaryRangedCombat;
+  wallSiege: EnemyWallSiegeCombat;
+  charger: EnemyChargerCombat;
+  lobber: EnemyLobberCombat;
+  ward: EnemyWardCombat;
+  hybrid: EnemyHybridCombat;
+};
+
 /** Default melee grunt row stats when JSON omits fields. */
 export const DEFAULT_ENEMY_BASE = {
   hp: 30,
@@ -289,30 +308,61 @@ export const DEFAULT_HYBRID_COMBAT: EnemyHybridCombat = {
   retreatRangeSlack: 16,
 };
 
+/** In-code fallback bundle (matches shipped `enemy-combat-defaults.json`). */
+export const CODE_ENEMY_COMBAT_DEFAULTS: EnemyCombatDefaultsBundle = {
+  wall: DEFAULT_WALL_COMBAT,
+  melee: DEFAULT_MELEE_COMBAT,
+  arrowRain: DEFAULT_ARROW_RAIN_COMBAT,
+  javelineer: DEFAULT_JAVELINEER_COMBAT,
+  stationaryRanged: DEFAULT_STATIONARY_RANGED_COMBAT,
+  wallSiege: DEFAULT_WALL_SIEGE_COMBAT,
+  charger: DEFAULT_CHARGER_COMBAT,
+  lobber: DEFAULT_LOBBER_COMBAT,
+  ward: DEFAULT_WARD_COMBAT,
+  hybrid: DEFAULT_HYBRID_COMBAT,
+};
+
+let activeEnemyCombatDefaults: EnemyCombatDefaultsBundle = {
+  ...CODE_ENEMY_COMBAT_DEFAULTS,
+};
+
+export function getEnemyCombatDefaults(): EnemyCombatDefaultsBundle {
+  return activeEnemyCombatDefaults;
+}
+
+export function applyEnemyCombatDefaults(raw: EnemyCombatDefaultsInput): void {
+  activeEnemyCombatDefaults = normalizeEnemyCombatDefaults(
+    CODE_ENEMY_COMBAT_DEFAULTS,
+    raw,
+  );
+}
+
 function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
+  const d = getEnemyCombatDefaults().melee;
   return {
-    triggerRange: partial?.triggerRange ?? DEFAULT_MELEE_COMBAT.triggerRange,
-    range: partial?.range ?? DEFAULT_MELEE_COMBAT.range,
-    arcDeg: partial?.arcDeg ?? DEFAULT_MELEE_COMBAT.arcDeg,
-    windupMs: partial?.windupMs ?? DEFAULT_MELEE_COMBAT.windupMs,
-    activeMs: partial?.activeMs ?? DEFAULT_MELEE_COMBAT.activeMs,
-    recoveryMs: partial?.recoveryMs ?? DEFAULT_MELEE_COMBAT.recoveryMs,
-    cooldownMs: partial?.cooldownMs ?? DEFAULT_MELEE_COMBAT.cooldownMs,
+    triggerRange: partial?.triggerRange ?? d.triggerRange,
+    range: partial?.range ?? d.range,
+    arcDeg: partial?.arcDeg ?? d.arcDeg,
+    windupMs: partial?.windupMs ?? d.windupMs,
+    activeMs: partial?.activeMs ?? d.activeMs,
+    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
+    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
   };
 }
 
 function mergeWall(partial?: EnemyCombatPartial["wall"]): EnemyWallCombat {
+  const d = getEnemyCombatDefaults().wall;
   return {
-    damage: partial?.damage ?? DEFAULT_WALL_COMBAT.damage,
-    triggerRange: partial?.triggerRange ?? DEFAULT_WALL_COMBAT.triggerRange,
-    hitRange: partial?.hitRange ?? DEFAULT_WALL_COMBAT.hitRange,
+    damage: partial?.damage ?? d.damage,
+    triggerRange: partial?.triggerRange ?? d.triggerRange,
+    hitRange: partial?.hitRange ?? d.hitRange,
   };
 }
 
 function mergeArrowRain(
   partial?: EnemyCombatPartial["arrowRain"],
 ): EnemyArrowRainCombat {
-  const d = DEFAULT_ARROW_RAIN_COMBAT;
+  const d = getEnemyCombatDefaults().arrowRain;
   return {
     preferredRange: partial?.preferredRange ?? d.preferredRange,
     attackTriggerRange:
@@ -331,7 +381,7 @@ function mergeArrowRain(
 function mergeJavelineer(
   partial?: EnemyCombatPartial["javelineer"],
 ): EnemyJavelineerCombat {
-  const d = DEFAULT_JAVELINEER_COMBAT;
+  const d = getEnemyCombatDefaults().javelineer;
   return {
     minRange: partial?.minRange ?? d.minRange,
     maxRange: partial?.maxRange ?? d.maxRange,
@@ -350,7 +400,7 @@ function mergeJavelineer(
 function mergeStationaryRanged(
   partial?: EnemyCombatPartial["stationaryRanged"],
 ): EnemyStationaryRangedCombat {
-  const d = DEFAULT_STATIONARY_RANGED_COMBAT;
+  const d = getEnemyCombatDefaults().stationaryRanged;
   return {
     attackTriggerRange:
       partial?.attackTriggerRange ?? d.attackTriggerRange,
@@ -367,7 +417,7 @@ function mergeStationaryRanged(
 function mergeWallSiege(
   partial?: EnemyCombatPartial["wallSiege"],
 ): EnemyWallSiegeCombat {
-  const d = DEFAULT_WALL_SIEGE_COMBAT;
+  const d = getEnemyCombatDefaults().wallSiege;
   return {
     playerAggroRadius:
       partial?.playerAggroRadius ?? d.playerAggroRadius,
@@ -377,7 +427,7 @@ function mergeWallSiege(
 function mergeCharger(
   partial?: EnemyCombatPartial["charger"],
 ): EnemyChargerCombat {
-  const d = DEFAULT_CHARGER_COMBAT;
+  const d = getEnemyCombatDefaults().charger;
   return {
     dashTriggerRange: partial?.dashTriggerRange ?? d.dashTriggerRange,
     dashWindupMs: partial?.dashWindupMs ?? d.dashWindupMs,
@@ -390,7 +440,7 @@ function mergeCharger(
 function mergeLobber(
   partial?: EnemyCombatPartial["lobber"],
 ): EnemyLobberCombat {
-  const d = DEFAULT_LOBBER_COMBAT;
+  const d = getEnemyCombatDefaults().lobber;
   return {
     preferredRange: partial?.preferredRange ?? d.preferredRange,
     attackTriggerRange:
@@ -408,7 +458,7 @@ function mergeLobber(
 function mergeWard(
   partial?: EnemyCombatPartial["ward"],
 ): EnemyWardCombat {
-  const d = DEFAULT_WARD_COMBAT;
+  const d = getEnemyCombatDefaults().ward;
   return {
     protectRadius: partial?.protectRadius ?? d.protectRadius,
     screenBlend: partial?.screenBlend ?? d.screenBlend,
@@ -420,7 +470,7 @@ function mergeWard(
 function mergeHybrid(
   partial?: EnemyCombatPartial["hybrid"],
 ): EnemyHybridCombat {
-  const d = DEFAULT_HYBRID_COMBAT;
+  const d = getEnemyCombatDefaults().hybrid;
   return {
     closeMeleeRadius: partial?.closeMeleeRadius ?? d.closeMeleeRadius,
     preferredRange: partial?.preferredRange ?? d.preferredRange,

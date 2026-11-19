@@ -51,7 +51,7 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
         })),
       { timeout: 10_000 },
     )
-    .toEqual({ endless: true, enemyId: "grunt", count: 10 });
+    .toEqual({ endless: true, enemyId: "grunt", count: 5 });
 
   expect(
     await page.evaluate(

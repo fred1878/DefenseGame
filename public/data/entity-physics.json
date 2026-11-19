@@ -1,0 +1,9 @@
+{
+  "entityBodyRadius": {
+    "player": 17,
+    "enemy": 14,
+    "enemyMelee": 21,
+    "grunt": 28
+  },
+  "enemyPathClearanceMarginPx": 7
+}
