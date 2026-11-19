@@ -73,7 +73,6 @@ BLIZZARD_ANIM_FRAMES = [f"blizzard_{i:02d}" for i in range(1, 11)]
 # Pristine atlas.tga still has garbage at some icon_spell_* "rest" rects (atlas.txt stale).
 # Fall back to the paired *_down art MobileRPG uses when pressed.
 ICON_FRAME_FALLBACK: dict[str, str] = {
-    "icon_spell_08": "icon_spell_08_down",
     "icon_spell_11": "icon_spell_11_down",
 }
 
