@@ -9,23 +9,31 @@ export type EntityBodyRadius = {
   grunt: number;
 };
 
-/** Code defaults when `public/data/entity-physics.json` is absent. */
-export const ENTITY_BODY_RADIUS_DEFAULTS: EntityBodyRadius = {
-  player: 17,
-  enemy: 14,
-  enemyMelee: 21,
-  grunt: 28,
-};
-
 /** Arcade physics circle radius (diameter ≈ 34px at 17 for player). */
-export let ENTITY_BODY_RADIUS: EntityBodyRadius = {
-  ...ENTITY_BODY_RADIUS_DEFAULTS,
-};
+export let ENTITY_BODY_RADIUS: EntityBodyRadius = unsetEntityBodyRadius();
 
 /** Matches {@link DEFENSE_MAP.cellSize} / 2 − 1 px nav margin on obstacle inflation. */
-export const ENEMY_PATH_CLEARANCE_MARGIN_PX_DEFAULT = 7;
+export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
 
-export let ENEMY_PATH_CLEARANCE_MARGIN_PX = ENEMY_PATH_CLEARANCE_MARGIN_PX_DEFAULT;
+function unsetEntityBodyRadius(): EntityBodyRadius {
+  return new Proxy({} as EntityBodyRadius, {
+    get() {
+      throw new Error(
+        "ENTITY_BODY_RADIUS not loaded — Boot must apply public/data/entity-physics.json",
+      );
+    },
+  });
+}
+
+function unsetMargin(): number {
+  return new Proxy({} as object, {
+    get() {
+      throw new Error(
+        "ENEMY_PATH_CLEARANCE_MARGIN_PX not loaded — Boot must apply public/data/entity-physics.json",
+      );
+    },
+  }) as unknown as number;
+}
 
 export function applyEntityPhysics(tuning: {
   entityBodyRadius: EntityBodyRadius;

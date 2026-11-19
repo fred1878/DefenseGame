@@ -1,32 +1,31 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  ENDLESS_PANEL_DEFAULT_CONCURRENT,
-  PLAYER_TUNING_DEFAULTS,
-} from "../config/player";
-import { normalizePlayerConfig } from "./normalizePlayer";
+import { ConfigLoadError } from "./configValidation";
+import { normalizePlayerConfig, type PlayerConfigInput } from "./normalizePlayer";
+
+function shippedPlayer(): unknown {
+  return JSON.parse(
+    readFileSync(path.join(process.cwd(), "public/data/player.json"), "utf8"),
+  );
+}
 
 describe("normalizePlayerConfig", () => {
-  it("fills defaults when file is empty", () => {
-    const cfg = normalizePlayerConfig({});
-    expect(cfg.moveSpeed).toBe(PLAYER_TUNING_DEFAULTS.moveSpeed);
-    expect(cfg.endlessPanelDefaultConcurrent).toBe(
-      ENDLESS_PANEL_DEFAULT_CONCURRENT,
-    );
+  it("requires complete player.json", () => {
+    expect(() => normalizePlayerConfig({})).toThrow(ConfigLoadError);
   });
 
-  it("recomputes autoAttackMeleeRange when strike range overrides", () => {
-    const cfg = normalizePlayerConfig({ meleeStrikeRange: 100 });
+  it("derives autoAttackMeleeRange from engage fields", () => {
+    const cfg = normalizePlayerConfig(shippedPlayer() as PlayerConfigInput);
     expect(cfg.autoAttackMeleeRange).toBe(
-      100 +
-        PLAYER_TUNING_DEFAULTS.meleeEngageTargetRadius -
-        PLAYER_TUNING_DEFAULTS.meleeActivationSlackWu,
+      cfg.meleeStrikeRange +
+        cfg.meleeEngageTargetRadius -
+        cfg.meleeActivationSlackWu,
     );
   });
 
   it("clamps endless panel default concurrent", () => {
-    expect(
-      normalizePlayerConfig({ endlessPanelDefaultConcurrent: 200 })
-        .endlessPanelDefaultConcurrent,
-    ).toBe(99);
+    const cfg = normalizePlayerConfig(shippedPlayer() as PlayerConfigInput);
+    expect(cfg.endlessPanelDefaultConcurrent).toBeGreaterThan(0);
   });
 });

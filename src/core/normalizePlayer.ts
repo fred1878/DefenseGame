@@ -1,14 +1,38 @@
+import type { PlayerTuning } from "../config/player";
 import {
-  ENDLESS_PANEL_DEFAULT_CONCURRENT,
-  PLAYER_TUNING_DEFAULTS,
-  type PlayerTuning,
-} from "../config/player";
+  requireFiniteNumber,
+  requireRecord,
+} from "./configValidation";
 import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 
+const PLAYER_TUNING_KEYS = [
+  "moveSpeed",
+  "meleeWindupMs",
+  "meleeActiveMs",
+  "meleeRecoveryMs",
+  "meleeRange",
+  "meleeStrikeRange",
+  "meleeEngageTargetRadius",
+  "meleeActivationSlackWu",
+  "meleeArcDeg",
+  "meleeDamage",
+  "rangedWindupMs",
+  "rangedActiveMs",
+  "rangedRecoveryMs",
+  "rangedDamage",
+  "rangedMaxRange",
+  "projectileSpeed",
+  "meleeKnockback",
+  "rangedKnockback",
+  "maxHp",
+  "autoAttackRangedRange",
+  "targetTapRadiusWorld",
+  "playerHitInvulnMs",
+  "nightSpawnInvulnMs",
+] as const satisfies readonly (keyof PlayerTuning)[];
+
 /** Authorable subset of `public/data/player.json` (derived fields omitted). */
-export type PlayerConfigInput = Partial<{
-  [K in keyof typeof PLAYER_TUNING_DEFAULTS]: number;
-}> & {
+export type PlayerConfigInput = Partial<Record<(typeof PLAYER_TUNING_KEYS)[number], number>> & {
   endlessPanelDefaultConcurrent?: number;
 };
 
@@ -16,32 +40,33 @@ export type PlayerConfig = PlayerTuning & {
   endlessPanelDefaultConcurrent: number;
 };
 
-export function normalizePlayerConfig(raw: PlayerConfigInput): PlayerConfig {
-  const meleeStrikeRange =
-    raw.meleeStrikeRange ?? PLAYER_TUNING_DEFAULTS.meleeStrikeRange;
-  const endlessPanelDefaultConcurrent = clampEndlessConcurrent(
-    raw.endlessPanelDefaultConcurrent ?? ENDLESS_PANEL_DEFAULT_CONCURRENT,
-  );
-  const meleeEngageTargetRadius =
-    raw.meleeEngageTargetRadius ?? PLAYER_TUNING_DEFAULTS.meleeEngageTargetRadius;
-  const meleeActivationSlackWu =
-    raw.meleeActivationSlackWu ?? PLAYER_TUNING_DEFAULTS.meleeActivationSlackWu;
-  const tuning: PlayerTuning = {
-    ...PLAYER_TUNING_DEFAULTS,
-    ...raw,
-    meleeStrikeRange,
-    meleeEngageTargetRadius,
-    meleeActivationSlackWu,
+export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined): PlayerConfig {
+  const root = requireRecord(raw, "player");
+  const tuning = {} as Record<string, number>;
+  for (const key of PLAYER_TUNING_KEYS) {
+    tuning[key] = requireFiniteNumber(root[key], `player.${key}`);
+  }
+  const meleeStrikeRange = tuning.meleeStrikeRange!;
+  const meleeEngageTargetRadius = tuning.meleeEngageTargetRadius!;
+  const meleeActivationSlackWu = tuning.meleeActivationSlackWu!;
+  const playerTuning: PlayerTuning = {
+    ...(tuning as PlayerTuning),
     autoAttackMeleeRange: computeAutoAttackMeleeRange(
       meleeStrikeRange,
       meleeEngageTargetRadius,
       meleeActivationSlackWu,
     ),
   };
-  return { ...tuning, endlessPanelDefaultConcurrent };
+  const endlessPanelDefaultConcurrent = clampEndlessConcurrent(
+    requireFiniteNumber(
+      root.endlessPanelDefaultConcurrent,
+      "player.endlessPanelDefaultConcurrent",
+    ),
+  );
+  return { ...playerTuning, endlessPanelDefaultConcurrent };
 }
 
-/** Center-to-center engage gate; matches `src/config/player.ts` derivation. */
+/** Center-to-center engage gate; matches derivation from strike + engage slack fields. */
 function computeAutoAttackMeleeRange(
   meleeStrikeRange: number,
   meleeEngageTargetRadius: number,

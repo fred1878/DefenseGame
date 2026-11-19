@@ -2,24 +2,30 @@ import {
   GROUND_TILE_SIZE,
   OBSTACLE_BLOCKER_FOOTPRINT,
   OBSTACLE_SPRITE_CROP,
-  OBSTACLE_TEXTURE,
   type ObstacleTextureKey,
 } from "../content/assets";
 import {
-  DEFAULT_WALL_COMBAT,
+  getEnemyCombatDefaults,
   wallMeleeApproachStandoffPx,
 } from "../core/enemyTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 
-/** Playable defense footprint in 64px ground tiles (source of truth; mutable after Boot). */
+/** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
 export let DEFENSE_FIELD_TILES: { cols: number; rows: number } = {
-  /** East–west — ~1.5× portrait viewport (540px → 832px @ 13×64). */
-  cols: 13,
-  /** North–south — tall scrollable field (taller than 1200px viewport). */
-  rows: 22,
+  cols: 0,
+  rows: 0,
 };
 
+export function assertDefenseFieldLoaded(): void {
+  if (DEFENSE_FIELD_TILES.cols < 1 || DEFENSE_FIELD_TILES.rows < 1) {
+    throw new Error(
+      "DEFENSE_FIELD_TILES not loaded — Boot must apply public/data/defense-maps.json",
+    );
+  }
+}
+
 export function defenseFieldPx(): { width: number; height: number } {
+  assertDefenseFieldLoaded();
   return {
     width: DEFENSE_FIELD_TILES.cols * GROUND_TILE_SIZE,
     height: DEFENSE_FIELD_TILES.rows * GROUND_TILE_SIZE,
@@ -54,7 +60,7 @@ export function northWallAttackY(): number {
  * Pathing stop line south of the wall so enemies hold attack range instead of walking into the barricade.
  */
 export function northWallApproachY(
-  standoffPx = wallMeleeApproachStandoffPx(DEFAULT_WALL_COMBAT),
+  standoffPx = wallMeleeApproachStandoffPx(getEnemyCombatDefaults().wall),
 ): number {
   return northWallAttackY() + standoffPx;
 }
@@ -138,15 +144,18 @@ export const DEFENSE_MAP = {
   /**
    * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than the
    * widest rush collision circle (grunt), plus {@link DEFENSE_MAP.cellSize} / 2 − 1 px.
+   * Lazy — depends on `entity-physics.json` loaded at Boot.
    */
-  pathClearancePx: maxNavObstacleClearancePx(),
+  get pathClearancePx(): number {
+    return maxNavObstacleClearancePx();
+  },
   /** How close an enemy must be to a path node before advancing. */
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */
   pathReplanMs: 450,
   /** No meaningful progress toward the current waypoint for this long → emergency replan. */
   pathStallMs: 400,
-} as const;
+};
 
 export type DefenseObstacleRect = {
   x: number;
@@ -162,17 +171,8 @@ export type DefenseObstaclePlacement = {
   textureKey: ObstacleTextureKey;
 };
 
-/** Tile placements; sprite center is raised so crop feet sit on the tile center. */
-export let DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
-  { tileX: 2, tileY: 3, textureKey: OBSTACLE_TEXTURE.wideSlab },
-  { tileX: 10, tileY: 4, textureKey: OBSTACLE_TEXTURE.tallRock },
-  { tileX: 2, tileY: 15, textureKey: OBSTACLE_TEXTURE.rubbleLow },
-  { tileX: 10, tileY: 16, textureKey: OBSTACLE_TEXTURE.boulderSm },
-  { tileX: 6, tileY: 2, textureKey: OBSTACLE_TEXTURE.boulderMed },
-  { tileX: 9, tileY: 11, textureKey: OBSTACLE_TEXTURE.boulderSm },
-  { tileX: 4, tileY: 10, textureKey: OBSTACLE_TEXTURE.boulderMed },
-  { tileX: 6, tileY: 8, textureKey: OBSTACLE_TEXTURE.rubbleLow },
-];
+/** Tile placements from `defense-maps.json` (empty until Boot). */
+export let DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [];
 
 export function defenseObstacleSpriteAnchor(
   placement: DefenseObstaclePlacement,
@@ -211,14 +211,12 @@ export function defenseObstacleColliderFromPlacement(
 }
 
 /** Static rock/wall blockers (world coords = Arcade body AABB center + size). */
-export const DEFENSE_OBSTACLES: DefenseObstacleRect[] =
-  DEFENSE_OBSTACLE_PLACEMENTS.map(defenseObstacleColliderFromPlacement);
+export let DEFENSE_OBSTACLES: DefenseObstacleRect[] = [];
 
 function refreshDefenseObstacleColliders(): void {
-  DEFENSE_OBSTACLES.length = 0;
-  for (const placement of DEFENSE_OBSTACLE_PLACEMENTS) {
-    DEFENSE_OBSTACLES.push(defenseObstacleColliderFromPlacement(placement));
-  }
+  DEFENSE_OBSTACLES = DEFENSE_OBSTACLE_PLACEMENTS.map(
+    defenseObstacleColliderFromPlacement,
+  );
 }
 
 /** Apply field footprint + obstacles from `public/data/defense-maps.json`. */

@@ -1,9 +1,12 @@
 import { OBSTACLE_TEXTURE, type ObstacleTextureKey } from "../content/assets";
 import type { DefenseObstaclePlacement } from "../config/defense";
+import {
+  ConfigLoadError,
+  requireFiniteNumber,
+  requireRecord,
+} from "./configValidation";
 
-const VALID_TEXTURE_KEYS = new Set<string>(
-  Object.values(OBSTACLE_TEXTURE),
-);
+const VALID_TEXTURE_KEYS = new Set<string>(Object.values(OBSTACLE_TEXTURE));
 
 export type DefenseMapFieldInput = { cols?: number; rows?: number };
 
@@ -37,91 +40,75 @@ export type DefenseMapsRegistry = {
   maps: DefenseMapDef[];
 };
 
-export const CODE_DEFENSE_FIELD: DefenseFieldTiles = { cols: 13, rows: 22 };
-
-export const CODE_DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [
-  { tileX: 2, tileY: 3, textureKey: OBSTACLE_TEXTURE.wideSlab },
-  { tileX: 10, tileY: 4, textureKey: OBSTACLE_TEXTURE.tallRock },
-  { tileX: 2, tileY: 15, textureKey: OBSTACLE_TEXTURE.rubbleLow },
-  { tileX: 10, tileY: 16, textureKey: OBSTACLE_TEXTURE.boulderSm },
-  { tileX: 6, tileY: 2, textureKey: OBSTACLE_TEXTURE.boulderMed },
-  { tileX: 9, tileY: 11, textureKey: OBSTACLE_TEXTURE.boulderSm },
-  { tileX: 4, tileY: 10, textureKey: OBSTACLE_TEXTURE.boulderMed },
-  { tileX: 6, tileY: 8, textureKey: OBSTACLE_TEXTURE.rubbleLow },
-];
-
-function normalizeTextureKey(raw: string | undefined): ObstacleTextureKey {
-  if (raw && VALID_TEXTURE_KEYS.has(raw)) {
-    return raw as ObstacleTextureKey;
+function requireTextureKey(
+  raw: unknown,
+  path: string,
+): ObstacleTextureKey {
+  if (typeof raw !== "string" || !VALID_TEXTURE_KEYS.has(raw)) {
+    throw new ConfigLoadError(`Missing or invalid textureKey at ${path}`);
   }
-  return OBSTACLE_TEXTURE.wideSlab;
+  return raw as ObstacleTextureKey;
 }
 
-function normalizePlacement(row: DefenseMapObstacleInput): DefenseObstaclePlacement | null {
-  const tileX = row.tileX;
-  const tileY = row.tileY;
-  if (!Number.isFinite(tileX) || !Number.isFinite(tileY)) return null;
+function normalizePlacement(
+  row: DefenseMapObstacleInput,
+  path: string,
+): DefenseObstaclePlacement {
+  const block = requireRecord(row, path);
   return {
-    tileX: tileX!,
-    tileY: tileY!,
-    textureKey: normalizeTextureKey(row.textureKey),
+    tileX: requireFiniteNumber(block.tileX, `${path}.tileX`),
+    tileY: requireFiniteNumber(block.tileY, `${path}.tileY`),
+    textureKey: requireTextureKey(block.textureKey, `${path}.textureKey`),
   };
 }
 
-function normalizeMap(
-  row: DefenseMapInput,
-  fallbackId: string,
-): DefenseMapDef | null {
-  const id = typeof row.id === "string" && row.id.trim() ? row.id.trim() : fallbackId;
-  const cols = row.field?.cols ?? CODE_DEFENSE_FIELD.cols;
-  const rows = row.field?.rows ?? CODE_DEFENSE_FIELD.rows;
-  if (!Number.isFinite(cols) || !Number.isFinite(rows) || cols < 1 || rows < 1) {
-    return null;
+function normalizeMap(row: DefenseMapInput, index: number): DefenseMapDef {
+  const path = `defense-maps.maps[${index}]`;
+  const block = requireRecord(row, path);
+  const idRaw = block.id;
+  if (typeof idRaw !== "string" || !idRaw.trim()) {
+    throw new ConfigLoadError(`Missing string at ${path}.id`);
   }
-  const obstacles = (row.obstacles ?? [])
-    .map(normalizePlacement)
-    .filter((p): p is DefenseObstaclePlacement => p !== null);
+  const field = requireRecord(block.field, `${path}.field`);
+  const cols = requireFiniteNumber(field.cols, `${path}.field.cols`);
+  const rows = requireFiniteNumber(field.rows, `${path}.field.rows`);
+  if (cols < 1 || rows < 1) {
+    throw new ConfigLoadError(`Invalid field size at ${path}.field`);
+  }
+  const obstaclesRaw = block.obstacles;
+  if (!Array.isArray(obstaclesRaw) || obstaclesRaw.length === 0) {
+    throw new ConfigLoadError(`Expected non-empty obstacles at ${path}.obstacles`);
+  }
+  const obstacles = obstaclesRaw.map((o, i) =>
+    normalizePlacement(o as DefenseMapObstacleInput, `${path}.obstacles[${i}]`),
+  );
   return {
-    id,
+    id: idRaw.trim(),
     field: { cols, rows },
-    obstacles: obstacles.length > 0 ? obstacles : [...CODE_DEFENSE_OBSTACLE_PLACEMENTS],
-  };
-}
-
-/** Fallback single-map registry when JSON is missing or invalid. */
-export function codeDefenseMapsRegistry(): DefenseMapsRegistry {
-  return {
-    defaultMapId: "night-field",
-    maps: [
-      {
-        id: "night-field",
-        field: { ...CODE_DEFENSE_FIELD },
-        obstacles: [...CODE_DEFENSE_OBSTACLE_PLACEMENTS],
-      },
-    ],
+    obstacles,
   };
 }
 
 export function normalizeDefenseMaps(
   raw: DefenseMapsFileInput | null | undefined,
 ): DefenseMapsRegistry {
-  const fallback = codeDefenseMapsRegistry();
-  if (!raw?.maps?.length) return fallback;
-  const maps: DefenseMapDef[] = [];
-  for (let i = 0; i < raw.maps.length; i++) {
-    const m = normalizeMap(raw.maps[i]!, `map-${i + 1}`);
-    if (m) maps.push(m);
+  const root = requireRecord(raw, "defense-maps");
+  const mapsRaw = root.maps;
+  if (!Array.isArray(mapsRaw) || mapsRaw.length === 0) {
+    throw new ConfigLoadError("defense-maps.maps must be a non-empty array");
   }
-  if (maps.length === 0) return fallback;
-  const defaultMapId =
-    typeof raw.defaultMapId === "string" && raw.defaultMapId.trim()
-      ? raw.defaultMapId.trim()
-      : fallback.defaultMapId;
-  const hasDefault = maps.some((m) => m.id === defaultMapId);
-  return {
-    defaultMapId: hasDefault ? defaultMapId : maps[0]!.id,
-    maps,
-  };
+  const maps = mapsRaw.map((m, i) => normalizeMap(m as DefenseMapInput, i));
+  const defaultMapIdRaw = root.defaultMapId;
+  if (typeof defaultMapIdRaw !== "string" || !defaultMapIdRaw.trim()) {
+    throw new ConfigLoadError("Missing string at defense-maps.defaultMapId");
+  }
+  const defaultMapId = defaultMapIdRaw.trim();
+  if (!maps.some((m) => m.id === defaultMapId)) {
+    throw new ConfigLoadError(
+      `defense-maps.defaultMapId "${defaultMapId}" not found in maps`,
+    );
+  }
+  return { defaultMapId, maps };
 }
 
 export function resolveDefenseMap(
@@ -129,5 +116,9 @@ export function resolveDefenseMap(
   mapId?: string,
 ): DefenseMapDef {
   const id = mapId ?? registry.defaultMapId;
-  return registry.maps.find((m) => m.id === id) ?? registry.maps[0]!;
+  const found = registry.maps.find((m) => m.id === id);
+  if (!found) {
+    throw new ConfigLoadError(`Defense map id not found: ${id}`);
+  }
+  return found;
 }

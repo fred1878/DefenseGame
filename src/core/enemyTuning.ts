@@ -2,6 +2,7 @@ import {
   ENTITY_BODY_RADIUS,
   enemyCollisionBodyRadius,
 } from "../entities/entityPhysics";
+import { ConfigLoadError } from "./configValidation";
 import {
   normalizeEnemyCombatDefaults,
   type EnemyCombatDefaultsInput,
@@ -219,26 +220,6 @@ export type EnemyCombatDefaultsBundle = {
   hybrid: EnemyHybridCombat;
 };
 
-/** Default melee grunt row stats when JSON omits fields. */
-export const DEFAULT_ENEMY_BASE = {
-  hp: 30,
-  speed: 60,
-  damage: 8,
-} as const;
-
-export const DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX = 0;
-
-export const DEFAULT_MELEE_COMBAT: EnemyMeleeCombat = {
-  triggerRange: 78,
-  range: 52,
-  arcDeg: 70,
-  windupMs: 380,
-  activeMs: 110,
-  recoveryMs: 480,
-  cooldownMs: 350,
-  engageBodySlackPx: DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX,
-};
-
 /** Arcade contact center distance for a melee archetype vs the player hurtbox. */
 export function enemyMeleeContactCenterDist(
   behavior: string,
@@ -255,9 +236,7 @@ export function clampMeleeEngageForPhysics(
   behavior: string,
   defId?: string,
 ): EnemyMeleeCombat {
-  const slack =
-    getEnemyCombatDefaults().melee.engageBodySlackPx ??
-    DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX;
+  const slack = melee.engageBodySlackPx ?? getEnemyCombatDefaults().melee.engageBodySlackPx!;
   const contact = enemyMeleeContactCenterDist(behavior, defId);
   const triggerMin = Math.max(0, contact - slack);
   const rangeMin = enemyCollisionBodyRadius(behavior, defId);
@@ -269,12 +248,6 @@ export function clampMeleeEngageForPhysics(
   };
 }
 
-export const DEFAULT_WALL_COMBAT: EnemyWallCombat = {
-  damage: 6,
-  triggerRange: 42,
-  hitRange: 34,
-};
-
 /** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range. */
 export function wallMeleeApproachStandoffPx(
   wall: Pick<EnemyWallCombat, "hitRange" | "triggerRange">,
@@ -285,106 +258,19 @@ export function wallMeleeApproachStandoffPx(
   return Math.min(fromHit, fromTrigger);
 }
 
-export const DEFAULT_ARROW_RAIN_COMBAT: EnemyArrowRainCombat = {
-  preferredRange: 150,
-  attackTriggerRange: 168,
-  windupMs: 900,
-  activeMs: 1200,
-  recoveryMs: 520,
-  cooldownMs: 2200,
-  zoneRadius: 72,
-  tickIntervalMs: 300,
-  tickDamageScale: 0.55,
-  maxTicks: 4,
-};
-
-export const DEFAULT_JAVELINEER_COMBAT: EnemyJavelineerCombat = {
-  minRange: 52,
-  maxRange: 198,
-  strafeSpeedMul: 0.92,
-  orbitFlipMs: 1400,
-  windupMs: 340,
-  activeMs: 120,
-  recoveryMs: 420,
-  cooldownMs: 1100,
-  projectileSpeed: 340,
-  projectileMaxTravel: 240,
-};
-
-export const DEFAULT_STATIONARY_RANGED_COMBAT: EnemyStationaryRangedCombat = {
-  attackTriggerRange: 155,
-  windupMs: 520,
-  activeMs: 80,
-  recoveryMs: 480,
-  cooldownMs: 1400,
-  projectileSpeed: 380,
-  projectileMaxTravel: 220,
-};
-
-export const DEFAULT_WALL_SIEGE_COMBAT: EnemyWallSiegeCombat = {
-  playerAggroRadius: 72,
-};
-
-export const DEFAULT_CHARGER_COMBAT: EnemyChargerCombat = {
-  dashTriggerRange: 148,
-  dashWindupMs: 320,
-  dashDurationMs: 420,
-  dashSpeedMul: 2.35,
-  dashCooldownMs: 2800,
-};
-
-export const DEFAULT_LOBBER_COMBAT: EnemyLobberCombat = {
-  preferredRange: 128,
-  attackTriggerRange: 168,
-  windupMs: 680,
-  activeMs: 100,
-  recoveryMs: 520,
-  cooldownMs: 2400,
-  projectileSpeed: 260,
-  blastRadius: 58,
-  blastDamageScale: 0.85,
-};
-
-export const DEFAULT_WARD_COMBAT: EnemyWardCombat = {
-  protectRadius: 220,
-  screenBlend: 0.42,
-  playerAggroRadius: 120,
-};
-
-export const DEFAULT_HYBRID_COMBAT: EnemyHybridCombat = {
-  closeMeleeRadius: 78,
-  preferredRange: 118,
-  maxMeleeSwings: 3,
-  retreatRangeSlack: 16,
-};
-
-/** In-code fallback bundle (matches shipped `enemy-combat-defaults.json`). */
-export const CODE_ENEMY_COMBAT_DEFAULTS: EnemyCombatDefaultsBundle = {
-  wall: DEFAULT_WALL_COMBAT,
-  melee: DEFAULT_MELEE_COMBAT,
-  arrowRain: DEFAULT_ARROW_RAIN_COMBAT,
-  javelineer: DEFAULT_JAVELINEER_COMBAT,
-  stationaryRanged: DEFAULT_STATIONARY_RANGED_COMBAT,
-  wallSiege: DEFAULT_WALL_SIEGE_COMBAT,
-  charger: DEFAULT_CHARGER_COMBAT,
-  lobber: DEFAULT_LOBBER_COMBAT,
-  ward: DEFAULT_WARD_COMBAT,
-  hybrid: DEFAULT_HYBRID_COMBAT,
-};
-
-let activeEnemyCombatDefaults: EnemyCombatDefaultsBundle = {
-  ...CODE_ENEMY_COMBAT_DEFAULTS,
-};
+let activeEnemyCombatDefaults: EnemyCombatDefaultsBundle | null = null;
 
 export function getEnemyCombatDefaults(): EnemyCombatDefaultsBundle {
+  if (!activeEnemyCombatDefaults) {
+    throw new ConfigLoadError(
+      "Enemy combat defaults not loaded — call DataStore.loadAll or applyEnemyCombatDefaults first",
+    );
+  }
   return activeEnemyCombatDefaults;
 }
 
 export function applyEnemyCombatDefaults(raw: EnemyCombatDefaultsInput): void {
-  activeEnemyCombatDefaults = normalizeEnemyCombatDefaults(
-    CODE_ENEMY_COMBAT_DEFAULTS,
-    raw,
-  );
+  activeEnemyCombatDefaults = normalizeEnemyCombatDefaults(raw);
 }
 
 function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
@@ -397,6 +283,7 @@ function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
     activeMs: partial?.activeMs ?? d.activeMs,
     recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
     cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
+    engageBodySlackPx: partial?.engageBodySlackPx ?? d.engageBodySlackPx,
   };
 }
 

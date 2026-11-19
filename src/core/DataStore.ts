@@ -66,7 +66,7 @@ export class DataStore {
   townLayout: TownLayoutDef = { slots: [] };
   spells: SpellDefinition[] = [];
   /** From `public/data/player.json` (combat tuning + endless panel UI seed). */
-  player: PlayerConfig = normalizePlayerConfig({});
+  player!: PlayerConfig;
 
   async loadAll(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
@@ -96,19 +96,10 @@ export class DataStore {
       fetchJson<EnemyCombatDefaultsInput>(
         `${prefix}data/enemy-combat-defaults.json`,
       ),
-      fetchJsonOrFallback<DefenseMapsFileInput>(
-        `${prefix}data/defense-maps.json`,
-        {},
-      ),
-      fetchJsonOrFallback<SpellMechanicsInput>(
-        `${prefix}data/spell-mechanics.json`,
-        {},
-      ),
-      fetchJsonOrFallback<EntityPhysicsInput>(
-        `${prefix}data/entity-physics.json`,
-        {},
-      ),
-      fetchJsonOrFallback<EnemyAiInput>(`${prefix}data/enemy-ai.json`, {}),
+      fetchJson<DefenseMapsFileInput>(`${prefix}data/defense-maps.json`),
+      fetchJson<SpellMechanicsInput>(`${prefix}data/spell-mechanics.json`),
+      fetchJson<EntityPhysicsInput>(`${prefix}data/entity-physics.json`),
+      fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
     ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
@@ -131,8 +122,8 @@ export class DataStore {
     this.defenseMaps = normalizeDefenseMaps(defenseMaps);
   }
 
-  /** Resolved defense map registry (default layout applied in `loadAll`). */
-  defenseMaps = normalizeDefenseMaps({});
+  /** Resolved defense map registry (set in `loadAll`). */
+  defenseMaps!: ReturnType<typeof normalizeDefenseMaps>;
 
   getWaveForNight(night: number): WaveDef | undefined {
     const direct = this.waves[String(night)];
@@ -154,12 +145,4 @@ async function fetchJson<T>(url: string): Promise<T> {
     throw new Error(`Failed to load ${url}: ${res.status}`);
   }
   return res.json() as Promise<T>;
-}
-
-async function fetchJsonOrFallback<T>(url: string, fallback: T): Promise<T> {
-  try {
-    return await fetchJson<T>(url);
-  } catch {
-    return fallback;
-  }
 }

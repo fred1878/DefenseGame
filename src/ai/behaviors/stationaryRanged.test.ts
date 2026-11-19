@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_STATIONARY_RANGED_COMBAT } from "../../core/enemyTuning";
+import { testStationaryRangedCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyCombat } from "../../entities/EnemyCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
@@ -36,7 +36,7 @@ describe("stationaryRangedBehavior", () => {
 
   it("holds still when player is in attack range and ready", () => {
     const enemy = mockSentry(0, 0);
-    const inRange = DEFAULT_STATIONARY_RANGED_COMBAT.attackTriggerRange - 20;
+    const inRange = testStationaryRangedCombat.attackTriggerRange - 20;
     stationaryRangedBehavior({
       enemy,
       nav: enemy.nav,
@@ -52,7 +52,7 @@ describe("stationaryRangedBehavior", () => {
   it("chases when player is beyond attack range", () => {
     const enemy = mockSentry(0, 0);
     const outOfRange =
-      DEFAULT_STATIONARY_RANGED_COMBAT.attackTriggerRange * 2 + 120;
+      testStationaryRangedCombat.attackTriggerRange * 2 + 120;
     enemy.nav = {
       ...enemy.nav,
       targetKind: "player",
@@ -81,7 +81,7 @@ describe("stationaryRangedBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: DEFAULT_STATIONARY_RANGED_COMBAT.attackTriggerRange + 40,
+      playerX: testStationaryRangedCombat.attackTriggerRange + 40,
       playerY: 0,
       deltaMs: 16,
     });

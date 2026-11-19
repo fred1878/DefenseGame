@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_JAVELINEER_COMBAT } from "../../core/enemyTuning";
+import { testJavelineerCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import { javelineerBehavior } from "./javelineer";
@@ -9,7 +9,7 @@ function mockJavelineer(x: number, y: number) {
     id: "j",
     defId: "javelineer",
     behavior: "javelineer",
-    speed: DEFAULT_JAVELINEER_COMBAT.maxRange,
+    speed: testJavelineerCombat.maxRange,
     textureKey: "enemy_javelineer",
     sprite: {
       x,
@@ -47,7 +47,7 @@ describe("javelineerBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: DEFAULT_JAVELINEER_COMBAT.minRange - 10,
+      playerX: testJavelineerCombat.minRange - 10,
       playerY: 0,
       deltaMs: 16,
     });
@@ -61,7 +61,7 @@ describe("javelineerBehavior", () => {
   it("strafes tangentially when at ideal kite distance", () => {
     const enemy = mockJavelineer(0, 0);
     const band =
-      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
       2;
     javelineerBehavior({
       enemy,
@@ -79,7 +79,7 @@ describe("javelineerBehavior", () => {
 
   it("approaches while strafing when beyond ideal range inside the band", () => {
     const enemy = mockJavelineer(0, 0);
-    const dist = DEFAULT_JAVELINEER_COMBAT.maxRange - 8;
+    const dist = testJavelineerCombat.maxRange - 8;
     javelineerBehavior({
       enemy,
       nav: enemy.nav,
@@ -98,7 +98,7 @@ describe("javelineerBehavior", () => {
     const enemy = mockJavelineer(0, 0);
     enemy.behaviorExtra.strafeFlipMs = 8;
     const band =
-      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
       2;
     javelineerBehavior({
       enemy,

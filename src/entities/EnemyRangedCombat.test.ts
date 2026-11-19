@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  DEFAULT_ARROW_RAIN_COMBAT,
-  DEFAULT_JAVELINEER_COMBAT,
-  DEFAULT_STATIONARY_RANGED_COMBAT,
-} from "../core/enemyTuning";
+  testArrowRainCombat,
+  testJavelineerCombat,
+  testStationaryRangedCombat,
+} from "../test/fixtures/inlineCombat";
 import { northWallAttackY } from "../config/defense";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {
@@ -34,7 +34,7 @@ describe("updateArrowRainCombat", () => {
     enemy.combat.cooldownMs = 0;
     enemy.sprite.x = 0;
     enemy.sprite.y = 0;
-    const playerDist = DEFAULT_ARROW_RAIN_COMBAT.preferredRange - 40;
+    const playerDist = testArrowRainCombat.preferredRange - 40;
     updateArrowRainCombat(
       enemy,
       {
@@ -58,6 +58,7 @@ describe("updateArrowRainCombat", () => {
 
   it("deals tick damage when player stays in telegraphed zone", () => {
     const enemy = baseEnemy("arrowRainArcher");
+    enemy.combatTuning.arrowRain = testArrowRainCombat;
     enemy.arrowRain = createArrowRainCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -80,7 +81,7 @@ describe("updateArrowRainCombat", () => {
       enemy,
       target,
       enemy.arrowRain,
-      DEFAULT_ARROW_RAIN_COMBAT.tickIntervalMs + 10,
+      testArrowRainCombat.tickIntervalMs + 10,
     );
     expect(result.hitPlayer).toBe(true);
     expect(result.damage).toBeGreaterThan(0);
@@ -91,7 +92,7 @@ describe("updateArrowRainCombat wall target", () => {
   it("calls onWallHit once per volley during active phase", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("arrowRainArcher");
-    enemy.sprite.y = wy + DEFAULT_ARROW_RAIN_COMBAT.preferredRange;
+    enemy.sprite.y = wy + testArrowRainCombat.preferredRange;
     enemy.arrowRain = createArrowRainCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -110,7 +111,7 @@ describe("updateJavelineerCombat wall target", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("javelineer");
     const band =
-      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
       2;
     enemy.sprite.y = wy + band;
     enemy.javelineer = createJavelineerCombatState();
@@ -137,7 +138,7 @@ describe("updateJavelineerCombat", () => {
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     const mid =
-      (DEFAULT_JAVELINEER_COMBAT.minRange + DEFAULT_JAVELINEER_COMBAT.maxRange) /
+      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
       2;
     const result = updateJavelineerCombat(
       enemy,
@@ -168,7 +169,7 @@ describe("updateStationaryRangedCombat", () => {
     enemy.stationaryRanged = createStationaryRangedCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
-    const dist = DEFAULT_STATIONARY_RANGED_COMBAT.attackTriggerRange - 10;
+    const dist = testStationaryRangedCombat.attackTriggerRange - 10;
     const result = updateStationaryRangedCombat(
       enemy,
       {

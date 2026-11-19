@@ -1,8 +1,8 @@
+import type { EntityBodyRadius } from "../entities/entityPhysics";
 import {
-  ENTITY_BODY_RADIUS_DEFAULTS,
-  ENEMY_PATH_CLEARANCE_MARGIN_PX_DEFAULT,
-  type EntityBodyRadius,
-} from "../entities/entityPhysics";
+  requireFiniteNumber,
+  requireRecord,
+} from "./configValidation";
 
 export type EntityPhysicsInput = {
   entityBodyRadius?: Partial<EntityBodyRadius>;
@@ -14,32 +14,28 @@ export type EntityPhysicsTuning = {
   enemyPathClearanceMarginPx: number;
 };
 
+const RADIUS_KEYS = ["player", "enemy", "enemyMelee", "grunt"] as const satisfies readonly (keyof EntityBodyRadius)[];
+
 export function normalizeEntityPhysics(
   raw: EntityPhysicsInput | null | undefined,
 ): EntityPhysicsTuning {
-  const base = ENTITY_BODY_RADIUS_DEFAULTS;
-  const marginDefault = ENEMY_PATH_CLEARANCE_MARGIN_PX_DEFAULT;
-  if (!raw) {
-    return {
-      entityBodyRadius: { ...base },
-      enemyPathClearanceMarginPx: marginDefault,
-    };
+  const root = requireRecord(raw, "entity-physics");
+  const radiusBlock = requireRecord(
+    root.entityBodyRadius,
+    "entity-physics.entityBodyRadius",
+  );
+  const entityBodyRadius = {} as EntityBodyRadius;
+  for (const key of RADIUS_KEYS) {
+    entityBodyRadius[key] = requireFiniteNumber(
+      radiusBlock[key],
+      `entity-physics.entityBodyRadius.${key}`,
+    );
   }
-  const r = raw.entityBodyRadius ?? {};
   return {
-    entityBodyRadius: {
-      player: finiteOr(r.player, base.player),
-      enemy: finiteOr(r.enemy, base.enemy),
-      enemyMelee: finiteOr(r.enemyMelee, base.enemyMelee),
-      grunt: finiteOr(r.grunt, base.grunt),
-    },
-    enemyPathClearanceMarginPx: finiteOr(
-      raw.enemyPathClearanceMarginPx,
-      marginDefault,
+    entityBodyRadius,
+    enemyPathClearanceMarginPx: requireFiniteNumber(
+      root.enemyPathClearanceMarginPx,
+      "entity-physics.enemyPathClearanceMarginPx",
     ),
   };
-}
-
-function finiteOr(value: number | undefined, fallback: number): number {
-  return Number.isFinite(value) ? value! : fallback;
 }

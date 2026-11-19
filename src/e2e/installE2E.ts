@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GAME, SPELL_BAR } from "../config";
+import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import type { SaveGame } from "../core/saveTypes";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
@@ -397,6 +398,12 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       return (
         activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
       );
+    },
+    getDefenseHalfHeight() {
+      return defenseHalfHeight();
+    },
+    getDefenseHalfWidth() {
+      return defenseHalfWidth();
     },
     getDefenseHudLayoutProbe() {
       const scene = activeDefense(game);
