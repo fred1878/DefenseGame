@@ -1,4 +1,8 @@
 import {
+  ENTITY_BODY_RADIUS,
+  enemyCollisionBodyRadius,
+} from "../entities/entityPhysics";
+import {
   normalizeEnemyCombatDefaults,
   type EnemyCombatDefaultsInput,
 } from "./normalizeEnemyCombatDefaults";
@@ -15,6 +19,7 @@ export type EnemyCombatPartial = {
   melee?: {
     triggerRange?: number;
     range?: number;
+    engageBodySlackPx?: number;
     arcDeg?: number;
     windupMs?: number;
     activeMs?: number;
@@ -110,6 +115,8 @@ export type EnemyMeleeCombat = {
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
+  /** Defaults bundle only — touch slack when deriving engage floors from physics. */
+  engageBodySlackPx?: number;
 };
 
 export type EnemyArrowRainCombat = {
@@ -219,21 +226,64 @@ export const DEFAULT_ENEMY_BASE = {
   damage: 8,
 } as const;
 
+export const DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX = 0;
+
 export const DEFAULT_MELEE_COMBAT: EnemyMeleeCombat = {
-  triggerRange: 36,
-  range: 26,
+  triggerRange: 52,
+  range: 34,
   arcDeg: 70,
   windupMs: 380,
   activeMs: 110,
   recoveryMs: 480,
   cooldownMs: 350,
+  engageBodySlackPx: DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX,
 };
+
+/** Arcade contact center distance for a melee archetype vs the player hurtbox. */
+export function enemyMeleeContactCenterDist(
+  behavior: string,
+  defId?: string,
+): number {
+  return (
+    ENTITY_BODY_RADIUS.player + enemyCollisionBodyRadius(behavior, defId)
+  );
+}
+
+/** Raise authored melee reach so windups can start at collision contact and arcs connect. */
+export function clampMeleeEngageForPhysics(
+  melee: EnemyMeleeCombat,
+  behavior: string,
+  defId?: string,
+): EnemyMeleeCombat {
+  const slack =
+    getEnemyCombatDefaults().melee.engageBodySlackPx ??
+    DEFAULT_MELEE_ENGAGE_BODY_SLACK_PX;
+  const contact = enemyMeleeContactCenterDist(behavior, defId);
+  const triggerMin = Math.max(0, contact - slack);
+  const rangeMin = enemyCollisionBodyRadius(behavior, defId);
+  const { engageBodySlackPx: _omit, ...combat } = melee;
+  return {
+    ...combat,
+    triggerRange: Math.max(melee.triggerRange, triggerMin),
+    range: Math.max(melee.range, rangeMin),
+  };
+}
 
 export const DEFAULT_WALL_COMBAT: EnemyWallCombat = {
   damage: 6,
   triggerRange: 42,
   hitRange: 34,
 };
+
+/** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range. */
+export function wallMeleeApproachStandoffPx(
+  wall: Pick<EnemyWallCombat, "hitRange" | "triggerRange">,
+  slackPx = 2,
+): number {
+  const fromHit = Math.max(0, wall.hitRange - slackPx);
+  const fromTrigger = Math.max(0, wall.triggerRange - 6);
+  return Math.min(fromHit, fromTrigger);
+}
 
 export const DEFAULT_ARROW_RAIN_COMBAT: EnemyArrowRainCombat = {
   preferredRange: 150,
@@ -482,10 +532,15 @@ function mergeHybrid(
 export function resolveEnemyCombat(
   behavior: string,
   combat?: EnemyCombatPartial,
+  defId?: string,
 ): ResolvedEnemyCombat {
   const resolved: ResolvedEnemyCombat = {
     wall: mergeWall(combat?.wall),
-    melee: mergeMelee(combat?.melee),
+    melee: clampMeleeEngageForPhysics(
+      mergeMelee(combat?.melee),
+      behavior,
+      defId,
+    ),
   };
   if (behavior === "arrowRainArcher") {
     resolved.arrowRain = mergeArrowRain(combat?.arrowRain);

@@ -9,7 +9,7 @@ export function mockEnemyInstance(
 ): EnemyInstance {
   const combatTuning =
     partial.combatTuning ??
-    resolveEnemyCombat(partial.behavior, undefined);
+    resolveEnemyCombat(partial.behavior, undefined, partial.defId ?? "grunt");
   return {
     id: "e",
     defId: "test",

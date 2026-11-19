@@ -126,7 +126,7 @@ export function spawnEnemy(
       onDeath();
     },
   };
-  const combatTuning = resolveEnemyCombat(def.behavior, def.combat);
+  const combatTuning = resolveEnemyCombat(def.behavior, def.combat, defId);
   const nameplate = createEnemyNameplate(
     scene,
     x,

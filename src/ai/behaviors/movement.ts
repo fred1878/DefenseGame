@@ -1,5 +1,6 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
+import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
 
@@ -21,13 +22,15 @@ export function shouldHoldAtWallMelee(
 ): boolean {
   if (targetKind !== "wall") return false;
   const { wall } = enemy.combatTuning;
-  if (wallMeleeDistToAttackPlane(enemy) > wall.triggerRange) return false;
+  const dist = wallMeleeDistToAttackPlane(enemy);
+  if (dist > wall.triggerRange) return false;
   if (enemyIsAttacking(enemy.combat)) return true;
+  if (dist > wall.hitRange) return false;
   return enemy.combat.phase === "idle";
 }
 
 export function wallMeleeStandoffY(enemy: EnemyInstance): number {
-  const standoff = Math.max(0, enemy.combatTuning.wall.triggerRange - 6);
+  const standoff = wallMeleeApproachStandoffPx(enemy.combatTuning.wall);
   return northWallAttackY() + standoff;
 }
 

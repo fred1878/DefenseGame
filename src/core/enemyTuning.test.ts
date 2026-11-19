@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { enemyCollisionBodyRadius } from "../entities/entityPhysics";
 import {
   DEFAULT_ARROW_RAIN_COMBAT,
   DEFAULT_JAVELINEER_COMBAT,
@@ -8,15 +9,17 @@ import {
   DEFAULT_HYBRID_COMBAT,
   DEFAULT_MELEE_COMBAT,
   DEFAULT_WALL_COMBAT,
+  enemyMeleeContactCenterDist,
   resolveEnemyCombat,
 } from "./enemyTuning";
 import { normalizeEnemyRow } from "./normalizeEnemy";
 
 describe("resolveEnemyCombat", () => {
   it("fills melee grunt defaults when combat omitted", () => {
-    const tuned = resolveEnemyCombat("meleeChaser", undefined);
+    const tuned = resolveEnemyCombat("meleeChaser", undefined, "grunt");
     expect(tuned.wall).toEqual(DEFAULT_WALL_COMBAT);
-    expect(tuned.melee).toEqual(DEFAULT_MELEE_COMBAT);
+    expect(tuned.melee.triggerRange).toBe(DEFAULT_MELEE_COMBAT.triggerRange);
+    expect(tuned.melee.range).toBe(DEFAULT_MELEE_COMBAT.range);
     expect(tuned.arrowRain).toBeUndefined();
     expect(tuned.javelineer).toBeUndefined();
     expect(tuned.stationaryRanged).toBeUndefined();
@@ -28,7 +31,21 @@ describe("resolveEnemyCombat", () => {
     });
     expect(tuned.wall.damage).toBe(9);
     expect(tuned.wall.triggerRange).toBe(DEFAULT_WALL_COMBAT.triggerRange);
-    expect(tuned.melee).toEqual(DEFAULT_MELEE_COMBAT);
+    expect(tuned.melee.triggerRange).toBe(DEFAULT_MELEE_COMBAT.triggerRange);
+    expect(tuned.melee.range).toBe(DEFAULT_MELEE_COMBAT.range);
+  });
+
+  it("raises short melee engage values to physics contact for grunts", () => {
+    const contact = enemyMeleeContactCenterDist("meleeChaser", "grunt");
+    const tuned = resolveEnemyCombat(
+      "meleeChaser",
+      { melee: { triggerRange: 30, range: 20 } },
+      "grunt",
+    );
+    expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(contact);
+    expect(tuned.melee.range).toBeGreaterThanOrEqual(
+      enemyCollisionBodyRadius("meleeChaser", "grunt"),
+    );
   });
 
   it("attaches behavior-specific tables from defaults", () => {
