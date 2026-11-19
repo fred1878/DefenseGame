@@ -64,7 +64,8 @@ export function tickDefenseProjectiles(
   const spellProjCtx = {
     deltaMs: delta,
     enemies: host.enemyTargets(),
-    knockback: PLAYER_TUNING.rangedKnockback,
+    knockbackFor: (p: PlayerProjectile) =>
+      p.spellId === "lightning_bolt" ? 140 : PLAYER_TUNING.rangedKnockback,
     findEnemy: host.findEnemy,
   };
   const projectiles = host.projectiles.filter((p) => {

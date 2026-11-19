@@ -21,8 +21,8 @@
         "hitRange": 44
       },
       "melee": {
-        "triggerRange": 50,
-        "range": 44,
+        "triggerRange": 72,
+        "range": 64,
         "arcDeg": 78,
         "windupMs": 480,
         "activeMs": 130,

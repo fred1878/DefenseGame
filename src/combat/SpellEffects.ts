@@ -267,6 +267,7 @@ export function applyChainLightning(
   enemies: SpellEnemyTarget[],
   damageMult: number,
   startEnemyId?: string | null,
+  status?: EnemySpellStatusMap,
 ): void {
   const hopRange = worldUnit(CHAIN_LIGHTNING_HOP_RANGE_WU, scene.registry);
   const living = enemies.filter((e) => e.damageable.alive);
@@ -283,15 +284,22 @@ export function applyChainLightning(
   );
   const damage = (def.baseDamage ?? 10) * damageMult;
   const flavor = def.damageFlavor ?? "default";
+  const applyHopHit = (enemyId: string) => {
+    if (status && def.onHit) {
+      applySpellOnHitEffects(status, enemyId, def.onHit, flavor);
+    }
+  };
   applyDamage(
     living.find((e) => e.id === start.id)!.damageable,
     damage,
     flavor,
   );
+  applyHopHit(start.id);
   for (const hop of chain) {
     const full = living.find((e) => e.id === hop.id);
     if (!full) continue;
     applyDamage(full.damageable, damage, flavor);
+    applyHopHit(full.id);
   }
 }
 

@@ -70,7 +70,7 @@ export function tickDefenseEnemies(
   host.enemyPathGoals.clear();
   const liveEnemies = host.enemies.filter((e) => e.damageable.alive);
   for (const e of liveEnemies) {
-    if (host.enemySpellStatus.isRooted(e.id)) {
+    if (host.enemySpellStatus.isStunned(e.id)) {
       e.sprite.setVelocity(0, 0);
       continue;
     }
@@ -100,6 +100,10 @@ export function tickDefenseEnemies(
       x: brain.targetX,
       y: brain.targetY,
     });
+
+    if (host.enemySpellStatus.isRooted(e.id)) {
+      e.sprite.setVelocity(0, 0);
+    }
 
     const combatTargetKind = pickEnemyCombatTarget(
       host.navGrid,

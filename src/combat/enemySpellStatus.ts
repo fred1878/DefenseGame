@@ -2,6 +2,7 @@ import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem"
 
 export type EnemySpellStatus = {
   rootRemainingMs: number;
+  stunRemainingMs: number;
   slowPct: number;
   slowRemainingMs: number;
   dotDps: number;
@@ -20,6 +21,7 @@ export class EnemySpellStatusMap {
     if (!s) {
       s = {
         rootRemainingMs: 0,
+        stunRemainingMs: 0,
         slowPct: 0,
         slowRemainingMs: 0,
         dotDps: 0,
@@ -35,6 +37,11 @@ export class EnemySpellStatusMap {
   applyRoot(enemyId: string, durationMs: number): void {
     const s = this.ensure(enemyId);
     s.rootRemainingMs = Math.max(durationMs, s.rootRemainingMs);
+  }
+
+  applyStun(enemyId: string, durationMs: number): void {
+    const s = this.ensure(enemyId);
+    s.stunRemainingMs = Math.max(durationMs, s.stunRemainingMs);
   }
 
   applySlow(enemyId: string, slowPct: number, durationMs: number): void {
@@ -59,6 +66,10 @@ export class EnemySpellStatusMap {
     return (this.byEnemyId.get(enemyId)?.rootRemainingMs ?? 0) > 0;
   }
 
+  isStunned(enemyId: string): boolean {
+    return (this.byEnemyId.get(enemyId)?.stunRemainingMs ?? 0) > 0;
+  }
+
   moveSpeedMultiplier(enemyId: string): number {
     const s = this.byEnemyId.get(enemyId);
     if (!s || s.slowRemainingMs <= 0) return 1;
@@ -71,6 +82,7 @@ export class EnemySpellStatusMap {
   ): void {
     for (const [id, status] of this.byEnemyId) {
       status.rootRemainingMs = Math.max(0, status.rootRemainingMs - deltaMs);
+      status.stunRemainingMs = Math.max(0, status.stunRemainingMs - deltaMs);
       status.slowRemainingMs = Math.max(0, status.slowRemainingMs - deltaMs);
       if (status.slowRemainingMs <= 0) status.slowPct = 0;
 
@@ -90,6 +102,7 @@ export class EnemySpellStatusMap {
 
       if (
         status.rootRemainingMs <= 0 &&
+        status.stunRemainingMs <= 0 &&
         status.slowRemainingMs <= 0 &&
         status.dotRemainingMs <= 0
       ) {

@@ -595,13 +595,15 @@ export class DefenseSpellDirector {
         this.host.maskWorldObject?.(trackingProj.sprite);
         this.host.projectiles.push(trackingProj);
         if (def.id === "chain_lightning") {
-          applyChainLightning(this.host.scene,
+          applyChainLightning(
+            this.host.scene,
             px,
             py,
             def,
             targets,
             mult,
             focus,
+            this.host.enemySpellStatus,
           );
         }
         break;
