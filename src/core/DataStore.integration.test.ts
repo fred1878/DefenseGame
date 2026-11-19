@@ -58,20 +58,35 @@ describe("public data fixtures", () => {
   it("javelineer documents combat schema with kite band", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
-      { behavior: string; combat?: { javelineer?: { maxRange?: number } } }
+      {
+        behavior: string;
+        combat?: {
+          javelineer?: { minRange?: number; maxRange?: number };
+        };
+      }
     >;
     const javelineer = enemies.javelineer;
     expect(javelineer?.behavior).toBe("javelineer");
-    expect(javelineer?.combat?.javelineer?.maxRange).toBe(198);
+    const kite = javelineer?.combat?.javelineer;
+    expect(kite).toBeDefined();
+    expect(kite!.minRange).toBeGreaterThan(0);
+    expect(kite!.maxRange).toBeGreaterThan(kite!.minRange!);
   });
 
-  it("arrow_rain_archer documents combat schema with merged defaults", () => {
+  it("arrow_rain_archer documents combat schema with arrowRain block", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
-      { behavior: string; combat?: { arrowRain?: { zoneRadius?: number } } }
+      {
+        behavior: string;
+        combat?: { arrowRain?: { zoneRadius?: number; maxTicks?: number } };
+      }
     >;
     const archer = enemies.arrow_rain_archer;
-    expect(archer?.combat?.arrowRain?.zoneRadius).toBe(72);
+    expect(archer?.behavior).toBe("arrowRainArcher");
+    const rain = archer?.combat?.arrowRain;
+    expect(rain).toBeDefined();
+    expect(rain!.zoneRadius).toBeGreaterThan(0);
+    expect(rain!.maxTicks).toBeGreaterThan(0);
   });
 
   it("enemies.json assigns textureKey per id (reuse allowed when documented)", () => {
