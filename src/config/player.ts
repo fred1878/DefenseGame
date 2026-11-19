@@ -1,13 +1,14 @@
 export type AttackMode = "melee" | "ranged" | "auto";
 
-const MELEE_ENGAGE_TARGET_RADIUS = 14;
-const MELEE_ACTIVATION_SLACK_WU = 6;
-
 const meleeRange = 58;
 const meleeStrikeRange = 93;
 
-function deriveAutoAttackMeleeRange(strike: number): number {
-  return strike + MELEE_ENGAGE_TARGET_RADIUS - MELEE_ACTIVATION_SLACK_WU;
+function deriveAutoAttackMeleeRange(
+  strike: number,
+  engageTargetRadius: number,
+  activationSlackWu: number,
+): number {
+  return strike + engageTargetRadius - activationSlackWu;
 }
 
 /** Code defaults when `public/data/player.json` omits keys (also used before Boot loads). */
@@ -18,6 +19,8 @@ export const PLAYER_TUNING_DEFAULTS = {
   meleeRecoveryMs: 280,
   meleeRange,
   meleeStrikeRange,
+  meleeEngageTargetRadius: 14,
+  meleeActivationSlackWu: 6,
   meleeArcDeg: 121,
   meleeDamage: 15,
   rangedWindupMs: 100,
@@ -29,7 +32,7 @@ export const PLAYER_TUNING_DEFAULTS = {
   meleeKnockback: 320,
   rangedKnockback: 110,
   maxHp: 100,
-  autoAttackMeleeRange: deriveAutoAttackMeleeRange(meleeStrikeRange),
+  autoAttackMeleeRange: deriveAutoAttackMeleeRange(meleeStrikeRange, 14, 6),
   autoAttackRangedRange: 300,
   targetTapRadiusWorld: 56,
   playerHitInvulnMs: 900,

@@ -57,7 +57,7 @@ docs/                  # AGENTS, TESTING, CI_RELEASES, REFACTOR_PLAN; ROADMAP at
 |-------|------|--------|
 | **Tuning** | `src/config/` | `GAME`, `PLAYER_TUNING`, `PLAYER_AGGRO_RADIUS`, `DEFENSE_MAP` / `DEFENSE_OBSTACLES`, spell bar **layout** (`SPELL_BAR`, `CAST_BAR` px). No save schemas, no asset manifests, no spell damage tables. |
 | **Code content** | `src/content/` | `assets.ts` (texture keys, file paths, nine-slice), `spells.ts` (`SPELL_CATALOG`, spell ids). Candidate to move spells → `public/data/spells.json` later. |
-| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-combat-defaults.json`, `waves.json`, `buildings.json`, `player.json` (fetched in Boot). |
+| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-combat-defaults.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spell-mechanics.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). |
 
 Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). `src/config.ts` re-exports **tuning only** from `src/config/index.ts`.
 
@@ -65,7 +65,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 
 ## Data examples (`public/data/`)
 
-**enemies.json** — per-enemy stats + `behavior` id (maps to `src/ai/behaviors/`). Combat timings/ranges live under optional `combat`; omitted keys inherit typed defaults in `src/core/enemyTuning.ts` (grunt-compatible melee/wall baseline). Player aggro radius stays global: `PLAYER_AGGRO_RADIUS` in `src/config/enemy.ts`.
+**enemies.json** — per-enemy stats + `behavior` id (maps to `src/ai/behaviors/`). Combat timings/ranges live under optional `combat`; omitted keys inherit typed defaults in `src/core/enemyTuning.ts` (grunt-compatible melee/wall baseline). Global chase tuning loads from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` (`applyEnemyAi`).
 
 | `combat` block | Used when `behavior` is |
 |----------------|-------------------------|
@@ -135,7 +135,15 @@ New melee enemies can omit `combat` entirely. Override only what you need (e.g. 
 
 **enemy-combat-defaults.json** — per-behavior combat baselines (`wall`, `melee`, `arrowRain`, …). `resolveEnemyCombat` merges each enemy’s optional `combat` block from `enemies.json` on top of these loaded defaults.
 
-**player.json** — combat/movement tuning (`moveSpeed`, melee/ranged timings, HP, invuln) plus `endlessPanelDefaultConcurrent` (initial cap in the endless roster UI only; spawns use per-type values from the panel at Start).
+**player.json** — combat/movement tuning (`moveSpeed`, melee/ranged timings, HP, invuln), melee auto-attack gate (`meleeEngageTargetRadius`, `meleeActivationSlackWu` → derived `autoAttackMeleeRange`), plus `endlessPanelDefaultConcurrent` (initial cap in the endless roster UI only).
+
+**defense-maps.json** — `{ defaultMapId, maps: [{ id, field: { cols, rows }, obstacles: [{ tileX, tileY, textureKey }] }] }`. Boot applies the default map (`applyDefenseMaps`); use `selectDefenseMapId` from `src/config/defenseMaps.ts` when adding map pick UI.
+
+**spell-mechanics.json** — shared spell helper constants (ranges, arcs, chain hops, blink/ice wall distances, shadowform/frost timings). Per-spell damage/channel data stays in `spells.json`.
+
+**entity-physics.json** — `entityBodyRadius` + `enemyPathClearanceMarginPx` (nav grid inflation uses loaded radii).
+
+**enemy-ai.json** — global `playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`.
 
 **buildings.json**:
 

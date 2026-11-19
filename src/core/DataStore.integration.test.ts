@@ -170,6 +170,29 @@ describe("public data fixtures", () => {
     expect(defs.melee.range).toBeGreaterThan(0);
   });
 
+  it("defense-maps.json defines default night-field layout", () => {
+    const maps = readJson("defense-maps.json") as {
+      defaultMapId: string;
+      maps: { id: string; obstacles: unknown[] }[];
+    };
+    expect(maps.defaultMapId).toBe("night-field");
+    expect(maps.maps.some((m) => m.id === "night-field")).toBe(true);
+    expect(maps.maps[0]!.obstacles.length).toBeGreaterThan(0);
+  });
+
+  it("spell-mechanics and entity-physics json load", () => {
+    const spellMech = readJson("spell-mechanics.json") as {
+      swingRangeWu: number;
+    };
+    const physics = readJson("entity-physics.json") as {
+      entityBodyRadius: { player: number };
+    };
+    const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
+    expect(spellMech.swingRangeWu).toBeGreaterThan(0);
+    expect(physics.entityBodyRadius.player).toBeGreaterThan(0);
+    expect(ai.playerAggroRadius).toBeGreaterThan(0);
+  });
+
   it("player.json defines moveSpeed and endless panel seed", () => {
     const player = readJson("player.json") as {
       moveSpeed: number;

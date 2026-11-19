@@ -1,6 +1,23 @@
 import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
+import { applyDefenseMaps } from "../config/defenseMaps";
+import { applyEnemyAi } from "../config/enemy";
+import { applySpellMechanics } from "../combat/spellMechanics";
+import { applyEntityPhysics } from "../entities/entityPhysics";
 import { applyEnemyCombatDefaults } from "./enemyTuning";
+import {
+  normalizeDefenseMaps,
+  type DefenseMapsFileInput,
+} from "./normalizeDefenseMaps";
+import {
+  normalizeSpellMechanics,
+  type SpellMechanicsInput,
+} from "./normalizeSpellMechanics";
+import {
+  normalizeEntityPhysics,
+  type EntityPhysicsInput,
+} from "./normalizeEntityPhysics";
+import { normalizeEnemyAi, type EnemyAiInput } from "./normalizeEnemyAi";
 import type { EnemyCombatPartial } from "./enemyTuning";
 import type { EnemyCombatDefaultsInput } from "./normalizeEnemyCombatDefaults";
 import { normalizeEnemyRow } from "./normalizeEnemy";
@@ -62,6 +79,10 @@ export class DataStore {
       spellsFile,
       playerFile,
       enemyCombatDefaults,
+      defenseMaps,
+      spellMechanics,
+      entityPhysics,
+      enemyAi,
     ] = await Promise.all([
       fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
@@ -75,6 +96,19 @@ export class DataStore {
       fetchJson<EnemyCombatDefaultsInput>(
         `${prefix}data/enemy-combat-defaults.json`,
       ),
+      fetchJsonOrFallback<DefenseMapsFileInput>(
+        `${prefix}data/defense-maps.json`,
+        {},
+      ),
+      fetchJsonOrFallback<SpellMechanicsInput>(
+        `${prefix}data/spell-mechanics.json`,
+        {},
+      ),
+      fetchJsonOrFallback<EntityPhysicsInput>(
+        `${prefix}data/entity-physics.json`,
+        {},
+      ),
+      fetchJsonOrFallback<EnemyAiInput>(`${prefix}data/enemy-ai.json`, {}),
     ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
@@ -90,7 +124,15 @@ export class DataStore {
     setSpellCatalog(spellsFile.spells);
     this.player = normalizePlayerConfig(playerFile);
     applyEnemyCombatDefaults(enemyCombatDefaults);
+    applyDefenseMaps(defenseMaps);
+    applySpellMechanics(normalizeSpellMechanics(spellMechanics));
+    applyEntityPhysics(normalizeEntityPhysics(entityPhysics));
+    applyEnemyAi(normalizeEnemyAi(enemyAi));
+    this.defenseMaps = normalizeDefenseMaps(defenseMaps);
   }
+
+  /** Resolved defense map registry (default layout applied in `loadAll`). */
+  defenseMaps = normalizeDefenseMaps({});
 
   getWaveForNight(night: number): WaveDef | undefined {
     const direct = this.waves[String(night)];
@@ -112,4 +154,12 @@ async function fetchJson<T>(url: string): Promise<T> {
     throw new Error(`Failed to load ${url}: ${res.status}`);
   }
   return res.json() as Promise<T>;
+}
+
+async function fetchJsonOrFallback<T>(url: string, fallback: T): Promise<T> {
+  try {
+    return await fetchJson<T>(url);
+  } catch {
+    return fallback;
+  }
 }

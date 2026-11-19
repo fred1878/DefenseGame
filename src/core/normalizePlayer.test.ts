@@ -16,7 +16,11 @@ describe("normalizePlayerConfig", () => {
 
   it("recomputes autoAttackMeleeRange when strike range overrides", () => {
     const cfg = normalizePlayerConfig({ meleeStrikeRange: 100 });
-    expect(cfg.autoAttackMeleeRange).toBe(100 + 14 - 6);
+    expect(cfg.autoAttackMeleeRange).toBe(
+      100 +
+        PLAYER_TUNING_DEFAULTS.meleeEngageTargetRadius -
+        PLAYER_TUNING_DEFAULTS.meleeActivationSlackWu,
+    );
   });
 
   it("clamps endless panel default concurrent", () => {

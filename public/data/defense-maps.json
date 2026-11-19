@@ -1,0 +1,19 @@
+{
+  "defaultMapId": "night-field",
+  "maps": [
+    {
+      "id": "night-field",
+      "field": { "cols": 13, "rows": 22 },
+      "obstacles": [
+        { "tileX": 2, "tileY": 3, "textureKey": "obstacle_wide_slab" },
+        { "tileX": 10, "tileY": 4, "textureKey": "obstacle_tall_rock" },
+        { "tileX": 2, "tileY": 15, "textureKey": "obstacle_rubble_low" },
+        { "tileX": 10, "tileY": 16, "textureKey": "obstacle_boulder_sm" },
+        { "tileX": 6, "tileY": 2, "textureKey": "obstacle_boulder_med" },
+        { "tileX": 9, "tileY": 11, "textureKey": "obstacle_boulder_sm" },
+        { "tileX": 4, "tileY": 10, "textureKey": "obstacle_boulder_med" },
+        { "tileX": 6, "tileY": 8, "textureKey": "obstacle_rubble_low" }
+      ]
+    }
+  ]
+}
