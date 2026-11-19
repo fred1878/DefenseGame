@@ -90,6 +90,39 @@ describe("resolveAutoCastGroundAim", () => {
     expect(aim.x).toBe(100);
     expect(aim.y).toBe(0);
   });
+
+  it("places target at max range toward enemy beyond ground max range", () => {
+    const aim = resolveAutoCastGroundAim(
+      0,
+      0,
+      0,
+      null,
+      [{ id: "far", x: 500, y: 0, radius: 10, alive: true }],
+      "ranged",
+      50,
+      80,
+      240,
+    );
+    expect(aim.x).toBe(240);
+    expect(aim.y).toBe(0);
+  });
+
+  it("does not use facing offset when a living enemy exists beyond ground max range", () => {
+    const facingRad = Math.PI / 2;
+    const aim = resolveAutoCastGroundAim(
+      0,
+      0,
+      facingRad,
+      null,
+      [{ id: "far", x: 0, y: 400, radius: 10, alive: true }],
+      "ranged",
+      50,
+      80,
+      100,
+    );
+    expect(aim.x).toBe(0);
+    expect(aim.y).toBe(100);
+  });
 });
 
 describe("resolveManualDefaultGroundAim", () => {
