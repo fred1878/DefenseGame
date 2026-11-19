@@ -43,6 +43,15 @@ describe("SpellCastController", () => {
     expect(bliz.getCastPhase()).toBe("channeling");
   });
 
+  it("completes flamestrike after windup only (no channelMs)", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("flamestrike")).toBe("windup");
+    const done = c.updateChannel(650, 0, 0);
+    expect(done.type).toBe("completed");
+    if (done.type === "completed") expect(done.spellId).toBe("flamestrike");
+    expect(c.isChanneling()).toBe(false);
+  });
+
   it("casts instant nova without channeling", () => {
     const c = new SpellCastController();
     const def = c.tryBeginCast("fire_nova");

@@ -14,13 +14,9 @@ export function spellPlaysFireWhooshOnChanneledAreaStart(def: SpellDefinition): 
   return def.damageFlavor === "fire" && def.mechanicType === "channeled_area";
 }
 
-/** Linger / post-channel ground fire (e.g. flamestrike afterburn). */
+/** Linger / post-impact ground fire (e.g. flamestrike afterburn). */
 export function spellPlaysFireWhooshOnChannelLinger(def: SpellDefinition): boolean {
-  return (
-    def.damageFlavor === "fire" &&
-    def.mechanicType === "channeled_area" &&
-    (def.lingerMs ?? 0) > 0
-  );
+  return def.damageFlavor === "fire" && (def.lingerMs ?? 0) > 0;
 }
 
 export function playFireWhooshSfx(scene: Phaser.Scene): void {
