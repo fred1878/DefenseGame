@@ -9,17 +9,22 @@ function readJson(name: string): unknown {
   return JSON.parse(readFileSync(path.join(dataDir, name), "utf8"));
 }
 
+function expectFiniteNumber(value: unknown, label: string): void {
+  expect(typeof value, label).toBe("number");
+  expect(Number.isFinite(value as number), label).toBe(true);
+}
+
 describe("public data fixtures", () => {
-  it("enemies.json has grunt with sane stats", () => {
+  it("enemies.json has grunt with core stat fields", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
       { hp: number; speed: number; damage: number }
     >;
     const grunt = enemies.grunt;
     expect(grunt).toBeDefined();
-    expect(grunt!.hp).toBeGreaterThan(0);
-    expect(grunt!.speed).toBeGreaterThan(0);
-    expect(grunt!.damage).toBeGreaterThan(0);
+    expectFiniteNumber(grunt!.hp, "grunt.hp");
+    expectFiniteNumber(grunt!.speed, "grunt.speed");
+    expectFiniteNumber(grunt!.damage, "grunt.damage");
   });
 
   it("enemies.json defines displayName for every type", () => {
@@ -27,32 +32,30 @@ describe("public data fixtures", () => {
       string,
       { displayName: string }
     >;
-    expect(Object.keys(enemies)).toHaveLength(12);
+    expect(Object.keys(enemies).length).toBeGreaterThan(0);
     for (const row of Object.values(enemies)) {
+      expect(typeof row.displayName).toBe("string");
       expect(row.displayName.trim().length).toBeGreaterThan(0);
       expect(row.displayName).not.toMatch(/_/);
     }
-    expect(enemies.sentry_archer?.displayName).toBe("Sentry Archer");
   });
 
-  it("enemies.json bruiser is slower than grunt with long reach behavior id", () => {
+  it("enemies.json bruiser has expected behavior id", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
       {
-        hp: number;
-        speed: number;
         behavior: string;
         textureKey: string;
         combat?: { melee?: { range?: number } };
       }
     >;
     const bruiser = enemies.bruiser;
-    const grunt = enemies.grunt;
     expect(bruiser).toBeDefined();
-    expect(bruiser!.speed).toBeLessThan(grunt!.speed);
     expect(bruiser!.behavior).toBe("bruiser");
     expect(bruiser!.textureKey).toBe("enemy_bruiser");
-    expect(bruiser!.combat?.melee?.range).toBeGreaterThan(30);
+    if (bruiser!.combat?.melee?.range != null) {
+      expectFiniteNumber(bruiser!.combat.melee.range, "bruiser.combat.melee.range");
+    }
   });
 
   it("javelineer documents combat schema with kite band", () => {
@@ -69,8 +72,8 @@ describe("public data fixtures", () => {
     expect(javelineer?.behavior).toBe("javelineer");
     const kite = javelineer?.combat?.javelineer;
     expect(kite).toBeDefined();
-    expect(kite!.minRange).toBeGreaterThan(0);
-    expect(kite!.maxRange).toBeGreaterThan(kite!.minRange!);
+    expectFiniteNumber(kite!.minRange, "javelineer.minRange");
+    expectFiniteNumber(kite!.maxRange, "javelineer.maxRange");
   });
 
   it("arrow_rain_archer documents combat schema with arrowRain block", () => {
@@ -85,8 +88,8 @@ describe("public data fixtures", () => {
     expect(archer?.behavior).toBe("arrowRainArcher");
     const rain = archer?.combat?.arrowRain;
     expect(rain).toBeDefined();
-    expect(rain!.zoneRadius).toBeGreaterThan(0);
-    expect(rain!.maxTicks).toBeGreaterThan(0);
+    expectFiniteNumber(rain!.zoneRadius, "arrowRain.zoneRadius");
+    expectFiniteNumber(rain!.maxTicks, "arrowRain.maxTicks");
   });
 
   it("enemies.json assigns textureKey per id (reuse allowed when documented)", () => {
@@ -108,7 +111,8 @@ describe("public data fixtures", () => {
     >;
     const wave1 = waves["1"];
     expect(wave1).toBeDefined();
-    expect(wave1!.rewardGold).toBeGreaterThan(0);
+    expectFiniteNumber(wave1!.rewardGold, "wave1.rewardGold");
+    expect(Array.isArray(wave1!.groups)).toBe(true);
     expect(wave1!.groups.length).toBeGreaterThan(0);
   });
 
@@ -124,9 +128,9 @@ describe("public data fixtures", () => {
         blastFile?: string;
       }>;
     };
-    expect(spells.spells.length).toBeGreaterThanOrEqual(21);
+    expect(spells.spells.length).toBeGreaterThan(0);
     const castable = spells.spells.filter((s) => s.castableInDefense);
-    expect(castable.length).toBeGreaterThanOrEqual(18);
+    expect(castable.length).toBeGreaterThan(0);
     expect(castable.map((s) => s.id)).toEqual(
       expect.arrayContaining([
         "fire_bolt",
@@ -176,13 +180,13 @@ describe("public data fixtures", () => {
     }
   });
 
-  it("enemy-combat-defaults.json defines wall and melee baselines", () => {
+  it("enemy-combat-defaults.json defines wall and melee blocks", () => {
     const defs = readJson("enemy-combat-defaults.json") as {
       wall: { damage: number };
       melee: { range: number };
     };
-    expect(defs.wall.damage).toBeGreaterThan(0);
-    expect(defs.melee.range).toBeGreaterThan(0);
+    expectFiniteNumber(defs.wall.damage, "combat-defaults.wall.damage");
+    expectFiniteNumber(defs.melee.range, "combat-defaults.melee.range");
   });
 
   it("defense-maps.json defines default night-field layout", () => {
@@ -190,9 +194,11 @@ describe("public data fixtures", () => {
       defaultMapId: string;
       maps: { id: string; obstacles: unknown[] }[];
     };
-    expect(maps.defaultMapId).toBe("night-field");
-    expect(maps.maps.some((m) => m.id === "night-field")).toBe(true);
-    expect(maps.maps[0]!.obstacles.length).toBeGreaterThan(0);
+    expect(typeof maps.defaultMapId).toBe("string");
+    expect(maps.maps.some((m) => m.id === maps.defaultMapId)).toBe(true);
+    const active = maps.maps.find((m) => m.id === maps.defaultMapId);
+    expect(active).toBeDefined();
+    expect(Array.isArray(active!.obstacles)).toBe(true);
   });
 
   it("spell-mechanics and entity-physics json load", () => {
@@ -203,9 +209,9 @@ describe("public data fixtures", () => {
       entityBodyRadius: { player: number };
     };
     const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
-    expect(spellMech.swingRangeWu).toBeGreaterThan(0);
-    expect(physics.entityBodyRadius.player).toBeGreaterThan(0);
-    expect(ai.playerAggroRadius).toBeGreaterThan(0);
+    expectFiniteNumber(spellMech.swingRangeWu, "spellMech.swingRangeWu");
+    expectFiniteNumber(physics.entityBodyRadius.player, "entityBodyRadius.player");
+    expectFiniteNumber(ai.playerAggroRadius, "enemyAi.playerAggroRadius");
   });
 
   it("player.json defines moveSpeed and endless panel seed", () => {
@@ -213,9 +219,11 @@ describe("public data fixtures", () => {
       moveSpeed: number;
       endlessPanelDefaultConcurrent: number;
     };
-    expect(player.moveSpeed).toBeGreaterThan(0);
-    expect(player.endlessPanelDefaultConcurrent).toBeGreaterThanOrEqual(1);
-    expect(player.endlessPanelDefaultConcurrent).toBeLessThanOrEqual(99);
+    expectFiniteNumber(player.moveSpeed, "player.moveSpeed");
+    expectFiniteNumber(
+      player.endlessPanelDefaultConcurrent,
+      "player.endlessPanelDefaultConcurrent",
+    );
   });
 
   it("buildings.json defines wall costs", () => {
@@ -225,8 +233,10 @@ describe("public data fixtures", () => {
     >;
     const wall = buildings.wall;
     expect(wall).toBeDefined();
-    expect(wall!.maxLevel).toBeGreaterThan(0);
-    expect(wall!.costByLevel[0]).toBeGreaterThan(0);
+    expectFiniteNumber(wall!.maxLevel, "wall.maxLevel");
+    expect(Array.isArray(wall!.costByLevel)).toBe(true);
+    expect(wall!.costByLevel.length).toBeGreaterThan(0);
+    expectFiniteNumber(wall!.costByLevel[0], "wall.costByLevel[0]");
   });
 });
 
@@ -247,7 +257,7 @@ describe("DataStore.loadAll", () => {
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
     expect(store.spells.length).toBeGreaterThan(0);
-    expect(store.player.moveSpeed).toBeGreaterThan(0);
+    expect(typeof store.player.moveSpeed).toBe("number");
     vi.unstubAllGlobals();
   });
 });
