@@ -4,7 +4,9 @@ import {
   clampGroundTarget,
   enemiesInCone,
   enemiesInDisk,
+  isBlinkLandingBlocked,
   pickChainLightningTargets,
+  resolveBlinkLanding,
 } from "./spellMechanics";
 
 const enemies = [
@@ -47,5 +49,47 @@ describe("spellMechanics", () => {
     );
     expect(dst.x).toBe(50);
     expect(dst.y).toBe(0);
+  });
+
+  it("resolveBlinkLanding slides back from a blocked obstacle", () => {
+    const bounds = { minX: -200, maxX: 200, minY: -200, maxY: 200 };
+    const obstacle = { left: 70, top: -20, right: 110, bottom: 20 };
+    const landing = resolveBlinkLanding(
+      0,
+      0,
+      0,
+      120,
+      bounds,
+      16,
+      [obstacle],
+      [],
+    );
+    expect(landing.moved).toBe(true);
+    expect(landing.x).toBeLessThan(70 - 16);
+    expect(isBlinkLandingBlocked(landing.x, landing.y, 16, [obstacle], [])).toBe(
+      false,
+    );
+  });
+
+  it("resolveBlinkLanding slides back from an enemy at the endpoint", () => {
+    const bounds = { minX: -200, maxX: 200, minY: -200, maxY: 200 };
+    const enemies = [{ id: "e", x: 100, y: 0, radius: 18 }];
+    const landing = resolveBlinkLanding(0, 0, 0, 120, bounds, 16, [], enemies);
+    expect(landing.moved).toBe(true);
+    const gap =
+      Math.hypot(landing.x - enemies[0]!.x, landing.y - enemies[0]!.y) -
+      16 -
+      enemies[0]!.radius;
+    expect(gap).toBeGreaterThanOrEqual(-0.01);
+    expect(gap).toBeLessThan(8);
+  });
+
+  it("resolveBlinkLanding partial blink stops before a wall", () => {
+    const bounds = { minX: -200, maxX: 200, minY: -200, maxY: 200 };
+    const wall = { left: 40, top: -100, right: 200, bottom: 100 };
+    const landing = resolveBlinkLanding(0, 0, 0, 120, bounds, 16, [wall], []);
+    expect(landing.moved).toBe(true);
+    expect(landing.x).toBeLessThan(40 - 16 + 1);
+    expect(isBlinkLandingBlocked(landing.x, landing.y, 16, [wall], [])).toBe(false);
   });
 });

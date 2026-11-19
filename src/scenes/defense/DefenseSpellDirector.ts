@@ -17,11 +17,11 @@ import {
   spawnSpellProjectile,
 } from "../../combat/SpellEffects";
 import {
-  blinkDestination,
   BLINK_DISTANCE_WU,
   FROST_ROOT_MS,
   ICE_WALL_DISTANCE_WU,
   ICE_WALL_DURATION_MS,
+  resolveBlinkLanding,
   SHADOWFORM_DAMAGE_MULT,
   SHADOWFORM_DURATION_MS,
 } from "../../combat/spellMechanics";
@@ -46,6 +46,12 @@ import {
 import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
 import { resolveAutoCastGroundAim, resolveManualDefaultGroundAim } from "../../combat/spellGroundAim";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
+import type { DefenseObstacleRect } from "../../config/defense";
+import {
+  correctPlayerObstacleBlockerOverlap,
+  defenseObstacleBlockerAabb,
+  readArcadeStaticBodyWorldAabb,
+} from "../../world/defenseObstacleBlocker";
 import { ENTITY_BODY_RADIUS } from "../../entities/entityPhysics";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { PlayerProjectile } from "../../entities/Projectile";
@@ -75,6 +81,7 @@ export type DefenseSpellDirectorHost = {
   castBar: CastBar;
   groundReticle: GroundTargetReticle;
   obstacleGroup: Phaser.Physics.Arcade.StaticGroup;
+  obstacleBlockers: DefenseObstacleRect[];
   spellChannelArea: { x: number; y: number } | null;
   spellGroundZones: SpellGroundZone[];
   pendingGroundCast: string | null;
@@ -534,7 +541,7 @@ export class DefenseSpellDirector {
     const mult = this.spellDamageMult();
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
-    const angle = this.host.player.getFacingAngle();
+    const angle = this.blinkAimRad(def);
     const targets = this.host.enemyTargets();
     switch (def.mechanicType) {
       case "blast": {
@@ -685,17 +692,76 @@ export class DefenseSpellDirector {
     }
   }
 
+  /** Motion velocity when moving; otherwise caster facing (blink aim). */
+  blinkAimRad(def: SpellDefinition): number {
+    if (def.mechanicType !== "blink") {
+      return this.host.player.getFacingAngle();
+    }
+    const body = this.host.player.sprite.body as Phaser.Physics.Arcade.Body;
+    const speed = Math.hypot(body.velocity.x, body.velocity.y);
+    if (speed > 6) return Math.atan2(body.velocity.y, body.velocity.x);
+    return this.host.player.getFacingAngle();
+  }
+
+  blinkObstacleAABBs(): ReturnType<typeof defenseObstacleBlockerAabb>[] {
+    const rects = this.host.obstacleBlockers.map((b) =>
+      defenseObstacleBlockerAabb(b),
+    );
+    for (const entry of this.host.iceWallExpires) {
+      const body = entry.sprite.body as Phaser.Physics.Arcade.StaticBody | null;
+      if (body) rects.push(readArcadeStaticBodyWorldAabb(body));
+    }
+    return rects;
+  }
+
   castBlink(facingRad: number): void {
     const halfW = defenseHalfWidth();
     const halfH = defenseHalfHeight();
-    const dst = blinkDestination(
-      this.host.player.sprite.x,
-      this.host.player.sprite.y,
+    const px = this.host.player.sprite.x;
+    const py = this.host.player.sprite.y;
+    const playerR = this.host.wu(ENTITY_BODY_RADIUS.player);
+    const bounds = {
+      minX: -halfW + 24,
+      maxX: halfW - 24,
+      minY: -halfH + 24,
+      maxY: halfH - 24,
+    };
+    const enemies = this.host
+      .enemyTargets()
+      .filter((e) => e.damageable.alive)
+      .map((e) => ({
+        id: e.id,
+        x: e.x,
+        y: e.y,
+        radius: e.radius,
+      }));
+    const landing = resolveBlinkLanding(
+      px,
+      py,
       facingRad,
       this.host.wu(BLINK_DISTANCE_WU),
-      { minX: -halfW + 24, maxX: halfW - 24, minY: -halfH + 24, maxY: halfH - 24 },
+      bounds,
+      playerR,
+      this.blinkObstacleAABBs(),
+      enemies,
     );
-    this.host.player.sprite.setPosition(dst.x, dst.y);
+    const blinkFxR = playerR * 1.4;
+    this.host.flashNova(px, py, blinkFxR, {
+      blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave,
+    });
+    this.host.player.sprite.setPosition(landing.x, landing.y);
+    const body = this.host.player.sprite.body as Phaser.Physics.Arcade.Body;
+    body?.reset(landing.x, landing.y);
+    body?.updateCenter();
+    correctPlayerObstacleBlockerOverlap(
+      this.host.player.sprite,
+      this.host.obstacleBlockers,
+    );
+    if (landing.moved) {
+      this.host.flashNova(landing.x, landing.y, blinkFxR, {
+        blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave,
+      });
+    }
   }
 
   spawnIceWall(facingRad: number): void {

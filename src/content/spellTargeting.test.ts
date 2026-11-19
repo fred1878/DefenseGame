@@ -67,6 +67,10 @@ describe("spellTargeting", () => {
       true,
     );
     expect(spellAutoCastRequiresCombatTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
+    expect(spellTargetMode(def({ id: "blink", mechanicType: "blink" }))).toBe("self");
+    expect(spellAutoCastRequiresCombatTarget(def({ id: "blink", mechanicType: "blink" }))).toBe(
+      false,
+    );
     expect(
       spellAutoCastRequiresCombatTarget(
         def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
