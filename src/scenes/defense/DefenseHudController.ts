@@ -33,6 +33,7 @@ import {
 } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 import { uiTextStyle } from "../../ui/uiTextStyle";
+import { runDefenseUiFactory } from "../../world/defenseWorldAddHook";
 
 export type DefenseHudControllerDeps = {
   scene: Phaser.Scene;
@@ -72,6 +73,12 @@ export type DefenseHudBuild = {
 
 /** Combat HUD chrome, toggles, spell bar, stick mask (REFACTOR_PLAN PR6). */
 export function createDefenseHudController(
+  deps: DefenseHudControllerDeps,
+): DefenseHudBuild {
+  return runDefenseUiFactory(deps.scene, () => buildDefenseHudController(deps));
+}
+
+function buildDefenseHudController(
   deps: DefenseHudControllerDeps,
 ): DefenseHudBuild {
   const { scene } = deps;

@@ -2,7 +2,18 @@ import Phaser from "phaser";
 import { adoptDefenseWorldObject } from "./defenseWorldLayer";
 
 const INSTALLED_REGISTRY_KEY = "defenseWorldLayerHookInstalled";
+const SUPPRESS_WORLD_ADOPT_KEY = "defenseSuppressWorldAdopt";
 export const DEFENSE_WORLD_LAYER_REGISTRY_KEY = "defenseWorldLayer";
+
+/** HUD / overlay factories use scrollFactor 0 after create; skip auto-adopt while active. */
+export function runDefenseUiFactory<T>(scene: Phaser.Scene, fn: () => T): T {
+  scene.registry.set(SUPPRESS_WORLD_ADOPT_KEY, true);
+  try {
+    return fn();
+  } finally {
+    scene.registry.remove(SUPPRESS_WORLD_ADOPT_KEY);
+  }
+}
 
 /** Factories that create play-area world display objects during Defense. */
 const ADD_WORLD_FACTORY_METHODS = [
@@ -29,6 +40,7 @@ const ADD_WORLD_FACTORY_METHODS = [
 const PHYSICS_ADD_WORLD_METHODS = ["sprite", "staticSprite", "image", "staticImage"] as const;
 
 function adoptCreatedWorldObject(scene: Phaser.Scene, go: Phaser.GameObjects.GameObject): void {
+  if (scene.registry.get(SUPPRESS_WORLD_ADOPT_KEY) === true) return;
   const worldLayer = scene.registry.get(DEFENSE_WORLD_LAYER_REGISTRY_KEY) as
     | Phaser.GameObjects.Layer
     | undefined;
