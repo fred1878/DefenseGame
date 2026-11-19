@@ -315,7 +315,8 @@ export class DefenseScene extends Phaser.Scene {
     this.spellGroundZones = [];
     this.pendingGroundCast = null;
     this.groundAim = null;
-    this.clearGroundAimGesture();
+    this.groundAimPointerId = null;
+    this.groundAimFromUiBand = false;
     this.shadowformEndsAt = 0;
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
@@ -891,10 +892,11 @@ export class DefenseScene extends Phaser.Scene {
   private clearGroundAimGesture(): void {
     this.groundAimPointerId = null;
     this.groundAimFromUiBand = false;
-    this.stick.setExternalBlock(null);
+    this.stick?.setExternalBlock(null);
   }
 
   private syncGroundAimStickBlock(): void {
+    if (!this.stick) return;
     if (this.pendingGroundCast && this.groundAimFromUiBand) {
       this.stick.setExternalBlock(() => this.pendingGroundCast !== null);
     } else {
