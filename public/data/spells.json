@@ -294,7 +294,7 @@
       "damageFlavor": "default",
       "centerOnCaster": true,
       "onHit": {
-        "rootMs": 1400
+        "rootMs": 7000
       }
     },
     {

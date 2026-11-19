@@ -120,6 +120,7 @@ describe("public data fixtures", () => {
     const spells = readJson("spells.json") as {
       spells: Array<{
         id: string;
+        onHit?: { rootMs?: number };
         castableInDefense: boolean;
         iconFile?: string;
         projectileTextureKey?: string;
@@ -157,6 +158,9 @@ describe("public data fixtures", () => {
         "blink",
       ]),
     );
+    const frost = spells.spells.find((s) => s.id === "frost_nova");
+    expect(frost?.onHit?.rootMs).toBe(7000);
+
     const iconDir = path.join(process.cwd(), "public/assets/spells/icons");
     const fxDir = path.join(process.cwd(), "public/assets/spells/fx");
     for (const s of spells.spells) {
@@ -204,12 +208,14 @@ describe("public data fixtures", () => {
   it("spell-mechanics and entity-physics json load", () => {
     const spellMech = readJson("spell-mechanics.json") as {
       swingRangeWu: number;
+      frostRootMs: number;
     };
     const physics = readJson("entity-physics.json") as {
       entityBodyRadius: { player: number };
     };
     const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
     expectFiniteNumber(spellMech.swingRangeWu, "spellMech.swingRangeWu");
+    expect(spellMech.frostRootMs).toBe(7000);
     expectFiniteNumber(physics.entityBodyRadius.player, "entityBodyRadius.player");
     expectFiniteNumber(ai.playerAggroRadius, "enemyAi.playerAggroRadius");
   });
