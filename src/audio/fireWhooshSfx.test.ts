@@ -21,10 +21,10 @@ describe("fire whoosh spell hooks", () => {
     }
   });
 
-  it("uses channeled area hooks for flamestrike only", () => {
+  it("resolves flamestrike impact and lingers with ground fire whoosh", () => {
     const flamestrike = fireSpell("flamestrike");
-    expect(spellPlaysFireWhooshOnResolve(flamestrike)).toBe(false);
-    expect(spellPlaysFireWhooshOnChanneledAreaStart(flamestrike)).toBe(true);
+    expect(spellPlaysFireWhooshOnResolve(flamestrike)).toBe(true);
+    expect(spellPlaysFireWhooshOnChanneledAreaStart(flamestrike)).toBe(false);
     expect(spellPlaysFireWhooshOnChannelLinger(flamestrike)).toBe(true);
   });
 

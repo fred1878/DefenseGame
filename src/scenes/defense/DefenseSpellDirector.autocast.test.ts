@@ -105,6 +105,40 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
     expect(host.groundAim).toEqual({ x: 100, y: 0 });
   });
 
+  it("auto-casts flamestrike on nearest enemy in ground range", () => {
+    const save = {
+      buildings: {},
+      spellBar: {
+        slots: ["flamestrike", "", "", "", "", "", "", ""],
+        autoCastSpellIds: ["flamestrike"],
+      },
+    };
+    const host = spellDirectorTestHost({
+      spellInputQueue: new SpellInputQueue(),
+      spellCaster: new SpellCastController(),
+      save: save as unknown as DefenseSpellDirectorHost["save"],
+      enemies: [
+        {
+          id: "e1",
+          sprite: { x: 0, y: 90 },
+          damageable: { alive: true },
+        },
+        {
+          id: "e2",
+          sprite: { x: 180, y: 0 },
+          damageable: { alive: true },
+        },
+      ] as unknown as DefenseSpellDirectorHost["enemies"],
+    });
+    const director = new DefenseSpellDirector(host);
+    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+
+    director.tryAutoCastSpells(0, 0);
+
+    expect(beginSpy).toHaveBeenCalledWith("flamestrike");
+    expect(host.groundAim).toEqual({ x: 0, y: 90 });
+  });
+
   it("still auto-casts self-centered spells with no enemies", () => {
     const save = {
       buildings: {},

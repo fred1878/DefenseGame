@@ -98,4 +98,10 @@ describe("resolveManualDefaultGroundAim", () => {
     expect(aim.x).toBe(240);
     expect(aim.y).toBe(0);
   });
+
+  it("snaps to nearest living enemy in ground range when no focus", () => {
+    const aim = resolveManualDefaultGroundAim(0, 0, 0, null, enemies, 240);
+    expect(aim.x).toBe(0);
+    expect(aim.y).toBe(60);
+  });
 });

@@ -44,7 +44,7 @@ import {
   spellTargetMode,
 } from "../../content/spellTargeting";
 import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
-import { resolveAutoCastGroundAim, resolveManualDefaultGroundAim } from "../../combat/spellGroundAim";
+import { resolveAutoCastGroundAim } from "../../combat/spellGroundAim";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import type { DefenseObstacleRect } from "../../config/defense";
 import {
@@ -130,29 +130,15 @@ export class DefenseSpellDirector {
       this.host.castBar.setWorldPosition(px, py);
       this.host.castBar.setProgress(channel.progress);
       const chDef = spellById(channel.spellId);
-      const inLinger = channel.type === "channeling" && channel.linger === true;
-      if (chDef && !inLinger) {
+      if (chDef) {
         this.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
       }
       if (channel.type === "channeling" && chDef && !this.host.channelAreaStarted) {
         this.startChanneledGroundZone(chDef);
       }
-    } else if (channel.type === "effect_channel_complete") {
-      this.host.castBar.setVisible(true);
-      this.host.castBar.setPhase("channeling");
-      this.host.castBar.setWorldPosition(px, py);
-      this.host.castBar.setProgress(0);
-      const impactCenter = this.host.spellChannelArea;
-      this.resolveSpellEffect(channel.def);
-      this.spawnPostChannelLinger(channel.def);
-      if (impactCenter && spellNeedsGroundAoeTelegraph(channel.def)) {
-        this.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
-      }
-      this.clearGroundCastTelegraphs();
     } else if (channel.type === "interrupted") {
       this.host.castBar.setVisible(false);
       this.clearGroundCastTelegraphs();
-      this.clearLingerAoeTelegraph();
       this.clearSpellChannelState();
       const lockMeleeAim = shouldLockMeleeAimFacing();
       this.host.player.setVelocityFromStick(dir.x, dir.y, this.host.save.player.moveSpeed, { lockMeleeAim });
@@ -162,6 +148,12 @@ export class DefenseSpellDirector {
       }
     } else if (channel.type === "completed") {
       this.host.castBar.setVisible(false);
+      const impactCenter = this.host.spellChannelArea;
+      this.resolveSpellEffect(channel.def);
+      this.spawnPostChannelLinger(channel.def);
+      if (impactCenter && spellNeedsGroundAoeTelegraph(channel.def)) {
+        this.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
+      }
       this.clearGroundCastTelegraphs();
       this.clearSpellChannelState();
     }
@@ -197,7 +189,7 @@ export class DefenseSpellDirector {
       const target = this.autoCastCombatTarget(def);
       if (!target) return;
       if (spellTargetMode(def) === "ground") {
-        this.host.groundAim = { x: target.x, y: target.y };
+        this.host.groundAim = this.autoCastGroundTarget(def);
       } else {
         this.host.targeting.setFocusEnemy(target.id);
         this.host.player.faceToward(target.x, target.y);
@@ -359,23 +351,14 @@ export class DefenseSpellDirector {
   }
 
   defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {
-    const px = this.host.player.sprite.x;
-    const py = this.host.player.sprite.y;
-    const maxR = this.host.wu(def.groundTargetMaxRangeWu ?? 240);
-    return resolveManualDefaultGroundAim(
-      px,
-      py,
-      this.host.player.getFacingAngle(),
-      this.host.targeting.focusEnemyId,
-      this.groundAimEnemies(),
-      maxR,
-    );
+    return this.autoCastGroundTarget(def);
   }
 
   clearSpellChannelState(): void {
     this.host.spellChannelArea = null;
     this.host.channelAreaStarted = false;
     this.host.groundAim = null;
+    this.host.pendingGroundCast = null;
     this.host.groundReticle.hide();
   }
 
@@ -553,7 +536,10 @@ export class DefenseSpellDirector {
     const targets = this.host.enemyTargets();
     switch (def.mechanicType) {
       case "blast": {
-        const remote = def.id === "meteor" ? this.host.spellChannelArea : null;
+        const remote =
+          spellTargetMode(def) === "ground" && this.host.spellChannelArea
+            ? this.host.spellChannelArea
+            : null;
         const bx = remote?.x ?? px;
         const by = remote?.y ?? py;
         applySpellBlastAt(this.host.scene, bx, by, def, targets, mult, 140, this.host.enemySpellStatus);
@@ -561,7 +547,9 @@ export class DefenseSpellDirector {
           blastTextureKey:
             def.id === "meteor"
               ? COMBAT_FX_TEXTURE.spellShockwave
-              : def.blastTextureKey,
+              : def.id === "flamestrike"
+                ? COMBAT_FX_TEXTURE.spellFireNova
+                : def.blastTextureKey,
         });
         if (def.id === "frost_nova") this.applyFrostNovaRoot();
         break;

@@ -43,18 +43,12 @@ describe("SpellCastController", () => {
     expect(bliz.getCastPhase()).toBe("channeling");
   });
 
-  it("stays channeling for flamestrike linger after effect channel", () => {
+  it("completes flamestrike after windup only (no channelMs)", () => {
     const c = new SpellCastController();
     expect(c.tryBeginCast("flamestrike")).toBe("windup");
-    c.updateChannel(650, 0, 0);
-    const lingerStart = c.updateChannel(3500, 0, 0);
-    expect(lingerStart.type).toBe("effect_channel_complete");
-    expect(c.isChanneling()).toBe(true);
-    const lingerTick = c.updateChannel(500, 0, 0);
-    expect(lingerTick.type).toBe("channeling");
-    if (lingerTick.type === "channeling") expect(lingerTick.linger).toBe(true);
-    const done = c.updateChannel(3000, 0, 0);
+    const done = c.updateChannel(650, 0, 0);
     expect(done.type).toBe("completed");
+    if (done.type === "completed") expect(done.spellId).toBe("flamestrike");
     expect(c.isChanneling()).toBe(false);
   });
 

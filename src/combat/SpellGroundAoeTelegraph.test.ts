@@ -47,12 +47,9 @@ describe("spellNeedsGroundAoeTelegraph", () => {
       spellNeedsGroundAoeTelegraph(
         def({
           id: "flamestrike",
-          mechanicType: "channeled_area",
           targetMode: "ground",
           blastRadius: 78,
-          channelMs: 3500,
           castMs: 650,
-          kind: "channeled",
         }),
       ),
     ).toBe(true);

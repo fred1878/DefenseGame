@@ -27,7 +27,7 @@ describe("spellTargeting", () => {
   it("marks flamestrike as ground manual", () => {
     const d = def({
       id: "flamestrike",
-      mechanicType: "channeled_area",
+      mechanicType: "blast",
       targetMode: "ground",
     });
     expect(spellTargetMode(d)).toBe("ground");
@@ -55,7 +55,7 @@ describe("spellTargeting", () => {
   it("requires a combat target for auto-cast ground, enemy, and directional spells", () => {
     expect(
       spellAutoCastRequiresCombatTarget(
-        def({ id: "flamestrike", mechanicType: "channeled_area", targetMode: "ground" }),
+        def({ id: "flamestrike", mechanicType: "blast", targetMode: "ground" }),
       ),
     ).toBe(true);
     expect(

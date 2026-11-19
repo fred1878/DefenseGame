@@ -11,10 +11,8 @@ import {
 export type ChannelUpdateResult =
   | { type: "idle" }
   | { type: "windup"; progress: number; spellId: SpellId }
-  | { type: "channeling"; progress: number; spellId: SpellId; linger?: boolean }
+  | { type: "channeling"; progress: number; spellId: SpellId }
   | { type: "interrupted"; spellId: SpellId }
-  /** Main effect channel ended; ground linger DoT continues while player stays rooted. */
-  | { type: "effect_channel_complete"; spellId: SpellId; def: SpellDefinition }
   | { type: "completed"; spellId: SpellId; def: SpellDefinition };
 
 export class SpellCastController {
@@ -23,10 +21,7 @@ export class SpellCastController {
   private windupDurationMs = 0;
   private channelElapsedMs = 0;
   private channelDurationMs = 0;
-  private lingerElapsedMs = 0;
-  private lingerDurationMs = 0;
   private inChannel = false;
-  private inLinger = false;
   private readonly cooldownRemainingMs = new Map<SpellId, number>();
 
   isChanneling(): boolean {
@@ -35,10 +30,6 @@ export class SpellCastController {
 
   getChannelProgress(): number {
     if (!this.activeSpellId) return 0;
-    if (this.inLinger) {
-      if (this.lingerDurationMs <= 0) return 1;
-      return Math.min(1, this.lingerElapsedMs / this.lingerDurationMs);
-    }
     if (!this.inChannel) {
       if (this.windupDurationMs <= 0) return 0;
       return Math.min(1, this.windupElapsedMs / this.windupDurationMs);
@@ -50,7 +41,7 @@ export class SpellCastController {
   /** Windup vs effect channel for HUD and cast bar styling. */
   getCastPhase(): "windup" | "channeling" | null {
     if (!this.activeSpellId) return null;
-    if (this.inLinger || this.inChannel) return "channeling";
+    if (this.inChannel) return "channeling";
     if (this.windupDurationMs > 0) return "windup";
     if (this.channelDurationMs > 0) return "channeling";
     return null;
@@ -88,9 +79,6 @@ export class SpellCastController {
     this.windupDurationMs = castMs;
     this.channelElapsedMs = 0;
     this.channelDurationMs = hasChannel ? def.channelMs : 0;
-    this.lingerElapsedMs = 0;
-    this.lingerDurationMs = Math.max(0, def.lingerMs ?? 0);
-    this.inLinger = false;
     this.inChannel = castMs <= 0 && hasChannel;
     if (castMs > 0) return "windup";
     return "channel";
@@ -111,23 +99,6 @@ export class SpellCastController {
     }
 
     const spellId = this.activeSpellId;
-
-    if (this.inLinger) {
-      this.lingerElapsedMs += deltaMs;
-      if (this.lingerElapsedMs < this.lingerDurationMs) {
-        return {
-          type: "channeling",
-          progress: this.getChannelProgress(),
-          spellId,
-          linger: true,
-        };
-      }
-      const def = spellById(spellId);
-      this.clearCast();
-      if (!def) return { type: "idle" };
-      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
-      return { type: "completed", spellId, def };
-    }
 
     if (!this.inChannel && this.windupDurationMs > 0) {
       this.windupElapsedMs += deltaMs;
@@ -161,17 +132,8 @@ export class SpellCastController {
     }
 
     const def = spellById(spellId);
-    if (!def) {
-      this.clearCast();
-      return { type: "idle" };
-    }
-    if (this.lingerDurationMs > 0) {
-      this.inLinger = true;
-      this.inChannel = false;
-      this.lingerElapsedMs = 0;
-      return { type: "effect_channel_complete", spellId, def };
-    }
     this.clearCast();
+    if (!def) return { type: "idle" };
     this.cooldownRemainingMs.set(spellId, def.cooldownMs);
     return { type: "completed", spellId, def };
   }
@@ -186,9 +148,6 @@ export class SpellCastController {
     this.windupDurationMs = 0;
     this.channelElapsedMs = 0;
     this.channelDurationMs = 0;
-    this.lingerElapsedMs = 0;
-    this.lingerDurationMs = 0;
     this.inChannel = false;
-    this.inLinger = false;
   }
 }

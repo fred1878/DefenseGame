@@ -69,11 +69,10 @@ const PATCH = {
   },
   flamestrike: {
     castMs: 650,
-    channelMs: 3500,
+    channelMs: 0,
     cooldownMs: 8500,
     blastRadius: 78,
-    burstDamage: 24,
-    channelTickMs: 250,
+    baseDamage: 24,
     lingerMs: 3000,
     lingerTickMs: 250,
     targetMode: "ground",
