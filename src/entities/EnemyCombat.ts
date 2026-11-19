@@ -107,9 +107,10 @@ export function updateEnemyCombat(
 
   const inWallTrigger =
     target.kind === "wall" && dist <= wall.triggerRange;
+  const inWallHit = target.kind === "wall" && dist <= wall.hitRange;
   const holdPosition =
     inWallTrigger &&
-    (enemyIsAttacking(c) || c.phase === "idle");
+    (enemyIsAttacking(c) || (c.phase === "idle" && inWallHit));
   if (holdPosition) {
     enemy.sprite.setVelocity(0, 0);
   }

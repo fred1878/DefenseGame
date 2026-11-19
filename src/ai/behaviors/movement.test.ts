@@ -1,10 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../../config";
+import {
+  DEFAULT_WALL_COMBAT,
+  wallMeleeApproachStandoffPx,
+} from "../../core/enemyTuning";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import {
   applyChaseVelocity,
   applyWallMeleeHold,
   shouldHoldAtWallMelee,
+  wallMeleeDistToAttackPlane,
   wallMeleeStandoffY,
 } from "./movement";
 
@@ -30,6 +35,26 @@ describe("wall melee hold helpers", () => {
     enemy.sprite.y = northWallAttackY() + 200;
     enemy.combat.cooldownMs = 200;
     expect(shouldHoldAtWallMelee(enemy, "wall")).toBe(false);
+  });
+
+  it("keeps closing while idle in the trigger band but outside hit range", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const wall = DEFAULT_WALL_COMBAT;
+    enemy.sprite.y = northWallAttackY() + (wall.hitRange + wall.triggerRange) / 2;
+    enemy.combat.phase = "idle";
+    enemy.combat.cooldownMs = 0;
+    expect(wallMeleeDistToAttackPlane(enemy)).toBeGreaterThan(wall.hitRange);
+    expect(wallMeleeDistToAttackPlane(enemy)).toBeLessThanOrEqual(wall.triggerRange);
+    expect(shouldHoldAtWallMelee(enemy, "wall")).toBe(false);
+  });
+
+  it("places standoff inside default wall hit range", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const standoff = wallMeleeApproachStandoffPx(DEFAULT_WALL_COMBAT);
+    expect(standoff).toBeLessThanOrEqual(DEFAULT_WALL_COMBAT.hitRange);
+    enemy.sprite.x = 12;
+    const y = wallMeleeStandoffY(enemy);
+    expect(y - northWallAttackY()).toBe(standoff);
   });
 
   it("does not hold when chasing the player", () => {

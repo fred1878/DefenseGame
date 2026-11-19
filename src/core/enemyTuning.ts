@@ -235,6 +235,16 @@ export const DEFAULT_WALL_COMBAT: EnemyWallCombat = {
   hitRange: 34,
 };
 
+/** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range. */
+export function wallMeleeApproachStandoffPx(
+  wall: Pick<EnemyWallCombat, "hitRange" | "triggerRange">,
+  slackPx = 2,
+): number {
+  const fromHit = Math.max(0, wall.hitRange - slackPx);
+  const fromTrigger = Math.max(0, wall.triggerRange - 6);
+  return Math.min(fromHit, fromTrigger);
+}
+
 export const DEFAULT_ARROW_RAIN_COMBAT: EnemyArrowRainCombat = {
   preferredRange: 150,
   attackTriggerRange: 168,

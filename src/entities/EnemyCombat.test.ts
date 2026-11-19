@@ -42,6 +42,18 @@ function mockEnemy(
 }
 
 describe("updateEnemyCombat wall target", () => {
+  it("does not zero velocity while idle between hit and trigger range", () => {
+    const wy = northWallAttackY();
+    const wall = resolveEnemyCombat("meleeChaser", undefined).wall;
+    const y = wy + (wall.hitRange + wall.triggerRange) / 2;
+    const enemy = mockEnemy(0, y);
+    enemy.combat.phase = "idle";
+    enemy.combat.cooldownMs = 200;
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    updateEnemyCombat(enemy, { kind: "wall", x: 0, y: wy }, 16);
+    expect(setVelocity).not.toHaveBeenCalled();
+  });
+
   it("damages wall when in wall attack range during active phase", () => {
     const wy = northWallAttackY();
     const enemy = mockEnemy(0, wy + 20);
