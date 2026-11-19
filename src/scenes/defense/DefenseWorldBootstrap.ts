@@ -22,6 +22,7 @@ import {
 } from "../../world/defenseCamera";
 import {
   DEFENSE_WORLD_LAYER_REGISTRY_KEY,
+  installDefenseWorldLayerHook,
   setDefenseWorldLayerTarget,
 } from "../../world/defenseWorldAddHook";
 import { configureDefenseObstacleArt } from "../../world/defenseObstacleSprite";
@@ -110,6 +111,8 @@ export function bootstrapDefenseWorld(
   scene.physics.add.collider(player.sprite, enemyGroup);
   scene.physics.add.collider(enemyGroup, enemyGroup);
   scene.physics.add.collider(enemyGroup, obstacleGroup);
+
+  installDefenseWorldLayerHook(scene, worldLayer);
 
   return {
     player,

@@ -23,7 +23,11 @@ import {
   fullscreenButtonLabel,
   toggleFullscreen,
 } from "../ui/fullscreen";
-import { DEBUG_MENU_CLOSE } from "../debug/debugMenuLifecycle";
+import {
+  DEBUG_MENU_CLOSE,
+  isDefenseDebugHost,
+} from "../debug/debugMenuLifecycle";
+import { transitionDefenseToTown } from "./defense/DefenseNightEnd";
 
 export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
@@ -135,10 +139,31 @@ export class DebugMenuScene extends Phaser.Scene {
       },
     );
 
+    const fromDefense = isDefenseDebugHost(this);
+    const closeY = fromDefense ? h / 2 + scaleUiY(335) : h / 2 + scaleUiY(270);
+
+    if (fromDefense) {
+      createTouchButton(
+        this,
+        w / 2,
+        h / 2 + scaleUiY(270),
+        "Go to town",
+        () => this.leaveDefenseForTown(),
+        {
+          width: scaleUiX(240),
+          height: scaleUiY(48),
+          depth: 402,
+          fontSize: `${scaleUiX(18)}px`,
+          fillColor: 0x3f3f46,
+          strokeColor: 0xa1a1aa,
+        },
+      );
+    }
+
     createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(270),
+      closeY,
       "Close",
       () => this.closeMenu(),
       {
@@ -186,5 +211,13 @@ export class DebugMenuScene extends Phaser.Scene {
   private closeMenu(): void {
     this.game.events.emit(DEBUG_MENU_CLOSE);
     this.scene.stop("DebugMenu");
+  }
+
+  /** Mid-night exit — same deferred Town transition as Return to town (#169). */
+  private leaveDefenseForTown(): void {
+    const defense = this.scene.get("Defense");
+    if (!defense?.scene.isPaused("Defense")) return;
+    this.scene.stop("DebugMenu");
+    transitionDefenseToTown(defense);
   }
 }
