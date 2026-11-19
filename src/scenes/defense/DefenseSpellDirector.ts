@@ -130,15 +130,29 @@ export class DefenseSpellDirector {
       this.host.castBar.setWorldPosition(px, py);
       this.host.castBar.setProgress(channel.progress);
       const chDef = spellById(channel.spellId);
-      if (chDef) {
+      const inLinger = channel.type === "channeling" && channel.linger === true;
+      if (chDef && !inLinger) {
         this.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
       }
       if (channel.type === "channeling" && chDef && !this.host.channelAreaStarted) {
         this.startChanneledGroundZone(chDef);
       }
+    } else if (channel.type === "effect_channel_complete") {
+      this.host.castBar.setVisible(true);
+      this.host.castBar.setPhase("channeling");
+      this.host.castBar.setWorldPosition(px, py);
+      this.host.castBar.setProgress(0);
+      const impactCenter = this.host.spellChannelArea;
+      this.resolveSpellEffect(channel.def);
+      this.spawnPostChannelLinger(channel.def);
+      if (impactCenter && spellNeedsGroundAoeTelegraph(channel.def)) {
+        this.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
+      }
+      this.clearGroundCastTelegraphs();
     } else if (channel.type === "interrupted") {
       this.host.castBar.setVisible(false);
       this.clearGroundCastTelegraphs();
+      this.clearLingerAoeTelegraph();
       this.clearSpellChannelState();
       const lockMeleeAim = shouldLockMeleeAimFacing();
       this.host.player.setVelocityFromStick(dir.x, dir.y, this.host.save.player.moveSpeed, { lockMeleeAim });
@@ -148,12 +162,6 @@ export class DefenseSpellDirector {
       }
     } else if (channel.type === "completed") {
       this.host.castBar.setVisible(false);
-      const impactCenter = this.host.spellChannelArea;
-      this.resolveSpellEffect(channel.def);
-      this.spawnPostChannelLinger(channel.def);
-      if (impactCenter && spellNeedsGroundAoeTelegraph(channel.def)) {
-        this.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
-      }
       this.clearGroundCastTelegraphs();
       this.clearSpellChannelState();
     }
