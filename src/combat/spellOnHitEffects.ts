@@ -11,6 +11,9 @@ export function applySpellOnHitEffects(
   if (onHit.rootMs && onHit.rootMs > 0) {
     status.applyRoot(enemyId, onHit.rootMs);
   }
+  if (onHit.stunMs && onHit.stunMs > 0) {
+    status.applyStun(enemyId, onHit.stunMs);
+  }
   if (onHit.slowPct && onHit.slowPct > 0 && onHit.slowMs && onHit.slowMs > 0) {
     status.applySlow(enemyId, onHit.slowPct, onHit.slowMs);
   }

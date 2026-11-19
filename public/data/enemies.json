@@ -21,8 +21,8 @@
         "hitRange": 44
       },
       "melee": {
-        "triggerRange": 50,
-        "range": 44,
+        "triggerRange": 75,
+        "range": 67,
         "arcDeg": 78,
         "windupMs": 480,
         "activeMs": 130,
@@ -45,8 +45,8 @@
         "hitRange": 34
       },
       "melee": {
-        "triggerRange": 36,
-        "range": 26,
+        "triggerRange": 54,
+        "range": 40,
         "arcDeg": 70,
         "windupMs": 380,
         "activeMs": 110,
@@ -81,8 +81,8 @@
         "hitRange": 30
       },
       "melee": {
-        "triggerRange": 32,
-        "range": 22,
+        "triggerRange": 48,
+        "range": 34,
         "arcDeg": 62,
         "windupMs": 280,
         "activeMs": 90,
@@ -105,8 +105,8 @@
         "hitRange": 32
       },
       "melee": {
-        "triggerRange": 34,
-        "range": 22,
+        "triggerRange": 51,
+        "range": 34,
         "arcDeg": 65,
         "windupMs": 360,
         "activeMs": 100,
@@ -138,8 +138,8 @@
         "hitRange": 38
       },
       "melee": {
-        "triggerRange": 34,
-        "range": 24,
+        "triggerRange": 51,
+        "range": 37,
         "arcDeg": 68,
         "windupMs": 360,
         "activeMs": 100,
@@ -174,8 +174,8 @@
         "hitRange": 48
       },
       "melee": {
-        "triggerRange": 40,
-        "range": 30,
+        "triggerRange": 60,
+        "range": 46,
         "arcDeg": 64,
         "windupMs": 520,
         "activeMs": 140,
@@ -201,8 +201,8 @@
         "hitRange": 36
       },
       "melee": {
-        "triggerRange": 30,
-        "range": 22,
+        "triggerRange": 45,
+        "range": 34,
         "arcDeg": 58,
         "windupMs": 260,
         "activeMs": 80,
@@ -228,8 +228,8 @@
         "hitRange": 38
       },
       "melee": {
-        "triggerRange": 42,
-        "range": 30,
+        "triggerRange": 63,
+        "range": 46,
         "arcDeg": 72,
         "windupMs": 360,
         "activeMs": 110,
@@ -259,8 +259,8 @@
         "hitRange": 34
       },
       "melee": {
-        "triggerRange": 34,
-        "range": 24,
+        "triggerRange": 51,
+        "range": 37,
         "arcDeg": 65,
         "windupMs": 340,
         "activeMs": 100,
@@ -294,8 +294,8 @@
         "hitRange": 32
       },
       "melee": {
-        "triggerRange": 56,
-        "range": 50,
+        "triggerRange": 84,
+        "range": 76,
         "arcDeg": 72,
         "windupMs": 100,
         "activeMs": 100,
@@ -312,7 +312,7 @@
         "projectileMaxTravel": 210
       },
       "hybrid": {
-        "closeMeleeRadius": 80,
+        "closeMeleeRadius": 120,
         "preferredRange": 160,
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18
@@ -333,8 +333,8 @@
         "hitRange": 34
       },
       "melee": {
-        "triggerRange": 38,
-        "range": 28,
+        "triggerRange": 57,
+        "range": 43,
         "arcDeg": 68,
         "windupMs": 400,
         "activeMs": 110,

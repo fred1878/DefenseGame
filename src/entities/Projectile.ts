@@ -246,7 +246,7 @@ export type SpellProjectileUpdateContext = {
     damageable: Damageable;
     sprite: Phaser.Physics.Arcade.Sprite;
   }>;
-  knockback: number;
+  knockbackFor: (projectile: PlayerProjectile) => number;
   findEnemy: (id: string) =>
     | {
         id: string;
@@ -276,7 +276,7 @@ export function updateSpellProjectile(
     projectile,
     ctx.deltaMs,
     ctx.enemies,
-    ctx.knockback,
+    ctx.knockbackFor(projectile),
   );
   const detonation = !hit.alive ? projectile.pendingDetonation : undefined;
   return { alive: hit.alive, detonation, hitEnemyId: hit.hitEnemyId };

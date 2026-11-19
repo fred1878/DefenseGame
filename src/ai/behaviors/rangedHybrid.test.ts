@@ -34,8 +34,8 @@ describe("rangedHybrid combat state machine", () => {
       activeMs: 60,
       recoveryMs: 80,
       cooldownMs: 40,
-      triggerRange: 80,
-      range: 40,
+      triggerRange: 120,
+      range: 61,
     },
     stationaryRanged: {
       attackTriggerRange: 200,
@@ -45,7 +45,7 @@ describe("rangedHybrid combat state machine", () => {
       cooldownMs: 200,
     },
     hybrid: {
-      closeMeleeRadius: 60,
+      closeMeleeRadius: 90,
       preferredRange: 110,
       maxMeleeSwings: 3,
       retreatRangeSlack: 12,

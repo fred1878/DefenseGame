@@ -22,8 +22,8 @@ function mockEnemy(
       ? ({
           wall: { damage: 8, triggerRange: 52, hitRange: 44 },
           melee: {
-            triggerRange: 50,
-            range: 44,
+            triggerRange: 75,
+            range: 67,
             arcDeg: 78,
             windupMs: 480,
             activeMs: 130,
@@ -127,7 +127,7 @@ describe("updateEnemyCombat player target", () => {
   });
 
   it("bruiser connects farther than grunt at the same player offset", () => {
-    const px = 50;
+    const px = 67;
     const target = {
       kind: "player" as const,
       x: px,
