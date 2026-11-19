@@ -22,8 +22,8 @@ function mockEnemy(
       ? ({
           wall: { damage: 8, triggerRange: 52, hitRange: 44 },
           melee: {
-            triggerRange: 72,
-            range: 64,
+            triggerRange: 75,
+            range: 67,
             arcDeg: 78,
             windupMs: 480,
             activeMs: 130,
