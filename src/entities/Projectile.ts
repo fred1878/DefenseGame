@@ -116,6 +116,11 @@ function steerProjectileToward(
   sprite.setRotation(angle + projectileRotOffset(sprite.texture.key));
 }
 
+export type ProjectileHitUpdate = {
+  alive: boolean;
+  hitEnemyId?: string;
+};
+
 export function updateProjectile(
   projectile: PlayerProjectile,
   deltaMs: number,
@@ -128,8 +133,8 @@ export function updateProjectile(
     sprite: Phaser.Physics.Arcade.Sprite;
   }>,
   knockback: number,
-): boolean {
-  if (!projectile.sprite.active) return false;
+): ProjectileHitUpdate {
+  if (!projectile.sprite.active) return { alive: false };
 
   const x0 = projectile.prevX;
   const y0 = projectile.prevY;
@@ -159,8 +164,10 @@ export function updateProjectile(
   if (firstTarget && firstT !== null) {
     const behavior = projectile.spellBehavior ?? "default";
     const damaged = projectile.damagedEnemyIds ?? new Set<string>();
+    let hitEnemyId: string | undefined;
     if (!damaged.has(firstTarget.id)) {
       damaged.add(firstTarget.id);
+      hitEnemyId = firstTarget.id;
       applyDamage(
         firstTarget.damageable,
         projectile.damage,
@@ -178,13 +185,13 @@ export function updateProjectile(
       if (projectile.pierceRemaining !== undefined) {
         if (projectile.pierceRemaining <= 0) {
           projectile.sprite.destroy();
-          return false;
+          return { alive: false, hitEnemyId };
         }
         projectile.pierceRemaining -= 1;
       }
       projectile.prevX = x1;
       projectile.prevY = y1;
-      return true;
+      return { alive: true, hitEnemyId };
     }
     if (behavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       const detonation: ProjectileDetonation = {
@@ -196,10 +203,10 @@ export function updateProjectile(
       };
       projectile.pendingDetonation = detonation;
       projectile.sprite.destroy();
-      return false;
+      return { alive: false, hitEnemyId };
     }
     projectile.sprite.destroy();
-    return false;
+    return { alive: false, hitEnemyId };
   }
 
   const body = projectile.sprite.body as Phaser.Physics.Arcade.Body;
@@ -223,10 +230,10 @@ export function updateProjectile(
       projectile.pendingDetonation = detonation;
     }
     projectile.sprite.destroy();
-    return false;
+    return { alive: false };
   }
 
-  return true;
+  return { alive: true };
 }
 
 export type SpellProjectileUpdateContext = {
@@ -255,7 +262,7 @@ export type SpellProjectileUpdateContext = {
 export function updateSpellProjectile(
   projectile: PlayerProjectile,
   ctx: SpellProjectileUpdateContext,
-): { alive: boolean; detonation?: ProjectileDetonation } {
+): { alive: boolean; detonation?: ProjectileDetonation; hitEnemyId?: string } {
   if (projectile.spellBehavior === "tracking" && projectile.trackEnemyId) {
     const target = ctx.findEnemy(projectile.trackEnemyId);
     if (target?.damageable.alive) {
@@ -265,14 +272,14 @@ export function updateSpellProjectile(
     }
   }
 
-  const alive = updateProjectile(
+  const hit = updateProjectile(
     projectile,
     ctx.deltaMs,
     ctx.enemies,
     ctx.knockback,
   );
-  const detonation = !alive ? projectile.pendingDetonation : undefined;
-  return { alive, detonation };
+  const detonation = !hit.alive ? projectile.pendingDetonation : undefined;
+  return { alive: hit.alive, detonation, hitEnemyId: hit.hitEnemyId };
 }
 
 export type EnemyProjectile = PlayerProjectile;
