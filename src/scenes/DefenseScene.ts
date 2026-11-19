@@ -487,10 +487,12 @@ export class DefenseScene extends Phaser.Scene {
 
     if (!this.spellCaster.isChanneling()) {
       this.tryAutoAttack();
-      this.tryAutoCastSpells(dir.x, dir.y);
     }
     this.player.updateAttack(delta);
-    this.tryFlushQueuedSpellCast(dir.x, dir.y);
+    if (!this.spellCaster.isChanneling()) {
+      this.tryFlushQueuedSpellCast(dir.x, dir.y);
+      this.tryAutoCastSpells(dir.x, dir.y);
+    }
     this.syncMeleeSwipeFx();
 
     const mult = playerDamageMult(this.save.buildings);
