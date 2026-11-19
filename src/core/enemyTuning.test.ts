@@ -80,7 +80,7 @@ describe("normalizeEnemyRow", () => {
       textureKey: "enemy_grunt",
     });
     expect(row.hp).toBe(30);
-    expect(row.speed).toBe(85);
+    expect(row.speed).toBe(60);
     expect(row.damage).toBe(8);
     expect(row.displayName).toBe("Grunt");
   });

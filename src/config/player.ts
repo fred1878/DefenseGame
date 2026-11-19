@@ -13,7 +13,7 @@ function deriveAutoAttackMeleeRange(
 
 /** Code defaults when `public/data/player.json` omits keys (also used before Boot loads). */
 export const PLAYER_TUNING_DEFAULTS = {
-  moveSpeed: 220,
+  moveSpeed: 154,
   meleeWindupMs: 120,
   meleeActiveMs: 100,
   meleeRecoveryMs: 280,
