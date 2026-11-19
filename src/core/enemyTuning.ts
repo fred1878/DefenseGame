@@ -222,7 +222,7 @@ export type EnemyCombatDefaultsBundle = {
 /** Default melee grunt row stats when JSON omits fields. */
 export const DEFAULT_ENEMY_BASE = {
   hp: 30,
-  speed: 85,
+  speed: 60,
   damage: 8,
 } as const;
 
