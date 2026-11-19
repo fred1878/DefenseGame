@@ -547,6 +547,7 @@ export class DefenseScene extends Phaser.Scene {
         },
         flashNova: (x, y, r, def) => this.flashNova(x, y, r, def),
         endlessInfiniteHp: this.endlessInfiniteHp,
+        enemySpellStatus: this.enemySpellStatus,
       },
       delta,
     );

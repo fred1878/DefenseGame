@@ -47,7 +47,7 @@ describe("updateProjectile", () => {
       prevY: 0,
     };
 
-    const stillAlive = updateProjectile(
+    const hit = updateProjectile(
       projectile,
       16,
       [
@@ -63,7 +63,8 @@ describe("updateProjectile", () => {
       50,
     );
 
-    expect(stillAlive).toBe(false);
+    expect(hit.alive).toBe(false);
+    expect(hit.hitEnemyId).toBe("e1");
     expect(destroyed).toHaveBeenCalled();
     expect(damageable.hp).toBe(5);
   });
