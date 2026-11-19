@@ -215,9 +215,9 @@ export class DebugMenuScene extends Phaser.Scene {
 
   /** Mid-night exit — same deferred Town transition as Return to town (#169). */
   private leaveDefenseForTown(): void {
+    if (!isDefenseDebugHost(this)) return;
     const defense = this.scene.get("Defense");
-    if (!defense?.scene.isPaused("Defense")) return;
-    this.scene.stop("DebugMenu");
+    if (!defense) return;
     transitionDefenseToTown(defense);
   }
 }
