@@ -248,7 +248,7 @@ export const SPELL_MECHANICS_DEFAULTS: SpellMechanicsTuning = {
   iceWallDurationMs: 8000,
   shadowformDurationMs: 10000,
   shadowformDamageMult: 1.35,
-  frostRootMs: 2200,
+  frostRootMs: 7000,
   deepFreezeRootMs: 2800,
 };
 
