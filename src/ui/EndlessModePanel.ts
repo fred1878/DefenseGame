@@ -68,6 +68,8 @@ export class EndlessModePanel {
   private readonly listLeft: number;
   private scrollY = 0;
   private readonly maxScroll: number;
+  /** Suppresses roster toggle when a cap stepper consumed the pointer. */
+  private capStepperPointerId: number | null = null;
   private dragPointerId: number | null = null;
   private dragStartScroll = 0;
   private dragStartPointerY = 0;
@@ -238,8 +240,19 @@ export class EndlessModePanel {
         }))
         .setOrigin(0.5);
 
-      capMinus.on("pointerup", () => this.bumpCap(enemyId, -1));
-      capPlus.on("pointerup", () => this.bumpCap(enemyId, 1));
+      const wireCapStepper = (stepper: UiRoundedRect, delta: number) => {
+        stepper.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+          this.capStepperPointerId = pointer.id;
+        });
+        stepper.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+          if (this.capStepperPointerId === pointer.id) {
+            this.capStepperPointerId = null;
+          }
+          this.bumpCap(enemyId, delta);
+        });
+      };
+      wireCapStepper(capMinus, -1);
+      wireCapStepper(capPlus, 1);
 
       const row: EnemyRow = {
         enemyId,
@@ -427,8 +440,12 @@ export class EndlessModePanel {
     this.listViewport.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (this.dragPointerId !== pointer.id) return;
       const tapped = this.endDrag();
+      if (this.capStepperPointerId === pointer.id) {
+        this.capStepperPointerId = null;
+        return;
+      }
       if (tapped) {
-        const enemyId = this.pickVisibleRowAtScreenY(pointer.y);
+        const enemyId = this.pickVisibleRosterRowAtScreen(pointer.x, pointer.y);
         if (enemyId) this.toggleSelect(enemyId);
       }
     });
@@ -454,7 +471,16 @@ export class EndlessModePanel {
     return tapped;
   }
 
-  private pickVisibleRowAtScreenY(screenY: number): string | null {
+  private pickVisibleRosterRowAtScreen(
+    screenX: number,
+    screenY: number,
+  ): string | null {
+    if (
+      screenX < this.listLeft ||
+      screenX > this.listLeft + this.nameColW
+    ) {
+      return null;
+    }
     if (
       screenY < this.listTop ||
       screenY > this.listTop + this.listViewportH

@@ -155,6 +155,50 @@ test.describe("endless mode panel layout", () => {
       .toBe(true);
   });
 
+  test("cap stepper taps change count without toggling selection", async ({
+    page,
+  }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const setup = await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const enemyId =
+        api?.getEndlessSelectedEnemyIds()[0] ??
+        api?.getEndlessRosterEnemyIds()[0] ??
+        "";
+      const cap = api?.getEndlessEnemyConcurrentCap(enemyId) ?? null;
+      const plus = api?.getUiTapTargets()[`endless-cap-plus-${enemyId}`] ?? null;
+      return { enemyId, cap, plus, selected: api?.getEndlessSelectedEnemyIds() ?? [] };
+    });
+    expect(setup.enemyId).toBeTruthy();
+    expect(setup.plus).toBeTruthy();
+    expect(setup.cap).not.toBeNull();
+
+    await tapCanvas(page, setup.plus!.x, setup.plus!.y);
+    await tapCanvas(page, setup.plus!.x, setup.plus!.y);
+
+    const after = await page.evaluate((enemyId) => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      return {
+        cap: api?.getEndlessEnemyConcurrentCap(enemyId) ?? null,
+        selected: api?.getEndlessSelectedEnemyIds() ?? [],
+      };
+    }, setup.enemyId);
+
+    expect(after.cap).toBe((setup.cap ?? 0) + 2);
+    expect(after.selected).toEqual(setup.selected);
+  });
+
   test("footer taps do not change hidden roster selection", async ({
     page,
   }) => {
