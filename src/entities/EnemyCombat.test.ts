@@ -75,7 +75,7 @@ describe("updateEnemyCombat wall target", () => {
 });
 
 describe("updateEnemyCombat player target", () => {
-  it("connects at arcade contact distance for a default grunt", () => {
+  it("connects at arcade contact distance for meleeChaser", () => {
     const dist = enemyMeleeContactCenterDist("meleeChaser", "grunt");
     const enemy = mockEnemy(0, 0, undefined, "grunt", "meleeChaser");
     enemy.combat.phase = "active";

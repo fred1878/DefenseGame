@@ -73,7 +73,7 @@ describe("wall melee hold helpers", () => {
     expect(vx).toBeCloseTo(50, 1);
   });
 
-  it("grunt still stops movement while attacking", () => {
+  it("meleeChaser stops movement while attacking", () => {
     const enemy = mockEnemyInstance({ behavior: "meleeChaser", speed: 100 });
     enemy.combat.phase = "windup";
     applyChaseVelocity(enemy, 100, 0, 1);

@@ -67,7 +67,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 
 **Config-only data:** TypeScript must not define fallback gameplay numbers. Every value in the table below must exist in the matching JSON file; Boot fails fast with a clear path when something is missing. Per-enemy `combat` blocks are partial overrides merged onto `enemy-combat-defaults.json` at runtime (not code constants).
 
-**enemies.json** — per-enemy **required** `hp`, `speed`, `damage`, plus `behavior` id (maps to `src/ai/behaviors/`). Optional `combat` overrides merge onto `enemy-combat-defaults.json` (grunt needs no `combat` block). Global chase tuning loads from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` (`applyEnemyAi`).
+**enemies.json** — per-enemy **required** `hp`, `speed`, `damage`, plus `behavior` id (maps to `src/ai/behaviors/`). Optional `combat` objects hold partial overrides merged at Boot onto `enemy-combat-defaults.json` (combat baselines live in that file, not in any single enemy row). Global chase tuning loads from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` (`applyEnemyAi`).
 
 | `combat` block | Used when `behavior` is |
 |----------------|-------------------------|
@@ -84,7 +84,18 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
     "speed": 85,
     "damage": 8,
     "behavior": "meleeChaser",
-    "textureKey": "enemy_grunt"
+    "textureKey": "enemy_grunt",
+    "combat": {
+      "melee": {
+        "triggerRange": 78,
+        "range": 72,
+        "arcDeg": 70,
+        "windupMs": 380,
+        "activeMs": 110,
+        "recoveryMs": 480,
+        "cooldownMs": 350
+      }
+    }
   },
   "arrow_rain_archer": {
     "hp": 28,
@@ -120,7 +131,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 }
 ```
 
-New melee enemies must set `hp` / `speed` / `damage` and may omit `combat` to use global defaults. Override only what you need (e.g. `"combat": { "melee": { "windupMs": 500 } }`).
+Every enemy row must set `hp` / `speed` / `damage`. Omit `combat` to use loaded `enemy-combat-defaults.json` tables only; override only what you need (e.g. `"combat": { "melee": { "windupMs": 500 } }`).
 
 **waves.json** — keyed by night number:
 
@@ -186,7 +197,7 @@ Until step 2 feels good on a phone-sized viewport, avoid town art and skill tree
 - **Movement:** Arcade physics body on player/enemies; attack uses **custom hitboxes**, not physics overlap alone.
 - **Player attack:** state machine `idle → windup → active → recovery`; damage only in `active` frames.
 - **Pooling:** enemies and projectiles use pools before scaling waves.
-- **Defense objective:** `townWallHp` — north wall bar at top of the field (`northWallAttackY()` in `src/config/defense.ts`); grunts path with A* unless player has LOS within `PLAYER_AGGRO_RADIUS` (`src/config/enemy.ts`). After LOS breaks, `resolveEnemyTarget` in `EnemyBrain` chases `lastKnownPlayer*` for `PLAYER_CHASE_MEMORY_MS`, then eases velocity toward the wall over `WALL_VELOCITY_BLEND_MS` (`applyChaseVelocity` in `behaviors/movement.ts`).
+- **Defense objective:** `townWallHp` — north wall bar at top of the field (`northWallAttackY()` in `src/config/defense.ts`); wall-rush behaviors path with A* unless the player has LOS within `PLAYER_AGGRO_RADIUS` (`src/config/enemy.ts`). After LOS breaks, `resolveEnemyTarget` in `EnemyBrain` chases `lastKnownPlayer*` for `PLAYER_CHASE_MEMORY_MS`, then eases velocity toward the wall over `WALL_VELOCITY_BLEND_MS` (`applyChaseVelocity` in `behaviors/movement.ts`).
 
 ---
 

@@ -18,12 +18,12 @@ export type DefenseEnemySpawnerHost = {
   maskWorldObject?: (go: Phaser.GameObjects.GameObject) => void;
 };
 
-export function defaultDefenseEnemyDef(store: DataStore): EnemyDef {
-  const grunt = store.enemies.grunt;
-  if (!grunt) {
-    throw new Error("enemies.json must define grunt before spawning");
+export function enemyDefById(store: DataStore, defId: string): EnemyDef {
+  const def = store.enemies[defId];
+  if (!def) {
+    throw new Error(`enemies.json must define "${defId}" before spawning`);
   }
-  return grunt;
+  return def;
 }
 
 /** Spawn one enemy into the defense scene lists (REFACTOR_PLAN PR3). */
@@ -35,7 +35,7 @@ export function spawnDefenseEnemyAt(
   defId = "grunt",
   hpOverride?: number,
 ): void {
-  const base = def ?? defaultDefenseEnemyDef(host.dataStore);
+  const base = def ?? enemyDefById(host.dataStore, defId);
   const spawnDef =
     hpOverride !== undefined ? { ...base, hp: hpOverride } : base;
   const id = `e_${host.enemies.length}_${Date.now()}`;

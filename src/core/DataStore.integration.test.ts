@@ -15,16 +15,16 @@ function expectFiniteNumber(value: unknown, label: string): void {
 }
 
 describe("public data fixtures", () => {
-  it("enemies.json has grunt with core stat fields", () => {
+  it("enemies.json rows include required hp, speed, and damage", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
-      { hp: number; speed: number; damage: number }
+      { hp?: number; speed?: number; damage?: number }
     >;
-    const grunt = enemies.grunt;
-    expect(grunt).toBeDefined();
-    expectFiniteNumber(grunt!.hp, "grunt.hp");
-    expectFiniteNumber(grunt!.speed, "grunt.speed");
-    expectFiniteNumber(grunt!.damage, "grunt.damage");
+    for (const [id, row] of Object.entries(enemies)) {
+      expectFiniteNumber(row.hp, `enemies.${id}.hp`);
+      expectFiniteNumber(row.speed, `enemies.${id}.speed`);
+      expectFiniteNumber(row.damage, `enemies.${id}.damage`);
+    }
   });
 
   it("enemies.json defines displayName for every type", () => {

@@ -416,6 +416,7 @@ function mergeHybrid(
   };
 }
 
+/** Merge optional per-enemy `combat` partials onto Boot-loaded `enemy-combat-defaults.json` (not any enemy row). */
 export function resolveEnemyCombat(
   behavior: string,
   combat?: EnemyCombatPartial,

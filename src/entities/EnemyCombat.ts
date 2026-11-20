@@ -10,7 +10,7 @@ export type EnemyCombatState = {
   phaseMs: number;
   cooldownMs: number;
   hitThisSwing: boolean;
-  /** Set when DefenseScene spawns grunt melee swipe FX for this swing. */
+  /** Set when DefenseScene spawns melee swipe FX for this swing. */
   slashFxShown: boolean;
   facing: number;
 };
