@@ -27,6 +27,7 @@ export const testWallSiegeCombat: EnemyWallSiegeCombat = {
 };
 
 export const testStationaryRangedCombat: EnemyStationaryRangedCombat = {
+  preferredRange: 105,
   attackTriggerRange: 140,
   windupMs: 400,
   activeMs: 80,

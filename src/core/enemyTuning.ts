@@ -55,6 +55,7 @@ export type EnemyCombatPartial = {
   };
   /** Hold position + straight bolt (`stationaryRanged` behavior). */
   stationaryRanged?: {
+    preferredRange?: number;
     attackTriggerRange?: number;
     windupMs?: number;
     activeMs?: number;
@@ -147,6 +148,7 @@ export type EnemyJavelineerCombat = {
 };
 
 export type EnemyStationaryRangedCombat = {
+  preferredRange: number;
   attackTriggerRange: number;
   windupMs: number;
   activeMs: number;
@@ -339,6 +341,7 @@ function mergeStationaryRanged(
 ): EnemyStationaryRangedCombat {
   const d = getEnemyCombatDefaults().stationaryRanged;
   return {
+    preferredRange: partial?.preferredRange ?? d.preferredRange,
     attackTriggerRange:
       partial?.attackTriggerRange ?? d.attackTriggerRange,
     windupMs: partial?.windupMs ?? d.windupMs,

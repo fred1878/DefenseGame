@@ -34,9 +34,12 @@ describe("stationaryRangedBehavior", () => {
     cellSize: 40,
   } as unknown as import("../../pathfinding/grid").NavGrid;
 
-  it("holds still when player is in attack range and ready", () => {
+  it("holds still when player is in the preferred band", () => {
     const enemy = mockSentry(0, 0);
-    const inRange = testStationaryRangedCombat.attackTriggerRange - 20;
+    const inRange =
+      (testStationaryRangedCombat.preferredRange +
+        testStationaryRangedCombat.attackTriggerRange) /
+      2;
     stationaryRangedBehavior({
       enemy,
       nav: enemy.nav,
@@ -47,6 +50,21 @@ describe("stationaryRangedBehavior", () => {
     });
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("backs off when player is inside preferred range", () => {
+    const enemy = mockSentry(0, 0);
+    stationaryRangedBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: testStationaryRangedCombat.preferredRange - 40,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    expect(setVelocity).not.toHaveBeenCalledWith(0, 0);
   });
 
   it("chases when player is beyond attack range", () => {
