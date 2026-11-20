@@ -32,7 +32,10 @@ export function mockEnemyInstance(
       x: 0,
       y: 0,
       setVelocity: vi.fn(),
-      scene: { add: { graphics: vi.fn() } },
+      scene: {
+        add: { graphics: vi.fn() },
+        registry: { get: () => undefined },
+      },
     } as unknown as EnemyInstance["sprite"],
     damageable: {
       id: "e",

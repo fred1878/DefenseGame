@@ -5,8 +5,10 @@ import {
   spawnArrowRainTelegraph,
   updateArrowRainTelegraph,
 } from "../../combat/ArrowRainTelegraph";
+import { worldUnit } from "../../core/worldPixelScale";
 import type { EnemyInstance } from "../Enemy";
-import type { EnemyAttackTarget } from "../EnemyCombat";
+import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
+import { commitEnemyAttack } from "./attackCommit";
 import { advanceCombatPhase, freezeWindupRecovery } from "./combatPhase";
 import type { LobberCombatState, LobSpawnRequest } from "./types";
 
@@ -24,7 +26,9 @@ export function updateLobberCombat(
   const dx = target.x - enemy.sprite.x;
   const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
-  c.facing = Math.atan2(dy, dx);
+  if (c.phase === "idle") {
+    c.facing = Math.atan2(dy, dx);
+  }
 
   const minVolley = tune.preferredRange - 22;
   const inRange = dist <= tune.attackTriggerRange && dist >= minVolley;
@@ -37,13 +41,22 @@ export function updateLobberCombat(
     const jittered = jitterTelegraphCenter(target.x, target.y);
     extra.aimX = jittered.x;
     extra.aimY = jittered.y;
+    commitEnemyAttack(
+      c,
+      enemy.sprite.x,
+      enemy.sprite.y,
+      target,
+      extra.aimX,
+      extra.aimY,
+    );
     destroyArrowRainTelegraph(extra.telegraph);
+    const zonePx = worldUnit(tune.blastRadius, enemy.sprite.scene.registry);
     extra.telegraph = spawnArrowRainTelegraph(
       enemy.sprite.scene,
       extra.aimX,
       extra.aimY,
       tune.windupMs,
-      tune.blastRadius,
+      zonePx,
       LOBBER_TELEGRAPH_PALETTE,
     );
   }
@@ -53,7 +66,7 @@ export function updateLobberCombat(
       extra.telegraph,
       deltaMs,
       false,
-      tune.blastRadius,
+      worldUnit(tune.blastRadius, enemy.sprite.scene.registry),
     );
   }
 
@@ -74,37 +87,25 @@ export function updateLobberCombat(
         extra.telegraph,
         deltaMs,
         true,
-        tune.blastRadius,
+        worldUnit(tune.blastRadius, enemy.sprite.scene.registry),
       );
     }
   }
 
-  if (c.phase === "active" && !extra.lobThrown) {
+  if (c.phase === "active" && !extra.lobThrown && c.attackTargetKind != null) {
     extra.lobThrown = true;
-    if (target.kind === "player" && inRange) {
-      spawnLob = {
-        fromX: enemy.sprite.x,
-        fromY: enemy.sprite.y,
-        toX: extra.aimX,
-        toY: extra.aimY,
-        damage: enemy.damage,
-        blastRadius: tune.blastRadius,
-        blastDamageScale: tune.blastDamageScale,
-      };
-    } else if (target.kind === "wall" && inRange) {
-      spawnLob = {
-        fromX: enemy.sprite.x,
-        fromY: enemy.sprite.y,
-        toX: extra.aimX,
-        toY: extra.aimY,
-        damage: enemy.damage,
-        blastRadius: tune.blastRadius,
-        blastDamageScale: tune.blastDamageScale,
-      };
-      if (!c.hitThisSwing) {
-        c.hitThisSwing = true;
-        onWallHit?.();
-      }
+    spawnLob = {
+      fromX: enemy.sprite.x,
+      fromY: enemy.sprite.y,
+      toX: extra.aimX,
+      toY: extra.aimY,
+      damage: enemy.damage,
+      blastRadius: tune.blastRadius,
+      blastDamageScale: tune.blastDamageScale,
+    };
+    if (c.attackTargetKind === "wall" && !c.hitThisSwing) {
+      c.hitThisSwing = true;
+      onWallHit?.();
     }
   }
 
@@ -113,6 +114,9 @@ export function updateLobberCombat(
     extra.telegraph = undefined;
   }
 
+  if (enemyIsAttacking(c)) {
+    enemy.sprite.setVelocity(0, 0);
+  }
   freezeWindupRecovery(enemy, c.phase, target.kind);
   return { spawnLob };
 }
