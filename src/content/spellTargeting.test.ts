@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   spellAutoCastNeedsEnemyTarget,
   spellAutoCastRequiresCombatTarget,
+  spellAutoCastUsesRangedEnemyPick,
+  spellCastUsesEnemyAim,
   spellRequiresManualTarget,
   spellTargetMode,
 } from "./spellTargeting";
@@ -50,6 +52,19 @@ describe("spellTargeting", () => {
         def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
       ),
     ).toBe(false);
+  });
+
+  it("uses ranged enemy pick for bolt projectiles", () => {
+    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "water_bolt" }))).toBe(true);
+    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "arc_bomb", mechanicType: "projectile_aoe" }))).toBe(
+      true,
+    );
+    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "cone_of_cold", mechanicType: "cone" }))).toBe(false);
+  });
+
+  it("flags directed spells that need enemy aim on cast", () => {
+    expect(spellCastUsesEnemyAim(def({ id: "water_bolt" }))).toBe(true);
+    expect(spellCastUsesEnemyAim(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
   });
 
   it("requires a combat target for auto-cast ground, enemy, and directional spells", () => {
