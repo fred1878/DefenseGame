@@ -176,7 +176,7 @@
         "projectileMaxTravel": 350
       }
     },
-    "weight": 100
+    "weight": 80
   },
   "slow_siege": {
     "hp": 92,
@@ -204,11 +204,11 @@
         "playerAggroRadius": 90
       }
     },
-    "weight": 100
+    "weight": 300
   },
   "fast_sapper": {
-    "hp": 50,
-    "speed": 104,
+    "hp": 39,
+    "speed": 164,
     "damage": 6,
     "behavior": "wallSiege",
     "textureKey": "enemy_fast_sapper",
@@ -232,7 +232,7 @@
         "playerAggroRadius": 90
       }
     },
-    "weight": 100
+    "weight": 60
   },
   "charger": {
     "hp": 85,
@@ -248,8 +248,8 @@
         "hitRange": 38
       },
       "melee": {
-        "triggerRange": 63,
-        "range": 46,
+        "triggerRange": 73,
+        "range": 65,
         "arcDeg": 72,
         "windupMs": 360,
         "activeMs": 110,
@@ -257,19 +257,19 @@
         "cooldownMs": 380
       },
       "charger": {
-        "dashTriggerRange": 228,
+        "dashTriggerRange": 240,
         "dashWindupMs": 300,
-        "dashDurationMs": 520,
+        "dashDurationMs": 800,
         "dashSpeedMul": 2.15,
         "dashCooldownMs": 2600,
-        "dashOvershootRange": 104
+        "dashOvershootRange": 200
       }
     },
-    "weight": 100
+    "weight": 125
   },
   "lobber": {
     "hp": 32,
-    "speed": 46,
+    "speed": 66,
     "damage": 13,
     "behavior": "lobber",
     "textureKey": "enemy_lobber",
@@ -301,10 +301,10 @@
         "blastDamageScale": 0.92
       }
     },
-    "weight": 100
+    "weight": 110
   },
   "reaver": {
-    "hp": 110,
+    "hp": 70,
     "speed": 102,
     "damage": 14,
     "behavior": "rangedHybrid",
@@ -322,32 +322,32 @@
         "arcDeg": 72,
         "windupMs": 100,
         "activeMs": 100,
-        "recoveryMs": 420,
-        "cooldownMs": 130
+        "recoveryMs": 50,
+        "cooldownMs": 200
       },
       "stationaryRanged": {
-        "preferredRange": 160,
-        "attackTriggerRange": 200,
-        "windupMs": 500,
+        "preferredRange": 170,
+        "attackTriggerRange": 220,
+        "windupMs": 200,
         "activeMs": 70,
-        "recoveryMs": 480,
+        "recoveryMs": 300,
         "cooldownMs": 600,
         "projectileSpeed": 360,
-        "projectileMaxTravel": 210
+        "projectileMaxTravel": 250
       },
       "hybrid": {
         "closeMeleeRadius": 84,
-        "preferredRange": 160,
+        "preferredRange": 170,
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18
       }
     },
-    "weight": 100
+    "weight": 80
   },
   "ward": {
-    "hp": 44,
-    "speed": 35,
-    "damage": 9,
+    "hp": 94,
+    "speed": 80,
+    "damage": 12,
     "behavior": "ward",
     "textureKey": "enemy_ward",
     "displayName": "Ward",
@@ -358,8 +358,8 @@
         "hitRange": 34
       },
       "melee": {
-        "triggerRange": 57,
-        "range": 43,
+        "triggerRange": 65,
+        "range": 60,
         "arcDeg": 68,
         "windupMs": 400,
         "activeMs": 110,
@@ -372,6 +372,6 @@
         "playerAggroRadius": 110
       }
     },
-    "weight": 100
+    "weight": 300
   }
 }
