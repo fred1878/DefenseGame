@@ -152,10 +152,13 @@ function tryApplyBuildingUpgrade(
     buildings: { ...save.buildings, [id]: level + 1 },
   };
   if (def.effect === "wallHpMax") {
+    const prevMax = save.townWallHpMax;
     const bonus = wallHpBonusFromBuildings(next.buildings);
     const max = 100 + bonus;
+    const maxDelta = max - prevMax;
     next.townWallHpMax = max;
-    next.townWallHp = Math.min(next.townWallHp, max);
+    // Same HP bonus applied to current wall HP (not just the cap).
+    next.townWallHp = Math.min(max, save.townWallHp + maxDelta);
   }
 
   const smith = next.buildings.blacksmith ?? 0;
