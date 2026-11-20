@@ -189,7 +189,6 @@ test.describe("endless mode panel layout", () => {
     );
     expect(plus).toBeTruthy();
     await tapCanvas(page, plus!.x, plus!.y);
-    await tapCanvas(page, plus!.x, plus!.y);
 
     const capAfter = await page.evaluate(
       (id) =>

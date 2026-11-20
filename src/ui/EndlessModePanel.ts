@@ -68,8 +68,6 @@ export class EndlessModePanel {
   private readonly nameColW: number;
   private readonly capColW: number;
   private readonly listLeft: number;
-  /** Screen x where the concurrent-cap column begins (taps right of this do not toggle selection). */
-  private readonly capColLeft: number;
   private scrollY = 0;
   private readonly maxScroll: number;
   private dragPointerId: number | null = null;
@@ -137,7 +135,6 @@ export class EndlessModePanel {
     this.capColW = scaleUiX(96);
     this.nameColW = this.rowW - this.capColW - scaleUiX(4);
     this.listLeft = (GAME.width - this.rowW) / 2;
-    this.capColLeft = this.listLeft + this.nameColW + scaleUiX(4);
     this.rowH = scaleUiY(44);
     const gap = scaleUiY(8);
     this.rowStride = this.rowH + gap;
@@ -276,6 +273,7 @@ export class EndlessModePanel {
         capValue,
         capPlus,
       ]);
+      this.wireRowSelection(row);
       localY += this.rowStride;
     }
 
@@ -439,15 +437,22 @@ export class EndlessModePanel {
     });
     this.listViewport.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (this.dragPointerId !== pointer.id) return;
-      const tapped = this.endDrag();
-      if (tapped) {
-        const enemyId = this.pickVisibleRowAtScreen(
-          pointer.x,
-          pointer.y,
-        );
-        if (enemyId) this.toggleSelect(enemyId);
-      }
+      this.endDrag();
     });
+  }
+
+  /** Enemy toggle only on the name column — cap column uses the list viewport for scroll/drag. */
+  private wireRowSelection(row: EnemyRow): void {
+    const onToggle = (pointer: Phaser.Input.Pointer) => {
+      pointer.event.stopPropagation();
+      this.toggleSelect(row.enemyId);
+    };
+    row.bg.setInteractive({ useHandCursor: true });
+    row.bg.on("pointerup", onToggle);
+    row.check.setInteractive({ useHandCursor: true });
+    row.check.on("pointerup", onToggle);
+    row.text.setInteractive({ useHandCursor: true });
+    row.text.on("pointerup", onToggle);
   }
 
   private beginDrag(pointer: Phaser.Input.Pointer): void {
@@ -468,37 +473,6 @@ export class EndlessModePanel {
     this.dragPointerId = null;
     this.dragAccum = 0;
     return tapped;
-  }
-
-  private pickVisibleRowAtScreen(
-    screenX: number,
-    screenY: number,
-  ): string | null {
-    if (screenX >= this.capColLeft) {
-      return null;
-    }
-    if (
-      screenY < this.listTop ||
-      screenY > this.listTop + this.listViewportH
-    ) {
-      return null;
-    }
-    const contentY = screenY - this.listContent.y;
-    if (contentY < 0) return null;
-    const index = Math.floor(contentY / this.rowStride);
-    if (index < 0 || index >= this.rows.length) return null;
-    const bandTop = index * this.rowStride;
-    const bandBottom = bandTop + this.rowH;
-    if (contentY < bandTop || contentY > bandBottom) return null;
-    const rowCenterScreen = this.listContent.y + bandTop + this.rowH / 2;
-    const half = this.rowH / 2;
-    if (
-      rowCenterScreen - half < this.listTop - 0.5 ||
-      rowCenterScreen + half > this.listTop + this.listViewportH + 0.5
-    ) {
-      return null;
-    }
-    return this.rows[index]!.enemyId;
   }
 
   private rowScreenCenter(
