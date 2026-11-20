@@ -33,7 +33,7 @@ export function advanceCombatPhase(
 
 export function freezeWindupRecovery(
   enemy: EnemyInstance,
-  phase: EnemyAttackPhase,
+  _phase: EnemyAttackPhase,
   _targetKind: EnemyAttackTarget["kind"],
 ): void {
   const hold = enemyIsAttacking(enemy.combat);

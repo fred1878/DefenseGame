@@ -108,7 +108,11 @@ export function updateEnemyCombat(
 
   if (c.phase === "active" && !c.hitThisSwing) {
     const strikeKind = c.attackTargetKind ?? target.kind;
-    if (strikeKind === "player" && target.damageable.alive) {
+    if (
+      strikeKind === "player" &&
+      target.kind === "player" &&
+      target.damageable.alive
+    ) {
       const arcHalf = Phaser.Math.DegToRad(melee.arcDeg / 2);
       const px = enemyAttackCommitted(c) ? c.commitAimX : target.x;
       const py = enemyAttackCommitted(c) ? c.commitAimY : target.y;

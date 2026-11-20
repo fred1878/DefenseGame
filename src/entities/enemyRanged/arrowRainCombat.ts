@@ -128,3 +128,16 @@ export function updateArrowRainCombat(
   freezeWindupRecovery(enemy, c.phase, target.kind);
   return { hitPlayer, damage };
 }
+
+export function playerInsideArrowRain(
+  px: number,
+  py: number,
+  radius: number,
+  zoneRadius: number,
+  extra: ArrowRainCombatState,
+): boolean {
+  return (
+    Phaser.Math.Distance.Between(px, py, extra.zoneX, extra.zoneY) <=
+    zoneRadius + radius
+  );
+}
