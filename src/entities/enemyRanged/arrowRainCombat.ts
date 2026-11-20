@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { jitterTelegraphCenter } from "../../combat/aoeTelegraphJitter";
 import {
   destroyArrowRainTelegraph,
   spawnArrowRainTelegraph,
@@ -37,8 +38,9 @@ export function updateArrowRainCombat(
     extra.tickAccumulatorMs = 0;
     extra.ticksDealt = 0;
     if (target.kind === "player" || target.kind === "wall") {
-      extra.zoneX = target.x;
-      extra.zoneY = target.y;
+      const jittered = jitterTelegraphCenter(target.x, target.y);
+      extra.zoneX = jittered.x;
+      extra.zoneY = jittered.y;
       destroyArrowRainTelegraph(extra.telegraph);
       extra.telegraph = spawnArrowRainTelegraph(
         enemy.sprite.scene,
