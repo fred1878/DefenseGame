@@ -9,7 +9,7 @@ import {
 
 describe("entityPhysics", () => {
   it("uses tuned collision diameters", () => {
-    expect(ENTITY_BODY_RADIUS.player).toBe(17);
+    expect(ENTITY_BODY_RADIUS.player).toBe(21);
     expect(ENTITY_BODY_RADIUS.enemy).toBe(14);
     expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(21);
     expect(ENTITY_BODY_RADIUS.grunt).toBe(28);
