@@ -33,6 +33,7 @@ import {
   enemyCollisionBodyRadius,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
+import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
 import {
   createEnemyNameplate,
   hideEnemyNameplateOnDeath,
@@ -197,4 +198,5 @@ export function updateEnemySpriteFacing(enemy: EnemyInstance): void {
   const reg = enemy.sprite.scene.registry;
   const side = worldDisplayPx(SPRITE_DISPLAY.enemy, reg);
   enemy.sprite.setDisplaySize(side, side);
+  reapplySpriteHitFlashIfActive(enemy.sprite);
 }

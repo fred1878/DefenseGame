@@ -95,10 +95,10 @@
         "triggerRange": 48,
         "range": 34,
         "arcDeg": 62,
-        "windupMs": 280,
-        "activeMs": 90,
-        "recoveryMs": 380,
-        "cooldownMs": 280
+        "windupMs": 150,
+        "activeMs": 80,
+        "recoveryMs": 160,
+        "cooldownMs": 120
       }
     }
   },
