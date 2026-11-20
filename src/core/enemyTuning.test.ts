@@ -53,7 +53,7 @@ describe("resolveEnemyCombat", () => {
 });
 
 describe("normalizeEnemyRow", () => {
-  it("requires hp, speed, and damage", () => {
+  it("requires hp, speed, damage, and weight", () => {
     expect(() =>
       normalizeEnemyRow("grunt", {
         behavior: "meleeChaser",
@@ -61,6 +61,7 @@ describe("normalizeEnemyRow", () => {
         hp: 10,
         speed: 50,
         damage: 5,
+        weight: 100,
       }),
     ).not.toThrow();
     expect(() =>
@@ -76,6 +77,7 @@ describe("normalizeEnemyRow", () => {
       hp: 1,
       speed: 1,
       damage: 1,
+      weight: 100,
       behavior: "arrowRainArcher",
       textureKey: "enemy_arrow_rain_archer",
     });

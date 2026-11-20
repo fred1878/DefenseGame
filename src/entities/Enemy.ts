@@ -70,6 +70,7 @@ export type EnemyInstance = {
   behavior: string;
   speed: number;
   damage: number;
+  weight: number;
   textureKey: string;
   cardinalFacing: PlayerCardinal;
   combatTuning: ResolvedEnemyCombat;
@@ -160,6 +161,7 @@ export function spawnEnemy(
     behavior: def.behavior,
     speed: def.speed,
     damage: def.damage,
+    weight: def.weight,
     textureKey: def.textureKey,
     cardinalFacing: "s",
     displayName: def.displayName,

@@ -32,6 +32,8 @@ export type EnemyDef = {
   hp: number;
   speed: number;
   damage: number;
+  /** Knockback resistance baseline: 100 = full authored knockback strength. */
+  weight: number;
   behavior: string;
   textureKey: string;
   /** HUD / nameplate label (Title Case); not the content id. */

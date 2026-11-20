@@ -1,10 +1,33 @@
 import { describe, expect, it, vi } from "vitest";
 import { mockEnemyInstance } from "../entities/testEnemyInstance";
 import {
+  ENEMY_KNOCKBACK_WEIGHT_BASELINE,
   applyEnemyKnockbackFrom,
   decayEnemyKnockback,
+  knockbackStrengthForEnemyWeight,
   setEnemyChaseVelocity,
 } from "./enemyKnockback";
+
+describe("knockbackStrengthForEnemyWeight", () => {
+  it("leaves strength unchanged at baseline weight", () => {
+    expect(
+      knockbackStrengthForEnemyWeight(120, ENEMY_KNOCKBACK_WEIGHT_BASELINE),
+    ).toBe(120);
+  });
+
+  it("reduces knockback as weight increases", () => {
+    expect(knockbackStrengthForEnemyWeight(100, 200)).toBe(50);
+  });
+
+  it("increases knockback as weight decreases", () => {
+    expect(knockbackStrengthForEnemyWeight(100, 50)).toBe(200);
+  });
+
+  it("returns zero for invalid weight", () => {
+    expect(knockbackStrengthForEnemyWeight(100, 0)).toBe(0);
+    expect(knockbackStrengthForEnemyWeight(100, -10)).toBe(0);
+  });
+});
 
 describe("enemyKnockback", () => {
   it("adds knockback on top of chase velocity", () => {
@@ -34,10 +57,28 @@ describe("enemyKnockback", () => {
   it("pushes away from the hit source", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
+      weight: 100,
       sprite: { x: 50, y: 0 } as never,
     });
     applyEnemyKnockbackFrom(enemy, 0, 0, 120);
     expect(enemy.knockbackVx).toBeGreaterThan(0);
     expect(Math.abs(enemy.knockbackVy)).toBeLessThan(0.01);
+  });
+
+  it("scales impulse down for heavier enemies", () => {
+    const light = mockEnemyInstance({
+      behavior: "meleeChaser",
+      weight: 50,
+      sprite: { x: 50, y: 0 } as never,
+    });
+    const heavy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      weight: 200,
+      sprite: { x: 50, y: 0 } as never,
+    });
+    applyEnemyKnockbackFrom(light, 0, 0, 100);
+    applyEnemyKnockbackFrom(heavy, 0, 0, 100);
+    expect(light.knockbackVx).toBeGreaterThan(heavy.knockbackVx);
+    expect(light.knockbackVx / heavy.knockbackVx).toBeCloseTo(4, 5);
   });
 });

@@ -15,6 +15,7 @@ export function mockEnemyInstance(
     defId: "test",
     speed: 60,
     damage: 8,
+    weight: 100,
     textureKey: "enemy_grunt",
     cardinalFacing: "s",
     displayName: "Grunt",
