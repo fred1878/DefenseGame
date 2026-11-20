@@ -1,4 +1,3 @@
-import type Phaser from "phaser";
 import type { EnemyInstance } from "../entities/Enemy";
 
 /** Exponential decay time constant for residual knockback slide. */

@@ -9,6 +9,7 @@ import {
 describe("enemyKnockback", () => {
   it("adds knockback on top of chase velocity", () => {
     const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
       knockbackVx: 80,
       knockbackVy: 0,
       sprite: {
@@ -20,7 +21,11 @@ describe("enemyKnockback", () => {
   });
 
   it("decays impulse over time", () => {
-    const enemy = mockEnemyInstance({ knockbackVx: 100, knockbackVy: 0 });
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      knockbackVx: 100,
+      knockbackVy: 0,
+    });
     decayEnemyKnockback(enemy, 260);
     expect(enemy.knockbackVx).toBeLessThan(40);
     expect(enemy.knockbackVx).toBeGreaterThan(30);
@@ -28,6 +33,7 @@ describe("enemyKnockback", () => {
 
   it("pushes away from the hit source", () => {
     const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
       sprite: { x: 50, y: 0 } as never,
     });
     applyEnemyKnockbackFrom(enemy, 0, 0, 120);
