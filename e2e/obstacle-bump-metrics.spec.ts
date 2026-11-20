@@ -20,7 +20,7 @@ const STICKS: Record<Cardinal, { dx: number; dy: number }> = {
   west: { dx: -1, dy: 0 },
 };
 
-test.describe("obstacle bump metrics capture", () => {
+test.describe("@manual obstacle bump metrics capture", () => {
   test("write obstacle-bump-metrics-2026-11-18-v2.json", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);

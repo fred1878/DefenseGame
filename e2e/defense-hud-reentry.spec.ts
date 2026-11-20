@@ -26,7 +26,7 @@ async function waitForHudBands(page: import("@playwright/test").Page): Promise<v
     .toBe(true);
 }
 
-test.describe("defense HUD re-entry", () => {
+test.describe("@manual defense HUD re-entry", () => {
   test("top HUD band stays visible after town round-trip", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);

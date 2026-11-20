@@ -132,7 +132,7 @@ test("Haunted Well opens endless panel without leaving Town", async ({
     .toBe(true);
 });
 
-test("touch debug overlays eight town building hit rects", async ({ page }) => {
+test("@manual touch debug overlays eight town building hit rects", async ({ page }) => {
   await gotoE2E(page);
   await page.evaluate(() => {
     window.__DEFENSEGAME_E2E__?.api?.setShowTouchInput(true);

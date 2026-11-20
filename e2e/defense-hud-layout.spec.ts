@@ -1,6 +1,6 @@
 /**
  * Defense HUD geometry + asset checks (layout probes, not pixel regression).
- * CI: `npm run test:e2e -- --project=chromium` (see `.github/workflows/ci.yml`).
+ * CI: `npm run test:e2e:ci` (see `docs/TESTING.md`; some probes are `@manual`).
  * Human UI proof: `docs/MANUAL_UI_CAPTURE.md`.
  */
 import { test, expect } from "@playwright/test";
@@ -183,7 +183,7 @@ test.describe("defense HUD layout", () => {
     );
   });
 
-  test("world sprites project inside play area band", async () => {
+  test("@manual world sprites project inside play area band", async () => {
     const page = boot.page;
     await page.evaluate(async () => {
       await window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(160, 0);
@@ -208,7 +208,7 @@ test.describe("defense HUD layout", () => {
     expect(bottom).toBeLessThan(clip.play!.bottomBandTop + 1);
   });
 
-  test("minimap frame is top-right below HUD", async () => {
+  test("@manual minimap frame is top-right below HUD", async () => {
     const page = boot.page;
     const minimap = await page.evaluate(() => {
       const hud = window.__HUD_DEBUG__ as
