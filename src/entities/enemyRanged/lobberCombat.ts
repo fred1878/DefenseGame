@@ -1,3 +1,4 @@
+import { jitterTelegraphCenter } from "../../combat/aoeTelegraphJitter";
 import {
   destroyArrowRainTelegraph,
   LOBBER_TELEGRAPH_PALETTE,
@@ -33,8 +34,9 @@ export function updateLobberCombat(
     c.phaseMs = 0;
     extra.lobThrown = false;
     c.hitThisSwing = false;
-    extra.aimX = target.x;
-    extra.aimY = target.y;
+    const jittered = jitterTelegraphCenter(target.x, target.y);
+    extra.aimX = jittered.x;
+    extra.aimY = jittered.y;
     destroyArrowRainTelegraph(extra.telegraph);
     extra.telegraph = spawnArrowRainTelegraph(
       enemy.sprite.scene,
@@ -93,8 +95,8 @@ export function updateLobberCombat(
       spawnLob = {
         fromX: enemy.sprite.x,
         fromY: enemy.sprite.y,
-        toX: target.x,
-        toY: target.y,
+        toX: extra.aimX,
+        toY: extra.aimY,
         damage: enemy.damage,
         blastRadius: tune.blastRadius,
         blastDamageScale: tune.blastDamageScale,
