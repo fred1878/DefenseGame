@@ -16,9 +16,11 @@ describe("normalizeEntityPhysics", () => {
         grunt: 28,
       },
       enemyPathClearanceMarginPx: 7,
+      staticObstacleNavClearancePx: 24,
     });
     expect(out.entityBodyRadius.player).toBe(17);
     expect(out.entityBodyRadius.grunt).toBe(28);
     expect(out.enemyPathClearanceMarginPx).toBe(7);
+    expect(out.staticObstacleNavClearancePx).toBe(24);
   });
 });

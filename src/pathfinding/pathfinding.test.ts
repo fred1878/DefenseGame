@@ -1,23 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES, defenseHalfHeight } from "../config";
-import {
-  ENTITY_BODY_RADIUS,
-  enemyPathClearancePx,
-  maxNavObstacleClearancePx,
-} from "../entities/entityPhysics";
-import { buildNavGrid, cellBlocked, cellToWorldCenter } from "./grid";
+import { enemyPathClearancePx, maxNavObstacleClearancePx } from "../entities/entityPhysics";
+import { buildNavGrid, cellBlocked, cellSolidBlocked, cellToWorldCenter } from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
-  it("clears widest rush body radius plus nav cell margin", () => {
-    expect(DEFENSE_MAP.pathClearancePx).toBeGreaterThanOrEqual(
-      ENTITY_BODY_RADIUS.grunt,
-    );
+  it("uses static obstacle nav clearance from data", () => {
+    expect(DEFENSE_MAP.pathClearancePx).toBe(24);
     expect(DEFENSE_MAP.pathClearancePx).toBe(maxNavObstacleClearancePx());
-    expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(
-      DEFENSE_MAP.pathClearancePx,
-    );
+    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(28);
+    expect(enemyPathClearancePx("sentry_archer", "stationaryRanged")).toBe(21);
   });
 
   it("marks obstacle cells blocked", () => {
@@ -52,6 +45,11 @@ describe("nav grid", () => {
 
 describe("A*", () => {
   it("does not cut corners on diagonal steps", () => {
+    const blocked = new Uint8Array([
+      0, 1, 0,
+      1, 0, 0,
+      0, 0, 0,
+    ]);
     const grid = {
       cellSize: 10,
       cols: 3,
@@ -59,11 +57,8 @@ describe("A*", () => {
       minX: 0,
       minY: 0,
       clearancePx: 0,
-      blocked: new Uint8Array([
-        0, 1, 0,
-        1, 0, 0,
-        0, 0, 0,
-      ]),
+      blocked,
+      solidBlocked: blocked,
     };
     const path = findPath(grid, 5, 5, 25, 25);
     const cutsCorner = path.some(
@@ -134,5 +129,32 @@ describe("line of sight", () => {
     );
     const halfH = defenseHalfHeight();
     expect(hasLineOfSight(grid, 0, halfH - 120, 0, halfH - 40)).toBe(true);
+  });
+
+  it("is clear when the ray crosses only the nav clearance band", () => {
+    const grid = buildNavGrid(
+      DEFENSE_OBSTACLES,
+      DEFENSE_MAP.cellSize,
+      DEFENSE_MAP.pathClearancePx,
+    );
+    let clearanceCell: { col: number; row: number } | null = null;
+    for (let r = 0; r < grid.rows; r++) {
+      for (let c = 0; c < grid.cols; c++) {
+        if (
+          cellBlocked(grid, c, r) &&
+          !cellSolidBlocked(grid, c, r)
+        ) {
+          clearanceCell = { col: c, row: r };
+          break;
+        }
+      }
+      if (clearanceCell) break;
+    }
+    expect(clearanceCell).not.toBeNull();
+    const player = cellToWorldCenter(grid, clearanceCell!.col, clearanceCell!.row);
+    const enemy = { x: player.x + 80, y: player.y };
+    expect(hasLineOfSight(grid, enemy.x, enemy.y, player.x, player.y)).toBe(
+      true,
+    );
   });
 });

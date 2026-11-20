@@ -10,11 +10,17 @@ import {
   northWallApproachY,
   northWallAttackY,
 } from "../config/defense";
-import { buildNavGrid } from "../pathfinding/grid";
+import {
+  buildNavGrid,
+  cellBlocked,
+  cellSolidBlocked,
+  cellToWorldCenter,
+} from "../pathfinding/grid";
 import {
   createEnemyNav,
   noteEnemyPathProgress,
   pathingPeerAgents,
+  pickEnemyCombatTarget,
   pickEnemyTarget,
   replanEnemyPath,
   resolveEnemyTarget,
@@ -47,6 +53,27 @@ describe("pickEnemyTarget", () => {
     const px = rock.x + 30;
     const py = rock.y;
     expect(pickEnemyTarget(grid, ex, ey, px, py)).toBe("wall");
+  });
+
+  it("aggros when the player stands in the obstacle clearance band", () => {
+    let clearanceCell: { col: number; row: number } | null = null;
+    for (let r = 0; r < grid.rows; r++) {
+      for (let c = 0; c < grid.cols; c++) {
+        if (cellBlocked(grid, c, r) && !cellSolidBlocked(grid, c, r)) {
+          clearanceCell = { col: c, row: r };
+          break;
+        }
+      }
+      if (clearanceCell) break;
+    }
+    expect(clearanceCell).not.toBeNull();
+    const player = cellToWorldCenter(grid, clearanceCell!.col, clearanceCell!.row);
+    const ex = player.x + 60;
+    const ey = player.y;
+    expect(pickEnemyTarget(grid, ex, ey, player.x, player.y)).toBe("player");
+    expect(pickEnemyTarget(grid, ex, ey, player.x, player.y)).toBe(
+      pickEnemyCombatTarget(grid, ex, ey, player.x, player.y),
+    );
   });
 });
 

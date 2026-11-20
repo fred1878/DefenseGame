@@ -7,11 +7,13 @@ import {
 export type EntityPhysicsInput = {
   entityBodyRadius?: Partial<EntityBodyRadius>;
   enemyPathClearanceMarginPx?: number;
+  staticObstacleNavClearancePx?: number;
 };
 
 export type EntityPhysicsTuning = {
   entityBodyRadius: EntityBodyRadius;
   enemyPathClearanceMarginPx: number;
+  staticObstacleNavClearancePx: number;
 };
 
 const RADIUS_KEYS = ["player", "enemy", "enemyMelee", "grunt"] as const satisfies readonly (keyof EntityBodyRadius)[];
@@ -36,6 +38,10 @@ export function normalizeEntityPhysics(
     enemyPathClearanceMarginPx: requireFiniteNumber(
       root.enemyPathClearanceMarginPx,
       "entity-physics.enemyPathClearanceMarginPx",
+    ),
+    staticObstacleNavClearancePx: requireFiniteNumber(
+      root.staticObstacleNavClearancePx,
+      "entity-physics.staticObstacleNavClearancePx",
     ),
   };
 }

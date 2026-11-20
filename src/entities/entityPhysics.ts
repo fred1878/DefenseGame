@@ -15,6 +15,9 @@ export let ENTITY_BODY_RADIUS: EntityBodyRadius = unsetEntityBodyRadius();
 /** Matches {@link DEFENSE_MAP.cellSize} / 2 − 1 px nav margin on obstacle inflation. */
 export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
 
+/** Nav-grid inflation around static obstacle colliders (independent of agent body size). */
+export let STATIC_OBSTACLE_NAV_CLEARANCE_PX = unsetMargin();
+
 function unsetEntityBodyRadius(): EntityBodyRadius {
   return new Proxy({} as EntityBodyRadius, {
     get() {
@@ -38,9 +41,11 @@ function unsetMargin(): number {
 export function applyEntityPhysics(tuning: {
   entityBodyRadius: EntityBodyRadius;
   enemyPathClearanceMarginPx: number;
+  staticObstacleNavClearancePx: number;
 }): void {
   ENTITY_BODY_RADIUS = { ...tuning.entityBodyRadius };
   ENEMY_PATH_CLEARANCE_MARGIN_PX = tuning.enemyPathClearanceMarginPx;
+  STATIC_OBSTACLE_NAV_CLEARANCE_PX = tuning.staticObstacleNavClearancePx;
 }
 
 export function enemyPathClearancePx(defId: string, behavior: string): number {
@@ -49,12 +54,9 @@ export function enemyPathClearancePx(defId: string, behavior: string): number {
   );
 }
 
-/** Widest melee rush radius used to inflate static obstacles on the shared nav grid. */
+/** Static obstacle inflation on the shared defense nav grid. */
 export function maxNavObstacleClearancePx(): number {
-  return (
-    Math.max(ENTITY_BODY_RADIUS.enemyMelee, ENTITY_BODY_RADIUS.grunt) +
-    ENEMY_PATH_CLEARANCE_MARGIN_PX
-  );
+  return STATIC_OBSTACLE_NAV_CLEARANCE_PX;
 }
 
 const MELEE_COLLISION_BEHAVIORS = new Set([
