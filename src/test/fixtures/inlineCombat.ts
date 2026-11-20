@@ -20,6 +20,7 @@ export const testChargerCombat: EnemyChargerCombat = {
   dashDurationMs: 400,
   dashSpeedMul: 2,
   dashCooldownMs: 2000,
+  dashOvershootRange: 64,
 };
 
 export const testWallSiegeCombat: EnemyWallSiegeCombat = {

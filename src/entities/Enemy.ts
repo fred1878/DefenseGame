@@ -47,6 +47,12 @@ export type EnemyBehaviorExtra = {
   chargeWindupMs: number;
   chargeActiveMs: number;
   chargeCooldownMs: number;
+  /** Player position when charge windup began (world px). */
+  chargeAimX: number;
+  chargeAimY: number;
+  /** Normalized dash heading, locked when windup ends. */
+  chargeDashDirX: number;
+  chargeDashDirY: number;
 };
 
 export type EnemyInstance = {
@@ -158,6 +164,10 @@ export function spawnEnemy(
       chargeWindupMs: 0,
       chargeActiveMs: 0,
       chargeCooldownMs: 0,
+      chargeAimX: 0,
+      chargeAimY: 0,
+      chargeDashDirX: 0,
+      chargeDashDirY: 0,
     },
   };
   if (def.behavior === "arrowRainArcher") {

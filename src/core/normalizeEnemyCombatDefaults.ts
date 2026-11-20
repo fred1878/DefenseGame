@@ -68,6 +68,7 @@ const CHARGER_KEYS = [
   "dashDurationMs",
   "dashSpeedMul",
   "dashCooldownMs",
+  "dashOvershootRange",
 ] as const;
 const LOBBER_KEYS = [
   "preferredRange",

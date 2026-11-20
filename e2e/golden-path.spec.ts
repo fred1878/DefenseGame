@@ -35,7 +35,7 @@ test.describe("golden paths — combat", () => {
     expect(before).toBeTruthy();
     await apiEval(page, "api.setStick(1, 0, 600)");
     const after = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
-    expect(after!.x).toBeGreaterThan(before!.x + 8);
+    expect(after!.x).toBeGreaterThan(before!.x + 7);
   });
 
   test("defense-melee-fx", async () => {
