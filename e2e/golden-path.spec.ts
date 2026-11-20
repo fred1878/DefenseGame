@@ -1,7 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { type Page, test, expect } from "@playwright/test";
+import {
+  closeDefenseBootHandle,
+  newDefenseBootedPage,
+  waitCombatAttackIdle,
+  type DefenseBootHandle,
+} from "./helpers/hooks";
 import { gotoE2E, startDefense } from "./helpers/game";
 
-async function apiEval(page: import("@playwright/test").Page, body: string) {
+async function apiEval(page: Page, body: string) {
   return page.evaluate((code) => {
     const api = window.__DEFENSEGAME_E2E__?.api;
     if (!api) throw new Error("E2E api missing");
@@ -10,13 +16,21 @@ async function apiEval(page: import("@playwright/test").Page, body: string) {
   }, body);
 }
 
-test.describe("golden paths", () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoE2E(page);
-    await startDefense(page);
+test.describe("golden paths — combat", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let boot: DefenseBootHandle;
+
+  test.beforeAll(async ({ browser }) => {
+    boot = await newDefenseBootedPage(browser);
   });
 
-  test("defense-movement", async ({ page }) => {
+  test.afterAll(async () => {
+    await closeDefenseBootHandle(boot);
+  });
+
+  test("defense-movement", async () => {
+    const page = boot.page;
     const before = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
     expect(before).toBeTruthy();
     await apiEval(page, "api.setStick(1, 0, 600)");
@@ -24,7 +38,8 @@ test.describe("golden paths", () => {
     expect(after!.x).toBeGreaterThan(before!.x + 8);
   });
 
-  test("defense-melee-fx", async ({ page }) => {
+  test("defense-melee-fx", async () => {
+    const page = boot.page;
     await apiEval(page, "api.tapMelee()");
     await expect
       .poll(
@@ -35,7 +50,9 @@ test.describe("golden paths", () => {
       .toBe(1);
   });
 
-  test("defense-ranged-projectile", async ({ page }) => {
+  test("defense-ranged-projectile", async () => {
+    const page = boot.page;
+    await waitCombatAttackIdle(page);
     await apiEval(page, "api.tapRanged()");
     await expect
       .poll(async () => apiEval(page, "api.getProjectileCount()"), {
@@ -49,7 +66,9 @@ test.describe("golden paths", () => {
     expect(stoneOk).toBe(true);
   });
 
-  test("defense-fireball", async ({ page }) => {
+  test("defense-fireball", async () => {
+    const page = boot.page;
+    await waitCombatAttackIdle(page);
     await apiEval(page, "api.castSpell(1)");
     await expect
       .poll(async () => apiEval(page, "api.getProjectileCount()"), {
@@ -58,6 +77,13 @@ test.describe("golden paths", () => {
       .toBeGreaterThan(0);
     const fireOk = await apiEval(page, "api.textureLoaded('fx_fire_bolt')");
     expect(fireOk).toBe(true);
+  });
+});
+
+test.describe("golden paths — night result", () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoE2E(page);
+    await startDefense(page);
   });
 
   test("night-win", async ({ page }) => {

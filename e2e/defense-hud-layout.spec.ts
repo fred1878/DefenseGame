@@ -4,7 +4,11 @@
  * Human UI proof: `docs/MANUAL_UI_CAPTURE.md`.
  */
 import { test, expect } from "@playwright/test";
-import { gotoE2E, startDefense } from "./helpers/game";
+import {
+  closeDefenseBootHandle,
+  newDefenseBootedPage,
+  type DefenseBootHandle,
+} from "./helpers/hooks";
 
 const GAME_WIDTH = 540;
 const GAME_HEIGHT = 1200;
@@ -13,9 +17,20 @@ const VIEWPORT_MARGIN = 8;
 const TAP_HIT_BLEED = 6;
 
 test.describe("defense HUD layout", () => {
-  test("no bottom panel chrome, spell row left of MEL", async ({ page }) => {
-    await gotoE2E(page);
-    await startDefense(page);
+  test.describe.configure({ mode: "serial" });
+
+  let boot: DefenseBootHandle;
+
+  test.beforeAll(async ({ browser }) => {
+    boot = await newDefenseBootedPage(browser);
+  });
+
+  test.afterAll(async () => {
+    await closeDefenseBootHandle(boot);
+  });
+
+  test("no bottom panel chrome, spell row left of MEL", async () => {
+    const page = boot.page;
     await page.evaluate(async () => {
       await window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(120, 0);
     });
@@ -134,10 +149,8 @@ test.describe("defense HUD layout", () => {
   expect(combatOrder!.atkY).toBeGreaterThan(980);
   });
 
-  test("combat controls match combatChromeLayout anchors", async ({ page }) => {
-    await gotoE2E(page);
-    await startDefense(page);
-
+  test("combat controls match combatChromeLayout anchors", async () => {
+    const page = boot.page;
     const layout = await page.evaluate(() => {
       const api = window.__DEFENSEGAME_E2E__?.api;
       const probe = api?.getDefenseHudLayoutProbe();
@@ -170,9 +183,8 @@ test.describe("defense HUD layout", () => {
     );
   });
 
-  test("world sprites project inside play area band", async ({ page }) => {
-    await gotoE2E(page);
-    await startDefense(page);
+  test("world sprites project inside play area band", async () => {
+    const page = boot.page;
     await page.evaluate(async () => {
       await window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(160, 0);
     });
@@ -196,9 +208,8 @@ test.describe("defense HUD layout", () => {
     expect(bottom).toBeLessThan(clip.play!.bottomBandTop + 1);
   });
 
-  test("minimap frame is top-right below HUD", async ({ page }) => {
-    await gotoE2E(page);
-    await startDefense(page);
+  test("minimap frame is top-right below HUD", async () => {
+    const page = boot.page;
     const minimap = await page.evaluate(() => {
       const hud = window.__HUD_DEBUG__ as
         | { minimap?: { x: number; y: number; width: number; height: number } }

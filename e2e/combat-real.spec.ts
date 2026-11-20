@@ -1,14 +1,26 @@
 import { test, expect } from "@playwright/test";
-import { gotoE2E, startDefense } from "./helpers/game";
-import { getTapTarget, tapCanvas } from "./helpers/touch";
+import {
+  closeDefenseBootHandle,
+  newDefenseBootedPage,
+  waitCombatAttackIdle,
+  type DefenseBootHandle,
+} from "./helpers/hooks";
 
 test.describe("combat without cheats", () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoE2E(page);
-    await startDefense(page);
+  test.describe.configure({ mode: "serial" });
+
+  let boot: DefenseBootHandle;
+
+  test.beforeAll(async ({ browser }) => {
+    boot = await newDefenseBootedPage(browser);
   });
 
-  test("melee kills spawned enemy", async ({ page }) => {
+  test.afterAll(async () => {
+    await closeDefenseBootHandle(boot);
+  });
+
+  test("melee kills spawned enemy", async () => {
+    const page = boot.page;
     await page.evaluate(() => {
       const api = window.__DEFENSEGAME_E2E__?.api;
       api?.spawnTestEnemy(42, 0);
@@ -31,7 +43,9 @@ test.describe("combat without cheats", () => {
       .toBe(0);
   });
 
-  test("ranged projectile reduces enemy count", async ({ page }) => {
+  test("ranged projectile reduces enemy count", async () => {
+    const page = boot.page;
+    await waitCombatAttackIdle(page);
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(80, 0));
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.tapRanged());
     await expect
@@ -52,7 +66,8 @@ test.describe("combat without cheats", () => {
       .toBe(0);
   });
 
-  test("enemy at wall reduces defense wall hp", async ({ page }) => {
+  test("enemy at wall reduces defense wall hp", async () => {
+    const page = boot.page;
     await page.evaluate(() =>
       window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(0, -520),
     );
