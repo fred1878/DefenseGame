@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense, e2eApi } from "./helpers/game";
 
 /** Runtime proof spell hotbar textures match committed 64×64 PNGs (not 404 HTML garbage). */
-test.describe("spell bar textures", () => {
+test.describe("@manual spell bar textures", () => {
   test.beforeEach(async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);

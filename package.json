@@ -16,6 +16,7 @@
     "build:e2e": "VITE_E2E=true VITE_BUILD_ID=e2e-local VITE_BASE=/ npm run build",
     "e2e:manual": "npm run build:e2e && playwright test",
     "test:e2e": "playwright test",
+    "test:e2e:ci": "CI=1 playwright test --project=chromium",
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {

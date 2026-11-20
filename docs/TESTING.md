@@ -89,20 +89,41 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 
 ## Playwright suites
 
+### CI gate (`CI=1` / GitHub `e2e` job)
+
+`playwright.config.ts` sets `grepInvert: /@manual/` when `CI` is set, so suites and tests whose **describe or title** contains `@manual` are skipped in CI but still run locally via `npm run test:e2e` or `npm run e2e:manual`.
+
+Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions).
+
 | Spec | Covers |
 |------|--------|
 | `smoke.spec.ts` | Boot, assets, enter Defense |
 | `golden-path.spec.ts` | API cheats: movement, melee/ranged FX, spells, win/lose |
-| `touch-input.spec.ts` | Real `canvas.tap()` / `dragCanvas()` on ATK, mode, spells; drag-off press clear |
+| `touch-input.spec.ts` | Core canvas taps / drag-off on combat controls (DOM-mirror + press-visual variants are `@manual`) |
 | `combat-real.spec.ts` | Spawn + kill enemies, wall HP drop (no god mode) |
 | `night-end.spec.ts` | Return button + manual town transition |
-| `town-touch.spec.ts` | Start night tap; drag-off cancel on Start night |
-| `defense-hud-layout.spec.ts` | HUD geometry, spell row in viewport, no bottom chrome |
-| `spellbar-textures.spec.ts` | Spell icon textures loaded at 64×64 |
-| `town-spell-panel-*.spec.ts` | Town spell editor layout, tap, drag |
-| `fps.spec.ts` | FPS sampling hook |
+| `endless-mode.spec.ts`, `endless-mode-panel-layout.spec.ts`, `endless-respawn-targeting.spec.ts` | Endless training flow, panel behavior, respawn targeting |
+| `town-touch.spec.ts` | Start night, Haunted Well / endless, drag-off (building debug overlay is `@manual`) |
+| `town-spell-panel-tap-toggle.spec.ts` | Town spell pool tap add/remove |
+| `defense-hud-layout.spec.ts` | Core HUD chrome + combat anchor layout (minimap / play-band projection probes are `@manual`) |
+| `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
+| `obstacle-bump-capture.spec.ts` | Player–obstacle separation (stick push cardinals) |
 
-CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks.
+**Expected CI e2e wall-clock (Chromium, 4 workers, `timeScale` 2):** about **4–7 minutes** on `ubuntu-24.04` after the `@manual` trim (~40 gate tests). Full local suite (~60 tests) is typically **8–12 minutes**. Verify job still downloads `dist-e2e` from `verify` (no duplicate E2E build in the e2e job).
+
+### Local-only (`@manual` in title/describe)
+
+| Spec / test | Why local |
+|-------------|-----------|
+| `obstacle-bump-metrics.spec.ts` | Writes metrics JSON for human review |
+| `obstacle-*-capture.spec.ts`, `obstacle-v2-visual-proof.spec.ts` | Visual capture / proof overlays |
+| `defense-hud-band-pixels.spec.ts`, `defense-hud-reentry.spec.ts` | Fragile luminance sampling |
+| `defense-play-area-viewport.spec.ts` | Overlaps HUD layout probes |
+| `spellbar-textures.spec.ts` | Asset audit; boot already checks combat FX in smoke |
+| `town-spell-panel-layout.spec.ts`, `town-spell-panel-drag.spec.ts` | Redundant with tap-toggle behavior |
+| `fps.spec.ts` | Weak threshold (`> 5` fps); hook smoke only |
+
+CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=true` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
 
 ## Manual review captures vs e2e
 

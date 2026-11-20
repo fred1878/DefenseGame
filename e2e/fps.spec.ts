@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 
-test.describe("performance hook", () => {
+test.describe("@manual performance hook", () => {
   test("samples fps in defense", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);

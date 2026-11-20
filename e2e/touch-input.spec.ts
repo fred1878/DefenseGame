@@ -126,7 +126,7 @@ test.describe("real pointer / touch input", () => {
       .toBe(!before);
   });
 
-  test("pointer down shows pressed visual on combat-auto", async ({ page }) => {
+  test("@manual pointer down shows pressed visual on combat-auto", async ({ page }) => {
     await waitForTapTargets(page, ["combat-auto"]);
     const auto = await getTapTarget(page, "combat-auto");
     await holdCanvas(page, auto.x, auto.y);
@@ -153,7 +153,7 @@ test.describe("real pointer / touch input", () => {
       .toBe(false);
   });
 
-  test("DOM mirror ATK button", async ({ page }) => {
+  test("@manual DOM mirror ATK button", async ({ page }) => {
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors());
     await page.locator('[data-testid="combat-atk"]').click({ force: true });
     await expect

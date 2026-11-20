@@ -6,6 +6,8 @@ const baseURL = `http://${previewHost}:${previewPort}`;
 
 export default defineConfig({
   testDir: "e2e",
+  // CI skips suites/tests tagged @manual in describe/title (see docs/TESTING.md).
+  grepInvert: process.env.CI ? /@manual/ : undefined,
   // CI: parallel files (specs use serial + shared boot where state mutates).
   fullyParallel: !!process.env.CI,
   forbidOnly: !!process.env.CI,
@@ -15,7 +17,7 @@ export default defineConfig({
   timeout: 90_000,
   use: {
     baseURL,
-    trace: "retain-on-failure",
+    trace: process.env.CI ? "on-first-retry" : "retain-on-failure",
     screenshot: "only-on-failure",
     viewport: { width: 540, height: 1200 },
   },

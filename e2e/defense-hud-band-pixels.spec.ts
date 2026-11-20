@@ -22,7 +22,7 @@ function assertBandBrighterThanPlay(
   expect(band.r, `${label} red channel`).toBeGreaterThan(52);
 }
 
-test.describe("defense HUD band pixels", () => {
+test.describe("@manual defense HUD band pixels", () => {
   test("top and bottom bands are lighter than the play area", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);
