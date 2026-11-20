@@ -5,6 +5,7 @@ import {
   type EnemyAttackTarget,
   type EnemyCombatState,
 } from "../EnemyCombat";
+import { clearEnemyAttackCommit } from "./attackCommit";
 
 export function advanceCombatPhase(
   c: EnemyCombatState,
@@ -26,17 +27,16 @@ export function advanceCombatPhase(
     c.phase = "idle";
     c.phaseMs = 0;
     c.cooldownMs = cooldownMs;
+    clearEnemyAttackCommit(c);
   }
 }
 
 export function freezeWindupRecovery(
   enemy: EnemyInstance,
-  phase: EnemyAttackPhase,
-  targetKind: EnemyAttackTarget["kind"],
+  _phase: EnemyAttackPhase,
+  _targetKind: EnemyAttackTarget["kind"],
 ): void {
-  const hold =
-    enemyIsAttacking(enemy.combat) &&
-    (targetKind === "wall" || phase === "windup" || phase === "recovery");
+  const hold = enemyIsAttacking(enemy.combat);
   if (hold) {
     enemy.sprite.setVelocity(0, 0);
   }

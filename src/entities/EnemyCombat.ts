@@ -2,6 +2,11 @@ import Phaser from "phaser";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
+import {
+  clearEnemyAttackCommit,
+  commitEnemyAttack,
+  enemyAttackCommitted,
+} from "./enemyRanged/attackCommit";
 
 export type EnemyAttackPhase = "idle" | "windup" | "active" | "recovery";
 
@@ -13,6 +18,9 @@ export type EnemyCombatState = {
   /** Set when DefenseScene spawns melee swipe FX for this swing. */
   slashFxShown: boolean;
   facing: number;
+  attackTargetKind: EnemyAttackTarget["kind"] | null;
+  commitAimX: number;
+  commitAimY: number;
 };
 
 export function createEnemyCombat(): EnemyCombatState {
@@ -23,6 +31,9 @@ export function createEnemyCombat(): EnemyCombatState {
     hitThisSwing: false,
     slashFxShown: false,
     facing: 0,
+    attackTargetKind: null,
+    commitAimX: 0,
+    commitAimY: 0,
   };
 }
 
@@ -52,7 +63,9 @@ export function updateEnemyCombat(
   const dx = target.x - enemy.sprite.x;
   const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
-  c.facing = Math.atan2(dy, dx);
+  if (c.phase === "idle") {
+    c.facing = Math.atan2(dy, dx);
+  }
 
   const { wall, melee } = enemy.combatTuning;
   const triggerRange =
@@ -64,6 +77,16 @@ export function updateEnemyCombat(
     c.phaseMs = 0;
     c.hitThisSwing = false;
     c.slashFxShown = false;
+    const aimX = target.kind === "player" ? target.x : target.x;
+    const aimY = target.kind === "player" ? target.y : target.y;
+    commitEnemyAttack(
+      c,
+      enemy.sprite.x,
+      enemy.sprite.y,
+      target,
+      aimX,
+      aimY,
+    );
   }
 
   if (c.phase === "idle") return false;
@@ -80,19 +103,27 @@ export function updateEnemyCombat(
     c.phase = "idle";
     c.phaseMs = 0;
     c.cooldownMs = melee.cooldownMs;
+    clearEnemyAttackCommit(c);
   }
 
   if (c.phase === "active" && !c.hitThisSwing) {
-    if (target.kind === "player" && target.damageable.alive) {
+    const strikeKind = c.attackTargetKind ?? target.kind;
+    if (
+      strikeKind === "player" &&
+      target.kind === "player" &&
+      target.damageable.alive
+    ) {
       const arcHalf = Phaser.Math.DegToRad(melee.arcDeg / 2);
+      const px = enemyAttackCommitted(c) ? c.commitAimX : target.x;
+      const py = enemyAttackCommitted(c) ? c.commitAimY : target.y;
       const hit = arcHitboxHitsTarget(
         enemy.sprite.x,
         enemy.sprite.y,
         c.facing,
         melee.range,
         arcHalf,
-        target.x,
-        target.y,
+        px,
+        py,
         target.radius,
       );
       if (hit) {
