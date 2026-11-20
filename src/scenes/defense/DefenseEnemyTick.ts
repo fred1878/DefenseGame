@@ -18,6 +18,7 @@ import {
   updateRangedHybridCombat,
   updateStationaryRangedCombat,
 } from "../../entities/EnemyRangedCombat";
+import { interruptEnemyAttack } from "../../entities/enemyRanged/attackInterrupt";
 import {
   spawnEnemyLobProjectile,
   spawnEnemyProjectile,
@@ -73,6 +74,7 @@ export function tickDefenseEnemies(
   for (const e of liveEnemies) {
     decayEnemyKnockback(e, delta);
     if (host.enemySpellStatus.isStunned(e.id)) {
+      interruptEnemyAttack(e);
       setEnemyChaseVelocity(e, 0, 0);
       continue;
     }

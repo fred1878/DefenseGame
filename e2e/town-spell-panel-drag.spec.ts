@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { gotoE2E } from "./helpers/game";
 import { dragCanvas, waitForTapTargets } from "./helpers/touch";
 
-test.describe("town spell panel drag", () => {
+test.describe("@manual town spell panel drag", () => {
   test("drag castable spell from pool onto bar slot", async ({ page }) => {
     await gotoE2E(page);
     await page.evaluate(() => {

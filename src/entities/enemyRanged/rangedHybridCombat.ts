@@ -6,6 +6,7 @@ import {
   type EnemyCombatState,
 } from "../EnemyCombat";
 import type { JavelinSpawnRequest, RangedHybridCombatState } from "./types";
+import { clearEnemyAttackCommit } from "./attackCommit";
 import { updateStationaryRangedCombat } from "./stationaryRangedCombat";
 
 export function resetHybridCombatPhase(c: EnemyCombatState): void {
@@ -13,6 +14,7 @@ export function resetHybridCombatPhase(c: EnemyCombatState): void {
   c.phaseMs = 0;
   c.cooldownMs = 0;
   c.hitThisSwing = false;
+  clearEnemyAttackCommit(c);
 }
 
 export function updateRangedHybridCombat(
@@ -29,7 +31,7 @@ export function updateRangedHybridCombat(
   const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
 
-  if (target.kind === "player" && melee) {
+  if (target.kind === "player" && melee && !enemyIsAttacking(c)) {
     const inMeleePattern = dist <= melee.triggerRange;
     const atPreferred =
       dist >= hybrid.preferredRange - hybrid.retreatRangeSlack;
@@ -38,7 +40,6 @@ export function updateRangedHybridCombat(
       const canAbortMelee =
         extra.meleeSwings === 0 &&
         c.phase === "idle" &&
-        !enemyIsAttacking(c) &&
         dist > hybrid.closeMeleeRadius;
       if (canAbortMelee) {
         extra.mode = "ranged";

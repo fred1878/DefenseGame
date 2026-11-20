@@ -332,7 +332,7 @@ export function spawnEnemyLobProjectile(
   textureKey: string = COMBAT_FX_TEXTURE.stoneThrow,
 ): EnemyProjectile {
   const dist = Math.hypot(toX - fromX, toY - fromY);
-  const angle = Math.atan2(toY - fromY, toX - fromX) - 0.62;
+  const angle = Math.atan2(toY - fromY, toX - fromX);
   const proj = spawnPlayerProjectile(
     scene,
     fromX,

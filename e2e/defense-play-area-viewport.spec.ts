@@ -4,7 +4,7 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 
-test.describe("defense play area viewport", () => {
+test.describe("@manual defense play area viewport", () => {
   test("world points project only inside the play band", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);

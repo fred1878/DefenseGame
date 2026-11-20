@@ -1,5 +1,6 @@
 import type { EnemyInstance } from "../Enemy";
-import type { EnemyAttackTarget } from "../EnemyCombat";
+import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
+import { commitEnemyAttack } from "./attackCommit";
 import { advanceCombatPhase } from "./combatPhase";
 import type { JavelineerCombatState, JavelinSpawnRequest } from "./types";
 
@@ -17,7 +18,9 @@ export function updateJavelineerCombat(
   const dx = target.x - enemy.sprite.x;
   const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
-  c.facing = Math.atan2(dy, dx);
+  if (c.phase === "idle") {
+    c.facing = Math.atan2(dy, dx);
+  }
 
   const inBand =
     target.kind === "player" &&
@@ -33,6 +36,14 @@ export function updateJavelineerCombat(
     c.phaseMs = 0;
     extra.shotFired = false;
     c.hitThisSwing = false;
+    commitEnemyAttack(
+      c,
+      enemy.sprite.x,
+      enemy.sprite.y,
+      target,
+      target.x,
+      target.y,
+    );
   }
 
   advanceCombatPhase(
@@ -47,28 +58,33 @@ export function updateJavelineerCombat(
   let spawnJavelin: JavelinSpawnRequest | undefined;
   let meleeHit = false;
 
-  if (c.phase === "active" && !extra.shotFired) {
+  if (c.phase === "active" && !extra.shotFired && c.attackTargetKind != null) {
     extra.shotFired = true;
-    if (target.kind === "player" && inBand) {
+    if (c.attackTargetKind === "player") {
       spawnJavelin = {
         fromX: enemy.sprite.x,
         fromY: enemy.sprite.y,
-        toX: target.x,
-        toY: target.y,
+        toX: c.commitAimX,
+        toY: c.commitAimY,
         damage: enemy.damage,
       };
-    } else if (target.kind === "wall" && wallInBand) {
+    } else if (c.attackTargetKind === "wall") {
       spawnJavelin = {
         fromX: enemy.sprite.x,
         fromY: enemy.sprite.y,
-        toX: target.x,
-        toY: target.y,
+        toX: c.commitAimX,
+        toY: c.commitAimY,
         damage: enemy.damage,
       };
-      onWallHit?.();
-    } else if (target.kind === "player" && dist < tune.minRange) {
-      meleeHit = true;
+      if (!c.hitThisSwing) {
+        c.hitThisSwing = true;
+        onWallHit?.();
+      }
     }
+  }
+
+  if (enemyIsAttacking(c)) {
+    enemy.sprite.setVelocity(0, 0);
   }
 
   return { spawnJavelin, meleeHit };

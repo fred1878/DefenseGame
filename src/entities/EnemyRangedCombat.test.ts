@@ -62,6 +62,9 @@ describe("updateArrowRainCombat", () => {
     enemy.arrowRain = createArrowRainCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
+    enemy.combat.attackTargetKind = "player";
+    enemy.arrowRain.zoneX = 40;
+    enemy.arrowRain.zoneY = 0;
     const target = {
       kind: "player" as const,
       x: 40,
@@ -98,6 +101,7 @@ describe("updateArrowRainCombat wall target", () => {
     enemy.combat.phaseMs = 0;
     enemy.combat.cooldownMs = 0;
     enemy.combat.hitThisSwing = false;
+    enemy.combat.attackTargetKind = "wall";
     const onWallHit = vi.fn();
     const target = { kind: "wall" as const, x: enemy.sprite.x, y: wy };
     updateArrowRainCombat(enemy, target, enemy.arrowRain, 16, onWallHit);
@@ -118,6 +122,9 @@ describe("updateJavelineerCombat wall target", () => {
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     enemy.combat.cooldownMs = 0;
+    enemy.combat.attackTargetKind = "wall";
+    enemy.combat.commitAimX = enemy.sprite.x;
+    enemy.combat.commitAimY = wy;
     const onWallHit = vi.fn();
     const result = updateJavelineerCombat(
       enemy,
@@ -140,6 +147,9 @@ describe("updateJavelineerCombat", () => {
     const mid =
       (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
       2;
+    enemy.combat.attackTargetKind = "player";
+    enemy.combat.commitAimX = mid;
+    enemy.combat.commitAimY = 0;
     const result = updateJavelineerCombat(
       enemy,
       {
@@ -170,6 +180,9 @@ describe("updateStationaryRangedCombat", () => {
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     const dist = testStationaryRangedCombat.attackTriggerRange - 10;
+    enemy.combat.attackTargetKind = "player";
+    enemy.combat.commitAimX = dist;
+    enemy.combat.commitAimY = 0;
     const result = updateStationaryRangedCombat(
       enemy,
       {

@@ -1,5 +1,6 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
+import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
   pathingPeerAgents,
   replanEnemyPath,
@@ -62,7 +63,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   const preferred = worldUnit(lob.preferredRange, reg);
   const attackMax = worldUnit(lob.attackTriggerRange, reg);
 
-  if (enemy.combat.phase === "windup" || enemy.combat.phase === "recovery") {
+  if (enemyIsAttacking(enemy.combat)) {
     setEnemyChaseVelocity(enemy, 0, 0);
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
