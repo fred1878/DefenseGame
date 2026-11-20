@@ -6,16 +6,17 @@
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
     "displayName": "Grunt",
- "melee": {
-    "triggerRange": 78,
-    "range": 72,
-    "arcDeg": 70,
-    "windupMs": 100,
-    "activeMs": 110,
-    "recoveryMs": 300,
-    "cooldownMs": 350,
-    "engageBodySlackPx": 0
-  },
+    "combat": {
+      "melee": {
+        "triggerRange": 78,
+        "range": 72,
+        "arcDeg": 70,
+        "windupMs": 100,
+        "activeMs": 110,
+        "recoveryMs": 300,
+        "cooldownMs": 350
+      }
+    }
   },
   "bruiser": {
     "hp": 299,
