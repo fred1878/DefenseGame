@@ -1,6 +1,6 @@
 import type { EnemyInstance } from "../entities/Enemy";
 
-/** Exponential decay time constant for residual knockback slide. */
+/** Exponential decay for residual knockback slide (world-ms). */
 export const ENEMY_KNOCKBACK_DECAY_MS = 260;
 
 export type EnemyKnockbackCarrier = Pick<
