@@ -3,7 +3,11 @@ import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, applyDirectVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyDirectVelocity,
+  setEnemyChaseVelocity,
+} from "./movement";
 
 export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -66,7 +70,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
         enemy.combat.cooldownMs <= 0))
   ) {
     if (extra?.mode !== "melee") {
-      enemy.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(enemy, 0, 0);
       return { targetX: goal.x, targetY: goal.y, targetKind: desired };
     }
   }

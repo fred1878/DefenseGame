@@ -2,7 +2,11 @@ import { DEFENSE_MAP, northWallAttackY, PLAYER_AGGRO_RADIUS } from "../../config
 import { worldUnit } from "../../core/worldPixelScale";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, applyDirectVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyDirectVelocity,
+  setEnemyChaseVelocity,
+} from "./movement";
 
 export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -53,7 +57,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
     if (distToPlayer < preferred - bandSlack) {
       applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.85);
     } else if (distToPlayer <= attackMax) {
-      enemy.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(enemy, 0, 0);
     } else {
       let moveX = goal.x;
       let moveY = goal.y;
@@ -78,7 +82,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
     if (distToWall < preferred - bandSlack) {
       applyDirectVelocity(enemy, 0, 1, 0.65);
     } else if (distToWall <= attackMax) {
-      enemy.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(enemy, 0, 0);
     } else {
       let moveX = goal.x;
       let moveY = goal.y;

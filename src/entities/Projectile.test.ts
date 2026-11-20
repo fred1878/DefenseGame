@@ -58,6 +58,11 @@ describe("updateProjectile", () => {
           radius: 12,
           damageable,
           sprite: enemySprite,
+          enemy: {
+            sprite: enemySprite,
+            knockbackVx: 0,
+            knockbackVy: 0,
+          },
         },
       ],
       50,

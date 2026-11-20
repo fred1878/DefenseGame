@@ -6,7 +6,11 @@ import {
   resolveEnemyTarget,
 } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, applyDirectVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyDirectVelocity,
+  setEnemyChaseVelocity,
+} from "./movement";
 
 export const lobberBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -59,7 +63,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   const attackMax = worldUnit(lob.attackTriggerRange, reg);
 
   if (enemy.combat.phase === "windup" || enemy.combat.phase === "recovery") {
-    enemy.sprite.setVelocity(0, 0);
+    setEnemyChaseVelocity(enemy, 0, 0);
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
@@ -67,7 +71,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
     applyDirectVelocity(enemy, ex - targetX, ey - targetY, 0.78);
   } else if (dist <= attackMax) {
     if (enemy.combat.phase === "idle") {
-      enemy.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(enemy, 0, 0);
     } else {
       applyDirectVelocity(enemy, targetX - ex, targetY - ey, 0.35);
     }

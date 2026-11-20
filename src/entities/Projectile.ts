@@ -6,6 +6,10 @@ import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { segmentFirstCircleHitT } from "../combat/Hitbox";
 import { applyKnockbackFrom } from "../combat/Knockback";
+import {
+  applyEnemyKnockbackFrom,
+  type EnemyKnockbackCarrier,
+} from "../combat/enemyKnockback";
 
 /** Source art faces upper-right at rotation 0. */
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
@@ -131,6 +135,7 @@ export function updateProjectile(
     radius: number;
     damageable: Damageable;
     sprite: Phaser.Physics.Arcade.Sprite;
+    enemy: EnemyKnockbackCarrier;
   }>,
   knockback: number,
 ): ProjectileHitUpdate {
@@ -173,8 +178,8 @@ export function updateProjectile(
         projectile.damage,
         projectile.damageFlavor,
       );
-      applyKnockbackFrom(
-        firstTarget.sprite,
+      applyEnemyKnockbackFrom(
+        firstTarget.enemy,
         projectile.sprite.x,
         projectile.sprite.y,
         knockback,
@@ -245,6 +250,7 @@ export type SpellProjectileUpdateContext = {
     radius: number;
     damageable: Damageable;
     sprite: Phaser.Physics.Arcade.Sprite;
+    enemy: EnemyKnockbackCarrier;
   }>;
   knockbackFor: (projectile: PlayerProjectile) => number;
   findEnemy: (id: string) =>
@@ -254,6 +260,7 @@ export type SpellProjectileUpdateContext = {
         y: number;
         damageable: Damageable;
         sprite: Phaser.Physics.Arcade.Sprite;
+        enemy: EnemyKnockbackCarrier;
       }
     | undefined;
 };

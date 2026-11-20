@@ -23,6 +23,7 @@ export type DefenseProjectileEnemyTarget = {
   radius: number;
   damageable: Damageable;
   sprite: Phaser.Physics.Arcade.Sprite;
+  enemy: import("../../entities/Enemy").EnemyInstance;
 };
 
 export type DefenseProjectileTickHost = {

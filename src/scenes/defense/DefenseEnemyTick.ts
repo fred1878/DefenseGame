@@ -25,6 +25,7 @@ import {
 } from "../../entities/Projectile";
 import type { Damageable } from "../../combat/DamageSystem";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
+import { decayEnemyKnockback, setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 
 export type DefenseEnemyTickHost = {
   scene: Phaser.Scene;
@@ -70,8 +71,9 @@ export function tickDefenseEnemies(
   host.enemyPathGoals.clear();
   const liveEnemies = host.enemies.filter((e) => e.damageable.alive);
   for (const e of liveEnemies) {
+    decayEnemyKnockback(e, delta);
     if (host.enemySpellStatus.isStunned(e.id)) {
-      e.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(e, 0, 0);
       continue;
     }
     const peerAgents = liveEnemies
@@ -102,7 +104,7 @@ export function tickDefenseEnemies(
     });
 
     if (host.enemySpellStatus.isRooted(e.id)) {
-      e.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(e, 0, 0);
     }
 
     const combatTargetKind = pickEnemyCombatTarget(

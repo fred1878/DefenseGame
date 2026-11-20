@@ -1,3 +1,4 @@
+import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import type { EnemyInstance } from "../Enemy";
 import {
   enemyIsAttacking,
@@ -38,6 +39,6 @@ export function freezeWindupRecovery(
     enemyIsAttacking(enemy.combat) &&
     (targetKind === "wall" || phase === "windup" || phase === "recovery");
   if (hold) {
-    enemy.sprite.setVelocity(0, 0);
+    setEnemyChaseVelocity(enemy, 0, 0);
   }
 }

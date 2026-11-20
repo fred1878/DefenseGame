@@ -516,7 +516,7 @@ export class DefenseScene extends Phaser.Scene {
 
     const mult = playerDamageMult(this.save.buildings);
     this.player.damageEnemiesInArc(
-      this.enemyTargets(),
+      this.enemies.filter((e) => e.damageable.alive),
       PLAYER_TUNING.meleeDamage * mult,
       PLAYER_TUNING.meleeKnockback,
     );
@@ -546,6 +546,7 @@ export class DefenseScene extends Phaser.Scene {
             radius: this.wu(ENTITY_BODY_RADIUS.enemy),
             damageable: e.damageable,
             sprite: e.sprite,
+            enemy: e,
           };
         },
         flashNova: (x, y, r, def) => this.flashNova(x, y, r, def),
@@ -1072,14 +1073,17 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private enemyTargets() {
-    return this.enemies.map((e) => ({
-      id: e.id,
-      x: e.sprite.x,
-      y: e.sprite.y,
-      radius: this.wu(ENTITY_BODY_RADIUS.enemy),
-      damageable: e.damageable,
-      sprite: e.sprite,
-    }));
+    return this.enemies
+      .filter((e) => e.damageable.alive)
+      .map((e) => ({
+        id: e.id,
+        x: e.sprite.x,
+        y: e.sprite.y,
+        radius: this.wu(ENTITY_BODY_RADIUS.enemy),
+        damageable: e.damageable,
+        sprite: e.sprite,
+        enemy: e,
+      }));
   }
 
   private drawTouchDebug(delta: number): void {

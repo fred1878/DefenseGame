@@ -1,8 +1,11 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
+import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
+
+export { setEnemyChaseVelocity };
 
 export type ChaseVelocityOptions = {
   nav?: EnemyNavState;
@@ -35,7 +38,7 @@ export function wallMeleeStandoffY(enemy: EnemyInstance): number {
 }
 
 export function applyWallMeleeHold(enemy: EnemyInstance): void {
-  enemy.sprite.setVelocity(0, 0);
+  setEnemyChaseVelocity(enemy, 0, 0);
   const approachY = wallMeleeStandoffY(enemy);
   if (enemy.sprite.y < approachY + 1) {
     enemy.sprite.y = approachY;
@@ -74,7 +77,10 @@ export function applyChaseVelocity(
     applyWallMeleeHold(enemy);
     return;
   }
-  if (enemyMovementBlocked(enemy)) return;
+  if (enemyMovementBlocked(enemy)) {
+    setEnemyChaseVelocity(enemy, 0, 0);
+    return;
+  }
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const chaseScale = chasePhaseScale(enemy);
@@ -92,11 +98,11 @@ export function applyChaseVelocity(
     const blend = Math.min(1, deltaMs / WALL_VELOCITY_BLEND_MS);
     const vx = body.velocity.x * (1 - blend) + desiredVx * blend;
     const vy = body.velocity.y * (1 - blend) + desiredVy * blend;
-    enemy.sprite.setVelocity(vx, vy);
+    setEnemyChaseVelocity(enemy, vx, vy);
     return;
   }
 
-  enemy.sprite.setVelocity(desiredVx, desiredVy);
+  setEnemyChaseVelocity(enemy, desiredVx, desiredVy);
 }
 
 export function applyDirectVelocity(
@@ -105,14 +111,21 @@ export function applyDirectVelocity(
   dirY: number,
   speedMul = 1,
 ): void {
-  if (enemyMovementBlocked(enemy)) return;
+  if (enemyMovementBlocked(enemy)) {
+    setEnemyChaseVelocity(enemy, 0, 0);
+    return;
+  }
   const len = Math.hypot(dirX, dirY);
   if (len < 0.001) {
-    enemy.sprite.setVelocity(0, 0);
+    setEnemyChaseVelocity(enemy, 0, 0);
     return;
   }
   const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
   const speed = enemy.speed * speedMul * chaseScale * statusMul;
-  enemy.sprite.setVelocity((dirX / len) * speed, (dirY / len) * speed);
+  setEnemyChaseVelocity(
+    enemy,
+    (dirX / len) * speed,
+    (dirY / len) * speed,
+  );
 }

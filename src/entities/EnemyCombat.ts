@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { setEnemyChaseVelocity } from "../combat/enemyKnockback";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
@@ -112,7 +113,7 @@ export function updateEnemyCombat(
     inWallTrigger &&
     (enemyIsAttacking(c) || (c.phase === "idle" && inWallHit));
   if (holdPosition) {
-    enemy.sprite.setVelocity(0, 0);
+    setEnemyChaseVelocity(enemy, 0, 0);
   }
 
   return false;

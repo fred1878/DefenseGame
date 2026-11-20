@@ -5,7 +5,8 @@ import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
-import { applyKnockbackFrom } from "../combat/Knockback";
+import { applyEnemyKnockbackFrom } from "../combat/enemyKnockback";
+import type { EnemyInstance } from "./Enemy";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
 import {
   ENTITY_BODY_RADIUS,
@@ -183,14 +184,7 @@ export class Player {
   }
 
   damageEnemiesInArc(
-    enemies: Array<{
-      id: string;
-      x: number;
-      y: number;
-      radius: number;
-      damageable: Damageable;
-      sprite: Phaser.Physics.Arcade.Sprite;
-    }>,
+    enemies: EnemyInstance[],
     damage: number,
     knockback: number,
   ): void {
@@ -204,19 +198,14 @@ export class Player {
         this.facing,
         worldUnit(PLAYER_TUNING.meleeStrikeRange, this.sprite.scene.registry),
         arcHalf,
-        e.x,
-        e.y,
-        e.radius,
+        e.sprite.x,
+        e.sprite.y,
+        worldUnit(ENTITY_BODY_RADIUS.enemy, this.sprite.scene.registry),
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);
         applyDamage(e.damageable, damage, "default");
-        applyKnockbackFrom(
-          e.sprite,
-          this.sprite.x,
-          this.sprite.y,
-          knockback,
-        );
+        applyEnemyKnockbackFrom(e, this.sprite.x, this.sprite.y, knockback);
       }
     }
   }

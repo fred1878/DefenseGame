@@ -7,7 +7,11 @@ import {
   resolveEnemyTarget,
 } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, applyDirectVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyDirectVelocity,
+  setEnemyChaseVelocity,
+} from "./movement";
 
 export const chargerBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -30,7 +34,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
 
   if (extra.chargeWindupMs > 0) {
     extra.chargeWindupMs = Math.max(0, extra.chargeWindupMs - deltaMs);
-    enemy.sprite.setVelocity(0, 0);
+    setEnemyChaseVelocity(enemy, 0, 0);
     if (extra.chargeWindupMs <= 0 && tune) {
       extra.chargeActiveMs = tune.dashDurationMs;
       extra.chargeCooldownMs = tune.dashCooldownMs;
@@ -84,7 +88,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     hasLineOfSight(grid, ex, ey, playerX, playerY)
   ) {
     extra.chargeWindupMs = tune.dashWindupMs;
-    enemy.sprite.setVelocity(0, 0);
+    setEnemyChaseVelocity(enemy, 0, 0);
     return {
       targetX: playerX,
       targetY: playerY,
