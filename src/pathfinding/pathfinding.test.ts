@@ -10,7 +10,7 @@ import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
-  it("clears widest grunt rush radius plus nav cell margin", () => {
+  it("clears widest rush body radius plus nav cell margin", () => {
     expect(DEFENSE_MAP.pathClearancePx).toBeGreaterThanOrEqual(
       ENTITY_BODY_RADIUS.grunt,
     );

@@ -24,7 +24,7 @@ describe("resolveEnemyCombat", () => {
     expect(tuned.wall.triggerRange).toBe(getEnemyCombatDefaults().wall.triggerRange);
   });
 
-  it("raises short melee engage values to physics contact for grunts", () => {
+  it("raises short melee engage values to physics contact for meleeChaser", () => {
     const contact = enemyMeleeContactCenterDist("meleeChaser", "grunt");
     const tuned = resolveEnemyCombat(
       "meleeChaser",

@@ -143,7 +143,7 @@ export const DEFENSE_MAP = {
   cellSize: 16,
   /**
    * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than the
-   * widest rush collision circle (grunt), plus {@link DEFENSE_MAP.cellSize} / 2 − 1 px.
+   * widest rush collision circle (`entityBodyRadius.grunt` in `entity-physics.json`), plus {@link DEFENSE_MAP.cellSize} / 2 − 1 px.
    * Lazy — depends on `entity-physics.json` loaded at Boot.
    */
   get pathClearancePx(): number {

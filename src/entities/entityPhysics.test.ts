@@ -23,7 +23,7 @@ describe("entityPhysics", () => {
     expect(enemyCollisionBodyRadius("lobber")).toBe(14);
   });
 
-  it("grunt path clearance exceeds other melee grunts archetypes", () => {
+  it("grunt defId path clearance exceeds other melee archetypes", () => {
     expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(35);
     expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(28);
     expect(maxNavObstacleClearancePx()).toBe(35);
