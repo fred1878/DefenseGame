@@ -71,6 +71,25 @@ describe("townBuildingMenu", () => {
     expect(result.kind).toBe("upgraded");
     expect(next.buildings.wall).toBe(1);
     expect(next.gold).toBe(150);
+    expect(next.townWallHpMax).toBe(150);
+    expect(next.townWallHp).toBe(150);
+  });
+
+  it("raises current wall HP by the same delta as max on upgrade", () => {
+    const def: TownBuildingDef = {
+      label: "Town Wall",
+      textureKey: "town_wall",
+      width: 128,
+      height: 56,
+      upgradeId: "wall",
+    };
+    const save = createNewSave();
+    save.gold = 500;
+    save.townWallHp = 70;
+    save.townWallHpMax = 100;
+    const { save: next } = handleTownBuildingTap(store, save, def);
+    expect(next.townWallHpMax).toBe(150);
+    expect(next.townWallHp).toBe(120);
   });
 
   it("formats wall and smith upgrade subtitles like legacy town UI", () => {
