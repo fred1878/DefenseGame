@@ -155,6 +155,54 @@ test.describe("endless mode panel layout", () => {
       .toBe(true);
   });
 
+  test("cap plus/minus adjusts count without toggling selection", async ({
+    page,
+  }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const enemyId = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyId() ?? "",
+    );
+    expect(enemyId).toBeTruthy();
+    const capBefore = await page.evaluate(
+      (id) =>
+        window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyConcurrentCap(id) ?? 0,
+      enemyId,
+    );
+
+    const plus = await page.evaluate(
+      (id) =>
+        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()[
+          `endless-cap-plus-${id}`
+        ],
+      enemyId,
+    );
+    expect(plus).toBeTruthy();
+    await tapCanvas(page, plus!.x, plus!.y);
+
+    const capAfter = await page.evaluate(
+      (id) =>
+        window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyConcurrentCap(id) ?? 0,
+      enemyId,
+    );
+    expect(capAfter).toBeGreaterThan(capBefore);
+
+    const selected = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyIds() ?? [],
+    );
+    expect(selected).toContain(enemyId);
+  });
+
   test("footer taps do not change hidden roster selection", async ({
     page,
   }) => {
