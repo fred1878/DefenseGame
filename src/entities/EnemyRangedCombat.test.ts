@@ -87,7 +87,9 @@ describe("updateArrowRainCombat", () => {
       testArrowRainCombat.tickIntervalMs + 10,
     );
     expect(result.hitPlayer).toBe(true);
-    expect(result.damage).toBeGreaterThan(0);
+    expect(result.damage).toBe(
+      testArrowRainCombat.damage * testArrowRainCombat.tickDamageScale,
+    );
   });
 });
 
@@ -141,6 +143,7 @@ describe("updateJavelineerCombat wall target", () => {
 describe("updateJavelineerCombat", () => {
   it("requests a javelin during active phase in band", () => {
     const enemy = baseEnemy("javelineer");
+    enemy.combatTuning.javelineer = testJavelineerCombat;
     enemy.javelineer = createJavelineerCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -171,11 +174,43 @@ describe("updateJavelineerCombat", () => {
     expect(result.spawnJavelin).toBeDefined();
     expect(result.spawnJavelin?.damage).toBe(10);
   });
+
+  it("uses javelineer combat damage instead of top-level melee damage", () => {
+    const enemy = baseEnemy("javelineer");
+    enemy.damage = 99;
+    enemy.combatTuning.javelineer = { ...testJavelineerCombat, damage: 7 };
+    enemy.javelineer = createJavelineerCombatState();
+    enemy.combat.phase = "active";
+    enemy.combat.phaseMs = 0;
+    enemy.combat.attackTargetKind = "player";
+    enemy.combat.commitAimX = 100;
+    enemy.combat.commitAimY = 0;
+    const result = updateJavelineerCombat(
+      enemy,
+      {
+        kind: "player",
+        x: 100,
+        y: 0,
+        radius: 14,
+        damageable: {
+          id: "p",
+          hp: 50,
+          maxHp: 50,
+          alive: true,
+          team: "player",
+        },
+      },
+      enemy.javelineer,
+      0,
+    );
+    expect(result.spawnJavelin?.damage).toBe(7);
+  });
 });
 
 describe("updateStationaryRangedCombat", () => {
   it("fires a straight bolt during active phase in range", () => {
     const enemy = baseEnemy("stationaryRanged");
+    enemy.combatTuning.stationaryRanged = testStationaryRangedCombat;
     enemy.stationaryRanged = createStationaryRangedCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;

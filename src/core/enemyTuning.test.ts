@@ -6,7 +6,8 @@ import {
   resolveEnemyCombat,
 } from "./enemyTuning";
 import { ConfigLoadError } from "./configValidation";
-import { normalizeEnemyRow } from "./normalizeEnemy";
+import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
+import type { EnemyDef } from "./DataStore";
 
 describe("resolveEnemyCombat", () => {
   it("merges omitted enemy combat from loaded JSON defaults", () => {
@@ -50,6 +51,21 @@ describe("resolveEnemyCombat", () => {
       getEnemyCombatDefaults().javelineer.minRange,
     );
   });
+
+  it("merges ranged damage overrides onto defaults", () => {
+    const jav = resolveEnemyCombat("javelineer", {
+      javelineer: { damage: 14 },
+    });
+    expect(jav.javelineer?.damage).toBe(14);
+    const archer = resolveEnemyCombat("stationaryRanged", {
+      stationaryRanged: { damage: 11 },
+    });
+    expect(archer.stationaryRanged?.damage).toBe(11);
+    const charger = resolveEnemyCombat("charger", {
+      charger: { chargeDamage: 40 },
+    });
+    expect(charger.charger?.chargeDamage).toBe(40);
+  });
 });
 
 describe("normalizeEnemyRow", () => {
@@ -82,5 +98,26 @@ describe("normalizeEnemyRow", () => {
       textureKey: "enemy_arrow_rain_archer",
     });
     expect(row.displayName).toBe("Arrow Rain Archer");
+  });
+
+  it("assertEnemyResolvedCombat requires resolved ranged and charge damage", () => {
+    const melee: EnemyDef = normalizeEnemyRow("grunt", {
+      behavior: "meleeChaser",
+      textureKey: "enemy_grunt",
+      hp: 10,
+      speed: 50,
+      damage: 5,
+      weight: 100,
+    });
+    expect(() => assertEnemyResolvedCombat("grunt", melee)).not.toThrow();
+    const charger: EnemyDef = normalizeEnemyRow("charger", {
+      behavior: "charger",
+      textureKey: "enemy_charger",
+      hp: 10,
+      speed: 50,
+      damage: 20,
+      weight: 100,
+    });
+    expect(() => assertEnemyResolvedCombat("charger", charger)).not.toThrow();
   });
 });

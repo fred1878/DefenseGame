@@ -28,6 +28,7 @@ const MELEE_KEYS = [
   "engageBodySlackPx",
 ] as const;
 const ARROW_RAIN_KEYS = [
+  "damage",
   "preferredRange",
   "attackTriggerRange",
   "windupMs",
@@ -40,6 +41,7 @@ const ARROW_RAIN_KEYS = [
   "maxTicks",
 ] as const;
 const JAVELINEER_KEYS = [
+  "damage",
   "minRange",
   "maxRange",
   "strafeSpeedMul",
@@ -52,6 +54,7 @@ const JAVELINEER_KEYS = [
   "projectileMaxTravel",
 ] as const;
 const STATIONARY_RANGED_KEYS = [
+  "damage",
   "preferredRange",
   "attackTriggerRange",
   "windupMs",
@@ -63,6 +66,7 @@ const STATIONARY_RANGED_KEYS = [
 ] as const;
 const WALL_SIEGE_KEYS = ["playerAggroRadius"] as const;
 const CHARGER_KEYS = [
+  "chargeDamage",
   "dashTriggerRange",
   "dashWindupMs",
   "dashDurationMs",
@@ -71,6 +75,7 @@ const CHARGER_KEYS = [
   "dashOvershootRange",
 ] as const;
 const LOBBER_KEYS = [
+  "damage",
   "preferredRange",
   "attackTriggerRange",
   "windupMs",

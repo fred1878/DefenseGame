@@ -99,7 +99,7 @@ export function updateLobberCombat(
       fromY: enemy.sprite.y,
       toX: extra.aimX,
       toY: extra.aimY,
-      damage: enemy.damage,
+      damage: tune.damage,
       blastRadius: tune.blastRadius,
       blastDamageScale: tune.blastDamageScale,
     };

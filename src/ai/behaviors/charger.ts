@@ -109,6 +109,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     hasLineOfSight(grid, ex, ey, playerX, playerY)
   ) {
     extra.chargeWindupMs = tune.dashWindupMs;
+    extra.chargeHitThisDash = false;
     extra.chargeAimX = playerX;
     extra.chargeAimY = playerY;
     setEnemyChaseVelocity(enemy, 0, 0);

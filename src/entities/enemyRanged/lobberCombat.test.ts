@@ -7,6 +7,7 @@ import { mockEnemyInstance } from "../testEnemyInstance";
 describe("updateLobberCombat attack commit", () => {
   const combatTuning = resolveEnemyCombat("lobber", {
     lobber: {
+      damage: 12,
       preferredRange: 100,
       attackTriggerRange: 180,
       windupMs: 400,

@@ -15,6 +15,7 @@ export const testWallCombat: EnemyWallCombat = {
 };
 
 export const testChargerCombat: EnemyChargerCombat = {
+  chargeDamage: 30,
   dashTriggerRange: 120,
   dashWindupMs: 280,
   dashDurationMs: 400,
@@ -28,6 +29,7 @@ export const testWallSiegeCombat: EnemyWallSiegeCombat = {
 };
 
 export const testStationaryRangedCombat: EnemyStationaryRangedCombat = {
+  damage: 10,
   preferredRange: 105,
   attackTriggerRange: 140,
   windupMs: 400,
@@ -39,6 +41,7 @@ export const testStationaryRangedCombat: EnemyStationaryRangedCombat = {
 };
 
 export const testArrowRainCombat: EnemyArrowRainCombat = {
+  damage: 10,
   preferredRange: 120,
   attackTriggerRange: 150,
   windupMs: 800,
@@ -52,6 +55,7 @@ export const testArrowRainCombat: EnemyArrowRainCombat = {
 };
 
 export const testJavelineerCombat: EnemyJavelineerCombat = {
+  damage: 10,
   minRange: 50,
   maxRange: 180,
   strafeSpeedMul: 0.9,

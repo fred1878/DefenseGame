@@ -108,7 +108,7 @@ export function updateArrowRainCombat(
           ) <= zonePx + target.radius;
         if (inZone) {
           hitPlayer = true;
-          damage += enemy.damage * tune.tickDamageScale;
+          damage += tune.damage * tune.tickDamageScale;
         }
       }
     } else if (c.attackTargetKind === "wall" && !c.hitThisSwing) {

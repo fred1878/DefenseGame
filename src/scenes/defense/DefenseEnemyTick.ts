@@ -10,6 +10,7 @@ import {
 import { PLAYER_TUNING } from "../../config";
 import type { NavGrid } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
+import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
   updateArrowRainCombat,
@@ -237,6 +238,35 @@ export function tickDefenseEnemies(
           e.combatTuning.melee.activeMs,
         );
         playEnemyMeleeSlashSfx(host.scene);
+      }
+    } else if (e.behavior === "charger") {
+      const extra = e.behaviorExtra;
+      const chargerTune = e.combatTuning.charger!;
+      if (
+        extra.chargeActiveMs > 0 &&
+        attackTarget.kind === "player" &&
+        !extra.chargeHitThisDash
+      ) {
+        const bodyR = enemyCollisionBodyRadius(e.behavior, e.defId);
+        const touch = Math.hypot(px - e.sprite.x, py - e.sprite.y) <= bodyR + playerRadius;
+        if (touch) {
+          extra.chargeHitThisDash = true;
+          playerHitDamage += chargerTune.chargeDamage;
+        }
+      } else if (extra.chargeActiveMs <= 0 && extra.chargeWindupMs <= 0) {
+        const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
+        if (e.combat.phase === "active" && !e.combat.slashFxShown) {
+          e.combat.slashFxShown = true;
+          showGruntMeleeSwipe(
+            host.scene,
+            e.sprite.x,
+            e.sprite.y,
+            e.combat.facing,
+            e.combatTuning.melee.activeMs,
+          );
+          playEnemyMeleeSlashSfx(host.scene);
+        }
+        if (hitPlayer) playerHitDamage += e.damage;
       }
     } else if (e.behavior === "lobber" && e.lobber) {
       const lob = updateLobberCombat(

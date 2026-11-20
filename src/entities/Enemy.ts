@@ -53,6 +53,8 @@ export type EnemyBehaviorExtra = {
   /** Normalized dash heading, locked when windup ends. */
   chargeDashDirX: number;
   chargeDashDirY: number;
+  /** Prevents multi-hit during a single dash burst. */
+  chargeHitThisDash: boolean;
   /** Remaining ms to hold at the ward screen post without micro-repositioning. */
   wardPostGraceMs: number;
   wardPostSnapPlayerX: number;
@@ -184,6 +186,7 @@ export function spawnEnemy(
       chargeAimY: 0,
       chargeDashDirX: 0,
       chargeDashDirY: 0,
+      chargeHitThisDash: false,
       wardPostGraceMs: 0,
       wardPostSnapPlayerX: 0,
       wardPostSnapPlayerY: 0,

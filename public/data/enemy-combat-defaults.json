@@ -15,6 +15,7 @@
     "engageBodySlackPx": 0
   },
   "arrowRain": {
+    "damage": 8,
     "preferredRange": 150,
     "attackTriggerRange": 168,
     "windupMs": 900,
@@ -27,6 +28,7 @@
     "maxTicks": 4
   },
   "javelineer": {
+    "damage": 9,
     "minRange": 52,
     "maxRange": 198,
     "strafeSpeedMul": 0.92,
@@ -39,6 +41,7 @@
     "projectileMaxTravel": 240
   },
   "stationaryRanged": {
+    "damage": 9,
     "preferredRange": 118,
     "attackTriggerRange": 155,
     "windupMs": 520,
@@ -52,6 +55,7 @@
     "playerAggroRadius": 72
   },
   "charger": {
+    "chargeDamage": 28,
     "dashTriggerRange": 208,
     "dashWindupMs": 320,
     "dashDurationMs": 480,
@@ -60,6 +64,7 @@
     "dashOvershootRange": 88
   },
   "lobber": {
+    "damage": 10,
     "preferredRange": 128,
     "attackTriggerRange": 168,
     "windupMs": 680,

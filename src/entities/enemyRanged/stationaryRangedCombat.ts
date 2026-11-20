@@ -60,7 +60,7 @@ export function updateStationaryRangedCombat(
       fromY: enemy.sprite.y,
       toX: c.commitAimX,
       toY: c.commitAimY,
-      damage: enemy.damage,
+      damage: tune.damage,
     };
     if (c.attackTargetKind === "wall" && !c.hitThisSwing) {
       c.hitThisSwing = true;

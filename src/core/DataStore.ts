@@ -20,7 +20,7 @@ import {
 import { normalizeEnemyAi, type EnemyAiInput } from "./normalizeEnemyAi";
 import type { EnemyCombatPartial } from "./enemyTuning";
 import type { EnemyCombatDefaultsInput } from "./normalizeEnemyCombatDefaults";
-import { normalizeEnemyRow } from "./normalizeEnemy";
+import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
 import {
   normalizePlayerConfig,
   type PlayerConfig,
@@ -120,6 +120,9 @@ export class DataStore {
     applyDefenseMaps(defenseMaps);
     applySpellMechanics(normalizeSpellMechanics(spellMechanics));
     applyEntityPhysics(normalizeEntityPhysics(entityPhysics));
+    for (const [id, row] of Object.entries(this.enemies)) {
+      assertEnemyResolvedCombat(id, row);
+    }
     applyEnemyAi(normalizeEnemyAi(enemyAi));
     this.defenseMaps = normalizeDefenseMaps(defenseMaps);
   }

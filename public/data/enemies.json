@@ -67,6 +67,7 @@
         "cooldownMs": 350
       },
       "arrowRain": {
+        "damage": 7,
         "preferredRange": 150,
         "attackTriggerRange": 200,
         "windupMs": 900,
@@ -129,6 +130,7 @@
         "cooldownMs": 320
       },
       "stationaryRanged": {
+        "damage": 10,
         "preferredRange": 210,
         "attackTriggerRange": 290,
         "windupMs": 540,
@@ -164,6 +166,7 @@
         "cooldownMs": 320
       },
       "javelineer": {
+        "damage": 9,
         "minRange": 80,
         "maxRange": 289,
         "strafeSpeedMul": 0.85,
@@ -257,6 +260,7 @@
         "cooldownMs": 380
       },
       "charger": {
+        "chargeDamage": 34,
         "dashTriggerRange": 240,
         "dashWindupMs": 300,
         "dashDurationMs": 800,
@@ -290,6 +294,7 @@
         "cooldownMs": 320
       },
       "lobber": {
+        "damage": 11,
         "preferredRange": 130,
         "attackTriggerRange": 172,
         "windupMs": 1100,
@@ -326,6 +331,7 @@
         "cooldownMs": 200
       },
       "stationaryRanged": {
+        "damage": 10,
         "preferredRange": 170,
         "attackTriggerRange": 220,
         "windupMs": 200,
