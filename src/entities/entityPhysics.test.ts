@@ -23,10 +23,10 @@ describe("entityPhysics", () => {
     expect(enemyCollisionBodyRadius("lobber")).toBe(14);
   });
 
-  it("grunt defId path clearance exceeds other melee archetypes", () => {
+  it("agent path clearance vs static nav obstacle clearance", () => {
     expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(35);
     expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(28);
-    expect(maxNavObstacleClearancePx()).toBe(35);
+    expect(maxNavObstacleClearancePx()).toBe(24);
   });
 
   it("tunes bounce, friction, and pushable", () => {

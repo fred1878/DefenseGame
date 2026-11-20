@@ -142,8 +142,7 @@ export const DEFENSE_MAP = {
   /** 16px nav cells — quarter ground tile — so blocked cells hug sprite mass. */
   cellSize: 16,
   /**
-   * Inflate obstacle blockers on the nav grid so paths avoid gaps narrower than the
-   * widest rush collision circle (`entityBodyRadius.grunt` in `entity-physics.json`), plus {@link DEFENSE_MAP.cellSize} / 2 − 1 px.
+   * Inflate obstacle blockers on the nav grid (`staticObstacleNavClearancePx` in `entity-physics.json`).
    * Lazy — depends on `entity-physics.json` loaded at Boot.
    */
   get pathClearancePx(): number {

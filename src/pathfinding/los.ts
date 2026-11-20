@@ -1,4 +1,4 @@
-import { cellBlocked, worldToCell, type NavGrid } from "./grid";
+import { cellSolidBlocked, worldToCell, type NavGrid } from "./grid";
 
 /** Grid ray — blocked if any crossed cell is an obstacle. */
 export function hasLineOfSight(
@@ -19,7 +19,7 @@ export function hasLineOfSight(
     const y = y0 + dy * t;
     const cell = worldToCell(grid, x, y);
     if (!cell) return false;
-    if (cellBlocked(grid, cell.col, cell.row)) return false;
+    if (cellSolidBlocked(grid, cell.col, cell.row)) return false;
   }
   return true;
 }

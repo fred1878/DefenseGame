@@ -1,5 +1,6 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
+import { hasLineOfSight } from "../../pathfinding/los";
 import {
   pathingPeerAgents,
   replanEnemyPath,
@@ -58,7 +59,13 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   let moveX = goal.x;
   let moveY = goal.y;
 
-  if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
+  if (
+    desired === "player" &&
+    hasLineOfSight(grid, ex, ey, playerX, playerY)
+  ) {
+    moveX = playerX;
+    moveY = playerY;
+  } else if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
     const wp = nav.path[nav.pathIndex]!;
     const d = Math.hypot(wp.x - ex, wp.y - ey);
     if (d <= waypointRadius) {
