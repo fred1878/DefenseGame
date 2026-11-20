@@ -315,6 +315,7 @@
         "cooldownMs": 130
       },
       "stationaryRanged": {
+        "preferredRange": 160,
         "attackTriggerRange": 200,
         "windupMs": 500,
         "activeMs": 70,
@@ -324,7 +325,7 @@
         "projectileMaxTravel": 210
       },
       "hybrid": {
-        "closeMeleeRadius": 120,
+        "closeMeleeRadius": 84,
         "preferredRange": 160,
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18
