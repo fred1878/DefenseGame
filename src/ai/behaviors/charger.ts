@@ -24,10 +24,16 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
 
   if (extra.chargeActiveMs > 0) {
     extra.chargeActiveMs = Math.max(0, extra.chargeActiveMs - deltaMs);
-    applyDirectVelocity(enemy, playerX - ex, playerY - ey, tune?.dashSpeedMul ?? 2.2);
+    const dashMul = tune?.dashSpeedMul ?? 2.2;
+    applyDirectVelocity(
+      enemy,
+      extra.chargeDashDirX,
+      extra.chargeDashDirY,
+      dashMul,
+    );
     return {
-      targetX: playerX,
-      targetY: playerY,
+      targetX: extra.chargeAimX,
+      targetY: extra.chargeAimY,
       targetKind: "player",
     };
   }
@@ -36,6 +42,21 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     extra.chargeWindupMs = Math.max(0, extra.chargeWindupMs - deltaMs);
     setEnemyChaseVelocity(enemy, 0, 0);
     if (extra.chargeWindupMs <= 0 && tune) {
+      const overshootPx = worldUnit(tune.dashOvershootRange, reg);
+      let dx = extra.chargeAimX - ex;
+      let dy = extra.chargeAimY - ey;
+      const len = Math.hypot(dx, dy);
+      if (len < 0.001) {
+        dx = 1;
+        dy = 0;
+      } else {
+        dx /= len;
+        dy /= len;
+      }
+      extra.chargeDashDirX = dx;
+      extra.chargeDashDirY = dy;
+      extra.chargeAimX += dx * overshootPx;
+      extra.chargeAimY += dy * overshootPx;
       extra.chargeActiveMs = tune.dashDurationMs;
       extra.chargeCooldownMs = tune.dashCooldownMs;
     }
@@ -88,6 +109,8 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     hasLineOfSight(grid, ex, ey, playerX, playerY)
   ) {
     extra.chargeWindupMs = tune.dashWindupMs;
+    extra.chargeAimX = playerX;
+    extra.chargeAimY = playerY;
     setEnemyChaseVelocity(enemy, 0, 0);
     return {
       targetX: playerX,

@@ -68,6 +68,8 @@ export class EndlessModePanel {
   private readonly nameColW: number;
   private readonly capColW: number;
   private readonly listLeft: number;
+  /** Screen x where the concurrent-cap column begins (taps right of this do not toggle selection). */
+  private readonly capColLeft: number;
   private scrollY = 0;
   private readonly maxScroll: number;
   private dragPointerId: number | null = null;
@@ -135,6 +137,7 @@ export class EndlessModePanel {
     this.capColW = scaleUiX(96);
     this.nameColW = this.rowW - this.capColW - scaleUiX(4);
     this.listLeft = (GAME.width - this.rowW) / 2;
+    this.capColLeft = this.listLeft + this.nameColW + scaleUiX(4);
     this.rowH = scaleUiY(44);
     const gap = scaleUiY(8);
     this.rowStride = this.rowH + gap;
@@ -242,8 +245,14 @@ export class EndlessModePanel {
         }))
         .setOrigin(0.5);
 
-      capMinus.on("pointerup", () => this.bumpCap(enemyId, -1));
-      capPlus.on("pointerup", () => this.bumpCap(enemyId, 1));
+      capMinus.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+        pointer.event.stopPropagation();
+        this.bumpCap(enemyId, -1);
+      });
+      capPlus.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+        pointer.event.stopPropagation();
+        this.bumpCap(enemyId, 1);
+      });
 
       const row: EnemyRow = {
         enemyId,
@@ -432,7 +441,10 @@ export class EndlessModePanel {
       if (this.dragPointerId !== pointer.id) return;
       const tapped = this.endDrag();
       if (tapped) {
-        const enemyId = this.pickVisibleRowAtScreenY(pointer.y);
+        const enemyId = this.pickVisibleRowAtScreen(
+          pointer.x,
+          pointer.y,
+        );
         if (enemyId) this.toggleSelect(enemyId);
       }
     });
@@ -458,7 +470,13 @@ export class EndlessModePanel {
     return tapped;
   }
 
-  private pickVisibleRowAtScreenY(screenY: number): string | null {
+  private pickVisibleRowAtScreen(
+    screenX: number,
+    screenY: number,
+  ): string | null {
+    if (screenX >= this.capColLeft) {
+      return null;
+    }
     if (
       screenY < this.listTop ||
       screenY > this.listTop + this.listViewportH

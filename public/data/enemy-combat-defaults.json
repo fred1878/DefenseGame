@@ -52,11 +52,12 @@
     "playerAggroRadius": 72
   },
   "charger": {
-    "dashTriggerRange": 148,
+    "dashTriggerRange": 208,
     "dashWindupMs": 320,
-    "dashDurationMs": 420,
+    "dashDurationMs": 480,
     "dashSpeedMul": 2.35,
-    "dashCooldownMs": 2800
+    "dashCooldownMs": 2800,
+    "dashOvershootRange": 88
   },
   "lobber": {
     "preferredRange": 128,

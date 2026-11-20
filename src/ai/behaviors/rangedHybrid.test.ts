@@ -53,7 +53,7 @@ describe("rangedHybrid combat state machine", () => {
     },
   });
 
-  it("enters melee when the player is within close radius", () => {
+  it("enters melee when the player is within melee trigger range", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
@@ -69,7 +69,7 @@ describe("rangedHybrid combat state machine", () => {
     expect(enemy.rangedHybrid.mode).toBe("melee");
   });
 
-  it("returns to ranged when the player leaves melee before three swings", () => {
+  it("returns to ranged when the player leaves before any melee swing begins", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
@@ -77,7 +77,8 @@ describe("rangedHybrid combat state machine", () => {
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
-    enemy.rangedHybrid.meleeSwings = 1;
+    enemy.rangedHybrid.meleeSwings = 0;
+    enemy.combat.phase = "idle";
     updateRangedHybridCombat(
       enemy,
       playerTarget(120, 0),
@@ -86,6 +87,44 @@ describe("rangedHybrid combat state machine", () => {
     );
     expect(enemy.rangedHybrid.mode).toBe("ranged");
     expect(enemy.rangedHybrid.meleeSwings).toBe(0);
+  });
+
+  it("commits to melee after a swing even if the player backs out of close radius", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      combatTuning,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+    });
+    enemy.rangedHybrid = createRangedHybridCombatState();
+    enemy.rangedHybrid.mode = "melee";
+    enemy.rangedHybrid.meleeSwings = 1;
+    enemy.combat.phase = "idle";
+    updateRangedHybridCombat(
+      enemy,
+      playerTarget(120, 0),
+      enemy.rangedHybrid,
+      16,
+    );
+    expect(enemy.rangedHybrid.mode).toBe("melee");
+    expect(enemy.rangedHybrid.meleeSwings).toBe(1);
+  });
+
+  it("prefers melee over a ranged shot when the player is inside melee trigger", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      combatTuning,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+    });
+    enemy.rangedHybrid = createRangedHybridCombatState();
+    enemy.combat.cooldownMs = 0;
+    const result = updateRangedHybridCombat(
+      enemy,
+      playerTarget(80, 0),
+      enemy.rangedHybrid,
+      16,
+    );
+    expect(enemy.rangedHybrid.mode).toBe("melee");
+    expect(result.spawnBolt).toBeUndefined();
   });
 
   it("retreats after three completed melee swings", () => {
