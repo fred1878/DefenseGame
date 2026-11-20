@@ -42,7 +42,7 @@
         "cooldownMs": 520
       }
     },
-    "weight": 100
+    "weight": 170
   },
   "arrow_rain_archer": {
     "hp": 40,
@@ -79,11 +79,11 @@
         "maxTicks": 4
       }
     },
-    "weight": 100
+    "weight": 80
   },
   "skirmisher": {
     "hp": 34,
-    "speed": 112,
+    "speed": 142,
     "damage": 7,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
@@ -95,16 +95,16 @@
         "hitRange": 30
       },
       "melee": {
-        "triggerRange": 48,
-        "range": 34,
-        "arcDeg": 62,
+        "triggerRange": 60,
+        "range": 53,
+        "arcDeg": 30,
         "windupMs": 150,
         "activeMs": 80,
         "recoveryMs": 160,
         "cooldownMs": 120
       }
     },
-    "weight": 100
+    "weight": 70
   },
   "sentry_archer": {
     "hp": 24,
