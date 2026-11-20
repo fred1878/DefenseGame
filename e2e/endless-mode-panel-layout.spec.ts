@@ -175,12 +175,12 @@ test.describe("endless mode panel layout", () => {
     );
     expect(initial).toBeTruthy();
 
-    const start = await page.evaluate(
+    const infiniteHp = await page.evaluate(
       () =>
-        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-start"],
+        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-infinite-hp"],
     );
-    expect(start).toBeTruthy();
-    await tapCanvas(page, start!.x, start!.y + 28);
+    expect(infiniteHp).toBeTruthy();
+    await tapCanvas(page, infiniteHp!.x, infiniteHp!.y);
 
     const after = await page.evaluate(
       () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyId() ?? "",

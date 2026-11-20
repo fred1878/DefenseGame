@@ -182,6 +182,12 @@ export class TownScene extends Phaser.Scene {
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
     this.events.on("shutdown", () => {
       this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
+      if (this.statusFlashEvent) {
+        this.statusFlashEvent.remove(false);
+        this.statusFlashEvent = null;
+      }
+      this.teardownTownOverlays();
+      this.buildingControls.clear();
       this.touchDebug.destroy();
     });
 
@@ -319,10 +325,24 @@ export class TownScene extends Phaser.Scene {
   private openEndlessPanel(): void {
     if (this.endlessPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    this.endlessPanel = new EndlessModePanel(this, store, (selections, infiniteHp) => {
-      this.endlessPanel = null;
-      this.beginEndlessDefense(selections, infiniteHp);
-    });
+    this.endlessPanel = new EndlessModePanel(
+      this,
+      store,
+      (selections, infiniteHp) => {
+        this.endlessPanel = null;
+        this.beginEndlessDefense(selections, infiniteHp);
+      },
+      () => {
+        this.endlessPanel = null;
+      },
+    );
+  }
+
+  private teardownTownOverlays(): void {
+    this.endlessPanel?.destroy();
+    this.endlessPanel = null;
+    this.spellSortPanel?.destroy();
+    this.spellSortPanel = null;
   }
 
   private beginDefenseNight(): void {
