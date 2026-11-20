@@ -75,6 +75,8 @@ export type EnemyCombatPartial = {
     dashDurationMs?: number;
     dashSpeedMul?: number;
     dashCooldownMs?: number;
+    /** World units to continue past the windup aim point along the dash line. */
+    dashOvershootRange?: number;
   };
   /** Arcing ground blast (`lobber` behavior). */
   lobber?: {
@@ -168,6 +170,7 @@ export type EnemyChargerCombat = {
   dashDurationMs: number;
   dashSpeedMul: number;
   dashCooldownMs: number;
+  dashOvershootRange: number;
 };
 
 export type EnemyLobberCombat = {
@@ -374,6 +377,8 @@ function mergeCharger(
     dashDurationMs: partial?.dashDurationMs ?? d.dashDurationMs,
     dashSpeedMul: partial?.dashSpeedMul ?? d.dashSpeedMul,
     dashCooldownMs: partial?.dashCooldownMs ?? d.dashCooldownMs,
+    dashOvershootRange:
+      partial?.dashOvershootRange ?? d.dashOvershootRange,
   };
 }
 

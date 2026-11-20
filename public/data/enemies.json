@@ -95,10 +95,10 @@
         "triggerRange": 48,
         "range": 34,
         "arcDeg": 62,
-        "windupMs": 280,
-        "activeMs": 90,
-        "recoveryMs": 380,
-        "cooldownMs": 280
+        "windupMs": 150,
+        "activeMs": 80,
+        "recoveryMs": 160,
+        "cooldownMs": 120
       }
     }
   },
@@ -249,11 +249,12 @@
         "cooldownMs": 380
       },
       "charger": {
-        "dashTriggerRange": 180,
+        "dashTriggerRange": 228,
         "dashWindupMs": 300,
-        "dashDurationMs": 400,
-        "dashSpeedMul": 2,
-        "dashCooldownMs": 2600
+        "dashDurationMs": 520,
+        "dashSpeedMul": 2.15,
+        "dashCooldownMs": 2600,
+        "dashOvershootRange": 104
       }
     }
   },
@@ -315,6 +316,7 @@
         "cooldownMs": 130
       },
       "stationaryRanged": {
+        "preferredRange": 160,
         "attackTriggerRange": 200,
         "windupMs": 500,
         "activeMs": 70,
@@ -324,7 +326,7 @@
         "projectileMaxTravel": 210
       },
       "hybrid": {
-        "closeMeleeRadius": 120,
+        "closeMeleeRadius": 84,
         "preferredRange": 160,
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18

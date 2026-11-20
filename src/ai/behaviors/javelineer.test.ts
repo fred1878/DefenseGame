@@ -28,6 +28,10 @@ function mockJavelineer(x: number, y: number) {
       chargeWindupMs: 0,
       chargeActiveMs: 0,
       chargeCooldownMs: 0,
+      chargeAimX: 0,
+      chargeAimY: 0,
+      chargeDashDirX: 0,
+      chargeDashDirY: 0,
     },
     javelineer: { shotFired: false },
   });
