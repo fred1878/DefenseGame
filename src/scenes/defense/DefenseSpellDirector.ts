@@ -39,7 +39,9 @@ import { spawnGroundZone, type SpellGroundZone } from "../../combat/spellGroundZ
 import { DEFENSE_RENDER_DEPTH, PLAYER_TUNING, defenseHalfHeight, defenseHalfWidth } from "../../config";
 import {
   spellAutoCastRequiresCombatTarget,
+  spellAutoCastUsesRangedEnemyPick,
   spellCastMs,
+  spellCastUsesEnemyAim,
   spellRequiresManualTarget,
   spellTargetMode,
 } from "../../content/spellTargeting";
@@ -279,6 +281,7 @@ export class DefenseSpellDirector {
       return;
     }
     if (typeof begun === "object") {
+      this.aimDirectedSpellCast(def);
       this.resolveSpellEffect(begun);
     }
     this.host.pendingGroundCast = null;
@@ -341,7 +344,9 @@ export class DefenseSpellDirector {
         : this.host.wu(
             def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
           );
-    const strike = this.host.resolveStrikeMode(this.host.player.mode === "auto");
+    const strike = spellAutoCastUsesRangedEnemyPick(def)
+      ? "ranged"
+      : this.host.resolveStrikeMode(this.host.player.mode === "auto");
     return (
       pickAutoCastCombatEnemy(
         px,
@@ -355,6 +360,19 @@ export class DefenseSpellDirector {
       ) ??
       null
     );
+  }
+
+  /** Aim instant directional spells (e.g. water bolt) before resolving — windup spells already face in windup. */
+  private aimDirectedSpellCast(def: SpellDefinition): void {
+    if (!spellCastUsesEnemyAim(def)) return;
+    const target = this.autoCastCombatTarget(def);
+    if (target) {
+      this.host.targeting.setFocusEnemy(target.id);
+      this.host.player.faceToward(target.x, target.y);
+      return;
+    }
+    const facing = this.host.targeting.facingTarget("ranged", true);
+    if (facing) this.host.player.faceToward(facing.x, facing.y);
   }
 
   defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {

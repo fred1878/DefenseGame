@@ -68,3 +68,22 @@ export function spellAutoCastRequiresCombatTarget(def: SpellDefinition): boolean
   if (spellAutoCastNeedsEnemyTarget(def)) return true;
   return def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe";
 }
+
+/** Bolt-style projectiles always pick/auto-aim using ranged reach, not melee strike band. */
+export function spellAutoCastUsesRangedEnemyPick(def: SpellDefinition): boolean {
+  return def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe";
+}
+
+/** Spells that fire in the player's facing direction toward a combat target. */
+export function spellCastUsesEnemyAim(def: SpellDefinition): boolean {
+  switch (def.mechanicType) {
+    case "projectile":
+    case "projectile_aoe":
+    case "cone":
+    case "swing":
+    case "tracking_swing":
+      return true;
+    default:
+      return false;
+  }
+}

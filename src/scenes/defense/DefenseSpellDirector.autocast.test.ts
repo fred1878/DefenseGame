@@ -161,6 +161,50 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
     expect(host.groundAim?.y).toBeCloseTo(0, 5);
   });
 
+  it("auto-casts instant water bolt toward nearest enemy in ranged band", () => {
+    const save = {
+      buildings: {},
+      spellBar: {
+        slots: ["water_bolt", "", "", "", "", "", "", ""],
+        autoCastSpellIds: ["water_bolt"],
+      },
+    };
+    const faceToward = vi.fn();
+    const setFocusEnemy = vi.fn();
+    const host = spellDirectorTestHost({
+      spellInputQueue: new SpellInputQueue(),
+      spellCaster: new SpellCastController(),
+      save: save as unknown as DefenseSpellDirectorHost["save"],
+      enemies: [
+        {
+          id: "e1",
+          sprite: { x: 120, y: 40, displayWidth: 40 },
+          damageable: { alive: true },
+        },
+      ] as unknown as DefenseSpellDirectorHost["enemies"],
+      player: {
+        canAttack: () => true,
+        mode: "auto" as const,
+        sprite: { x: 0, y: 0, setVelocity: vi.fn() },
+        getFacingAngle: () => 0,
+        faceToward,
+      } as unknown as DefenseSpellDirectorHost["player"],
+      targeting: {
+        focusEnemyId: null,
+        setFocusEnemy,
+        facingTarget: vi.fn(),
+      } as unknown as DefenseSpellDirectorHost["targeting"],
+    });
+    const director = new DefenseSpellDirector(host);
+    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+
+    director.tryAutoCastSpells(0, 0);
+
+    expect(beginSpy).toHaveBeenCalledWith("water_bolt");
+    expect(setFocusEnemy).toHaveBeenCalledWith("e1");
+    expect(faceToward).toHaveBeenCalledWith(120, 40);
+  });
+
   it("still auto-casts self-centered spells with no enemies", () => {
     const save = {
       buildings: {},
