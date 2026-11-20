@@ -58,35 +58,68 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
-  if (
-    ranged &&
-    (enemyIsAttacking(enemy.combat) ||
-      (extra?.mode === "ranged" &&
-        dist <= worldUnit(ranged.attackTriggerRange, reg) &&
-        enemy.combat.cooldownMs <= 0))
-  ) {
-    if (extra?.mode !== "melee") {
-      enemy.sprite.setVelocity(0, 0);
-      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
-    }
+  if (enemyIsAttacking(enemy.combat) && extra?.mode !== "melee") {
+    enemy.sprite.setVelocity(0, 0);
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
-
-  let moveX = goal.x;
-  let moveY = goal.y;
 
   if (
     extra?.mode === "melee" &&
     desired === "player"
   ) {
-    moveX = playerX;
-    moveY = playerY;
-    applyChaseVelocity(enemy, moveX, moveY, 1.08, {
+    applyChaseVelocity(enemy, playerX, playerY, 1.08, {
       nav,
       deltaMs,
       targetKind: desired,
     });
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
+
+  if (
+    extra?.mode === "ranged" &&
+    desired === "player" &&
+    hybrid &&
+    ranged
+  ) {
+    const meleeEngage = worldUnit(enemy.combatTuning.melee.triggerRange, reg);
+    const bandSlack = worldUnit(22, reg);
+    const preferred = worldUnit(hybrid.preferredRange, reg);
+    const attackMax = worldUnit(ranged.attackTriggerRange, reg);
+
+    if (dist <= meleeEngage) {
+      applyChaseVelocity(enemy, playerX, playerY, 1.05, {
+        nav,
+        deltaMs,
+        targetKind: desired,
+      });
+      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+    }
+
+    if (dist < preferred - bandSlack) {
+      applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.88);
+    } else if (dist <= attackMax) {
+      enemy.sprite.setVelocity(0, 0);
+    } else {
+      let moveX = goal.x;
+      let moveY = goal.y;
+      if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
+        const wp = nav.path[nav.pathIndex]!;
+        if (Math.hypot(wp.x - ex, wp.y - ey) <= waypointRadius) {
+          nav.pathIndex += 1;
+        }
+        const nextWp = nav.path[nav.pathIndex];
+        if (nextWp) {
+          moveX = nextWp.x;
+          moveY = nextWp.y;
+        }
+      }
+      applyChaseVelocity(enemy, moveX, moveY, 0.92, { nav, deltaMs });
+    }
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+  }
+
+  let moveX = goal.x;
+  let moveY = goal.y;
 
   if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
     const wp = nav.path[nav.pathIndex]!;

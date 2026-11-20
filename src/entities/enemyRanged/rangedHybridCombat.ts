@@ -1,5 +1,10 @@
 import type { EnemyInstance } from "../Enemy";
-import { updateEnemyCombat, type EnemyAttackTarget, type EnemyCombatState } from "../EnemyCombat";
+import {
+  enemyIsAttacking,
+  updateEnemyCombat,
+  type EnemyAttackTarget,
+  type EnemyCombatState,
+} from "../EnemyCombat";
 import type { JavelinSpawnRequest, RangedHybridCombatState } from "./types";
 import { updateStationaryRangedCombat } from "./stationaryRangedCombat";
 
@@ -18,22 +23,30 @@ export function updateRangedHybridCombat(
   onWallHit?: () => void,
 ): { spawnBolt?: JavelinSpawnRequest; meleeHit: boolean } {
   const hybrid = enemy.combatTuning.hybrid!;
+  const melee = enemy.combatTuning.melee;
   const c = enemy.combat;
   const dx = target.x - enemy.sprite.x;
   const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
 
-  if (target.kind === "player") {
-    const close = dist <= hybrid.closeMeleeRadius;
+  if (target.kind === "player" && melee) {
+    const inMeleePattern = dist <= melee.triggerRange;
     const atPreferred =
       dist >= hybrid.preferredRange - hybrid.retreatRangeSlack;
 
-    if (extra.mode === "melee" && !close) {
-      extra.mode = "ranged";
-      extra.meleeSwings = 0;
-      resetHybridCombatPhase(c);
-      extra.shotFired = false;
-    } else if (extra.mode === "ranged" && close) {
+    if (extra.mode === "melee") {
+      const canAbortMelee =
+        extra.meleeSwings === 0 &&
+        c.phase === "idle" &&
+        !enemyIsAttacking(c) &&
+        dist > hybrid.closeMeleeRadius;
+      if (canAbortMelee) {
+        extra.mode = "ranged";
+        extra.meleeSwings = 0;
+        resetHybridCombatPhase(c);
+        extra.shotFired = false;
+      }
+    } else if (extra.mode === "ranged" && inMeleePattern) {
       extra.mode = "melee";
       extra.meleeSwings = 0;
       resetHybridCombatPhase(c);
