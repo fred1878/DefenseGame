@@ -72,7 +72,6 @@ export function tickDefenseEnemies(
   host.enemyPathGoals.clear();
   const liveEnemies = host.enemies.filter((e) => e.damageable.alive);
   for (const e of liveEnemies) {
-    decayEnemyKnockback(e, delta);
     if (host.enemySpellStatus.isStunned(e.id)) {
       interruptEnemyAttack(e);
       setEnemyChaseVelocity(e, 0, 0);
@@ -297,6 +296,8 @@ export function tickDefenseEnemies(
       }
       playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
     }
+
+    decayEnemyKnockback(e, delta);
   }
 
   return { wallHp, playerInvulnMs, enemyProjectiles };

@@ -178,12 +178,14 @@ export function updateProjectile(
         projectile.damage,
         projectile.damageFlavor,
       );
-      applyEnemyKnockbackFrom(
-        firstTarget.enemy,
-        projectile.sprite.x,
-        projectile.sprite.y,
-        knockback,
-      );
+      if (behavior !== "aoe_on_hit") {
+        applyEnemyKnockbackFrom(
+          firstTarget.enemy,
+          projectile.sprite.x,
+          projectile.sprite.y,
+          knockback,
+        );
+      }
     }
     projectile.damagedEnemyIds = damaged;
     if (behavior === "pierce") {
