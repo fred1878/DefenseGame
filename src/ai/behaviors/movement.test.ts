@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { northWallAttackY } from "../../config";
+import { northWallAttackY, WALL_VELOCITY_BLEND_MS } from "../../config";
 import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
 import { testWallCombat } from "../../test/fixtures/inlineCombat";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
@@ -71,6 +71,28 @@ describe("wall melee hold helpers", () => {
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     const [vx] = setVelocity.mock.calls[0]!;
     expect(vx).toBeCloseTo(50, 1);
+  });
+
+  it("wall transition blends chase intent only, not residual knockback", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      speed: 100,
+      knockbackVx: 80,
+      knockbackVy: 0,
+    });
+    enemy.nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
+    const body = { velocity: { x: 140, y: 0 } };
+    (
+      enemy.sprite as unknown as { body: typeof body }
+    ).body = body;
+    applyChaseVelocity(enemy, 200, 0, 1, {
+      nav: enemy.nav,
+      deltaMs: 16,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeLessThan(160);
+    expect(vx).toBeGreaterThan(130);
   });
 
   it("meleeChaser holds chase at zero while attacking but keeps knockback slide", () => {

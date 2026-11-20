@@ -65,6 +65,18 @@ describe("enemyKnockback", () => {
     expect(Math.abs(enemy.knockbackVy)).toBeLessThan(0.01);
   });
 
+  it("caps combined impulse from multiple hits in one tick", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      weight: 100,
+      sprite: { x: 50, y: 0 } as never,
+    });
+    applyEnemyKnockbackFrom(enemy, 0, 0, 100);
+    applyEnemyKnockbackFrom(enemy, 0, 0, 100);
+    const vlen = Math.hypot(enemy.knockbackVx, enemy.knockbackVy);
+    expect(vlen).toBeLessThanOrEqual(100 * 1.35 + 0.01);
+  });
+
   it("scales impulse down for heavier enemies", () => {
     const light = mockEnemyInstance({
       behavior: "meleeChaser",

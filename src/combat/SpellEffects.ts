@@ -130,6 +130,7 @@ export function applySpellBlastAt(
   damageMult: number,
   knockback = 140,
   status?: EnemySpellStatusMap,
+  knockbackExcludeIds?: ReadonlySet<string>,
 ): void {
   const r = worldUnit(def.blastRadius ?? 72, scene.registry);
   const damage = (def.baseDamage ?? 0) * damageMult;
@@ -138,7 +139,9 @@ export function applySpellBlastAt(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, centerX, centerY, knockback);
+    if (!knockbackExcludeIds?.has(full.id)) {
+      applyEnemyKnockbackFrom(full.enemy, centerX, centerY, knockback);
+    }
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -231,11 +234,14 @@ export function applyInstantTargeted(
   if (!full) return null;
   const flavor = def.damageFlavor ?? "default";
   const hitDamage = (def.baseDamage ?? 0) * damageMult;
+  const blastKnockbackExclude = new Set<string>([full.id]);
   if (hitDamage > 0) {
     applyDamage(full.damageable, hitDamage, flavor);
     const knock =
       def.id === "lightning_bolt" ? 140 : PLAYER_TUNING.rangedKnockback;
     applyEnemyKnockbackFrom(full.enemy, playerX, playerY, knock);
+  } else {
+    blastKnockbackExclude.delete(full.id);
   }
   if (def.burstDamage && def.burstDamage > 0) {
     applyDamage(full.damageable, def.burstDamage * damageMult, flavor);
@@ -249,6 +255,7 @@ export function applyInstantTargeted(
         damageMult,
         80,
         status,
+        blastKnockbackExclude,
       );
     }
   } else if (def.blastRadius) {
@@ -261,6 +268,7 @@ export function applyInstantTargeted(
       damageMult,
       80,
       status,
+      blastKnockbackExclude,
     );
   }
   if (status && def.onHit) {
