@@ -53,6 +53,8 @@ export class EndlessModePanel {
     selections: EndlessRunSelection[],
     infiniteHp: boolean,
   ) => void;
+  private readonly onDismiss: (() => void) | undefined;
+  private tornDown = false;
   private infiniteHp = false;
   private infiniteHpBg!: UiRoundedRect;
   private infiniteHpCheck!: Phaser.GameObjects.Text;
@@ -86,9 +88,11 @@ export class EndlessModePanel {
     scene: Phaser.Scene,
     store: DataStore,
     onStart: (selections: EndlessRunSelection[], infiniteHp: boolean) => void,
+    onDismiss?: () => void,
   ) {
     this.scene = scene;
     this.onStart = onStart;
+    this.onDismiss = onDismiss;
 
     const enemyIds = listPlayableDefenseEnemyIds(store);
     if (enemyIds.length === 0) enemyIds.push("grunt");
@@ -573,11 +577,14 @@ export class EndlessModePanel {
   }
 
   destroy(): void {
+    if (this.tornDown) return;
+    this.tornDown = true;
     this.scene.input.off("wheel", this.onWheel);
-    this.maskGraphics.destroy();
-    this.startBtn?.container.destroy();
-    this.closeBtn?.container.destroy();
-    this.root.destroy();
+    if (this.maskGraphics.active) this.maskGraphics.destroy();
+    if (this.startBtn?.container.active) this.startBtn.container.destroy();
+    if (this.closeBtn?.container.active) this.closeBtn.container.destroy();
+    if (this.root.active) this.root.destroy();
+    this.onDismiss?.();
   }
 
   e2eSelectedEnemyId(): string | null {

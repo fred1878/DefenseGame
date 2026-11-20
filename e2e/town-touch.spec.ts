@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { gotoE2E } from "./helpers/game";
+import { gotoE2E, startDefense } from "./helpers/game";
 import { dragCanvas, getTapTarget, tapCanvas } from "./helpers/touch";
 
 test("drag-off Start night clears pressed visual and stays in Town", async ({
@@ -24,6 +24,88 @@ test("drag-off Start night clears pressed visual and stays in Town", async ({
       async () =>
         page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
       { timeout: 3_000 },
+    )
+    .toBe(true);
+});
+
+test("Haunted Well opens endless after campaign night when panel was left open", async ({
+  page,
+}) => {
+  await gotoE2E(page);
+  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () => window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? false,
+        ),
+      { timeout: 5_000 },
+    )
+    .toBe(true);
+  await startDefense(page);
+  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.forceWinNight());
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
+  const target = await getTapTarget(
+    page,
+    "town-building-town_special_haunted_well",
+  );
+  await tapCanvas(page, target.x, target.y);
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            window.__DEFENSEGAME_E2E__?.scene === "Town" &&
+            (window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? false),
+        ),
+      { timeout: 5_000 },
+    )
+    .toBe(true);
+});
+
+test("Haunted Well reopens endless panel after close and campaign night", async ({
+  page,
+}) => {
+  await gotoE2E(page);
+  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+  const close = await getTapTarget(page, "endless-close");
+  await tapCanvas(page, close.x, close.y);
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () => !(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? true),
+        ),
+      { timeout: 5_000 },
+    )
+    .toBe(true);
+  await startDefense(page);
+  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.forceWinNight());
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
+  const target = await getTapTarget(
+    page,
+    "town-building-town_special_haunted_well",
+  );
+  await tapCanvas(page, target.x, target.y);
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () => window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? false,
+        ),
+      { timeout: 5_000 },
     )
     .toBe(true);
 });
