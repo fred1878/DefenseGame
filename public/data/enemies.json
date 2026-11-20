@@ -249,11 +249,12 @@
         "cooldownMs": 380
       },
       "charger": {
-        "dashTriggerRange": 180,
+        "dashTriggerRange": 228,
         "dashWindupMs": 300,
-        "dashDurationMs": 400,
-        "dashSpeedMul": 2,
-        "dashCooldownMs": 2600
+        "dashDurationMs": 520,
+        "dashSpeedMul": 2.15,
+        "dashCooldownMs": 2600,
+        "dashOvershootRange": 104
       }
     }
   },
