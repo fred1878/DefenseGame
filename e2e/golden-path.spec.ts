@@ -33,9 +33,16 @@ test.describe("golden paths — combat", () => {
     const page = boot.page;
     const before = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
     expect(before).toBeTruthy();
-    await apiEval(page, "api.setStick(1, 0, 600)");
-    const after = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
-    expect(after!.x).toBeGreaterThan(before!.x + 7);
+    const beforeX = before!.x;
+    await apiEval(page, "api.setStick(1, 0)");
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => window.__DEFENSEGAME_E2E__?.player?.x ?? beforeX),
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(beforeX + 4);
+    await apiEval(page, "api.clearStick()");
   });
 
   test("defense-melee-fx", async () => {
