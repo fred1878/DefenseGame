@@ -38,6 +38,7 @@ describe("rangedHybrid combat state machine", () => {
       range: 61,
     },
     stationaryRanged: {
+      preferredRange: 110,
       attackTriggerRange: 200,
       windupMs: 200,
       activeMs: 40,

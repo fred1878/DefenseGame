@@ -52,6 +52,7 @@ const JAVELINEER_KEYS = [
   "projectileMaxTravel",
 ] as const;
 const STATIONARY_RANGED_KEYS = [
+  "preferredRange",
   "attackTriggerRange",
   "windupMs",
   "activeMs",

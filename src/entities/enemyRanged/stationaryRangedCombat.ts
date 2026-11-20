@@ -19,7 +19,9 @@ export function updateStationaryRangedCombat(
   const dist = Math.hypot(dx, dy);
   c.facing = Math.atan2(dy, dx);
 
-  const inRange = dist <= tune.attackTriggerRange;
+  const minVolley = Math.max(0, tune.preferredRange - 22);
+  const inRange =
+    dist <= tune.attackTriggerRange && dist >= minVolley;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
     c.phase = "windup";

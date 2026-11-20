@@ -39,6 +39,7 @@
     "projectileMaxTravel": 240
   },
   "stationaryRanged": {
+    "preferredRange": 118,
     "attackTriggerRange": 155,
     "windupMs": 520,
     "activeMs": 80,
