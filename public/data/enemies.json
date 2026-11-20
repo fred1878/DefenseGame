@@ -5,12 +5,22 @@
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
-    "displayName": "Grunt"
+    "displayName": "Grunt",
+ "melee": {
+    "triggerRange": 78,
+    "range": 72,
+    "arcDeg": 70,
+    "windupMs": 100,
+    "activeMs": 110,
+    "recoveryMs": 300,
+    "cooldownMs": 350,
+    "engageBodySlackPx": 0
+  },
   },
   "bruiser": {
-    "hp": 90,
+    "hp": 299,
     "speed": 55,
-    "damage": 11,
+    "damage": 13,
     "behavior": "bruiser",
     "textureKey": "enemy_bruiser",
     "displayName": "Bruiser",
@@ -21,8 +31,8 @@
         "hitRange": 44
       },
       "melee": {
-        "triggerRange": 75,
-        "range": 67,
+        "triggerRange": 90,
+        "range": 84,
         "arcDeg": 78,
         "windupMs": 480,
         "activeMs": 130,
