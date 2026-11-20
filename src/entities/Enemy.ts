@@ -53,6 +53,15 @@ export type EnemyBehaviorExtra = {
   /** Normalized dash heading, locked when windup ends. */
   chargeDashDirX: number;
   chargeDashDirY: number;
+  /** Remaining ms to hold at the ward screen post without micro-repositioning. */
+  wardPostGraceMs: number;
+  wardPostSnapPlayerX: number;
+  wardPostSnapPlayerY: number;
+  wardPostSnapAllyX: number;
+  wardPostSnapAllyY: number;
+  wardPostAnchorGoalX: number;
+  wardPostAnchorGoalY: number;
+  wardPostWasInHoldRadius: boolean;
 };
 
 export type EnemyInstance = {
@@ -173,6 +182,14 @@ export function spawnEnemy(
       chargeAimY: 0,
       chargeDashDirX: 0,
       chargeDashDirY: 0,
+      wardPostGraceMs: 0,
+      wardPostSnapPlayerX: 0,
+      wardPostSnapPlayerY: 0,
+      wardPostSnapAllyX: 0,
+      wardPostSnapAllyY: 0,
+      wardPostAnchorGoalX: 0,
+      wardPostAnchorGoalY: 0,
+      wardPostWasInHoldRadius: false,
     },
   };
   if (def.behavior === "arrowRainArcher") {

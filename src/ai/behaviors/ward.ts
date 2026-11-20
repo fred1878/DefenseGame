@@ -1,5 +1,6 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
+import type { EnemyBehaviorExtra } from "../../entities/Enemy";
 import {
   pathingPeerAgents,
   replanEnemyPath,
@@ -13,6 +14,13 @@ const RANGED_PROTECT_BEHAVIORS = new Set([
   "stationaryRanged",
   "javelineer",
 ]);
+
+/** Design px — within this distance of the screen goal counts as "at post". */
+export const WARD_POST_HOLD_RADIUS_PX = 22;
+/** Design px — player / protectee motion above this ends the grace window. */
+export const WARD_POST_BREAK_MOVE_PX = 44;
+/** Ms to stand still at post before allowing a full reposition. */
+export const WARD_POST_GRACE_MS = 1600;
 
 export function pickWardProtectee(
   allies: readonly EnemyPeerAlly[] | undefined,
@@ -48,6 +56,123 @@ export function wardScreenPoint(
   };
 }
 
+export function wardPostHoldBroken(
+  extra: Pick<
+    EnemyBehaviorExtra,
+  | "wardPostSnapPlayerX"
+  | "wardPostSnapPlayerY"
+  | "wardPostSnapAllyX"
+  | "wardPostSnapAllyY"
+  >,
+  playerX: number,
+  playerY: number,
+  allyX: number,
+  allyY: number,
+  breakMovePx: number,
+  trackAlly: boolean,
+): boolean {
+  if (
+    Math.hypot(
+      playerX - extra.wardPostSnapPlayerX,
+      playerY - extra.wardPostSnapPlayerY,
+    ) > breakMovePx
+  ) {
+    return true;
+  }
+  if (
+    trackAlly &&
+    Math.hypot(
+      allyX - extra.wardPostSnapAllyX,
+      allyY - extra.wardPostSnapAllyY,
+    ) > breakMovePx
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export type WardPostHoldDecision = {
+  hold: boolean;
+  skipReplan: boolean;
+};
+
+/** Grace + goal deadband while screening for a ranged ally. */
+export function evaluateWardPostHold(
+  extra: EnemyBehaviorExtra,
+  deltaMs: number,
+  atPost: boolean,
+  goalX: number,
+  goalY: number,
+  playerX: number,
+  playerY: number,
+  allyX: number,
+  allyY: number,
+  breakMovePx: number,
+): WardPostHoldDecision {
+  if (!atPost) {
+    extra.wardPostWasInHoldRadius = false;
+    extra.wardPostGraceMs = 0;
+    return { hold: false, skipReplan: false };
+  }
+
+  const freshlyArrived = !extra.wardPostWasInHoldRadius;
+  extra.wardPostWasInHoldRadius = true;
+
+  if (freshlyArrived || extra.wardPostGraceMs <= 0) {
+    if (freshlyArrived) {
+      extra.wardPostGraceMs = WARD_POST_GRACE_MS;
+      extra.wardPostSnapPlayerX = playerX;
+      extra.wardPostSnapPlayerY = playerY;
+      extra.wardPostSnapAllyX = allyX;
+      extra.wardPostSnapAllyY = allyY;
+      extra.wardPostAnchorGoalX = goalX;
+      extra.wardPostAnchorGoalY = goalY;
+    }
+  }
+
+  const snapBroken = wardPostHoldBroken(
+    extra,
+    playerX,
+    playerY,
+    allyX,
+    allyY,
+    breakMovePx,
+    true,
+  );
+
+  if (extra.wardPostGraceMs > 0) {
+    extra.wardPostGraceMs = Math.max(0, extra.wardPostGraceMs - deltaMs);
+    if (snapBroken) {
+      extra.wardPostGraceMs = 0;
+      extra.wardPostAnchorGoalX = goalX;
+      extra.wardPostAnchorGoalY = goalY;
+      return { hold: false, skipReplan: false };
+    }
+    if (extra.wardPostGraceMs > 0) {
+      return { hold: true, skipReplan: true };
+    }
+    extra.wardPostAnchorGoalX = goalX;
+    extra.wardPostAnchorGoalY = goalY;
+    return { hold: false, skipReplan: false };
+  }
+
+  if (snapBroken) {
+    extra.wardPostAnchorGoalX = goalX;
+    extra.wardPostAnchorGoalY = goalY;
+    return { hold: false, skipReplan: false };
+  }
+
+  const goalDrift = Math.hypot(
+    goalX - extra.wardPostAnchorGoalX,
+    goalY - extra.wardPostAnchorGoalY,
+  );
+  if (goalDrift < breakMovePx) {
+    return { hold: true, skipReplan: true };
+  }
+
+  return { hold: false, skipReplan: false };
+}
+
 export const wardBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
     ctx;
@@ -56,6 +181,8 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
   const reg = enemy.sprite.scene.registry;
   const ward = enemy.combatTuning.ward;
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
+  const holdRadius = worldUnit(WARD_POST_HOLD_RADIUS_PX, reg);
+  const breakMovePx = worldUnit(WARD_POST_BREAK_MOVE_PX, reg);
   const aggro = ward?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS;
 
   const protectee = pickWardProtectee(
@@ -101,9 +228,35 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
     nav.targetKind = resolved.targetKind;
   }
 
+  const distToGoal = Math.hypot(goalX - ex, goalY - ey);
+  const atPost = distToGoal <= holdRadius;
+
+  let postHold: WardPostHoldDecision | undefined;
+  if (protectee) {
+    postHold = evaluateWardPostHold(
+      enemy.behaviorExtra,
+      deltaMs,
+      atPost,
+      goalX,
+      goalY,
+      playerX,
+      playerY,
+      protectee.x,
+      protectee.y,
+      breakMovePx,
+    );
+    if (postHold.hold) {
+      enemy.sprite.setVelocity(0, 0);
+      enemy.combat.facing = Math.atan2(playerY - ey, playerX - ex);
+      return { targetX: goalX, targetY: goalY, targetKind };
+    }
+  }
+
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
+  const skipReplan = postHold?.skipReplan ?? false;
+
+  if (!skipReplan && (nav.replanMs <= 0 || nav.path.length === 0)) {
     replanEnemyPath(
       nav,
       grid,
