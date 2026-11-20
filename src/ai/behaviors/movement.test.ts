@@ -73,12 +73,17 @@ describe("wall melee hold helpers", () => {
     expect(vx).toBeCloseTo(50, 1);
   });
 
-  it("meleeChaser stops movement while attacking", () => {
-    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speed: 100 });
+  it("meleeChaser holds chase at zero while attacking but keeps knockback slide", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      speed: 100,
+      knockbackVx: 30,
+      knockbackVy: 0,
+    });
     enemy.combat.phase = "windup";
     applyChaseVelocity(enemy, 100, 0, 1);
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
-    expect(setVelocity).not.toHaveBeenCalled();
+    expect(setVelocity).toHaveBeenCalledWith(30, 0);
   });
 
   it("zeros velocity and snaps north of standoff back to approach line", () => {

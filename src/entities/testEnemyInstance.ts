@@ -47,6 +47,8 @@ export function mockEnemyInstance(
     combat: createEnemyCombat(),
     nav: createEnemyNav(),
     statusSpeedMul: 1,
+    knockbackVx: 0,
+    knockbackVy: 0,
     behaviorExtra: {
       strafeSign: 1,
       strafeFlipMs: 0,

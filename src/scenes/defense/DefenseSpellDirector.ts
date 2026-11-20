@@ -98,14 +98,7 @@ export type DefenseSpellDirectorHost = {
   shadowformEndsAt: number;
   iceWallExpires: Array<{ sprite: Phaser.Physics.Arcade.Image; expiresAt: number }>;
   wu: (n: number) => number;
-  enemyTargets: () => {
-    id: string;
-    x: number;
-    y: number;
-    radius: number;
-    damageable: import("../../combat/DamageSystem").Damageable;
-    sprite: Phaser.Physics.Arcade.Sprite;
-  }[];
+  enemyTargets: () => import("../../combat/SpellEffects").SpellEnemyTarget[];
   resolveStrikeMode: (auto: boolean) => "melee" | "ranged";
   flashNova: (x: number, y: number, radius: number, def?: { blastTextureKey?: string }) => void;
   nextProjectileId: () => string;

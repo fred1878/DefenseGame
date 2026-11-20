@@ -78,6 +78,9 @@ export type EnemyInstance = {
   displayName: string;
   /** Per-frame status slow from spells (do not persist). */
   statusSpeedMul: number;
+  /** Residual slide from player hits; merged into velocity after AI intent. */
+  knockbackVx: number;
+  knockbackVy: number;
 };
 
 export function spawnEnemy(
@@ -158,6 +161,8 @@ export function spawnEnemy(
     nav: createEnemyNav(),
     nameplate,
     statusSpeedMul: 1,
+    knockbackVx: 0,
+    knockbackVy: 0,
     behaviorExtra: {
       strafeSign: 1,
       strafeFlipMs: combatTuning.javelineer?.orbitFlipMs ?? 0,

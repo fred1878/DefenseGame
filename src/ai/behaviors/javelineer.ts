@@ -4,7 +4,11 @@ import { cellBlocked, worldToCell, type NavGrid } from "../../pathfinding/grid";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, applyDirectVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyDirectVelocity,
+  setEnemyChaseVelocity,
+} from "./movement";
 
 const STRAFE_PROBE_DIST = 44;
 /** Blend weight for closing distance while in the kite band. */
@@ -71,7 +75,7 @@ function resolveStrafeSign(
         peerAgents,
       )
     ) {
-      enemy.sprite.setVelocity(0, 0);
+      setEnemyChaseVelocity(enemy, 0, 0);
     }
   }
   return sign;

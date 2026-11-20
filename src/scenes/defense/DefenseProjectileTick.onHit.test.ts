@@ -33,6 +33,11 @@ function mockHost(projectiles: PlayerProjectile[]): DefenseProjectileTickHost & 
         radius: 12,
         damageable,
         sprite: { x: 30, y: 0 } as Phaser.Physics.Arcade.Sprite,
+        enemy: {
+          sprite: { x: 30, y: 0 } as Phaser.Physics.Arcade.Sprite,
+          knockbackVx: 0,
+          knockbackVy: 0,
+        } as import("../../entities/Enemy").EnemyInstance,
       },
     ],
     spellDamageMult: () => 1,
