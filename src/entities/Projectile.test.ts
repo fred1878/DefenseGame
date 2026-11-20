@@ -62,6 +62,7 @@ describe("updateProjectile", () => {
             sprite: enemySprite,
             knockbackVx: 0,
             knockbackVy: 0,
+            weight: 100,
           },
         },
       ],

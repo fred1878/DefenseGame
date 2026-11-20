@@ -3,10 +3,23 @@ import type { EnemyInstance } from "../entities/Enemy";
 /** Exponential decay for residual knockback slide (world-ms). */
 export const ENEMY_KNOCKBACK_DECAY_MS = 260;
 
+/** Config baseline: knockback impulse scales as `strength * (baseline / weight)`. */
+export const ENEMY_KNOCKBACK_WEIGHT_BASELINE = 100;
+
 export type EnemyKnockbackCarrier = Pick<
   EnemyInstance,
-  "sprite" | "knockbackVx" | "knockbackVy"
+  "sprite" | "knockbackVx" | "knockbackVy" | "weight"
 >;
+
+export function knockbackStrengthForEnemyWeight(
+  strength: number,
+  weight: number,
+): number {
+  if (weight <= 0 || !Number.isFinite(weight)) {
+    return 0;
+  }
+  return strength * (ENEMY_KNOCKBACK_WEIGHT_BASELINE / weight);
+}
 
 export function applyEnemyKnockbackFrom(
   enemy: EnemyKnockbackCarrier,
@@ -14,14 +27,15 @@ export function applyEnemyKnockbackFrom(
   fromY: number,
   strength: number,
 ): void {
+  const scaled = knockbackStrengthForEnemyWeight(strength, enemy.weight);
   const dx = enemy.sprite.x - fromX;
   const dy = enemy.sprite.y - fromY;
   const len = Math.hypot(dx, dy) || 1;
   const nx = dx / len;
   const ny = dy / len;
-  enemy.knockbackVx += nx * strength;
-  enemy.knockbackVy += ny * strength;
-  const maxV = strength * 1.35;
+  enemy.knockbackVx += nx * scaled;
+  enemy.knockbackVy += ny * scaled;
+  const maxV = scaled * 1.35;
   const vlen = Math.hypot(enemy.knockbackVx, enemy.knockbackVy);
   if (vlen > maxV) {
     enemy.knockbackVx = (enemy.knockbackVx / vlen) * maxV;

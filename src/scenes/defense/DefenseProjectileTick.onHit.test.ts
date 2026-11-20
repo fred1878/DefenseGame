@@ -37,6 +37,7 @@ function mockHost(projectiles: PlayerProjectile[]): DefenseProjectileTickHost & 
           sprite: { x: 30, y: 0 } as Phaser.Physics.Arcade.Sprite,
           knockbackVx: 0,
           knockbackVy: 0,
+          weight: 100,
         } as import("../../entities/Enemy").EnemyInstance,
       },
     ],

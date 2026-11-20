@@ -15,15 +15,17 @@ function expectFiniteNumber(value: unknown, label: string): void {
 }
 
 describe("public data fixtures", () => {
-  it("enemies.json rows include required hp, speed, and damage", () => {
+  it("enemies.json rows include required hp, speed, damage, and weight", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
-      { hp?: number; speed?: number; damage?: number }
+      { hp?: number; speed?: number; damage?: number; weight?: number }
     >;
     for (const [id, row] of Object.entries(enemies)) {
       expectFiniteNumber(row.hp, `enemies.${id}.hp`);
       expectFiniteNumber(row.speed, `enemies.${id}.speed`);
       expectFiniteNumber(row.damage, `enemies.${id}.damage`);
+      expectFiniteNumber(row.weight, `enemies.${id}.weight`);
+      expect((row.weight as number) > 0, `enemies.${id}.weight > 0`).toBe(true);
     }
   });
 

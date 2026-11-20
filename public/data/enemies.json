@@ -16,7 +16,8 @@
         "recoveryMs": 300,
         "cooldownMs": 350
       }
-    }
+    },
+    "weight": 100
   },
   "bruiser": {
     "hp": 299,
@@ -40,7 +41,8 @@
         "recoveryMs": 600,
         "cooldownMs": 520
       }
-    }
+    },
+    "weight": 100
   },
   "arrow_rain_archer": {
     "hp": 40,
@@ -76,7 +78,8 @@
         "tickDamageScale": 0.55,
         "maxTicks": 4
       }
-    }
+    },
+    "weight": 100
   },
   "skirmisher": {
     "hp": 34,
@@ -100,7 +103,8 @@
         "recoveryMs": 160,
         "cooldownMs": 120
       }
-    }
+    },
+    "weight": 100
   },
   "sentry_archer": {
     "hp": 24,
@@ -134,7 +138,8 @@
         "projectileSpeed": 500,
         "projectileMaxTravel": 490
       }
-    }
+    },
+    "weight": 100
   },
   "javelineer": {
     "hp": 26,
@@ -170,7 +175,8 @@
         "projectileSpeed": 340,
         "projectileMaxTravel": 350
       }
-    }
+    },
+    "weight": 100
   },
   "slow_siege": {
     "hp": 92,
@@ -197,7 +203,8 @@
       "wallSiege": {
         "playerAggroRadius": 90
       }
-    }
+    },
+    "weight": 100
   },
   "fast_sapper": {
     "hp": 50,
@@ -224,7 +231,8 @@
       "wallSiege": {
         "playerAggroRadius": 90
       }
-    }
+    },
+    "weight": 100
   },
   "charger": {
     "hp": 85,
@@ -256,7 +264,8 @@
         "dashCooldownMs": 2600,
         "dashOvershootRange": 104
       }
-    }
+    },
+    "weight": 100
   },
   "lobber": {
     "hp": 32,
@@ -291,7 +300,8 @@
         "blastRadius": 90,
         "blastDamageScale": 0.92
       }
-    }
+    },
+    "weight": 100
   },
   "reaver": {
     "hp": 110,
@@ -331,7 +341,8 @@
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18
       }
-    }
+    },
+    "weight": 100
   },
   "ward": {
     "hp": 44,
@@ -360,6 +371,7 @@
         "screenBlend": 0.4,
         "playerAggroRadius": 110
       }
-    }
+    },
+    "weight": 100
   }
 }
