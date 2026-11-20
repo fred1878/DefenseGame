@@ -5,7 +5,7 @@
   "coneArcDeg": 72,
   "chainLightningHops": 4,
   "chainLightningHopRangeWu": 110,
-  "blinkDistanceWu": 96,
+  "blinkDistanceWu": 250,
   "iceWallDistanceWu": 64,
   "iceWallDurationMs": 8000,
   "shadowformDurationMs": 10000,
