@@ -13,7 +13,7 @@ jobs:
   regen:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -29,7 +29,7 @@ jobs:
           MOBILERPG_ATLAS_TGA: /tmp/mobilerpg-assets/atlas.tga
         run: python3 scripts/extract-mobilerpg-spell-assets.py
       - name: Upload spell asset artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: mobilerpg-spell-pngs
           path: |
