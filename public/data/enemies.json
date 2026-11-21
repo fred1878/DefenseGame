@@ -22,8 +22,8 @@
   },
   "bruiser": {
     "hp": 299,
-    "speed": 55,
-    "damage": 13,
+    "speed": 80,
+    "damage": 14,
     "behavior": "bruiser",
     "textureKey": "enemy_bruiser",
     "displayName": "Bruiser",
@@ -36,7 +36,7 @@
       "melee": {
         "triggerRange": 90,
         "range": 84,
-        "arcDeg": 78,
+        "arcDeg": 100,
         "windupMs": 480,
         "activeMs": 130,
         "recoveryMs": 600,
