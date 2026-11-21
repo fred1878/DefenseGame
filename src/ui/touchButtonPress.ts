@@ -1,7 +1,10 @@
 import Phaser from "phaser";
 import { scaleUiX } from "../core/displayScale";
-import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../input/inputTuning";
-import { releaseOnSameButton } from "./touchButtonGesture";
+import {
+  TOUCH_BUTTON_RELEASE_SLOP_PX,
+  VIRTUAL_STICK_DRAG_THRESHOLD_PX,
+} from "../input/inputTuning";
+import { pressDragExceedsThreshold, releaseOnSameButton } from "./touchButtonGesture";
 import { interactiveObjectScreenRect } from "./touchButtonGeometry";
 import { isUiRoundedRect, paintUiRoundedRect } from "./uiRoundedRect";
 
@@ -9,6 +12,13 @@ export type TapOrLongPressCallbacks = {
   onTap: () => void;
   onLongPress: () => void;
   longPressMs: number;
+  /** Fires on pointerdown after slop, before tap/long-press resolution. */
+  onPressStart?: (pointer: Phaser.Input.Pointer) => void;
+  /**
+   * Pixels of travel before the gesture counts as a drag (cancels tap and long-press).
+   * Defaults to {@link VIRTUAL_STICK_DRAG_THRESHOLD_PX}.
+   */
+  dragCancelTapPx?: number;
 };
 
 export type BgVisual =
@@ -223,9 +233,15 @@ export function bindTapOrLongPress(
   if (go.input) go.input.alwaysEnabled = true;
 
   const slopPx = scaleUiX(TOUCH_BUTTON_RELEASE_SLOP_PX);
+  const dragCancelPx = scaleUiX(
+    callbacks.dragCancelTapPx ?? VIRTUAL_STICK_DRAG_THRESHOLD_PX,
+  );
   let activePointerId: number | null = null;
   let longPressTimer: number | null = null;
   let longPressFired = false;
+  let dragExceeded = false;
+  let pressStartX = 0;
+  let pressStartY = 0;
 
   const showPressed = () => {
     if (obj instanceof Phaser.GameObjects.Container) {
@@ -255,25 +271,55 @@ export function bindTapOrLongPress(
     event.stopPropagation();
     activePointerId = pointer.id;
     longPressFired = false;
+    dragExceeded = false;
+    pressStartX = pointer.x;
+    pressStartY = pointer.y;
     clearTimer();
     longPressTimer = window.setTimeout(() => {
       longPressFired = true;
       callbacks.onLongPress();
     }, callbacks.longPressMs);
     showPressed();
+    callbacks.onPressStart?.(pointer);
+  };
+
+  const onScenePointerMove = (pointer: Phaser.Input.Pointer) => {
+    if (activePointerId === null || pointer.id !== activePointerId) return;
+    if (!pointer.isDown) return;
+    if (
+      !pressDragExceedsThreshold(
+        pressStartX,
+        pressStartY,
+        pointer.x,
+        pointer.y,
+        dragCancelPx,
+      )
+    ) {
+      return;
+    }
+    if (!dragExceeded) {
+      dragExceeded = true;
+      clearTimer();
+    }
   };
 
   const onScenePointerUp = (pointer: Phaser.Input.Pointer) => {
     if (activePointerId === null || pointer.id !== activePointerId) return;
     clearTimer();
-    if (!longPressFired && pointerHitsGameObject(scene, obj, pointer, slopPx)) {
+    if (
+      !longPressFired &&
+      !dragExceeded &&
+      pointerHitsGameObject(scene, obj, pointer, slopPx)
+    ) {
       callbacks.onTap();
     }
     activePointerId = null;
+    dragExceeded = false;
     clearPressed();
   };
 
   obj.on("pointerdown", onDown);
+  scene.input.on("pointermove", onScenePointerMove);
   scene.input.on("pointerup", onScenePointerUp);
   scene.input.on("pointerupoutside", onScenePointerUp);
   scene.input.on("pointercancel", onScenePointerUp);
@@ -282,6 +328,7 @@ export function bindTapOrLongPress(
     clearTimer();
     const input = scene.input;
     if (!input) return;
+    input.off("pointermove", onScenePointerMove);
     input.off("pointerup", onScenePointerUp);
     input.off("pointerupoutside", onScenePointerUp);
     input.off("pointercancel", onScenePointerUp);

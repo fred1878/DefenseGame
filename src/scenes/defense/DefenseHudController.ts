@@ -44,6 +44,8 @@ export type DefenseHudControllerDeps = {
   onManualAttack: () => void;
   onSpellCastRequest: (spellId: string) => void;
   onSpellAutoCastToggle: (slotIndex: number) => void;
+  onGroundCastArm: (spellId: string, pointer: Phaser.Input.Pointer) => void;
+  onGroundCastCancel: () => void;
   onOpenDebugMenu: () => void;
   onLeaveEndless: () => void;
   getAutoAttackEnabled: () => boolean;
@@ -173,6 +175,8 @@ function buildDefenseHudController(
     {
       onCastRequest: (id) => deps.onSpellCastRequest(id),
       onAutoCastToggle: (slot) => deps.onSpellAutoCastToggle(slot),
+      onGroundCastArm: (id, pointer) => deps.onGroundCastArm(id, pointer),
+      onGroundCastCancel: () => deps.onGroundCastCancel(),
     },
   );
   spellBar.refreshAutoCastBorders(

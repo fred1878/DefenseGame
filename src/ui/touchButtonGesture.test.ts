@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { releaseOnSameButton } from "./touchButtonGesture";
+import { pressDragExceedsThreshold, releaseOnSameButton } from "./touchButtonGesture";
+
+describe("pressDragExceedsThreshold", () => {
+  it("returns false inside threshold", () => {
+    expect(pressDragExceedsThreshold(0, 0, 10, 0, 24)).toBe(false);
+  });
+
+  it("returns true beyond threshold", () => {
+    expect(pressDragExceedsThreshold(0, 0, 30, 0, 24)).toBe(true);
+  });
+});
 
 describe("releaseOnSameButton", () => {
   const bounds = { x: 100, y: 200, width: 80, height: 40 };

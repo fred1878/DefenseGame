@@ -29,6 +29,10 @@ export function spellRequiresManualTarget(def: SpellDefinition): boolean {
   return mode === "ground" || (mode === "enemy" && def.requireEnemyTarget === true);
 }
 
+export function spellUsesManualGroundAim(def: SpellDefinition): boolean {
+  return spellRequiresManualTarget(def) && spellTargetMode(def) === "ground";
+}
+
 export function spellChannelTickMs(def: SpellDefinition): number {
   return def.channelTickMs ?? 250;
 }

@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { DEFENSE_SPELL_BAR, defenseSpellBarIconDisplayPx } from "../config";
 import { autoCastFlagsForSlots } from "../content/spellBarAutoCast";
 import { spellById, type SpellId } from "../content/spells";
+import { spellUsesManualGroundAim } from "../content/spellTargeting";
 import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../core/displayScale";
 import { SpellCastController } from "../combat/SpellCastController";
@@ -15,6 +16,8 @@ import { readSafeInsets, spellBarSlotCenter } from "./screenLayout";
 export type SpellBarCallbacks = {
   onCastRequest: (spellId: SpellId, slotIndex: number) => void;
   onAutoCastToggle: (slotIndex: number) => void;
+  onGroundCastArm: (spellId: SpellId, pointer: Phaser.Input.Pointer) => void;
+  onGroundCastCancel: () => void;
 };
 
 type CooldownVisual = {
@@ -33,6 +36,8 @@ export class SpellBar {
   private readonly cooldownVisuals: CooldownVisual[] = [];
   private readonly onCastRequest: (spellId: SpellId, slotIndex: number) => void;
   private readonly onAutoCastToggle: (slotIndex: number) => void;
+  private readonly onGroundCastArm: (spellId: SpellId, pointer: Phaser.Input.Pointer) => void;
+  private readonly onGroundCastCancel: () => void;
 
   constructor(
     scene: Phaser.Scene,
@@ -48,6 +53,8 @@ export class SpellBar {
     const autoFlags = autoCastFlagsForSlots(this.slots, autoCastSpellIds);
     this.onCastRequest = callbacks.onCastRequest;
     this.onAutoCastToggle = callbacks.onAutoCastToggle;
+    this.onGroundCastArm = callbacks.onGroundCastArm;
+    this.onGroundCastCancel = callbacks.onGroundCastCancel;
 
     const safe = readSafeInsets();
 
@@ -96,9 +103,22 @@ export class SpellBar {
         {
           onTap: () => {
             const id = this.slots[slotIndex] ?? "";
-            if (id) this.onCastRequest(id, slotIndex);
+            if (!id) return;
+            const def = spellById(id);
+            if (def && spellUsesManualGroundAim(def)) return;
+            this.onCastRequest(id, slotIndex);
           },
-          onLongPress: () => this.onAutoCastToggle(slotIndex),
+          onLongPress: () => {
+            this.onGroundCastCancel();
+            this.onAutoCastToggle(slotIndex);
+          },
+          onPressStart: (pointer) => {
+            const id = this.slots[slotIndex] ?? "";
+            if (!id) return;
+            const def = spellById(id);
+            if (!def || !spellUsesManualGroundAim(def)) return;
+            this.onGroundCastArm(id, pointer);
+          },
           longPressMs: DEFENSE_SPELL_BAR.longPressMs,
         },
         {
