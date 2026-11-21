@@ -64,7 +64,10 @@ export function updateEnemyCombat(
   const dx = target.x - enemy.sprite.x;
   const dy = target.y - enemy.sprite.y;
   const dist = Math.hypot(dx, dy);
-  if (c.phase === "idle") {
+  if (
+    c.phase === "idle" &&
+    !(enemy.behavior === "ward" && enemy.behaviorExtra.wardPostHolding)
+  ) {
     c.facing = Math.atan2(dy, dx);
   }
 
