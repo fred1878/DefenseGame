@@ -23,6 +23,10 @@ import {
   createChanneledConeTickState,
   type ChanneledConeTickState,
 } from "../../combat/channeledConeChannel";
+import {
+  fireNovaRingDurationMs,
+  showFireNovaRingFx,
+} from "../../combat/FireNovaRingFx";
 import { spellChannelTickMs } from "../../content/spellTargeting";
 import {
   BLINK_DISTANCE_WU,
@@ -646,14 +650,26 @@ export class DefenseSpellDirector {
         const bx = remote?.x ?? px;
         const by = remote?.y ?? py;
         applySpellBlastAt(this.host.scene, bx, by, def, targets, mult, this.host.enemySpellStatus);
-        this.host.flashNova(bx, by, this.host.wu(def.blastRadius ?? 80), {
-          blastTextureKey:
-            def.id === "meteor"
-              ? COMBAT_FX_TEXTURE.spellShockwave
-              : def.id === "flamestrike"
-                ? COMBAT_FX_TEXTURE.spellFireNova
-                : def.blastTextureKey,
-        });
+        const blastRadiusPx = this.host.wu(def.blastRadius ?? 80);
+        if (def.id === "fire_nova") {
+          showFireNovaRingFx(
+            this.host.scene,
+            bx,
+            by,
+            blastRadiusPx,
+            fireNovaRingDurationMs(def, blastRadiusPx),
+            this.host.maskWorldObject,
+          );
+        } else {
+          this.host.flashNova(bx, by, blastRadiusPx, {
+            blastTextureKey:
+              def.id === "meteor"
+                ? COMBAT_FX_TEXTURE.spellShockwave
+                : def.id === "flamestrike"
+                  ? COMBAT_FX_TEXTURE.spellFireNova
+                  : def.blastTextureKey,
+          });
+        }
         if (def.id === "frost_nova") this.applyFrostNovaRoot();
         break;
       }
