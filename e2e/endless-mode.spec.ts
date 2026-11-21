@@ -26,7 +26,10 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
     .toBe(true);
 
   await page.evaluate(() => {
-    window.__DEFENSEGAME_E2E__?.api?.startEndless("grunt");
+    const api = window.__DEFENSEGAME_E2E__?.api;
+    api?.openEndlessPanel();
+    api?.setEndlessEnemyCap("grunt", 5);
+    api?.startEndless("grunt");
   });
 
   await expect

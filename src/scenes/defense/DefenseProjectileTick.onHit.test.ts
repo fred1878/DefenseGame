@@ -51,6 +51,49 @@ function mockHost(projectiles: PlayerProjectile[]): DefenseProjectileTickHost & 
 }
 
 describe("tickDefenseProjectiles onHit", () => {
+  it("applies knockback when a non-spell projectile hits", () => {
+    const destroyed = vi.fn();
+    const enemyKnock = {
+      sprite: { x: 30, y: 0 } as Phaser.Physics.Arcade.Sprite,
+      knockbackVx: 0,
+      knockbackVy: 0,
+      weight: 100,
+    };
+    const projectile: PlayerProjectile = {
+      id: "p0",
+      sprite: {
+        active: true,
+        x: 32,
+        y: 0,
+        texture: { key: "player_ranged" },
+        destroy: destroyed,
+        setRotation: vi.fn(),
+        body: { velocity: { x: 400, y: 0 } },
+      } as unknown as Phaser.Physics.Arcade.Sprite,
+      damage: 12,
+      damageFlavor: "default",
+      maxTravel: 200,
+      traveled: 0,
+      prevX: 0,
+      prevY: 0,
+    };
+
+    const base = mockHost([projectile]);
+    const host: DefenseProjectileTickHost = {
+      ...base,
+      enemyTargets: () => [
+        {
+          ...base.enemyTargets()[0]!,
+          enemy: enemyKnock as import("../../entities/Enemy").EnemyInstance,
+        },
+      ],
+    };
+
+    tickDefenseProjectiles(host, 16);
+    expect(Math.abs(enemyKnock.knockbackVx)).toBeGreaterThan(0);
+    expect(destroyed).toHaveBeenCalled();
+  });
+
   it("applies ice_bolt slow when the projectile hits", () => {
     const destroyed = vi.fn();
     const projectile: PlayerProjectile = {

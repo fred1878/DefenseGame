@@ -67,10 +67,11 @@ export function tickDefenseProjectiles(
     deltaMs: delta,
     enemies: host.enemyTargets(),
     knockbackFor: (p: PlayerProjectile) => {
-      const def = p.spellId ? spellById(p.spellId) : undefined;
+      if (!p.spellId) return PLAYER_TUNING.rangedKnockback;
+      const def = spellById(p.spellId);
       if (def?.knockback == null) {
         throw new ConfigLoadError(
-          `Missing spell knockback for projectile spellId=${p.spellId ?? "?"}`,
+          `Missing spell knockback for projectile spellId=${p.spellId}`,
         );
       }
       return def.knockback;
