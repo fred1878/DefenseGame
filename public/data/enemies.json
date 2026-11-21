@@ -1,7 +1,7 @@
 {
   "grunt": {
     "hp": 55,
-    "speed": 91,
+    "speed": 121,
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
@@ -113,7 +113,7 @@
   },
   "sentry_archer": {
     "hp": 24,
-    "speed": 43,
+    "speed": 63,
     "damage": 10,
     "behavior": "stationaryRanged",
     "textureKey": "enemy_sentry_archer",
