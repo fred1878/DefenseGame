@@ -3,6 +3,12 @@ import { GAME } from "../config";
 import type { DataStore } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { INPUT_MODALITY } from "../input/inputModality";
+import {
+  acquireModalInput,
+  bindModalDimBackdrop,
+  type ModalInputLease,
+} from "../input/modalBackdrop";
 import { listPlayableDefenseEnemyIds } from "../systems/endlessEnemyRoster";
 import {
   clampEndlessConcurrent,
@@ -60,6 +66,7 @@ export class EndlessModePanel {
     infiniteHp: boolean,
   ) => void;
   private readonly onDismiss: (() => void) | undefined;
+  private readonly modalLease: ModalInputLease;
   private tornDown = false;
   private infiniteHp = false;
   private infiniteHpBg!: UiRoundedRect;
@@ -110,7 +117,9 @@ export class EndlessModePanel {
 
     const dim = scene.add
       .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x000000, 0.72);
+    bindModalDimBackdrop(dim);
     this.root.add(dim);
+    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townEndless);
 
     const title = scene.add
       .text(
@@ -637,6 +646,7 @@ export class EndlessModePanel {
   destroy(): void {
     if (this.tornDown) return;
     this.tornDown = true;
+    this.modalLease.release();
     this.scene.input.off("wheel", this.onWheel);
     if (this.maskGraphics.active) this.maskGraphics.destroy();
     if (this.startBtn?.container.active) this.startBtn.container.destroy();

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
+import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { bindContainerPress, interactiveObjectScreenRect } from "../ui/touchButton";
 import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
 
@@ -132,10 +133,8 @@ export function spawnTownBuildingControls(
     out.push({
       container,
       buildingId: slot.buildingId,
-      setInputEnabled: (enabled: boolean) => {
-        if (enabled) container.setInteractive();
-        else container.disableInteractive();
-      },
+      setInputEnabled: (enabled: boolean) =>
+        setContainerInputEnabled(container, enabled),
       setLabel: (next: string) => text.setText(next),
       spriteCenter,
       hitFootprintScreenRect: () =>

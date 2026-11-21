@@ -2,6 +2,12 @@ import Phaser from "phaser";
 import { GAME } from "../config";
 import type { DataStore, WaveGroup } from "../core/DataStore";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { INPUT_MODALITY } from "../input/inputModality";
+import {
+  acquireModalInput,
+  bindModalDimBackdrop,
+  type ModalInputLease,
+} from "../input/modalBackdrop";
 import { listPlayableDefenseEnemyIds } from "../systems/endlessEnemyRoster";
 import { sumChallengeRating } from "../systems/challengeRating";
 import {
@@ -53,6 +59,7 @@ export class WavePlannerPanel {
   private challengeRatingText!: Phaser.GameObjects.Text;
   private readonly onStart: (groups: WaveGroup[]) => void;
   private readonly onDismiss: (() => void) | undefined;
+  private readonly modalLease: ModalInputLease;
   private tornDown = false;
   private readonly listTop: number;
   private readonly listViewportH: number;
@@ -103,7 +110,9 @@ export class WavePlannerPanel {
       0x000000,
       0.72,
     );
+    bindModalDimBackdrop(dim);
     this.root.add(dim);
+    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townWavePlanner);
 
     this.root.add(
       scene.add
@@ -526,6 +535,7 @@ export class WavePlannerPanel {
   destroy(): void {
     if (this.tornDown) return;
     this.tornDown = true;
+    this.modalLease.release();
     this.scene.input.off("wheel", this.onWheel);
     if (this.maskGraphics.active) this.maskGraphics.destroy();
     if (this.startBtn?.container.active) this.startBtn.container.destroy();

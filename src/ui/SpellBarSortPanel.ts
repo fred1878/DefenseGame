@@ -23,7 +23,13 @@ import {
   type SpellId,
 } from "../content/spells";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { INPUT_MODALITY } from "../input/inputModality";
 import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../input/inputTuning";
+import {
+  acquireModalInput,
+  bindModalDimBackdrop,
+  type ModalInputLease,
+} from "../input/modalBackdrop";
 import { bindTapOrLongPress, createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { releaseOnSameButton } from "./touchButtonGesture";
 import { uiTextStyle } from "./uiTextStyle";
@@ -81,6 +87,7 @@ export class SpellBarSortPanel {
   private readonly poolChips: PoolChip[] = [];
   private poolPress: PoolPressState | null = null;
   private drag: DragState | null = null;
+  private readonly modalLease: ModalInputLease;
 
   constructor(
     scene: Phaser.Scene,
@@ -98,7 +105,9 @@ export class SpellBarSortPanel {
 
     const dim = scene.add
       .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x000000, 0.72);
+    bindModalDimBackdrop(dim);
     this.root.add(dim);
+    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townSpellSort);
 
     const panelLayout = TOWN_SPELL_SORT_PANEL;
     const title = scene.add
@@ -531,6 +540,7 @@ export class SpellBarSortPanel {
       this.drag = null;
     }
     this.finishCleanup();
+    this.modalLease.release();
     this.root.destroy();
   }
 
