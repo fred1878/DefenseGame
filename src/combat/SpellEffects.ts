@@ -128,18 +128,18 @@ export function applySpellBlastAt(
   def: SpellDefinition,
   enemies: SpellEnemyTarget[],
   damageMult: number,
-  knockback = 140,
   status?: EnemySpellStatusMap,
   knockbackExcludeIds?: ReadonlySet<string>,
 ): void {
   const r = worldUnit(def.blastRadius ?? 72, scene.registry);
   const damage = (def.baseDamage ?? 0) * damageMult;
   const flavor = def.damageFlavor ?? "default";
+  const knockback = def.blastKnockback ?? 0;
   for (const e of enemiesInDisk(centerX, centerY, r, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    if (!knockbackExcludeIds?.has(full.id)) {
+    if (knockback > 0 && !knockbackExcludeIds?.has(full.id)) {
       applyEnemyKnockbackFrom(full.enemy, centerX, centerY, knockback);
     }
     if (status && def.onHit) {
@@ -173,12 +173,7 @@ export function applySpellSwing(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(
-      full.enemy,
-      playerX,
-      playerY,
-      PLAYER_TUNING.meleeKnockback,
-    );
+    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, def.knockback!);
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -204,7 +199,7 @@ export function strikeSpellCone(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, 90);
+    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, def.knockback!);
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -253,9 +248,7 @@ export function applyInstantTargeted(
   const blastKnockbackExclude = new Set<string>([full.id]);
   if (hitDamage > 0) {
     applyDamage(full.damageable, hitDamage, flavor);
-    const knock =
-      def.id === "lightning_bolt" ? 140 : PLAYER_TUNING.rangedKnockback;
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, knock);
+    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, def.knockback!);
   } else {
     blastKnockbackExclude.delete(full.id);
   }
@@ -269,7 +262,6 @@ export function applyInstantTargeted(
         { ...def, baseDamage: def.burstDamage * 0.65 },
         enemies,
         damageMult,
-        80,
         status,
         blastKnockbackExclude,
       );
@@ -282,7 +274,6 @@ export function applyInstantTargeted(
       { ...def, baseDamage: (def.baseDamage ?? 16) * 0.65 },
       enemies,
       damageMult,
-      80,
       status,
       blastKnockbackExclude,
     );
@@ -325,7 +316,7 @@ export function applyChainLightning(
   };
   const startFull = living.find((e) => e.id === start.id)!;
   applyDamage(startFull.damageable, damage, flavor);
-  applyEnemyKnockbackFrom(startFull.enemy, playerX, playerY, 120);
+  applyEnemyKnockbackFrom(startFull.enemy, playerX, playerY, def.chainKnockback!);
   applyHopHit(start.id);
   let fromX = start.x;
   let fromY = start.y;
@@ -333,7 +324,7 @@ export function applyChainLightning(
     const full = living.find((e) => e.id === hop.id);
     if (!full) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, fromX, fromY, 100);
+    applyEnemyKnockbackFrom(full.enemy, fromX, fromY, def.chainHopKnockback!);
     applyHopHit(full.id);
     fromX = hop.x;
     fromY = hop.y;

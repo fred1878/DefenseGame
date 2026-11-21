@@ -645,7 +645,7 @@ export class DefenseSpellDirector {
             : null;
         const bx = remote?.x ?? px;
         const by = remote?.y ?? py;
-        applySpellBlastAt(this.host.scene, bx, by, def, targets, mult, 140, this.host.enemySpellStatus);
+        applySpellBlastAt(this.host.scene, bx, by, def, targets, mult, this.host.enemySpellStatus);
         this.host.flashNova(bx, by, this.host.wu(def.blastRadius ?? 80), {
           blastTextureKey:
             def.id === "meteor"

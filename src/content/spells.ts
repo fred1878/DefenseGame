@@ -55,6 +55,14 @@ export type SpellDefinition = {
   baseDamage?: number;
   projectileSpeed?: number;
   blastRadius?: number;
+  /** Direct-hit knockback (projectile, cone, swing, instant targeted primary). */
+  knockback?: number;
+  /** Blast-radius knockback (blast mechanic, AoE detonation, secondary bursts). Zero disables. */
+  blastKnockback?: number;
+  /** Chain lightning first-target knockback. */
+  chainKnockback?: number;
+  /** Chain lightning hop knockback. */
+  chainHopKnockback?: number;
   healAmount?: number;
   iconFile: string;
   projectileTextureKey?: string;
