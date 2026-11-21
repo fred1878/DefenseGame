@@ -18,7 +18,8 @@
       }
     },
     "weight": 100,
-    "challengeRating": 10
+    "challengeRating": 10,
+    "bodyRadius": 28
   },
   "bruiser": {
     "hp": 299,
@@ -44,7 +45,8 @@
       }
     },
     "weight": 170,
-    "challengeRating": 70
+    "challengeRating": 70,
+    "bodyRadius": 21
   },
   "arrow_rain_archer": {
     "hp": 40,
@@ -83,7 +85,8 @@
       }
     },
     "weight": 80,
-    "challengeRating": 15
+    "challengeRating": 15,
+    "bodyRadius": 14
   },
   "skirmisher": {
     "hp": 34,
@@ -109,7 +112,8 @@
       }
     },
     "weight": 70,
-    "challengeRating": 7
+    "challengeRating": 7,
+    "bodyRadius": 21
   },
   "sentry_archer": {
     "hp": 24,
@@ -146,7 +150,8 @@
       }
     },
     "weight": 100,
-    "challengeRating": 12
+    "challengeRating": 12,
+    "bodyRadius": 14
   },
   "javelineer": {
     "hp": 26,
@@ -185,7 +190,8 @@
       }
     },
     "weight": 80,
-    "challengeRating": 25
+    "challengeRating": 25,
+    "bodyRadius": 14
   },
   "slow_siege": {
     "hp": 92,
@@ -214,7 +220,8 @@
       }
     },
     "weight": 300,
-    "challengeRating": 10
+    "challengeRating": 10,
+    "bodyRadius": 21
   },
   "fast_sapper": {
     "hp": 39,
@@ -243,7 +250,8 @@
       }
     },
     "weight": 60,
-    "challengeRating": 6
+    "challengeRating": 6,
+    "bodyRadius": 21
   },
   "charger": {
     "hp": 85,
@@ -279,7 +287,8 @@
       }
     },
     "weight": 125,
-    "challengeRating": 30
+    "challengeRating": 30,
+    "bodyRadius": 21
   },
   "lobber": {
     "hp": 32,
@@ -317,7 +326,8 @@
       }
     },
     "weight": 110,
-    "challengeRating": 14
+    "challengeRating": 14,
+    "bodyRadius": 14
   },
   "reaver": {
     "hp": 70,
@@ -360,7 +370,8 @@
       }
     },
     "weight": 80,
-    "challengeRating": 20
+    "challengeRating": 20,
+    "bodyRadius": 14
   },
   "ward": {
     "hp": 94,
@@ -391,6 +402,7 @@
       }
     },
     "weight": 300,
-    "challengeRating": 15
+    "challengeRating": 15,
+    "bodyRadius": 21
   }
 }

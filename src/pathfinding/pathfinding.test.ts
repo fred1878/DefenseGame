@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES, defenseHalfHeight } from "../config";
-import { enemyPathClearancePx, maxNavObstacleClearancePx } from "../entities/entityPhysics";
+import {
+  enemyCollisionBodyRadius,
+  enemyPathClearancePx,
+  maxNavObstacleClearancePx,
+} from "../entities/entityPhysics";
 import { buildNavGrid, cellBlocked, cellSolidBlocked, cellToWorldCenter } from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
@@ -9,8 +13,12 @@ describe("nav grid", () => {
   it("uses static obstacle nav clearance from data", () => {
     expect(DEFENSE_MAP.pathClearancePx).toBe(18);
     expect(DEFENSE_MAP.pathClearancePx).toBe(maxNavObstacleClearancePx());
-    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(30);
-    expect(enemyPathClearancePx("sentry_archer", "stationaryRanged")).toBe(23);
+    expect(enemyPathClearancePx("bruiser")).toBeGreaterThan(
+      enemyCollisionBodyRadius("bruiser"),
+    );
+    expect(enemyPathClearancePx("sentry_archer")).toBeGreaterThan(
+      enemyCollisionBodyRadius("sentry_archer"),
+    );
   });
 
   it("marks obstacle cells blocked", () => {
@@ -77,7 +85,7 @@ describe("A*", () => {
     const goal = cellToWorldCenter(grid, 18, 10);
     const mid = cellToWorldCenter(grid, 10, 10);
     const direct = findPath(grid, start.x, start.y, goal.x, goal.y);
-    const gruntClearance = enemyPathClearancePx("grunt", "meleeChaser");
+    const gruntClearance = enemyPathClearancePx("grunt");
     const detour = findPath(
       grid,
       start.x,

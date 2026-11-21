@@ -1,10 +1,4 @@
 {
-  "entityBodyRadius": {
-    "player": 21,
-    "enemy": 14,
-    "enemyMelee": 21,
-    "grunt": 28
-  },
   "enemyPathClearanceMarginPx": 9,
   "staticObstacleNavClearancePx": 18
 }

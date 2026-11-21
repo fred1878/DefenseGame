@@ -10,9 +10,9 @@ export function mockEnemyInstance(
   const combatTuning =
     partial.combatTuning ??
     resolveEnemyCombat(partial.behavior, undefined, partial.defId ?? "grunt");
+  const defId = partial.defId ?? "grunt";
   return {
     id: "e",
-    defId: "test",
     speed: 60,
     damage: 8,
     weight: 100,
@@ -72,6 +72,7 @@ export function mockEnemyInstance(
       wardPostHolding: false,
     },
     ...partial,
+    defId,
     combatTuning,
   };
 }

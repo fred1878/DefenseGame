@@ -2,7 +2,8 @@ import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
 import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
-import { applyEntityPhysics } from "../entities/entityPhysics";
+import { applyEnemyBodyRadii, applyEntityPhysics } from "../entities/entityPhysics";
+import { applyPlayerTuning } from "../config/player";
 import { applyEnemyCombatDefaults } from "./enemyTuning";
 import {
   normalizeDefenseMaps,
@@ -36,6 +37,8 @@ export type EnemyDef = {
   textureKey: string;
   /** HUD / nameplate label (Title Case); not the content id. */
   displayName: string;
+  /** Arcade physics circle radius (px, design units). */
+  bodyRadius: number;
   /** Optional overrides; missing fields use per-behavior defaults. */
   combat?: EnemyCombatPartial;
 };
@@ -105,6 +108,7 @@ export class DataStore {
         normalizeEnemyRow(id, row),
       ]),
     );
+    applyEnemyBodyRadii(this.enemies);
     this.waves = waves;
     this.buildings = buildings;
     this.townBuildings = townBuildings;
@@ -112,6 +116,8 @@ export class DataStore {
     this.spells = normalizeSpellCatalog(spellsFile);
     setSpellCatalog(this.spells);
     this.player = normalizePlayerConfig(playerFile);
+    const { endlessPanelDefaultConcurrent: _ui, ...playerTuning } = this.player;
+    applyPlayerTuning(playerTuning);
     applyEnemyCombatDefaults(enemyCombatDefaults);
     applyDefenseMaps(defenseMaps);
     applyEntityPhysics(normalizeEntityPhysics(entityPhysics));

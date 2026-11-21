@@ -247,7 +247,7 @@ export function tickDefenseEnemies(
         attackTarget.kind === "player" &&
         !extra.chargeHitThisDash
       ) {
-        const bodyR = enemyCollisionBodyRadius(e.behavior, e.defId);
+        const bodyR = enemyCollisionBodyRadius(e.defId);
         const touch = Math.hypot(px - e.sprite.x, py - e.sprite.y) <= bodyR + playerRadius;
         if (touch) {
           extra.chargeHitThisDash = true;

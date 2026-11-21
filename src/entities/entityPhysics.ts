@@ -1,16 +1,7 @@
 import Phaser from "phaser";
-
-export type EntityBodyRadius = {
-  player: number;
-  enemy: number;
-  /** Wider circle for melee / wall-rush archetypes (collision only). */
-  enemyMelee: number;
-  /** Grunt-only rush hitbox — wider than other melee archetypes. */
-  grunt: number;
-};
-
-/** Arcade physics circle radius (diameter ≈ 34px at 17 for player). */
-export let ENTITY_BODY_RADIUS: EntityBodyRadius = unsetEntityBodyRadius();
+import { PLAYER_TUNING } from "../config/player";
+import { ConfigLoadError } from "../core/configValidation";
+import type { EnemyDef } from "../core/DataStore";
 
 /** Matches {@link DEFENSE_MAP.cellSize} / 2 − 1 px nav margin on obstacle inflation. */
 export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
@@ -18,45 +9,51 @@ export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
 /** Nav-grid inflation around static obstacle colliders (independent of agent body size). */
 export let STATIC_OBSTACLE_NAV_CLEARANCE_PX = unsetMargin();
 
-function unsetEntityBodyRadius(): EntityBodyRadius {
-  return new Proxy({} as EntityBodyRadius, {
-    get() {
-      throw new Error(
-        "ENTITY_BODY_RADIUS not loaded — Boot must apply public/data/entity-physics.json",
-      );
-    },
-  });
-}
+let enemyBodyRadiusById: Record<string, number> | null = null;
 
 function unsetMargin(): number {
   return new Proxy({} as object, {
     get() {
       throw new Error(
-        "ENEMY_PATH_CLEARANCE_MARGIN_PX not loaded — Boot must apply public/data/entity-physics.json",
+        "Path clearance margin not loaded — Boot must apply public/data/entity-physics.json",
       );
     },
   }) as unknown as number;
 }
 
 export function applyEntityPhysics(tuning: {
-  entityBodyRadius: EntityBodyRadius;
   enemyPathClearanceMarginPx: number;
   staticObstacleNavClearancePx: number;
 }): void {
-  ENTITY_BODY_RADIUS = { ...tuning.entityBodyRadius };
   ENEMY_PATH_CLEARANCE_MARGIN_PX = tuning.enemyPathClearanceMarginPx;
   STATIC_OBSTACLE_NAV_CLEARANCE_PX = tuning.staticObstacleNavClearancePx;
 }
 
-export function enemyPathClearancePx(defId: string, behavior: string): number {
-  return (
-    enemyCollisionBodyRadius(behavior, defId) + ENEMY_PATH_CLEARANCE_MARGIN_PX
-  );
+/** Build lookup table from normalized `enemies.json` rows (Boot / tests). */
+export function applyEnemyBodyRadii(enemies: Record<string, EnemyDef>): void {
+  const map: Record<string, number> = {};
+  for (const [id, row] of Object.entries(enemies)) {
+    map[id] = row.bodyRadius;
+  }
+  enemyBodyRadiusById = map;
 }
 
-/** Static obstacle inflation on the shared defense nav grid. */
-export function maxNavObstacleClearancePx(): number {
-  return STATIC_OBSTACLE_NAV_CLEARANCE_PX;
+/** Arcade physics circle radius for the player (from `public/data/player.json`). */
+export function playerBodyRadiusPx(): number {
+  return PLAYER_TUNING.bodyRadius;
+}
+
+export function enemyCollisionBodyRadius(defId: string): number {
+  if (!enemyBodyRadiusById) {
+    throw new Error(
+      "Enemy body radii not loaded — call applyEnemyBodyRadii after enemies.json",
+    );
+  }
+  const r = enemyBodyRadiusById[defId];
+  if (r === undefined) {
+    throw new ConfigLoadError(`Missing enemy body radius for id ${defId}`);
+  }
+  return r;
 }
 
 const MELEE_COLLISION_BEHAVIORS = new Set([
@@ -67,16 +64,18 @@ const MELEE_COLLISION_BEHAVIORS = new Set([
   "wallSiege",
 ]);
 
-export function enemyCollisionBodyRadius(
-  behavior: string,
-  defId?: string,
-): number {
-  if (defId === "grunt") {
-    return ENTITY_BODY_RADIUS.grunt;
-  }
-  return MELEE_COLLISION_BEHAVIORS.has(behavior)
-    ? ENTITY_BODY_RADIUS.enemyMelee
-    : ENTITY_BODY_RADIUS.enemy;
+/** Behaviors that use wide melee collision vs the player (standoff / arcade overlap). */
+export function isMeleeBodyCollisionBehavior(behavior: string): boolean {
+  return MELEE_COLLISION_BEHAVIORS.has(behavior);
+}
+
+export function enemyPathClearancePx(defId: string): number {
+  return enemyCollisionBodyRadius(defId) + ENEMY_PATH_CLEARANCE_MARGIN_PX;
+}
+
+/** Static obstacle inflation on the shared defense nav grid. */
+export function maxNavObstacleClearancePx(): number {
+  return STATIC_OBSTACLE_NAV_CLEARANCE_PX;
 }
 
 /** Centers a circle body on the sprite anchor after {@link Phaser.GameObjects.Components.DisplaySize#setDisplaySize}. */

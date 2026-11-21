@@ -24,12 +24,14 @@ describe("public data fixtures", () => {
         damage?: number;
         weight?: number;
         challengeRating?: number;
+        bodyRadius?: number;
       }
     >;
     for (const [id, row] of Object.entries(enemies)) {
       expectFiniteNumber(row.hp, `enemies.${id}.hp`);
       expectFiniteNumber(row.speed, `enemies.${id}.speed`);
       expectFiniteNumber(row.damage, `enemies.${id}.damage`);
+      expectFiniteNumber(row.bodyRadius, `enemies.${id}.bodyRadius`);
       expectFiniteNumber(row.weight, `enemies.${id}.weight`);
       expect((row.weight as number) > 0, `enemies.${id}.weight > 0`).toBe(true);
       expectFiniteNumber(row.challengeRating, `enemies.${id}.challengeRating`);
@@ -235,19 +237,29 @@ describe("public data fixtures", () => {
 
   it("entity-physics and enemy-ai json load", () => {
     const physics = readJson("entity-physics.json") as {
-      entityBodyRadius: { player: number };
+      enemyPathClearanceMarginPx: number;
+      staticObstacleNavClearancePx: number;
     };
     const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
-    expectFiniteNumber(physics.entityBodyRadius.player, "entityBodyRadius.player");
+    expectFiniteNumber(
+      physics.enemyPathClearanceMarginPx,
+      "entity-physics.enemyPathClearanceMarginPx",
+    );
+    expectFiniteNumber(
+      physics.staticObstacleNavClearancePx,
+      "entity-physics.staticObstacleNavClearancePx",
+    );
     expectFiniteNumber(ai.playerAggroRadius, "enemyAi.playerAggroRadius");
   });
 
   it("player.json defines moveSpeed and endless panel seed", () => {
     const player = readJson("player.json") as {
       moveSpeed: number;
+      bodyRadius: number;
       endlessPanelDefaultConcurrent: number;
     };
     expectFiniteNumber(player.moveSpeed, "player.moveSpeed");
+    expectFiniteNumber(player.bodyRadius, "player.bodyRadius");
     expectFiniteNumber(
       player.endlessPanelDefaultConcurrent,
       "player.endlessPanelDefaultConcurrent",

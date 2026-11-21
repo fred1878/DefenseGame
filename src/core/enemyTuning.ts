@@ -1,6 +1,6 @@
 import {
-  ENTITY_BODY_RADIUS,
   enemyCollisionBodyRadius,
+  playerBodyRadiusPx,
 } from "../entities/entityPhysics";
 import { ConfigLoadError } from "./configValidation";
 import {
@@ -238,26 +238,25 @@ export type EnemyCombatDefaultsBundle = {
   hybrid: EnemyHybridCombat;
 };
 
-/** Arcade contact center distance for a melee archetype vs the player hurtbox. */
-export function enemyMeleeContactCenterDist(
-  behavior: string,
-  defId?: string,
-): number {
-  return (
-    ENTITY_BODY_RADIUS.player + enemyCollisionBodyRadius(behavior, defId)
-  );
+/** Arcade contact center distance for an enemy vs the player hurtbox. */
+export function enemyMeleeContactCenterDist(defId: string): number {
+  return playerBodyRadiusPx() + enemyCollisionBodyRadius(defId);
 }
 
 /** Raise authored melee reach so windups can start at collision contact and arcs connect. */
 export function clampMeleeEngageForPhysics(
   melee: EnemyMeleeCombat,
-  behavior: string,
+  _behavior: string,
   defId?: string,
 ): EnemyMeleeCombat {
   const slack = melee.engageBodySlackPx ?? getEnemyCombatDefaults().melee.engageBodySlackPx!;
-  const contact = enemyMeleeContactCenterDist(behavior, defId);
+  if (!defId) {
+    const { engageBodySlackPx: _omit, ...combat } = melee;
+    return combat;
+  }
+  const contact = enemyMeleeContactCenterDist(defId);
   const triggerMin = Math.max(0, contact - slack);
-  const rangeMin = enemyCollisionBodyRadius(behavior, defId);
+  const rangeMin = enemyCollisionBodyRadius(defId);
   const { engageBodySlackPx: _omit, ...combat } = melee;
   return {
     ...combat,
