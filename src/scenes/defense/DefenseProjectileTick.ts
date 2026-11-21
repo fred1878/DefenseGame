@@ -8,7 +8,7 @@ import { PLAYER_TUNING } from "../../config";
 import { spellById } from "../../content/spells";
 import { spellProjectileDirectKnockback } from "../../combat/spellKnockback";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
-import { ENTITY_BODY_RADIUS } from "../../entities/entityPhysics";
+import { playerBodyRadiusPx } from "../../entities/entityPhysics";
 import {
   updateEnemyProjectile,
   updateSpellProjectile,
@@ -109,7 +109,7 @@ export function tickDefenseProjectiles(
     return result.alive;
   });
 
-  const playerHurtboxRadius = host.wu(ENTITY_BODY_RADIUS.player);
+  const playerHurtboxRadius = host.wu(playerBodyRadiusPx());
   const enemyProjectiles = host.enemyProjectiles.filter((p) => {
     const alive = updateEnemyProjectile(
       p,

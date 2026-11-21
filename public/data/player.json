@@ -21,5 +21,6 @@
   "targetTapRadiusWorld": 56,
   "playerHitInvulnMs": 0,
   "nightSpawnInvulnMs": 1000,
-  "endlessPanelDefaultConcurrent": 1
+  "endlessPanelDefaultConcurrent": 1,
+  "bodyRadius": 21
 }

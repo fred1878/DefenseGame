@@ -3,23 +3,15 @@ import { ConfigLoadError } from "./configValidation";
 import { normalizeEntityPhysics } from "./normalizeEntityPhysics";
 
 describe("normalizeEntityPhysics", () => {
-  it("requires entityBodyRadius block", () => {
+  it("requires path clearance margins", () => {
     expect(() => normalizeEntityPhysics({})).toThrow(ConfigLoadError);
   });
 
-  it("merges partial radius overrides onto required fields", () => {
+  it("loads nav path margins only (body radii live on player/enemies)", () => {
     const out = normalizeEntityPhysics({
-      entityBodyRadius: {
-        player: 17,
-        enemy: 14,
-        enemyMelee: 21,
-        grunt: 28,
-      },
       enemyPathClearanceMarginPx: 7,
       staticObstacleNavClearancePx: 24,
     });
-    expect(out.entityBodyRadius.player).toBe(17);
-    expect(out.entityBodyRadius.grunt).toBe(28);
     expect(out.enemyPathClearanceMarginPx).toBe(7);
     expect(out.staticObstacleNavClearancePx).toBe(24);
   });

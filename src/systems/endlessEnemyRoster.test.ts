@@ -15,6 +15,7 @@ describe("listPlayableDefenseEnemyIds", () => {
         textureKey: "enemy_grunt",
         displayName: "Grunt",
         challengeRating: 1,
+        bodyRadius: 28,
       },
       unused: {
         hp: 1,
@@ -25,6 +26,7 @@ describe("listPlayableDefenseEnemyIds", () => {
         textureKey: "enemy_unused",
         displayName: "Unused",
         challengeRating: 1,
+        bodyRadius: 14,
       },
     };
     store.waves = {

@@ -28,6 +28,7 @@ const PLAYER_TUNING_KEYS = [
   "targetTapRadiusWorld",
   "playerHitInvulnMs",
   "nightSpawnInvulnMs",
+  "bodyRadius",
 ] as const satisfies readonly (keyof PlayerTuning)[];
 
 /** Authorable subset of `public/data/player.json` (derived fields omitted). */

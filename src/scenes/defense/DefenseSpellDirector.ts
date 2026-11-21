@@ -64,7 +64,7 @@ import {
   defenseObstacleBlockerAabb,
   readArcadeStaticBodyWorldAabb,
 } from "../../world/defenseObstacleBlocker";
-import { ENTITY_BODY_RADIUS } from "../../entities/entityPhysics";
+import { playerBodyRadiusPx } from "../../entities/entityPhysics";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { PlayerProjectile } from "../../entities/Projectile";
 import type { Player } from "../../entities/Player";
@@ -837,7 +837,7 @@ export class DefenseSpellDirector {
     const halfH = defenseHalfHeight();
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
-    const playerR = this.host.wu(ENTITY_BODY_RADIUS.player);
+    const playerR = this.host.wu(playerBodyRadiusPx());
     const bounds = {
       minX: -halfW + 24,
       maxX: halfW - 24,

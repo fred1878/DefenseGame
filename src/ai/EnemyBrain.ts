@@ -210,7 +210,7 @@ export function replanEnemyPath(
   const reg = enemy?.sprite.scene.registry;
   const agentClearancePx =
     enemy && reg
-      ? worldUnit(enemyPathClearancePx(enemy.defId, enemy.behavior), reg)
+      ? worldUnit(enemyPathClearancePx(enemy.defId), reg)
       : grid.clearancePx;
   const path = findPath(
     grid,

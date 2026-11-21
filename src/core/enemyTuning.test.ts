@@ -26,7 +26,7 @@ describe("resolveEnemyCombat", () => {
   });
 
   it("raises short melee engage values to physics contact for meleeChaser", () => {
-    const contact = enemyMeleeContactCenterDist("meleeChaser", "grunt");
+    const contact = enemyMeleeContactCenterDist("grunt");
     const tuned = resolveEnemyCombat(
       "meleeChaser",
       { melee: { triggerRange: 30, range: 20 } },
@@ -34,7 +34,7 @@ describe("resolveEnemyCombat", () => {
     );
     expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(contact);
     expect(tuned.melee.range).toBeGreaterThanOrEqual(
-      enemyCollisionBodyRadius("meleeChaser", "grunt"),
+      enemyCollisionBodyRadius("grunt"),
     );
   });
 
@@ -77,6 +77,7 @@ describe("normalizeEnemyRow", () => {
         hp: 10,
         speed: 50,
         damage: 5,
+        bodyRadius: 28,
         weight: 100,
         challengeRating: 1,
       }),
@@ -94,6 +95,7 @@ describe("normalizeEnemyRow", () => {
       hp: 1,
       speed: 1,
       damage: 1,
+      bodyRadius: 14,
       weight: 100,
       challengeRating: 4,
       behavior: "arrowRainArcher",
@@ -109,6 +111,7 @@ describe("normalizeEnemyRow", () => {
       hp: 10,
       speed: 50,
       damage: 5,
+      bodyRadius: 28,
       weight: 100,
       challengeRating: 1,
     });
@@ -119,6 +122,7 @@ describe("normalizeEnemyRow", () => {
       hp: 10,
       speed: 50,
       damage: 20,
+      bodyRadius: 21,
       weight: 100,
       challengeRating: 6,
     });

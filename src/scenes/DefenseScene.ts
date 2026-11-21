@@ -56,8 +56,8 @@ import {
   type FocusTapFlash,
 } from "../debug/TouchInputDebugDraw";
 import {
-  ENTITY_BODY_RADIUS,
   enemyCollisionBodyRadius,
+  playerBodyRadiusPx,
 } from "../entities/entityPhysics";
 import {
   updateEnemySpriteFacing,
@@ -580,7 +580,7 @@ export class DefenseScene extends Phaser.Scene {
             id: e.id,
             x: e.sprite.x,
             y: e.sprite.y,
-            radius: this.wu(ENTITY_BODY_RADIUS.enemy),
+            radius: this.wu(enemyCollisionBodyRadius(e.defId)),
             damageable: e.damageable,
             sprite: e.sprite,
             enemy: e,
@@ -601,7 +601,7 @@ export class DefenseScene extends Phaser.Scene {
     const playerHurtbox = {
       x: px,
       y: py,
-      radius: this.wu(ENTITY_BODY_RADIUS.player),
+      radius: this.wu(playerBodyRadiusPx()),
       damageable: this.player.damageable,
     };
     this.targeting.focusSelectLockMs = Math.max(0, this.targeting.focusSelectLockMs - delta);
@@ -1174,7 +1174,7 @@ export class DefenseScene extends Phaser.Scene {
         id: e.id,
         x: e.sprite.x,
         y: e.sprite.y,
-        radius: this.wu(ENTITY_BODY_RADIUS.enemy),
+        radius: this.wu(enemyCollisionBodyRadius(e.defId)),
         damageable: e.damageable,
         sprite: e.sprite,
         enemy: e,
@@ -1247,7 +1247,7 @@ export class DefenseScene extends Phaser.Scene {
       this.hitboxDebug.drawCircle(
         e.sprite.x,
         e.sprite.y,
-        this.wu(enemyCollisionBodyRadius(e.behavior, e.defId)),
+        this.wu(enemyCollisionBodyRadius(e.defId)),
       );
       if (e.combat.phase === "active") {
         const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);

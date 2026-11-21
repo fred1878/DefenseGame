@@ -3,8 +3,12 @@ import path from "node:path";
 import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import { applyPlayerTuning } from "../config/player";
-import { applyEntityPhysics } from "../entities/entityPhysics";
+import {
+  applyEnemyBodyRadii,
+  applyEntityPhysics,
+} from "../entities/entityPhysics";
 import { applyEnemyCombatDefaults } from "../core/enemyTuning";
+import { normalizeEnemyRow, type EnemyDefInput } from "../core/normalizeEnemy";
 import { normalizeEnemyAi } from "../core/normalizeEnemyAi";
 import { normalizeEntityPhysics } from "../core/normalizeEntityPhysics";
 import { normalizePlayerConfig } from "../core/normalizePlayer";
@@ -18,6 +22,16 @@ function readPublicJson<T>(name: string): T {
 export function bootPublicConfigFixtures(): void {
   applyDefenseMaps(readPublicJson("defense-maps.json"));
   applyEnemyCombatDefaults(readPublicJson("enemy-combat-defaults.json"));
+  const enemiesRaw = readPublicJson<Record<string, EnemyDefInput>>(
+    "enemies.json",
+  );
+  const enemies = Object.fromEntries(
+    Object.entries(enemiesRaw).map(([id, row]) => [
+      id,
+      normalizeEnemyRow(id, row),
+    ]),
+  );
+  applyEnemyBodyRadii(enemies);
   applyEntityPhysics(normalizeEntityPhysics(readPublicJson("entity-physics.json")));
   applyEnemyAi(normalizeEnemyAi(readPublicJson("enemy-ai.json")));
   const { endlessPanelDefaultConcurrent: _ui, ...tuning } = normalizePlayerConfig(

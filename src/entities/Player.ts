@@ -9,7 +9,8 @@ import { applyEnemyKnockbackFrom } from "../combat/enemyKnockback";
 import type { EnemyInstance } from "./Enemy";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
 import {
-  ENTITY_BODY_RADIUS,
+  enemyCollisionBodyRadius,
+  playerBodyRadiusPx,
   applyArcadeCircleCollider,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
@@ -36,7 +37,7 @@ export class Player {
       worldDisplayPx(SPRITE_DISPLAY.player, reg),
       worldDisplayPx(SPRITE_DISPLAY.player, reg),
     );
-    tuneArcadeDynamicBody(this.sprite, worldUnit(ENTITY_BODY_RADIUS.player, reg), {
+    tuneArcadeDynamicBody(this.sprite, worldUnit(playerBodyRadiusPx(), reg), {
       pushable: false,
       worldBounds: true,
     });
@@ -139,7 +140,7 @@ export class Player {
       this.sprite.setDisplaySize(side, side);
       applyArcadeCircleCollider(
         this.sprite,
-        worldUnit(ENTITY_BODY_RADIUS.player, reg),
+        worldUnit(playerBodyRadiusPx(), reg),
       );
     }
   }
@@ -200,7 +201,7 @@ export class Player {
         arcHalf,
         e.sprite.x,
         e.sprite.y,
-        worldUnit(ENTITY_BODY_RADIUS.enemy, this.sprite.scene.registry),
+        worldUnit(enemyCollisionBodyRadius(e.defId), this.sprite.scene.registry),
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);

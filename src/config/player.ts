@@ -24,6 +24,8 @@ export type PlayerTuning = {
   targetTapRadiusWorld: number;
   playerHitInvulnMs: number;
   nightSpawnInvulnMs: number;
+  /** Arcade physics circle radius (px, design units). */
+  bodyRadius: number;
 };
 
 /** Active tuning (from JSON after Boot). Uninitialized until `applyPlayerTuning`. */

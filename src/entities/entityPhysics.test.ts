@@ -1,31 +1,30 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  ENTITY_BODY_RADIUS,
   enemyCollisionBodyRadius,
   enemyPathClearancePx,
+  isMeleeBodyCollisionBehavior,
   maxNavObstacleClearancePx,
+  playerBodyRadiusPx,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
 
 describe("entityPhysics", () => {
-  it("uses tuned collision diameters", () => {
-    expect(ENTITY_BODY_RADIUS.player).toBe(21);
-    expect(ENTITY_BODY_RADIUS.enemy).toBe(14);
-    expect(ENTITY_BODY_RADIUS.enemyMelee).toBe(21);
-    expect(ENTITY_BODY_RADIUS.grunt).toBe(28);
-  });
-
-  it("widens collision for melee archetypes only", () => {
-    expect(enemyCollisionBodyRadius("meleeChaser")).toBe(21);
-    expect(enemyCollisionBodyRadius("meleeChaser", "grunt")).toBe(28);
-    expect(enemyCollisionBodyRadius("wallSiege")).toBe(21);
-    expect(enemyCollisionBodyRadius("stationaryRanged")).toBe(14);
-    expect(enemyCollisionBodyRadius("lobber")).toBe(14);
+  it("exposes loaded player and enemy body radii", () => {
+    expect(playerBodyRadiusPx()).toBeGreaterThan(0);
+    expect(enemyCollisionBodyRadius("grunt")).toBeGreaterThan(
+      enemyCollisionBodyRadius("sentry_archer"),
+    );
+    expect(isMeleeBodyCollisionBehavior("meleeChaser")).toBe(true);
+    expect(isMeleeBodyCollisionBehavior("lobber")).toBe(false);
   });
 
   it("agent path clearance vs static nav obstacle clearance", () => {
-    expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(37);
-    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(30);
+    expect(enemyPathClearancePx("grunt")).toBeGreaterThan(
+      enemyCollisionBodyRadius("grunt"),
+    );
+    expect(enemyPathClearancePx("bruiser")).toBeGreaterThan(
+      enemyCollisionBodyRadius("bruiser"),
+    );
     expect(maxNavObstacleClearancePx()).toBe(18);
   });
 

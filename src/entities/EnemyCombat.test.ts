@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../config/defense";
 import { enemyMeleeContactCenterDist, resolveEnemyCombat } from "../core/enemyTuning";
-import { ENTITY_BODY_RADIUS } from "./entityPhysics";
+import { playerBodyRadiusPx } from "./entityPhysics";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {
   createEnemyCombat,
@@ -76,7 +76,7 @@ describe("updateEnemyCombat wall target", () => {
 
 describe("updateEnemyCombat player target", () => {
   it("connects at arcade contact distance for meleeChaser", () => {
-    const dist = enemyMeleeContactCenterDist("meleeChaser", "grunt");
+    const dist = enemyMeleeContactCenterDist("grunt");
     const enemy = mockEnemy(0, 0, undefined, "grunt", "meleeChaser");
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -87,7 +87,7 @@ describe("updateEnemyCombat player target", () => {
         kind: "player",
         x: dist,
         y: 0,
-        radius: ENTITY_BODY_RADIUS.player,
+        radius: playerBodyRadiusPx(),
         damageable: {
           id: "p",
           hp: 50,

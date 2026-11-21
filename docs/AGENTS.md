@@ -83,6 +83,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
     "hp": 30,
     "speed": 85,
     "damage": 8,
+    "bodyRadius": 28,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
     "combat": {
@@ -131,7 +132,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 }
 ```
 
-Every enemy row must set `hp` / `speed` / `damage`. Omit `combat` to use loaded `enemy-combat-defaults.json` tables only; override only what you need (e.g. `"combat": { "melee": { "windupMs": 500 } }`).
+Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius`. Omit `combat` to use loaded `enemy-combat-defaults.json` tables only; override only what you need (e.g. `"combat": { "melee": { "windupMs": 500 } }`).
 
 **waves.json** — keyed by night number:
 
@@ -154,7 +155,7 @@ Every enemy row must set `hp` / `speed` / `damage`. Omit `combat` to use loaded 
 
 **spells.json** — per-spell damage, channeling, geometry/timing (`coneRangeWu`, `coneArcDeg`, `swingRangeWu`, `chainLightningHops`, `blinkDistanceWu`, `iceWallDurationMs`, `shadowformDamageMult`, etc.), and knockback (`knockback`, `blastKnockback`, `chainKnockback`, `chainHopKnockback` by `mechanicType`). Boot validates required fields via `normalizeSpellCatalog` (e.g. **Fire Nova** uses `blastKnockback: 0`).
 
-**entity-physics.json** — `entityBodyRadius` + `enemyPathClearanceMarginPx` (nav grid inflation uses loaded radii).
+**entity-physics.json** — `enemyPathClearanceMarginPx` + `staticObstacleNavClearancePx` (nav grid inflation around obstacles). Entity **body** radii: `player.json` → `bodyRadius`; each `enemies.json` row → required `bodyRadius`.
 
 **enemy-ai.json** — global `playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`.
 

@@ -6,6 +6,7 @@ export type EnemyDefInput = {
   hp?: number;
   speed?: number;
   damage?: number;
+  bodyRadius?: number;
   weight?: number;
   challengeRating?: number;
   behavior: string;
@@ -33,6 +34,9 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
   if (raw.damage === undefined) {
     throw new ConfigLoadError(`Missing number at ${path}.damage`);
   }
+  if (raw.bodyRadius === undefined) {
+    throw new ConfigLoadError(`Missing number at ${path}.bodyRadius`);
+  }
   if (raw.weight === undefined) {
     throw new ConfigLoadError(`Missing number at ${path}.weight`);
   }
@@ -50,6 +54,7 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
     hp: requireFiniteNumber(raw.hp, `${path}.hp`),
     speed: requireFiniteNumber(raw.speed, `${path}.speed`),
     damage: requireFiniteNumber(raw.damage, `${path}.damage`),
+    bodyRadius: requireFiniteNumber(raw.bodyRadius, `${path}.bodyRadius`),
     weight: requireFiniteNumber(raw.weight, `${path}.weight`),
     challengeRating,
     behavior: raw.behavior,
