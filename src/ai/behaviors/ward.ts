@@ -8,7 +8,7 @@ import {
   resolveEnemyTarget,
 } from "../EnemyBrain";
 import type { EnemyBehavior, EnemyPeerAlly } from "./types";
-import { applyChaseVelocity } from "./movement";
+import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
 
 const RANGED_PROTECT_BEHAVIORS = new Set([
   "arrowRainArcher",
@@ -325,13 +325,20 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 0.82, {
-    nav,
-    deltaMs,
-    targetKind,
-    playerX,
-    playerY,
-  });
+  applyChaseVelocity(
+    enemy,
+    moveX,
+    moveY,
+    0.82,
+    playerChaseVelocityOpts(enemy, {
+      nav,
+      deltaMs,
+      targetKind,
+      playerX,
+      playerY,
+      peerAllies,
+    }),
+  );
 
   return { targetX: goalX, targetY: goalY, targetKind };
 };

@@ -15,6 +15,7 @@ export type BehaviorMoveResult = {
 export type EnemyPeerAlly = {
   id: string;
   behavior: string;
+  defId: string;
   x: number;
   y: number;
 };

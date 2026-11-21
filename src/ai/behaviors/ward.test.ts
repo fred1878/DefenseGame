@@ -42,9 +42,9 @@ function freshWardExtra(): EnemyBehaviorExtra {
 describe("ward behavior helpers", () => {
   it("picks the nearest ranged ally within protect radius", () => {
     const allies = [
-      { id: "a", behavior: "meleeChaser", x: 50, y: 0 },
-      { id: "b", behavior: "javelineer", x: 80, y: 0 },
-      { id: "c", behavior: "arrowRainArcher", x: 120, y: 0 },
+      { id: "a", behavior: "meleeChaser", defId: "grunt", x: 50, y: 0 },
+      { id: "b", behavior: "javelineer", defId: "javelineer", x: 80, y: 0 },
+      { id: "c", behavior: "arrowRainArcher", defId: "arrow_rain_archer", x: 120, y: 0 },
     ];
     const pick = pickWardProtectee(allies, 0, 0, 200);
     expect(pick?.id).toBe("b");
@@ -250,7 +250,9 @@ describe("wardBehavior", () => {
       playerX: 200,
       playerY: 0,
       deltaMs: 16,
-      peerAllies: [{ id: "jav", behavior: "javelineer", x: 0, y: 0 }],
+      peerAllies: [
+        { id: "jav", behavior: "javelineer", defId: "javelineer", x: 0, y: 0 },
+      ],
     });
 
     expect(setVelocity).toHaveBeenCalled();
@@ -285,7 +287,9 @@ describe("wardBehavior", () => {
       playerX: 200,
       playerY: 0,
       deltaMs: 16,
-      peerAllies: [{ id: "jav", behavior: "javelineer", x: 0, y: 0 }],
+      peerAllies: [
+        { id: "jav", behavior: "javelineer", defId: "javelineer", x: 0, y: 0 },
+      ],
     });
 
     const idleTarget = {
@@ -319,7 +323,13 @@ describe("wardBehavior", () => {
       } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
       nav: { ...createEnemyNav(), path: [{ x: 83, y: 1 }], pathIndex: 1 },
     });
-    const ally = { id: "jav", behavior: "javelineer" as const, x: 0, y: 0 };
+    const ally = {
+      id: "jav",
+      behavior: "javelineer" as const,
+      defId: "javelineer",
+      x: 0,
+      y: 0,
+    };
     const ctx = {
       enemy,
       nav: enemy.nav,
@@ -365,7 +375,9 @@ describe("wardBehavior", () => {
       playerX: 200,
       playerY: 0,
       deltaMs: 16,
-      peerAllies: [{ id: "jav", behavior: "javelineer", x: 0, y: 0 }],
+      peerAllies: [
+        { id: "jav", behavior: "javelineer", defId: "javelineer", x: 0, y: 0 },
+      ],
     });
 
     expect(setVelocity).not.toHaveBeenCalledWith(0, 0);

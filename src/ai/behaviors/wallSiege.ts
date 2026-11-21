@@ -9,6 +9,7 @@ import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
   applyWallMeleeHold,
+  playerChaseVelocityOpts,
   shouldHoldAtWallMelee,
 } from "./movement";
 
@@ -78,13 +79,20 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1, {
-    nav,
-    deltaMs,
-    targetKind: resolved.targetKind,
-    playerX,
-    playerY,
-  });
+  applyChaseVelocity(
+    enemy,
+    moveX,
+    moveY,
+    1,
+    playerChaseVelocityOpts(enemy, {
+      nav,
+      deltaMs,
+      targetKind: resolved.targetKind,
+      playerX,
+      playerY,
+      peerAllies: ctx.peerAllies,
+    }),
+  );
 
   return { targetX: goal.x, targetY: goal.y, targetKind: resolved.targetKind };
 };

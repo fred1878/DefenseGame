@@ -10,11 +10,13 @@ import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
   applyWallMeleeHold,
+  playerChaseVelocityOpts,
   shouldHoldAtWallMelee,
 } from "./movement";
 
 export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
+    ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -78,13 +80,20 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1, {
-    nav,
-    deltaMs,
-    targetKind: desired,
-    playerX,
-    playerY,
-  });
+  applyChaseVelocity(
+    enemy,
+    moveX,
+    moveY,
+    1,
+    playerChaseVelocityOpts(enemy, {
+      nav,
+      deltaMs,
+      targetKind: desired,
+      playerX,
+      playerY,
+      peerAllies,
+    }),
+  );
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };
 };
