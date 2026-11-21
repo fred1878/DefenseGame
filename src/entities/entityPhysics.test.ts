@@ -24,9 +24,9 @@ describe("entityPhysics", () => {
   });
 
   it("agent path clearance vs static nav obstacle clearance", () => {
-    expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(35);
-    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(28);
-    expect(maxNavObstacleClearancePx()).toBe(24);
+    expect(enemyPathClearancePx("grunt", "meleeChaser")).toBe(37);
+    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(30);
+    expect(maxNavObstacleClearancePx()).toBe(18);
   });
 
   it("tunes bounce, friction, and pushable", () => {

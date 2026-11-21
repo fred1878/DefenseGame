@@ -7,10 +7,10 @@ import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
   it("uses static obstacle nav clearance from data", () => {
-    expect(DEFENSE_MAP.pathClearancePx).toBe(24);
+    expect(DEFENSE_MAP.pathClearancePx).toBe(18);
     expect(DEFENSE_MAP.pathClearancePx).toBe(maxNavObstacleClearancePx());
-    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(28);
-    expect(enemyPathClearancePx("sentry_archer", "stationaryRanged")).toBe(21);
+    expect(enemyPathClearancePx("bruiser", "bruiser")).toBe(30);
+    expect(enemyPathClearancePx("sentry_archer", "stationaryRanged")).toBe(23);
   });
 
   it("marks obstacle cells blocked", () => {
