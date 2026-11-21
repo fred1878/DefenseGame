@@ -11,6 +11,26 @@ export type EnemyKnockbackCarrier = Pick<
   "sprite" | "knockbackVx" | "knockbackVy" | "weight"
 >;
 
+const BLAST_CENTER_EPSILON_PX = 0.5;
+
+/** Radial outward unit vector from blast/hit origin to target (stable fallback at origin). */
+export function knockbackRadialUnit(
+  targetX: number,
+  targetY: number,
+  originX: number,
+  originY: number,
+): { nx: number; ny: number } {
+  const dx = targetX - originX;
+  const dy = targetY - originY;
+  const len = Math.hypot(dx, dy);
+  if (len >= BLAST_CENTER_EPSILON_PX) {
+    return { nx: dx / len, ny: dy / len };
+  }
+  const hash = Math.sin(targetX * 12.9898 + targetY * 78.233) * 43758.5453;
+  const angle = (hash - Math.floor(hash)) * Math.PI * 2;
+  return { nx: Math.cos(angle), ny: Math.sin(angle) };
+}
+
 export function knockbackStrengthForEnemyWeight(
   strength: number,
   weight: number,
@@ -28,11 +48,12 @@ export function applyEnemyKnockbackFrom(
   strength: number,
 ): void {
   const scaled = knockbackStrengthForEnemyWeight(strength, enemy.weight);
-  const dx = enemy.sprite.x - fromX;
-  const dy = enemy.sprite.y - fromY;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = dx / len;
-  const ny = dy / len;
+  const { nx, ny } = knockbackRadialUnit(
+    enemy.sprite.x,
+    enemy.sprite.y,
+    fromX,
+    fromY,
+  );
   enemy.knockbackVx += nx * scaled;
   enemy.knockbackVy += ny * scaled;
   const maxV = scaled * 1.35;

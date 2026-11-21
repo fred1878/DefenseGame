@@ -37,6 +37,18 @@ describe("spellTargeting", () => {
     expect(spellUsesManualGroundAim(d)).toBe(true);
   });
 
+  it("marks fire_blast as ground manual like meteor", () => {
+    const d = def({
+      id: "fire_blast",
+      mechanicType: "blast",
+      targetMode: "ground",
+    });
+    expect(spellTargetMode(d)).toBe("ground");
+    expect(spellRequiresManualTarget(d)).toBe(true);
+    expect(spellUsesManualGroundAim(d)).toBe(true);
+    expect(spellAutoCastRequiresCombatTarget(d)).toBe(true);
+  });
+
   it("flags enemy, cone, and swing spells for auto-cast enemy aim", () => {
     expect(
       spellAutoCastNeedsEnemyTarget(
