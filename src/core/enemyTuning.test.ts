@@ -52,6 +52,15 @@ describe("resolveEnemyCombat", () => {
     );
   });
 
+  it("merges meleeChaseStandoffWu from per-enemy partial only", () => {
+    const tuned = resolveEnemyCombat("meleeChaser", {
+      melee: { meleeChaseStandoffWu: 4 },
+    });
+    expect(tuned.melee.meleeChaseStandoffWu).toBe(4);
+    const omitted = resolveEnemyCombat("meleeChaser", undefined);
+    expect(omitted.melee.meleeChaseStandoffWu).toBeUndefined();
+  });
+
   it("merges ranged damage overrides onto defaults", () => {
     const jav = resolveEnemyCombat("javelineer", {
       javelineer: { damage: 14 },
@@ -114,6 +123,7 @@ describe("normalizeEnemyRow", () => {
       bodyRadius: 28,
       weight: 100,
       challengeRating: 1,
+      combat: { melee: { meleeChaseStandoffWu: 2 } },
     });
     expect(() => assertEnemyResolvedCombat("grunt", melee)).not.toThrow();
     const charger: EnemyDef = normalizeEnemyRow("charger", {
@@ -125,7 +135,24 @@ describe("normalizeEnemyRow", () => {
       bodyRadius: 21,
       weight: 100,
       challengeRating: 6,
+      combat: { melee: { meleeChaseStandoffWu: 2 } },
     });
     expect(() => assertEnemyResolvedCombat("charger", charger)).not.toThrow();
+  });
+
+  it("assertEnemyResolvedCombat requires meleeChaseStandoffWu for melee chasers", () => {
+    const missing: EnemyDef = normalizeEnemyRow("grunt", {
+      behavior: "meleeChaser",
+      textureKey: "enemy_grunt",
+      hp: 10,
+      speed: 50,
+      damage: 5,
+      bodyRadius: 28,
+      weight: 100,
+      challengeRating: 1,
+    });
+    expect(() => assertEnemyResolvedCombat("grunt", missing)).toThrow(
+      ConfigLoadError,
+    );
   });
 });

@@ -1,5 +1,9 @@
 import { ConfigLoadError, requireFiniteNumber } from "./configValidation";
-import { resolveEnemyCombat, type EnemyCombatPartial } from "./enemyTuning";
+import {
+  MELEE_CHASE_STANDOFF_BEHAVIORS,
+  resolveEnemyCombat,
+  type EnemyCombatPartial,
+} from "./enemyTuning";
 import type { EnemyDef } from "./DataStore";
 
 export type EnemyDefInput = {
@@ -78,15 +82,19 @@ export function assertEnemyResolvedCombat(id: string, row: EnemyDef): void {
   const path = `enemies.${id}`;
   assertPositiveDamage(row.damage, `${path}.damage`);
   const resolved = resolveEnemyCombat(row.behavior, row.combat, id);
-  const meleeBehaviors = new Set([
-    "meleeChaser",
-    "bruiser",
-    "wallSiege",
-    "ward",
-    "charger",
-  ]);
-  if (meleeBehaviors.has(row.behavior) || resolved.melee) {
+  if (MELEE_CHASE_STANDOFF_BEHAVIORS.has(row.behavior)) {
     assertPositiveDamage(row.damage, `${path}.damage (melee)`);
+    const gap = row.combat?.melee?.meleeChaseStandoffWu;
+    if (gap === undefined) {
+      throw new ConfigLoadError(
+        `Missing number at ${path}.combat.melee.meleeChaseStandoffWu`,
+      );
+    }
+    if (!Number.isFinite(gap) || gap < 0) {
+      throw new ConfigLoadError(
+        `Invalid number at ${path}.combat.melee.meleeChaseStandoffWu`,
+      );
+    }
   }
   if (resolved.arrowRain) {
     assertPositiveDamage(resolved.arrowRain.damage, `${path}.combat.arrowRain.damage`);

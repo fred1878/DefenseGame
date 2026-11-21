@@ -20,6 +20,8 @@ export type EnemyCombatPartial = {
   melee?: {
     triggerRange?: number;
     range?: number;
+    /** Extra gap (WU) when chase stops before player body contact — per enemy only, no global default. */
+    meleeChaseStandoffWu?: number;
     engageBodySlackPx?: number;
     arcDeg?: number;
     windupMs?: number;
@@ -126,9 +128,22 @@ export type EnemyMeleeCombat = {
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
+  /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
+  meleeChaseStandoffWu?: number;
   /** Defaults bundle only — touch slack when deriving engage floors from physics. */
   engageBodySlackPx?: number;
 };
+
+/** Behaviors that must author `combat.melee.meleeChaseStandoffWu` on each enemy row. */
+export const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
+  "meleeChaser",
+  "bruiser",
+  "wallSiege",
+  "charger",
+  "ward",
+  "javelineer",
+  "rangedHybrid",
+]);
 
 export type EnemyArrowRainCombat = {
   damage: number;
@@ -301,7 +316,28 @@ function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
     recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
     cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
     engageBodySlackPx: partial?.engageBodySlackPx ?? d.engageBodySlackPx,
+    ...(partial?.meleeChaseStandoffWu !== undefined
+      ? { meleeChaseStandoffWu: partial.meleeChaseStandoffWu }
+      : {}),
   };
+}
+
+export function requireMeleeChaseStandoffWu(
+  melee: Pick<EnemyMeleeCombat, "meleeChaseStandoffWu">,
+  behavior: string,
+  enemyId: string,
+): number {
+  if (!MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {
+    throw new ConfigLoadError(
+      `meleeChaseStandoffWu resolved for non-chase behavior ${behavior} (${enemyId})`,
+    );
+  }
+  if (melee.meleeChaseStandoffWu === undefined) {
+    throw new ConfigLoadError(
+      `Missing number at enemies.${enemyId}.combat.melee.meleeChaseStandoffWu`,
+    );
+  }
+  return melee.meleeChaseStandoffWu;
 }
 
 function mergeWall(partial?: EnemyCombatPartial["wall"]): EnemyWallCombat {

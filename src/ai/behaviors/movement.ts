@@ -1,12 +1,14 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
-import {
-  enemyMeleeContactCenterDist,
-  wallMeleeApproachStandoffPx,
-} from "../../core/enemyTuning";
+import { requireMeleeChaseStandoffWu, wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
+import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
-import { isMeleeBodyCollisionBehavior } from "../../entities/entityPhysics";
+import {
+  enemyCollisionBodyRadius,
+  isMeleeBodyCollisionBehavior,
+  playerBodyRadiusPx,
+} from "../../entities/entityPhysics";
 import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
 
 export { setEnemyChaseVelocity };
@@ -20,16 +22,20 @@ export type ChaseVelocityOptions = {
   playerY?: number;
 };
 
-/** Extra center distance past arcade body contact so enemies do not drive into the player collider. */
-const PLAYER_MELEE_CHASE_GAP_PX = 2;
-
 /** Center distance at which melee archetypes stop closing on the player. */
 export function playerMeleeChaseStandoffCenterDist(
   enemy: EnemyInstance,
 ): number {
+  const reg = enemy.sprite.scene?.registry;
+  const gapWu = requireMeleeChaseStandoffWu(
+    enemy.combatTuning.melee,
+    enemy.behavior,
+    enemy.defId,
+  );
   return (
-    enemyMeleeContactCenterDist(enemy.defId) +
-    PLAYER_MELEE_CHASE_GAP_PX
+    worldUnit(playerBodyRadiusPx(), reg) +
+    worldUnit(enemyCollisionBodyRadius(enemy.defId), reg) +
+    worldUnit(gapWu, reg)
   );
 }
 

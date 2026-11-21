@@ -72,6 +72,32 @@ describe("public data fixtures", () => {
     }
   });
 
+  it("melee player-chase behaviors define combat.melee.meleeChaseStandoffWu", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      {
+        behavior: string;
+        combat?: { melee?: { meleeChaseStandoffWu?: number } };
+      }
+    >;
+    const chaseBehaviors = new Set([
+      "meleeChaser",
+      "bruiser",
+      "wallSiege",
+      "charger",
+      "ward",
+      "javelineer",
+      "rangedHybrid",
+    ]);
+    for (const [id, row] of Object.entries(enemies)) {
+      if (!chaseBehaviors.has(row.behavior)) continue;
+      expectFiniteNumber(
+        row.combat?.melee?.meleeChaseStandoffWu,
+        `enemies.${id}.combat.melee.meleeChaseStandoffWu`,
+      );
+    }
+  });
+
   it("javelineer documents combat schema with kite band", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
