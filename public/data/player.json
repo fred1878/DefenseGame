@@ -15,7 +15,7 @@
   "rangedDamage": 12,
   "rangedMaxRange": 340,
   "projectileSpeed": 420,
-  "meleeKnockback": 320,
+  "meleeKnockback": 250,
   "rangedKnockback": 110,
   "autoAttackRangedRange": 300,
   "targetTapRadiusWorld": 56,
