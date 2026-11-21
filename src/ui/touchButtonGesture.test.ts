@@ -1,5 +1,86 @@
 import { describe, expect, it } from "vitest";
-import { releaseOnSameButton } from "./touchButtonGesture";
+import {
+  pressDragExceedsThreshold,
+  releaseOnSameButton,
+  resolveSpellBarPointerRelease,
+} from "./touchButtonGesture";
+
+describe("pressDragExceedsThreshold", () => {
+  it("returns false inside threshold", () => {
+    expect(pressDragExceedsThreshold(0, 0, 10, 0, 24)).toBe(false);
+  });
+
+  it("returns true beyond threshold", () => {
+    expect(pressDragExceedsThreshold(0, 0, 30, 0, 24)).toBe(true);
+  });
+});
+
+describe("resolveSpellBarPointerRelease", () => {
+  const LONG = 520;
+
+  it("returns tap for short release on button", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: 100,
+        longPressMs: LONG,
+        releaseOnButton: true,
+      }),
+    ).toBe("tap");
+  });
+
+  it("returns none for short release off button", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: 100,
+        longPressMs: LONG,
+        releaseOnButton: false,
+      }),
+    ).toBe("none");
+  });
+
+  it("returns longPress only when release stays on the slot hit area", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: LONG,
+        longPressMs: LONG,
+        releaseOnButton: true,
+      }),
+    ).toBe("longPress");
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: LONG + 50,
+        longPressMs: LONG,
+        releaseOnButton: false,
+      }),
+    ).toBe("none");
+  });
+
+  it("returns none for long hold with drag off slot (ground aim path)", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: true,
+        holdMs: 50,
+        longPressMs: LONG,
+        releaseOnButton: false,
+      }),
+    ).toBe("none");
+  });
+
+  it("returns none when drag cancels gesture", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: true,
+        holdMs: LONG + 100,
+        longPressMs: LONG,
+        releaseOnButton: true,
+      }),
+    ).toBe("none");
+  });
+});
 
 describe("releaseOnSameButton", () => {
   const bounds = { x: 100, y: 200, width: 80, height: 40 };

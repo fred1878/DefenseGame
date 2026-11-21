@@ -403,6 +403,8 @@ export class DefenseScene extends Phaser.Scene {
       onManualAttack: () => this.manualAttack(),
       onSpellCastRequest: (id) => this.onSpellCastRequest(id),
       onSpellAutoCastToggle: (slot) => this.onSpellAutoCastToggle(slot),
+      onGroundCastArm: (id, pointer) => this.onGroundCastArm(id, pointer),
+      onGroundCastCancel: () => this.cancelPendingGroundCast(),
       onOpenDebugMenu: () => this.openDebugMenu(),
       onLeaveEndless: () => this.endEndlessRun("quit"),
       getAutoAttackEnabled: () => this.autoAttackEnabled,
@@ -786,6 +788,21 @@ export class DefenseScene extends Phaser.Scene {
   /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
   onSpellCastRequest(spellId: string): void {
     this.spellDirector.onSpellCastRequest(spellId);
+  }
+
+  /** Spell-bar press on a manual ground spell: arm reticle and track this pointer. */
+  onGroundCastArm(spellId: string, pointer: Phaser.Input.Pointer): void {
+    this.onSpellCastRequest(spellId);
+    if (this.pendingGroundCast !== spellId) return;
+    this.onGroundAimPointerDown(pointer);
+  }
+
+  cancelPendingGroundCast(): void {
+    if (!this.pendingGroundCast) return;
+    this.pendingGroundCast = null;
+    this.groundAim = null;
+    this.clearGroundAimGesture();
+    this.groundReticle?.hide();
   }
 
   private tryFlushQueuedSpellCast(stickX: number, stickY: number): void {

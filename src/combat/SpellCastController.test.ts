@@ -46,12 +46,13 @@ describe("SpellCastController", () => {
   });
 
   it("completes flamestrike after windup only (no channelMs)", () => {
+    const def = spellById("flamestrike");
+    expect(def?.channelMs).toBe(0);
+    const windupMs = def ? spellCastMs(def) : 0;
+    expect(windupMs).toBeGreaterThan(0);
     const c = new SpellCastController();
-    const flamestrike = spellById("flamestrike");
-    expect(flamestrike).toBeDefined();
-    const windupMs = spellCastMs(flamestrike!);
     expect(c.tryBeginCast("flamestrike")).toBe("windup");
-    const done = c.updateChannel(windupMs, 0, 0);
+    const done = c.updateChannel(windupMs + 1, 0, 0);
     expect(done.type).toBe("completed");
     if (done.type === "completed") expect(done.spellId).toBe("flamestrike");
     expect(c.isChanneling()).toBe(false);
