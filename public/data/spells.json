@@ -20,7 +20,7 @@
         "dotDps": 6,
         "dotMs": 2500
       },
-      "knockback": 110
+      "knockback": 70
     },
     {
       "id": "ice_bolt",
@@ -42,7 +42,7 @@
         "slowPct": 0.5,
         "slowMs": 4000
       },
-      "knockback": 110
+      "knockback": 20
     },
     {
       "id": "lightning_bolt",
@@ -72,7 +72,7 @@
       "cooldownMs": 18000,
       "channelMs": 0,
       "baseDamage": 42,
-      "blastRadius": 50,
+      "blastRadius": 100,
       "iconFile": "fire_nova.png",
       "blastTextureKey": "fx_spell_fire_nova",
       "blastFile": "fire-nova-mrpg-64.png",
@@ -91,7 +91,7 @@
       "mechanicType": "heal",
       "castableInDefense": true,
       "implementationPhase": 1,
-      "cooldownMs": 20000,
+      "cooldownMs": 12000,
       "channelMs": 1500,
       "healAmount": 25,
       "iconFile": "heal.png",
