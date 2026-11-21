@@ -2,17 +2,12 @@ import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
 import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
-import { applySpellMechanics } from "../combat/spellMechanics";
 import { applyEntityPhysics } from "../entities/entityPhysics";
 import { applyEnemyCombatDefaults } from "./enemyTuning";
 import {
   normalizeDefenseMaps,
   type DefenseMapsFileInput,
 } from "./normalizeDefenseMaps";
-import {
-  normalizeSpellMechanics,
-  type SpellMechanicsInput,
-} from "./normalizeSpellMechanics";
 import {
   normalizeEntityPhysics,
   type EntityPhysicsInput,
@@ -85,7 +80,6 @@ export class DataStore {
       playerFile,
       enemyCombatDefaults,
       defenseMaps,
-      spellMechanics,
       entityPhysics,
       enemyAi,
     ] = await Promise.all([
@@ -102,7 +96,6 @@ export class DataStore {
         `${prefix}data/enemy-combat-defaults.json`,
       ),
       fetchJson<DefenseMapsFileInput>(`${prefix}data/defense-maps.json`),
-      fetchJson<SpellMechanicsInput>(`${prefix}data/spell-mechanics.json`),
       fetchJson<EntityPhysicsInput>(`${prefix}data/entity-physics.json`),
       fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
     ]);
@@ -121,7 +114,6 @@ export class DataStore {
     this.player = normalizePlayerConfig(playerFile);
     applyEnemyCombatDefaults(enemyCombatDefaults);
     applyDefenseMaps(defenseMaps);
-    applySpellMechanics(normalizeSpellMechanics(spellMechanics));
     applyEntityPhysics(normalizeEntityPhysics(entityPhysics));
     for (const [id, row] of Object.entries(this.enemies)) {
       assertEnemyResolvedCombat(id, row);

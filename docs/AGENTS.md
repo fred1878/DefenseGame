@@ -57,7 +57,7 @@ docs/                  # AGENTS, TESTING, CI_RELEASES, REFACTOR_PLAN; ROADMAP at
 |-------|------|--------|
 | **Tuning** | `src/config/` | Canvas/layout only (`GAME`, `SPELL_BAR` / `CAST_BAR` px, render depths). **No gameplay numbers** — combat, player, AI, spells mechanics, entity physics, defense field size, and enemy combat tables load from `public/data/` at Boot with strict validation (`ConfigLoadError` if a field is missing). |
 | **Code content** | `src/content/` | `assets.ts` (texture keys, file paths, nine-slice), `spells.ts` (`SPELL_CATALOG`, spell ids). Candidate to move spells → `public/data/spells.json` later. |
-| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-combat-defaults.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spell-mechanics.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). |
+| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-combat-defaults.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spells.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). |
 
 Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). `src/config.ts` re-exports **tuning only** from `src/config/index.ts`.
 
@@ -152,7 +152,7 @@ Every enemy row must set `hp` / `speed` / `damage`. Omit `combat` to use loaded 
 
 **defense-maps.json** — `{ defaultMapId, maps: [{ id, field: { cols, rows }, obstacles: [{ tileX, tileY, textureKey }] }] }`. Boot applies the default map (`applyDefenseMaps`); use `selectDefenseMapId` from `src/config/defenseMaps.ts` when adding map pick UI.
 
-**spell-mechanics.json** — shared spell helper constants (ranges, arcs, chain hops, blink/ice wall distances, shadowform/frost timings). Per-spell damage/channel data stays in `spells.json`. Spell knockback is authored per row (`knockback`, `blastKnockback`, `chainKnockback`, `chainHopKnockback` by `mechanicType`); Boot validates required fields via `normalizeSpellCatalog` (e.g. **Fire Nova** uses `blastKnockback: 0`).
+**spells.json** — per-spell damage, channeling, geometry/timing (`coneRangeWu`, `coneArcDeg`, `swingRangeWu`, `chainLightningHops`, `blinkDistanceWu`, `iceWallDurationMs`, `shadowformDamageMult`, etc.), and knockback (`knockback`, `blastKnockback`, `chainKnockback`, `chainHopKnockback` by `mechanicType`). Boot validates required fields via `normalizeSpellCatalog` (e.g. **Fire Nova** uses `blastKnockback: 0`).
 
 **entity-physics.json** — `entityBodyRadius` + `enemyPathClearanceMarginPx` (nav grid inflation uses loaded radii).
 

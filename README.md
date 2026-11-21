@@ -130,7 +130,6 @@ Loaded at runtime in `BootScene` via `DataStore`:
 |------|---------|
 | `player.json` | Player combat/movement tuning, melee engage slack (`meleeEngageTargetRadius`, `meleeActivationSlackWu`), `endlessPanelDefaultConcurrent` |
 | `defense-maps.json` | `defaultMapId`, per-map `field` (cols/rows) + obstacle placements (`tileX`/`tileY`/`textureKey`); `selectDefenseMapId` for future map pick |
-| `spell-mechanics.json` | Shared spell geometry/timing (cone/swing, chain lightning, blink, ice wall, shadowform, frost root) — not duplicated in `spells.json` |
 | `entity-physics.json` | `entityBodyRadius` (player/enemy/grunt/…) + `enemyPathClearanceMarginPx` |
 | `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`) |
 | `enemy-combat-defaults.json` | Baseline `wall` / `melee` / behavior combat tables; per-enemy `combat` in `enemies.json` overrides |
@@ -139,7 +138,7 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `buildings.json` | Upgrade defs: `wall`, `blacksmith` (`costByLevel`, effects) |
 | `town_buildings.json` | Town menu labels, textures, `upgradeId` / `startsNight` / `opensSpellBar` |
 | `town_layout.json` | Building slot positions on the town screen |
-| `spells.json` | Full spell catalog (damage, channeling, targeting, icons) |
+| `spells.json` | Full spell catalog (damage, channeling, targeting, per-spell geometry/timing, knockback, icons) |
 
 Spells and waves are the primary content levers; prefer new JSON rows over growing `DefenseScene.ts` (see [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md)).
 

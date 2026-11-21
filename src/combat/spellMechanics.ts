@@ -219,64 +219,6 @@ export function resolveBlinkLanding(
   return { x, y, moved };
 }
 
-export type SpellMechanicsTuning = {
-  swingRangeWu: number;
-  swingArcDeg: number;
-  coneRangeWu: number;
-  coneArcDeg: number;
-  chainLightningHops: number;
-  chainLightningHopRangeWu: number;
-  blinkDistanceWu: number;
-  iceWallDistanceWu: number;
-  iceWallDurationMs: number;
-  shadowformDurationMs: number;
-  shadowformDamageMult: number;
-  frostRootMs: number;
-  deepFreezeRootMs: number;
-};
-
-function unsetSpellScalar(label: string): number {
-  return new Proxy({} as object, {
-    get() {
-      throw new Error(
-        `${label} not loaded — Boot must apply public/data/spell-mechanics.json`,
-      );
-    },
-  }) as unknown as number;
-}
-
-export let SPELL_SWING_RANGE_WU = unsetSpellScalar("SPELL_SWING_RANGE_WU");
-export let SPELL_SWING_ARC_DEG = unsetSpellScalar("SPELL_SWING_ARC_DEG");
-export let SPELL_CONE_RANGE_WU = unsetSpellScalar("SPELL_CONE_RANGE_WU");
-export let SPELL_CONE_ARC_DEG = unsetSpellScalar("SPELL_CONE_ARC_DEG");
-export let CHAIN_LIGHTNING_HOPS = unsetSpellScalar("CHAIN_LIGHTNING_HOPS");
-export let CHAIN_LIGHTNING_HOP_RANGE_WU = unsetSpellScalar(
-  "CHAIN_LIGHTNING_HOP_RANGE_WU",
-);
-export let BLINK_DISTANCE_WU = unsetSpellScalar("BLINK_DISTANCE_WU");
-export let ICE_WALL_DISTANCE_WU = unsetSpellScalar("ICE_WALL_DISTANCE_WU");
-export let ICE_WALL_DURATION_MS = unsetSpellScalar("ICE_WALL_DURATION_MS");
-export let SHADOWFORM_DURATION_MS = unsetSpellScalar("SHADOWFORM_DURATION_MS");
-export let SHADOWFORM_DAMAGE_MULT = unsetSpellScalar("SHADOWFORM_DAMAGE_MULT");
-export let FROST_ROOT_MS = unsetSpellScalar("FROST_ROOT_MS");
-export let DEEP_FREEZE_ROOT_MS = unsetSpellScalar("DEEP_FREEZE_ROOT_MS");
-
-export function applySpellMechanics(tuning: SpellMechanicsTuning): void {
-  SPELL_SWING_RANGE_WU = tuning.swingRangeWu;
-  SPELL_SWING_ARC_DEG = tuning.swingArcDeg;
-  SPELL_CONE_RANGE_WU = tuning.coneRangeWu;
-  SPELL_CONE_ARC_DEG = tuning.coneArcDeg;
-  CHAIN_LIGHTNING_HOPS = tuning.chainLightningHops;
-  CHAIN_LIGHTNING_HOP_RANGE_WU = tuning.chainLightningHopRangeWu;
-  BLINK_DISTANCE_WU = tuning.blinkDistanceWu;
-  ICE_WALL_DISTANCE_WU = tuning.iceWallDistanceWu;
-  ICE_WALL_DURATION_MS = tuning.iceWallDurationMs;
-  SHADOWFORM_DURATION_MS = tuning.shadowformDurationMs;
-  SHADOWFORM_DAMAGE_MULT = tuning.shadowformDamageMult;
-  FROST_ROOT_MS = tuning.frostRootMs;
-  DEEP_FREEZE_ROOT_MS = tuning.deepFreezeRootMs;
-}
-
 export function clampGroundTarget(
   fromX: number,
   fromY: number,

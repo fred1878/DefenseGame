@@ -44,5 +44,12 @@ describe("normalizeSpellCatalog", () => {
     const chain = rows.find((s) => s.id === "chain_lightning");
     expect(typeof chain?.chainKnockback).toBe("number");
     expect(typeof chain?.chainHopKnockback).toBe("number");
+    expect(chain?.chainLightningHops).toBeDefined();
+    expect(chain?.chainLightningHopRangeWu).toBeDefined();
+    const blink = rows.find((s) => s.id === "blink");
+    expect(blink?.blinkDistanceWu).toBeDefined();
+    const swing = rows.find((s) => s.id === "swing");
+    expect(swing?.swingRangeWu).toBeDefined();
+    expect(swing?.swingArcDeg).toBeDefined();
   });
 });

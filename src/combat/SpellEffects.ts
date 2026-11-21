@@ -15,12 +15,6 @@ import {
   enemiesInSwingArc,
   nearestEnemy,
   pickChainLightningTargets,
-  SPELL_CONE_ARC_DEG,
-  SPELL_CONE_RANGE_WU,
-  SPELL_SWING_ARC_DEG,
-  SPELL_SWING_RANGE_WU,
-  CHAIN_LIGHTNING_HOP_RANGE_WU,
-  CHAIN_LIGHTNING_HOPS,
   type EnemyHitTarget,
 } from "./spellMechanics";
 import { applySpellOnHitEffects } from "./spellOnHitEffects";
@@ -164,7 +158,7 @@ export function applySpellSwing(
   damageMult: number,
   status?: EnemySpellStatusMap,
 ): void {
-  const range = worldUnit(SPELL_SWING_RANGE_WU, scene.registry);
+  const range = worldUnit(def.swingRangeWu!, scene.registry);
   const damage = (def.baseDamage ?? 16) * damageMult;
   const flavor = def.damageFlavor ?? "default";
   showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, 160);
@@ -173,7 +167,7 @@ export function applySpellSwing(
     playerY,
     facingRad,
     range,
-    SPELL_SWING_ARC_DEG,
+    def.swingArcDeg!,
     enemies,
   )) {
     const full = enemies.find((x) => x.id === e.id);
@@ -196,9 +190,8 @@ export function strikeSpellCone(
   damageMult: number,
   status?: EnemySpellStatusMap,
 ): void {
-  const rangeWu = def.coneRangeWu ?? SPELL_CONE_RANGE_WU;
-  const range = worldUnit(rangeWu, scene.registry);
-  const half = Phaser.Math.DegToRad(SPELL_CONE_ARC_DEG / 2);
+  const range = worldUnit(def.coneRangeWu!, scene.registry);
+  const half = Phaser.Math.DegToRad(def.coneArcDeg! / 2);
   const damage = (def.baseDamage ?? 12) * damageMult;
   const flavor = def.damageFlavor ?? "default";
   for (const e of enemiesInCone(playerX, playerY, facingRad, range, half, enemies)) {
@@ -224,7 +217,14 @@ export function applySpellCone(
   opts?: { showFx?: boolean },
 ): void {
   if (opts?.showFx !== false) {
-    showSpellConeFx(scene, playerX, playerY, facingRad);
+    showSpellConeFx(
+      scene,
+      playerX,
+      playerY,
+      facingRad,
+      def.coneRangeWu!,
+      def.coneArcDeg!,
+    );
   }
   strikeSpellCone(scene, playerX, playerY, facingRad, def, enemies, damageMult, status);
 }
@@ -300,7 +300,7 @@ export function applyChainLightning(
   startEnemyId?: string | null,
   status?: EnemySpellStatusMap,
 ): void {
-  const hopRange = worldUnit(CHAIN_LIGHTNING_HOP_RANGE_WU, scene.registry);
+  const hopRange = worldUnit(def.chainLightningHopRangeWu!, scene.registry);
   const living = enemies.filter((e) => e.damageable.alive);
   const start =
     (startEnemyId && living.find((e) => e.id === startEnemyId)) ||
@@ -310,7 +310,7 @@ export function applyChainLightning(
     start.x,
     start.y,
     living,
-    CHAIN_LIGHTNING_HOPS,
+    def.chainLightningHops!,
     hopRange,
   );
   const damage = (def.baseDamage ?? 10) * damageMult;

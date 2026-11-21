@@ -1,11 +1,6 @@
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { worldUnit } from "../core/worldPixelScale";
-import {
-  SPELL_CONE_ARC_DEG,
-  SPELL_CONE_RANGE_WU,
-} from "./spellMechanics";
-
 const SPELL_CONE_FX_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 const CONE_FILL = 0xff6622;
@@ -18,9 +13,11 @@ export function showSpellConeFx(
   originX: number,
   originY: number,
   facingRad: number,
+  coneRangeWu: number,
+  coneArcDeg: number,
 ): void {
-  const range = worldUnit(SPELL_CONE_RANGE_WU, scene.registry);
-  const half = Phaser.Math.DegToRad(SPELL_CONE_ARC_DEG / 2);
+  const range = worldUnit(coneRangeWu, scene.registry);
+  const half = Phaser.Math.DegToRad(coneArcDeg / 2);
   const start = facingRad - half;
   const end = facingRad + half;
 

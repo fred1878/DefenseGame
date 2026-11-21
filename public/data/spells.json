@@ -149,7 +149,9 @@
       "iconFile": "swing.png",
       "damageFlavor": "default",
       "targetMode": "enemy",
-      "knockback": 250
+      "knockback": 250,
+      "swingRangeWu": 72,
+      "swingArcDeg": 110
     },
     {
       "id": "rend",
@@ -168,7 +170,9 @@
         "dotDps": 18,
         "dotMs": 4000
       },
-      "knockback": 250
+      "knockback": 250,
+      "swingRangeWu": 72,
+      "swingArcDeg": 110
     },
     {
       "id": "cone_of_cold",
@@ -183,6 +187,7 @@
       "iconFile": "cone_of_cold.png",
       "damageFlavor": "default",
       "coneRangeWu": 130,
+      "coneArcDeg": 72,
       "onHit": {
         "slowPct": 0.4,
         "slowMs": 2000
@@ -204,6 +209,7 @@
       "damageFlavor": "fire",
       "castMs": 0,
       "coneRangeWu": 220,
+      "coneArcDeg": 72,
       "onHit": {
         "dotDps": 5,
         "dotMs": 5000
@@ -307,7 +313,9 @@
       "cooldownMs": 12000,
       "channelMs": 0,
       "iconFile": "ice_wall.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "iceWallDistanceWu": 64,
+      "iceWallDurationMs": 8000
     },
     {
       "id": "flamestrike",
@@ -343,7 +351,9 @@
       "cooldownMs": 14000,
       "channelMs": 0,
       "iconFile": "shadowform.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "shadowformDurationMs": 10000,
+      "shadowformDamageMult": 1.35
     },
     {
       "id": "deep_freeze",
@@ -390,7 +400,9 @@
       },
       "knockback": 110,
       "chainKnockback": 120,
-      "chainHopKnockback": 100
+      "chainHopKnockback": 100,
+      "chainLightningHops": 4,
+      "chainLightningHopRangeWu": 110
     },
     {
       "id": "blink",
@@ -402,7 +414,8 @@
       "cooldownMs": 10000,
       "channelMs": 0,
       "iconFile": "blink.png",
-      "damageFlavor": "default"
+      "damageFlavor": "default",
+      "blinkDistanceWu": 250
     },
     {
       "id": "combustion",
