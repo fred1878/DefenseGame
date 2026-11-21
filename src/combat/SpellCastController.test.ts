@@ -4,22 +4,30 @@ import { spellCastMs } from "../content/spellTargeting";
 import { SpellCastController } from "./SpellCastController";
 
 describe("SpellCastController", () => {
-  it("interrupts cast windup when stick moves", () => {
+  it("interrupts auto cast windup when stick moves", () => {
     const c = new SpellCastController();
-    expect(c.tryBeginCast("fire_bolt")).toBe("windup");
+    expect(c.tryBeginCast("fire_bolt", "auto")).toBe("windup");
     const cut = c.updateChannel(50, 0.5, 0);
     expect(cut.type).toBe("interrupted");
     expect(c.isChanneling()).toBe(false);
   });
 
-  it("interrupts channel when stick moves", () => {
+  it("interrupts auto channel when stick moves", () => {
     const c = new SpellCastController();
-    expect(c.tryBeginCast("heal")).toBe("channel");
+    expect(c.tryBeginCast("heal", "auto")).toBe("channel");
     const mid = c.updateChannel(400, 0, 0);
     expect(mid.type).toBe("channeling");
     const cut = c.updateChannel(10, 0.5, 0);
     expect(cut.type).toBe("interrupted");
     expect(c.isChanneling()).toBe(false);
+  });
+
+  it("does not interrupt manual cast windup when stick is active", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("fire_bolt", "manual")).toBe("windup");
+    const mid = c.updateChannel(50, 0.5, 0);
+    expect(mid.type).toBe("windup");
+    expect(c.isChanneling()).toBe(true);
   });
 
   it("completes windup-only meteor when still", () => {

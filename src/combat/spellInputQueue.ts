@@ -1,9 +1,6 @@
 import type { SpellId } from "../content/spells";
 import type { SpellDefinition } from "../content/spells";
-import {
-  SPELL_MOVE_INTERRUPT_EPS,
-  spellRequiresStationary,
-} from "../content/spellTargeting";
+import { SPELL_MOVE_INTERRUPT_EPS } from "../content/spellTargeting";
 
 export { SPELL_MOVE_INTERRUPT_EPS as spellQueueMoveEpsilon };
 
@@ -31,24 +28,19 @@ export class SpellInputQueue {
   }
 
   /**
-   * Returns the queued spell to cast after an attack completes, or null when
-   * the queue is empty, the spell is unknown, or a stationary-only spell would
-   * start while the player is moving.
+   * Returns the queued manual spell to cast when attacks are idle, or null when
+   * the queue is empty or the spell is unknown. Manual windup/channel casts may
+   * start while the stick is active (movement is suppressed for the cast).
    */
   consumeIfReady(
-    stickX: number,
-    stickY: number,
+    _stickX: number,
+    _stickY: number,
     lookup: (id: SpellId) => SpellDefinition | undefined,
   ): SpellId | null {
     if (!this.queued) return null;
     const spellId = this.queued;
     const def = lookup(spellId);
     if (!def) {
-      this.queued = null;
-      return null;
-    }
-    const moving = isStickMoving(stickX, stickY);
-    if (moving && spellRequiresStationary(def)) {
       this.queued = null;
       return null;
     }

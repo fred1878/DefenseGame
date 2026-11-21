@@ -5,7 +5,10 @@ import type { SaveGame } from "../../core/saveTypes";
 import { persistSave, playerDamageMult } from "../../core/GameState";
 import { pickAutoCastSpell } from "../../combat/spellAutoCast";
 import { isStickMoving, SpellInputQueue } from "../../combat/spellInputQueue";
-import { SpellCastController } from "../../combat/SpellCastController";
+import {
+  SpellCastController,
+  type SpellCastInputMode,
+} from "../../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import {
   applyChanneledHeal,
@@ -123,6 +126,23 @@ export class DefenseSpellDirector {
 
   constructor(private readonly host: DefenseSpellDirectorHost) {}
 
+  private resumeMovementFromStick(
+    dir: { x: number; y: number },
+    shouldLockMeleeAimFacing: () => boolean,
+  ): void {
+    const lockMeleeAim = shouldLockMeleeAimFacing();
+    this.host.player.setVelocityFromStick(
+      dir.x,
+      dir.y,
+      this.host.save.player.moveSpeed,
+      { lockMeleeAim },
+    );
+    if (lockMeleeAim) {
+      const target = this.host.targeting.facingTarget("melee", false);
+      if (target) this.host.player.faceToward(target.x, target.y);
+    }
+  }
+
   updateChanneling(
     delta: number,
     dir: { x: number; y: number },
@@ -159,12 +179,7 @@ export class DefenseSpellDirector {
       this.host.castBar.setVisible(false);
       this.clearGroundCastTelegraphs();
       this.clearSpellChannelState();
-      const lockMeleeAim = shouldLockMeleeAimFacing();
-      this.host.player.setVelocityFromStick(dir.x, dir.y, this.host.save.player.moveSpeed, { lockMeleeAim });
-      if (lockMeleeAim) {
-        const target = this.host.targeting.facingTarget("melee", false);
-        if (target) this.host.player.faceToward(target.x, target.y);
-      }
+      this.resumeMovementFromStick(dir, shouldLockMeleeAimFacing);
     } else if (channel.type === "completed") {
       this.host.castBar.setVisible(false);
       if (channel.def.mechanicType === "channeled_cone") {
@@ -178,6 +193,12 @@ export class DefenseSpellDirector {
       }
       this.clearGroundCastTelegraphs();
       this.clearSpellChannelState();
+      if (
+        channel.inputMode === "manual" &&
+        isStickMoving(dir.x, dir.y)
+      ) {
+        this.resumeMovementFromStick(dir, shouldLockMeleeAimFacing);
+      }
     }
   }
 
@@ -218,7 +239,7 @@ export class DefenseSpellDirector {
         this.host.player.faceToward(target.x, target.y);
       }
     }
-    this.beginSpellCast(pick.spellId);
+    this.beginSpellCast(pick.spellId, "auto");
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
@@ -252,7 +273,7 @@ export class DefenseSpellDirector {
       );
       return;
     }
-    this.beginSpellCast(spellId);
+    this.beginSpellCast(spellId, "manual");
   }
 
   tryFlushQueuedSpellCast(stickX: number, stickY: number): void {
@@ -272,10 +293,10 @@ export class DefenseSpellDirector {
     if (spellTargetMode(def) === "ground") {
       this.host.groundAim = this.defaultGroundTarget(def);
     }
-    this.beginSpellCast(spellId);
+    this.beginSpellCast(spellId, "manual");
   }
 
-  beginSpellCast(spellId: string): void {
+  beginSpellCast(spellId: string, inputMode: SpellCastInputMode = "manual"): void {
     const def = spellById(spellId);
     if (!def || this.host.spellCaster.isChanneling()) return;
     if (spellTargetMode(def) === "ground") {
@@ -288,7 +309,7 @@ export class DefenseSpellDirector {
         ? { x: target.x, y: target.y }
         : { x: this.host.player.sprite.x, y: this.host.player.sprite.y };
     }
-    const begun = this.host.spellCaster.tryBeginCast(spellId);
+    const begun = this.host.spellCaster.tryBeginCast(spellId, inputMode);
     if (begun === false) return;
     this.host.channelAreaStarted = false;
     this.channeledConeTicks = createChanneledConeTickState();

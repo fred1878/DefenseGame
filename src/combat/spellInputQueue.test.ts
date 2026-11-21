@@ -19,10 +19,10 @@ describe("SpellInputQueue", () => {
     expect(q.peek()).toBeNull();
   });
 
-  it("discards stationary windup/channel spells when stick is moving", () => {
+  it("consumes stationary windup/channel spells while the stick is active", () => {
     const q = new SpellInputQueue();
     q.enqueue("heal");
-    expect(q.consumeIfReady(1, 0, spellById)).toBeNull();
+    expect(q.consumeIfReady(1, 0, spellById)).toBe("heal");
     expect(q.peek()).toBeNull();
   });
 

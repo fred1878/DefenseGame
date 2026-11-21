@@ -41,7 +41,7 @@ export function spellCastMs(def: SpellDefinition): number {
   return def.castMs ?? 0;
 }
 
-/** Channeled or cast-windup spells need the player still to start (movement interrupt). */
+/** Channeled or cast-windup spells (auto-cast skips these while moving). */
 export function spellRequiresStationary(def: SpellDefinition): boolean {
   return spellCastMs(def) > 0 || def.channelMs > 0;
 }

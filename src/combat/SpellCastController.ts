@@ -13,7 +13,15 @@ export type ChannelUpdateResult =
   | { type: "windup"; progress: number; spellId: SpellId }
   | { type: "channeling"; progress: number; spellId: SpellId }
   | { type: "interrupted"; spellId: SpellId }
-  | { type: "completed"; spellId: SpellId; def: SpellDefinition };
+  | {
+      type: "completed";
+      spellId: SpellId;
+      def: SpellDefinition;
+      inputMode: SpellCastInputMode;
+    };
+
+/** Manual casts suppress movement for windup/channel; auto casts interrupt on stick. */
+export type SpellCastInputMode = "manual" | "auto";
 
 export class SpellCastController {
   private activeSpellId: SpellId | null = null;
@@ -22,7 +30,12 @@ export class SpellCastController {
   private channelElapsedMs = 0;
   private channelDurationMs = 0;
   private inChannel = false;
+  private castInputMode: SpellCastInputMode = "auto";
   private readonly cooldownRemainingMs = new Map<SpellId, number>();
+
+  getCastInputMode(): SpellCastInputMode {
+    return this.castInputMode;
+  }
 
   isChanneling(): boolean {
     return this.activeSpellId !== null;
@@ -64,7 +77,10 @@ export class SpellCastController {
   }
 
   /** Begin windup, channel, or instant cast. Returns false if blocked. */
-  tryBeginCast(spellId: SpellId): SpellDefinition | "channel" | "windup" | false {
+  tryBeginCast(
+    spellId: SpellId,
+    inputMode: SpellCastInputMode = "auto",
+  ): SpellDefinition | "channel" | "windup" | false {
     if (this.isChanneling()) return false;
     const def = spellById(spellId);
     if (!def) return false;
@@ -78,6 +94,7 @@ export class SpellCastController {
       return def;
     }
 
+    this.castInputMode = inputMode;
     this.activeSpellId = spellId;
     this.windupElapsedMs = 0;
     this.windupDurationMs = castMs;
@@ -96,7 +113,10 @@ export class SpellCastController {
     if (!this.activeSpellId) return { type: "idle" };
 
     const mag = Math.hypot(stickX, stickY);
-    if (mag > SPELL_MOVE_INTERRUPT_EPS) {
+    if (
+      this.castInputMode === "auto" &&
+      mag > SPELL_MOVE_INTERRUPT_EPS
+    ) {
       const id = this.activeSpellId;
       this.clearCast();
       return { type: "interrupted", spellId: id };
@@ -117,10 +137,11 @@ export class SpellCastController {
         this.inChannel = true;
       } else {
         const def = spellById(spellId);
+        const inputMode = this.castInputMode;
         this.clearCast();
         if (!def) return { type: "idle" };
         this.cooldownRemainingMs.set(spellId, def.cooldownMs);
-        return { type: "completed", spellId, def };
+        return { type: "completed", spellId, def, inputMode };
       }
     }
 
@@ -136,10 +157,11 @@ export class SpellCastController {
     }
 
     const def = spellById(spellId);
+    const inputMode = this.castInputMode;
     this.clearCast();
     if (!def) return { type: "idle" };
     this.cooldownRemainingMs.set(spellId, def.cooldownMs);
-    return { type: "completed", spellId, def };
+    return { type: "completed", spellId, def, inputMode };
   }
 
   cancelChannel(): void {
@@ -153,5 +175,6 @@ export class SpellCastController {
     this.channelElapsedMs = 0;
     this.channelDurationMs = 0;
     this.inChannel = false;
+    this.castInputMode = "auto";
   }
 }
