@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { pressDragExceedsThreshold, releaseOnSameButton } from "./touchButtonGesture";
+import {
+  pressDragExceedsThreshold,
+  releaseOnSameButton,
+  resolveSpellBarPointerRelease,
+} from "./touchButtonGesture";
 
 describe("pressDragExceedsThreshold", () => {
   it("returns false inside threshold", () => {
@@ -8,6 +12,62 @@ describe("pressDragExceedsThreshold", () => {
 
   it("returns true beyond threshold", () => {
     expect(pressDragExceedsThreshold(0, 0, 30, 0, 24)).toBe(true);
+  });
+});
+
+describe("resolveSpellBarPointerRelease", () => {
+  const LONG = 520;
+
+  it("returns tap for short release on button", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: 100,
+        longPressMs: LONG,
+        releaseOnButton: true,
+      }),
+    ).toBe("tap");
+  });
+
+  it("returns none for short release off button", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: 100,
+        longPressMs: LONG,
+        releaseOnButton: false,
+      }),
+    ).toBe("none");
+  });
+
+  it("returns longPress on release after hold threshold without drag", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: LONG,
+        longPressMs: LONG,
+        releaseOnButton: true,
+      }),
+    ).toBe("longPress");
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: false,
+        holdMs: LONG + 50,
+        longPressMs: LONG,
+        releaseOnButton: false,
+      }),
+    ).toBe("longPress");
+  });
+
+  it("returns none when drag cancels gesture", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: true,
+        holdMs: LONG + 100,
+        longPressMs: LONG,
+        releaseOnButton: true,
+      }),
+    ).toBe("none");
   });
 });
 

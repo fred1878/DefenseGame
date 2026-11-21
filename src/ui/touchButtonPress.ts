@@ -4,7 +4,11 @@ import {
   TOUCH_BUTTON_RELEASE_SLOP_PX,
   VIRTUAL_STICK_DRAG_THRESHOLD_PX,
 } from "../input/inputTuning";
-import { pressDragExceedsThreshold, releaseOnSameButton } from "./touchButtonGesture";
+import {
+  pressDragExceedsThreshold,
+  releaseOnSameButton,
+  resolveSpellBarPointerRelease,
+} from "./touchButtonGesture";
 import { interactiveObjectScreenRect } from "./touchButtonGeometry";
 import { isUiRoundedRect, paintUiRoundedRect } from "./uiRoundedRect";
 
@@ -222,7 +226,7 @@ export function bindPress(
   scene.events.once(Phaser.Scenes.Events.DESTROY, cleanup);
 }
 
-/** Tap activates on release; long-press fires once without tap. */
+/** Tap on release; long-press toggles on release after hold threshold (not mid-hold). */
 export function bindTapOrLongPress(
   scene: Phaser.Scene,
   obj: Phaser.GameObjects.GameObject,
@@ -237,11 +241,10 @@ export function bindTapOrLongPress(
     callbacks.dragCancelTapPx ?? VIRTUAL_STICK_DRAG_THRESHOLD_PX,
   );
   let activePointerId: number | null = null;
-  let longPressTimer: number | null = null;
-  let longPressFired = false;
   let dragExceeded = false;
   let pressStartX = 0;
   let pressStartY = 0;
+  let pressStartMs = 0;
 
   const showPressed = () => {
     if (obj instanceof Phaser.GameObjects.Container) {
@@ -255,13 +258,6 @@ export function bindTapOrLongPress(
     }
   };
 
-  const clearTimer = () => {
-    if (longPressTimer !== null) {
-      window.clearTimeout(longPressTimer);
-      longPressTimer = null;
-    }
-  };
-
   const onDown = (
     pointer: Phaser.Input.Pointer,
     _lx: number,
@@ -270,15 +266,10 @@ export function bindTapOrLongPress(
   ) => {
     event.stopPropagation();
     activePointerId = pointer.id;
-    longPressFired = false;
     dragExceeded = false;
     pressStartX = pointer.x;
     pressStartY = pointer.y;
-    clearTimer();
-    longPressTimer = window.setTimeout(() => {
-      longPressFired = true;
-      callbacks.onLongPress();
-    }, callbacks.longPressMs);
+    pressStartMs = performance.now();
     showPressed();
     callbacks.onPressStart?.(pointer);
   };
@@ -297,22 +288,21 @@ export function bindTapOrLongPress(
     ) {
       return;
     }
-    if (!dragExceeded) {
-      dragExceeded = true;
-      clearTimer();
-    }
+    if (!dragExceeded) dragExceeded = true;
   };
 
   const onScenePointerUp = (pointer: Phaser.Input.Pointer) => {
     if (activePointerId === null || pointer.id !== activePointerId) return;
-    clearTimer();
-    if (
-      !longPressFired &&
-      !dragExceeded &&
-      pointerHitsGameObject(scene, obj, pointer, slopPx)
-    ) {
-      callbacks.onTap();
-    }
+    const holdMs = performance.now() - pressStartMs;
+    const releaseOnButton = pointerHitsGameObject(scene, obj, pointer, slopPx);
+    const gesture = resolveSpellBarPointerRelease({
+      dragExceeded,
+      holdMs,
+      longPressMs: callbacks.longPressMs,
+      releaseOnButton,
+    });
+    if (gesture === "longPress") callbacks.onLongPress();
+    else if (gesture === "tap") callbacks.onTap();
     activePointerId = null;
     dragExceeded = false;
     clearPressed();
@@ -325,7 +315,6 @@ export function bindTapOrLongPress(
   scene.input.on("pointercancel", onScenePointerUp);
 
   const cleanup = () => {
-    clearTimer();
     const input = scene.input;
     if (!input) return;
     input.off("pointermove", onScenePointerMove);
