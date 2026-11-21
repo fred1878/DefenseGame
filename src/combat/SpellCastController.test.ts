@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { spellById } from "../content/spells";
+import { spellCastMs } from "../content/spellTargeting";
 import { SpellCastController } from "./SpellCastController";
 
 describe("SpellCastController", () => {
@@ -45,8 +47,11 @@ describe("SpellCastController", () => {
 
   it("completes flamestrike after windup only (no channelMs)", () => {
     const c = new SpellCastController();
+    const flamestrike = spellById("flamestrike");
+    expect(flamestrike).toBeDefined();
+    const windupMs = spellCastMs(flamestrike!);
     expect(c.tryBeginCast("flamestrike")).toBe("windup");
-    const done = c.updateChannel(650, 0, 0);
+    const done = c.updateChannel(windupMs, 0, 0);
     expect(done.type).toBe("completed");
     if (done.type === "completed") expect(done.spellId).toBe("flamestrike");
     expect(c.isChanneling()).toBe(false);

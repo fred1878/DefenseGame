@@ -5,6 +5,7 @@ import {
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
 import { spellById } from "../../content/spells";
+import { spellCastMs } from "../../content/spellTargeting";
 
 function flamestrikeHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
   const castBar = {
@@ -80,7 +81,7 @@ describe("DefenseSpellDirector flamestrike", () => {
     spellCaster.tryBeginCast("flamestrike");
     const host = flamestrikeHost(spellCaster);
 
-    directorFinishCast(host, 650);
+    directorFinishCast(host, spellCastMs(def!));
 
     expect(spellCaster.isChanneling()).toBe(false);
     expect(host.castBar.setVisible).toHaveBeenCalledWith(false);
