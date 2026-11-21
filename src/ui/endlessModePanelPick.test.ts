@@ -68,4 +68,20 @@ describe("pickEndlessEnemyRowAtScreen", () => {
     const listViewportH = 6 * 74 - 11;
     expect(pick({ screenY: 210 + listViewportH + 1 })).toBeNull();
   });
+
+  it("picks rows in the lower half of the viewport", () => {
+    const listTop = 210;
+    expect(
+      pick({
+        screenY: listTop + 3 * 74 + 31,
+        screenX: 200,
+      }),
+    ).toBe(ROSTER[3]);
+    expect(
+      pick({
+        screenY: listTop + 4 * 74 + 31,
+        screenX: 200,
+      }),
+    ).toBe(ROSTER[4]);
+  });
 });

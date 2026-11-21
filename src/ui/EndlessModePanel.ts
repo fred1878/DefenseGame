@@ -206,6 +206,13 @@ export class EndlessModePanel {
     this.listContent = scene.add.container(0, this.listTop);
     this.root.add(this.listContent);
 
+    const nameHit = new Phaser.Geom.Rectangle(
+      -this.nameColW / 2,
+      -this.rowH / 2,
+      this.nameColW,
+      this.rowH,
+    );
+
     let localY = 0;
     for (const enemyId of enemyIds) {
       const def = store.enemies[enemyId];
@@ -216,7 +223,8 @@ export class EndlessModePanel {
 
       const bg = scene.add
         .rectangle(nameCx, cy, this.nameColW, this.rowH, 0x3f3f46, 1)
-        .setStrokeStyle(2, 0x71717a);
+        .setStrokeStyle(2, 0x71717a)
+        .setInteractive(nameHit, Phaser.Geom.Rectangle.Contains);
       const check = scene.add
         .text(
           this.listLeft + scaleUiX(14),
@@ -288,6 +296,21 @@ export class EndlessModePanel {
         this.bumpCap(enemyId, 1);
       });
 
+      bg.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+        pointer.event.stopPropagation();
+        this.beginDrag(pointer);
+      });
+      bg.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+        if (this.dragPointerId !== pointer.id) return;
+        this.continueDrag(pointer);
+      });
+      bg.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+        if (this.dragPointerId !== pointer.id) return;
+        pointer.event.stopPropagation();
+        const tapped = this.endDrag();
+        if (tapped) this.toggleSelect(enemyId);
+      });
+
       const row: EnemyRow = {
         enemyId,
         label,
@@ -348,7 +371,6 @@ export class EndlessModePanel {
     this.listContent.setMask(mask);
 
     this.wireListViewportDrag();
-    this.root.bringToTop(this.listViewport);
 
     this.infiniteHpRowY = listBottom + scaleUiY(12) + infiniteRowH / 2;
     this.infiniteHpBg = createUiRoundedRect(
@@ -501,13 +523,9 @@ export class EndlessModePanel {
     this.listViewport.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (this.dragPointerId !== pointer.id) return;
       const tapped = this.endDrag();
-      if (tapped) {
-        const enemyId = this.pickVisibleRowAtScreen(
-          pointer.x,
-          pointer.y,
-        );
-        if (enemyId) this.toggleSelect(enemyId);
-      }
+      if (!tapped) return;
+      const enemyId = this.pickVisibleRowAtScreen(pointer.x, pointer.y);
+      if (enemyId) this.toggleSelect(enemyId);
     });
   }
 

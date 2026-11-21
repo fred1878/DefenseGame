@@ -155,6 +155,38 @@ test.describe("endless mode panel layout", () => {
       .toBe(true);
   });
 
+  test("enemy name row tap toggles selection", async ({ page }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const target = await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const selected = new Set(api?.getEndlessSelectedEnemyIds() ?? []);
+      const roster = api?.getEndlessRosterEnemyIds() ?? [];
+      const enemyId =
+        roster.find((id) => !selected.has(id)) ?? roster[1] ?? "grunt";
+      const pt = api?.getUiTapTargets()[`endless-enemy-${enemyId}`];
+      return { enemyId, pt };
+    });
+    expect(target.pt).toBeTruthy();
+
+    await tapCanvas(page, target.pt!.x, target.pt!.y);
+
+    const selected = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.api?.getEndlessSelectedEnemyIds() ?? [],
+    );
+    expect(selected).toContain(target.enemyId);
+  });
+
   test("cap plus/minus adjusts count without toggling selection", async ({
     page,
   }) => {
