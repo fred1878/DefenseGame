@@ -9,15 +9,15 @@
       "implementationPhase": 1,
       "cooldownMs": 0,
       "channelMs": 0,
-      "baseDamage": 14,
-      "projectileSpeed": 400,
+      "baseDamage": 32,
+      "projectileSpeed": 320,
       "iconFile": "fire_bolt.png",
       "projectileTextureKey": "fx_spell_fire_bolt",
       "projectileFile": "fire-bolt-mrpg-16.png",
       "damageFlavor": "fire",
-      "castMs": 300,
+      "castMs": 800,
       "onHit": {
-        "dotDps": 4,
+        "dotDps": 6,
         "dotMs": 2500
       }
     },
@@ -30,13 +30,13 @@
       "implementationPhase": 1,
       "cooldownMs": 0,
       "channelMs": 0,
-      "baseDamage": 12,
-      "projectileSpeed": 500,
+      "baseDamage": 15,
+      "projectileSpeed": 450,
       "iconFile": "ice_bolt.png",
       "projectileTextureKey": "fx_spell_ice_bolt",
       "projectileFile": "ice-bolt-mrpg-16.png",
       "damageFlavor": "default",
-      "castMs": 200,
+      "castMs": 300,
       "onHit": {
         "slowPct": 0.5,
         "slowMs": 4000
@@ -66,9 +66,9 @@
       "mechanicType": "blast",
       "castableInDefense": true,
       "implementationPhase": 1,
-      "cooldownMs": 30000,
+      "cooldownMs": 18000,
       "channelMs": 0,
-      "baseDamage": 22,
+      "baseDamage": 42,
       "blastRadius": 50,
       "iconFile": "fire_nova.png",
       "blastTextureKey": "fx_spell_fire_nova",
@@ -87,9 +87,9 @@
       "mechanicType": "heal",
       "castableInDefense": true,
       "implementationPhase": 1,
-      "cooldownMs": 7000,
+      "cooldownMs": 20000,
       "channelMs": 1500,
-      "healAmount": 24,
+      "healAmount": 25,
       "iconFile": "heal.png",
       "targetMode": "self",
       "channelTickMs": 0
@@ -118,16 +118,16 @@
       "mechanicType": "projectile_aoe",
       "castableInDefense": true,
       "implementationPhase": 2,
-      "cooldownMs": 4000,
+      "cooldownMs": 8000,
       "channelMs": 0,
-      "baseDamage": 16,
-      "projectileSpeed": 260,
-      "blastRadius": 56,
+      "baseDamage": 50,
+      "projectileSpeed": 220,
+      "blastRadius": 70,
       "iconFile": "arc_bomb.png",
       "projectileTextureKey": "fx_spell_arc_bomb",
       "projectileFile": "arc-bomb-mrpg-16.png",
       "damageFlavor": "default",
-      "castMs": 300
+      "castMs": 550
     },
     {
       "id": "swing",
@@ -157,8 +157,8 @@
       "damageFlavor": "default",
       "castMs": 200,
       "onHit": {
-        "dotDps": 8,
-        "dotMs": 3000
+        "dotDps": 18,
+        "dotMs": 4000
       }
     },
     {
@@ -187,12 +187,12 @@
       "castableInDefense": true,
       "implementationPhase": 3,
       "cooldownMs": 6000,
-      "channelMs": 400,
-      "baseDamage": 8,
+      "channelMs": 750,
+      "baseDamage": 16,
       "iconFile": "cone_of_fire.png",
       "damageFlavor": "fire",
-      "castMs": 400,
-      "coneRangeWu": 180,
+      "castMs": 0,
+      "coneRangeWu": 220,
       "onHit": {
         "dotDps": 5,
         "dotMs": 5000
