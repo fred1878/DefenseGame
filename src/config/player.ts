@@ -5,7 +5,6 @@ export type PlayerTuning = {
   meleeWindupMs: number;
   meleeActiveMs: number;
   meleeRecoveryMs: number;
-  meleeRange: number;
   meleeStrikeRange: number;
   meleeEngageTargetRadius: number;
   meleeActivationSlackWu: number;
