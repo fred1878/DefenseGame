@@ -6,10 +6,73 @@ import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import {
   applyChaseVelocity,
   applyWallMeleeHold,
+  playerMeleeChaseStandoffCenterDist,
+  shouldHoldAtPlayerMelee,
   shouldHoldAtWallMelee,
   wallMeleeDistToAttackPlane,
   wallMeleeStandoffY,
 } from "./movement";
+
+describe("player melee standoff", () => {
+  it("holds when center distance is within body contact plus gap", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", defId: "grunt" });
+    const standoff = playerMeleeChaseStandoffCenterDist(enemy);
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    const playerX = standoff - 1;
+    expect(
+      shouldHoldAtPlayerMelee(enemy, "player", playerX, 0),
+    ).toBe(true);
+    expect(
+      shouldHoldAtPlayerMelee(enemy, "wall", playerX, 0),
+    ).toBe(false);
+  });
+
+  it("stops chase intent at standoff but keeps knockback slide", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      knockbackVx: 24,
+      knockbackVy: 0,
+    });
+    const standoff = playerMeleeChaseStandoffCenterDist(enemy);
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    applyChaseVelocity(enemy, standoff, 0, 1, {
+      targetKind: "player",
+      playerX: standoff,
+      playerY: 0,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(24, 0);
+  });
+
+  it("still closes when outside standoff", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speed: 80,
+    });
+    const standoff = playerMeleeChaseStandoffCenterDist(enemy);
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    applyChaseVelocity(enemy, standoff + 40, 0, 1, {
+      targetKind: "player",
+      playerX: standoff + 40,
+      playerY: 0,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx] = setVelocity.mock.calls[0]!;
+    expect(vx).toBeGreaterThan(0);
+  });
+
+  it("does not apply standoff to non-melee collision archetypes", () => {
+    const enemy = mockEnemyInstance({ behavior: "arrowRainArcher" });
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    expect(shouldHoldAtPlayerMelee(enemy, "player", 10, 0)).toBe(false);
+  });
+});
 
 describe("wall melee hold helpers", () => {
   it("holds when idle on wall cooldown inside trigger range", () => {

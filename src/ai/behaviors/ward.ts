@@ -325,7 +325,13 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 0.82, { nav, deltaMs });
+  applyChaseVelocity(enemy, moveX, moveY, 0.82, {
+    nav,
+    deltaMs,
+    targetKind,
+    playerX,
+    playerY,
+  });
 
   return { targetX: goalX, targetY: goalY, targetKind };
 };

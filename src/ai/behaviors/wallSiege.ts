@@ -82,6 +82,8 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
     nav,
     deltaMs,
     targetKind: resolved.targetKind,
+    playerX,
+    playerY,
   });
 
   return { targetX: goal.x, targetY: goal.y, targetKind: resolved.targetKind };

@@ -136,7 +136,13 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
+  applyChaseVelocity(enemy, moveX, moveY, 1, {
+    nav,
+    deltaMs,
+    targetKind: resolved.targetKind,
+    playerX,
+    playerY,
+  });
 
   return { targetX: goal.x, targetY: goal.y, targetKind: resolved.targetKind };
 };
