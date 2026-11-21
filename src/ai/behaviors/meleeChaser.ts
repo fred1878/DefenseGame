@@ -82,6 +82,8 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     nav,
     deltaMs,
     targetKind: desired,
+    playerX,
+    playerY,
   });
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };

@@ -1,8 +1,12 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
-import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
+import {
+  enemyMeleeContactCenterDist,
+  wallMeleeApproachStandoffPx,
+} from "../../core/enemyTuning";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
+import { isMeleeBodyCollisionBehavior } from "../../entities/entityPhysics";
 import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
 
 export { setEnemyChaseVelocity };
@@ -11,7 +15,42 @@ export type ChaseVelocityOptions = {
   nav?: EnemyNavState;
   deltaMs?: number;
   targetKind?: EnemyTargetKind;
+  /** Live player position — used for melee standoff while chasing the player. */
+  playerX?: number;
+  playerY?: number;
 };
+
+/** Extra center distance past arcade body contact so enemies do not drive into the player collider. */
+const PLAYER_MELEE_CHASE_GAP_PX = 2;
+
+/** Center distance at which melee archetypes stop closing on the player. */
+export function playerMeleeChaseStandoffCenterDist(
+  enemy: EnemyInstance,
+): number {
+  return (
+    enemyMeleeContactCenterDist(enemy.defId) +
+    PLAYER_MELEE_CHASE_GAP_PX
+  );
+}
+
+export function shouldHoldAtPlayerMelee(
+  enemy: EnemyInstance,
+  targetKind: EnemyTargetKind,
+  playerX: number,
+  playerY: number,
+): boolean {
+  if (targetKind !== "player") return false;
+  if (!isMeleeBodyCollisionBehavior(enemy.behavior)) return false;
+  const dist = Math.hypot(
+    playerX - enemy.sprite.x,
+    playerY - enemy.sprite.y,
+  );
+  return dist <= playerMeleeChaseStandoffCenterDist(enemy);
+}
+
+export function applyPlayerMeleeHold(enemy: EnemyInstance): void {
+  setEnemyChaseVelocity(enemy, 0, 0);
+}
 
 /** Distance to the north-wall swing plane (same x as the enemy). */
 export function wallMeleeDistToAttackPlane(enemy: EnemyInstance): number {
@@ -75,6 +114,15 @@ export function applyChaseVelocity(
     shouldHoldAtWallMelee(enemy, opts.targetKind)
   ) {
     applyWallMeleeHold(enemy);
+    return;
+  }
+  if (
+    opts?.targetKind &&
+    opts.playerX !== undefined &&
+    opts.playerY !== undefined &&
+    shouldHoldAtPlayerMelee(enemy, opts.targetKind, opts.playerX, opts.playerY)
+  ) {
+    applyPlayerMeleeHold(enemy);
     return;
   }
   if (enemyMovementBlocked(enemy)) {
