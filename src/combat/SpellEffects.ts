@@ -4,6 +4,12 @@ import type { SpellDefinition } from "../content/spells";
 import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";
 import { applyEnemyKnockbackFrom } from "./enemyKnockback";
 import {
+  spellBlastKnockback,
+  spellChainHopKnockback,
+  spellChainKnockback,
+  spellDirectKnockback,
+} from "./spellKnockback";
+import {
   enemiesInCone,
   enemiesInDisk,
   enemiesInSwingArc,
@@ -134,7 +140,7 @@ export function applySpellBlastAt(
   const r = worldUnit(def.blastRadius ?? 72, scene.registry);
   const damage = (def.baseDamage ?? 0) * damageMult;
   const flavor = def.damageFlavor ?? "default";
-  const knockback = def.blastKnockback ?? 0;
+  const knockback = spellBlastKnockback(def);
   for (const e of enemiesInDisk(centerX, centerY, r, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
@@ -173,7 +179,7 @@ export function applySpellSwing(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, def.knockback!);
+    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, spellDirectKnockback(def));
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -199,7 +205,7 @@ export function strikeSpellCone(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, def.knockback!);
+    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, spellDirectKnockback(def));
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -248,7 +254,7 @@ export function applyInstantTargeted(
   const blastKnockbackExclude = new Set<string>([full.id]);
   if (hitDamage > 0) {
     applyDamage(full.damageable, hitDamage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, def.knockback!);
+    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, spellDirectKnockback(def));
   } else {
     blastKnockbackExclude.delete(full.id);
   }
@@ -316,7 +322,7 @@ export function applyChainLightning(
   };
   const startFull = living.find((e) => e.id === start.id)!;
   applyDamage(startFull.damageable, damage, flavor);
-  applyEnemyKnockbackFrom(startFull.enemy, playerX, playerY, def.chainKnockback!);
+  applyEnemyKnockbackFrom(startFull.enemy, playerX, playerY, spellChainKnockback(def));
   applyHopHit(start.id);
   let fromX = start.x;
   let fromY = start.y;
@@ -324,7 +330,7 @@ export function applyChainLightning(
     const full = living.find((e) => e.id === hop.id);
     if (!full) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, fromX, fromY, def.chainHopKnockback!);
+    applyEnemyKnockbackFrom(full.enemy, fromX, fromY, spellChainHopKnockback(def));
     applyHopHit(full.id);
     fromX = hop.x;
     fromY = hop.y;

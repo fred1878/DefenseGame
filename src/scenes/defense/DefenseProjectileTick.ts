@@ -5,8 +5,8 @@ import { applySpellBlastAt } from "../../combat/SpellEffects";
 import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { PLAYER_TUNING } from "../../config";
-import { ConfigLoadError } from "../../core/configValidation";
 import { spellById } from "../../content/spells";
+import { spellProjectileDirectKnockback } from "../../combat/spellKnockback";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import { ENTITY_BODY_RADIUS } from "../../entities/entityPhysics";
 import {
@@ -67,14 +67,9 @@ export function tickDefenseProjectiles(
     deltaMs: delta,
     enemies: host.enemyTargets(),
     knockbackFor: (p: PlayerProjectile) => {
+      // Player ranged auto-attack (no spellId) uses public/data/player.json only.
       if (!p.spellId) return PLAYER_TUNING.rangedKnockback;
-      const def = spellById(p.spellId);
-      if (def?.knockback == null) {
-        throw new ConfigLoadError(
-          `Missing spell knockback for projectile spellId=${p.spellId}`,
-        );
-      }
-      return def.knockback;
+      return spellProjectileDirectKnockback(p.spellId, spellById(p.spellId));
     },
     findEnemy: host.findEnemy,
   };
