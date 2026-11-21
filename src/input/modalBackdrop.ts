@@ -25,19 +25,10 @@ export function acquireModalInput(
 }
 
 /**
- * Full-screen dim that captures pointer hits (with topOnly off, still pair with base-layer disable).
+ * Full-screen dim behind modal UI. Visual only — {@link acquireModalInput} plus the
+ * host scene's base-layer disable blocks town/defense chrome. An interactive dim with
+ * `stopPropagation` prevented child buttons and list viewports from receiving taps.
  */
-export function bindModalDimBackdrop(dim: Phaser.GameObjects.Rectangle): void {
-  dim.setInteractive();
-  dim.on(
-    "pointerdown",
-    (
-      _pointer: Phaser.Input.Pointer,
-      _x: number,
-      _y: number,
-      event: Phaser.Types.Input.EventData,
-    ) => {
-      event.stopPropagation();
-    },
-  );
+export function bindModalDimBackdrop(_dim: Phaser.GameObjects.Rectangle): void {
+  /* visual dim only */
 }
