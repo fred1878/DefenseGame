@@ -32,11 +32,14 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
 import { EndlessModePanel } from "../ui/EndlessModePanel";
+import { WavePlannerPanel } from "../ui/WavePlannerPanel";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
+  setWavePlannerDefenseRun,
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
+import type { WaveGroup } from "../core/DataStore";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
 import {
   spawnTownBuildingControls,
@@ -59,6 +62,7 @@ export class TownScene extends Phaser.Scene {
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
   private endlessPanel: EndlessModePanel | null = null;
+  private wavePlannerPanel: WavePlannerPanel | null = null;
   private readonly onDebugMenuClose = (): void => resumeFromDebugMenu(this);
 
   constructor() {
@@ -217,6 +221,9 @@ export class TownScene extends Phaser.Scene {
     if (this.endlessPanel) {
       Object.assign(out, this.endlessPanel.e2eTapTargets());
     }
+    if (this.wavePlannerPanel) {
+      Object.assign(out, this.wavePlannerPanel.e2eTapTargets());
+    }
     return out;
   }
 
@@ -322,6 +329,21 @@ export class TownScene extends Phaser.Scene {
     );
   }
 
+  private openWavePlannerPanel(): void {
+    if (this.wavePlannerPanel) return;
+    this.wavePlannerPanel = new WavePlannerPanel(
+      this,
+      this.registry.get("dataStore") as DataStore,
+      (groups) => {
+        this.wavePlannerPanel = null;
+        this.beginWavePlannerDefense(groups);
+      },
+      () => {
+        this.wavePlannerPanel = null;
+      },
+    );
+  }
+
   private openEndlessPanel(): void {
     if (this.endlessPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
@@ -341,6 +363,8 @@ export class TownScene extends Phaser.Scene {
   private teardownTownOverlays(): void {
     this.endlessPanel?.destroy();
     this.endlessPanel = null;
+    this.wavePlannerPanel?.destroy();
+    this.wavePlannerPanel = null;
     this.spellSortPanel?.destroy();
     this.spellSortPanel = null;
   }
@@ -361,6 +385,14 @@ export class TownScene extends Phaser.Scene {
     persistSave(this.save);
     this.registry.set("save", this.save);
     setEndlessDefenseRun(this.registry, selections, infiniteHp);
+    this.scene.start("Defense");
+  }
+
+  private beginWavePlannerDefense(groups: WaveGroup[]): void {
+    this.save = prepareDefenseNight(this.save);
+    persistSave(this.save);
+    this.registry.set("save", this.save);
+    setWavePlannerDefenseRun(this.registry, groups);
     this.scene.start("Defense");
   }
 
@@ -440,6 +472,10 @@ export class TownScene extends Phaser.Scene {
     }
     if (result.kind === "openEndlessMode") {
       this.openEndlessPanel();
+      return;
+    }
+    if (result.kind === "openWavePlanner") {
+      this.openWavePlannerPanel();
       return;
     }
     if (result.kind === "upgraded") {

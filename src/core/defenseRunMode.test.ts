@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   readDefenseRunMode,
   resolveEndlessRunSelections,
+  resolveWavePlannerGroups,
   setEndlessDefenseRun,
+  setWavePlannerDefenseRun,
   DEFENSE_RUN_MODE_KEY,
 } from "./defenseRunMode";
 
@@ -56,6 +58,90 @@ describe("resolveEndlessRunSelections", () => {
       { enemyId: "grunt", concurrentCap: 7 },
       { enemyId: "x", concurrentCap: 1 },
     ]);
+  });
+});
+
+describe("wave planner run mode", () => {
+  it("reads and clamps planner groups", () => {
+    const registry = {
+      get: (key: string) =>
+        key === DEFENSE_RUN_MODE_KEY
+          ? {
+              kind: "wavePlanner",
+              groups: [
+                {
+                  enemyId: "grunt",
+                  count: 3,
+                  atMs: 150,
+                  intervalMs: 750,
+                },
+              ],
+            }
+          : undefined,
+    } as Phaser.Data.DataManager;
+
+    expect(readDefenseRunMode(registry)).toEqual({
+      kind: "wavePlanner",
+      groups: [
+        {
+          enemyId: "grunt",
+          count: 3,
+          atMs: 200,
+          intervalMs: 800,
+        },
+      ],
+    });
+  });
+
+  it("resolveWavePlannerGroups enforces 100ms steps", () => {
+    expect(
+      resolveWavePlannerGroups([
+        {
+          enemyId: "grunt",
+          count: 0,
+          atMs: 40,
+          intervalMs: 860,
+        },
+      ]),
+    ).toEqual([
+      {
+        enemyId: "grunt",
+        count: 1,
+        atMs: 0,
+        intervalMs: 900,
+      },
+    ]);
+  });
+
+  it("persists planner payload", () => {
+    const data: Record<string, unknown> = {};
+    const registry = {
+      set: (k: string, v: unknown) => {
+        data[k] = v;
+      },
+      get: (k: string) => data[k],
+    } as Phaser.Data.DataManager;
+
+    setWavePlannerDefenseRun(registry, [
+      {
+        enemyId: "grunt",
+        count: 5,
+        atMs: 0,
+        intervalMs: 800,
+      },
+    ]);
+
+    expect(readDefenseRunMode(registry)).toEqual({
+      kind: "wavePlanner",
+      groups: [
+        {
+          enemyId: "grunt",
+          count: 5,
+          atMs: 0,
+          intervalMs: 800,
+        },
+      ],
+    });
   });
 });
 

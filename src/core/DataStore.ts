@@ -35,6 +35,8 @@ export type EnemyDef = {
   damage: number;
   /** Knockback resistance baseline: 100 = full authored knockback strength. */
   weight: number;
+  /** Relative threat tier for UI / wave planning (not combat math yet). */
+  challengeRating: number;
   behavior: string;
   textureKey: string;
   /** HUD / nameplate label (Title Case); not the content id. */

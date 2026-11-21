@@ -78,6 +78,7 @@ describe("normalizeEnemyRow", () => {
         speed: 50,
         damage: 5,
         weight: 100,
+        challengeRating: 1,
       }),
     ).not.toThrow();
     expect(() =>
@@ -94,6 +95,7 @@ describe("normalizeEnemyRow", () => {
       speed: 1,
       damage: 1,
       weight: 100,
+      challengeRating: 4,
       behavior: "arrowRainArcher",
       textureKey: "enemy_arrow_rain_archer",
     });
@@ -108,6 +110,7 @@ describe("normalizeEnemyRow", () => {
       speed: 50,
       damage: 5,
       weight: 100,
+      challengeRating: 1,
     });
     expect(() => assertEnemyResolvedCombat("grunt", melee)).not.toThrow();
     const charger: EnemyDef = normalizeEnemyRow("charger", {
@@ -117,6 +120,7 @@ describe("normalizeEnemyRow", () => {
       speed: 50,
       damage: 20,
       weight: 100,
+      challengeRating: 6,
     });
     expect(() => assertEnemyResolvedCombat("charger", charger)).not.toThrow();
   });

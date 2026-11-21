@@ -1,13 +1,22 @@
+import type { WaveGroup } from "./DataStore";
 import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,
 } from "../systems/endlessSpawnScheduler";
+import {
+  clampWavePlannerCount,
+  clampWavePlannerTimeMs,
+  WAVE_PLANNER_DEFAULT_AT_MS,
+  WAVE_PLANNER_DEFAULT_INTERVAL_MS,
+} from "../systems/wavePlannerTiming";
 
 export type EndlessRunSelection = {
   enemyId: string;
   /** Target living count for this type (1–99), set in the endless selection panel. */
   concurrentCap: number;
 };
+
+export type WavePlannerGroupSelection = WaveGroup;
 
 export type DefenseRunMode =
   | { kind: "night" }
@@ -16,11 +25,34 @@ export type DefenseRunMode =
       selections: EndlessRunSelection[];
       /** When true, player HP does not drop during endless defense. */
       infiniteHp?: boolean;
+    }
+  | {
+      kind: "wavePlanner";
+      groups: WavePlannerGroupSelection[];
     };
 
 export const DEFENSE_RUN_MODE_KEY = "defenseRunMode";
 
 type LegacyEndlessRunMode = { kind: "endless"; enemyId: string };
+
+function isWavePlannerPayload(
+  raw: unknown,
+): raw is { kind: "wavePlanner"; groups: WavePlannerGroupSelection[] } {
+  if (typeof raw !== "object" || raw === null) return false;
+  const r = raw as { kind?: string; groups?: unknown };
+  return (
+    r.kind === "wavePlanner" &&
+    Array.isArray(r.groups) &&
+    r.groups.length > 0 &&
+    r.groups.every(
+      (g) =>
+        typeof g === "object" &&
+        g !== null &&
+        typeof (g as WavePlannerGroupSelection).enemyId === "string" &&
+        typeof (g as WavePlannerGroupSelection).count === "number",
+    )
+  );
+}
 
 function isEndlessSelections(
   raw: unknown,
@@ -59,6 +91,23 @@ export function resolveEndlessRunSelections(
   }));
 }
 
+export function resolveWavePlannerGroups(
+  groups: WavePlannerGroupSelection[],
+): WavePlannerGroupSelection[] {
+  return groups.map((g) => ({
+    enemyId: g.enemyId,
+    count: clampWavePlannerCount(g.count),
+    atMs: clampWavePlannerTimeMs(
+      Number.isFinite(g.atMs) ? g.atMs : WAVE_PLANNER_DEFAULT_AT_MS,
+    ),
+    intervalMs: clampWavePlannerTimeMs(
+      Number.isFinite(g.intervalMs)
+        ? g.intervalMs
+        : WAVE_PLANNER_DEFAULT_INTERVAL_MS,
+    ),
+  }));
+}
+
 export function readDefenseRunMode(
   registry: Phaser.Data.DataManager,
 ): DefenseRunMode {
@@ -66,6 +115,12 @@ export function readDefenseRunMode(
     | DefenseRunMode
     | LegacyEndlessRunMode
     | undefined;
+  if (isWavePlannerPayload(raw)) {
+    return {
+      kind: "wavePlanner",
+      groups: resolveWavePlannerGroups(raw.groups),
+    };
+  }
   if (isEndlessSelections(raw)) {
     return raw.infiniteHp
       ? { kind: "endless", selections: raw.selections, infiniteHp: true }
@@ -94,6 +149,16 @@ export function setEndlessDefenseRun(
     ? { kind: "endless", selections, infiniteHp: true }
     : { kind: "endless", selections };
   registry.set(DEFENSE_RUN_MODE_KEY, payload);
+}
+
+export function setWavePlannerDefenseRun(
+  registry: Phaser.Data.DataManager,
+  groups: WavePlannerGroupSelection[],
+): void {
+  registry.set(DEFENSE_RUN_MODE_KEY, {
+    kind: "wavePlanner",
+    groups: resolveWavePlannerGroups(groups),
+  } satisfies DefenseRunMode);
 }
 
 export function clearDefenseRunMode(registry: Phaser.Data.DataManager): void {

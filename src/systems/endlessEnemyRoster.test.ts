@@ -14,6 +14,7 @@ describe("listPlayableDefenseEnemyIds", () => {
         behavior: "meleeChaser",
         textureKey: "enemy_grunt",
         displayName: "Grunt",
+        challengeRating: 1,
       },
       unused: {
         hp: 1,
@@ -23,6 +24,7 @@ describe("listPlayableDefenseEnemyIds", () => {
         behavior: "meleeChaser",
         textureKey: "enemy_unused",
         displayName: "Unused",
+        challengeRating: 1,
       },
     };
     store.waves = {

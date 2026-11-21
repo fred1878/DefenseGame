@@ -40,6 +40,8 @@ export type DefenseHudControllerDeps = {
   save: SaveGame;
   player: Player;
   endless: boolean;
+  /** Custom wave planner — same leave-to-town affordance as endless. */
+  wavePlanner: boolean;
   registerUiDraw: (go: Phaser.GameObjects.GameObject) => void;
   onManualAttack: () => void;
   onSpellCastRequest: (spellId: string) => void;
@@ -238,7 +240,7 @@ function buildDefenseHudController(
   uiBlockers.push(debugBtn.container);
 
   let leaveEndlessBtn: TouchButtonHandle | null = null;
-  if (deps.endless) {
+  if (deps.endless || deps.wavePlanner) {
     const leaveBtn = nightReturnButtonPosition(scene, safe);
     leaveEndlessBtn = createTouchButton(
       scene,

@@ -11,7 +11,7 @@ import {
   spellById,
 } from "../content/spells";
 import type { SaveGame } from "../core/saveTypes";
-import { DataStore, type EnemyDef } from "../core/DataStore";
+import { DataStore, type EnemyDef, type WaveDef } from "../core/DataStore";
 import { playerDamageMult } from "../core/GameState";
 import {
   type EndlessRunSelection,
@@ -157,6 +157,7 @@ import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
 import {
   runDefenseCampaignNightEnd,
   runDefenseEndlessNightEnd,
+  runDefenseSimulatedNightEnd,
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
@@ -279,6 +280,7 @@ export class DefenseScene extends Phaser.Scene {
   private minimap!: DefenseMinimap;
   private minimapLayout!: ReturnType<typeof defenseMinimapLayout>;
   private endlessSelections: EndlessRunSelection[] | null = null;
+  private wavePlannerMode = false;
   private leaveEndlessBtn: TouchButtonHandle | null = null;
   private endlessInfiniteHp = false;
   private registerWorldDraw!: (go: Phaser.GameObjects.GameObject) => void;
@@ -321,6 +323,7 @@ export class DefenseScene extends Phaser.Scene {
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
     this.endlessSelections = null;
+    this.wavePlannerMode = false;
     this.leaveEndlessBtn = null;
     this.endlessInfiniteHp = false;
   }
@@ -328,6 +331,10 @@ export class DefenseScene extends Phaser.Scene {
   /** @internal Used by `defense/DefenseSceneE2E` until night/spawn modules land */
   isEndlessMode(): boolean {
     return (this.endlessSelections?.length ?? 0) > 0;
+  }
+
+  isWavePlannerMode(): boolean {
+    return this.wavePlannerMode;
   }
 
   create(): void {
@@ -348,15 +355,25 @@ export class DefenseScene extends Phaser.Scene {
     const store = this.registry.get("dataStore") as DataStore;
     const runMode = readDefenseRunMode(this.registry);
     const endless = runMode.kind === "endless";
+    const wavePlanner = runMode.kind === "wavePlanner";
+    let plannerWave: WaveDef | undefined;
     if (endless) {
       this.endlessSelections = resolveEndlessRunSelections(runMode.selections);
       this.rewardGold = 0;
       if (runMode.infiniteHp === true) {
         this.endlessInfiniteHp = true;
       }
+    } else if (wavePlanner) {
+      this.wavePlannerMode = true;
+      this.rewardGold = 0;
+      plannerWave = { rewardGold: 0, groups: runMode.groups };
     }
-    const wave = endless ? undefined : store.getWaveForNight(this.save.night);
-    if (wave) this.rewardGold = wave.rewardGold;
+    const wave = endless
+      ? undefined
+      : wavePlanner
+        ? plannerWave
+        : store.getWaveForNight(this.save.night);
+    if (wave && !wavePlanner) this.rewardGold = wave.rewardGold;
 
     const world = bootstrapDefenseWorld({
       scene: this,
@@ -399,6 +416,7 @@ export class DefenseScene extends Phaser.Scene {
       save: this.save,
       player: this.player,
       endless,
+      wavePlanner,
       registerUiDraw: world.registerUiDraw,
       onManualAttack: () => this.manualAttack(),
       onSpellCastRequest: (id) => this.onSpellCastRequest(id),
@@ -406,7 +424,7 @@ export class DefenseScene extends Phaser.Scene {
       onGroundCastArm: (id, pointer) => this.onGroundCastArm(id, pointer),
       onGroundCastCancel: () => this.cancelPendingGroundCast(),
       onOpenDebugMenu: () => this.openDebugMenu(),
-      onLeaveEndless: () => this.endEndlessRun("quit"),
+      onLeaveEndless: () => this.leaveTrainingRun(),
       getAutoAttackEnabled: () => this.autoAttackEnabled,
       setAutoAttackEnabled: (on) => {
         this.autoAttackEnabled = on;
@@ -668,7 +686,9 @@ export class DefenseScene extends Phaser.Scene {
       const dataStore = this.registry.get("dataStore") as DataStore;
       const header = this.isEndlessMode()
         ? this.endlessHudHeader(dataStore)
-        : `Night ${this.save.night}`;
+        : this.isWavePlannerMode()
+          ? "Wave planner"
+          : `Night ${this.save.night}`;
       const castLine = (() => {
         if (!castPhase) {
           return this.player.attackPhaseNow !== "idle"
@@ -1279,6 +1299,18 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
+  leaveTrainingRun(): void {
+    if (this.nightEnded) return;
+    if (this.isWavePlannerMode()) {
+      runDefenseSimulatedNightEnd(this.nightEndContext(), {
+        won: false,
+        quit: true,
+      });
+      return;
+    }
+    this.endEndlessRun("quit");
+  }
+
   endEndlessRun(reason: "quit" | "player" | "wall"): void {
     if (this.nightEnded) return;
     runDefenseEndlessNightEnd(this.nightEndContext(), reason);
@@ -1287,6 +1319,10 @@ export class DefenseScene extends Phaser.Scene {
   /** @internal Used by `defense/DefenseSceneE2E` until night-end module lands */
   endNight(won: boolean): void {
     if (this.nightEnded) return;
+    if (this.isWavePlannerMode()) {
+      runDefenseSimulatedNightEnd(this.nightEndContext(), { won });
+      return;
+    }
     runDefenseCampaignNightEnd(this.nightEndContext(), {
       won,
       wallHp: this.wallHp,

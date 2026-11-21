@@ -19,6 +19,21 @@ describe("townBuildingMenu", () => {
     },
   };
 
+  it("wave planner building opens panel on tap", () => {
+    const def: TownBuildingDef = {
+      label: "Plague Clinic",
+      textureKey: "town_special_plague_clinic",
+      width: 96,
+      height: 96,
+      opensWavePlanner: true,
+    };
+    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
+      "— Wave planner",
+    );
+    const { result } = handleTownBuildingTap(store, createNewSave(), def);
+    expect(result.kind).toBe("openWavePlanner");
+  });
+
   it("endless training building opens panel on tap", () => {
     const def: TownBuildingDef = {
       label: "Haunted Well",

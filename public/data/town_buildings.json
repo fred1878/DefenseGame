@@ -24,7 +24,8 @@
     "label": "Plague Clinic",
     "textureKey": "town_special_plague_clinic",
     "width": 96,
-    "height": 96
+    "height": 96,
+    "opensWavePlanner": true
   },
   "town_market_stall": {
     "label": "Market Stall (Night)",
