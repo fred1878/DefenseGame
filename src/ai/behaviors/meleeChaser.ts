@@ -12,6 +12,7 @@ import {
   applyWallMeleeHold,
   playerChaseVelocityOpts,
   shouldHoldAtWallMelee,
+  shouldHoldMeleeChaseChordBlocked,
 } from "./movement";
 
 export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
@@ -61,9 +62,27 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   let moveX = goal.x;
   let moveY = goal.y;
 
+  const chaseVelocityOpts = playerChaseVelocityOpts(enemy, {
+    nav,
+    deltaMs,
+    targetKind: desired,
+    playerX,
+    playerY,
+    peerAllies,
+  });
+  const chordBlocked =
+    desired === "player" &&
+    shouldHoldMeleeChaseChordBlocked(
+      enemy,
+      playerX,
+      playerY,
+      chaseVelocityOpts.meleeChasePeers,
+    );
+
   if (
     desired === "player" &&
-    hasLineOfSight(grid, ex, ey, playerX, playerY)
+    hasLineOfSight(grid, ex, ey, playerX, playerY) &&
+    !chordBlocked
   ) {
     moveX = playerX;
     moveY = playerY;
@@ -80,20 +99,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(
-    enemy,
-    moveX,
-    moveY,
-    1,
-    playerChaseVelocityOpts(enemy, {
-      nav,
-      deltaMs,
-      targetKind: desired,
-      playerX,
-      playerY,
-      peerAllies,
-    }),
-  );
+  applyChaseVelocity(enemy, moveX, moveY, 1, chaseVelocityOpts);
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };
 };

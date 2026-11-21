@@ -95,7 +95,7 @@ describe("player melee standoff", () => {
     ).toBe(false);
   });
 
-  it("zeros chase when closing on player but chord is blocked", () => {
+  it("keeps velocity toward a path waypoint when chord is blocked", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
@@ -103,17 +103,19 @@ describe("player melee standoff", () => {
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 0;
-  const playerX = 0;
+    const playerX = 0;
     const playerY = 0;
     const peers = [{ x: -25, y: 0, defId: "grunt" }];
-    applyChaseVelocity(enemy, playerX, playerY, 1, {
+    applyChaseVelocity(enemy, -40, 50, 1, {
       targetKind: "player",
       playerX,
       playerY,
       meleeChasePeers: peers,
     });
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
-    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+    const [vx, vy] = setVelocity.mock.calls[0]!;
+    expect(Math.hypot(vx, vy)).toBeGreaterThan(0);
+    expect(vy).toBeGreaterThan(0);
   });
 
   it("still closes when chord to the hold point is clear", () => {
