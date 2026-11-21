@@ -18,6 +18,15 @@ import {
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
+  blocksBaseLayerInput,
+  clearInputModalities,
+  INPUT_MODALITY,
+  INPUT_MODALITY_CHANGED,
+  popInputModality,
+  pushInputModality,
+} from "../input/inputModality";
+import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
+import {
   createTouchButton,
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
@@ -58,13 +67,19 @@ export class TownScene extends Phaser.Scene {
   private statusText!: Phaser.GameObjects.Text;
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
+  private debugButton!: ReturnType<typeof createTouchButton>;
+  private fullscreenButton!: ReturnType<typeof createTouchButton>;
   private buildingControls = new Map<string, TownBuildingControl>();
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
   private endlessPanel: EndlessModePanel | null = null;
   private wavePlannerPanel: WavePlannerPanel | null = null;
-  private readonly onDebugMenuClose = (): void => resumeFromDebugMenu(this);
+  private readonly onInputModalityChanged = (): void => this.syncTownBaseInput();
+  private readonly onDebugMenuClose = (): void => {
+    popInputModality(this, INPUT_MODALITY.debugMenu.id);
+    resumeFromDebugMenu(this);
+  };
 
   constructor() {
     super({ key: "Town" });
@@ -130,12 +145,13 @@ export class TownScene extends Phaser.Scene {
 
     const safe = readSafeInsets();
     const dbgPos = debugButtonPosition(this, safe);
-    createTouchButton(
+    this.debugButton = createTouchButton(
       this,
       dbgPos.x,
       dbgPos.y,
       "Debug",
       () => {
+        pushInputModality(this, INPUT_MODALITY.debugMenu);
         pauseForDebugMenu(this);
         this.scene.launch("DebugMenu");
       },
@@ -150,7 +166,7 @@ export class TownScene extends Phaser.Scene {
     );
 
     const fsLabel = fullscreenButtonLabel(this.scale);
-    createTouchButton(
+    this.fullscreenButton = createTouchButton(
       this,
       scaleUiX(94) + safe.left,
       scaleUiY(44) + safe.top,
@@ -184,9 +200,12 @@ export class TownScene extends Phaser.Scene {
     );
 
     this.touchDebug = new TouchInputDebugDraw(this);
+    this.events.on(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
     this.events.on("shutdown", () => {
+      this.events.off(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
       this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
+      clearInputModalities(this);
       if (this.statusFlashEvent) {
         this.statusFlashEvent.remove(false);
         this.statusFlashEvent = null;
@@ -375,6 +394,17 @@ export class TownScene extends Phaser.Scene {
     this.spellSortPanel = null;
   }
 
+  /** Re-enable town layout + header chrome only when no modal owns input. */
+  private syncTownBaseInput(): void {
+    const enabled = !blocksBaseLayerInput(this);
+    for (const control of this.buildingControls.values()) {
+      control.setInputEnabled(enabled);
+    }
+    setContainerInputEnabled(this.resetButton.container, enabled);
+    setContainerInputEnabled(this.debugButton.container, enabled);
+    setContainerInputEnabled(this.fullscreenButton.container, enabled);
+  }
+
   private beginDefenseNight(): void {
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
@@ -466,6 +496,7 @@ export class TownScene extends Phaser.Scene {
     _buildingId: string,
     def: (typeof store.townBuildings)[string],
   ): void {
+    if (blocksBaseLayerInput(this)) return;
     const goldBefore = this.save.gold;
     const { save, result } = handleTownBuildingTap(store, this.save, def);
     if (result.kind === "startNight") {

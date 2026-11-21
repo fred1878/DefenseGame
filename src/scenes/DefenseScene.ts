@@ -39,6 +39,16 @@ import {
   pauseForDebugMenu,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
+import {
+  blocksBaseLayerInput,
+  clearInputModalities,
+  INPUT_MODALITY,
+  INPUT_MODALITY_CHANGED,
+  isInputModalityActive,
+  popInputModality,
+  pushInputModality,
+} from "../input/inputModality";
+import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
@@ -234,12 +244,17 @@ export class DefenseScene extends Phaser.Scene {
     this.hudSetChromeVisible?.(visible);
   };
   private hudSetChromeVisible: ((visible: boolean) => void) | null = null;
+  private readonly onInputModalityChanged = (): void =>
+    this.syncDefenseBaseInput();
   private onDebugMenuClose = (): void => {
+    popInputModality(this, INPUT_MODALITY.debugMenu.id);
     this.setHudChromeVisible(true);
     resumeFromDebugMenu(this);
   };
   private onDefenseShutdown = (): void => {
+    this.events.off(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
     this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
+    clearInputModalities(this);
     this.input?.off("pointerup", this.onPointerUpBound);
     this.input?.off("pointerdown", this.onPointerDownBound);
     this.input?.off("pointermove", this.onPointerMoveBound);
@@ -316,6 +331,7 @@ export class DefenseScene extends Phaser.Scene {
     this.spellChannelArea = null;
     this.spellGroundZones = [];
     this.pendingGroundCast = null;
+    this.syncDefenseGroundAimModality();
     this.groundAim = null;
     this.groundAimPointerId = null;
     this.groundAimFromUiBand = false;
@@ -479,6 +495,7 @@ export class DefenseScene extends Phaser.Scene {
     this.input.on("pointerdown", this.onPointerDownBound);
     this.input.on("pointermove", this.onPointerMoveBound);
 
+    this.events.on(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
 
     if (endless) {
@@ -768,7 +785,10 @@ export class DefenseScene extends Phaser.Scene {
       get spellGroundZones() { return scene.spellGroundZones; },
       set spellGroundZones(v) { scene.spellGroundZones = v; },
       get pendingGroundCast() { return scene.pendingGroundCast; },
-      set pendingGroundCast(v) { scene.pendingGroundCast = v; },
+      set pendingGroundCast(v) {
+        scene.pendingGroundCast = v;
+        scene.syncDefenseGroundAimModality();
+      },
       get groundAim() { return scene.groundAim; },
       set groundAim(v) { scene.groundAim = v; },
       get groundAoeTelegraph() { return scene.groundAoeTelegraph; },
@@ -820,6 +840,7 @@ export class DefenseScene extends Phaser.Scene {
   cancelPendingGroundCast(): void {
     if (!this.pendingGroundCast) return;
     this.pendingGroundCast = null;
+    this.syncDefenseGroundAimModality();
     this.groundAim = null;
     this.clearGroundAimGesture();
     this.groundReticle?.hide();
@@ -983,6 +1004,7 @@ export class DefenseScene extends Phaser.Scene {
     const spellId = this.pendingGroundCast;
     this.updateGroundAimFromPointer(pointer);
     this.pendingGroundCast = null;
+    this.syncDefenseGroundAimModality();
     this.clearGroundAimGesture();
     this.beginSpellCast(spellId);
     return true;
@@ -990,6 +1012,7 @@ export class DefenseScene extends Phaser.Scene {
 
   /** @internal Used by `defense/DefenseSceneE2E` until targeting module lands */
   onScreenTap(pointer: Phaser.Input.Pointer): void {
+    if (blocksBaseLayerInput(this)) return;
     if (this.pendingGroundCast) {
       const aimGesture =
         this.groundAimPointerId !== null &&
@@ -1025,9 +1048,44 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private openDebugMenu(): void {
+    pushInputModality(this, INPUT_MODALITY.debugMenu);
     this.setHudChromeVisible(false);
     pauseForDebugMenu(this);
     this.scene.launch("DebugMenu");
+  }
+
+  private syncDefenseGroundAimModality(): void {
+    const active = isInputModalityActive(
+      this,
+      INPUT_MODALITY.defenseGroundAim.id,
+    );
+    if (this.pendingGroundCast && !active) {
+      pushInputModality(this, INPUT_MODALITY.defenseGroundAim);
+    } else if (!this.pendingGroundCast && active) {
+      popInputModality(this, INPUT_MODALITY.defenseGroundAim.id);
+    }
+  }
+
+  /** Disable combat chrome while a modal owns input; trim HUD during ground-aim. */
+  private syncDefenseBaseInput(): void {
+    const modal = blocksBaseLayerInput(this);
+    const groundAim = isInputModalityActive(
+      this,
+      INPUT_MODALITY.defenseGroundAim.id,
+    );
+    const combatChrome = !modal && !groundAim;
+    setContainerInputEnabled(this.attackButton, combatChrome);
+    setContainerInputEnabled(this.modeToggle.container, combatChrome);
+    setContainerInputEnabled(this.autoToggle.container, combatChrome);
+    if (this.leaveEndlessBtn) {
+      setContainerInputEnabled(this.leaveEndlessBtn.container, !modal);
+    }
+    if (this.returnToTownBtn) {
+      setContainerInputEnabled(this.returnToTownBtn.container, !modal);
+    }
+    if (this.debugBtn) {
+      setContainerInputEnabled(this.debugBtn.container, !modal);
+    }
   }
 
   /** @internal E2E / tests — same path as the Return to town HUD button. */

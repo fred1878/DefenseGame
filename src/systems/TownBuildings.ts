@@ -1,12 +1,14 @@
 import Phaser from "phaser";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
+import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { bindContainerPress, interactiveObjectScreenRect } from "../ui/touchButton";
 import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
 
 export type TownBuildingControl = {
   container: Phaser.GameObjects.Container;
   buildingId: string;
+  setInputEnabled: (enabled: boolean) => void;
   setLabel: (text: string) => void;
   /** Building center in game/canvas coords (for e2e taps). */
   spriteCenter: () => { x: number; y: number };
@@ -131,6 +133,8 @@ export function spawnTownBuildingControls(
     out.push({
       container,
       buildingId: slot.buildingId,
+      setInputEnabled: (enabled: boolean) =>
+        setContainerInputEnabled(container, enabled),
       setLabel: (next: string) => text.setText(next),
       spriteCenter,
       hitFootprintScreenRect: () =>
