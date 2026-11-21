@@ -6,6 +6,7 @@ import {
   spellCastUsesEnemyAim,
   spellRequiresManualTarget,
   spellTargetMode,
+  spellUsesManualGroundAim,
 } from "./spellTargeting";
 import type { SpellDefinition } from "./spells";
 
@@ -33,6 +34,7 @@ describe("spellTargeting", () => {
     });
     expect(spellTargetMode(d)).toBe("ground");
     expect(spellRequiresManualTarget(d)).toBe(true);
+    expect(spellUsesManualGroundAim(d)).toBe(true);
   });
 
   it("flags enemy, cone, and swing spells for auto-cast enemy aim", () => {

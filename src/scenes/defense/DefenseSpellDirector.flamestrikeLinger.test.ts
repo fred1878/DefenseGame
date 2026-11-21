@@ -5,6 +5,7 @@ import {
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
 import { spellById } from "../../content/spells";
+import { spellCastMs } from "../../content/spellTargeting";
 
 function flamestrikeHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
   const castBar = {
@@ -73,14 +74,16 @@ function flamestrikeHost(spellCaster: SpellCastController): DefenseSpellDirector
 describe("DefenseSpellDirector flamestrike", () => {
   it("frees the player after cast while spawning an independent ground linger zone", () => {
     const def = spellById("flamestrike");
-    expect(def?.channelMs).toBe(0);
-    expect(def?.lingerMs).toBeGreaterThan(0);
+    expect(def).toBeDefined();
+    if (!def) return;
+    expect(def.channelMs).toBe(0);
+    expect(def.lingerMs).toBeGreaterThan(0);
 
     const spellCaster = new SpellCastController();
     spellCaster.tryBeginCast("flamestrike");
     const host = flamestrikeHost(spellCaster);
 
-    directorFinishCast(host, 650);
+    directorFinishCast(host, spellCastMs(def) + 1);
 
     expect(spellCaster.isChanneling()).toBe(false);
     expect(host.castBar.setVisible).toHaveBeenCalledWith(false);
