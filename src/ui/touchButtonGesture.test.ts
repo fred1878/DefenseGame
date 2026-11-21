@@ -40,7 +40,7 @@ describe("resolveSpellBarPointerRelease", () => {
     ).toBe("none");
   });
 
-  it("returns longPress on release after hold threshold without drag", () => {
+  it("returns longPress only when release stays on the slot hit area", () => {
     expect(
       resolveSpellBarPointerRelease({
         dragExceeded: false,
@@ -56,7 +56,18 @@ describe("resolveSpellBarPointerRelease", () => {
         longPressMs: LONG,
         releaseOnButton: false,
       }),
-    ).toBe("longPress");
+    ).toBe("none");
+  });
+
+  it("returns none for long hold with drag off slot (ground aim path)", () => {
+    expect(
+      resolveSpellBarPointerRelease({
+        dragExceeded: true,
+        holdMs: 50,
+        longPressMs: LONG,
+        releaseOnButton: false,
+      }),
+    ).toBe("none");
   });
 
   it("returns none when drag cancels gesture", () => {

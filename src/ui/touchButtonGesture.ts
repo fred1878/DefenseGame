@@ -15,7 +15,10 @@ export function pressDragExceedsThreshold(
 
 export type SpellBarPointerRelease = "none" | "tap" | "longPress";
 
-/** Tap vs long-press vs drag-cancel for spell-bar style buttons (decided on pointer up). */
+/**
+ * Tap vs long-press vs drag-cancel for spell-bar buttons (decided on pointer up).
+ * Auto-cast long-press requires release still on the slot hit area; drag-off is never AUTO.
+ */
 export function resolveSpellBarPointerRelease(opts: {
   dragExceeded: boolean;
   holdMs: number;
@@ -24,9 +27,9 @@ export function resolveSpellBarPointerRelease(opts: {
 }): SpellBarPointerRelease {
   const { dragExceeded, holdMs, longPressMs, releaseOnButton } = opts;
   if (dragExceeded) return "none";
+  if (!releaseOnButton) return "none";
   if (holdMs >= longPressMs) return "longPress";
-  if (releaseOnButton) return "tap";
-  return "none";
+  return "tap";
 }
 
 export function releaseOnSameButton(
