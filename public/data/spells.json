@@ -19,7 +19,8 @@
       "onHit": {
         "dotDps": 6,
         "dotMs": 2500
-      }
+      },
+      "knockback": 110
     },
     {
       "id": "ice_bolt",
@@ -40,7 +41,8 @@
       "onHit": {
         "slowPct": 0.5,
         "slowMs": 4000
-      }
+      },
+      "knockback": 110
     },
     {
       "id": "lightning_bolt",
@@ -57,7 +59,8 @@
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
       "damageFlavor": "default",
-      "castMs": 550
+      "castMs": 550,
+      "knockback": 140
     },
     {
       "id": "fire_nova",
@@ -78,7 +81,8 @@
       "onHit": {
         "dotDps": 8,
         "dotMs": 3000
-      }
+      },
+      "blastKnockback": 0
     },
     {
       "id": "heal",
@@ -109,7 +113,8 @@
       "projectileTextureKey": "fx_spell_water_bolt",
       "projectileFile": "water-bolt-mrpg-16.png",
       "damageFlavor": "default",
-      "castMs": 0
+      "castMs": 0,
+      "knockback": 110
     },
     {
       "id": "arc_bomb",
@@ -127,7 +132,9 @@
       "projectileTextureKey": "fx_spell_arc_bomb",
       "projectileFile": "arc-bomb-mrpg-16.png",
       "damageFlavor": "default",
-      "castMs": 550
+      "castMs": 550,
+      "knockback": 110,
+      "blastKnockback": 140
     },
     {
       "id": "swing",
@@ -141,7 +148,8 @@
       "baseDamage": 20,
       "iconFile": "swing.png",
       "damageFlavor": "default",
-      "targetMode": "enemy"
+      "targetMode": "enemy",
+      "knockback": 250
     },
     {
       "id": "rend",
@@ -159,7 +167,8 @@
       "onHit": {
         "dotDps": 18,
         "dotMs": 4000
-      }
+      },
+      "knockback": 250
     },
     {
       "id": "cone_of_cold",
@@ -177,7 +186,8 @@
       "onHit": {
         "slowPct": 0.4,
         "slowMs": 2000
-      }
+      },
+      "knockback": 90
     },
     {
       "id": "cone_of_fire",
@@ -197,7 +207,8 @@
       "onHit": {
         "dotDps": 5,
         "dotMs": 5000
-      }
+      },
+      "knockback": 90
     },
     {
       "id": "fire_blast",
@@ -215,7 +226,8 @@
       "iconFile": "fire_blast.png",
       "damageFlavor": "fire",
       "centerOnCaster": false,
-      "targetMode": "none"
+      "targetMode": "none",
+      "blastKnockback": 140
     },
     {
       "id": "blizzard",
@@ -261,7 +273,8 @@
       "onHit": {
         "dotDps": 8,
         "dotMs": 3000
-      }
+      },
+      "blastKnockback": 140
     },
     {
       "id": "frost_nova",
@@ -281,7 +294,8 @@
       "centerOnCaster": true,
       "onHit": {
         "rootMs": 7000
-      }
+      },
+      "blastKnockback": 140
     },
     {
       "id": "ice_wall",
@@ -316,7 +330,8 @@
       "onHit": {
         "dotDps": 6,
         "dotMs": 3000
-      }
+      },
+      "blastKnockback": 140
     },
     {
       "id": "shadowform",
@@ -349,7 +364,8 @@
         "dotDps": 7,
         "dotMs": 4000,
         "stunMs": 2000
-      }
+      },
+      "knockback": 110
     },
     {
       "id": "chain_lightning",
@@ -371,7 +387,10 @@
       "requireEnemyTarget": true,
       "onHit": {
         "stunMs": 450
-      }
+      },
+      "knockback": 110,
+      "chainKnockback": 120,
+      "chainHopKnockback": 100
     },
     {
       "id": "blink",
@@ -405,7 +424,9 @@
       "onHit": {
         "dotDps": 2.5,
         "dotMs": 3500
-      }
+      },
+      "knockback": 110,
+      "blastKnockback": 80
     }
   ]
 }

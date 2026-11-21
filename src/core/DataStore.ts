@@ -26,6 +26,7 @@ import {
   type PlayerConfig,
   type PlayerConfigInput,
 } from "./normalizePlayer";
+import { normalizeSpellCatalog } from "./normalizeSpells";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
@@ -113,8 +114,8 @@ export class DataStore {
     this.buildings = buildings;
     this.townBuildings = townBuildings;
     this.townLayout = townLayout;
-    this.spells = spellsFile.spells;
-    setSpellCatalog(spellsFile.spells);
+    this.spells = normalizeSpellCatalog(spellsFile);
+    setSpellCatalog(this.spells);
     this.player = normalizePlayerConfig(playerFile);
     applyEnemyCombatDefaults(enemyCombatDefaults);
     applyDefenseMaps(defenseMaps);

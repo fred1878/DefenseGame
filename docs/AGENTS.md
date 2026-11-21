@@ -152,7 +152,7 @@ Every enemy row must set `hp` / `speed` / `damage`. Omit `combat` to use loaded 
 
 **defense-maps.json** — `{ defaultMapId, maps: [{ id, field: { cols, rows }, obstacles: [{ tileX, tileY, textureKey }] }] }`. Boot applies the default map (`applyDefenseMaps`); use `selectDefenseMapId` from `src/config/defenseMaps.ts` when adding map pick UI.
 
-**spell-mechanics.json** — shared spell helper constants (ranges, arcs, chain hops, blink/ice wall distances, shadowform/frost timings). Per-spell damage/channel data stays in `spells.json`.
+**spell-mechanics.json** — shared spell helper constants (ranges, arcs, chain hops, blink/ice wall distances, shadowform/frost timings). Per-spell damage/channel data stays in `spells.json`. Spell knockback is authored per row (`knockback`, `blastKnockback`, `chainKnockback`, `chainHopKnockback` by `mechanicType`); Boot validates required fields via `normalizeSpellCatalog` (e.g. **Fire Nova** uses `blastKnockback: 0`).
 
 **entity-physics.json** — `entityBodyRadius` + `enemyPathClearanceMarginPx` (nav grid inflation uses loaded radii).
 

@@ -5,6 +5,7 @@ import { applySpellBlastAt } from "../../combat/SpellEffects";
 import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { PLAYER_TUNING } from "../../config";
+import { ConfigLoadError } from "../../core/configValidation";
 import { spellById } from "../../content/spells";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import { ENTITY_BODY_RADIUS } from "../../entities/entityPhysics";
@@ -65,8 +66,15 @@ export function tickDefenseProjectiles(
   const spellProjCtx = {
     deltaMs: delta,
     enemies: host.enemyTargets(),
-    knockbackFor: (p: PlayerProjectile) =>
-      p.spellId === "lightning_bolt" ? 140 : PLAYER_TUNING.rangedKnockback,
+    knockbackFor: (p: PlayerProjectile) => {
+      const def = p.spellId ? spellById(p.spellId) : undefined;
+      if (def?.knockback == null) {
+        throw new ConfigLoadError(
+          `Missing spell knockback for projectile spellId=${p.spellId ?? "?"}`,
+        );
+      }
+      return def.knockback;
+    },
     findEnemy: host.findEnemy,
   };
   const projectiles = host.projectiles.filter((p) => {
@@ -92,7 +100,6 @@ export function tickDefenseProjectiles(
           def,
           host.enemyTargets(),
           host.spellDamageMult(),
-          140,
           host.enemySpellStatus,
         );
         host.flashNova(
