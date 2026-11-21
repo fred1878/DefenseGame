@@ -78,7 +78,9 @@ export class GroundTargetReticle {
 
   static styleForSpellId(spellId: string): GroundReticleStyle {
     if (spellId === "blizzard") return "ice";
-    if (spellId === "meteor" || spellId === "flamestrike") return "fire";
+    if (spellId === "meteor" || spellId === "flamestrike" || spellId === "fire_blast") {
+      return "fire";
+    }
     return "default";
   }
 

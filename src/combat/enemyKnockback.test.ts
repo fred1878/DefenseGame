@@ -4,9 +4,26 @@ import {
   ENEMY_KNOCKBACK_WEIGHT_BASELINE,
   applyEnemyKnockbackFrom,
   decayEnemyKnockback,
+  knockbackRadialUnit,
   knockbackStrengthForEnemyWeight,
   setEnemyChaseVelocity,
 } from "./enemyKnockback";
+
+describe("knockbackRadialUnit", () => {
+  it("points from blast origin toward the target", () => {
+    const { nx, ny } = knockbackRadialUnit(120, 100, 100, 100);
+    expect(nx).toBeCloseTo(1, 5);
+    expect(Math.abs(ny)).toBeLessThan(0.01);
+  });
+
+  it("uses a stable radial fallback when target coincides with origin", () => {
+    const a = knockbackRadialUnit(50, 50, 50, 50);
+    const b = knockbackRadialUnit(50, 50, 50, 50);
+    expect(Math.hypot(a.nx, a.ny)).toBeCloseTo(1, 5);
+    expect(a.nx).toBe(b.nx);
+    expect(a.ny).toBe(b.ny);
+  });
+});
 
 describe("knockbackStrengthForEnemyWeight", () => {
   it("leaves strength unchanged at baseline weight", () => {

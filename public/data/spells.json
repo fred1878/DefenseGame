@@ -225,8 +225,8 @@
       "blastFile": "shockwave-mrpg-64.png",
       "iconFile": "fire_blast.png",
       "damageFlavor": "fire",
-      "centerOnCaster": false,
-      "targetMode": "none",
+      "targetMode": "ground",
+      "groundTargetMaxRangeWu": 240,
       "blastKnockback": 140
     },
     {
@@ -331,7 +331,7 @@
         "dotDps": 6,
         "dotMs": 3000
       },
-      "blastKnockback": 140
+      "blastKnockback": 0
     },
     {
       "id": "shadowform",
