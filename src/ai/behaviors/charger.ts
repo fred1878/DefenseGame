@@ -105,6 +105,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     tune &&
     resolved.targetKind === "player" &&
     extra.chargeCooldownMs <= 0 &&
+    dist >= worldUnit(tune.dashMinRange, reg) &&
     dist <= worldUnit(tune.dashTriggerRange, reg) &&
     hasLineOfSight(grid, ex, ey, playerX, playerY)
   ) {

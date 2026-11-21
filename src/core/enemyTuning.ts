@@ -74,6 +74,8 @@ export type EnemyCombatPartial = {
   /** Burst dash toward player (`charger` behavior). */
   charger?: {
     chargeDamage?: number;
+    /** World units — must be at or beyond this distance to start dash windup. */
+    dashMinRange?: number;
     dashTriggerRange?: number;
     dashWindupMs?: number;
     dashDurationMs?: number;
@@ -174,6 +176,7 @@ export type EnemyWallSiegeCombat = {
 
 export type EnemyChargerCombat = {
   chargeDamage: number;
+  dashMinRange: number;
   dashTriggerRange: number;
   dashWindupMs: number;
   dashDurationMs: number;
@@ -386,6 +389,7 @@ function mergeCharger(
   const d = getEnemyCombatDefaults().charger;
   return {
     chargeDamage: partial?.chargeDamage ?? d.chargeDamage,
+    dashMinRange: partial?.dashMinRange ?? d.dashMinRange,
     dashTriggerRange: partial?.dashTriggerRange ?? d.dashTriggerRange,
     dashWindupMs: partial?.dashWindupMs ?? d.dashWindupMs,
     dashDurationMs: partial?.dashDurationMs ?? d.dashDurationMs,

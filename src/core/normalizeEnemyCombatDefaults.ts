@@ -67,6 +67,7 @@ const STATIONARY_RANGED_KEYS = [
 const WALL_SIEGE_KEYS = ["playerAggroRadius"] as const;
 const CHARGER_KEYS = [
   "chargeDamage",
+  "dashMinRange",
   "dashTriggerRange",
   "dashWindupMs",
   "dashDurationMs",
