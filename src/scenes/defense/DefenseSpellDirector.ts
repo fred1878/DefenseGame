@@ -31,15 +31,7 @@ import {
   showFireNovaRingFx,
 } from "../../combat/FireNovaRingFx";
 import { spellChannelTickMs } from "../../content/spellTargeting";
-import {
-  BLINK_DISTANCE_WU,
-  FROST_ROOT_MS,
-  ICE_WALL_DISTANCE_WU,
-  ICE_WALL_DURATION_MS,
-  resolveBlinkLanding,
-  SHADOWFORM_DAMAGE_MULT,
-  SHADOWFORM_DURATION_MS,
-} from "../../combat/spellMechanics";
+import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
 import {
   destroySpellGroundAoeTelegraph,
@@ -650,7 +642,9 @@ export class DefenseSpellDirector {
 
   spellDamageMult(): number {
     const mult = playerDamageMult(this.host.save.buildings);
-    return this.host.shadowformEndsAt > this.host.timeNow() ? mult * SHADOWFORM_DAMAGE_MULT : mult;
+    if (this.host.shadowformEndsAt <= this.host.timeNow()) return mult;
+    const shade = spellById("shadowform");
+    return mult * (shade?.shadowformDamageMult ?? 1);
   }
 
   resolveSpellEffect(def: SpellDefinition): void {
@@ -691,7 +685,6 @@ export class DefenseSpellDirector {
                   : def.blastTextureKey,
           });
         }
-        if (def.id === "frost_nova") this.applyFrostNovaRoot();
         break;
       }
       case "projectile":
@@ -800,35 +793,21 @@ export class DefenseSpellDirector {
         applyChanneledHeal(this.host.player.damageable, def);
         break;
       case "blink":
-        this.castBlink(angle);
+        this.castBlink(angle, def);
         break;
       case "buff":
-        if (def.id === "shadowform") {
-          this.host.shadowformEndsAt = this.host.timeNow() + SHADOWFORM_DURATION_MS;
+        if (def.shadowformDurationMs != null) {
+          this.host.shadowformEndsAt =
+            this.host.timeNow() + def.shadowformDurationMs;
         }
         break;
       case "ice_wall":
-        this.spawnIceWall(angle);
+        this.spawnIceWall(angle, def);
         break;
       default:
         break;
     }
     this.host.filterDeadEnemies();
-  }
-
-  applyFrostNovaRoot(): void {
-    const def = spellById("frost_nova");
-    const rootMs = def?.onHit?.rootMs ?? FROST_ROOT_MS;
-    const px = this.host.player.sprite.x;
-    const py = this.host.player.sprite.y;
-    const r = this.host.wu(def?.blastRadius ?? 85);
-    for (const e of this.host.enemies) {
-      if (!e.damageable.alive) continue;
-      const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-      if (d <= r + this.host.wu(ENTITY_BODY_RADIUS.enemy)) {
-        this.host.enemySpellStatus.applyRoot(e.id, rootMs);
-      }
-    }
   }
 
   /** Motion velocity when moving; otherwise caster facing (blink aim). */
@@ -853,7 +832,7 @@ export class DefenseSpellDirector {
     return rects;
   }
 
-  castBlink(facingRad: number): void {
+  castBlink(facingRad: number, def: SpellDefinition): void {
     const halfW = defenseHalfWidth();
     const halfH = defenseHalfHeight();
     const px = this.host.player.sprite.x;
@@ -878,7 +857,7 @@ export class DefenseSpellDirector {
       px,
       py,
       facingRad,
-      this.host.wu(BLINK_DISTANCE_WU),
+      this.host.wu(def.blinkDistanceWu!),
       bounds,
       playerR,
       this.blinkObstacleAABBs(),
@@ -903,8 +882,8 @@ export class DefenseSpellDirector {
     }
   }
 
-  spawnIceWall(facingRad: number): void {
-    const dist = this.host.wu(ICE_WALL_DISTANCE_WU);
+  spawnIceWall(facingRad: number, def: SpellDefinition): void {
+    const dist = this.host.wu(def.iceWallDistanceWu!);
     const cx = this.host.player.sprite.x + Math.cos(facingRad) * dist;
     const cy = this.host.player.sprite.y + Math.sin(facingRad) * dist;
     const perpX = -Math.sin(facingRad);
@@ -922,7 +901,7 @@ export class DefenseSpellDirector {
       this.host.obstacleGroup.add(block);
       this.host.iceWallExpires.push({
         sprite: block,
-        expiresAt: this.host.timeNow() + ICE_WALL_DURATION_MS,
+        expiresAt: this.host.timeNow() + def.iceWallDurationMs!,
       });
     }
   }

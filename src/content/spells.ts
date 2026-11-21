@@ -51,6 +51,16 @@ export type SpellDefinition = {
   lingerMs?: number;
   lingerTickMs?: number;
   coneRangeWu?: number;
+  coneArcDeg?: number;
+  swingRangeWu?: number;
+  swingArcDeg?: number;
+  chainLightningHops?: number;
+  chainLightningHopRangeWu?: number;
+  blinkDistanceWu?: number;
+  iceWallDistanceWu?: number;
+  iceWallDurationMs?: number;
+  shadowformDurationMs?: number;
+  shadowformDamageMult?: number;
   onHit?: SpellOnHitEffects;
   baseDamage?: number;
   projectileSpeed?: number;

@@ -3,14 +3,11 @@ import path from "node:path";
 import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import { applyPlayerTuning } from "../config/player";
-import { applySpellMechanics } from "../combat/spellMechanics";
 import { applyEntityPhysics } from "../entities/entityPhysics";
 import { applyEnemyCombatDefaults } from "../core/enemyTuning";
 import { normalizeEnemyAi } from "../core/normalizeEnemyAi";
 import { normalizeEntityPhysics } from "../core/normalizeEntityPhysics";
 import { normalizePlayerConfig } from "../core/normalizePlayer";
-import { normalizeSpellMechanics } from "../core/normalizeSpellMechanics";
-
 const dataDir = path.join(process.cwd(), "public/data");
 
 function readPublicJson<T>(name: string): T {
@@ -22,7 +19,6 @@ export function bootPublicConfigFixtures(): void {
   applyDefenseMaps(readPublicJson("defense-maps.json"));
   applyEnemyCombatDefaults(readPublicJson("enemy-combat-defaults.json"));
   applyEntityPhysics(normalizeEntityPhysics(readPublicJson("entity-physics.json")));
-  applySpellMechanics(normalizeSpellMechanics(readPublicJson("spell-mechanics.json")));
   applyEnemyAi(normalizeEnemyAi(readPublicJson("enemy-ai.json")));
   const { endlessPanelDefaultConcurrent: _ui, ...tuning } = normalizePlayerConfig(
     readPublicJson("player.json"),

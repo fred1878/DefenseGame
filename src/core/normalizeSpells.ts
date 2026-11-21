@@ -24,10 +24,43 @@ function requireBlastKnockback(def: SpellDefinition, path: string): number {
   return requireFiniteNumber(def.blastKnockback, `${path}.blastKnockback`);
 }
 
+function validateSpellMechanicFields(
+  def: SpellDefinition,
+  path: string,
+): void {
+  switch (def.mechanicType) {
+    case "swing":
+    case "tracking_swing":
+      requireFiniteNumber(def.swingRangeWu, `${path}.swingRangeWu`);
+      requireFiniteNumber(def.swingArcDeg, `${path}.swingArcDeg`);
+      return;
+    case "cone":
+    case "channeled_cone":
+      requireFiniteNumber(def.coneRangeWu, `${path}.coneRangeWu`);
+      requireFiniteNumber(def.coneArcDeg, `${path}.coneArcDeg`);
+      return;
+    case "blink":
+      requireFiniteNumber(def.blinkDistanceWu, `${path}.blinkDistanceWu`);
+      return;
+    case "ice_wall":
+      requireFiniteNumber(def.iceWallDistanceWu, `${path}.iceWallDistanceWu`);
+      requireFiniteNumber(def.iceWallDurationMs, `${path}.iceWallDurationMs`);
+      return;
+    case "buff":
+      requireFiniteNumber(def.shadowformDurationMs, `${path}.shadowformDurationMs`);
+      requireFiniteNumber(def.shadowformDamageMult, `${path}.shadowformDamageMult`);
+      return;
+    default:
+      return;
+  }
+}
+
 function validateSpellKnockbackFields(
   def: SpellDefinition,
   path: string,
 ): SpellDefinition {
+  validateSpellMechanicFields(def, path);
+
   if (SPELLS_WITHOUT_KNOCKBACK.has(def.mechanicType)) {
     return def;
   }
@@ -45,6 +78,14 @@ function validateSpellKnockbackFields(
       if (def.id === "chain_lightning") {
         requireFiniteNumber(def.chainKnockback, `${path}.chainKnockback`);
         requireFiniteNumber(def.chainHopKnockback, `${path}.chainHopKnockback`);
+        requireFiniteNumber(
+          def.chainLightningHops,
+          `${path}.chainLightningHops`,
+        );
+        requireFiniteNumber(
+          def.chainLightningHopRangeWu,
+          `${path}.chainLightningHopRangeWu`,
+        );
       }
       return def;
     case "swing":
