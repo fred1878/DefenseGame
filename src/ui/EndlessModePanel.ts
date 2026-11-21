@@ -8,6 +8,7 @@ import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,
 } from "../systems/endlessSpawnScheduler";
+import { pickEndlessEnemyRowAtScreen } from "./endlessModePanelPick";
 import {
   createTouchButton,
   interactiveObjectScreenRect,
@@ -22,6 +23,8 @@ import {
 const TAP_DRAG_THRESHOLD_PX = 10;
 /** Max roster rows visible before scrolling. */
 const MAX_VISIBLE_ROWS = 6;
+/** Lenient top edge for the invisible list hit layer (matches HUD tap padding). */
+const LIST_VIEWPORT_TOP_HIT_SLOP_PX = 4;
 
 type EnemyRow = {
   enemyId: string;
@@ -157,6 +160,7 @@ export class EndlessModePanel {
       MAX_VISIBLE_ROWS * this.rowStride - gap;
     this.listViewportH = Math.min(listBudget, cappedByRows);
 
+    const listHitTopSlop = scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX);
     this.listViewport = scene.add
       .rectangle(
         GAME.width / 2,
@@ -165,8 +169,24 @@ export class EndlessModePanel {
         this.listViewportH,
         0x000000,
         0,
-      )
-      .setInteractive({ draggable: false });
+      );
+    const listHitW = this.rowW;
+    const listHitH = this.listViewportH + listHitTopSlop;
+    const capColLeft = this.capColLeft;
+    this.listViewport.setInteractive(
+      new Phaser.Geom.Rectangle(
+        -listHitW / 2,
+        -listHitH / 2 - listHitTopSlop,
+        listHitW,
+        listHitH,
+      ),
+      (hitArea, x, y, gameObject) => {
+        const viewport = gameObject as Phaser.GameObjects.Rectangle;
+        const screenX = viewport.x + x;
+        if (screenX >= capColLeft) return false;
+        return Phaser.Geom.Rectangle.Contains(hitArea, x, y);
+      },
+    );
     this.root.add(this.listViewport);
 
     this.listContent = scene.add.container(0, this.listTop);
@@ -314,6 +334,7 @@ export class EndlessModePanel {
     this.listContent.setMask(mask);
 
     this.wireListViewportDrag();
+    this.root.bringToTop(this.listViewport);
 
     this.infiniteHpRowY = listBottom + scaleUiY(12) + infiniteRowH / 2;
     this.infiniteHpBg = createUiRoundedRect(
@@ -474,31 +495,18 @@ export class EndlessModePanel {
     screenX: number,
     screenY: number,
   ): string | null {
-    if (screenX >= this.capColLeft) {
-      return null;
-    }
-    if (
-      screenY < this.listTop ||
-      screenY > this.listTop + this.listViewportH
-    ) {
-      return null;
-    }
-    const contentY = screenY - this.listContent.y;
-    if (contentY < 0) return null;
-    const index = Math.floor(contentY / this.rowStride);
-    if (index < 0 || index >= this.rows.length) return null;
-    const bandTop = index * this.rowStride;
-    const bandBottom = bandTop + this.rowH;
-    if (contentY < bandTop || contentY > bandBottom) return null;
-    const rowCenterScreen = this.listContent.y + bandTop + this.rowH / 2;
-    const half = this.rowH / 2;
-    if (
-      rowCenterScreen - half < this.listTop - 0.5 ||
-      rowCenterScreen + half > this.listTop + this.listViewportH + 0.5
-    ) {
-      return null;
-    }
-    return this.rows[index]!.enemyId;
+    return pickEndlessEnemyRowAtScreen({
+      screenX,
+      screenY,
+      capColLeft: this.capColLeft,
+      listTop: this.listTop,
+      listViewportH: this.listViewportH,
+      listContentY: this.listContent.y,
+      rowStride: this.rowStride,
+      rowH: this.rowH,
+      enemyIds: this.rows.map((row) => row.enemyId),
+      topHitSlopPx: scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX),
+    });
   }
 
   private rowScreenCenter(
