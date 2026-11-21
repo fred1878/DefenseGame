@@ -731,9 +731,16 @@ export class EndlessModePanel {
   }
 
   e2eStartWithEnemy(enemyId: string, infiniteHp = false): void {
+    const defaultCap = clampEndlessConcurrent(
+      this.store.player.endlessPanelDefaultConcurrent,
+    );
+    this.caps.set(enemyId, defaultCap);
+    const row = this.rows.find((r) => r.enemyId === enemyId);
+    row?.capValue.setText(`${defaultCap}`);
     this.selectedIds.clear();
     this.selectedIds.add(enemyId);
     this.refreshSelection();
+    this.refreshChallengeRating();
     this.e2eSetInfiniteHp(infiniteHp);
     const selections = this.buildSelections();
     this.onStart(selections, this.infiniteHp);
