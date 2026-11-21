@@ -239,8 +239,8 @@
   },
   "charger": {
     "hp": 85,
-    "speed": 98,
-    "damage": 22,
+    "speed": 118,
+    "damage": 12,
     "behavior": "charger",
     "textureKey": "enemy_charger",
     "displayName": "Charger",
@@ -253,21 +253,21 @@
       "melee": {
         "triggerRange": 73,
         "range": 65,
-        "arcDeg": 72,
+        "arcDeg": 92,
         "windupMs": 360,
         "activeMs": 110,
-        "recoveryMs": 460,
-        "cooldownMs": 380
+        "recoveryMs": 250,
+        "cooldownMs": 480
       },
       "charger": {
-        "chargeDamage": 34,
+        "chargeDamage": 22,
         "dashMinRange": 88,
         "dashTriggerRange": 240,
-        "dashWindupMs": 300,
-        "dashDurationMs": 800,
-        "dashSpeedMul": 2.15,
+        "dashWindupMs": 400,
+        "dashDurationMs": 1200,
+        "dashSpeedMul": 2.35,
         "dashCooldownMs": 2600,
-        "dashOvershootRange": 200
+        "dashOvershootRange": 100
       }
     },
     "weight": 125
