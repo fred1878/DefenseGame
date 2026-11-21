@@ -4,7 +4,6 @@ import type { SpellTargetMode } from "./spellTargeting";
 import bundledSpells from "../../public/data/spells.json";
 
 export type SpellId = string;
-export type SpellCastKind = "instant" | "channeled";
 
 export type SpellOnHitEffects = {
   slowPct?: number;
@@ -42,7 +41,6 @@ export type SpellDefinition = {
   /** Windup before channel or instant resolution (MobileRPG startupDuration). */
   castMs?: number;
   channelMs: number;
-  kind: SpellCastKind;
   channelTickMs?: number;
   targetMode?: SpellTargetMode;
   requireEnemyTarget?: boolean;
@@ -67,19 +65,10 @@ export type SpellDefinition = {
 
 type SpellsJson = { spells: SpellDefinition[] };
 
-let activeCatalog: SpellDefinition[] = normalizeCatalog(
-  (bundledSpells as SpellsJson).spells,
-);
-
-function normalizeCatalog(rows: SpellDefinition[]): SpellDefinition[] {
-  return rows.map((row) => ({
-    ...row,
-    kind: row.channelMs > 0 ? "channeled" : "instant",
-  }));
-}
+let activeCatalog: SpellDefinition[] = (bundledSpells as SpellsJson).spells;
 
 export function setSpellCatalog(rows: readonly SpellDefinition[]): void {
-  activeCatalog = normalizeCatalog([...rows]);
+  activeCatalog = [...rows];
 }
 
 export function getSpellCatalog(): readonly SpellDefinition[] {

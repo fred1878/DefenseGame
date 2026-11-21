@@ -19,7 +19,6 @@ function def(partial: Partial<SpellDefinition>): SpellDefinition {
     implementationPhase: 1,
     cooldownMs: 0,
     channelMs: 0,
-    kind: "instant",
     iconFile: "x.png",
     ...partial,
   };

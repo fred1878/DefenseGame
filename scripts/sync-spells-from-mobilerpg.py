@@ -198,7 +198,6 @@ def main() -> None:
                 spell["channelMs"] = val
             else:
                 spell[key] = val
-        spell["kind"] = "channeled" if spell.get("channelMs", 0) > 0 else "instant"
     SPELLS_JSON.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     print(f"Updated {len(parsed)} spells in {SPELLS_JSON}")
 
