@@ -5,6 +5,6 @@
     "enemyMelee": 21,
     "grunt": 28
   },
-  "enemyPathClearanceMarginPx": 7,
-  "staticObstacleNavClearancePx": 24
+  "enemyPathClearanceMarginPx": 9,
+  "staticObstacleNavClearancePx": 18
 }
