@@ -41,6 +41,7 @@ import {
 } from "../core/defenseRunMode";
 import type { WaveGroup } from "../core/DataStore";
 import { createDefaultSpellBarAutoCast } from "../content/spells";
+import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 import {
   spawnTownBuildingControls,
   type TownBuildingControl,
@@ -267,9 +268,14 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
-    if (!this.endlessPanel) this.openEndlessPanel();
-    this.endlessPanel?.e2eStartWithEnemy(enemyId, infiniteHp);
+    const store = this.registry.get("dataStore") as DataStore;
+    const cap = clampEndlessConcurrent(store.player.endlessPanelDefaultConcurrent);
+    const selections: EndlessRunSelection[] = [
+      { enemyId, concurrentCap: cap },
+    ];
+    this.endlessPanel?.destroy();
     this.endlessPanel = null;
+    this.beginEndlessDefense(selections, infiniteHp);
   }
 
   e2eEndlessInfiniteHpEnabled(): boolean {
