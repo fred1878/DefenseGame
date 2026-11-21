@@ -8,6 +8,7 @@ import {
   applyWallMeleeHold,
   playerMeleeChaseStandoffCenterDist,
   shouldHoldAtPlayerMelee,
+  shouldHoldMeleeChaseChordBlocked,
   shouldHoldAtWallMelee,
   wallMeleeDistToAttackPlane,
   wallMeleeStandoffY,
@@ -60,6 +61,77 @@ describe("player melee standoff", () => {
       targetKind: "player",
       playerX: standoff + 40,
       playerY: 0,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx] = setVelocity.mock.calls[0]!;
+    expect(vx).toBeGreaterThan(0);
+  });
+
+  it("detects a closer ally body on the hold chord", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    enemy.sprite.x = -80;
+    enemy.sprite.y = 0;
+    const playerX = 0;
+    const playerY = 0;
+    const peers = [{ x: -20, y: 0, defId: "grunt" }];
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, playerX, playerY, peers),
+    ).toBe(true);
+  });
+
+  it("does not chord-block when the peer is not closer to the player", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    enemy.sprite.x = -30;
+    enemy.sprite.y = 0;
+    const peers = [{ x: -80, y: 0, defId: "grunt" }];
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, 0, 0, peers),
+    ).toBe(false);
+  });
+
+  it("zeros chase when closing on player but chord is blocked", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speed: 80,
+    });
+    enemy.sprite.x = -100;
+    enemy.sprite.y = 0;
+  const playerX = 0;
+    const playerY = 0;
+    const peers = [{ x: -25, y: 0, defId: "grunt" }];
+    applyChaseVelocity(enemy, playerX, playerY, 1, {
+      targetKind: "player",
+      playerX,
+      playerY,
+      meleeChasePeers: peers,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("still closes when chord to the hold point is clear", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speed: 80,
+    });
+    enemy.sprite.x = -100;
+    enemy.sprite.y = 0;
+    const playerX = 0;
+    const playerY = 0;
+    const peers = [{ x: -100, y: 40, defId: "grunt" }];
+    applyChaseVelocity(enemy, playerX, playerY, 1, {
+      targetKind: "player",
+      playerX,
+      playerY,
+      meleeChasePeers: peers,
     });
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     const [vx] = setVelocity.mock.calls[0]!;

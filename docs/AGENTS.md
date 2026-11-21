@@ -90,6 +90,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
       "melee": {
         "triggerRange": 78,
         "range": 72,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 70,
         "windupMs": 380,
         "activeMs": 110,

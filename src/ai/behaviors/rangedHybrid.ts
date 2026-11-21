@@ -6,11 +6,13 @@ import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
+  playerChaseVelocityOpts,
   setEnemyChaseVelocity,
 } from "./movement";
 
 export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
+    ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -71,11 +73,20 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     extra?.mode === "melee" &&
     desired === "player"
   ) {
-    applyChaseVelocity(enemy, playerX, playerY, 1.08, {
-      nav,
-      deltaMs,
-      targetKind: desired,
-    });
+    applyChaseVelocity(
+      enemy,
+      playerX,
+      playerY,
+      1.08,
+      playerChaseVelocityOpts(enemy, {
+        nav,
+        deltaMs,
+        targetKind: desired,
+        playerX,
+        playerY,
+        peerAllies,
+      }),
+    );
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
@@ -91,11 +102,20 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     const attackMax = worldUnit(ranged.attackTriggerRange, reg);
 
     if (dist <= meleeEngage) {
-      applyChaseVelocity(enemy, playerX, playerY, 1.05, {
-        nav,
-        deltaMs,
-        targetKind: desired,
-      });
+      applyChaseVelocity(
+        enemy,
+        playerX,
+        playerY,
+        1.05,
+        playerChaseVelocityOpts(enemy, {
+          nav,
+          deltaMs,
+          targetKind: desired,
+          playerX,
+          playerY,
+          peerAllies,
+        }),
+      );
       return { targetX: goal.x, targetY: goal.y, targetKind: desired };
     }
 

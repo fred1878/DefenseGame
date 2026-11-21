@@ -1,15 +1,24 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
-import {
-  enemyMeleeContactCenterDist,
-  wallMeleeApproachStandoffPx,
-} from "../../core/enemyTuning";
+import { requireMeleeChaseStandoffWu, wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
+import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
-import { isMeleeBodyCollisionBehavior } from "../../entities/entityPhysics";
+import {
+  enemyCollisionBodyRadius,
+  isMeleeBodyCollisionBehavior,
+  playerBodyRadiusPx,
+} from "../../entities/entityPhysics";
 import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
+import type { EnemyPeerAlly } from "./types";
 
 export { setEnemyChaseVelocity };
+
+export type MeleeChasePeer = {
+  x: number;
+  y: number;
+  defId: string;
+};
 
 export type ChaseVelocityOptions = {
   nav?: EnemyNavState;
@@ -18,18 +27,55 @@ export type ChaseVelocityOptions = {
   /** Live player position — used for melee standoff while chasing the player. */
   playerX?: number;
   playerY?: number;
+  /** Live ally positions for chord blocking on direct player closes. */
+  meleeChasePeers?: readonly MeleeChasePeer[];
 };
 
-/** Extra center distance past arcade body contact so enemies do not drive into the player collider. */
-const PLAYER_MELEE_CHASE_GAP_PX = 2;
+export function meleeChasePeersFromAllies(
+  selfId: string,
+  peerAllies?: readonly EnemyPeerAlly[],
+): readonly MeleeChasePeer[] | undefined {
+  if (!peerAllies?.length) return undefined;
+  return peerAllies
+    .filter((p) => p.id !== selfId)
+    .map((p) => ({ x: p.x, y: p.y, defId: p.defId }));
+}
+
+export function playerChaseVelocityOpts(
+  enemy: EnemyInstance,
+  params: {
+    nav?: EnemyNavState;
+    deltaMs?: number;
+    targetKind: EnemyTargetKind;
+    playerX: number;
+    playerY: number;
+    peerAllies?: readonly EnemyPeerAlly[];
+  },
+): ChaseVelocityOptions {
+  return {
+    nav: params.nav,
+    deltaMs: params.deltaMs,
+    targetKind: params.targetKind,
+    playerX: params.playerX,
+    playerY: params.playerY,
+    meleeChasePeers: meleeChasePeersFromAllies(enemy.id, params.peerAllies),
+  };
+}
 
 /** Center distance at which melee archetypes stop closing on the player. */
 export function playerMeleeChaseStandoffCenterDist(
   enemy: EnemyInstance,
 ): number {
+  const reg = enemy.sprite.scene?.registry;
+  const gapWu = requireMeleeChaseStandoffWu(
+    enemy.combatTuning.melee,
+    enemy.behavior,
+    enemy.defId,
+  );
   return (
-    enemyMeleeContactCenterDist(enemy.defId) +
-    PLAYER_MELEE_CHASE_GAP_PX
+    worldUnit(playerBodyRadiusPx(), reg) +
+    worldUnit(enemyCollisionBodyRadius(enemy.defId), reg) +
+    worldUnit(gapWu, reg)
   );
 }
 
@@ -50,6 +96,104 @@ export function shouldHoldAtPlayerMelee(
 
 export function applyPlayerMeleeHold(enemy: EnemyInstance): void {
   setEnemyChaseVelocity(enemy, 0, 0);
+}
+
+/** Hold point on the line to the player at melee chase standoff (player center frame). */
+export function playerMeleeChaseHoldPoint(
+  enemy: EnemyInstance,
+  playerX: number,
+  playerY: number,
+): { x: number; y: number } {
+  const ex = enemy.sprite.x;
+  const ey = enemy.sprite.y;
+  const dx = ex - playerX;
+  const dy = ey - playerY;
+  const len = Math.hypot(dx, dy);
+  if (len < 1e-6) {
+    return { x: ex, y: ey };
+  }
+  const holdDist = playerMeleeChaseStandoffCenterDist(enemy);
+  return {
+    x: playerX + (dx / len) * holdDist,
+    y: playerY + (dy / len) * holdDist,
+  };
+}
+
+function distSqPointToSegment(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq < 1e-6) {
+    return (px - x1) ** 2 + (py - y1) ** 2;
+  }
+  let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  const cx = x1 + t * dx;
+  const cy = y1 + t * dy;
+  return (px - cx) ** 2 + (py - cy) ** 2;
+}
+
+function circleBlocksSegment(
+  cx: number,
+  cy: number,
+  radius: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): boolean {
+  return distSqPointToSegment(cx, cy, x1, y1, x2, y2) <= radius * radius;
+}
+
+function isClosingOnPlayer(
+  ex: number,
+  ey: number,
+  moveX: number,
+  moveY: number,
+  playerX: number,
+  playerY: number,
+): boolean {
+  const toPlayerX = playerX - ex;
+  const toPlayerY = playerY - ey;
+  const toMoveX = moveX - ex;
+  const toMoveY = moveY - ey;
+  return toPlayerX * toMoveX + toPlayerY * toMoveY > 0;
+}
+
+/** True when a closer ally's body occupies the approach chord to the hold point. */
+export function shouldHoldMeleeChaseChordBlocked(
+  enemy: EnemyInstance,
+  playerX: number,
+  playerY: number,
+  peers?: readonly MeleeChasePeer[],
+): boolean {
+  if (!peers?.length || !isMeleeBodyCollisionBehavior(enemy.behavior)) {
+    return false;
+  }
+  const ex = enemy.sprite.x;
+  const ey = enemy.sprite.y;
+  const distSelf = Math.hypot(playerX - ex, playerY - ey);
+  const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+  const reg = enemy.sprite.scene?.registry;
+  const selfR = worldUnit(enemyCollisionBodyRadius(enemy.defId), reg);
+
+  for (const peer of peers) {
+    const distPeer = Math.hypot(playerX - peer.x, playerY - peer.y);
+    if (distPeer >= distSelf) continue;
+    const peerR = worldUnit(enemyCollisionBodyRadius(peer.defId), reg);
+    const occupyR = selfR + peerR;
+    if (circleBlocksSegment(peer.x, peer.y, occupyR, ex, ey, hold.x, hold.y)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Distance to the north-wall swing plane (same x as the enemy). */
@@ -116,6 +260,8 @@ export function applyChaseVelocity(
     applyWallMeleeHold(enemy);
     return;
   }
+  const ex = enemy.sprite.x;
+  const ey = enemy.sprite.y;
   if (
     opts?.targetKind &&
     opts.playerX !== undefined &&
@@ -125,12 +271,25 @@ export function applyChaseVelocity(
     applyPlayerMeleeHold(enemy);
     return;
   }
+  if (
+    opts?.targetKind === "player" &&
+    opts.playerX !== undefined &&
+    opts.playerY !== undefined &&
+    isClosingOnPlayer(ex, ey, moveX, moveY, opts.playerX, opts.playerY) &&
+    shouldHoldMeleeChaseChordBlocked(
+      enemy,
+      opts.playerX,
+      opts.playerY,
+      opts.meleeChasePeers,
+    )
+  ) {
+    applyPlayerMeleeHold(enemy);
+    return;
+  }
   if (enemyMovementBlocked(enemy)) {
     setEnemyChaseVelocity(enemy, 0, 0);
     return;
   }
-  const ex = enemy.sprite.x;
-  const ey = enemy.sprite.y;
   const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
   const speed = enemy.speed * speedMul * chaseScale * statusMul;

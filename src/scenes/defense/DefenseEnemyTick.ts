@@ -86,6 +86,7 @@ export function tickDefenseEnemies(
       .map((o) => ({
         id: o.id,
         behavior: o.behavior,
+        defId: o.defId,
         x: o.sprite.x,
         y: o.sprite.y,
       }));

@@ -10,11 +10,13 @@ import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
+  playerChaseVelocityOpts,
   setEnemyChaseVelocity,
 } from "./movement";
 
 export const chargerBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
+    ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -136,13 +138,20 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     }
   }
 
-  applyChaseVelocity(enemy, moveX, moveY, 1, {
-    nav,
-    deltaMs,
-    targetKind: resolved.targetKind,
-    playerX,
-    playerY,
-  });
+  applyChaseVelocity(
+    enemy,
+    moveX,
+    moveY,
+    1,
+    playerChaseVelocityOpts(enemy, {
+      nav,
+      deltaMs,
+      targetKind: resolved.targetKind,
+      playerX,
+      playerY,
+      peerAllies,
+    }),
+  );
 
   return { targetX: goal.x, targetY: goal.y, targetKind: resolved.targetKind };
 };

@@ -10,6 +10,7 @@
       "melee": {
         "triggerRange": 78,
         "range": 72,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 70,
         "windupMs": 100,
         "activeMs": 110,
@@ -37,6 +38,7 @@
       "melee": {
         "triggerRange": 90,
         "range": 84,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 100,
         "windupMs": 480,
         "activeMs": 130,
@@ -104,6 +106,7 @@
       "melee": {
         "triggerRange": 60,
         "range": 53,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 30,
         "windupMs": 150,
         "activeMs": 80,
@@ -169,6 +172,7 @@
       "melee": {
         "triggerRange": 51,
         "range": 37,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 68,
         "windupMs": 360,
         "activeMs": 100,
@@ -209,6 +213,7 @@
       "melee": {
         "triggerRange": 60,
         "range": 46,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 64,
         "windupMs": 520,
         "activeMs": 140,
@@ -239,6 +244,7 @@
       "melee": {
         "triggerRange": 45,
         "range": 34,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 58,
         "windupMs": 260,
         "activeMs": 80,
@@ -269,6 +275,7 @@
       "melee": {
         "triggerRange": 80,
         "range": 75,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 92,
         "windupMs": 360,
         "activeMs": 110,
@@ -345,6 +352,7 @@
       "melee": {
         "triggerRange": 84,
         "range": 76,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 72,
         "windupMs": 100,
         "activeMs": 100,
@@ -389,6 +397,7 @@
       "melee": {
         "triggerRange": 65,
         "range": 60,
+        "meleeChaseStandoffWu": 2,
         "arcDeg": 68,
         "windupMs": 400,
         "activeMs": 110,
