@@ -152,21 +152,6 @@ function circleBlocksSegment(
   return distSqPointToSegment(cx, cy, x1, y1, x2, y2) <= radius * radius;
 }
 
-function isClosingOnPlayer(
-  ex: number,
-  ey: number,
-  moveX: number,
-  moveY: number,
-  playerX: number,
-  playerY: number,
-): boolean {
-  const toPlayerX = playerX - ex;
-  const toPlayerY = playerY - ey;
-  const toMoveX = moveX - ex;
-  const toMoveY = moveY - ey;
-  return toPlayerX * toMoveX + toPlayerY * toMoveY > 0;
-}
-
 /** True when a closer ally's body occupies the approach chord to the hold point. */
 export function shouldHoldMeleeChaseChordBlocked(
   enemy: EnemyInstance,
@@ -267,21 +252,6 @@ export function applyChaseVelocity(
     opts.playerX !== undefined &&
     opts.playerY !== undefined &&
     shouldHoldAtPlayerMelee(enemy, opts.targetKind, opts.playerX, opts.playerY)
-  ) {
-    applyPlayerMeleeHold(enemy);
-    return;
-  }
-  if (
-    opts?.targetKind === "player" &&
-    opts.playerX !== undefined &&
-    opts.playerY !== undefined &&
-    isClosingOnPlayer(ex, ey, moveX, moveY, opts.playerX, opts.playerY) &&
-    shouldHoldMeleeChaseChordBlocked(
-      enemy,
-      opts.playerX,
-      opts.playerY,
-      opts.meleeChasePeers,
-    )
   ) {
     applyPlayerMeleeHold(enemy);
     return;
