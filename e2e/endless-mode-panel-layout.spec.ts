@@ -1,12 +1,40 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E } from "./helpers/game";
-import { tapCanvas } from "./helpers/touch";
+import { dragCanvas, tapCanvas } from "./helpers/touch";
 
 const GAME_WIDTH = 540;
 const GAME_HEIGHT = 1200;
 const VIEWPORT_MARGIN = 8;
 
 test.describe("endless mode panel layout", () => {
+  test("challenge rating sits between infinite HP and start", async ({ page }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const layout = await page.evaluate(() => {
+      const targets = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
+      return {
+        infiniteHp: targets["endless-infinite-hp"],
+        challengeRating: targets["endless-challenge-rating"],
+        start: targets["endless-start"],
+      };
+    });
+    expect(layout.infiniteHp).toBeTruthy();
+    expect(layout.challengeRating).toBeTruthy();
+    expect(layout.start).toBeTruthy();
+    expect(layout.challengeRating!.y).toBeGreaterThan(layout.infiniteHp!.y + 20);
+    expect(layout.start!.y).toBeGreaterThan(layout.challengeRating!.y + 12);
+  });
+
   test("footer actions stay in viewport and roster scrolls", async ({ page }) => {
     await gotoE2E(page);
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
@@ -108,6 +136,46 @@ test.describe("endless mode panel layout", () => {
       scrollState.state!.listTop + VIEWPORT_MARGIN,
     );
     expect(firstEnemy!.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
+  });
+
+  test("roster drag scroll shifts list offset", async ({ page }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    const drag = await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const state = api?.getEndlessEnemyListScrollState();
+      if (!state || state.maxScroll <= 0) return null;
+      const targets = api?.getUiTapTargets() ?? {};
+      const firstKey = Object.keys(targets)
+        .filter((k) => k.startsWith("endless-enemy-"))
+        .sort()[0];
+      const row = firstKey ? targets[firstKey] : null;
+      return {
+        x: row?.x ?? 135,
+        y: row?.y ?? state.listTop + 24,
+        scrollBefore: state.scrollY,
+      };
+    });
+    test.skip(!drag, "Roster fits without scrolling");
+
+    await dragCanvas(page, drag!.x, drag!.y, drag!.x, drag!.y - 90);
+
+    const scrollAfter = await page.evaluate(
+      () =>
+        window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyListScrollState()
+          ?.scrollY ?? 0,
+    );
+    expect(scrollAfter).toBeGreaterThan(drag!.scrollBefore + 8);
   });
 
   test("start is blocked when no enemies are selected", async ({ page }) => {
