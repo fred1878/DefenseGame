@@ -89,6 +89,11 @@ export class EndlessModePanel {
   private dragStartScroll = 0;
   private dragStartPointerY = 0;
   private dragAccum = 0;
+  private dragListening = false;
+  private dragSource: "viewport" | "row" | "cap" | null = null;
+  private dragRowEnemyId: string | null = null;
+  private readonly challengeRatingY: number;
+  private readonly startButtonY: number;
   private readonly maskGraphics: Phaser.GameObjects.Graphics;
   private readonly scrollTrack: Phaser.GameObjects.Rectangle;
   private readonly scrollThumb: Phaser.GameObjects.Rectangle;
@@ -159,13 +164,20 @@ export class EndlessModePanel {
     this.rowStride = this.rowH + gap;
 
     const infiniteRowH = scaleUiY(44);
+    const crLineHalf = scaleUiY(11);
+    const gapAfterInfinite = scaleUiY(16);
+    const gapCrToStart = scaleUiY(12);
+    const startBtnH = scaleUiY(48);
+    const closeBtnH = scaleUiY(40);
     const footerBlockH =
       scaleUiY(12) +
       infiniteRowH +
-      scaleUiY(16) +
-      scaleUiY(22) +
-      scaleUiY(48) +
+      gapAfterInfinite +
+      crLineHalf * 2 +
+      gapCrToStart +
+      startBtnH +
       scaleUiY(56) +
+      closeBtnH +
       scaleUiY(28);
     this.listTop = scaleUiY(148);
     const listBottom = GAME.height - footerBlockH;
@@ -186,19 +198,20 @@ export class EndlessModePanel {
       );
     const listHitW = this.rowW;
     const listHitH = this.listViewportH + listHitTopSlop;
-    const capColLeft = this.capColLeft;
+    const listViewportHit = new Phaser.Geom.Rectangle(
+      -listHitW / 2,
+      -listHitH / 2 - listHitTopSlop,
+      listHitW,
+      listHitH,
+    );
     this.listViewport.setInteractive(
-      new Phaser.Geom.Rectangle(
-        -listHitW / 2,
-        -listHitH / 2 - listHitTopSlop,
-        listHitW,
-        listHitH,
-      ),
+      listViewportHit,
       (hitArea, x, y, gameObject) => {
+        if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
         const viewport = gameObject as Phaser.GameObjects.Rectangle;
         const screenX = viewport.x + x;
-        if (screenX >= capColLeft) return false;
-        return Phaser.Geom.Rectangle.Contains(hitArea, x, y);
+        const screenY = viewport.y + y;
+        return this.listViewportHitForScroll(screenX, screenY);
       },
     );
     this.root.add(this.listViewport);
@@ -210,6 +223,13 @@ export class EndlessModePanel {
       -this.nameColW / 2,
       -this.rowH / 2,
       this.nameColW,
+      this.rowH,
+    );
+
+    const capHit = new Phaser.Geom.Rectangle(
+      -this.capColW / 2,
+      -this.rowH / 2,
+      this.capColW,
       this.rowH,
     );
 
@@ -245,7 +265,8 @@ export class EndlessModePanel {
 
       const capBg = scene.add
         .rectangle(capCx, cy, this.capColW, this.rowH, 0x27272a, 1)
-        .setStrokeStyle(2, 0x52525b);
+        .setStrokeStyle(2, 0x52525b)
+        .setInteractive(capHit, Phaser.Geom.Rectangle.Contains);
 
       const capBtnW = scaleUiX(28);
       const capBtnH = scaleUiY(30);
@@ -298,17 +319,11 @@ export class EndlessModePanel {
 
       bg.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         pointer.event.stopPropagation();
-        this.beginDrag(pointer);
+        this.beginDrag(pointer, "row", enemyId);
       });
-      bg.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-        if (this.dragPointerId !== pointer.id) return;
-        this.continueDrag(pointer);
-      });
-      bg.on("pointerup", (pointer: Phaser.Input.Pointer) => {
-        if (this.dragPointerId !== pointer.id) return;
+      capBg.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         pointer.event.stopPropagation();
-        const tapped = this.endDrag();
-        if (tapped) this.toggleSelect(enemyId);
+        this.beginDrag(pointer, "cap");
       });
 
       const row: EnemyRow = {
@@ -371,6 +386,7 @@ export class EndlessModePanel {
     this.listContent.setMask(mask);
 
     this.wireListViewportDrag();
+    this.root.bringToTop(this.listViewport);
 
     this.infiniteHpRowY = listBottom + scaleUiY(12) + infiniteRowH / 2;
     this.infiniteHpBg = createUiRoundedRect(
@@ -380,8 +396,10 @@ export class EndlessModePanel {
       0x27272a,
       0x52525b,
     );
+    const footerDepth = 502;
     this.infiniteHpBg
       .setPosition(GAME.width / 2, this.infiniteHpRowY)
+      .setDepth(footerDepth)
       .setInteractive(
         new Phaser.Geom.Rectangle(
           -this.rowW / 2,
@@ -402,7 +420,8 @@ export class EndlessModePanel {
           color: "#a1a1aa",
         }),
       )
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(footerDepth + 1);
     const infiniteLabel = scene.add
       .text(
         this.listLeft + scaleUiX(36),
@@ -413,7 +432,8 @@ export class EndlessModePanel {
           color: "#fafafa",
         }),
       )
-      .setOrigin(0, 0.5);
+      .setOrigin(0, 0.5)
+      .setDepth(footerDepth + 1);
     this.root.add([
       this.infiniteHpBg,
       this.infiniteHpCheck,
@@ -421,7 +441,12 @@ export class EndlessModePanel {
     ]);
 
     const crY =
-      listBottom + scaleUiY(12) + infiniteRowH + scaleUiY(16) + scaleUiY(11);
+      listBottom +
+      scaleUiY(12) +
+      infiniteRowH +
+      gapAfterInfinite +
+      crLineHalf;
+    this.challengeRatingY = crY;
     this.challengeRatingText = scene.add
       .text(
         GAME.width / 2,
@@ -432,10 +457,12 @@ export class EndlessModePanel {
           color: "#fbbf24",
         }),
       )
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(footerDepth + 4);
     this.root.add(this.challengeRatingText);
 
-    const startY = crY + scaleUiY(24);
+    const startY = crY + crLineHalf + gapCrToStart + startBtnH / 2;
+    this.startButtonY = startY;
     this.startBtn = createTouchButton(
       scene,
       GAME.width / 2,
@@ -449,8 +476,8 @@ export class EndlessModePanel {
       },
       {
         width: scaleUiX(200),
-        height: scaleUiY(48),
-        depth: 510,
+        height: startBtnH,
+        depth: footerDepth + 2,
         fontSize: `${scaleUiX(16)}px`,
         fillColor: 0x1d4ed8,
         strokeColor: 0x93c5fd,
@@ -464,14 +491,15 @@ export class EndlessModePanel {
       () => this.destroy(),
       {
         width: scaleUiX(120),
-        height: scaleUiY(40),
-        depth: 510,
+        height: closeBtnH,
+        depth: footerDepth + 2,
         fontSize: `${scaleUiX(14)}px`,
         fillColor: 0x52525b,
         strokeColor: 0xa1a1aa,
       },
     );
     this.root.add([this.startBtn.container, this.closeBtn.container]);
+    this.root.bringToTop(this.challengeRatingText);
 
     const first = enemyIds[0];
     if (first) this.selectedIds.add(first);
@@ -514,26 +542,71 @@ export class EndlessModePanel {
 
   private wireListViewportDrag(): void {
     this.listViewport.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      this.beginDrag(pointer);
-    });
-    this.listViewport.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-      if (this.dragPointerId !== pointer.id) return;
-      this.continueDrag(pointer);
-    });
-    this.listViewport.on("pointerup", (pointer: Phaser.Input.Pointer) => {
-      if (this.dragPointerId !== pointer.id) return;
-      const tapped = this.endDrag();
-      if (!tapped) return;
-      const enemyId = this.pickVisibleRowAtScreen(pointer.x, pointer.y);
-      if (enemyId) this.toggleSelect(enemyId);
+      this.beginDrag(pointer, "viewport");
     });
   }
 
-  private beginDrag(pointer: Phaser.Input.Pointer): void {
+  /** Viewport scroll catcher: name-column gaps only; rows and cap column use row widgets. */
+  private listViewportHitForScroll(screenX: number, screenY: number): boolean {
+    if (screenX >= this.capColLeft) return false;
+    if (screenY < this.listTop || screenY > this.listTop + this.listViewportH) {
+      return false;
+    }
+    if (this.pickVisibleRowAtScreen(screenX, screenY)) {
+      return false;
+    }
+    return true;
+  }
+
+  private readonly onSceneDragMove = (pointer: Phaser.Input.Pointer): void => {
+    if (this.dragPointerId !== pointer.id) return;
+    this.continueDrag(pointer);
+  };
+
+  private readonly onSceneDragEnd = (pointer: Phaser.Input.Pointer): void => {
+    if (this.dragPointerId !== pointer.id) return;
+    const source = this.dragSource;
+    const rowEnemyId = this.dragRowEnemyId;
+    const tapped = this.endDrag();
+    if (!tapped) return;
+    if (source === "row" && rowEnemyId) {
+      this.toggleSelect(rowEnemyId);
+      return;
+    }
+    if (source === "viewport") {
+      const enemyId = this.pickVisibleRowAtScreen(pointer.x, pointer.y);
+      if (enemyId) this.toggleSelect(enemyId);
+    }
+  };
+
+  private attachSceneDragListeners(): void {
+    if (this.dragListening) return;
+    this.dragListening = true;
+    this.scene.input.on("pointermove", this.onSceneDragMove);
+    this.scene.input.on("pointerup", this.onSceneDragEnd);
+    this.scene.input.on("pointerupoutside", this.onSceneDragEnd);
+  }
+
+  private detachSceneDragListeners(): void {
+    if (!this.dragListening) return;
+    this.dragListening = false;
+    this.scene.input.off("pointermove", this.onSceneDragMove);
+    this.scene.input.off("pointerup", this.onSceneDragEnd);
+    this.scene.input.off("pointerupoutside", this.onSceneDragEnd);
+  }
+
+  private beginDrag(
+    pointer: Phaser.Input.Pointer,
+    source: "viewport" | "row" | "cap",
+    enemyId?: string,
+  ): void {
     this.dragPointerId = pointer.id;
+    this.dragSource = source;
+    this.dragRowEnemyId = enemyId ?? null;
     this.dragStartScroll = this.scrollY;
     this.dragStartPointerY = pointer.y;
     this.dragAccum = 0;
+    this.attachSceneDragListeners();
   }
 
   private continueDrag(pointer: Phaser.Input.Pointer): void {
@@ -546,6 +619,9 @@ export class EndlessModePanel {
     const tapped = this.dragAccum < TAP_DRAG_THRESHOLD_PX;
     this.dragPointerId = null;
     this.dragAccum = 0;
+    this.dragSource = null;
+    this.dragRowEnemyId = null;
+    this.detachSceneDragListeners();
     return tapped;
   }
 
@@ -665,6 +741,7 @@ export class EndlessModePanel {
     if (this.tornDown) return;
     this.tornDown = true;
     this.modalLease.release();
+    this.detachSceneDragListeners();
     this.scene.input.off("wheel", this.onWheel);
     if (this.maskGraphics.active) this.maskGraphics.destroy();
     if (this.startBtn?.container.active) this.startBtn.container.destroy();
@@ -723,7 +800,23 @@ export class EndlessModePanel {
       x: GAME.width / 2,
       y: this.infiniteHpRowY,
     };
+    out["endless-challenge-rating"] = {
+      x: GAME.width / 2,
+      y: this.challengeRatingY,
+    };
     return out;
+  }
+
+  e2eFooterLayout(): {
+    infiniteHpY: number;
+    challengeRatingY: number;
+    startY: number;
+  } {
+    return {
+      infiniteHpY: this.infiniteHpRowY,
+      challengeRatingY: this.challengeRatingY,
+      startY: this.startButtonY,
+    };
   }
 
   e2eInfiniteHpEnabled(): boolean {
