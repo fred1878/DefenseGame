@@ -36,7 +36,7 @@
       "projectileTextureKey": "fx_spell_ice_bolt",
       "projectileFile": "ice-bolt-mrpg-16.png",
       "damageFlavor": "default",
-      "castMs": 300,
+      "castMs": 1000,
       "onHit": {
         "slowPct": 0.5,
         "slowMs": 4000
