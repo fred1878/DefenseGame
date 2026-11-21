@@ -10,7 +10,6 @@ const PLAYER_TUNING_KEYS = [
   "meleeWindupMs",
   "meleeActiveMs",
   "meleeRecoveryMs",
-  "meleeRange",
   "meleeStrikeRange",
   "meleeEngageTargetRadius",
   "meleeActivationSlackWu",

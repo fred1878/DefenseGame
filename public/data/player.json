@@ -4,7 +4,6 @@
   "meleeWindupMs": 120,
   "meleeActiveMs": 120,
   "meleeRecoveryMs": 260,
-  "meleeRange": 58,
   "meleeStrikeRange": 93,
   "meleeEngageTargetRadius": 14,
   "meleeActivationSlackWu": 6,
