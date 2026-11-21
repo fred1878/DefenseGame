@@ -27,7 +27,7 @@ export type ChaseVelocityOptions = {
   /** Live player position — used for melee standoff while chasing the player. */
   playerX?: number;
   playerY?: number;
-  /** Live ally positions for chord blocking on direct player closes. */
+  /** Live ally positions for peer chord blocking on direct player closes. */
   meleeChasePeers?: readonly MeleeChasePeer[];
 };
 
@@ -152,7 +152,31 @@ function circleBlocksSegment(
   return distSqPointToSegment(cx, cy, x1, y1, x2, y2) <= radius * radius;
 }
 
-/** True when a closer ally's body occupies the approach chord to the hold point. */
+function isClosingOnPlayer(
+  ex: number,
+  ey: number,
+  moveX: number,
+  moveY: number,
+  playerX: number,
+  playerY: number,
+): boolean {
+  const toPlayerX = playerX - ex;
+  const toPlayerY = playerY - ey;
+  const toMoveX = moveX - ex;
+  const toMoveY = moveY - ey;
+  return toPlayerX * toMoveX + toPlayerY * toMoveY > 0;
+}
+
+function isDirectPlayerChaseMove(
+  moveX: number,
+  moveY: number,
+  playerX: number,
+  playerY: number,
+): boolean {
+  return Math.hypot(moveX - playerX, moveY - playerY) < 1;
+}
+
+/** True when a closer ally's body blocks the direct close line toward the player. */
 export function shouldHoldMeleeChaseChordBlocked(
   enemy: EnemyInstance,
   playerX: number,
@@ -174,7 +198,10 @@ export function shouldHoldMeleeChaseChordBlocked(
     if (distPeer >= distSelf) continue;
     const peerR = worldUnit(enemyCollisionBodyRadius(peer.defId), reg);
     const occupyR = selfR + peerR;
-    if (circleBlocksSegment(peer.x, peer.y, occupyR, ex, ey, hold.x, hold.y)) {
+    if (
+      circleBlocksSegment(peer.x, peer.y, occupyR, ex, ey, playerX, playerY) ||
+      circleBlocksSegment(peer.x, peer.y, occupyR, ex, ey, hold.x, hold.y)
+    ) {
       return true;
     }
   }
@@ -252,6 +279,22 @@ export function applyChaseVelocity(
     opts.playerX !== undefined &&
     opts.playerY !== undefined &&
     shouldHoldAtPlayerMelee(enemy, opts.targetKind, opts.playerX, opts.playerY)
+  ) {
+    applyPlayerMeleeHold(enemy);
+    return;
+  }
+  if (
+    opts?.targetKind === "player" &&
+    opts.playerX !== undefined &&
+    opts.playerY !== undefined &&
+    isDirectPlayerChaseMove(moveX, moveY, opts.playerX, opts.playerY) &&
+    isClosingOnPlayer(ex, ey, moveX, moveY, opts.playerX, opts.playerY) &&
+    shouldHoldMeleeChaseChordBlocked(
+      enemy,
+      opts.playerX,
+      opts.playerY,
+      opts.meleeChasePeers,
+    )
   ) {
     applyPlayerMeleeHold(enemy);
     return;
