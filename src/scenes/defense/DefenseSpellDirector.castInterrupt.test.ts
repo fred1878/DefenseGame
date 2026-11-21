@@ -20,7 +20,7 @@ describe("DefenseSpellDirector cast interrupt cleanup", () => {
     };
     const groundReticle = { showAt: vi.fn(), hide: vi.fn() };
     const spellCaster = new SpellCastController();
-    spellCaster.tryBeginCast("flamestrike");
+    spellCaster.tryBeginCast("flamestrike", "auto");
     const groundAoeTelegraph: SpellGroundAoeTelegraph.SpellGroundAoeTelegraph = {
       gfx: gfx as unknown as Phaser.GameObjects.Graphics,
       zoneX: 50,

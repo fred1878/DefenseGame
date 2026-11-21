@@ -108,7 +108,7 @@ describe("DefenseSpellDirector spell queue", () => {
       .mockImplementation(() => {});
     director.tryFlushQueuedSpellCast(0, 0);
     expect(spellInputQueue.peek()).toBeNull();
-    expect(beginSpy).toHaveBeenCalledWith("fire_nova");
+    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual");
   });
 
   it("does not auto-cast while a manual spell is queued", () => {
@@ -173,6 +173,6 @@ describe("DefenseSpellDirector spell queue", () => {
     director.tryAutoCastSpells(0, 0);
 
     expect(beginSpy).toHaveBeenCalledTimes(1);
-    expect(beginSpy).toHaveBeenCalledWith("fire_nova");
+    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual");
   });
 });
