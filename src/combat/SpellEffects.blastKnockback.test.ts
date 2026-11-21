@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ConfigLoadError } from "../core/configValidation";
 import { applySpellBlastAt } from "./SpellEffects";
 import { mockEnemyInstance } from "../entities/testEnemyInstance";
 import type { SpellDefinition } from "../content/spells";
@@ -30,6 +31,34 @@ function sceneWithRegistry() {
 }
 
 describe("applySpellBlastAt knockback", () => {
+  it("throws when blastKnockback is omitted", () => {
+    const scene = sceneWithRegistry();
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      sprite: { x: 100, y: 100 } as never,
+    });
+    expect(() =>
+      applySpellBlastAt(
+        scene,
+        100,
+        100,
+        blastDef({ blastKnockback: undefined }),
+        [
+          {
+            id: enemy.id,
+            x: enemy.sprite.x,
+            y: enemy.sprite.y,
+            radius: 20,
+            enemy,
+            sprite: enemy.sprite,
+            damageable: enemy.damageable,
+          },
+        ],
+        1,
+      ),
+    ).toThrow(ConfigLoadError);
+  });
+
   it("pushes enemies radially from the blast center, not the caster", () => {
     const scene = sceneWithRegistry();
     const east = mockEnemyInstance({
