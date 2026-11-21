@@ -25,6 +25,11 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
     )
     .toBe(true);
 
+  const gruntConcurrent = await page.evaluate(
+    () => window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyConcurrentCap("grunt") ?? 0,
+  );
+  expect(gruntConcurrent).toBeGreaterThan(0);
+
   await page.evaluate(() => {
     window.__DEFENSEGAME_E2E__?.api?.startEndless("grunt");
   });
@@ -51,7 +56,7 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
         })),
       { timeout: 10_000 },
     )
-    .toEqual({ endless: true, enemyId: "grunt", count: 5 });
+    .toEqual({ endless: true, enemyId: "grunt", count: gruntConcurrent });
 
   expect(
     await page.evaluate(
