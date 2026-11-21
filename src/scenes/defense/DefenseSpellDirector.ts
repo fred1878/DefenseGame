@@ -15,7 +15,15 @@ import {
   applySpellCone,
   applySpellSwing,
   spawnSpellProjectile,
+  strikeSpellCone,
 } from "../../combat/SpellEffects";
+import {
+  advanceChanneledConeTicks,
+  CHANNELED_CONE_MAX_TICKS,
+  createChanneledConeTickState,
+  type ChanneledConeTickState,
+} from "../../combat/channeledConeChannel";
+import { spellChannelTickMs } from "../../content/spellTargeting";
 import {
   BLINK_DISTANCE_WU,
   FROST_ROOT_MS,
@@ -68,6 +76,7 @@ import type { DefenseTargeting } from "./DefenseTargeting";
 import {
   playFireWhooshSfx,
   spellPlaysFireWhooshOnChanneledAreaStart,
+  spellPlaysFireWhooshOnChanneledConeTick,
   spellPlaysFireWhooshOnChannelLinger,
   spellPlaysFireWhooshOnResolve,
 } from "../../audio/fireWhooshSfx";
@@ -110,6 +119,8 @@ export type DefenseSpellDirectorHost = {
 
 
 export class DefenseSpellDirector {
+  private channeledConeTicks: ChanneledConeTickState = createChanneledConeTickState();
+
   constructor(private readonly host: DefenseSpellDirectorHost) {}
 
   updateChanneling(
@@ -121,6 +132,14 @@ export class DefenseSpellDirector {
     const py = this.host.player.sprite.y;
     if (!this.host.spellCaster.isChanneling()) return;
     this.host.player.sprite.setVelocity(0, 0);
+    const activeSpellId = this.host.spellCaster.getActiveSpellId();
+    const activeDef = activeSpellId ? spellById(activeSpellId) : undefined;
+    if (
+      activeDef?.mechanicType === "channeled_cone" &&
+      this.host.spellCaster.getCastPhase() === "channeling"
+    ) {
+      this.tickChanneledConeDuringChannel(activeDef, delta);
+    }
     const channel = this.host.spellCaster.updateChannel(delta, dir.x, dir.y);
     if (channel.type === "windup" || channel.type === "channeling") {
       this.host.castBar.setVisible(true);
@@ -132,7 +151,9 @@ export class DefenseSpellDirector {
         this.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
       }
       if (channel.type === "channeling" && chDef && !this.host.channelAreaStarted) {
-        this.startChanneledGroundZone(chDef);
+        if (chDef.mechanicType !== "channeled_cone") {
+          this.startChanneledGroundZone(chDef);
+        }
       }
     } else if (channel.type === "interrupted") {
       this.host.castBar.setVisible(false);
@@ -146,6 +167,9 @@ export class DefenseSpellDirector {
       }
     } else if (channel.type === "completed") {
       this.host.castBar.setVisible(false);
+      if (channel.def.mechanicType === "channeled_cone") {
+        this.flushChanneledConeTicks(channel.def);
+      }
       const impactCenter = this.host.spellChannelArea;
       this.resolveSpellEffect(channel.def);
       this.spawnPostChannelLinger(channel.def);
@@ -267,6 +291,7 @@ export class DefenseSpellDirector {
     const begun = this.host.spellCaster.tryBeginCast(spellId);
     if (begun === false) return;
     this.host.channelAreaStarted = false;
+    this.channeledConeTicks = createChanneledConeTickState();
     if (begun === "windup" || begun === "channel") {
       this.host.player.sprite.setVelocity(0, 0);
       const target = this.host.targeting.facingTarget("ranged", true);
@@ -375,9 +400,69 @@ export class DefenseSpellDirector {
   clearSpellChannelState(): void {
     this.host.spellChannelArea = null;
     this.host.channelAreaStarted = false;
+    this.channeledConeTicks = createChanneledConeTickState();
     this.host.groundAim = null;
     this.host.pendingGroundCast = null;
     this.host.groundReticle.hide();
+  }
+
+  private flushChanneledConeTicks(def: SpellDefinition): void {
+    while (this.channeledConeTicks.ticksDone < CHANNELED_CONE_MAX_TICKS) {
+      const fired = advanceChanneledConeTicks(
+        this.channeledConeTicks,
+        def,
+        spellChannelTickMs(def),
+      );
+      if (fired <= 0) break;
+      this.fireChanneledConeTicks(def, fired);
+    }
+  }
+
+  private tickChanneledConeDuringChannel(def: SpellDefinition, deltaMs: number): void {
+    const ticksFired = advanceChanneledConeTicks(this.channeledConeTicks, def, deltaMs);
+    if (ticksFired <= 0) return;
+    this.fireChanneledConeTicks(def, ticksFired);
+  }
+
+  private fireChanneledConeTicks(def: SpellDefinition, ticksFired: number): void {
+    const mult = this.spellDamageMult();
+    const px = this.host.player.sprite.x;
+    const py = this.host.player.sprite.y;
+    const angle = this.host.player.getFacingAngle();
+    const targets = this.host.enemyTargets();
+    const firstTickIndex = this.channeledConeTicks.ticksDone - ticksFired;
+    for (let i = 0; i < ticksFired; i++) {
+      const tickIndex = firstTickIndex + i;
+      const isFirstTick = tickIndex === 0;
+      if (isFirstTick) {
+        applySpellCone(
+          this.host.scene,
+          px,
+          py,
+          angle,
+          def,
+          targets,
+          mult,
+          this.host.enemySpellStatus,
+          { showFx: true },
+        );
+        if (spellPlaysFireWhooshOnChanneledConeTick(def, true)) {
+          playFireWhooshSfx(this.host.scene);
+        }
+      } else {
+        strikeSpellCone(
+          this.host.scene,
+          px,
+          py,
+          angle,
+          def,
+          targets,
+          mult,
+          this.host.enemySpellStatus,
+        );
+      }
+    }
+    this.host.filterDeadEnemies();
   }
 
   clearGroundCastTelegraphs(): void {
@@ -640,6 +725,7 @@ export class DefenseSpellDirector {
       case "cone":
         applySpellCone(this.host.scene, px, py, angle, def, targets, mult, this.host.enemySpellStatus);
         break;
+      case "channeled_cone":
       case "channeled":
       case "channeled_area":
         break;

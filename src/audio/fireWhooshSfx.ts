@@ -6,7 +6,19 @@ export const FIRE_WHOOSH_SFX_KEY = "sfx_fire_whoosh_01";
 
 /** Fire impact / release spells that resolve through {@link resolveSpellEffect}. */
 export function spellPlaysFireWhooshOnResolve(def: SpellDefinition): boolean {
-  return def.damageFlavor === "fire" && def.mechanicType !== "channeled_area";
+  return (
+    def.damageFlavor === "fire" &&
+    def.mechanicType !== "channeled_area" &&
+    def.mechanicType !== "channeled_cone"
+  );
+}
+
+/** First channeled cone strike (opening burst only; follow-up ticks stay quiet). */
+export function spellPlaysFireWhooshOnChanneledConeTick(
+  def: SpellDefinition,
+  isFirstTick: boolean,
+): boolean {
+  return isFirstTick && def.damageFlavor === "fire" && def.mechanicType === "channeled_cone";
 }
 
 /** Ground channeled fire (e.g. flamestrike) opening burst when the channel zone starts. */

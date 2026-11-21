@@ -185,7 +185,7 @@ export function applySpellSwing(
   }
 }
 
-export function applySpellCone(
+export function strikeSpellCone(
   scene: Phaser.Scene,
   playerX: number,
   playerY: number,
@@ -200,7 +200,6 @@ export function applySpellCone(
   const half = Phaser.Math.DegToRad(SPELL_CONE_ARC_DEG / 2);
   const damage = (def.baseDamage ?? 12) * damageMult;
   const flavor = def.damageFlavor ?? "default";
-  showSpellConeFx(scene, playerX, playerY, facingRad);
   for (const e of enemiesInCone(playerX, playerY, facingRad, range, half, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
@@ -210,6 +209,23 @@ export function applySpellCone(
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
   }
+}
+
+export function applySpellCone(
+  scene: Phaser.Scene,
+  playerX: number,
+  playerY: number,
+  facingRad: number,
+  def: SpellDefinition,
+  enemies: SpellEnemyTarget[],
+  damageMult: number,
+  status?: EnemySpellStatusMap,
+  opts?: { showFx?: boolean },
+): void {
+  if (opts?.showFx !== false) {
+    showSpellConeFx(scene, playerX, playerY, facingRad);
+  }
+  strikeSpellCone(scene, playerX, playerY, facingRad, def, enemies, damageMult, status);
 }
 
 export function applyInstantTargeted(
