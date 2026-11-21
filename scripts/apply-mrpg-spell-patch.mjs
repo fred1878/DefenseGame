@@ -111,7 +111,6 @@ for (const spell of data.spells) {
   const patch = PATCH[spell.id];
   if (!patch) continue;
   Object.assign(spell, patch);
-  spell.kind = spell.channelMs > 0 ? "channeled" : "instant";
 }
 
 writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);

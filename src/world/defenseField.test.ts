@@ -21,10 +21,9 @@ describe("defense field tiles", () => {
     );
   });
 
-  it("targets ~1.5× viewport width (≈810px) and taller than viewport", () => {
-    const targetW = GAME.width * 1.5;
-    expect(DEFENSE_FIELD_PX.width).toBeGreaterThanOrEqual(targetW - 32);
-    expect(DEFENSE_FIELD_PX.width).toBeLessThanOrEqual(targetW + 32);
+  it("matches night-field data footprint and stays taller than viewport", () => {
+    expect(DEFENSE_FIELD_TILES).toEqual({ cols: 11, rows: 22 });
+    expect(DEFENSE_FIELD_PX.width).toBe(11 * GROUND_TILE_SIZE);
     expect(DEFENSE_FIELD_PX.height).toBeGreaterThan(GAME.height);
     expect(DEFENSE_FIELD_PX.width).toBeGreaterThan(GAME.width);
   });
