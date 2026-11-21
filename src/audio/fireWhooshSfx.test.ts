@@ -4,6 +4,7 @@ import {
   FIRE_WHOOSH_SFX_KEY,
   playFireWhooshSfx,
   spellPlaysFireWhooshOnChanneledAreaStart,
+  spellPlaysFireWhooshOnChanneledConeTick,
   spellPlaysFireWhooshOnChannelLinger,
   spellPlaysFireWhooshOnResolve,
 } from "./fireWhooshSfx";
@@ -15,10 +16,17 @@ function fireSpell(id: SpellDefinition["id"]): SpellDefinition {
 }
 
 describe("fire whoosh spell hooks", () => {
-  it("resolves fire nova, meteor, cone of fire, and combustion", () => {
-    for (const id of ["fire_nova", "meteor", "cone_of_fire", "combustion", "fire_bolt"] as const) {
+  it("resolves fire nova, meteor, and combustion", () => {
+    for (const id of ["fire_nova", "meteor", "combustion", "fire_bolt"] as const) {
       expect(spellPlaysFireWhooshOnResolve(fireSpell(id)), id).toBe(true);
     }
+  });
+
+  it("plays cone of fire whoosh on first channeled tick only", () => {
+    const cone = fireSpell("cone_of_fire");
+    expect(spellPlaysFireWhooshOnResolve(cone)).toBe(false);
+    expect(spellPlaysFireWhooshOnChanneledConeTick(cone, true)).toBe(true);
+    expect(spellPlaysFireWhooshOnChanneledConeTick(cone, false)).toBe(false);
   });
 
   it("resolves flamestrike impact and lingers with ground fire whoosh", () => {

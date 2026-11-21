@@ -28,6 +28,10 @@ export class SpellCastController {
     return this.activeSpellId !== null;
   }
 
+  getActiveSpellId(): SpellId | null {
+    return this.activeSpellId;
+  }
+
   getChannelProgress(): number {
     if (!this.activeSpellId) return 0;
     if (!this.inChannel) {

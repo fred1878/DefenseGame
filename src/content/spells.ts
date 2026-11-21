@@ -21,6 +21,7 @@ export type SpellMechanicType =
   | "swing"
   | "tracking_swing"
   | "cone"
+  | "channeled_cone"
   | "blast"
   | "channeled"
   | "channeled_area"

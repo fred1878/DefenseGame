@@ -44,6 +44,9 @@ describe("spellTargeting", () => {
     expect(spellAutoCastNeedsEnemyTarget(def({ id: "cone_of_cold", mechanicType: "cone" }))).toBe(
       true,
     );
+    expect(
+      spellAutoCastNeedsEnemyTarget(def({ id: "cone_of_fire", mechanicType: "channeled_cone" })),
+    ).toBe(true);
     expect(spellAutoCastNeedsEnemyTarget(def({ id: "rend", mechanicType: "swing" }))).toBe(true);
     expect(spellAutoCastNeedsEnemyTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
     expect(
@@ -64,6 +67,9 @@ describe("spellTargeting", () => {
   it("flags directed spells that need enemy aim on cast", () => {
     expect(spellCastUsesEnemyAim(def({ id: "water_bolt" }))).toBe(true);
     expect(spellCastUsesEnemyAim(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
+    expect(spellCastUsesEnemyAim(def({ id: "cone_of_fire", mechanicType: "channeled_cone" }))).toBe(
+      true,
+    );
   });
 
   it("requires a combat target for auto-cast ground, enemy, and directional spells", () => {

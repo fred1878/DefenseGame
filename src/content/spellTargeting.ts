@@ -50,6 +50,7 @@ export function spellAutoCastNeedsEnemyTarget(def: SpellDefinition): boolean {
   if (spellTargetMode(def) === "enemy") return true;
   switch (def.mechanicType) {
     case "cone":
+    case "channeled_cone":
     case "swing":
     case "tracking_swing":
       return true;
@@ -80,6 +81,7 @@ export function spellCastUsesEnemyAim(def: SpellDefinition): boolean {
     case "projectile":
     case "projectile_aoe":
     case "cone":
+    case "channeled_cone":
     case "swing":
     case "tracking_swing":
       return true;
