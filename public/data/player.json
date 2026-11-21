@@ -1,5 +1,5 @@
 {
-  "moveSpeed": 154,
+  "moveSpeed": 160,
   "maxHp": 100,
   "meleeWindupMs": 120,
   "meleeActiveMs": 120,
@@ -15,11 +15,11 @@
   "rangedDamage": 12,
   "rangedMaxRange": 340,
   "projectileSpeed": 420,
-  "meleeKnockback": 320,
+  "meleeKnockback": 250,
   "rangedKnockback": 110,
   "autoAttackRangedRange": 300,
   "targetTapRadiusWorld": 56,
   "playerHitInvulnMs": 0,
-  "nightSpawnInvulnMs": 0,
-  "endlessPanelDefaultConcurrent": 5
+  "nightSpawnInvulnMs": 1000,
+  "endlessPanelDefaultConcurrent": 1
 }
