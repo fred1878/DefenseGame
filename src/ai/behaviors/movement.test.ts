@@ -95,6 +95,42 @@ describe("player melee standoff", () => {
     ).toBe(false);
   });
 
+  it("blocks when a front ally is between hold and player on a rear approach", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    enemy.sprite.x = -100;
+    enemy.sprite.y = 60;
+    const playerX = 0;
+    const playerY = 0;
+    const peers = [{ x: -18, y: 0, defId: "grunt" }];
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, playerX, playerY, peers),
+    ).toBe(true);
+  });
+
+  it("zeros chase on a direct player close when chord is blocked", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speed: 80,
+    });
+    enemy.sprite.x = -100;
+    enemy.sprite.y = 0;
+    const playerX = 0;
+    const playerY = 0;
+    const peers = [{ x: -25, y: 0, defId: "grunt" }];
+    applyChaseVelocity(enemy, playerX, playerY, 1, {
+      targetKind: "player",
+      playerX,
+      playerY,
+      meleeChasePeers: peers,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
   it("keeps velocity toward a path waypoint when chord is blocked", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
