@@ -18,7 +18,13 @@ describe("public data fixtures", () => {
   it("enemies.json rows include required hp, speed, damage, and weight", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
-      { hp?: number; speed?: number; damage?: number; weight?: number }
+      {
+        hp?: number;
+        speed?: number;
+        damage?: number;
+        weight?: number;
+        challengeRating?: number;
+      }
     >;
     for (const [id, row] of Object.entries(enemies)) {
       expectFiniteNumber(row.hp, `enemies.${id}.hp`);
@@ -26,6 +32,10 @@ describe("public data fixtures", () => {
       expectFiniteNumber(row.damage, `enemies.${id}.damage`);
       expectFiniteNumber(row.weight, `enemies.${id}.weight`);
       expect((row.weight as number) > 0, `enemies.${id}.weight > 0`).toBe(true);
+      expectFiniteNumber(row.challengeRating, `enemies.${id}.challengeRating`);
+      expect((row.challengeRating as number) >= 0, `enemies.${id}.challengeRating >= 0`).toBe(
+        true,
+      );
     }
   });
 

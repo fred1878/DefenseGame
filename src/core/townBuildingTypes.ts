@@ -11,6 +11,8 @@ export type TownBuildingDef = {
   opensSpellBar?: boolean;
   /** When true, tap opens endless enemy training panel (e.g. Haunted Well). */
   opensEndlessMode?: boolean;
+  /** When true, tap opens custom wave planner (e.g. Plague Clinic). */
+  opensWavePlanner?: boolean;
 };
 
 export type TownLayoutSlot = {

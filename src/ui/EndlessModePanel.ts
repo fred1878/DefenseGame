@@ -8,6 +8,7 @@ import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,
 } from "../systems/endlessSpawnScheduler";
+import { sumChallengeRating } from "../systems/challengeRating";
 import { pickEndlessEnemyRowAtScreen } from "./endlessModePanelPick";
 import {
   createTouchButton,
@@ -44,6 +45,7 @@ type EnemyRow = {
  */
 export class EndlessModePanel {
   private readonly scene: Phaser.Scene;
+  private readonly store: DataStore;
   private readonly root: Phaser.GameObjects.Container;
   private readonly listContent: Phaser.GameObjects.Container;
   private readonly listViewport: Phaser.GameObjects.Rectangle;
@@ -52,6 +54,7 @@ export class EndlessModePanel {
   private readonly caps = new Map<string, number>();
   private startBtn: ReturnType<typeof createTouchButton> | null = null;
   private closeBtn: ReturnType<typeof createTouchButton> | null = null;
+  private challengeRatingText!: Phaser.GameObjects.Text;
   private readonly onStart: (
     selections: EndlessRunSelection[],
     infiniteHp: boolean,
@@ -96,6 +99,7 @@ export class EndlessModePanel {
     onDismiss?: () => void,
   ) {
     this.scene = scene;
+    this.store = store;
     this.onStart = onStart;
     this.onDismiss = onDismiss;
 
@@ -150,6 +154,7 @@ export class EndlessModePanel {
       scaleUiY(12) +
       infiniteRowH +
       scaleUiY(16) +
+      scaleUiY(22) +
       scaleUiY(48) +
       scaleUiY(56) +
       scaleUiY(28);
@@ -384,7 +389,22 @@ export class EndlessModePanel {
       infiniteLabel,
     ]);
 
-    const startY = listBottom + scaleUiY(12) + infiniteRowH + scaleUiY(16) + scaleUiY(24);
+    const crY =
+      listBottom + scaleUiY(12) + infiniteRowH + scaleUiY(16) + scaleUiY(11);
+    this.challengeRatingText = scene.add
+      .text(
+        GAME.width / 2,
+        crY,
+        "Challenge rating: 0",
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(14)}px`,
+          color: "#fbbf24",
+        }),
+      )
+      .setOrigin(0.5);
+    this.root.add(this.challengeRatingText);
+
+    const startY = crY + scaleUiY(24);
     this.startBtn = createTouchButton(
       scene,
       GAME.width / 2,
@@ -426,6 +446,7 @@ export class EndlessModePanel {
     if (first) this.selectedIds.add(first);
     this.refreshSelection();
     this.refreshStartButton();
+    this.refreshChallengeRating();
     this.applyScroll(0);
 
     this.onWheel = (_pointer, _objects, _dx, deltaY) => {
@@ -441,6 +462,16 @@ export class EndlessModePanel {
     this.caps.set(enemyId, next);
     const row = this.rows.find((r) => r.enemyId === enemyId);
     row?.capValue.setText(`${next}`);
+    this.refreshChallengeRating();
+  }
+
+  private refreshChallengeRating(): void {
+    const rows = this.buildSelections().map((s) => ({
+      enemyId: s.enemyId,
+      count: s.concurrentCap,
+    }));
+    const total = sumChallengeRating(this.store, rows);
+    this.challengeRatingText.setText(`Challenge rating: ${total}`);
   }
 
   private buildSelections(): EndlessRunSelection[] {
@@ -566,6 +597,7 @@ export class EndlessModePanel {
     }
     this.refreshSelection();
     this.refreshStartButton();
+    this.refreshChallengeRating();
   }
 
   private refreshSelection(): void {
@@ -699,9 +731,16 @@ export class EndlessModePanel {
   }
 
   e2eStartWithEnemy(enemyId: string, infiniteHp = false): void {
+    const defaultCap = clampEndlessConcurrent(
+      this.store.player.endlessPanelDefaultConcurrent,
+    );
+    this.caps.set(enemyId, defaultCap);
+    const row = this.rows.find((r) => r.enemyId === enemyId);
+    row?.capValue.setText(`${defaultCap}`);
     this.selectedIds.clear();
     this.selectedIds.add(enemyId);
     this.refreshSelection();
+    this.refreshChallengeRating();
     this.e2eSetInfiniteHp(infiniteHp);
     const selections = this.buildSelections();
     this.onStart(selections, this.infiniteHp);

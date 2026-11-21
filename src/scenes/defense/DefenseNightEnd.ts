@@ -63,6 +63,63 @@ type DefenseNightEndShared = DefenseNightEndUi & {
   hideLeaveEndlessBtn: () => void;
 };
 
+/** Simulated / custom wave — wall rules, no gold or night advance. */
+export function runDefenseSimulatedNightEnd(
+  ctx: DefenseNightEndShared,
+  input: { won: boolean; quit?: boolean },
+): void {
+  ctx.markNightEnded();
+  ctx.hideLeaveEndlessBtn();
+
+  const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
+  const finalWallHp = Math.max(0, ctx.wallHp);
+  const next = applyEndlessRunExit(ctx.save, finalWallHp, survivedHp);
+  ctx.save.player.hp = next.player.hp;
+  persistSave(next);
+  ctx.registry.set("save", next);
+  clearDefenseRunMode(ctx.registry);
+
+  if (isE2EEnabled() && !ctx.registry.get("e2eManualReturn")) {
+    transitionDefenseToTown(ctx.scene);
+    publishE2E({ scene: "Town", ready: true, player: null });
+    return;
+  }
+
+  const headline = input.quit
+    ? "Simulation ended"
+    : input.won
+      ? "Wave cleared — simulation complete"
+      : "Simulation failed";
+  ctx.hudText.setText(
+    [
+      headline,
+      "No gold earned · night unchanged",
+      `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
+    ].join("\n"),
+  );
+  ctx.hudText.setColor(input.won ? "#a1a1aa" : "#fca5a5");
+
+  const btn = nightReturnButtonPosition(ctx.scene, ctx.safe);
+  const returnBtn = createTouchButton(
+    ctx.scene,
+    btn.x,
+    btn.y,
+    "Return to town",
+    ctx.onReturnToTown,
+    {
+      width: btn.width,
+      height: btn.height,
+      depth: 260,
+      fontSize: `${scaleUiX(14)}px`,
+      fillColor: 0x15803d,
+      strokeColor: 0x4ade80,
+    },
+  );
+  returnBtn.container.setData("testid", "defense-return-to-town");
+  ctx.registerUiDraw(returnBtn.container);
+  ctx.setReturnToTownBtn(returnBtn);
+}
+
 export function runDefenseEndlessNightEnd(
   ctx: DefenseNightEndShared,
   reason: "quit" | "player" | "wall",

@@ -17,7 +17,8 @@
         "cooldownMs": 350
       }
     },
-    "weight": 100
+    "weight": 100,
+    "challengeRating": 1
   },
   "bruiser": {
     "hp": 299,
@@ -42,7 +43,8 @@
         "cooldownMs": 520
       }
     },
-    "weight": 170
+    "weight": 170,
+    "challengeRating": 7
   },
   "arrow_rain_archer": {
     "hp": 40,
@@ -80,7 +82,8 @@
         "maxTicks": 4
       }
     },
-    "weight": 80
+    "weight": 80,
+    "challengeRating": 4
   },
   "skirmisher": {
     "hp": 34,
@@ -105,7 +108,8 @@
         "cooldownMs": 180
       }
     },
-    "weight": 70
+    "weight": 70,
+    "challengeRating": 2
   },
   "sentry_archer": {
     "hp": 24,
@@ -141,7 +145,8 @@
         "projectileMaxTravel": 490
       }
     },
-    "weight": 100
+    "weight": 100,
+    "challengeRating": 3
   },
   "javelineer": {
     "hp": 26,
@@ -179,7 +184,8 @@
         "projectileMaxTravel": 350
       }
     },
-    "weight": 80
+    "weight": 80,
+    "challengeRating": 4
   },
   "slow_siege": {
     "hp": 92,
@@ -207,7 +213,8 @@
         "playerAggroRadius": 90
       }
     },
-    "weight": 300
+    "weight": 300,
+    "challengeRating": 6
   },
   "fast_sapper": {
     "hp": 39,
@@ -235,7 +242,8 @@
         "playerAggroRadius": 90
       }
     },
-    "weight": 60
+    "weight": 60,
+    "challengeRating": 2
   },
   "charger": {
     "hp": 85,
@@ -270,7 +278,8 @@
         "dashOvershootRange": 100
       }
     },
-    "weight": 125
+    "weight": 125,
+    "challengeRating": 6
   },
   "lobber": {
     "hp": 32,
@@ -307,7 +316,8 @@
         "blastDamageScale": 0.92
       }
     },
-    "weight": 110
+    "weight": 110,
+    "challengeRating": 5
   },
   "reaver": {
     "hp": 70,
@@ -349,7 +359,8 @@
         "retreatRangeSlack": 18
       }
     },
-    "weight": 80
+    "weight": 80,
+    "challengeRating": 5
   },
   "ward": {
     "hp": 94,
@@ -379,6 +390,7 @@
         "playerAggroRadius": 110
       }
     },
-    "weight": 300
+    "weight": 300,
+    "challengeRating": 8
   }
 }

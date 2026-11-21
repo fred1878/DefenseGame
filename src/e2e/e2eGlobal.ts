@@ -132,6 +132,7 @@ export type DefenseGameE2EApi = {
   openEndlessPanel(): void;
   isEndlessPanelOpen(): boolean;
   startEndless(enemyId: string, infiniteHp?: boolean): void;
+  getEndlessPanelDefaultConcurrent(): number;
   setEndlessInfiniteHp(enabled: boolean): void;
   getEndlessInfiniteHp(): boolean;
   isEndlessInfiniteHp(): boolean;
