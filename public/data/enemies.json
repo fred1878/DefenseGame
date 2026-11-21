@@ -261,6 +261,7 @@
       },
       "charger": {
         "chargeDamage": 22,
+        "dashMinRange": 88,
         "dashTriggerRange": 240,
         "dashWindupMs": 400,
         "dashDurationMs": 1200,

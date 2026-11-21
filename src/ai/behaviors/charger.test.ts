@@ -12,6 +12,30 @@ describe("chargerBehavior", () => {
     cellSize: 40,
   } as unknown as import("../../pathfinding/grid").NavGrid;
 
+  it("does not start dash when player is inside dashMinRange", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
+    });
+    enemy.combatTuning.charger = testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeCooldownMs = 0;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: testChargerCombat.dashMinRange - 10,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.chargeWindupMs).toBe(0);
+  });
+
   it("starts dash windup when player is in trigger range", () => {
     const enemy = mockEnemyInstance({
       behavior: "charger",

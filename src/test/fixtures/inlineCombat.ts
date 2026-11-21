@@ -16,6 +16,7 @@ export const testWallCombat: EnemyWallCombat = {
 
 export const testChargerCombat: EnemyChargerCombat = {
   chargeDamage: 30,
+  dashMinRange: 40,
   dashTriggerRange: 120,
   dashWindupMs: 280,
   dashDurationMs: 400,
