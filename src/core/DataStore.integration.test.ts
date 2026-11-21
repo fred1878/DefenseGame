@@ -190,9 +190,25 @@ describe("public data fixtures", () => {
     const defs = readJson("enemy-combat-defaults.json") as {
       wall: { damage: number };
       melee: { range: number };
+      arrowRain: { damage: number };
+      javelineer: { damage: number };
+      stationaryRanged: { damage: number };
+      lobber: { damage: number };
+      charger: { chargeDamage: number };
     };
     expectFiniteNumber(defs.wall.damage, "combat-defaults.wall.damage");
     expectFiniteNumber(defs.melee.range, "combat-defaults.melee.range");
+    expectFiniteNumber(defs.arrowRain.damage, "combat-defaults.arrowRain.damage");
+    expectFiniteNumber(defs.javelineer.damage, "combat-defaults.javelineer.damage");
+    expectFiniteNumber(
+      defs.stationaryRanged.damage,
+      "combat-defaults.stationaryRanged.damage",
+    );
+    expectFiniteNumber(defs.lobber.damage, "combat-defaults.lobber.damage");
+    expectFiniteNumber(
+      defs.charger.chargeDamage,
+      "combat-defaults.charger.chargeDamage",
+    );
   });
 
   it("defense-maps.json defines default night-field layout", () => {

@@ -66,7 +66,7 @@ export function updateJavelineerCombat(
         fromY: enemy.sprite.y,
         toX: c.commitAimX,
         toY: c.commitAimY,
-        damage: enemy.damage,
+        damage: tune.damage,
       };
     } else if (c.attackTargetKind === "wall") {
       spawnJavelin = {
@@ -74,7 +74,7 @@ export function updateJavelineerCombat(
         fromY: enemy.sprite.y,
         toX: c.commitAimX,
         toY: c.commitAimY,
-        damage: enemy.damage,
+        damage: tune.damage,
       };
       if (!c.hitThisSwing) {
         c.hitThisSwing = true;

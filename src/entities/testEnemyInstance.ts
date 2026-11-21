@@ -60,6 +60,7 @@ export function mockEnemyInstance(
       chargeAimY: 0,
       chargeDashDirX: 0,
       chargeDashDirY: 0,
+      chargeHitThisDash: false,
       wardPostGraceMs: 0,
       wardPostSnapPlayerX: 0,
       wardPostSnapPlayerY: 0,

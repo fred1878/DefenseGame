@@ -12,6 +12,11 @@ describe("normalizeEnemyCombatDefaults", () => {
     const bundle = getEnemyCombatDefaults();
     expect(bundle.wall.damage).toBeGreaterThan(0);
     expect(bundle.melee.range).toBeGreaterThan(0);
+    expect(bundle.arrowRain.damage).toBeGreaterThan(0);
+    expect(bundle.javelineer.damage).toBeGreaterThan(0);
+    expect(bundle.stationaryRanged.damage).toBeGreaterThan(0);
+    expect(bundle.lobber.damage).toBeGreaterThan(0);
+    expect(bundle.charger.chargeDamage).toBeGreaterThan(0);
   });
 });
 

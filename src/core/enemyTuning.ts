@@ -29,6 +29,7 @@ export type EnemyCombatPartial = {
   };
   /** Floor AoE (`arrowRainArcher` behavior). */
   arrowRain?: {
+    damage?: number;
     preferredRange?: number;
     attackTriggerRange?: number;
     windupMs?: number;
@@ -42,6 +43,7 @@ export type EnemyCombatPartial = {
   };
   /** Kite + javelin toss (`javelineer` behavior). */
   javelineer?: {
+    damage?: number;
     minRange?: number;
     maxRange?: number;
     strafeSpeedMul?: number;
@@ -55,6 +57,7 @@ export type EnemyCombatPartial = {
   };
   /** Hold position + straight bolt (`stationaryRanged` behavior). */
   stationaryRanged?: {
+    damage?: number;
     preferredRange?: number;
     attackTriggerRange?: number;
     windupMs?: number;
@@ -70,6 +73,7 @@ export type EnemyCombatPartial = {
   };
   /** Burst dash toward player (`charger` behavior). */
   charger?: {
+    chargeDamage?: number;
     dashTriggerRange?: number;
     dashWindupMs?: number;
     dashDurationMs?: number;
@@ -80,6 +84,7 @@ export type EnemyCombatPartial = {
   };
   /** Arcing ground blast (`lobber` behavior). */
   lobber?: {
+    damage?: number;
     preferredRange?: number;
     attackTriggerRange?: number;
     windupMs?: number;
@@ -124,6 +129,7 @@ export type EnemyMeleeCombat = {
 };
 
 export type EnemyArrowRainCombat = {
+  damage: number;
   preferredRange: number;
   attackTriggerRange: number;
   windupMs: number;
@@ -137,6 +143,7 @@ export type EnemyArrowRainCombat = {
 };
 
 export type EnemyJavelineerCombat = {
+  damage: number;
   minRange: number;
   maxRange: number;
   strafeSpeedMul: number;
@@ -150,6 +157,7 @@ export type EnemyJavelineerCombat = {
 };
 
 export type EnemyStationaryRangedCombat = {
+  damage: number;
   preferredRange: number;
   attackTriggerRange: number;
   windupMs: number;
@@ -165,6 +173,7 @@ export type EnemyWallSiegeCombat = {
 };
 
 export type EnemyChargerCombat = {
+  chargeDamage: number;
   dashTriggerRange: number;
   dashWindupMs: number;
   dashDurationMs: number;
@@ -174,6 +183,7 @@ export type EnemyChargerCombat = {
 };
 
 export type EnemyLobberCombat = {
+  damage: number;
   preferredRange: number;
   attackTriggerRange: number;
   windupMs: number;
@@ -306,6 +316,7 @@ function mergeArrowRain(
 ): EnemyArrowRainCombat {
   const d = getEnemyCombatDefaults().arrowRain;
   return {
+    damage: partial?.damage ?? d.damage,
     preferredRange: partial?.preferredRange ?? d.preferredRange,
     attackTriggerRange:
       partial?.attackTriggerRange ?? d.attackTriggerRange,
@@ -325,6 +336,7 @@ function mergeJavelineer(
 ): EnemyJavelineerCombat {
   const d = getEnemyCombatDefaults().javelineer;
   return {
+    damage: partial?.damage ?? d.damage,
     minRange: partial?.minRange ?? d.minRange,
     maxRange: partial?.maxRange ?? d.maxRange,
     strafeSpeedMul: partial?.strafeSpeedMul ?? d.strafeSpeedMul,
@@ -344,6 +356,7 @@ function mergeStationaryRanged(
 ): EnemyStationaryRangedCombat {
   const d = getEnemyCombatDefaults().stationaryRanged;
   return {
+    damage: partial?.damage ?? d.damage,
     preferredRange: partial?.preferredRange ?? d.preferredRange,
     attackTriggerRange:
       partial?.attackTriggerRange ?? d.attackTriggerRange,
@@ -372,6 +385,7 @@ function mergeCharger(
 ): EnemyChargerCombat {
   const d = getEnemyCombatDefaults().charger;
   return {
+    chargeDamage: partial?.chargeDamage ?? d.chargeDamage,
     dashTriggerRange: partial?.dashTriggerRange ?? d.dashTriggerRange,
     dashWindupMs: partial?.dashWindupMs ?? d.dashWindupMs,
     dashDurationMs: partial?.dashDurationMs ?? d.dashDurationMs,
@@ -387,6 +401,7 @@ function mergeLobber(
 ): EnemyLobberCombat {
   const d = getEnemyCombatDefaults().lobber;
   return {
+    damage: partial?.damage ?? d.damage,
     preferredRange: partial?.preferredRange ?? d.preferredRange,
     attackTriggerRange:
       partial?.attackTriggerRange ?? d.attackTriggerRange,
