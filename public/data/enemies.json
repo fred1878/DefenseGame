@@ -46,8 +46,8 @@
   },
   "arrow_rain_archer": {
     "hp": 40,
-    "speed": 50,
-    "damage": 9,
+    "speed": 75,
+    "damage": 4,
     "behavior": "arrowRainArcher",
     "textureKey": "enemy_arrow_rain_archer",
     "displayName": "Arrow Rain Archer",
@@ -59,15 +59,15 @@
       },
       "melee": {
         "triggerRange": 54,
-        "range": 40,
+        "range": 45,
         "arcDeg": 70,
         "windupMs": 380,
         "activeMs": 110,
-        "recoveryMs": 480,
+        "recoveryMs": 800,
         "cooldownMs": 350
       },
       "arrowRain": {
-        "damage": 7,
+        "damage": 4,
         "preferredRange": 150,
         "attackTriggerRange": 200,
         "windupMs": 900,
@@ -84,7 +84,7 @@
   },
   "skirmisher": {
     "hp": 34,
-    "speed": 142,
+    "speed": 162,
     "damage": 7,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
@@ -101,8 +101,8 @@
         "arcDeg": 30,
         "windupMs": 150,
         "activeMs": 80,
-        "recoveryMs": 160,
-        "cooldownMs": 120
+        "recoveryMs": 120,
+        "cooldownMs": 180
       }
     },
     "weight": 70
