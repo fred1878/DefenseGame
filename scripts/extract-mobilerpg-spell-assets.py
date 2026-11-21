@@ -70,11 +70,8 @@ FX_OUT: dict[str, str] = {
 # Optional strip export for Boot-time blizzard channel anim (blizzard_01 … blizzard_10).
 BLIZZARD_ANIM_FRAMES = [f"blizzard_{i:02d}" for i in range(1, 11)]
 
-# Pristine atlas.tga still has garbage at some icon_spell_* "rest" rects (atlas.txt stale).
-# Fall back to the paired *_down art MobileRPG uses when pressed.
-ICON_FRAME_FALLBACK: dict[str, str] = {
-    "icon_spell_11": "icon_spell_11_down",
-}
+# Optional fallbacks when a spell's primary icon rect in atlas.txt is stale.
+ICON_FRAME_FALLBACK: dict[str, str] = {}
 
 
 def materialize_atlas(path: Path) -> Path:
