@@ -18,7 +18,7 @@
       }
     },
     "weight": 100,
-    "challengeRating": 1
+    "challengeRating": 10
   },
   "bruiser": {
     "hp": 299,
@@ -44,7 +44,7 @@
       }
     },
     "weight": 170,
-    "challengeRating": 7
+    "challengeRating": 70
   },
   "arrow_rain_archer": {
     "hp": 40,
@@ -83,7 +83,7 @@
       }
     },
     "weight": 80,
-    "challengeRating": 4
+    "challengeRating": 15
   },
   "skirmisher": {
     "hp": 34,
@@ -109,7 +109,7 @@
       }
     },
     "weight": 70,
-    "challengeRating": 2
+    "challengeRating": 7
   },
   "sentry_archer": {
     "hp": 24,
@@ -146,7 +146,7 @@
       }
     },
     "weight": 100,
-    "challengeRating": 3
+    "challengeRating": 12
   },
   "javelineer": {
     "hp": 26,
@@ -185,7 +185,7 @@
       }
     },
     "weight": 80,
-    "challengeRating": 4
+    "challengeRating": 25
   },
   "slow_siege": {
     "hp": 92,
@@ -214,7 +214,7 @@
       }
     },
     "weight": 300,
-    "challengeRating": 6
+    "challengeRating": 10
   },
   "fast_sapper": {
     "hp": 39,
@@ -243,7 +243,7 @@
       }
     },
     "weight": 60,
-    "challengeRating": 2
+    "challengeRating": 6
   },
   "charger": {
     "hp": 85,
@@ -279,7 +279,7 @@
       }
     },
     "weight": 125,
-    "challengeRating": 6
+    "challengeRating": 30
   },
   "lobber": {
     "hp": 32,
@@ -312,12 +312,12 @@
         "recoveryMs": 620,
         "cooldownMs": 2500,
         "projectileSpeed": 235,
-        "blastRadius": 90,
+        "blastRadius": 100,
         "blastDamageScale": 0.92
       }
     },
     "weight": 110,
-    "challengeRating": 5
+    "challengeRating": 14
   },
   "reaver": {
     "hp": 70,
@@ -360,7 +360,7 @@
       }
     },
     "weight": 80,
-    "challengeRating": 5
+    "challengeRating": 20
   },
   "ward": {
     "hp": 94,
@@ -391,6 +391,6 @@
       }
     },
     "weight": 300,
-    "challengeRating": 8
+    "challengeRating": 15
   }
 }
