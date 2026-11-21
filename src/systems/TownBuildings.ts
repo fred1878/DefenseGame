@@ -7,6 +7,7 @@ import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
 export type TownBuildingControl = {
   container: Phaser.GameObjects.Container;
   buildingId: string;
+  setInputEnabled: (enabled: boolean) => void;
   setLabel: (text: string) => void;
   /** Building center in game/canvas coords (for e2e taps). */
   spriteCenter: () => { x: number; y: number };
@@ -131,6 +132,10 @@ export function spawnTownBuildingControls(
     out.push({
       container,
       buildingId: slot.buildingId,
+      setInputEnabled: (enabled: boolean) => {
+        if (enabled) container.setInteractive();
+        else container.disableInteractive();
+      },
       setLabel: (next: string) => text.setText(next),
       spriteCenter,
       hitFootprintScreenRect: () =>

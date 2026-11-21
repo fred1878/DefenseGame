@@ -52,6 +52,7 @@ import {
   townBuildingSubtitle,
 } from "../systems/townBuildingMenu";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
+import { townMetaOverlayBlocksBuildingInput } from "./townMetaOverlayInput";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -331,8 +332,10 @@ export class TownScene extends Phaser.Scene {
         persistSave(this.save);
         this.registry.set("save", this.save);
         this.spellSortPanel = null;
+        this.syncTownBuildingInput();
       },
     );
+    this.syncTownBuildingInput();
   }
 
   private openWavePlannerPanel(): void {
@@ -342,12 +345,15 @@ export class TownScene extends Phaser.Scene {
       this.registry.get("dataStore") as DataStore,
       (groups) => {
         this.wavePlannerPanel = null;
+        this.syncTownBuildingInput();
         this.beginWavePlannerDefense(groups);
       },
       () => {
         this.wavePlannerPanel = null;
+        this.syncTownBuildingInput();
       },
     );
+    this.syncTownBuildingInput();
   }
 
   private openEndlessPanel(): void {
@@ -358,12 +364,15 @@ export class TownScene extends Phaser.Scene {
       store,
       (selections, infiniteHp) => {
         this.endlessPanel = null;
+        this.syncTownBuildingInput();
         this.beginEndlessDefense(selections, infiniteHp);
       },
       () => {
         this.endlessPanel = null;
+        this.syncTownBuildingInput();
       },
     );
+    this.syncTownBuildingInput();
   }
 
   private teardownTownOverlays(): void {
@@ -373,6 +382,19 @@ export class TownScene extends Phaser.Scene {
     this.wavePlannerPanel = null;
     this.spellSortPanel?.destroy();
     this.spellSortPanel = null;
+    this.syncTownBuildingInput();
+  }
+
+  /** Disable layout building taps while a modal town overlay owns input. */
+  private syncTownBuildingInput(): void {
+    const enabled = !townMetaOverlayBlocksBuildingInput({
+      spellSortPanel: this.spellSortPanel,
+      endlessPanel: this.endlessPanel,
+      wavePlannerPanel: this.wavePlannerPanel,
+    });
+    for (const control of this.buildingControls.values()) {
+      control.setInputEnabled(enabled);
+    }
   }
 
   private beginDefenseNight(): void {
@@ -466,6 +488,15 @@ export class TownScene extends Phaser.Scene {
     _buildingId: string,
     def: (typeof store.townBuildings)[string],
   ): void {
+    if (
+      townMetaOverlayBlocksBuildingInput({
+        spellSortPanel: this.spellSortPanel,
+        endlessPanel: this.endlessPanel,
+        wavePlannerPanel: this.wavePlannerPanel,
+      })
+    ) {
+      return;
+    }
     const goldBefore = this.save.gold;
     const { save, result } = handleTownBuildingTap(store, this.save, def);
     if (result.kind === "startNight") {
