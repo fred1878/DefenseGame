@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { GAME, SPELL_BAR } from "../config";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import type { SaveGame } from "../core/saveTypes";
+import type { DataStore } from "../core/DataStore";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import { persistSave } from "../core/GameState";
@@ -465,6 +466,10 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     startEndless(enemyId: string, infiniteHp = false) {
       const town = game.scene.getScene("Town") as TownScene | null;
       town?.e2eStartEndless(enemyId, infiniteHp);
+    },
+    getEndlessPanelDefaultConcurrent() {
+      const store = game.registry.get("dataStore") as DataStore | undefined;
+      return store?.player.endlessPanelDefaultConcurrent ?? 1;
     },
     setEndlessInfiniteHp(enabled: boolean) {
       const town = game.scene.getScene("Town") as TownScene | null;
