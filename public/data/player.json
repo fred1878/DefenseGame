@@ -20,6 +20,6 @@
   "autoAttackRangedRange": 300,
   "targetTapRadiusWorld": 56,
   "playerHitInvulnMs": 0,
-  "nightSpawnInvulnMs": 0,
-  "endlessPanelDefaultConcurrent": 5
+  "nightSpawnInvulnMs": 1000,
+  "endlessPanelDefaultConcurrent": 1
 }
