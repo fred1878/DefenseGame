@@ -247,7 +247,7 @@
   },
   "charger": {
     "hp": 85,
-    "speed": 118,
+    "speed": 138,
     "damage": 12,
     "behavior": "charger",
     "textureKey": "enemy_charger",
@@ -259,23 +259,23 @@
         "hitRange": 38
       },
       "melee": {
-        "triggerRange": 73,
-        "range": 65,
+        "triggerRange": 80,
+        "range": 75,
         "arcDeg": 92,
         "windupMs": 360,
         "activeMs": 110,
-        "recoveryMs": 250,
+        "recoveryMs": 450,
         "cooldownMs": 480
       },
       "charger": {
         "chargeDamage": 22,
-        "dashMinRange": 88,
-        "dashTriggerRange": 240,
+        "dashMinRange": 120,
+        "dashTriggerRange": 260,
         "dashWindupMs": 400,
         "dashDurationMs": 1200,
-        "dashSpeedMul": 2.35,
+        "dashSpeedMul": 2,
         "dashCooldownMs": 2600,
-        "dashOvershootRange": 100
+        "dashOvershootRange": 60
       }
     },
     "weight": 125,
@@ -284,7 +284,7 @@
   "lobber": {
     "hp": 32,
     "speed": 66,
-    "damage": 13,
+    "damage": 9,
     "behavior": "lobber",
     "textureKey": "enemy_lobber",
     "displayName": "Lobber",
@@ -304,14 +304,14 @@
         "cooldownMs": 320
       },
       "lobber": {
-        "damage": 11,
-        "preferredRange": 130,
-        "attackTriggerRange": 172,
+        "damage": 10,
+        "preferredRange": 200,
+        "attackTriggerRange": 222,
         "windupMs": 1100,
         "activeMs": 140,
         "recoveryMs": 620,
         "cooldownMs": 2500,
-        "projectileSpeed": 235,
+        "projectileSpeed": 225,
         "blastRadius": 100,
         "blastDamageScale": 0.92
       }
@@ -321,8 +321,8 @@
   },
   "reaver": {
     "hp": 70,
-    "speed": 102,
-    "damage": 14,
+    "speed": 170,
+    "damage": 12,
     "behavior": "rangedHybrid",
     "textureKey": "enemy_reaver",
     "displayName": "Reaver",
@@ -343,7 +343,7 @@
       },
       "stationaryRanged": {
         "damage": 10,
-        "preferredRange": 170,
+        "preferredRange": 180,
         "attackTriggerRange": 220,
         "windupMs": 200,
         "activeMs": 70,
@@ -354,7 +354,7 @@
       },
       "hybrid": {
         "closeMeleeRadius": 84,
-        "preferredRange": 170,
+        "preferredRange": 180,
         "maxMeleeSwings": 3,
         "retreatRangeSlack": 18
       }
