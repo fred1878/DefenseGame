@@ -64,6 +64,8 @@ export type EnemyBehaviorExtra = {
   wardPostAnchorGoalX: number;
   wardPostAnchorGoalY: number;
   wardPostWasInHoldRadius: boolean;
+  /** Set each brain tick — idle combat must not overwrite ward screen facing. */
+  wardPostHolding: boolean;
 };
 
 export type EnemyInstance = {
@@ -195,6 +197,7 @@ export function spawnEnemy(
       wardPostAnchorGoalX: 0,
       wardPostAnchorGoalY: 0,
       wardPostWasInHoldRadius: false,
+      wardPostHolding: false,
     },
   };
   if (def.behavior === "arrowRainArcher") {

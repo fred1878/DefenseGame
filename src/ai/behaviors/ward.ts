@@ -1,4 +1,5 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
+import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { worldUnit } from "../../core/worldPixelScale";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
 import {
@@ -21,6 +22,28 @@ export const WARD_POST_HOLD_RADIUS_PX = 22;
 export const WARD_POST_BREAK_MOVE_PX = 44;
 /** Ms to stand still at post before allowing a full reposition. */
 export const WARD_POST_GRACE_MS = 1600;
+/** Hysteresis — stay "at post" until this far from the anchored goal (design px). */
+export const WARD_POST_HOLD_EXIT_RADIUS_PX = 34;
+/** Radians — ignore tiny aim jitter while holding (≈14°). */
+export const WARD_POST_FACING_SLACK_RAD = (14 * Math.PI) / 180;
+
+function wrapAngleRad(rad: number): number {
+  let a = rad;
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+/** Turn toward `targetRad`, keeping `currentRad` inside `slackRad` when already close. */
+export function slewWardHoldFacing(
+  currentRad: number,
+  targetRad: number,
+  slackRad: number,
+): number {
+  const delta = wrapAngleRad(targetRad - currentRad);
+  if (Math.abs(delta) <= slackRad) return currentRad;
+  return wrapAngleRad(targetRad);
+}
 
 export function pickWardProtectee(
   allies: readonly EnemyPeerAlly[] | undefined,
@@ -94,6 +117,8 @@ export function wardPostHoldBroken(
 export type WardPostHoldDecision = {
   hold: boolean;
   skipReplan: boolean;
+  /** First frame anchored at post — snap aim instead of angular deadband. */
+  snapFacing: boolean;
 };
 
 /** Grace + goal deadband while screening for a ranged ally. */
@@ -112,7 +137,7 @@ export function evaluateWardPostHold(
   if (!atPost) {
     extra.wardPostWasInHoldRadius = false;
     extra.wardPostGraceMs = 0;
-    return { hold: false, skipReplan: false };
+    return { hold: false, skipReplan: false, snapFacing: false };
   }
 
   const freshlyArrived = !extra.wardPostWasInHoldRadius;
@@ -146,20 +171,17 @@ export function evaluateWardPostHold(
       extra.wardPostGraceMs = 0;
       extra.wardPostAnchorGoalX = goalX;
       extra.wardPostAnchorGoalY = goalY;
-      return { hold: false, skipReplan: false };
+      return { hold: false, skipReplan: false, snapFacing: false };
     }
     if (extra.wardPostGraceMs > 0) {
-      return { hold: true, skipReplan: true };
+      return { hold: true, skipReplan: true, snapFacing: freshlyArrived };
     }
-    extra.wardPostAnchorGoalX = goalX;
-    extra.wardPostAnchorGoalY = goalY;
-    return { hold: false, skipReplan: false };
   }
 
   if (snapBroken) {
     extra.wardPostAnchorGoalX = goalX;
     extra.wardPostAnchorGoalY = goalY;
-    return { hold: false, skipReplan: false };
+    return { hold: false, skipReplan: false, snapFacing: false };
   }
 
   const goalDrift = Math.hypot(
@@ -167,10 +189,10 @@ export function evaluateWardPostHold(
     goalY - extra.wardPostAnchorGoalY,
   );
   if (goalDrift < breakMovePx) {
-    return { hold: true, skipReplan: true };
+    return { hold: true, skipReplan: true, snapFacing: freshlyArrived };
   }
 
-  return { hold: false, skipReplan: false };
+  return { hold: false, skipReplan: false, snapFacing: false };
 }
 
 export const wardBehavior: EnemyBehavior = (ctx) => {
@@ -182,8 +204,11 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
   const ward = enemy.combatTuning.ward;
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
   const holdRadius = worldUnit(WARD_POST_HOLD_RADIUS_PX, reg);
+  const holdExitRadius = worldUnit(WARD_POST_HOLD_EXIT_RADIUS_PX, reg);
   const breakMovePx = worldUnit(WARD_POST_BREAK_MOVE_PX, reg);
   const aggro = ward?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS;
+  const extra = enemy.behaviorExtra;
+  extra.wardPostHolding = false;
 
   const protectee = pickWardProtectee(
     peerAllies,
@@ -228,13 +253,19 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
     nav.targetKind = resolved.targetKind;
   }
 
-  const distToGoal = Math.hypot(goalX - ex, goalY - ey);
-  const atPost = distToGoal <= holdRadius;
+  const distLiveGoal = Math.hypot(goalX - ex, goalY - ey);
+  const distAnchorGoal = Math.hypot(
+    extra.wardPostAnchorGoalX - ex,
+    extra.wardPostAnchorGoalY - ey,
+  );
+  const atPost = extra.wardPostWasInHoldRadius
+    ? distAnchorGoal <= holdExitRadius
+    : distLiveGoal <= holdRadius;
 
   let postHold: WardPostHoldDecision | undefined;
   if (protectee) {
     postHold = evaluateWardPostHold(
-      enemy.behaviorExtra,
+      extra,
       deltaMs,
       atPost,
       goalX,
@@ -246,8 +277,16 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       breakMovePx,
     );
     if (postHold.hold) {
-      enemy.sprite.setVelocity(0, 0);
-      enemy.combat.facing = Math.atan2(playerY - ey, playerX - ex);
+      extra.wardPostHolding = true;
+      setEnemyChaseVelocity(enemy, 0, 0);
+      const aim = Math.atan2(playerY - ey, playerX - ex);
+      enemy.combat.facing = postHold.snapFacing
+        ? aim
+        : slewWardHoldFacing(
+            enemy.combat.facing,
+            aim,
+            WARD_POST_FACING_SLACK_RAD,
+          );
       return { targetX: goalX, targetY: goalY, targetKind };
     }
   }

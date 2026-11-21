@@ -41,6 +41,7 @@ function mockJavelineer(x: number, y: number) {
       wardPostAnchorGoalX: 0,
       wardPostAnchorGoalY: 0,
       wardPostWasInHoldRadius: false,
+      wardPostHolding: false,
     },
     javelineer: { shotFired: false },
   });

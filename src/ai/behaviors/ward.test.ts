@@ -2,13 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
+import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
   evaluateWardPostHold,
   pickWardProtectee,
+  slewWardHoldFacing,
   wardBehavior,
   wardPostHoldBroken,
   wardScreenPoint,
   WARD_POST_BREAK_MOVE_PX,
+  WARD_POST_FACING_SLACK_RAD,
   WARD_POST_GRACE_MS,
 } from "./ward";
 
@@ -32,6 +35,7 @@ function freshWardExtra(): EnemyBehaviorExtra {
     wardPostAnchorGoalX: 0,
     wardPostAnchorGoalY: 0,
     wardPostWasInHoldRadius: false,
+    wardPostHolding: false,
   };
 }
 
@@ -165,7 +169,7 @@ describe("ward post hold", () => {
     expect(decision.hold).toBe(false);
   });
 
-  it("ends grace after timeout", () => {
+  it("keeps holding after grace when snap and goal are stable", () => {
     const extra = freshWardExtra();
     evaluateWardPostHold(
       extra,
@@ -192,8 +196,28 @@ describe("ward post hold", () => {
       0,
       WARD_POST_BREAK_MOVE_PX,
     );
-    expect(decision.hold).toBe(false);
+    expect(decision.hold).toBe(true);
+    expect(decision.skipReplan).toBe(true);
     expect(extra.wardPostGraceMs).toBe(0);
+  });
+});
+
+describe("slewWardHoldFacing", () => {
+  it("keeps current facing inside slack", () => {
+    const current = 0;
+    const target = WARD_POST_FACING_SLACK_RAD * 0.5;
+    expect(slewWardHoldFacing(current, target, WARD_POST_FACING_SLACK_RAD)).toBe(
+      current,
+    );
+  });
+
+  it("snaps to target beyond slack", () => {
+    const current = 0;
+    const target = Math.PI / 2;
+    expect(slewWardHoldFacing(current, target, WARD_POST_FACING_SLACK_RAD)).toBeCloseTo(
+      target,
+      5,
+    );
   });
 });
 
@@ -229,8 +253,93 @@ describe("wardBehavior", () => {
       peerAllies: [{ id: "jav", behavior: "javelineer", x: 0, y: 0 }],
     });
 
-    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+    expect(setVelocity).toHaveBeenCalled();
+    const last = setVelocity.mock.calls.at(-1);
+    expect(last?.[0]).toBe(0);
+    expect(last?.[1]).toBe(0);
+    expect(enemy.behaviorExtra.wardPostHolding).toBe(true);
     expect(enemy.combat.facing).toBeCloseTo(Math.atan2(0 - 1, 200 - 83), 4);
+  });
+
+  it("does not flip facing toward wall combat target while holding", () => {
+    const setVelocity = vi.fn();
+    const enemy = mockEnemyInstance({
+      behavior: "ward",
+      defId: "ward",
+      sprite: {
+        x: 83,
+        y: 1,
+        setVelocity,
+        body: { velocity: { x: 0, y: 0 } },
+        scene: { registry: { get: () => undefined } },
+      } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
+      nav: { ...createEnemyNav(), path: [{ x: 83, y: 1 }], pathIndex: 1 },
+    });
+    const towardPlayer = Math.atan2(0 - 1, 200 - 83);
+    enemy.combat.facing = towardPlayer;
+
+    wardBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 200,
+      playerY: 0,
+      deltaMs: 16,
+      peerAllies: [{ id: "jav", behavior: "javelineer", x: 0, y: 0 }],
+    });
+
+    const idleTarget = {
+      kind: "player" as const,
+      x: 600,
+      y: 400,
+      radius: 16,
+      damageable: {
+        id: "player",
+        team: "player" as const,
+        alive: true,
+        hp: 100,
+        maxHp: 100,
+      },
+    };
+    updateEnemyCombat(enemy, idleTarget, 16);
+    expect(enemy.combat.facing).toBeCloseTo(towardPlayer, 4);
+  });
+
+  it("keeps hold and slack facing when the screen goal jitters", () => {
+    const setVelocity = vi.fn();
+    const enemy = mockEnemyInstance({
+      behavior: "ward",
+      defId: "ward",
+      sprite: {
+        x: 83,
+        y: 1,
+        setVelocity,
+        body: { velocity: { x: 0, y: 0 } },
+        scene: { registry: { get: () => undefined } },
+      } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
+      nav: { ...createEnemyNav(), path: [{ x: 83, y: 1 }], pathIndex: 1 },
+    });
+    const ally = { id: "jav", behavior: "javelineer" as const, x: 0, y: 0 };
+    const ctx = {
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 200,
+      playerY: 0,
+      deltaMs: 16,
+      peerAllies: [ally],
+    };
+    wardBehavior(ctx);
+    const facing0 = enemy.combat.facing;
+    expect(enemy.behaviorExtra.wardPostHolding).toBe(true);
+
+    ctx.playerX = 205;
+    ctx.playerY = 2;
+    ally.x = 1;
+    wardBehavior(ctx);
+    expect(enemy.behaviorExtra.wardPostHolding).toBe(true);
+    expect(setVelocity.mock.calls.at(-1)).toEqual([0, 0]);
+    expect(enemy.combat.facing).toBeCloseTo(facing0, 4);
   });
 
   it("paths toward the screen goal when outside hold radius", () => {

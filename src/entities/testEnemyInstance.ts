@@ -69,6 +69,7 @@ export function mockEnemyInstance(
       wardPostAnchorGoalX: 0,
       wardPostAnchorGoalY: 0,
       wardPostWasInHoldRadius: false,
+      wardPostHolding: false,
     },
     ...partial,
     combatTuning,
