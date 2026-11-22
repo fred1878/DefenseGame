@@ -4,6 +4,13 @@ import {
   type DefenseObstacleRect,
 } from "../config";
 
+export type NavPeerAgent = {
+  x: number;
+  y: number;
+  /** World px — peer body radius + path margin; falls back to the replanning agent clearance. */
+  clearancePx?: number;
+};
+
 export type NavGrid = {
   cellSize: number;
   cols: number;
@@ -115,15 +122,17 @@ export function cellBlocked(
   grid: NavGrid,
   col: number,
   row: number,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
   agentClearancePx?: number,
 ): boolean {
   if (col < 0 || row < 0 || col >= grid.cols || row >= grid.rows) return true;
   if (grid.blocked[cellIndex(grid, col, row)] === 1) return true;
-  const peerR = agentClearancePx ?? grid.clearancePx;
-  if (peerAgents && peerAgents.length > 0 && peerR > 0) {
+  const fallbackR = agentClearancePx ?? grid.clearancePx;
+  if (peerAgents && peerAgents.length > 0 && fallbackR > 0) {
     const { x, y } = cellToWorldCenter(grid, col, row);
     for (const p of peerAgents) {
+      const peerR = p.clearancePx ?? fallbackR;
+      if (peerR <= 0) continue;
       if ((x - p.x) ** 2 + (y - p.y) ** 2 < peerR * peerR) return true;
     }
   }
@@ -134,7 +143,7 @@ export function nearestWalkable(
   grid: NavGrid,
   col: number,
   row: number,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
   agentClearancePx?: number,
 ): { col: number; row: number } {
   if (!cellBlocked(grid, col, row, peerAgents, agentClearancePx)) {

@@ -5,6 +5,7 @@ import {
   pathingPeerAgents,
   replanEnemyPath,
   resolveEnemyTarget,
+  wallPathingPlayerClearancePx,
 } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import {
@@ -96,7 +97,13 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
       goal.x,
       goal.y,
       waypointRadius,
-      pathingPeerAgents(peerAgents, resolved.targetKind, playerX, playerY),
+      pathingPeerAgents(
+        peerAgents,
+        resolved.targetKind,
+        playerX,
+        playerY,
+        wallPathingPlayerClearancePx(enemy.sprite.scene.registry),
+      ),
       enemy,
     );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;

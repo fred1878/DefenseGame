@@ -2,7 +2,22 @@ import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY, WALL_VELOCITY_BLEND_MS } from "../../config";
 import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
 import { testWallCombat } from "../../test/fixtures/inlineCombat";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import type { EnemyDefInput } from "../../core/normalizeEnemy";
+import { normalizeEnemyRow } from "../../core/normalizeEnemy";
+import {
+  applyEnemyBodyRadii,
+  enemyCollisionBodyRadius,
+} from "../../entities/entityPhysics";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+
+const enemiesRaw = JSON.parse(
+  readFileSync(resolve("public/data/enemies.json"), "utf8"),
+) as Record<string, EnemyDefInput>;
+const enemyDefs = Object.fromEntries(
+  Object.entries(enemiesRaw).map(([id, row]) => [id, normalizeEnemyRow(id, row)]),
+);
 import {
   applyChaseVelocity,
   applyWallMeleeHold,
@@ -80,6 +95,37 @@ describe("player melee standoff", () => {
     expect(
       shouldHoldMeleeChaseChordBlocked(enemy, playerX, playerY, peers),
     ).toBe(true);
+  });
+
+  it("uses per-defId body radius for chord width", () => {
+    applyEnemyBodyRadii({
+      ...enemyDefs,
+      chord_wide: { ...enemyDefs.grunt!, bodyRadius: 50 },
+      chord_narrow: { ...enemyDefs.grunt!, bodyRadius: 1 },
+    });
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    enemy.sprite.x = -60;
+    enemy.sprite.y = 0;
+    const peer = { x: -26, y: 48 };
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, 0, 0, [
+        { ...peer, defId: "chord_wide" },
+      ]),
+    ).toBe(true);
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, 0, 0, [
+        { ...peer, defId: "chord_narrow" },
+      ]),
+    ).toBe(false);
+    applyEnemyBodyRadii(enemyDefs);
+  });
+
+  it("reads bodyRadius from JSON for grunt and bruiser", () => {
+    expect(enemyCollisionBodyRadius("grunt")).toBe(28);
+    expect(enemyCollisionBodyRadius("bruiser")).toBe(21);
   });
 
   it("does not chord-block when the peer is not closer to the player", () => {

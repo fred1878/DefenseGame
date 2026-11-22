@@ -9,9 +9,12 @@ import {
 import { worldUnit } from "../core/worldPixelScale";
 import { findPath, type PathPoint } from "../pathfinding/astar";
 import { hasLineOfSight } from "../pathfinding/los";
-import type { NavGrid } from "../pathfinding/grid";
+import type { NavGrid, NavPeerAgent } from "../pathfinding/grid";
 import type { EnemyInstance } from "../entities/Enemy";
-import { enemyPathClearancePx } from "../entities/entityPhysics";
+import {
+  enemyPathClearancePx,
+  playerPathClearancePx,
+} from "../entities/entityPhysics";
 import { getEnemyBehavior } from "./behaviors";
 import type { EnemyPeerAlly } from "./behaviors/types";
 
@@ -185,15 +188,27 @@ export function wallCombatPoint(ex: number): { x: number; y: number } {
   return { x: ex, y: northWallAttackY() };
 }
 
+/** World-scaled player nav footprint while routing to the wall. */
+export function wallPathingPlayerClearancePx(
+  registry: Phaser.Data.DataManager | undefined,
+): number {
+  if (!registry) return playerPathClearancePx();
+  return worldUnit(playerPathClearancePx(), registry);
+}
+
 /** Optional player position when routing to the wall so peers do not path through the hero. */
 export function pathingPeerAgents(
-  peerAgents: readonly { x: number; y: number }[] | undefined,
+  peerAgents: readonly NavPeerAgent[] | undefined,
   targetKind: EnemyTargetKind,
   playerX: number,
   playerY: number,
-): readonly { x: number; y: number }[] {
+  playerClearancePx?: number,
+): readonly NavPeerAgent[] {
   if (targetKind !== "wall") return peerAgents ?? [];
-  return [...(peerAgents ?? []), { x: playerX, y: playerY }];
+  return [
+    ...(peerAgents ?? []),
+    { x: playerX, y: playerY, clearancePx: playerClearancePx },
+  ];
 }
 
 export function replanEnemyPath(
@@ -204,7 +219,7 @@ export function replanEnemyPath(
   goalX: number,
   goalY: number,
   waypointRadius: number = DEFENSE_MAP.pathWaypointRadius,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
   enemy?: Pick<EnemyInstance, "defId" | "behavior" | "sprite">,
 ): void {
   const reg = enemy?.sprite.scene.registry;
@@ -238,7 +253,7 @@ export function updateEnemyBrain(
   playerX: number,
   playerY: number,
   deltaMs: number,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
   peerAllies?: readonly EnemyPeerAlly[],
   objective: EnemyObjectiveMode = "defendWall",
 ): { targetX: number; targetY: number; targetKind: EnemyTargetKind } {

@@ -2,6 +2,7 @@ import {
   cellBlocked,
   cellToWorldCenter,
   type NavGrid,
+  type NavPeerAgent,
   nearestWalkable,
   worldToCell,
 } from "./grid";
@@ -29,7 +30,7 @@ export function findPath(
   startY: number,
   goalX: number,
   goalY: number,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
   agentClearancePx?: number,
 ): PathPoint[] {
   const startCell = worldToCell(grid, startX, startY);

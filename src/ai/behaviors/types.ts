@@ -1,4 +1,4 @@
-import type { NavGrid } from "../../pathfinding/grid";
+import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type {
   EnemyNavState,
@@ -27,7 +27,7 @@ export type EnemyBehaviorContext = {
   playerX: number;
   playerY: number;
   deltaMs: number;
-  peerAgents?: readonly { x: number; y: number }[];
+  peerAgents?: readonly NavPeerAgent[];
   peerAllies?: readonly EnemyPeerAlly[];
   objective?: EnemyObjectiveMode;
 };

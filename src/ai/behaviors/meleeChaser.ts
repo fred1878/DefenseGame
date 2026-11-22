@@ -5,10 +5,12 @@ import {
   pathingPeerAgents,
   replanEnemyPath,
   resolveEnemyTarget,
+  wallPathingPlayerClearancePx,
 } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
+  applyPlayerMeleeHold,
   applyWallMeleeHold,
   playerChaseVelocityOpts,
   shouldHoldAtWallMelee,
@@ -39,29 +41,6 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   const goal = { x: resolved.goalX, y: resolved.goalY };
   const holdAtWall = shouldHoldAtWallMelee(enemy, desired);
 
-  if (!holdAtWall && (nav.replanMs <= 0 || nav.path.length === 0)) {
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      pathingPeerAgents(peerAgents, resolved.targetKind, playerX, playerY),
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
-
-  if (holdAtWall) {
-    applyWallMeleeHold(enemy);
-    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
-  }
-
-  let moveX = goal.x;
-  let moveY = goal.y;
-
   const chaseVelocityOpts = playerChaseVelocityOpts(enemy, {
     nav,
     deltaMs,
@@ -79,6 +58,41 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
       chaseVelocityOpts.meleeChasePeers,
     );
 
+  const pathActive = nav.path.length > 0 && nav.pathIndex < nav.path.length;
+  if (
+    !holdAtWall &&
+    (nav.replanMs <= 0 ||
+      nav.path.length === 0 ||
+      nav.pathIndex >= nav.path.length)
+  ) {
+    replanEnemyPath(
+      nav,
+      grid,
+      ex,
+      ey,
+      goal.x,
+      goal.y,
+      waypointRadius,
+      pathingPeerAgents(
+        peerAgents,
+        resolved.targetKind,
+        playerX,
+        playerY,
+        wallPathingPlayerClearancePx(reg),
+      ),
+      enemy,
+    );
+    nav.replanMs = DEFENSE_MAP.pathReplanMs;
+  }
+
+  if (holdAtWall) {
+    applyWallMeleeHold(enemy);
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+  }
+
+  let moveX = goal.x;
+  let moveY = goal.y;
+
   if (
     desired === "player" &&
     hasLineOfSight(grid, ex, ey, playerX, playerY) &&
@@ -86,7 +100,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   ) {
     moveX = playerX;
     moveY = playerY;
-  } else if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
+  } else if (pathActive) {
     const wp = nav.path[nav.pathIndex]!;
     const d = Math.hypot(wp.x - ex, wp.y - ey);
     if (d <= waypointRadius) {
@@ -96,6 +110,15 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     if (nextWp) {
       moveX = nextWp.x;
       moveY = nextWp.y;
+    }
+  } else if (chordBlocked && desired === "player") {
+    const tail = nav.path[nav.path.length - 1];
+    if (tail && Math.hypot(tail.x - ex, tail.y - ey) > 1) {
+      moveX = tail.x;
+      moveY = tail.y;
+    } else {
+      applyPlayerMeleeHold(enemy);
+      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
     }
   }
 

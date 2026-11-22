@@ -147,12 +147,12 @@ describe("noteEnemyPathProgress", () => {
 
 describe("pathingPeerAgents", () => {
   it("adds player as blocker only for wall routing", () => {
-    const peers = [{ x: 1, y: 2 }];
-    expect(pathingPeerAgents(peers, "wall", 9, 9)).toEqual([
-      { x: 1, y: 2 },
-      { x: 9, y: 9 },
+    const peers = [{ x: 1, y: 2, clearancePx: 35 }];
+    expect(pathingPeerAgents(peers, "wall", 9, 9, 42)).toEqual([
+      { x: 1, y: 2, clearancePx: 35 },
+      { x: 9, y: 9, clearancePx: 42 },
     ]);
-    expect(pathingPeerAgents(peers, "player", 9, 9)).toEqual(peers);
+    expect(pathingPeerAgents(peers, "player", 9, 9, 42)).toEqual(peers);
   });
 });
 

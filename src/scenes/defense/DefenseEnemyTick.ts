@@ -10,7 +10,11 @@ import {
 import { PLAYER_TUNING } from "../../config";
 import type { NavGrid } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
-import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
+import {
+  enemyCollisionBodyRadius,
+  enemyPathClearancePx,
+} from "../../entities/entityPhysics";
+import { worldUnit } from "../../core/worldPixelScale";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
   updateArrowRainCombat,
@@ -80,7 +84,14 @@ export function tickDefenseEnemies(
     }
     const peerAgents = liveEnemies
       .filter((o) => o.id !== e.id)
-      .map((o) => ({ x: o.sprite.x, y: o.sprite.y }));
+      .map((o) => ({
+        x: o.sprite.x,
+        y: o.sprite.y,
+        clearancePx: worldUnit(
+          enemyPathClearancePx(o.defId),
+          host.registry,
+        ),
+      }));
     const peerAllies = liveEnemies
       .filter((o) => o.id !== e.id)
       .map((o) => ({
