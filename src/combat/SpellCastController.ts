@@ -101,6 +101,7 @@ export class SpellCastController {
     this.channelElapsedMs = 0;
     this.channelDurationMs = hasChannel ? def.channelMs : 0;
     this.inChannel = castMs <= 0 && hasChannel;
+    if (this.inChannel) this.armChannelStartCooldown(spellId, def);
     if (castMs > 0) return "windup";
     return "channel";
   }
@@ -118,6 +119,7 @@ export class SpellCastController {
       mag > SPELL_MOVE_INTERRUPT_EPS
     ) {
       const id = this.activeSpellId;
+      this.cooldownRemainingMs.delete(id);
       this.clearCast();
       return { type: "interrupted", spellId: id };
     }
@@ -135,6 +137,8 @@ export class SpellCastController {
       }
       if (this.channelDurationMs > 0) {
         this.inChannel = true;
+        const def = spellById(spellId);
+        if (def) this.armChannelStartCooldown(spellId, def);
       } else {
         const def = spellById(spellId);
         const inputMode = this.castInputMode;
@@ -160,12 +164,25 @@ export class SpellCastController {
     const inputMode = this.castInputMode;
     this.clearCast();
     if (!def) return { type: "idle" };
-    this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+    if (!this.cooldownArmedDuringChannel(spellId, def)) {
+      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+    }
     return { type: "completed", spellId, def, inputMode };
   }
 
   cancelChannel(): void {
     this.clearCast();
+  }
+
+  /** Channeled spells arm CD when channeling begins, not when the channel ends. */
+  private armChannelStartCooldown(_spellId: SpellId, def: SpellDefinition): void {
+    if (def.channelMs > 0) {
+      this.cooldownRemainingMs.set(_spellId, def.cooldownMs);
+    }
+  }
+
+  private cooldownArmedDuringChannel(_spellId: SpellId, def: SpellDefinition): boolean {
+    return def.channelMs > 0;
   }
 
   private clearCast(): void {
