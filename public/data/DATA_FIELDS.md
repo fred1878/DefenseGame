@@ -36,11 +36,28 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `town_layout.json` | yes (no schema validator) |
 | `waves.json` | yes (no schema validator) |
 
+### TypeScript types
+
+| File | Input (authorable) | Resolved / runtime | Module |
+|------|---------------------|-------------------|--------|
+| `buildings.json` | — | [BuildingDef](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
+| `defense-maps.json` | [DefenseMapsFileInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/normalizeDefenseMaps.ts) | [DefenseMapsRegistry](../src/core/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/normalizeDefenseMaps.ts) | [normalizeDefenseMaps.ts](../src/core/normalizeDefenseMaps.ts) |
+| `enemies.json` | [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts) | [EnemyDef](../src/core/DataStore.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) | [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts) |
+| `enemy-ai.json` | [EnemyAiInput](../src/core/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
+| `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
+| `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
+| `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
+| `town_buildings.json` | — | [TownBuildingDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
+| `town_layout.json` | — | [TownLayoutDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
+| `waves.json` | — | [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
+
 **Removed (do not re-add):** `enemy-combat-defaults.json`, `spell-mechanics.json` — combat is fully per row in `enemies.json`; Shadowform tuning lives on the `shadowform` spell row.
 
 ---
 
 ## enemies.json
+
+**TypeScript:** [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyDef](../src/core/DataStore.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) — [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts).
 
 Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`enemyId`) and endless mode.
 
@@ -211,6 +228,8 @@ Telegraphed ground zone ticks.
 
 ## enemy-ai.json
 
+**TypeScript:** [EnemyAiInput](../src/core/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
+
 Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.).
 
 | Field | Unit | Meaning |
@@ -224,6 +243,8 @@ Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.)
 
 ## entity-physics.json
 
+**TypeScript:** [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts), [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) — [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts).
+
 Nav inflation and knockback cap (`applyEntityPhysics`).
 
 | Field | Unit | Meaning |
@@ -235,6 +256,8 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 ---
 
 ## player.json
+
+**TypeScript:** [PlayerConfigInput](../src/core/normalizePlayer.ts), [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts).
 
 Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
@@ -272,6 +295,8 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 ---
 
 ## spells.json
+
+**TypeScript:** [SpellsFileInput](../src/core/normalizeSpells.ts), [SpellDefinition](../src/content/spells.ts) — [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts).
 
 Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
@@ -329,6 +354,8 @@ Shadowform multipliers are also applied globally via `shadowformMechanicsFromCat
 
 ## defense-maps.json
 
+**TypeScript:** [DefenseMapsFileInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapsRegistry](../src/core/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/normalizeDefenseMaps.ts) — [normalizeDefenseMaps.ts](../src/core/normalizeDefenseMaps.ts).
+
 | Field | Meaning |
 |-------|---------|
 | `defaultMapId` | Map id used when none is selected for Defense. |
@@ -356,6 +383,8 @@ Each obstacle:
 
 ## waves.json
 
+**TypeScript:** [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
+
 Top-level keys: **night number** (string) → wave def.
 
 | Field | Meaning |
@@ -378,6 +407,8 @@ Each group:
 
 ## buildings.json
 
+**TypeScript:** [BuildingDef](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
+
 Town upgrade defs keyed by building id (`wall`, `blacksmith`, …).
 
 | Field | Meaning |
@@ -389,6 +420,8 @@ Town upgrade defs keyed by building id (`wall`, `blacksmith`, …).
 ---
 
 ## town_buildings.json
+
+**TypeScript:** [TownBuildingDef](../src/core/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
 
 Town clickable building art + actions (`TownBuildingDef`).
 
@@ -407,6 +440,8 @@ Town clickable building art + actions (`TownBuildingDef`).
 ---
 
 ## town_layout.json
+
+**TypeScript:** [TownLayoutDef](../src/core/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
 
 | Field | Meaning |
 |-------|---------|

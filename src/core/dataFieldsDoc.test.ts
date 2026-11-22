@@ -26,6 +26,17 @@ describe("DATA_FIELDS.md", () => {
     expect(doc).toMatch(/- `autoAttackMeleeRange` —/);
   });
 
+  it("links TypeScript modules in each shipped json section", () => {
+    for (const file of shippedJsonSectionFiles()) {
+      const section = sections.get(file);
+      expect(section, `missing ## ${file}`).toBeDefined();
+      expect(
+        section,
+        `${file}: add **TypeScript:** line with ../src/ links`,
+      ).toMatch(/\]\(\.\.\/src\//);
+    }
+  });
+
   it("has one section per shipped json file", () => {
     for (const file of shippedJsonSectionFiles()) {
       expect(sections.has(file), `missing ## ${file}`).toBe(true);
