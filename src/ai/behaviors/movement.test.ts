@@ -149,7 +149,7 @@ describe("player melee standoff", () => {
 
   it("reads bodyRadius from JSON for grunt and bruiser", () => {
     expect(enemyCollisionBodyRadius("grunt")).toBe(28);
-    expect(enemyCollisionBodyRadius("bruiser")).toBe(21);
+    expect(enemyCollisionBodyRadius("bruiser")).toBe(28);
   });
 
   it("does not chord-block when the peer is not closer to the player", () => {

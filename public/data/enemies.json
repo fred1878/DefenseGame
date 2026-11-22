@@ -290,7 +290,7 @@
         "dashDurationMs": 2000,
         "dashSpeedMul": 3.2,
         "dashCooldownMs": 3000,
-        "dashOvershootRange": 100,
+        "dashOvershootRange": 100
       }
     },
     "weight": 125,
