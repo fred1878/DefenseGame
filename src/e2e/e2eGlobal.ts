@@ -119,6 +119,7 @@ export type DefenseGameE2EApi = {
   setShowHitboxes(on: boolean): void;
   setShowTouchInput(on: boolean): void;
   getTownBuildingDebugRectCount(): number;
+  getTownTouchDebugRectCount(): number;
   openSpellSortPanel(): void;
   isSpellSortPanelOpen(): boolean;
   getSpellSortSlotHitRects(): Array<{

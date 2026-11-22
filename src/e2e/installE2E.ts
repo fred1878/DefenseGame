@@ -439,6 +439,10 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const town = game.scene.getScene("Town") as TownScene | null;
       return town?.scene.isActive() ? town.e2eTownBuildingDebugRectCount() : 0;
     },
+    getTownTouchDebugRectCount(): number {
+      const town = game.scene.getScene("Town") as TownScene | null;
+      return town?.scene.isActive() ? town.e2eTownTouchDebugRectCount() : 0;
+    },
     openSpellSortPanel() {
       const town = game.scene.getScene("Town") as TownScene | null;
       town?.e2eOpenSpellSortPanel();
