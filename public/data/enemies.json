@@ -92,7 +92,7 @@
   },
   "skirmisher": {
     "hp": 34,
-    "speed": 57,
+    "speed": 67,
     "damage": 7,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
@@ -153,12 +153,12 @@
       }
     },
     "weight": 100,
-    "challengeRating": 12,
-    "bodyRadius": 14
+    "challengeRating": 10,
+    "bodyRadius": 20
   },
   "javelineer": {
     "hp": 26,
-    "speed": 49,
+    "speed": 52,
     "damage": 11,
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer",
@@ -195,7 +195,7 @@
     },
     "weight": 80,
     "challengeRating": 25,
-    "bodyRadius": 14
+    "bodyRadius": 16
   },
   "slow_siege": {
     "hp": 92,
@@ -261,7 +261,7 @@
   },
   "charger": {
     "hp": 85,
-    "speed": 49,
+    "speed": 50,
     "damage": 12,
     "behavior": "charger",
     "textureKey": "enemy_charger",
@@ -287,19 +287,19 @@
         "dashMinRange": 120,
         "dashTriggerRange": 260,
         "dashWindupMs": 400,
-        "dashDurationMs": 1200,
-        "dashSpeedMul": 2,
-        "dashCooldownMs": 2600,
-        "dashOvershootRange": 60
+        "dashDurationMs": 2000,
+        "dashSpeedMul": 3.2,
+        "dashCooldownMs": 3000,
+        "dashOvershootRange": 100,
       }
     },
     "weight": 125,
     "challengeRating": 30,
-    "bodyRadius": 21
+    "bodyRadius": 23
   },
   "lobber": {
     "hp": 32,
-    "speed": 23,
+    "speed": 28,
     "damage": 9,
     "behavior": "lobber",
     "textureKey": "enemy_lobber",
@@ -327,7 +327,7 @@
         "activeMs": 140,
         "recoveryMs": 620,
         "cooldownMs": 2500,
-        "projectileSpeed": 225,
+        "projectileSpeed": 160,
         "blastRadius": 100,
         "blastDamageScale": 0.92
       }
