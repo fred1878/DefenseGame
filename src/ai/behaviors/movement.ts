@@ -178,14 +178,12 @@ function isDirectPlayerChaseMove(
 
 /** True when melee may cut from A* to a LOS line-of-march toward the player (not mid-flank). */
 export function shouldMeleeLosShortcutToPlayer(
-  enemy: EnemyInstance,
+  _enemy: EnemyInstance,
   nav: EnemyNavState,
-  playerX: number,
-  playerY: number,
+  _playerX: number,
+  _playerY: number,
 ): boolean {
   if (!nav.pathGoalReached) return false;
-  const ex = enemy.sprite.x;
-  const ey = enemy.sprite.y;
   return nav.path.length === 0 || nav.pathIndex >= nav.path.length;
 }
 
