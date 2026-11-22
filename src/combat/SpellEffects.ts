@@ -94,7 +94,7 @@ export function spawnSpellProjectile(
     def.projectileSpeedWu ?? PLAYER_TUNING.projectileSpeedWu * 1.05;
   const speed = worldUnit(speedWu, scene.registry);
   const damage = (def.baseDamage ?? 20) * damageMult;
-  const flavor: DamageFlavor = def.damageFlavor ?? "default";
+  const flavor: DamageFlavor = def.damageFlavor ?? "fire";
   const projectile = spawnPlayerProjectile(
     scene,
     playerX,
@@ -148,7 +148,7 @@ export function applySpellBlastAt(
   }
   const r = worldUnit(def.blastRadiusWu, scene.registry);
   const damage = (def.baseDamage ?? 0) * damageMult;
-  const flavor = def.damageFlavor ?? "default";
+  const flavor = def.damageFlavor ?? "fire";
   const knockbackPx = worldUnit(spellBlastKnockback(def), scene.registry);
   for (const e of enemiesInDisk(centerX, centerY, r, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
@@ -213,7 +213,7 @@ export function strikeSpellCone(
   const range = worldUnit(def.coneRangeWu!, scene.registry);
   const half = Phaser.Math.DegToRad(def.coneArcDeg! / 2);
   const damage = (def.baseDamage ?? 12) * damageMult;
-  const flavor = def.damageFlavor ?? "default";
+  const flavor = def.damageFlavor ?? "fire";
   for (const e of enemiesInCone(playerX, playerY, facingRad, range, half, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
@@ -274,7 +274,7 @@ export function applyInstantTargeted(
   if (!target) return null;
   const full = enemies.find((e) => e.id === target.id);
   if (!full) return null;
-  const flavor = def.damageFlavor ?? "default";
+  const flavor = def.damageFlavor ?? "fire";
   const hitDamage = (def.baseDamage ?? 0) * damageMult;
   const blastKnockbackExclude = new Set<string>([full.id]);
   if (hitDamage > 0) {
@@ -344,7 +344,7 @@ export function applyChainLightning(
     hopRange,
   );
   const damage = (def.baseDamage ?? 10) * damageMult;
-  const flavor = def.damageFlavor ?? "default";
+  const flavor = def.damageFlavor ?? "fire";
   const applyHopHit = (enemyId: string) => {
     if (status && def.onHit) {
       applySpellOnHitEffects(status, enemyId, def.onHit, flavor);

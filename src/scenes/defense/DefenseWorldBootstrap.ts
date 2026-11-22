@@ -68,7 +68,7 @@ export function bootstrapDefenseWorld(
   const player = new Player(scene, start.x, start.y, playerHpMax);
   player.damageable.hp = playerHpMax;
   player.damageable.alive = true;
-  player.damageable.onDamaged = (_amount, flavor = "default") => {
+  player.damageable.onDamaged = (_amount, flavor) => {
     flashSpriteTint(scene, player.sprite, flavor);
   };
 

@@ -27,7 +27,7 @@ import {
   readDefenseRunMode,
   resolveEndlessRunSelections,
 } from "../core/defenseRunMode";
-import { applyDamage } from "../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/DamageSystem";
 import { showPlayerMeleeSwipe } from "../combat/MeleeSwipeFx";
 import { SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
@@ -1619,7 +1619,7 @@ export class DefenseScene extends Phaser.Scene {
   e2eDamageFirstLivingEnemy(amount: number): void {
     const e = this.enemies.find((entry) => entry.damageable.alive);
     if (!e) return;
-    applyDamage(e.damageable, amount);
+    applyDamage(e.damageable, amount, MELEE_HIT_FLAVOR);
   }
 
 }

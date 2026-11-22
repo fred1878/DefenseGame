@@ -6,12 +6,13 @@ export const HIT_FLASH_MS = 190;
 const TIMER_KEY = "hitFlashTimer";
 const FLAVOR_KEY = "hitFlashFlavor";
 
-/** Per-flavor tints — default/fire avoid pure white on light enemy pixels; physical is white for lightning. */
+/** Per-flavor tints — fire avoids pure white on light enemy pixels; physical is white for lightning. */
 const HIT_TINT: Record<DamageFlavor, number> = {
-  default: 0xff8888,
   fire: 0xff2222,
   physical: 0xffffff,
   frost: 0x99ddff,
+  /** Slightly darker than frost (0x99ddff) so multiply-tint reads on pale sprites. */
+  water: 0x6eb0d0,
 };
 
 export function hitFlashTintFor(flavor: DamageFlavor): number {

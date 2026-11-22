@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { Damageable } from "../../combat/DamageSystem";
-import { applyDamage } from "../../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { applySpellBlastAt } from "../../combat/SpellEffects";
 import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
@@ -87,7 +87,7 @@ export function tickDefenseProjectiles(
           host.enemySpellStatus,
           result.hitEnemyId,
           def.onHit,
-          def.damageFlavor ?? "default",
+          def.damageFlavor ?? "fire",
         );
       }
     }
@@ -151,6 +151,7 @@ export function tickDefenseProjectiles(
         applyDamage(
           host.player.damageable,
           det.damage * scale * playerIncomingDamageMult(),
+          det.flavor ?? MELEE_HIT_FLAVOR,
         );
         playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
       }

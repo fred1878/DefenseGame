@@ -62,7 +62,7 @@ export function spawnGroundZone(
       opts?.includeBurst && def.burstDamage
         ? def.burstDamage * damageMult
         : undefined,
-    damageFlavor: def.damageFlavor ?? "default",
+    damageFlavor: def.damageFlavor ?? "fire",
     onHit: def.onHit,
     lingerDotDps: opts?.lingerDot ? def.onHit?.dotDps : undefined,
     lingerDotMs: opts?.lingerDot ? def.onHit?.dotMs : undefined,

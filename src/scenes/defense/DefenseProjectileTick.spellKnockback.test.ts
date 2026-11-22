@@ -22,7 +22,7 @@ function projectileWithSpell(spellId: string): PlayerProjectile {
       body: { velocity: { x: 400, y: 0 } },
     } as unknown as Phaser.Physics.Arcade.Sprite,
     damage: 12,
-    damageFlavor: "default",
+    damageFlavor: "fire",
     maxTravel: 200,
     traveled: 0,
     prevX: 0,

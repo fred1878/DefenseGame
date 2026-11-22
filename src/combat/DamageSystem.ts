@@ -1,13 +1,20 @@
-export type DamageFlavor = "default" | "fire" | "physical" | "frost";
+export const DAMAGE_FLAVORS = [
+  "fire",
+  "frost",
+  "physical",
+  "water",
+] as const;
+
+export type DamageFlavor = (typeof DAMAGE_FLAVORS)[number];
 
 /** White hit-flash tint for sword arcs and enemy melee (see `HitFlash.ts`). */
 export const MELEE_HIT_FLAVOR: DamageFlavor = "physical";
 
-/** Keeps explicit spell flavors from data; maps unset/`default` swing rows to melee physical. */
+/** Keeps explicit spell flavors from data; maps unset swing rows to melee physical. */
 export function swingSpellDamageFlavor(
   fromSpell?: DamageFlavor,
 ): DamageFlavor {
-  if (fromSpell && fromSpell !== "default") return fromSpell;
+  if (fromSpell) return fromSpell;
   return MELEE_HIT_FLAVOR;
 }
 
@@ -24,7 +31,7 @@ export type Damageable = {
 export function applyDamage(
   target: Damageable,
   amount: number,
-  flavor: DamageFlavor = "default",
+  flavor: DamageFlavor,
 ): void {
   if (!target.alive || amount <= 0) return;
   target.hp = Math.max(0, target.hp - amount);

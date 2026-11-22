@@ -26,7 +26,7 @@ export class EnemySpellStatusMap {
         slowRemainingMs: 0,
         dotDps: 0,
         dotRemainingMs: 0,
-        dotFlavor: "default",
+        dotFlavor: "physical",
         dotTickAccumMs: 0,
       };
       this.byEnemyId.set(enemyId, s);
@@ -54,7 +54,7 @@ export class EnemySpellStatusMap {
     enemyId: string,
     dotDps: number,
     durationMs: number,
-    flavor: DamageFlavor = "default",
+    flavor: DamageFlavor,
   ): void {
     const s = this.ensure(enemyId);
     s.dotDps = Math.max(dotDps, s.dotDps);

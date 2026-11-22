@@ -54,7 +54,7 @@ export function spawnDefenseEnemyAt(
     },
     () => host.hooks.onFocusEnemy(id),
   );
-  enemy.damageable.onDamaged = (_amount, flavor = "default") => {
+  enemy.damageable.onDamaged = (_amount, flavor) => {
     flashSpriteTint(host.scene, enemy.sprite, flavor);
   };
   host.enemyGroup.add(enemy.sprite);

@@ -3,7 +3,7 @@ import { type AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
 import type { EnemyDef } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
-import { applyDamage } from "../../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowEnemyPaths } from "../../debug/DebugState";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { PlayerProjectile } from "../../entities/Projectile";
@@ -197,7 +197,7 @@ export function defenseSceneE2eDamagePlayer(
   amount: number,
 ): void {
   if (amount <= 0 || scene.endlessInfiniteHp) return;
-  applyDamage(scene.player.damageable, amount);
+  applyDamage(scene.player.damageable, amount, MELEE_HIT_FLAVOR);
   if (scene.player.damageable.hp <= 0) {
     scene.player.damageable.alive = false;
     if (scene.isEndlessMode()) {
