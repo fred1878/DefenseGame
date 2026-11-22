@@ -366,7 +366,10 @@
       "channelMs": 0,
       "iconFile": "shadowform.png",
       "damageFlavor": "default",
-      "shadowformDurationMs": 10000
+      "shadowformDurationMs": 10000,
+      "shadowformMoveSpeedMult": 1.2,
+      "shadowformDamageTakenMult": 0.7,
+      "shadowformAggroRadiusMult": 0.5
     },
     {
       "id": "deep_freeze",

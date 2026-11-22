@@ -1,4 +1,5 @@
 import type { SpellDefinition, SpellMechanicType } from "../content/spells";
+import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import { ConfigLoadError, requireFiniteNumber } from "./configValidation";
 
 export type SpellsFileInput = { spells: SpellDefinition[] };
@@ -56,6 +57,35 @@ function validateSpellMechanicFields(
       return;
     case "buff":
       requireFiniteNumber(def.shadowformDurationMs, `${path}.shadowformDurationMs`);
+      if (def.id === "shadowform") {
+        const moveSpeedMult = requireFiniteNumber(
+          def.shadowformMoveSpeedMult,
+          `${path}.shadowformMoveSpeedMult`,
+        );
+        const damageTakenMult = requireFiniteNumber(
+          def.shadowformDamageTakenMult,
+          `${path}.shadowformDamageTakenMult`,
+        );
+        const aggroRadiusMult = requireFiniteNumber(
+          def.shadowformAggroRadiusMult,
+          `${path}.shadowformAggroRadiusMult`,
+        );
+        if (moveSpeedMult <= 0) {
+          throw new ConfigLoadError(
+            `${path}.shadowformMoveSpeedMult must be > 0`,
+          );
+        }
+        if (damageTakenMult < 0 || damageTakenMult > 1) {
+          throw new ConfigLoadError(
+            `${path}.shadowformDamageTakenMult must be in [0, 1]`,
+          );
+        }
+        if (aggroRadiusMult < 0 || aggroRadiusMult > 1) {
+          throw new ConfigLoadError(
+            `${path}.shadowformAggroRadiusMult must be in [0, 1]`,
+          );
+        }
+      }
       return;
     default:
       return;
@@ -115,6 +145,29 @@ function validateSpellKnockbackFields(
         `Unknown or unsupported spell mechanicType "${def.mechanicType}" at ${path}.mechanicType`,
       );
   }
+}
+
+/** Runtime mults for the Shadowform buff spell (validated on the `shadowform` row). */
+export function shadowformMechanicsFromCatalog(
+  spells: readonly SpellDefinition[],
+): ShadowformMechanics {
+  const def = spells.find((s) => s.id === "shadowform");
+  if (!def) {
+    throw new ConfigLoadError("spells.json must include a shadowform spell");
+  }
+  const moveSpeedMult = def.shadowformMoveSpeedMult;
+  const damageTakenMult = def.shadowformDamageTakenMult;
+  const aggroRadiusMult = def.shadowformAggroRadiusMult;
+  if (
+    moveSpeedMult === undefined ||
+    damageTakenMult === undefined ||
+    aggroRadiusMult === undefined
+  ) {
+    throw new ConfigLoadError(
+      "shadowform spell row missing shadowformMoveSpeedMult, shadowformDamageTakenMult, or shadowformAggroRadiusMult",
+    );
+  }
+  return { moveSpeedMult, damageTakenMult, aggroRadiusMult };
 }
 
 export function normalizeSpellCatalog(raw: SpellsFileInput | null | undefined): SpellDefinition[] {

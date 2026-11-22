@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { ConfigLoadError } from "./configValidation";
-import { normalizeSpellCatalog } from "./normalizeSpells";
+import {
+  normalizeSpellCatalog,
+  shadowformMechanicsFromCatalog,
+} from "./normalizeSpells";
 
 function shippedSpells() {
   const file = path.join(process.cwd(), "public/data/spells.json");
@@ -53,5 +56,23 @@ describe("normalizeSpellCatalog", () => {
     const swing = rows.find((s) => s.id === "swing");
     expect(swing?.swingRangeWu).toBeDefined();
     expect(swing?.swingArcDeg).toBeDefined();
+    const shade = rows.find((s) => s.id === "shadowform");
+    expect(shade?.shadowformMoveSpeedMult).toBe(1.2);
+    expect(shade?.shadowformDamageTakenMult).toBe(0.7);
+    expect(shade?.shadowformAggroRadiusMult).toBe(0.5);
+    const mechanics = shadowformMechanicsFromCatalog(rows);
+    expect(mechanics.moveSpeedMult).toBe(1.2);
+    expect(mechanics.damageTakenMult).toBe(0.7);
+    expect(mechanics.aggroRadiusMult).toBe(0.5);
+  });
+
+  it("rejects invalid shadowform damage taken mult", () => {
+    const base = shippedSpells();
+    const spells = base.spells.map((s: { id: string }) =>
+      s.id === "shadowform"
+        ? { ...s, shadowformDamageTakenMult: 1.5 }
+        : s,
+    );
+    expect(() => normalizeSpellCatalog({ spells })).toThrow(ConfigLoadError);
   });
 });

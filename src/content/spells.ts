@@ -64,6 +64,9 @@ export type SpellDefinition = {
   iceWallDistanceWu?: number;
   iceWallDurationMs?: number;
   shadowformDurationMs?: number;
+  shadowformMoveSpeedMult?: number;
+  shadowformDamageTakenMult?: number;
+  shadowformAggroRadiusMult?: number;
   onHit?: SpellOnHitEffects;
   baseDamage?: number;
   projectileSpeed?: number;

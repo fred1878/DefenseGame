@@ -1,4 +1,4 @@
-import type { ShadowformMechanics } from "../core/normalizeSpellMechanics";
+import type { ShadowformMechanics } from "../config/shadowformMechanics";
 
 export function shadowformActive(endsAt: number, nowMs: number): boolean {
   return endsAt > nowMs;
