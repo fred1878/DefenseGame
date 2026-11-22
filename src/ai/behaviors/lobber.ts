@@ -1,4 +1,5 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
+import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
 import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
@@ -26,7 +27,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
     playerX,
     playerY,
     deltaMs,
-    worldUnit(PLAYER_AGGRO_RADIUS, reg),
+    worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
   );
   const desired = resolved.targetKind;

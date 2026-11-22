@@ -23,6 +23,12 @@ import {
   type PlayerConfigInput,
 } from "./normalizePlayer";
 import { normalizeSpellCatalog } from "./normalizeSpells";
+import {
+  normalizeSpellMechanics,
+  type ShadowformMechanics,
+  type SpellMechanicsInput,
+} from "./normalizeSpellMechanics";
+import { applyShadowformMechanics } from "../config/shadowformMechanics";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
@@ -68,6 +74,7 @@ export class DataStore {
   townBuildings: Record<string, TownBuildingDef> = {};
   townLayout: TownLayoutDef = { slots: [] };
   spells: SpellDefinition[] = [];
+  shadowformMechanics!: ShadowformMechanics;
   /** From `public/data/player.json` (combat tuning + endless panel UI seed). */
   player!: PlayerConfig;
 
@@ -85,6 +92,7 @@ export class DataStore {
       defenseMaps,
       entityPhysics,
       enemyAi,
+      spellMechanicsFile,
     ] = await Promise.all([
       fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
@@ -101,6 +109,7 @@ export class DataStore {
       fetchJson<DefenseMapsFileInput>(`${prefix}data/defense-maps.json`),
       fetchJson<EntityPhysicsInput>(`${prefix}data/entity-physics.json`),
       fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
+      fetchJson<SpellMechanicsInput>(`${prefix}data/spell-mechanics.json`),
     ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
@@ -125,6 +134,8 @@ export class DataStore {
       assertEnemyResolvedCombat(id, row);
     }
     applyEnemyAi(normalizeEnemyAi(enemyAi));
+    this.shadowformMechanics = normalizeSpellMechanics(spellMechanicsFile);
+    applyShadowformMechanics(this.shadowformMechanics);
     this.defenseMaps = normalizeDefenseMaps(defenseMaps);
   }
 

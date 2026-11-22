@@ -5,6 +5,7 @@ import { applySpellBlastAt } from "../../combat/SpellEffects";
 import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { PLAYER_TUNING } from "../../config";
+import { playerIncomingDamageMult } from "../../config/shadowformRuntime";
 import { spellById } from "../../content/spells";
 import { spellProjectileDirectKnockback } from "../../combat/spellKnockback";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
@@ -125,6 +126,7 @@ export function tickDefenseProjectiles(
         sprite: host.player.sprite,
       },
       PLAYER_TUNING.rangedKnockback * 0.65,
+      playerIncomingDamageMult(),
     );
     if (!alive && p.sourceEnemyId && p.blastRadiusWu !== undefined) {
       const owner = host.findEnemyInstance?.(p.sourceEnemyId);
@@ -145,7 +147,10 @@ export function tickDefenseProjectiles(
       ) {
         const scale =
           (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ?? 1;
-        applyDamage(host.player.damageable, det.damage * scale);
+        applyDamage(
+          host.player.damageable,
+          det.damage * scale * playerIncomingDamageMult(),
+        );
         playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
       }
       host.flashNova(det.x, det.y, blastR, {

@@ -48,7 +48,6 @@ function validateSpellMechanicFields(
       return;
     case "buff":
       requireFiniteNumber(def.shadowformDurationMs, `${path}.shadowformDurationMs`);
-      requireFiniteNumber(def.shadowformDamageMult, `${path}.shadowformDamageMult`);
       return;
     default:
       return;

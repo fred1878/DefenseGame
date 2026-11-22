@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
+import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { worldUnit } from "../../core/worldPixelScale";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
@@ -218,7 +219,9 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
   const holdRadius = worldUnit(WARD_POST_HOLD_RADIUS_PX, reg);
   const holdExitRadius = worldUnit(WARD_POST_HOLD_EXIT_RADIUS_PX, reg);
   const breakMovePx = worldUnit(WARD_POST_BREAK_MOVE_PX, reg);
-  const aggro = ward?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS;
+  const aggro = playerAggroRadiusWu(
+    ward?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS,
+  );
   const extra = enemy.behaviorExtra;
   extra.wardPostHolding = false;
 
