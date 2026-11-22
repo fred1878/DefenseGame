@@ -85,12 +85,15 @@ export function configureDefenseFollowCamera(
 ): void {
   const fieldW = DEFENSE_FIELD_PX.width;
 
+  const fitsHorizontally = fieldW <= playArea.width;
+
   camera.setZoom(1);
   camera.setBackgroundColor(0x0c0c0e);
-  camera.startFollow(follow, true, 0.14, 0.14);
-  camera.setDeadzone(0, 0);
+  /** Portrait: follow on Y only when the full field fits the play-area width (no horizontal pan). */
+  camera.startFollow(follow, true, fitsHorizontally ? 0 : 0.14, 0.14);
+  camera.setDeadzone(fitsHorizontally ? playArea.width + 1 : 0, 0);
 
-  if (fieldW <= playArea.width) {
+  if (fitsHorizontally) {
     const halfW = defenseHalfWidth();
     const padX = (playArea.width - fieldW) / 2;
     camera.setScroll(-halfW - padX, camera.scrollY);

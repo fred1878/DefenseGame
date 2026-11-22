@@ -21,11 +21,12 @@ describe("defense field tiles", () => {
     );
   });
 
-  it("matches night-field data footprint and stays taller than viewport", () => {
-    expect(DEFENSE_FIELD_TILES).toEqual({ cols: 11, rows: 22 });
-    expect(DEFENSE_FIELD_PX.width).toBe(11 * GROUND_TILE_SIZE);
+  it("matches night-field data footprint: one-screen wide, taller than viewport", () => {
+    const colsOneScreen = Math.floor(GAME.width / GROUND_TILE_SIZE);
+    expect(DEFENSE_FIELD_TILES).toEqual({ cols: colsOneScreen, rows: 22 });
+    expect(DEFENSE_FIELD_PX.width).toBe(colsOneScreen * GROUND_TILE_SIZE);
+    expect(DEFENSE_FIELD_PX.width).toBeLessThanOrEqual(GAME.width);
     expect(DEFENSE_FIELD_PX.height).toBeGreaterThan(GAME.height);
-    expect(DEFENSE_FIELD_PX.width).toBeGreaterThan(GAME.width);
   });
 
   it("places north wall inside the north edge", () => {
