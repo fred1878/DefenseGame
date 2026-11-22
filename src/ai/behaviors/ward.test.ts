@@ -50,10 +50,26 @@ describe("ward behavior helpers", () => {
     expect(pick?.id).toBe("b");
   });
 
-  it("places screen point between ally and player", () => {
-    const p = wardScreenPoint(100, 0, 0, 0, 0.5);
-    expect(p.x).toBe(50);
+  it("places screen point at a fixed offset from ally toward player", () => {
+    const reg = {
+      get: () => undefined,
+    } as unknown as import("phaser").Data.DataManager;
+    const offsetWu = 40;
+    const p = wardScreenPoint(100, 0, 0, 0, offsetWu, reg);
+    expect(p.x).toBe(offsetWu);
     expect(p.y).toBe(0);
+  });
+
+  it("keeps slot distance fixed when the player is farther away", () => {
+    const reg = {
+      get: () => undefined,
+    } as unknown as import("phaser").Data.DataManager;
+    const offsetWu = 40;
+    const near = wardScreenPoint(100, 0, 0, 0, offsetWu, reg);
+    const far = wardScreenPoint(300, 0, 0, 0, offsetWu, reg);
+    expect(Math.hypot(near.x, near.y)).toBe(offsetWu);
+    expect(Math.hypot(far.x, far.y)).toBe(offsetWu);
+    expect(far.x).toBe(near.x);
   });
 });
 

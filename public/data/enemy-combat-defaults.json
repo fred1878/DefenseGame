@@ -78,7 +78,7 @@
   },
   "ward": {
     "protectRadius": 220,
-    "screenBlend": 0.42,
+    "screenOffsetWu": 80,
     "playerAggroRadius": 120
   },
   "hybrid": {

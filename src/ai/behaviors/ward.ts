@@ -1,3 +1,4 @@
+import type Phaser from "phaser";
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { worldUnit } from "../../core/worldPixelScale";
@@ -66,17 +67,27 @@ export function pickWardProtectee(
   return best;
 }
 
+/** Escort slot: fixed offset from protectee along the threat line (player → protectee). */
 export function wardScreenPoint(
   px: number,
   py: number,
   ax: number,
   ay: number,
-  blend: number,
+  offsetWu: number,
+  registry: Phaser.Data.DataManager,
 ): { x: number; y: number } {
-  const t = Math.min(1, Math.max(0, blend));
+  const dx = px - ax;
+  const dy = py - ay;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 1e-6) {
+    return { x: ax, y: ay };
+  }
+  const step = worldUnit(offsetWu, registry);
+  const ux = dx / dist;
+  const uy = dy / dist;
   return {
-    x: ax + (px - ax) * t,
-    y: ay + (py - ay) * t,
+    x: ax + ux * step,
+    y: ay + uy * step,
   };
 }
 
@@ -228,7 +239,8 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       playerY,
       protectee.x,
       protectee.y,
-      ward?.screenBlend ?? 0.42,
+      ward!.screenOffsetWu,
+      reg,
     );
     goalX = screen.x;
     goalY = screen.y;
