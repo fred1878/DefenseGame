@@ -8,6 +8,11 @@ import {
   wallCombatPoint,
 } from "../../ai/EnemyBrain";
 import { PLAYER_TUNING } from "../../config";
+import {
+  playerAggroRadiusWu,
+  playerIncomingDamageMult,
+} from "../../config/shadowformRuntime";
+import { PLAYER_AGGRO_RADIUS } from "../../config";
 import type { NavGrid } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
 import {
@@ -131,12 +136,17 @@ export function tickDefenseEnemies(
       setEnemyChaseVelocity(e, 0, 0);
     }
 
+    const combatAggroPx = worldUnit(
+      playerAggroRadiusWu(PLAYER_AGGRO_RADIUS),
+      host.registry,
+    );
     const combatTargetKind = pickEnemyCombatTarget(
       host.navGrid,
       e.sprite.x,
       e.sprite.y,
       px,
       py,
+      combatAggroPx,
     );
     const attackTarget =
       combatTargetKind === "player"
@@ -344,7 +354,10 @@ export function tickDefenseEnemies(
       !host.endlessInfiniteHp &&
       !host.registry.get("e2eGodMode")
     ) {
-      applyDamage(playerDamageable, playerHitDamage);
+      applyDamage(
+        playerDamageable,
+        playerHitDamage * playerIncomingDamageMult(),
+      );
       if (playerDamageable.hp <= 0) {
         playerDamageable.alive = false;
       } else {

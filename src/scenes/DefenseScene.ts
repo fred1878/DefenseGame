@@ -13,6 +13,15 @@ import {
 import type { SaveGame } from "../core/saveTypes";
 import { DataStore, type EnemyDef, type WaveDef } from "../core/DataStore";
 import { playerDamageMult } from "../core/GameState";
+import { SHADOWFORM_MECHANICS } from "../config/shadowformMechanics";
+import {
+  resetShadowformRuntimeMults,
+  setShadowformRuntimeMults,
+} from "../config/shadowformRuntime";
+import {
+  shadowformActive,
+  shadowformMoveSpeedMultiplier,
+} from "../combat/shadowform";
 import {
   type EndlessRunSelection,
   readDefenseRunMode,
@@ -342,6 +351,8 @@ export class DefenseScene extends Phaser.Scene {
     this.groundAimPointerId = null;
     this.groundAimFromUiBand = false;
     this.shadowformEndsAt = 0;
+    resetShadowformRuntimeMults();
+    this.syncShadowformPlayerFx(false);
     for (const wall of this.iceWallExpires) wall.sprite.destroy();
     this.iceWallExpires = [];
     this.endlessSelections = null;
@@ -527,19 +538,51 @@ export class DefenseScene extends Phaser.Scene {
     this.events.once("shutdown", this.onDefenseShutdown);
   }
 
+  private syncShadowformPlayerFx(active: boolean): void {
+    const spr = this.player?.sprite;
+    if (!spr) return;
+    if (active) {
+      spr.setAlpha(0.88);
+      spr.setTint(0xb8a8e8);
+    } else {
+      spr.clearTint();
+      spr.setAlpha(1);
+    }
+  }
+
+  private syncShadowformRuntime(nowMs: number): void {
+    const active = shadowformActive(this.shadowformEndsAt, nowMs);
+    const mechanics = SHADOWFORM_MECHANICS;
+    setShadowformRuntimeMults({
+      aggroRadiusMult: active ? mechanics.aggroRadiusMult : 1,
+      damageTakenMult: active ? mechanics.damageTakenMult : 1,
+    });
+    this.syncShadowformPlayerFx(active);
+  }
+
   update(_time: number, delta: number): void {
     this.spellCaster.tickCooldowns(delta);
+    this.syncShadowformRuntime(this.time.now);
     const dir = this.stick.getDirection();
     const px = this.player.sprite.x;
     const py = this.player.sprite.y;
+    const moveSpeed = shadowformMoveSpeedMultiplier(
+      shadowformActive(this.shadowformEndsAt, this.time.now),
+      SHADOWFORM_MECHANICS,
+    );
 
     if (this.spellCaster.isChanneling()) {
       this.spellDirector.updateChanneling(delta, dir, () => this.shouldLockMeleeAimFacing());
     } else {
       const lockMeleeAim = this.shouldLockMeleeAimFacing();
-      this.player.setVelocityFromStick(dir.x, dir.y, this.save.player.moveSpeed, {
-        lockMeleeAim,
-      });
+      this.player.setVelocityFromStick(
+        dir.x,
+        dir.y,
+        this.save.player.moveSpeed * moveSpeed,
+        {
+          lockMeleeAim,
+        },
+      );
       if (lockMeleeAim) {
         const target = this.targeting.facingTarget("melee", false);
         if (target) this.player.faceToward(target.x, target.y);

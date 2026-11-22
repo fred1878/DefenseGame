@@ -1,4 +1,5 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
+import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
   pathingPeerAgents,
@@ -22,8 +23,9 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
   const reg = enemy.sprite.scene.registry;
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
   const siege = enemy.combatTuning.wallSiege;
-  const aggro =
-    siege?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS;
+  const aggro = playerAggroRadiusWu(
+    siege?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS,
+  );
   const resolved = resolveEnemyTarget(
     nav,
     grid,

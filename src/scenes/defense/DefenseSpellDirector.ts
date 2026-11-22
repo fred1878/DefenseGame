@@ -688,10 +688,7 @@ export class DefenseSpellDirector {
   }
 
   spellDamageMult(): number {
-    const mult = playerDamageMult(this.host.save.buildings);
-    if (this.host.shadowformEndsAt <= this.host.timeNow()) return mult;
-    const shade = spellById("shadowform");
-    return mult * (shade?.shadowformDamageMult ?? 1);
+    return playerDamageMult(this.host.save.buildings);
   }
 
   resolveSpellEffect(def: SpellDefinition): void {

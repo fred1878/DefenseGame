@@ -380,6 +380,7 @@ export function updateEnemyProjectile(
     sprite: Phaser.Physics.Arcade.Sprite;
   },
   knockback: number,
+  incomingDamageMult = 1,
 ): boolean {
   if (!projectile.sprite.active) return false;
 
@@ -413,7 +414,11 @@ export function updateEnemyProjectile(
         flavor: projectile.damageFlavor,
       };
     } else {
-      applyDamage(player.damageable, projectile.damage, projectile.damageFlavor);
+      applyDamage(
+        player.damageable,
+        projectile.damage * incomingDamageMult,
+        projectile.damageFlavor,
+      );
       applyKnockbackFrom(
         player.sprite,
         projectile.sprite.x,
