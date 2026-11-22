@@ -17,6 +17,20 @@ const MELEE_MAX_RANGE_FILL = 0xffb74d;
 const MELEE_MAX_RANGE_FILL_ALPHA = 0.07;
 const MELEE_MAX_RANGE_LINE = 0xff9800;
 const MELEE_MAX_RANGE_LINE_ALPHA = 0.52;
+const PROJECTILE_FILL = 0xd946ef;
+const PROJECTILE_FILL_ALPHA = 0.3;
+const PROJECTILE_LINE = 0xc026d3;
+const PROJECTILE_LINE_ALPHA = 0.75;
+const PROJECTILE_HIT_TEST_FILL = 0xf0abfc;
+const PROJECTILE_HIT_TEST_ALPHA = 0.1;
+const PROJECTILE_BLAST_FILL = 0xd946ef;
+const PROJECTILE_BLAST_ALPHA = 0.08;
+const CHARGE_TOUCH_FILL = 0x22d3ee;
+const CHARGE_TOUCH_FILL_ALPHA = 0.14;
+const CHARGE_TOUCH_LINE = 0x22d3ee;
+const CHARGE_TOUCH_LINE_ALPHA = 0.65;
+const CHARGE_DASH_LINE = 0x67e8f9;
+const CHARGE_DASH_LINE_ALPHA = 0.8;
 
 /** Clears and redraws combat hitboxes in world space. */
 export class HitboxDebugDraw {
@@ -69,6 +83,51 @@ export class HitboxDebugDraw {
     this.g.fillRect(left, top, w, h);
     this.g.lineStyle(2, OBSTACLE_LINE, OBSTACLE_LINE_ALPHA);
     this.g.strokeRect(left + 0.5, top + 0.5, w - 1, h - 1);
+  }
+
+  /** Moving projectile body (arcade circle). */
+  drawProjectileBody(x: number, y: number, radius: number): void {
+    this.g.fillStyle(PROJECTILE_FILL, PROJECTILE_FILL_ALPHA);
+    this.g.fillCircle(x, y, radius);
+    this.g.lineStyle(1.25, PROJECTILE_LINE, PROJECTILE_LINE_ALPHA);
+    this.g.strokeCircle(x, y, radius);
+  }
+
+  /** Segment-vs-circle test uses `player.radius + slack` at the projectile center. */
+  drawProjectilePlayerHitTest(x: number, y: number, radius: number): void {
+    this.g.fillStyle(PROJECTILE_HIT_TEST_FILL, PROJECTILE_HIT_TEST_ALPHA);
+    this.g.fillCircle(x, y, radius);
+    this.g.lineStyle(1, PROJECTILE_LINE, PROJECTILE_LINE_ALPHA * 0.6);
+    this.g.strokeCircle(x, y, radius);
+  }
+
+  /** Ground blast center (lob in flight / imminent detonation). */
+  drawProjectileBlastRadius(x: number, y: number, radius: number): void {
+    this.g.fillStyle(PROJECTILE_BLAST_FILL, PROJECTILE_BLAST_ALPHA);
+    this.g.fillCircle(x, y, radius);
+    this.g.lineStyle(1.25, PROJECTILE_LINE, PROJECTILE_LINE_ALPHA * 0.85);
+    this.g.strokeCircle(x, y, radius);
+  }
+
+  /** Charger dash contact disk (body + player radius). */
+  drawChargeTouchRadius(x: number, y: number, radius: number): void {
+    this.g.fillStyle(CHARGE_TOUCH_FILL, CHARGE_TOUCH_FILL_ALPHA);
+    this.g.fillCircle(x, y, radius);
+    this.g.lineStyle(1.5, CHARGE_TOUCH_LINE, CHARGE_TOUCH_LINE_ALPHA);
+    this.g.strokeCircle(x, y, radius);
+  }
+
+  drawChargeDashLine(
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+  ): void {
+    this.g.lineStyle(2, CHARGE_DASH_LINE, CHARGE_DASH_LINE_ALPHA);
+    this.g.beginPath();
+    this.g.moveTo(fromX, fromY);
+    this.g.lineTo(toX, toY);
+    this.g.strokePath();
   }
 
   drawMeleeArc(

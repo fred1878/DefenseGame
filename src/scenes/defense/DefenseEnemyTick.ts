@@ -168,6 +168,7 @@ export function tickDefenseEnemies(
           e.combatTuning.javelineer!.projectileMaxTravel,
           id,
         );
+        javProj.sourceEnemyId = e.id;
         host.maskWorldObject?.(javProj.sprite);
         enemyProjectiles.push(javProj);
       }
@@ -195,6 +196,7 @@ export function tickDefenseEnemies(
           tune.projectileMaxTravel,
           id,
         );
+        boltProj.sourceEnemyId = e.id;
         host.maskWorldObject?.(boltProj.sprite);
         enemyProjectiles.push(boltProj);
       }
@@ -221,6 +223,7 @@ export function tickDefenseEnemies(
           tune.projectileMaxTravel,
           id,
         );
+        hybridProj.sourceEnemyId = e.id;
         host.maskWorldObject?.(hybridProj.sprite);
         enemyProjectiles.push(hybridProj);
       }
@@ -294,6 +297,7 @@ export function tickDefenseEnemies(
         );
         (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =
           req.blastDamageScale;
+        proj.sourceEnemyId = e.id;
         host.maskWorldObject?.(proj.sprite);
         enemyProjectiles.push(proj);
       }
