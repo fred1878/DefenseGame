@@ -67,12 +67,12 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 
 **Config-only data:** TypeScript must not define fallback gameplay numbers. Every value in the table below must exist in the matching JSON file; Boot fails fast with a clear path when something is missing. Per-enemy `combat` blocks must be fully authored on each row (no global combat defaults file).
 
-**enemies.json** — per-enemy **required** `hp`, `speed`, `damage`, plus `behavior` id (maps to `src/ai/behaviors/`). Required `combat` objects must include `wall`, `melee`, and behavior-specific kits with every field `resolveEnemyCombat` needs. Global chase and north-wall path tuning load from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` / `NORTH_WALL_MELEE_STANDOFF_PX` (`applyEnemyAi`).
+**enemies.json** — per-enemy **required** `hp`, `speed`, `damage`, plus `behavior` id (maps to `src/ai/behaviors/`). Required `combat` objects must include `wall`, behavior-specific kits, and `melee` only when the behavior uses player melee activation (see table). Global chase and north-wall path tuning load from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` / `NORTH_WALL_MELEE_STANDOFF_PX` (`applyEnemyAi`).
 
 | `combat` block | Used when `behavior` is |
 |----------------|-------------------------|
 | `wall` | All (north wall objective) |
-| `melee` | Player melee kits (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid`) — arc swipe / hybrid melee; **omit** on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber` (global `melee` defaults via `resolveEnemyCombat` only) |
+| `melee` | Player melee kits (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid`) — arc swipe / hybrid melee; **omit** on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber` (phase timings live on the behavior kit only) |
 | `arrowRain` | `arrowRainArcher` (telegraphed floor AoE) |
 | `javelineer` | `javelineer` (kite band + toss) |
 | `stationaryRanged` | `stationaryRanged` (hold + straight bolt) |
