@@ -57,7 +57,7 @@ docs/                  # AGENTS, TESTING, CI_RELEASES, REFACTOR_PLAN; ROADMAP at
 |-------|------|--------|
 | **Tuning** | `src/config/` | Canvas/layout only (`GAME`, `SPELL_BAR` / `CAST_BAR` px, render depths). **No gameplay numbers** — combat, player, AI, spells mechanics, entity physics, defense field size, and enemy combat tables load from `public/data/` at Boot with strict validation (`ConfigLoadError` if a field is missing). |
 | **Code content** | `src/content/` | `assets.ts` (texture keys, file paths, nine-slice), `spells.ts` (`SPELL_CATALOG`, spell ids). Candidate to move spells → `public/data/spells.json` later. |
-| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spells.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). |
+| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spells.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). Field-by-field reference: [public/data/DATA_FIELDS.md](../public/data/DATA_FIELDS.md). |
 
 Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). `src/config.ts` re-exports **tuning only** from `src/config/index.ts`.
 
@@ -237,6 +237,7 @@ npm run preview      # serve dist locally
 
 ## Related docs
 
+- [Data JSON fields](../public/data/DATA_FIELDS.md) — schema and units for every shipped `public/data/*.json` file; changing boot-required keys in `normalize*` requires updating that doc in the same PR (`dataFieldsDoc.test.ts` enforces bidirectional parity)
 - [Testing](./TESTING.md)
 - [CI and releases](./CI_RELEASES.md)
 - [Refactor plan](./REFACTOR_PLAN.md) — splitting `DefenseScene` and other large files

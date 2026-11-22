@@ -15,6 +15,13 @@ export type EntityPhysicsTuning = {
   knockbackVelocityCapMult: number;
 };
 
+/** Boot-required keys for `public/data/entity-physics.json` (see `DATA_FIELDS.md`). */
+export const ENTITY_PHYSICS_BOOT_KEYS = [
+  "enemyPathClearanceMarginWu",
+  "staticObstacleNavClearanceWu",
+  "knockbackVelocityCapMult",
+] as const satisfies readonly (keyof EntityPhysicsTuning)[];
+
 export function normalizeEntityPhysics(
   raw: EntityPhysicsInput | null | undefined,
 ): EntityPhysicsTuning {

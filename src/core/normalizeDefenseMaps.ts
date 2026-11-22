@@ -6,6 +6,16 @@ import {
   requireRecord,
 } from "./configValidation";
 
+/** Boot-validated keys for `public/data/defense-maps.json` (see `DATA_FIELDS.md`). */
+export const DEFENSE_MAPS_FILE_BOOT_KEYS = ["defaultMapId", "maps"] as const;
+export const DEFENSE_MAP_BOOT_KEYS = ["id", "field", "obstacles"] as const;
+export const DEFENSE_MAP_FIELD_BOOT_KEYS = ["cols", "rows"] as const;
+export const DEFENSE_MAP_OBSTACLE_BOOT_KEYS = [
+  "tileX",
+  "tileY",
+  "textureKey",
+] as const;
+
 const VALID_TEXTURE_KEYS = new Set<string>(Object.values(OBSTACLE_TEXTURE));
 
 export type DefenseMapFieldInput = { cols?: number; rows?: number };

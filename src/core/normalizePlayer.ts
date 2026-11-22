@@ -5,7 +5,8 @@ import {
 } from "./configValidation";
 import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 
-const PLAYER_TUNING_KEYS = [
+/** Boot-required tuning keys for `public/data/player.json` (see `DATA_FIELDS.md`). */
+export const PLAYER_TUNING_BOOT_KEYS = [
   "moveSpeedWu",
   "meleeWindupMs",
   "meleeActiveMs",
@@ -32,7 +33,12 @@ const PLAYER_TUNING_KEYS = [
 ] as const satisfies readonly (keyof PlayerTuning)[];
 
 /** Authorable subset of `public/data/player.json` (derived fields omitted). */
-export type PlayerConfigInput = Partial<Record<(typeof PLAYER_TUNING_KEYS)[number], number>> & {
+export const PLAYER_BOOT_KEYS = [
+  ...PLAYER_TUNING_BOOT_KEYS,
+  "endlessPanelDefaultConcurrent",
+] as const;
+
+export type PlayerConfigInput = Partial<Record<(typeof PLAYER_TUNING_BOOT_KEYS)[number], number>> & {
   endlessPanelDefaultConcurrent?: number;
 };
 
@@ -43,7 +49,7 @@ export type PlayerConfig = PlayerTuning & {
 export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined): PlayerConfig {
   const root = requireRecord(raw, "player");
   const tuning = {} as Record<string, number>;
-  for (const key of PLAYER_TUNING_KEYS) {
+  for (const key of PLAYER_TUNING_BOOT_KEYS) {
     tuning[key] = requireFiniteNumber(root[key], `player.${key}`);
   }
   const meleeStrikeRangeWu = tuning.meleeStrikeRangeWu!;

@@ -1,0 +1,43 @@
+/**
+ * Field names documented for JSON loaded at Boot without a dedicated normalize* module.
+ * Kept in sync with `public/data/DATA_FIELDS.md`; CI reads this via `dataFieldsDoc.test.ts`.
+ */
+
+export const WAVES_DOC_KEYS = [
+  "rewardGold",
+  "groups",
+  "atMs",
+  "enemyId",
+  "count",
+  "intervalMs",
+] as const;
+
+export const BUILDINGS_DOC_KEYS = ["maxLevel", "costByLevel", "effect"] as const;
+
+export const TOWN_BUILDINGS_DOC_KEYS = [
+  "label",
+  "textureKey",
+  "width",
+  "height",
+  "upgradeId",
+  "startsNight",
+  "opensSpellBar",
+  "opensEndlessMode",
+  "opensWavePlanner",
+] as const;
+
+export const TOWN_LAYOUT_DOC_KEYS = ["slots", "buildingId", "x", "y"] as const;
+
+/** Shipped runtime JSON under `public/data/` (excludes removed legacy files). */
+export const SHIPPED_DATA_JSON_FILES = [
+  "buildings.json",
+  "defense-maps.json",
+  "enemies.json",
+  "enemy-ai.json",
+  "entity-physics.json",
+  "player.json",
+  "spells.json",
+  "town_buildings.json",
+  "town_layout.json",
+  "waves.json",
+] as const;
