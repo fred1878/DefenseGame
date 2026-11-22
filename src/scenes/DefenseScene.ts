@@ -1232,6 +1232,11 @@ export class DefenseScene extends Phaser.Scene {
       py,
       this.wu(PLAYER_TUNING.autoAttackMeleeRange),
     );
+    this.hitboxDebug.drawMeleeMaxRange(
+      px,
+      py,
+      this.wu(PLAYER_TUNING.meleeStrikeRange),
+    );
     this.hitboxDebug.drawCircle(px, py, playerR);
 
     if (
@@ -1251,10 +1256,16 @@ export class DefenseScene extends Phaser.Scene {
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       if (enemyUsesMeleePlayerActivationRange(e.behavior)) {
+        const { melee } = e.combatTuning;
         this.hitboxDebug.drawMeleeActivationRange(
           e.sprite.x,
           e.sprite.y,
-          e.combatTuning.melee.triggerRange,
+          melee.triggerRange,
+        );
+        this.hitboxDebug.drawMeleeMaxRange(
+          e.sprite.x,
+          e.sprite.y,
+          melee.range,
         );
       }
       this.hitboxDebug.drawCircle(
