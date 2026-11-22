@@ -10,7 +10,7 @@
       "melee": {
         "triggerRange": 78,
         "range": 72,
-        "meleeChaseStandoffWu": 2,
+        "meleeChaseStandoffWu": 4,
         "arcDeg": 70,
         "windupMs": 100,
         "activeMs": 110,
@@ -38,7 +38,7 @@
       "melee": {
         "triggerRange": 90,
         "range": 84,
-        "meleeChaseStandoffWu": 2,
+        "meleeChaseStandoffWu": 5,
         "arcDeg": 100,
         "windupMs": 480,
         "activeMs": 130,
@@ -48,7 +48,7 @@
     },
     "weight": 170,
     "challengeRating": 70,
-    "bodyRadius": 21
+    "bodyRadius": 28
   },
   "arrow_rain_archer": {
     "hp": 40,
