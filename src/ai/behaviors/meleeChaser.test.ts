@@ -90,14 +90,16 @@ describe("meleeChaserBehavior", () => {
       defId: "grunt",
       speed: 80,
     });
-    enemy.sprite.x = -100;
-    enemy.sprite.y = 0;
+    const slot = { x: -35, y: 70 };
+    enemy.sprite.x = slot.x;
+    enemy.sprite.y = slot.y;
     enemy.nav = {
       ...createEnemyNav(),
       targetKind: "player",
-      path: [{ x: -35, y: 70 }],
+      path: [slot],
       pathIndex: 1,
       replanMs: 5000,
+      pathGoalReached: false,
     };
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     meleeChaserBehavior({
@@ -253,6 +255,39 @@ describe("meleeChaserBehavior", () => {
         ),
       ),
     ).toBeLessThan(0.2);
+  });
+
+  it("does not LOS-bite toward player center after a small player offset when unreachable", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speed: 80,
+    });
+    const flankSlot = { x: -100, y: -15 };
+    enemy.sprite.x = flankSlot.x;
+    enemy.sprite.y = flankSlot.y;
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "player",
+      path: [flankSlot],
+      pathIndex: 1,
+      replanMs: 5000,
+      pathGoalReached: false,
+      meleePackAnchorX: 0,
+      meleePackAnchorY: 0,
+    };
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    meleeChaserBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 10,
+      playerY: -6,
+      deltaMs: 16,
+      objective: "huntPlayer",
+    });
+    const [vx, vy] = setVelocity.mock.calls.at(-1)!;
+    expect(Math.hypot(vx, vy)).toBe(0);
   });
 
   it("steers to flank slot instead of player center when path goal is unreachable", () => {

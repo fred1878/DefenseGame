@@ -12,8 +12,13 @@ import {
   applyChaseVelocity,
   applyPlayerMeleeHold,
   applyWallMeleeHold,
+  commitPlayerChasePathGoal,
+  meleeChasePeersFromAllies,
+  meleePackAnchorHysteresisPx,
+  meleePackPlayerAnchor,
   playerChaseVelocityOpts,
   playerMeleeChaseHoldPoint,
+  shouldHoldAtPlayerMelee,
   shouldHoldAtWallMelee,
   shouldHoldMeleeChaseChordBlocked,
   shouldMeleeLosShortcutToPlayer,
@@ -43,30 +48,44 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   const goal = { x: resolved.goalX, y: resolved.goalY };
   const holdAtWall = shouldHoldAtWallMelee(enemy, desired);
 
+  const packHysteresisPx = meleePackAnchorHysteresisPx(reg);
+  const packAnchorActive =
+    desired === "player" &&
+    (!nav.pathGoalReached ||
+      shouldHoldMeleeChaseChordBlocked(
+        enemy,
+        playerX,
+        playerY,
+        meleeChasePeersFromAllies(enemy.id, peerAllies),
+      ));
+  const packPlayer = meleePackPlayerAnchor(
+    nav,
+    playerX,
+    playerY,
+    packAnchorActive,
+    packHysteresisPx,
+  );
+
   const chaseVelocityOpts = playerChaseVelocityOpts(enemy, {
     nav,
     deltaMs,
     targetKind: desired,
-    playerX,
-    playerY,
+    playerX: packPlayer.x,
+    playerY: packPlayer.y,
     peerAllies,
   });
   const chordBlocked =
     desired === "player" &&
     shouldHoldMeleeChaseChordBlocked(
       enemy,
-      playerX,
-      playerY,
+      packPlayer.x,
+      packPlayer.y,
       chaseVelocityOpts.meleeChasePeers,
     );
 
   const pathActive = nav.path.length > 0 && nav.pathIndex < nav.path.length;
-  if (
-    !holdAtWall &&
-    (nav.replanMs <= 0 ||
-      nav.path.length === 0 ||
-      nav.pathIndex >= nav.path.length)
-  ) {
+  if (!holdAtWall && (nav.replanMs <= 0 || nav.path.length === 0)) {
+    const wasReachable = nav.pathGoalReached;
     replanEnemyPath(
       nav,
       grid,
@@ -84,6 +103,14 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
       ),
       enemy,
     );
+    if (desired === "player") {
+      commitPlayerChasePathGoal(
+        nav,
+        nav.pathGoalReached,
+        wasReachable,
+        shouldHoldAtPlayerMelee(enemy, desired, playerX, playerY),
+      );
+    }
     nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }
 
@@ -95,7 +122,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
   let moveX = goal.x;
   let moveY = goal.y;
   if (desired === "player") {
-    const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+    const hold = playerMeleeChaseHoldPoint(enemy, packPlayer.x, packPlayer.y);
     moveX = hold.x;
     moveY = hold.y;
   }
@@ -130,11 +157,14 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     }
   } else if (desired === "player" && !nav.pathGoalReached) {
     const tail = nav.path[nav.path.length - 1];
-    if (tail) {
+    if (tail && Math.hypot(tail.x - ex, tail.y - ey) > 1) {
       moveX = tail.x;
       moveY = tail.y;
+    } else if (tail) {
+      applyPlayerMeleeHold(enemy);
+      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
     } else {
-      const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+      const hold = playerMeleeChaseHoldPoint(enemy, packPlayer.x, packPlayer.y);
       moveX = hold.x;
       moveY = hold.y;
     }
