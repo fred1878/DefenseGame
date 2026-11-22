@@ -18,9 +18,12 @@ const enemiesRaw = JSON.parse(
 const enemyDefs = Object.fromEntries(
   Object.entries(enemiesRaw).map(([id, row]) => [id, normalizeEnemyRow(id, row)]),
 );
+import { createEnemyNav } from "../EnemyBrain";
 import {
   applyChaseVelocity,
   applyWallMeleeHold,
+  commitPlayerChasePathGoal,
+  meleePackPlayerAnchor,
   playerMeleeChaseStandoffCenterDist,
   shouldHoldAtPlayerMelee,
   shouldHoldMeleeChaseChordBlocked,
@@ -28,6 +31,27 @@ import {
   wallMeleeDistToAttackPlane,
   wallMeleeStandoffY,
 } from "./movement";
+
+describe("melee pack anchor and unreachable stickiness", () => {
+  it("keeps pathGoalReached false until standoff after an unreachable replan", () => {
+    const nav = createEnemyNav();
+    nav.pathGoalReached = false;
+    commitPlayerChasePathGoal(nav, true, false, false);
+    expect(nav.pathGoalReached).toBe(false);
+    commitPlayerChasePathGoal(nav, true, false, true);
+    expect(nav.pathGoalReached).toBe(true);
+  });
+
+  it("ignores small player nudges while the anchor is active", () => {
+    const nav = createEnemyNav();
+    const anchor = meleePackPlayerAnchor(nav, 0, 0, true, 80);
+    expect(anchor).toEqual({ x: 0, y: 0 });
+    const nudged = meleePackPlayerAnchor(nav, 12, -8, true, 80);
+    expect(nudged).toEqual({ x: 0, y: 0 });
+    const far = meleePackPlayerAnchor(nav, 120, 0, true, 80);
+    expect(far).toEqual({ x: 120, y: 0 });
+  });
+});
 
 describe("player melee standoff", () => {
   it("holds when center distance is within body contact plus gap", () => {

@@ -10,6 +10,9 @@ import {
   playerBodyRadiusPx,
 } from "../../entities/entityPhysics";
 import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
+
+/** World units — ignore player nudge smaller than this for pack holds / chord tests. */
+const MELEE_PACK_ANCHOR_HYSTERESIS_WU = 4;
 import type { EnemyPeerAlly } from "./types";
 
 export { setEnemyChaseVelocity };
@@ -185,6 +188,62 @@ export function shouldMeleeLosShortcutToPlayer(
 ): boolean {
   if (!nav.pathGoalReached) return false;
   return nav.path.length === 0 || nav.pathIndex >= nav.path.length;
+}
+
+/** Keep unreachable player goals sticky until standoff engage (avoids knockback LOS resync). */
+export function commitPlayerChasePathGoal(
+  nav: EnemyNavState,
+  reachedGoal: boolean,
+  wasReachable: boolean,
+  inStandoff: boolean,
+): void {
+  if (!reachedGoal) {
+    nav.pathGoalReached = false;
+    return;
+  }
+  if (!wasReachable) {
+    nav.pathGoalReached = inStandoff;
+    return;
+  }
+  nav.pathGoalReached = true;
+}
+
+/**
+ * Player position for pack chord/hold math — anchors while unreachable or chord-blocked
+ * so micro knockback does not re-open LOS closes for the whole ring.
+ */
+export function meleePackPlayerAnchor(
+  nav: EnemyNavState,
+  playerX: number,
+  playerY: number,
+  anchorActive: boolean,
+  hysteresisPx: number,
+): { x: number; y: number } {
+  if (!anchorActive) {
+    nav.meleePackAnchorX = undefined;
+    nav.meleePackAnchorY = undefined;
+    return { x: playerX, y: playerY };
+  }
+  if (nav.meleePackAnchorX === undefined || nav.meleePackAnchorY === undefined) {
+    nav.meleePackAnchorX = playerX;
+    nav.meleePackAnchorY = playerY;
+    return { x: playerX, y: playerY };
+  }
+  const d = Math.hypot(
+    playerX - nav.meleePackAnchorX,
+    playerY - nav.meleePackAnchorY,
+  );
+  if (d > hysteresisPx) {
+    nav.meleePackAnchorX = playerX;
+    nav.meleePackAnchorY = playerY;
+  }
+  return { x: nav.meleePackAnchorX, y: nav.meleePackAnchorY };
+}
+
+export function meleePackAnchorHysteresisPx(
+  registry: Phaser.Data.DataManager,
+): number {
+  return worldUnit(MELEE_PACK_ANCHOR_HYSTERESIS_WU, registry);
 }
 
 /** True when a closer ally's body blocks the direct close line toward the player. */
