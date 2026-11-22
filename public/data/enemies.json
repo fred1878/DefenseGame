@@ -63,15 +63,6 @@
         "triggerRange": 42,
         "hitRange": 34
       },
-      "melee": {
-        "triggerRange": 54,
-        "range": 45,
-        "arcDeg": 70,
-        "windupMs": 380,
-        "activeMs": 110,
-        "recoveryMs": 800,
-        "cooldownMs": 350
-      },
       "arrowRain": {
         "damage": 4,
         "preferredRange": 150,
@@ -131,15 +122,6 @@
         "triggerRange": 40,
         "hitRange": 32
       },
-      "melee": {
-        "triggerRange": 51,
-        "range": 34,
-        "arcDeg": 65,
-        "windupMs": 360,
-        "activeMs": 100,
-        "recoveryMs": 440,
-        "cooldownMs": 320
-      },
       "stationaryRanged": {
         "damage": 10,
         "preferredRange": 210,
@@ -168,16 +150,6 @@
         "damage": 6,
         "triggerRange": 46,
         "hitRange": 38
-      },
-      "melee": {
-        "triggerRange": 51,
-        "range": 37,
-        "meleeChaseStandoffWu": 2,
-        "arcDeg": 68,
-        "windupMs": 360,
-        "activeMs": 100,
-        "recoveryMs": 460,
-        "cooldownMs": 320
       },
       "javelineer": {
         "damage": 9,
@@ -309,15 +281,6 @@
         "damage": 6,
         "triggerRange": 42,
         "hitRange": 34
-      },
-      "melee": {
-        "triggerRange": 51,
-        "range": 37,
-        "arcDeg": 65,
-        "windupMs": 340,
-        "activeMs": 100,
-        "recoveryMs": 440,
-        "cooldownMs": 320
       },
       "lobber": {
         "damage": 10,
