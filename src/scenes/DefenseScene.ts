@@ -1141,7 +1141,7 @@ export class DefenseScene extends Phaser.Scene {
         this,
         this.player.sprite.x,
         this.player.sprite.y,
-        this.player.getFacingAngle(),
+        this.player.meleeHitboxFacingRad(),
         PLAYER_TUNING.meleeActiveMs,
         this.registerWorldDraw,
       );
@@ -1229,14 +1229,14 @@ export class DefenseScene extends Phaser.Scene {
     this.hitboxDebug.drawCircle(px, py, playerR);
 
     if (
-      this.player.mode === "melee" &&
+      this.player.strikeMode() === "melee" &&
       this.player.attackPhaseNow === "active"
     ) {
       const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
       this.hitboxDebug.drawMeleeArc(
         px,
         py,
-        this.player.getFacingAngle(),
+        this.player.meleeHitboxFacingRad(),
         this.wu(PLAYER_TUNING.meleeStrikeRange),
         arcHalf,
       );

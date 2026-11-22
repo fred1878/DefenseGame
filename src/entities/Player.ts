@@ -21,6 +21,8 @@ export class Player {
   readonly sprite: Phaser.Physics.Arcade.Sprite;
   readonly damageable: Damageable;
   private facing = 0;
+  /** Arc direction fixed when a melee swing begins (windup). */
+  private meleeSwingFacingRad = 0;
   private cardinalFacing: PlayerCardinal = "s";
   private attackPhase: AttackPhase = "idle";
   private phaseElapsed = 0;
@@ -68,6 +70,14 @@ export class Player {
   }
 
   getFacingAngle(): number {
+    return this.facing;
+  }
+
+  /** Melee hitbox / swipe FX bearing; locked for the whole swing. */
+  meleeHitboxFacingRad(): number {
+    if (this.strikeMode() === "melee" && this.attackPhase !== "idle") {
+      return this.meleeSwingFacingRad;
+    }
     return this.facing;
   }
 
@@ -152,6 +162,9 @@ export class Player {
     this.hitEnemyIds.clear();
     this.rangedShotPending = false;
     this.strikeModeOverride = strikeMode ?? null;
+    if (this.strikeMode() === "melee") {
+      this.meleeSwingFacingRad = this.facing;
+    }
     return true;
   }
 
@@ -196,7 +209,7 @@ export class Player {
       const hit = arcHitboxHitsTarget(
         this.sprite.x,
         this.sprite.y,
-        this.facing,
+        this.meleeSwingFacingRad,
         worldUnit(PLAYER_TUNING.meleeStrikeRange, this.sprite.scene.registry),
         arcHalf,
         e.sprite.x,

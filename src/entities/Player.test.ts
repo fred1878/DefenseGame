@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { PLAYER_TUNING } from "../config";
+import type { EnemyInstance } from "./Enemy";
 import { Player } from "./Player";
 
 function mockPlayer(hpMax = 100): Player {
@@ -46,5 +48,44 @@ describe("Player setVelocityFromStick melee aim lock", () => {
     player.setVelocityFromStick(0, 1, 200);
 
     expect(player.getFacingAngle()).toBeCloseTo(Math.PI / 2);
+  });
+});
+
+function mockEnemyAt(x: number, y: number): EnemyInstance {
+  const damageable = {
+    id: "e1",
+    hp: 100,
+    maxHp: 100,
+    alive: true,
+    team: "enemy" as const,
+  };
+  return {
+    id: "e1",
+    defId: "grunt",
+    sprite: {
+      x,
+      y,
+      scene: { registry: new Map([["worldPixelScale", 1]]) },
+    },
+    damageable,
+  } as unknown as EnemyInstance;
+}
+
+describe("Player melee swing hitbox", () => {
+  it("keeps arc facing from swing start while stick rotates aim", () => {
+    const player = mockPlayer();
+    player.faceToward(100, 0);
+    player.tryStartAttack("melee");
+    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
+    player.setVelocityFromStick(0, 1, 200);
+    expect(player.getFacingAngle()).toBeCloseTo(Math.PI / 2);
+
+    const east = mockEnemyAt(60, 0);
+    const south = mockEnemyAt(0, 60);
+    player.damageEnemiesInArc([east, south], 10, 0);
+
+    expect(east.damageable.hp).toBeLessThan(100);
+    expect(south.damageable.hp).toBe(100);
+    expect(player.meleeHitboxFacingRad()).toBeCloseTo(0);
   });
 });
