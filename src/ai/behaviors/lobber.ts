@@ -8,11 +8,8 @@ import {
   wallPathingPlayerClearancePx,
 } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import {
-  applyChaseVelocity,
-  applyDirectVelocity,
-  setEnemyChaseVelocity,
-} from "./movement";
+import { applyChaseVelocity, applyDirectVelocity, setEnemyChaseVelocity } from "./movement";
+import { applyRetreatPathing } from "./retreatPathing";
 
 export const lobberBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -76,7 +73,28 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   }
 
   if (dist < preferred - bandSlack) {
-    applyDirectVelocity(enemy, ex - targetX, ey - targetY, 0.78);
+    applyRetreatPathing({
+      enemy,
+      nav,
+      grid,
+      threatX: targetX,
+      threatY: targetY,
+      deltaMs,
+      waypointRadius,
+      peerAgents: pathingPeerAgents(
+        peerAgents,
+        resolved.targetKind,
+        playerX,
+        playerY,
+        wallPathingPlayerClearancePx(reg),
+      ),
+      speedMul: 0.78,
+      retreatGoalDistPx: Math.max(
+        worldUnit(64, reg),
+        preferred - dist + bandSlack,
+      ),
+    });
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   } else if (dist <= attackMax) {
     if (enemy.combat.phase === "idle") {
       setEnemyChaseVelocity(enemy, 0, 0);
