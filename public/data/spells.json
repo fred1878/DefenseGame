@@ -93,10 +93,10 @@
       "implementationPhase": 1,
       "cooldownMs": 12000,
       "channelMs": 1500,
-      "healAmount": 25,
+      "healAmount": 42,
       "iconFile": "heal.png",
       "targetMode": "self",
-      "channelTickMs": 0
+      "channelTickMs": 250
     },
     {
       "id": "flash_heal",

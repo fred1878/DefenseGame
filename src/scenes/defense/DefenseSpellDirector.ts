@@ -12,6 +12,7 @@ import {
 import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import {
   applyChanneledHeal,
+  applyHealAmount,
   applyChainLightning,
   applyInstantTargeted,
   applySpellBlastAt,
@@ -26,6 +27,15 @@ import {
   createChanneledConeTickState,
   type ChanneledConeTickState,
 } from "../../combat/channeledConeChannel";
+import {
+  advanceChanneledHealTicks,
+  channeledHealCompletionRemainder,
+  channeledHealMaxTicks,
+  channeledHealTickHealAmount,
+  createChanneledHealTickState,
+  isChanneledHealSpell,
+  type ChanneledHealTickState,
+} from "../../combat/channeledHealChannel";
 import {
   fireNovaRingDurationMs,
   showFireNovaRingFx,
@@ -119,6 +129,7 @@ export type DefenseSpellDirectorHost = {
 
 export class DefenseSpellDirector {
   private channeledConeTicks: ChanneledConeTickState = createChanneledConeTickState();
+  private channeledHealTicks: ChanneledHealTickState = createChanneledHealTickState();
 
   constructor(private readonly host: DefenseSpellDirectorHost) {}
 
@@ -156,6 +167,13 @@ export class DefenseSpellDirector {
     ) {
       this.tickChanneledConeDuringChannel(activeDef, delta);
     }
+    if (
+      activeDef &&
+      isChanneledHealSpell(activeDef) &&
+      this.host.spellCaster.getCastPhase() === "channeling"
+    ) {
+      this.tickChanneledHealDuringChannel(activeDef, delta);
+    }
     const channel = this.host.spellCaster.updateChannel(delta, dir.x, dir.y);
     if (channel.type === "windup" || channel.type === "channeling") {
       this.host.castBar.setVisible(true);
@@ -180,6 +198,9 @@ export class DefenseSpellDirector {
       this.host.castBar.setVisible(false);
       if (channel.def.mechanicType === "channeled_cone") {
         this.flushChanneledConeTicks(channel.def);
+      }
+      if (isChanneledHealSpell(channel.def)) {
+        this.flushChanneledHealTicks(channel.def);
       }
       const impactCenter = this.host.spellChannelArea;
       this.resolveSpellEffect(channel.def);
@@ -309,6 +330,7 @@ export class DefenseSpellDirector {
     if (begun === false) return;
     this.host.channelAreaStarted = false;
     this.channeledConeTicks = createChanneledConeTickState();
+    this.channeledHealTicks = createChanneledHealTickState();
     if (begun === "windup" || begun === "channel") {
       this.host.player.sprite.setVelocity(0, 0);
       const target = this.host.targeting.facingTarget("ranged", true);
@@ -418,6 +440,7 @@ export class DefenseSpellDirector {
     this.host.spellChannelArea = null;
     this.host.channelAreaStarted = false;
     this.channeledConeTicks = createChanneledConeTickState();
+    this.channeledHealTicks = createChanneledHealTickState();
     this.host.groundAim = null;
     this.host.pendingGroundCast = null;
     this.host.groundReticle.hide();
@@ -439,6 +462,30 @@ export class DefenseSpellDirector {
     const ticksFired = advanceChanneledConeTicks(this.channeledConeTicks, def, deltaMs);
     if (ticksFired <= 0) return;
     this.fireChanneledConeTicks(def, ticksFired);
+  }
+
+  private flushChanneledHealTicks(def: SpellDefinition): void {
+    while (this.channeledHealTicks.ticksDone < channeledHealMaxTicks(def)) {
+      const fired = advanceChanneledHealTicks(
+        this.channeledHealTicks,
+        def,
+        spellChannelTickMs(def),
+      );
+      if (fired <= 0) break;
+      this.fireChanneledHealTicks(def, fired);
+    }
+  }
+
+  private tickChanneledHealDuringChannel(def: SpellDefinition, deltaMs: number): void {
+    const ticksFired = advanceChanneledHealTicks(this.channeledHealTicks, def, deltaMs);
+    if (ticksFired <= 0) return;
+    this.fireChanneledHealTicks(def, ticksFired);
+  }
+
+  private fireChanneledHealTicks(def: SpellDefinition, ticksFired: number): void {
+    const amount = channeledHealTickHealAmount(def, ticksFired);
+    applyHealAmount(this.host.player.damageable, amount);
+    this.channeledHealTicks.healApplied += amount;
   }
 
   private fireChanneledConeTicks(def: SpellDefinition, ticksFired: number): void {
@@ -790,7 +837,14 @@ export class DefenseSpellDirector {
         break;
       }
       case "heal":
-        applyChanneledHeal(this.host.player.damageable, def);
+        if (isChanneledHealSpell(def)) {
+          const remainder = channeledHealCompletionRemainder(def);
+          if (remainder > 0) {
+            applyHealAmount(this.host.player.damageable, remainder);
+          }
+        } else {
+          applyChanneledHeal(this.host.player.damageable, def);
+        }
         break;
       case "blink":
         this.castBlink(angle, def);

@@ -365,11 +365,15 @@ export function spawnChanneledFireball(
   );
 }
 
+export function applyHealAmount(damageable: Damageable, amount: number): void {
+  if (amount <= 0) return;
+  damageable.hp = Math.min(damageable.maxHp, damageable.hp + amount);
+  damageable.alive = damageable.hp > 0;
+}
+
 export function applyChanneledHeal(
   damageable: Damageable,
   def: SpellDefinition,
 ): void {
-  const amount = def.healAmount ?? 20;
-  damageable.hp = Math.min(damageable.maxHp, damageable.hp + amount);
-  damageable.alive = damageable.hp > 0;
+  applyHealAmount(damageable, def.healAmount ?? 20);
 }
