@@ -10,9 +10,9 @@ const OBSTACLE_FILL = 0x38bdf8;
 const OBSTACLE_FILL_ALPHA = 0.12;
 const OBSTACLE_LINE_ALPHA = 0.9;
 const MELEE_ACTIVATION_FILL = 0xfff59d;
-const MELEE_ACTIVATION_FILL_ALPHA = 0.22;
+const MELEE_ACTIVATION_FILL_ALPHA = 0.1;
 const MELEE_ACTIVATION_LINE = 0xfff176;
-const MELEE_ACTIVATION_LINE_ALPHA = 0.55;
+const MELEE_ACTIVATION_LINE_ALPHA = 0.32;
 
 /** Clears and redraws combat hitboxes in world space. */
 export class HitboxDebugDraw {
