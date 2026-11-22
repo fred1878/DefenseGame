@@ -6,6 +6,21 @@ import {
 } from "./enemyTuning";
 import type { EnemyDef } from "./DataStore";
 
+/** Boot-required top-level keys on each `enemies.json` row (see `DATA_FIELDS.md`). */
+export const ENEMY_ROW_BOOT_KEYS = [
+  "hp",
+  "speed",
+  "damage",
+  "bodyRadius",
+  "weight",
+  "challengeRating",
+  "behavior",
+  "textureKey",
+  "combat",
+] as const;
+
+export const ENEMY_ROW_OPTIONAL_BOOT_KEYS = ["displayName"] as const;
+
 export type EnemyDefInput = {
   hp?: number;
   speedWu?: number;

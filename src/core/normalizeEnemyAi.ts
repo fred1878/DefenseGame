@@ -3,7 +3,8 @@ import { requireFiniteNumber, requireRecord } from "./configValidation";
 
 export type EnemyAiInput = Partial<EnemyAiTuning>;
 
-const ENEMY_AI_KEYS = [
+/** Boot-required keys for `public/data/enemy-ai.json` (see `DATA_FIELDS.md`). */
+export const ENEMY_AI_BOOT_KEYS = [
   "playerAggroRadiusWu",
   "playerChaseMemoryMs",
   "wallVelocityBlendMs",
@@ -15,7 +16,7 @@ export function normalizeEnemyAi(
 ): EnemyAiTuning {
   const root = requireRecord(raw, "enemy-ai");
   const out = {} as EnemyAiTuning;
-  for (const key of ENEMY_AI_KEYS) {
+  for (const key of ENEMY_AI_BOOT_KEYS) {
     out[key] = requireFiniteNumber(root[key], `enemy-ai.${key}`);
   }
   return out;

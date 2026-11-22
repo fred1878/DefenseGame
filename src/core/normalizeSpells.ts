@@ -4,6 +4,42 @@ import { ConfigLoadError, requireFiniteNumber } from "./configValidation";
 
 export type SpellsFileInput = { spells: SpellDefinition[] };
 
+/** Boot-validated spell file and row identifiers (see `DATA_FIELDS.md`). */
+export const SPELLS_FILE_BOOT_KEYS = ["spells"] as const;
+export const SPELL_ROW_BOOT_STRING_FIELDS = ["id", "mechanicType"] as const;
+
+/** Per-`mechanicType` numeric fields required at boot (before knockback rules). */
+export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<string, readonly string[]> = {
+  swing: ["swingRangeWu", "swingArcDeg"],
+  tracking_swing: ["swingRangeWu", "swingArcDeg"],
+  cone: ["coneRangeWu", "coneArcDeg"],
+  channeled_cone: ["coneRangeWu", "coneArcDeg"],
+  blink: [
+    "blinkDistanceWu",
+    "blinkResolveBinarySearchIterations",
+    "blinkPartialMoveEpsilonWu",
+  ],
+  ice_wall: ["iceWallDistanceWu", "iceWallDurationMs"],
+  buff: ["shadowformDurationMs"],
+};
+
+/** Extra boot fields when `id` is `shadowform`. */
+export const SPELL_SHADOWFORM_BOOT_FIELDS = [
+  "shadowformMoveSpeedMult",
+  "shadowformDamageTakenMult",
+  "shadowformAggroRadiusMult",
+] as const;
+
+/** Knockback-related fields validated by mechanic (any spell row may use a subset). */
+export const SPELL_KNOCKBACK_BOOT_FIELDS = [
+  "knockback",
+  "blastKnockback",
+  "chainKnockback",
+  "chainHopKnockback",
+  "chainLightningHops",
+  "chainLightningHopRangeWu",
+] as const;
+
 const SPELLS_WITHOUT_KNOCKBACK: ReadonlySet<SpellMechanicType> = new Set([
   "heal",
   "ice_wall",

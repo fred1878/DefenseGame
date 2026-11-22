@@ -23,8 +23,8 @@ const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
   "rangedHybrid",
 ]);
 
-const WALL_KEYS = ["damage", "triggerRangeWu", "hitRangeWu"] as const;
-const MELEE_KEYS = [
+export const ENEMY_COMBAT_WALL_KEYS = ["damage", "triggerRangeWu", "hitRangeWu"] as const;
+export const ENEMY_COMBAT_MELEE_KEYS = [
   "triggerRangeWu",
   "rangeWu",
   "arcDeg",
@@ -33,7 +33,8 @@ const MELEE_KEYS = [
   "recoveryMs",
   "cooldownMs",
 ] as const;
-const ARROW_RAIN_KEYS = [
+export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY = "meleeChaseStandoffWu" as const;
+export const ENEMY_COMBAT_ARROW_RAIN_KEYS = [
   "damage",
   "preferredRangeWu",
   "attackTriggerRangeWu",
@@ -47,7 +48,7 @@ const ARROW_RAIN_KEYS = [
   "tickDamageScale",
   "maxTicks",
 ] as const;
-const JAVELINEER_KEYS = [
+export const ENEMY_COMBAT_JAVELINEER_KEYS = [
   "damage",
   "minRangeWu",
   "maxRangeWu",
@@ -61,7 +62,7 @@ const JAVELINEER_KEYS = [
   "projectileSpeedWu",
   "projectileMaxTravelWu",
 ] as const;
-const STATIONARY_RANGED_KEYS = [
+export const ENEMY_COMBAT_STATIONARY_RANGED_KEYS = [
   "damage",
   "preferredRangeWu",
   "attackTriggerRangeWu",
@@ -73,8 +74,8 @@ const STATIONARY_RANGED_KEYS = [
   "projectileSpeedWu",
   "projectileMaxTravelWu",
 ] as const;
-const WALL_SIEGE_KEYS = ["playerAggroRadiusWu"] as const;
-const CHARGER_KEYS = [
+export const ENEMY_COMBAT_WALL_SIEGE_KEYS = ["playerAggroRadiusWu"] as const;
+export const ENEMY_COMBAT_CHARGER_KEYS = [
   "chargeDamage",
   "dashMinRangeWu",
   "dashTriggerRangeWu",
@@ -84,7 +85,7 @@ const CHARGER_KEYS = [
   "dashCooldownMs",
   "dashOvershootRangeWu",
 ] as const;
-const LOBBER_KEYS = [
+export const ENEMY_COMBAT_LOBBER_KEYS = [
   "damage",
   "preferredRangeWu",
   "attackTriggerRangeWu",
@@ -97,13 +98,31 @@ const LOBBER_KEYS = [
   "blastRadiusWu",
   "blastDamageScale",
 ] as const;
-const WARD_KEYS = ["protectRadiusWu", "screenOffsetWu", "playerAggroRadiusWu"] as const;
-const HYBRID_KEYS = [
+export const ENEMY_COMBAT_WARD_KEYS = [
+  "protectRadiusWu",
+  "screenOffsetWu",
+  "playerAggroRadiusWu",
+] as const;
+export const ENEMY_COMBAT_HYBRID_KEYS = [
   "closeMeleeRadiusWu",
   "preferredRangeWu",
   "maxMeleeSwings",
   "retreatRangeSlackWu",
 ] as const;
+
+/** All boot-required combat section key lists keyed by `combat` property name. */
+export const ENEMY_COMBAT_KIT_KEY_LISTS = {
+  wall: ENEMY_COMBAT_WALL_KEYS,
+  melee: ENEMY_COMBAT_MELEE_KEYS,
+  arrowRain: ENEMY_COMBAT_ARROW_RAIN_KEYS,
+  javelineer: ENEMY_COMBAT_JAVELINEER_KEYS,
+  stationaryRanged: ENEMY_COMBAT_STATIONARY_RANGED_KEYS,
+  wallSiege: ENEMY_COMBAT_WALL_SIEGE_KEYS,
+  charger: ENEMY_COMBAT_CHARGER_KEYS,
+  lobber: ENEMY_COMBAT_LOBBER_KEYS,
+  ward: ENEMY_COMBAT_WARD_KEYS,
+  hybrid: ENEMY_COMBAT_HYBRID_KEYS,
+} as const;
 
 const BEHAVIOR_KIT_SECTIONS: Record<string, (keyof EnemyCombatPartial)[]> = {
   arrowRainArcher: ["arrowRain"],
@@ -129,7 +148,7 @@ export function requireEnemyWallCombat(
   raw: unknown,
   path: string,
 ): EnemyWallCombat {
-  return section<EnemyWallCombat>(raw, path, WALL_KEYS);
+  return section<EnemyWallCombat>(raw, path, ENEMY_COMBAT_WALL_KEYS);
 }
 
 export function requireEnemyMeleeCombat(
@@ -138,7 +157,7 @@ export function requireEnemyMeleeCombat(
   path: string,
 ): EnemyMeleeCombat {
   const block = requireRecord(raw, path);
-  const base = requireNumberFields(block, MELEE_KEYS, path) as EnemyMeleeCombat;
+  const base = requireNumberFields(block, ENEMY_COMBAT_MELEE_KEYS, path) as EnemyMeleeCombat;
   if (!MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {
     return base;
   }
@@ -154,53 +173,53 @@ export function requireEnemyArrowRainCombat(
   raw: unknown,
   path: string,
 ): EnemyArrowRainCombat {
-  return section<EnemyArrowRainCombat>(raw, path, ARROW_RAIN_KEYS);
+  return section<EnemyArrowRainCombat>(raw, path, ENEMY_COMBAT_ARROW_RAIN_KEYS);
 }
 
 export function requireEnemyJavelineerCombat(
   raw: unknown,
   path: string,
 ): EnemyJavelineerCombat {
-  return section<EnemyJavelineerCombat>(raw, path, JAVELINEER_KEYS);
+  return section<EnemyJavelineerCombat>(raw, path, ENEMY_COMBAT_JAVELINEER_KEYS);
 }
 
 export function requireEnemyStationaryRangedCombat(
   raw: unknown,
   path: string,
 ): EnemyStationaryRangedCombat {
-  return section<EnemyStationaryRangedCombat>(raw, path, STATIONARY_RANGED_KEYS);
+  return section<EnemyStationaryRangedCombat>(raw, path, ENEMY_COMBAT_STATIONARY_RANGED_KEYS);
 }
 
 export function requireEnemyWallSiegeCombat(
   raw: unknown,
   path: string,
 ): EnemyWallSiegeCombat {
-  return section<EnemyWallSiegeCombat>(raw, path, WALL_SIEGE_KEYS);
+  return section<EnemyWallSiegeCombat>(raw, path, ENEMY_COMBAT_WALL_SIEGE_KEYS);
 }
 
 export function requireEnemyChargerCombat(
   raw: unknown,
   path: string,
 ): EnemyChargerCombat {
-  return section<EnemyChargerCombat>(raw, path, CHARGER_KEYS);
+  return section<EnemyChargerCombat>(raw, path, ENEMY_COMBAT_CHARGER_KEYS);
 }
 
 export function requireEnemyLobberCombat(
   raw: unknown,
   path: string,
 ): EnemyLobberCombat {
-  return section<EnemyLobberCombat>(raw, path, LOBBER_KEYS);
+  return section<EnemyLobberCombat>(raw, path, ENEMY_COMBAT_LOBBER_KEYS);
 }
 
 export function requireEnemyWardCombat(raw: unknown, path: string): EnemyWardCombat {
-  return section<EnemyWardCombat>(raw, path, WARD_KEYS);
+  return section<EnemyWardCombat>(raw, path, ENEMY_COMBAT_WARD_KEYS);
 }
 
 export function requireEnemyHybridCombat(
   raw: unknown,
   path: string,
 ): EnemyHybridCombat {
-  return section<EnemyHybridCombat>(raw, path, HYBRID_KEYS);
+  return section<EnemyHybridCombat>(raw, path, ENEMY_COMBAT_HYBRID_KEYS);
 }
 
 /** Required `combat` kit sections for a behavior id. */
