@@ -4,6 +4,7 @@ import { buildNavGrid, cellToWorldCenter } from "../../pathfinding/grid";
 import { hasLineOfSight } from "../../pathfinding/los";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { playerMeleeChaseStandoffCenterDist } from "./movement";
 import { meleeChaserBehavior } from "./meleeChaser";
 
 describe("meleeChaserBehavior", () => {
@@ -20,12 +21,13 @@ describe("meleeChaserBehavior", () => {
       defId: "grunt",
       speed: 80,
     });
-    enemy.sprite.x = -120;
+    const standoff = playerMeleeChaseStandoffCenterDist(enemy);
+    enemy.sprite.x = -(standoff + 8);
     enemy.sprite.y = 0;
     enemy.nav = {
       ...createEnemyNav(),
       targetKind: "player",
-      path: [{ x: -40, y: 80 }],
+      path: [{ x: -10, y: 0 }],
       pathIndex: 0,
       replanMs: 5000,
       pathGoalReached: true,

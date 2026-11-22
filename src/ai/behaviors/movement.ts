@@ -188,11 +188,10 @@ export function shouldMeleeLosShortcutToPlayer(
   const ey = enemy.sprite.y;
   const pathExhausted =
     nav.path.length === 0 || nav.pathIndex >= nav.path.length;
-  const shortOpenPath = nav.path.length === 1;
   const atCloseRange =
     Math.hypot(playerX - ex, playerY - ey) <=
     playerMeleeChaseStandoffCenterDist(enemy) * 1.35;
-  return pathExhausted || shortOpenPath || atCloseRange;
+  return pathExhausted || atCloseRange;
 }
 
 /** True when a closer ally's body blocks the direct close line toward the player. */
