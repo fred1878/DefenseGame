@@ -70,6 +70,24 @@ function worldPointToScreen(
   };
 }
 
+/** Hit areas anchored at (0,0) need origin adjustment; centered rects use negative x/y. */
+function hitLocalToInputPx(
+  wx: number,
+  wy: number,
+  localX: number,
+  localY: number,
+  originX: number,
+  originY: number,
+  scaleX: number,
+  scaleY: number,
+): { px: number; py: number } {
+  const centered = localX < 0 || localY < 0;
+  return {
+    px: wx + (centered ? localX : localX - originX) * scaleX,
+    py: wy + (centered ? localY : localY - originY) * scaleY,
+  };
+}
+
 /**
  * Screen/canvas bounds of an interactive hit area — matches InputManager hit tests (same space as `pointer.x/y`).
  */
@@ -109,8 +127,16 @@ export function interactiveObjectScreenRect(
   };
 
   if (shape instanceof Phaser.Geom.Circle) {
-    const px = wx + (shape.x - shape.radius) * scaleX;
-    const py = wy + (shape.y - shape.radius) * scaleY;
+    const { px, py } = hitLocalToInputPx(
+      wx,
+      wy,
+      shape.x - shape.radius,
+      shape.y - shape.radius,
+      go.displayOriginX,
+      go.displayOriginY,
+      scaleX,
+      scaleY,
+    );
     const size = shape.radius * 2 * Math.abs(scaleX);
     const topLeft = toScreen(px, py);
     return {
@@ -122,8 +148,16 @@ export function interactiveObjectScreenRect(
   }
 
   const rect = shape as Phaser.Geom.Rectangle;
-  const px0 = wx + rect.x * scaleX;
-  const py0 = wy + rect.y * scaleY;
+  const { px: px0, py: py0 } = hitLocalToInputPx(
+    wx,
+    wy,
+    rect.x,
+    rect.y,
+    go.displayOriginX,
+    go.displayOriginY,
+    scaleX,
+    scaleY,
+  );
   const hitW = rect.width * Math.abs(scaleX);
   const hitH = rect.height * Math.abs(scaleY);
   const tl = toScreen(px0, py0);

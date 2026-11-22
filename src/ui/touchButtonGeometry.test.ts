@@ -92,6 +92,33 @@ describe("interactiveObjectScreenRect", () => {
     expect(r!.height).toBeCloseTo(hitH, 4);
   });
 
+  it("supports createTouchButton hit areas anchored at (0,0)", () => {
+    const camera = identityCamera();
+    const hitW = 100;
+    const hitH = 48;
+    const go = {
+      x: 90,
+      y: 1100,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: hitW / 2,
+      displayOriginY: hitH / 2,
+      scrollFactorX: 0,
+      scrollFactorY: 0,
+      scene: fakeScene(camera),
+      input: {
+        hitArea: new Phaser.Geom.Rectangle(0, 0, hitW, hitH),
+      },
+    } as unknown as Phaser.GameObjects.GameObject;
+
+    const r = interactiveObjectScreenRect(go, camera);
+    expect(r).not.toBeNull();
+    expect(r!.x).toBeCloseTo(40, 4);
+    expect(r!.y).toBeCloseTo(1076, 4);
+    expect(r!.width).toBeCloseTo(hitW, 4);
+    expect(r!.height).toBeCloseTo(hitH, 4);
+  });
+
   it("maps scrollFactor-1 hit areas to screen coords (InputManager space, not getWorldPoint input)", () => {
     const camera = identityCamera();
     const hit = new Phaser.Geom.Rectangle(-20, -10, 40, 20);
