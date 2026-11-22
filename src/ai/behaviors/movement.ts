@@ -1,7 +1,7 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
-import { requireMeleeChaseStandoffWu, wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
+import { requireMeleeChaseStandoffWu, wallMeleeApproachStandoffWu } from "../../core/enemyTuning";
 import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
@@ -296,16 +296,18 @@ export function shouldHoldAtWallMelee(
 ): boolean {
   if (targetKind !== "wall") return false;
   const { wall } = enemy.combatTuning;
+  const reg = enemy.sprite.scene.registry;
   const dist = wallMeleeDistToAttackPlane(enemy);
-  if (dist > wall.triggerRange) return false;
+  if (dist > worldUnit(wall.triggerRangeWu, reg)) return false;
   if (enemyIsAttacking(enemy.combat)) return true;
-  if (dist > wall.hitRange) return false;
+  if (dist > worldUnit(wall.hitRangeWu, reg)) return false;
   return enemy.combat.phase === "idle";
 }
 
 export function wallMeleeStandoffY(enemy: EnemyInstance): number {
-  const standoff = wallMeleeApproachStandoffPx(enemy.combatTuning.wall);
-  return northWallAttackY() + standoff;
+  const reg = enemy.sprite.scene.registry;
+  const standoffWu = wallMeleeApproachStandoffWu(enemy.combatTuning.wall);
+  return northWallAttackY() + worldUnit(standoffWu, reg);
 }
 
 export function applyWallMeleeHold(enemy: EnemyInstance): void {
@@ -381,7 +383,9 @@ export function applyChaseVelocity(
   }
   const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
-  const speed = enemy.speed * speedMul * chaseScale * statusMul;
+  const reg = enemy.sprite.scene.registry;
+  const speed =
+    worldUnit(enemy.speedWu, reg) * speedMul * chaseScale * statusMul;
   const angle = Math.atan2(moveY - ey, moveX - ex);
   const desiredVx = Math.cos(angle) * speed;
   const desiredVy = Math.sin(angle) * speed;
@@ -420,7 +424,9 @@ export function applyDirectVelocity(
   }
   const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
-  const speed = enemy.speed * speedMul * chaseScale * statusMul;
+  const reg = enemy.sprite.scene.registry;
+  const speed =
+    worldUnit(enemy.speedWu, reg) * speedMul * chaseScale * statusMul;
   setEnemyChaseVelocity(
     enemy,
     (dirX / len) * speed,

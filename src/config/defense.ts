@@ -4,8 +4,10 @@ import {
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
 } from "../content/assets";
-import { NORTH_WALL_MELEE_STANDOFF_PX } from "./enemy";
+import { NORTH_WALL_MELEE_STANDOFF_WU } from "./enemy";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
+import { worldUnit } from "../core/worldPixelScale";
+import type Phaser from "phaser";
 
 /** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
 export let DEFENSE_FIELD_TILES: { cols: number; rows: number } = {
@@ -57,8 +59,12 @@ export function northWallAttackY(): number {
  * Pathing stop line south of the wall so enemies hold attack range instead of walking into the barricade.
  */
 export function northWallApproachY(
-  standoffPx = NORTH_WALL_MELEE_STANDOFF_PX,
+  registry?: Phaser.Data.DataManager,
+  standoffWu = NORTH_WALL_MELEE_STANDOFF_WU,
 ): number {
+  const standoffPx = registry
+    ? worldUnit(standoffWu, registry)
+    : standoffWu;
   return northWallAttackY() + standoffPx;
 }
 

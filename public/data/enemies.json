@@ -1,7 +1,7 @@
 {
   "grunt": {
     "hp": 55,
-    "speed": 43,
+    "speedWu": 43,
     "damage": 8,
     "behavior": "meleeChaser",
     "textureKey": "enemy_grunt",
@@ -9,12 +9,12 @@
     "combat": {
       "wall": {
         "damage": 6,
-        "triggerRange": 42,
-        "hitRange": 34
+        "triggerRangeWu": 42,
+        "hitRangeWu": 34
       },
       "melee": {
-        "triggerRange": 78,
-        "range": 72,
+        "triggerRangeWu": 78,
+        "rangeWu": 72,
         "meleeChaseStandoffWu": 4,
         "arcDeg": 70,
         "windupMs": 100,
@@ -25,11 +25,11 @@
     },
     "weight": 100,
     "challengeRating": 10,
-    "bodyRadius": 28
+    "bodyRadiusWu": 28
   },
   "bruiser": {
     "hp": 299,
-    "speed": 28,
+    "speedWu": 28,
     "damage": 14,
     "behavior": "bruiser",
     "textureKey": "enemy_bruiser",
@@ -37,12 +37,12 @@
     "combat": {
       "wall": {
         "damage": 8,
-        "triggerRange": 52,
-        "hitRange": 44
+        "triggerRangeWu": 52,
+        "hitRangeWu": 44
       },
       "melee": {
-        "triggerRange": 90,
-        "range": 84,
+        "triggerRangeWu": 90,
+        "rangeWu": 84,
         "meleeChaseStandoffWu": 5,
         "arcDeg": 100,
         "windupMs": 480,
@@ -53,11 +53,11 @@
     },
     "weight": 170,
     "challengeRating": 70,
-    "bodyRadius": 28
+    "bodyRadiusWu": 28
   },
   "arrow_rain_archer": {
     "hp": 40,
-    "speed": 27,
+    "speedWu": 27,
     "damage": 4,
     "behavior": "arrowRainArcher",
     "textureKey": "enemy_arrow_rain_archer",
@@ -65,19 +65,19 @@
     "combat": {
       "wall": {
         "damage": 6,
-        "triggerRange": 42,
-        "hitRange": 34
+        "triggerRangeWu": 42,
+        "hitRangeWu": 34
       },
       "arrowRain": {
         "damage": 4,
-        "preferredRange": 150,
-        "attackTriggerRange": 200,
+        "preferredRangeWu": 150,
+        "attackTriggerRangeWu": 200,
         "kiteBandSlackWu": 24,
         "windupMs": 900,
         "activeMs": 1200,
         "recoveryMs": 520,
         "cooldownMs": 2200,
-        "zoneRadius": 72,
+        "zoneRadiusWu": 72,
         "tickIntervalMs": 300,
         "tickDamageScale": 0.55,
         "maxTicks": 4
@@ -85,11 +85,11 @@
     },
     "weight": 80,
     "challengeRating": 15,
-    "bodyRadius": 14
+    "bodyRadiusWu": 14
   },
   "skirmisher": {
     "hp": 34,
-    "speed": 67,
+    "speedWu": 67,
     "damage": 7,
     "behavior": "meleeChaser",
     "textureKey": "enemy_skirmisher",
@@ -97,12 +97,12 @@
     "combat": {
       "wall": {
         "damage": 4,
-        "triggerRange": 38,
-        "hitRange": 30
+        "triggerRangeWu": 38,
+        "hitRangeWu": 30
       },
       "melee": {
-        "triggerRange": 60,
-        "range": 53,
+        "triggerRangeWu": 60,
+        "rangeWu": 53,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 30,
         "windupMs": 150,
@@ -113,11 +113,11 @@
     },
     "weight": 70,
     "challengeRating": 7,
-    "bodyRadius": 21
+    "bodyRadiusWu": 21
   },
   "sentry_archer": {
     "hp": 24,
-    "speed": 22,
+    "speedWu": 22,
     "damage": 10,
     "behavior": "stationaryRanged",
     "textureKey": "enemy_sentry_archer",
@@ -125,29 +125,29 @@
     "combat": {
       "wall": {
         "damage": 5,
-        "triggerRange": 40,
-        "hitRange": 32
+        "triggerRangeWu": 40,
+        "hitRangeWu": 32
       },
       "stationaryRanged": {
         "damage": 10,
-        "preferredRange": 210,
-        "attackTriggerRange": 290,
+        "preferredRangeWu": 210,
+        "attackTriggerRangeWu": 290,
         "kiteBandSlackWu": 22,
         "windupMs": 540,
         "activeMs": 70,
         "recoveryMs": 500,
         "cooldownMs": 1500,
-        "projectileSpeed": 500,
-        "projectileMaxTravel": 490
+        "projectileSpeedWu": 500,
+        "projectileMaxTravelWu": 490
       }
     },
     "weight": 100,
     "challengeRating": 10,
-    "bodyRadius": 20
+    "bodyRadiusWu": 20
   },
   "javelineer": {
     "hp": 26,
-    "speed": 52,
+    "speedWu": 52,
     "damage": 11,
     "behavior": "javelineer",
     "textureKey": "enemy_javelineer",
@@ -155,13 +155,13 @@
     "combat": {
       "wall": {
         "damage": 6,
-        "triggerRange": 46,
-        "hitRange": 38
+        "triggerRangeWu": 46,
+        "hitRangeWu": 38
       },
       "javelineer": {
         "damage": 9,
-        "minRange": 80,
-        "maxRange": 289,
+        "minRangeWu": 80,
+        "maxRangeWu": 289,
         "kiteBandSlackWu": 28,
         "strafeSpeedMul": 0.85,
         "orbitFlipMs": 880,
@@ -169,17 +169,17 @@
         "activeMs": 120,
         "recoveryMs": 420,
         "cooldownMs": 1100,
-        "projectileSpeed": 340,
-        "projectileMaxTravel": 350
+        "projectileSpeedWu": 340,
+        "projectileMaxTravelWu": 350
       }
     },
     "weight": 80,
     "challengeRating": 25,
-    "bodyRadius": 16
+    "bodyRadiusWu": 16
   },
   "slow_siege": {
     "hp": 92,
-    "speed": 15,
+    "speedWu": 15,
     "damage": 14,
     "behavior": "wallSiege",
     "textureKey": "enemy_slow_siege",
@@ -187,12 +187,12 @@
     "combat": {
       "wall": {
         "damage": 12,
-        "triggerRange": 58,
-        "hitRange": 48
+        "triggerRangeWu": 58,
+        "hitRangeWu": 48
       },
       "melee": {
-        "triggerRange": 60,
-        "range": 46,
+        "triggerRangeWu": 60,
+        "rangeWu": 46,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 64,
         "windupMs": 520,
@@ -201,16 +201,16 @@
         "cooldownMs": 480
       },
       "wallSiege": {
-        "playerAggroRadius": 90
+        "playerAggroRadiusWu": 90
       }
     },
     "weight": 300,
     "challengeRating": 10,
-    "bodyRadius": 21
+    "bodyRadiusWu": 21
   },
   "fast_sapper": {
     "hp": 39,
-    "speed": 58,
+    "speedWu": 58,
     "damage": 6,
     "behavior": "wallSiege",
     "textureKey": "enemy_fast_sapper",
@@ -218,12 +218,12 @@
     "combat": {
       "wall": {
         "damage": 5,
-        "triggerRange": 44,
-        "hitRange": 36
+        "triggerRangeWu": 44,
+        "hitRangeWu": 36
       },
       "melee": {
-        "triggerRange": 45,
-        "range": 34,
+        "triggerRangeWu": 45,
+        "rangeWu": 34,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 58,
         "windupMs": 260,
@@ -232,16 +232,16 @@
         "cooldownMs": 260
       },
       "wallSiege": {
-        "playerAggroRadius": 90
+        "playerAggroRadiusWu": 90
       }
     },
     "weight": 60,
     "challengeRating": 6,
-    "bodyRadius": 21
+    "bodyRadiusWu": 21
   },
   "charger": {
     "hp": 85,
-    "speed": 50,
+    "speedWu": 50,
     "damage": 12,
     "behavior": "charger",
     "textureKey": "enemy_charger",
@@ -249,12 +249,12 @@
     "combat": {
       "wall": {
         "damage": 7,
-        "triggerRange": 46,
-        "hitRange": 38
+        "triggerRangeWu": 46,
+        "hitRangeWu": 38
       },
       "melee": {
-        "triggerRange": 80,
-        "range": 75,
+        "triggerRangeWu": 80,
+        "rangeWu": 75,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 92,
         "windupMs": 360,
@@ -264,22 +264,22 @@
       },
       "charger": {
         "chargeDamage": 22,
-        "dashMinRange": 120,
-        "dashTriggerRange": 260,
+        "dashMinRangeWu": 120,
+        "dashTriggerRangeWu": 260,
         "dashWindupMs": 400,
         "dashDurationMs": 2000,
         "dashSpeedMul": 3.2,
         "dashCooldownMs": 3000,
-        "dashOvershootRange": 100
+        "dashOvershootRangeWu": 100
       }
     },
     "weight": 125,
     "challengeRating": 30,
-    "bodyRadius": 23
+    "bodyRadiusWu": 23
   },
   "lobber": {
     "hp": 32,
-    "speed": 28,
+    "speedWu": 28,
     "damage": 9,
     "behavior": "lobber",
     "textureKey": "enemy_lobber",
@@ -287,30 +287,30 @@
     "combat": {
       "wall": {
         "damage": 6,
-        "triggerRange": 42,
-        "hitRange": 34
+        "triggerRangeWu": 42,
+        "hitRangeWu": 34
       },
       "lobber": {
         "damage": 10,
-        "preferredRange": 200,
-        "attackTriggerRange": 222,
+        "preferredRangeWu": 200,
+        "attackTriggerRangeWu": 222,
         "kiteBandSlackWu": 22,
         "windupMs": 1100,
         "activeMs": 140,
         "recoveryMs": 620,
         "cooldownMs": 2500,
-        "projectileSpeed": 160,
-        "blastRadius": 100,
+        "projectileSpeedWu": 160,
+        "blastRadiusWu": 100,
         "blastDamageScale": 0.92
       }
     },
     "weight": 110,
     "challengeRating": 14,
-    "bodyRadius": 14
+    "bodyRadiusWu": 14
   },
   "reaver": {
     "hp": 70,
-    "speed": 60,
+    "speedWu": 60,
     "damage": 12,
     "behavior": "rangedHybrid",
     "textureKey": "enemy_reaver",
@@ -318,12 +318,12 @@
     "combat": {
       "wall": {
         "damage": 5,
-        "triggerRange": 40,
-        "hitRange": 32
+        "triggerRangeWu": 40,
+        "hitRangeWu": 32
       },
       "melee": {
-        "triggerRange": 84,
-        "range": 76,
+        "triggerRangeWu": 84,
+        "rangeWu": 76,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 72,
         "windupMs": 100,
@@ -333,30 +333,30 @@
       },
       "stationaryRanged": {
         "damage": 10,
-        "preferredRange": 180,
-        "attackTriggerRange": 220,
+        "preferredRangeWu": 180,
+        "attackTriggerRangeWu": 220,
         "kiteBandSlackWu": 22,
         "windupMs": 200,
         "activeMs": 70,
         "recoveryMs": 300,
         "cooldownMs": 600,
-        "projectileSpeed": 360,
-        "projectileMaxTravel": 250
+        "projectileSpeedWu": 360,
+        "projectileMaxTravelWu": 250
       },
       "hybrid": {
-        "closeMeleeRadius": 84,
-        "preferredRange": 180,
+        "closeMeleeRadiusWu": 84,
+        "preferredRangeWu": 180,
         "maxMeleeSwings": 3,
-        "retreatRangeSlack": 18
+        "retreatRangeSlackWu": 18
       }
     },
     "weight": 80,
     "challengeRating": 20,
-    "bodyRadius": 14
+    "bodyRadiusWu": 14
   },
   "ward": {
     "hp": 94,
-    "speed": 28,
+    "speedWu": 28,
     "damage": 12,
     "behavior": "ward",
     "textureKey": "enemy_ward",
@@ -364,12 +364,12 @@
     "combat": {
       "wall": {
         "damage": 5,
-        "triggerRange": 42,
-        "hitRange": 34
+        "triggerRangeWu": 42,
+        "hitRangeWu": 34
       },
       "melee": {
-        "triggerRange": 65,
-        "range": 60,
+        "triggerRangeWu": 65,
+        "rangeWu": 60,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 68,
         "windupMs": 400,
@@ -378,13 +378,13 @@
         "cooldownMs": 360
       },
       "ward": {
-        "protectRadius": 230,
+        "protectRadiusWu": 230,
         "screenOffsetWu": 80,
-        "playerAggroRadius": 110
+        "playerAggroRadiusWu": 110
       }
     },
     "weight": 300,
     "challengeRating": 15,
-    "bodyRadius": 21
+    "bodyRadiusWu": 21
   }
 }

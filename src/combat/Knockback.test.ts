@@ -5,8 +5,8 @@ import { applyKnockbackFrom } from "./Knockback";
 describe("applyKnockbackFrom", () => {
   beforeAll(() => {
     applyEntityPhysics({
-      enemyPathClearanceMarginPx: 9,
-      staticObstacleNavClearancePx: 18,
+      enemyPathClearanceMarginWu: 9,
+      staticObstacleNavClearanceWu: 18,
       knockbackVelocityCapMult: 1.35,
     });
   });

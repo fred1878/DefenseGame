@@ -9,12 +9,12 @@ describe("normalizeEnemyAi", () => {
 
   it("returns parsed numbers from a complete fixture", () => {
     const out = normalizeEnemyAi({
-      playerAggroRadius: 300,
+      playerAggroRadiusWu: 300,
       playerChaseMemoryMs: 1500,
       wallVelocityBlendMs: 400,
-      northWallMeleeStandoffPx: 32,
+      northWallMeleeStandoffWu: 32,
     });
-    expect(out.playerAggroRadius).toBe(300);
+    expect(out.playerAggroRadiusWu).toBe(300);
     expect(out.wallVelocityBlendMs).toBe(400);
   });
 });

@@ -29,6 +29,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
@@ -65,8 +66,8 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   const targetY = desired === "player" ? playerY : goal.y;
   const dist = Math.hypot(targetX - ex, targetY - ey);
   const bandSlack = worldUnit(lob.kiteBandSlackWu, reg);
-  const preferred = worldUnit(lob.preferredRange, reg);
-  const attackMax = worldUnit(lob.attackTriggerRange, reg);
+  const preferred = worldUnit(lob.preferredRangeWu, reg);
+  const attackMax = worldUnit(lob.attackTriggerRangeWu, reg);
 
   if (enemyIsAttacking(enemy.combat)) {
     setEnemyChaseVelocity(enemy, 0, 0);

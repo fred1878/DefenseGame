@@ -19,7 +19,7 @@ export function mockEnemyInstance(
     );
   return {
     id: "e",
-    speed: 60,
+    speedWu: 60,
     damage: 8,
     weight: 100,
     textureKey: "enemy_grunt",

@@ -15,9 +15,9 @@ function blastDef(partial: Partial<SpellDefinition> = {}): SpellDefinition {
     cooldownMs: 0,
     channelMs: 0,
     iconFile: "x.png",
-    blastRadius: 100,
+    blastRadiusWu: 100,
     baseDamage: 10,
-    blastKnockback: 100,
+    blastKnockbackWu: 100,
     ...partial,
   };
 }
@@ -42,7 +42,7 @@ describe("applySpellBlastAt knockback", () => {
         scene,
         100,
         100,
-        blastDef({ blastKnockback: undefined }),
+        blastDef({ blastKnockbackWu: undefined }),
         [
           {
             id: enemy.id,

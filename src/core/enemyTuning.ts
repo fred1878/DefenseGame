@@ -22,13 +22,13 @@ export type EnemyCombatPartial = {
   /** Wall objective attacks (all behaviors). */
   wall?: {
     damage?: number;
-    triggerRange?: number;
-    hitRange?: number;
+    triggerRangeWu?: number;
+    hitRangeWu?: number;
   };
   /** Melee arc vs player (`meleeChaser` and javelineer too-close fallback). */
   melee?: {
-    triggerRange?: number;
-    range?: number;
+    triggerRangeWu?: number;
+    rangeWu?: number;
     /** Extra gap (WU) when chase stops before player body contact — per enemy only, no global default. */
     meleeChaseStandoffWu?: number;
     arcDeg?: number;
@@ -40,14 +40,14 @@ export type EnemyCombatPartial = {
   /** Floor AoE (`arrowRainArcher` behavior). */
   arrowRain?: {
     damage?: number;
-    preferredRange?: number;
-    attackTriggerRange?: number;
+    preferredRangeWu?: number;
+    attackTriggerRangeWu?: number;
     kiteBandSlackWu?: number;
     windupMs?: number;
     activeMs?: number;
     recoveryMs?: number;
     cooldownMs?: number;
-    zoneRadius?: number;
+    zoneRadiusWu?: number;
     tickIntervalMs?: number;
     tickDamageScale?: number;
     maxTicks?: number;
@@ -55,8 +55,8 @@ export type EnemyCombatPartial = {
   /** Kite + javelin toss (`javelineer` behavior). */
   javelineer?: {
     damage?: number;
-    minRange?: number;
-    maxRange?: number;
+    minRangeWu?: number;
+    maxRangeWu?: number;
     kiteBandSlackWu?: number;
     strafeSpeedMul?: number;
     orbitFlipMs?: number;
@@ -64,77 +64,75 @@ export type EnemyCombatPartial = {
     activeMs?: number;
     recoveryMs?: number;
     cooldownMs?: number;
-    projectileSpeed?: number;
-    projectileMaxTravel?: number;
+    projectileSpeedWu?: number;
+    projectileMaxTravelWu?: number;
   };
   /** Hold position + straight bolt (`stationaryRanged` behavior). */
   stationaryRanged?: {
     damage?: number;
-    preferredRange?: number;
-    attackTriggerRange?: number;
+    preferredRangeWu?: number;
+    attackTriggerRangeWu?: number;
     kiteBandSlackWu?: number;
     windupMs?: number;
     activeMs?: number;
     recoveryMs?: number;
     cooldownMs?: number;
-    projectileSpeed?: number;
-    projectileMaxTravel?: number;
+    projectileSpeedWu?: number;
+    projectileMaxTravelWu?: number;
   };
   /** North-wall priority (`wallSiege` behavior). */
   wallSiege?: {
-    playerAggroRadius?: number;
+    playerAggroRadiusWu?: number;
   };
   /** Burst dash toward player (`charger` behavior). */
   charger?: {
     chargeDamage?: number;
-    /** World units — must be at or beyond this distance to start dash windup. */
-    dashMinRange?: number;
-    dashTriggerRange?: number;
+    dashMinRangeWu?: number;
+    dashTriggerRangeWu?: number;
     dashWindupMs?: number;
     dashDurationMs?: number;
     dashSpeedMul?: number;
     dashCooldownMs?: number;
-    /** World units to continue past the windup aim point along the dash line. */
-    dashOvershootRange?: number;
+    dashOvershootRangeWu?: number;
   };
   /** Arcing ground blast (`lobber` behavior). */
   lobber?: {
     damage?: number;
-    preferredRange?: number;
-    attackTriggerRange?: number;
+    preferredRangeWu?: number;
+    attackTriggerRangeWu?: number;
     kiteBandSlackWu?: number;
     windupMs?: number;
     activeMs?: number;
     recoveryMs?: number;
     cooldownMs?: number;
-    projectileSpeed?: number;
-    blastRadius?: number;
+    projectileSpeedWu?: number;
+    blastRadiusWu?: number;
     blastDamageScale?: number;
   };
   /** Bodyguard screening (`ward` behavior). */
   ward?: {
-    protectRadius?: number;
+    protectRadiusWu?: number;
     screenOffsetWu?: number;
-    playerAggroRadius?: number;
+    playerAggroRadiusWu?: number;
   };
   /** Close-in melee burst then retreat (`rangedHybrid` behavior). */
   hybrid?: {
-    closeMeleeRadius?: number;
-    preferredRange?: number;
+    closeMeleeRadiusWu?: number;
+    preferredRangeWu?: number;
     maxMeleeSwings?: number;
-    retreatRangeSlack?: number;
+    retreatRangeSlackWu?: number;
   };
 };
 
 export type EnemyWallCombat = {
   damage: number;
-  triggerRange: number;
-  hitRange: number;
+  triggerRangeWu: number;
+  hitRangeWu: number;
 };
 
 export type EnemyMeleeCombat = {
-  triggerRange: number;
-  range: number;
+  triggerRangeWu: number;
+  rangeWu: number;
   arcDeg: number;
   windupMs: number;
   activeMs: number;
@@ -168,14 +166,14 @@ export function enemyBehaviorRequiresMeleeBlock(behavior: string): boolean {
 
 export type EnemyArrowRainCombat = {
   damage: number;
-  preferredRange: number;
-  attackTriggerRange: number;
+  preferredRangeWu: number;
+  attackTriggerRangeWu: number;
   kiteBandSlackWu: number;
   windupMs: number;
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
-  zoneRadius: number;
+  zoneRadiusWu: number;
   tickIntervalMs: number;
   tickDamageScale: number;
   maxTicks: number;
@@ -183,8 +181,8 @@ export type EnemyArrowRainCombat = {
 
 export type EnemyJavelineerCombat = {
   damage: number;
-  minRange: number;
-  maxRange: number;
+  minRangeWu: number;
+  maxRangeWu: number;
   kiteBandSlackWu: number;
   strafeSpeedMul: number;
   orbitFlipMs: number;
@@ -192,63 +190,63 @@ export type EnemyJavelineerCombat = {
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
-  projectileSpeed: number;
-  projectileMaxTravel: number;
+  projectileSpeedWu: number;
+  projectileMaxTravelWu: number;
 };
 
 export type EnemyStationaryRangedCombat = {
   damage: number;
-  preferredRange: number;
-  attackTriggerRange: number;
+  preferredRangeWu: number;
+  attackTriggerRangeWu: number;
   kiteBandSlackWu: number;
   windupMs: number;
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
-  projectileSpeed: number;
-  projectileMaxTravel: number;
+  projectileSpeedWu: number;
+  projectileMaxTravelWu: number;
 };
 
 export type EnemyWallSiegeCombat = {
-  playerAggroRadius: number;
+  playerAggroRadiusWu: number;
 };
 
 export type EnemyChargerCombat = {
   chargeDamage: number;
-  dashMinRange: number;
-  dashTriggerRange: number;
+  dashMinRangeWu: number;
+  dashTriggerRangeWu: number;
   dashWindupMs: number;
   dashDurationMs: number;
   dashSpeedMul: number;
   dashCooldownMs: number;
-  dashOvershootRange: number;
+  dashOvershootRangeWu: number;
 };
 
 export type EnemyLobberCombat = {
   damage: number;
-  preferredRange: number;
-  attackTriggerRange: number;
+  preferredRangeWu: number;
+  attackTriggerRangeWu: number;
   kiteBandSlackWu: number;
   windupMs: number;
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
-  projectileSpeed: number;
-  blastRadius: number;
+  projectileSpeedWu: number;
+  blastRadiusWu: number;
   blastDamageScale: number;
 };
 
 export type EnemyWardCombat = {
-  protectRadius: number;
+  protectRadiusWu: number;
   screenOffsetWu: number;
-  playerAggroRadius: number;
+  playerAggroRadiusWu: number;
 };
 
 export type EnemyHybridCombat = {
-  closeMeleeRadius: number;
-  preferredRange: number;
+  closeMeleeRadiusWu: number;
+  preferredRangeWu: number;
   maxMeleeSwings: number;
-  retreatRangeSlack: number;
+  retreatRangeSlackWu: number;
 };
 
 export type ResolvedEnemyCombat = {
@@ -264,18 +262,18 @@ export type ResolvedEnemyCombat = {
   hybrid?: EnemyHybridCombat;
 };
 
-/** Arcade contact center distance for an enemy vs the player hurtbox. */
+/** Arcade contact center distance for an enemy vs the player hurtbox (authored WU sum). */
 export function enemyMeleeContactCenterDist(defId: string): number {
   return playerBodyRadiusPx() + enemyCollisionBodyRadius(defId);
 }
 
-/** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range. */
-export function wallMeleeApproachStandoffPx(
-  wall: Pick<EnemyWallCombat, "hitRange" | "triggerRange">,
-  slackPx = 2,
+/** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range (WU). */
+export function wallMeleeApproachStandoffWu(
+  wall: Pick<EnemyWallCombat, "hitRangeWu" | "triggerRangeWu">,
+  slackWu = 2,
 ): number {
-  const fromHit = Math.max(0, wall.hitRange - slackPx);
-  const fromTrigger = Math.max(0, wall.triggerRange - 6);
+  const fromHit = Math.max(0, wall.hitRangeWu - slackWu);
+  const fromTrigger = Math.max(0, wall.triggerRangeWu - 6);
   return Math.min(fromHit, fromTrigger);
 }
 

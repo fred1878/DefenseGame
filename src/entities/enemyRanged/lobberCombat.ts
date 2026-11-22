@@ -38,8 +38,8 @@ export function updateLobberCombat(
     c.facing = Math.atan2(dy, dx);
   }
 
-  const minVolley = tune.preferredRange - tune.kiteBandSlackWu;
-  const inRange = dist <= tune.attackTriggerRange && dist >= minVolley;
+  const minVolley = tune.preferredRangeWu - tune.kiteBandSlackWu;
+  const inRange = dist <= tune.attackTriggerRangeWu && dist >= minVolley;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
     c.phase = "windup";
@@ -58,7 +58,7 @@ export function updateLobberCombat(
       extra.aimY,
     );
     destroyArrowRainTelegraph(extra.telegraph);
-    const zonePx = worldUnit(tune.blastRadius, enemy.sprite.scene.registry);
+    const zonePx = worldUnit(tune.blastRadiusWu, enemy.sprite.scene.registry);
     extra.telegraph = spawnArrowRainTelegraph(
       enemy.sprite.scene,
       extra.aimX,
@@ -74,7 +74,7 @@ export function updateLobberCombat(
       extra.telegraph,
       deltaMs,
       false,
-      worldUnit(tune.blastRadius, enemy.sprite.scene.registry),
+      worldUnit(tune.blastRadiusWu, enemy.sprite.scene.registry),
     );
   }
 
@@ -87,7 +87,7 @@ export function updateLobberCombat(
     deltaMs,
   );
 
-  const zonePx = worldUnit(tune.blastRadius, enemy.sprite.scene.registry);
+  const zonePx = worldUnit(tune.blastRadiusWu, enemy.sprite.scene.registry);
   let spawnLob: LobSpawnRequest | undefined;
 
   if (
@@ -107,7 +107,7 @@ export function updateLobberCombat(
       toX: extra.aimX,
       toY: extra.aimY,
       damage: tune.damage,
-      blastRadius: tune.blastRadius,
+      blastRadius: tune.blastRadiusWu,
       blastDamageScale: tune.blastDamageScale,
     };
     if (c.attackTargetKind === "wall" && !c.hitThisSwing) {

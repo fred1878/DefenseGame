@@ -1,3 +1,4 @@
+import type Phaser from "phaser";
 import {
   DEFENSE_MAP,
   PLAYER_AGGRO_RADIUS,
@@ -145,6 +146,7 @@ export function resolveEnemyTarget(
   deltaMs: number,
   aggroRadius: number = PLAYER_AGGRO_RADIUS,
   objective: EnemyObjectiveMode = "defendWall",
+  registry?: Phaser.Data.DataManager,
 ): EnemyTargetResolution {
   if (objective === "huntPlayer") {
     nav.lastKnownPlayerX = px;
@@ -180,13 +182,17 @@ export function resolveEnemyTarget(
   if (wasChasingPlayer) {
     nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
   }
-  const wall = wallTargetPoint(ex, ey);
+  const wall = wallTargetPoint(ex, ey, registry);
   return { targetKind: "wall", goalX: wall.x, goalY: wall.y };
 }
 
 /** Movement / A* goal south of the wall plane. */
-export function wallTargetPoint(ex: number, _ey: number): { x: number; y: number } {
-  return { x: ex, y: northWallApproachY() };
+export function wallTargetPoint(
+  ex: number,
+  _ey: number,
+  registry?: Phaser.Data.DataManager,
+): { x: number; y: number } {
+  return { x: ex, y: northWallApproachY(registry) };
 }
 
 /** Combat targeting plane on the wall (projectiles, swing arcs, range checks). */

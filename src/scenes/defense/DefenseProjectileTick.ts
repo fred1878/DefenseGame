@@ -72,8 +72,9 @@ export function tickDefenseProjectiles(
     enemies: host.enemyTargets(),
     knockbackFor: (p: PlayerProjectile) => {
       // Player ranged auto-attack (no spellId) uses public/data/player.json only.
-      if (!p.spellId) return PLAYER_TUNING.rangedKnockback;
-      return spellProjectileDirectKnockback(p.spellId, spellById(p.spellId));
+      if (!p.spellId) return host.wu(PLAYER_TUNING.rangedKnockbackWu);
+      const def = spellById(p.spellId);
+      return host.wu(spellProjectileDirectKnockback(p.spellId, def));
     },
     findEnemy: host.findEnemy,
   };
@@ -125,7 +126,7 @@ export function tickDefenseProjectiles(
         damageable: host.player.damageable,
         sprite: host.player.sprite,
       },
-      PLAYER_TUNING.rangedKnockback * 0.65,
+      host.wu(PLAYER_TUNING.rangedKnockbackWu) * 0.65,
       playerIncomingDamageMult(),
     );
     if (!alive && p.sourceEnemyId && p.blastRadiusWu !== undefined) {

@@ -30,7 +30,7 @@ import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
   hp: number;
-  speed: number;
+  speedWu: number;
   damage: number;
   /** Knockback resistance baseline: 100 = full authored knockback strength. */
   weight: number;
@@ -40,8 +40,8 @@ export type EnemyDef = {
   textureKey: string;
   /** HUD / nameplate label (Title Case); not the content id. */
   displayName: string;
-  /** Arcade physics circle radius (px, design units). */
-  bodyRadius: number;
+  /** Arcade physics circle radius (authored world units). */
+  bodyRadiusWu: number;
   /** Full explicit combat tables for this enemy row. */
   combat: EnemyCombatPartial;
 };

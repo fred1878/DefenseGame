@@ -41,12 +41,12 @@ describe("normalizeSpellCatalog", () => {
     const rows = normalizeSpellCatalog(shippedSpells());
     expect(rows.length).toBeGreaterThan(0);
     const nova = rows.find((s) => s.id === "fire_nova");
-    expect(typeof nova?.blastKnockback).toBe("number");
+    expect(typeof nova?.blastKnockbackWu).toBe("number");
     const bolt = rows.find((s) => s.id === "lightning_bolt");
-    expect(typeof bolt?.knockback).toBe("number");
+    expect(typeof bolt?.knockbackWu).toBe("number");
     const chain = rows.find((s) => s.id === "chain_lightning");
-    expect(typeof chain?.chainKnockback).toBe("number");
-    expect(typeof chain?.chainHopKnockback).toBe("number");
+    expect(typeof chain?.chainKnockbackWu).toBe("number");
+    expect(typeof chain?.chainHopKnockbackWu).toBe("number");
     expect(chain?.chainLightningHops).toBeDefined();
     expect(chain?.chainLightningHopRangeWu).toBeDefined();
     const blink = rows.find((s) => s.id === "blink");

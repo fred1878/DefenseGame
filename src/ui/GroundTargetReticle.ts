@@ -84,7 +84,7 @@ export class GroundTargetReticle {
     return "default";
   }
 
-  static radiusForSpell(scene: Phaser.Scene, blastRadius?: number): number {
-    return worldUnit(blastRadius ?? 72, scene.registry);
+  static radiusForSpell(scene: Phaser.Scene, blastRadiusWu: number): number {
+    return worldUnit(blastRadiusWu, scene.registry);
   }
 }

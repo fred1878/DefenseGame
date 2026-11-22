@@ -154,7 +154,7 @@ export class DefenseSpellDirector {
     this.host.player.setVelocityFromStick(
       dir.x,
       dir.y,
-      this.host.save.player.moveSpeed,
+      this.host.wu(this.host.save.player.moveSpeed),
       { lockMeleeAim },
     );
     if (lockMeleeAim) {
@@ -299,7 +299,7 @@ export class DefenseSpellDirector {
       this.host.groundReticle.showAt(
         aim.x,
         aim.y,
-        GroundTargetReticle.radiusForSpell(this.host.scene, def.blastRadius),
+        GroundTargetReticle.radiusForSpell(this.host.scene, def.blastRadiusWu!),
         GroundTargetReticle.styleForSpellId(spellId),
       );
       return;
@@ -568,7 +568,7 @@ export class DefenseSpellDirector {
       this.host.spellChannelArea ??
       this.host.groundAim ??
       this.defaultGroundTarget(def);
-    const radiusWu = this.host.wu(def.blastRadius ?? 72);
+    const radiusWu = this.host.wu(def.blastRadiusWu!);
     const reticleStyle = GroundTargetReticle.styleForSpellId(def.id);
     if (phase === "windup") {
       this.host.groundReticle.showAt(center.x, center.y, radiusWu, reticleStyle);
@@ -641,7 +641,7 @@ export class DefenseSpellDirector {
     x: number,
     y: number,
   ): void {
-    const radiusWu = this.host.wu(def.blastRadius ?? 72);
+    const radiusWu = this.host.wu(def.blastRadiusWu!);
     const impact = spawnSpellGroundAoeTelegraph(this.host.scene,
       x,
       y,
@@ -671,7 +671,7 @@ export class DefenseSpellDirector {
       );
       this.host.channelAreaStarted = true;
       if (def.mechanicType === "channeled_area") {
-        this.host.flashNova(center.x, center.y, this.host.wu(def.blastRadius ?? 78), {
+        this.host.flashNova(center.x, center.y, this.host.wu(def.blastRadiusWu!), {
           blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
         });
         if (spellPlaysFireWhooshOnChanneledAreaStart(def)) {
@@ -702,7 +702,7 @@ export class DefenseSpellDirector {
       ),
     );
     this.clearLingerAoeTelegraph();
-    const radiusWu = this.host.wu(def.blastRadius ?? 78);
+    const radiusWu = this.host.wu(def.blastRadiusWu!);
     this.host.lingerAoeTelegraph = spawnSpellGroundAoeTelegraph(this.host.scene,
       center.x,
       center.y,
@@ -746,7 +746,7 @@ export class DefenseSpellDirector {
         const bx = remote?.x ?? px;
         const by = remote?.y ?? py;
         applySpellBlastAt(this.host.scene, bx, by, def, targets, mult, this.host.enemySpellStatus);
-        const blastRadiusPx = this.host.wu(def.blastRadius ?? 80);
+        const blastRadiusPx = this.host.wu(def.blastRadiusWu!);
         if (def.id === "fire_nova") {
           showFireNovaRingFx(
             this.host.scene,

@@ -28,7 +28,7 @@ export function createNewSave(): SaveGame {
       hp: PLAYER_TUNING.maxHp,
       hpMax: PLAYER_TUNING.maxHp,
       weaponId: "sword",
-      moveSpeed: PLAYER_TUNING.moveSpeed,
+      moveSpeed: PLAYER_TUNING.moveSpeedWu,
     },
     spellBar: {
       slots: createDefaultSpellBarSlots(),

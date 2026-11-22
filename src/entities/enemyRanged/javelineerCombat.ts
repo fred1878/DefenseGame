@@ -24,12 +24,12 @@ export function updateJavelineerCombat(
 
   const inBand =
     target.kind === "player" &&
-    dist >= tune.minRange &&
-    dist <= tune.maxRange;
+    dist >= tune.minRangeWu &&
+    dist <= tune.maxRangeWu;
   const wallInBand =
     target.kind === "wall" &&
-    dist >= tune.minRange &&
-    dist <= tune.maxRange;
+    dist >= tune.minRangeWu &&
+    dist <= tune.maxRangeWu;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && (inBand || wallInBand)) {
     c.phase = "windup";

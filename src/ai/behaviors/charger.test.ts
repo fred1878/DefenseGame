@@ -29,7 +29,7 @@ describe("chargerBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: testChargerCombat.dashMinRange - 10,
+      playerX: testChargerCombat.dashMinRangeWu - 10,
       playerY: 0,
       deltaMs: 16,
     });
@@ -53,7 +53,7 @@ describe("chargerBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: testChargerCombat.dashTriggerRange - 20,
+      playerX: testChargerCombat.dashTriggerRangeWu - 20,
       playerY: 0,
       deltaMs: 16,
     });
@@ -61,7 +61,7 @@ describe("chargerBehavior", () => {
       testChargerCombat.dashWindupMs,
     );
     expect(enemy.behaviorExtra.chargeAimX).toBe(
-      testChargerCombat.dashTriggerRange - 20,
+      testChargerCombat.dashTriggerRangeWu - 20,
     );
     expect(enemy.behaviorExtra.chargeAimY).toBe(0);
   });

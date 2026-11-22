@@ -40,7 +40,10 @@ export function spawnGroundZone(
     lingerDot?: boolean;
   },
 ): SpellGroundZone {
-  const r = worldUnit(def.blastRadius ?? 72, scene.registry);
+  if (def.blastRadiusWu === undefined) {
+    throw new Error(`spawnGroundZone requires blastRadiusWu for ${def.id}`);
+  }
+  const r = worldUnit(def.blastRadiusWu, scene.registry);
   const tickScale = opts?.tickDamageScale ?? 1;
   const tickDamage = (def.baseDamage ?? 0) * damageMult * tickScale;
   return {

@@ -580,7 +580,7 @@ export class DefenseScene extends Phaser.Scene {
       this.player.setVelocityFromStick(
         dir.x,
         dir.y,
-        this.save.player.moveSpeed * moveSpeed,
+        this.wu(this.save.player.moveSpeed) * moveSpeed,
         {
           lockMeleeAim,
         },
@@ -606,7 +606,7 @@ export class DefenseScene extends Phaser.Scene {
     this.player.damageEnemiesInArc(
       this.enemies.filter((e) => e.damageable.alive),
       PLAYER_TUNING.meleeDamage * mult,
-      PLAYER_TUNING.meleeKnockback,
+      this.wu(PLAYER_TUNING.meleeKnockbackWu),
     );
 
     if (this.player.consumeRangedShot()) {
@@ -1102,7 +1102,7 @@ export class DefenseScene extends Phaser.Scene {
         worldX: world.x,
         worldY: world.y,
         picked: pick !== null,
-        pickRadiusWorld: this.wu(PLAYER_TUNING.targetTapRadiusWorld),
+        pickRadiusWorld: this.wu(PLAYER_TUNING.targetTapRadiusWu),
         ageMs: 0,
       };
     }
@@ -1220,9 +1220,9 @@ export class DefenseScene extends Phaser.Scene {
       this.player.sprite.x,
       this.player.sprite.y,
       angle,
-      PLAYER_TUNING.projectileSpeed,
+      PLAYER_TUNING.projectileSpeedWu,
       damage,
-      this.wu(PLAYER_TUNING.rangedMaxRange),
+      this.wu(PLAYER_TUNING.rangedMaxRangeWu),
       id,
     );
     this.registerWorldDraw(p.sprite);
@@ -1302,7 +1302,7 @@ export class DefenseScene extends Phaser.Scene {
     this.hitboxDebug.drawMeleeMaxRange(
       px,
       py,
-      this.wu(PLAYER_TUNING.meleeStrikeRange),
+      this.wu(PLAYER_TUNING.meleeStrikeRangeWu),
     );
     this.hitboxDebug.drawCircle(px, py, playerR);
 
@@ -1315,7 +1315,7 @@ export class DefenseScene extends Phaser.Scene {
         px,
         py,
         this.player.meleeHitboxFacingRad(),
-        this.wu(PLAYER_TUNING.meleeStrikeRange),
+        this.wu(PLAYER_TUNING.meleeStrikeRangeWu),
         arcHalf,
       );
     }
@@ -1328,12 +1328,12 @@ export class DefenseScene extends Phaser.Scene {
           this.hitboxDebug.drawMeleeActivationRange(
             e.sprite.x,
             e.sprite.y,
-            melee.triggerRange,
+            melee.triggerRangeWu,
           );
           this.hitboxDebug.drawMeleeMaxRange(
             e.sprite.x,
             e.sprite.y,
-            melee.range,
+            melee.rangeWu,
           );
         }
       }
@@ -1350,7 +1350,7 @@ export class DefenseScene extends Phaser.Scene {
             e.sprite.x,
             e.sprite.y,
             e.combat.facing,
-            melee.range,
+            melee.rangeWu,
             arcHalf,
           );
         }

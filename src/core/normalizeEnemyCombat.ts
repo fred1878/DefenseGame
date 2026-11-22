@@ -23,10 +23,10 @@ const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
   "rangedHybrid",
 ]);
 
-const WALL_KEYS = ["damage", "triggerRange", "hitRange"] as const;
+const WALL_KEYS = ["damage", "triggerRangeWu", "hitRangeWu"] as const;
 const MELEE_KEYS = [
-  "triggerRange",
-  "range",
+  "triggerRangeWu",
+  "rangeWu",
   "arcDeg",
   "windupMs",
   "activeMs",
@@ -35,22 +35,22 @@ const MELEE_KEYS = [
 ] as const;
 const ARROW_RAIN_KEYS = [
   "damage",
-  "preferredRange",
-  "attackTriggerRange",
+  "preferredRangeWu",
+  "attackTriggerRangeWu",
   "kiteBandSlackWu",
   "windupMs",
   "activeMs",
   "recoveryMs",
   "cooldownMs",
-  "zoneRadius",
+  "zoneRadiusWu",
   "tickIntervalMs",
   "tickDamageScale",
   "maxTicks",
 ] as const;
 const JAVELINEER_KEYS = [
   "damage",
-  "minRange",
-  "maxRange",
+  "minRangeWu",
+  "maxRangeWu",
   "kiteBandSlackWu",
   "strafeSpeedMul",
   "orbitFlipMs",
@@ -58,51 +58,51 @@ const JAVELINEER_KEYS = [
   "activeMs",
   "recoveryMs",
   "cooldownMs",
-  "projectileSpeed",
-  "projectileMaxTravel",
+  "projectileSpeedWu",
+  "projectileMaxTravelWu",
 ] as const;
 const STATIONARY_RANGED_KEYS = [
   "damage",
-  "preferredRange",
-  "attackTriggerRange",
+  "preferredRangeWu",
+  "attackTriggerRangeWu",
   "kiteBandSlackWu",
   "windupMs",
   "activeMs",
   "recoveryMs",
   "cooldownMs",
-  "projectileSpeed",
-  "projectileMaxTravel",
+  "projectileSpeedWu",
+  "projectileMaxTravelWu",
 ] as const;
-const WALL_SIEGE_KEYS = ["playerAggroRadius"] as const;
+const WALL_SIEGE_KEYS = ["playerAggroRadiusWu"] as const;
 const CHARGER_KEYS = [
   "chargeDamage",
-  "dashMinRange",
-  "dashTriggerRange",
+  "dashMinRangeWu",
+  "dashTriggerRangeWu",
   "dashWindupMs",
   "dashDurationMs",
   "dashSpeedMul",
   "dashCooldownMs",
-  "dashOvershootRange",
+  "dashOvershootRangeWu",
 ] as const;
 const LOBBER_KEYS = [
   "damage",
-  "preferredRange",
-  "attackTriggerRange",
+  "preferredRangeWu",
+  "attackTriggerRangeWu",
   "kiteBandSlackWu",
   "windupMs",
   "activeMs",
   "recoveryMs",
   "cooldownMs",
-  "projectileSpeed",
-  "blastRadius",
+  "projectileSpeedWu",
+  "blastRadiusWu",
   "blastDamageScale",
 ] as const;
-const WARD_KEYS = ["protectRadius", "screenOffsetWu", "playerAggroRadius"] as const;
+const WARD_KEYS = ["protectRadiusWu", "screenOffsetWu", "playerAggroRadiusWu"] as const;
 const HYBRID_KEYS = [
-  "closeMeleeRadius",
-  "preferredRange",
+  "closeMeleeRadiusWu",
+  "preferredRangeWu",
   "maxMeleeSwings",
-  "retreatRangeSlack",
+  "retreatRangeSlackWu",
 ] as const;
 
 const BEHAVIOR_KIT_SECTIONS: Record<string, (keyof EnemyCombatPartial)[]> = {

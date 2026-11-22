@@ -17,7 +17,7 @@ describe("resolveEnemyCombat explicit authoring", () => {
       "grunt",
     );
     expect(tuned.wall.damage).toBe(6);
-    expect(tuned.melee!.triggerRange).toBeGreaterThanOrEqual(tuned.melee!.range);
+    expect(tuned.melee!.triggerRangeWu).toBeGreaterThanOrEqual(tuned.melee!.rangeWu);
     expect(tuned.melee!.meleeChaseStandoffWu).toBe(4);
     expect(tuned.arrowRain).toBeUndefined();
   });

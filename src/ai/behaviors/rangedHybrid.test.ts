@@ -38,13 +38,13 @@ describe("rangedHybrid combat state machine", () => {
       activeMs: 60,
       recoveryMs: 80,
       cooldownMs: 40,
-      triggerRange: 120,
-      range: 61,
+      triggerRangeWu: 120,
+      rangeWu: 61,
     },
     stationaryRanged: {
       ...base.stationaryRanged!,
-      preferredRange: 110,
-      attackTriggerRange: 200,
+      preferredRangeWu: 110,
+      attackTriggerRangeWu: 200,
       windupMs: 200,
       activeMs: 40,
       recoveryMs: 100,
@@ -52,10 +52,10 @@ describe("rangedHybrid combat state machine", () => {
     },
     hybrid: {
       ...base.hybrid!,
-      closeMeleeRadius: 90,
-      preferredRange: 110,
+      closeMeleeRadiusWu: 90,
+      preferredRangeWu: 110,
       maxMeleeSwings: 3,
-      retreatRangeSlack: 12,
+      retreatRangeSlackWu: 12,
     },
   }, "reaver");
 
@@ -63,7 +63,7 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     updateRangedHybridCombat(
@@ -79,7 +79,7 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
@@ -99,7 +99,7 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
@@ -119,7 +119,7 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.combat.cooldownMs = 0;
@@ -137,7 +137,7 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
@@ -159,7 +159,7 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: {} } as never,
+      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "retreat";

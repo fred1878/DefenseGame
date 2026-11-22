@@ -18,11 +18,15 @@ function spellPath(spellId: string, index: number): string {
 }
 
 function requireKnockback(def: SpellDefinition, path: string): number {
-  return requireFiniteNumber(def.knockback, `${path}.knockback`);
+  return requireFiniteNumber(def.knockbackWu, `${path}.knockbackWu`);
 }
 
 function requireBlastKnockback(def: SpellDefinition, path: string): number {
-  return requireFiniteNumber(def.blastKnockback, `${path}.blastKnockback`);
+  return requireFiniteNumber(def.blastKnockbackWu, `${path}.blastKnockbackWu`);
+}
+
+function requireBlastRadiusWu(def: SpellDefinition, path: string): number {
+  return requireFiniteNumber(def.blastRadiusWu, `${path}.blastRadiusWu`);
 }
 
 function validateSpellMechanicFields(
@@ -50,6 +54,9 @@ function validateSpellMechanicFields(
         def.blinkPartialMoveEpsilonWu,
         `${path}.blinkPartialMoveEpsilonWu`,
       );
+      return;
+    case "channeled_area":
+      requireBlastRadiusWu(def, path);
       return;
     case "ice_wall":
       requireFiniteNumber(def.iceWallDistanceWu, `${path}.iceWallDistanceWu`);
@@ -109,12 +116,16 @@ function validateSpellKnockbackFields(
     case "projectile_aoe":
       requireKnockback(def, path);
       requireBlastKnockback(def, path);
+      requireBlastRadiusWu(def, path);
       return def;
     case "tracking_projectile":
       requireKnockback(def, path);
       if (def.id === "chain_lightning") {
-        requireFiniteNumber(def.chainKnockback, `${path}.chainKnockback`);
-        requireFiniteNumber(def.chainHopKnockback, `${path}.chainHopKnockback`);
+        requireFiniteNumber(def.chainKnockbackWu, `${path}.chainKnockbackWu`);
+        requireFiniteNumber(
+          def.chainHopKnockbackWu,
+          `${path}.chainHopKnockbackWu`,
+        );
         requireFiniteNumber(
           def.chainLightningHops,
           `${path}.chainLightningHops`,
@@ -133,11 +144,21 @@ function validateSpellKnockbackFields(
       return def;
     case "blast":
       requireBlastKnockback(def, path);
+      requireBlastRadiusWu(def, path);
+      return def;
+    case "channeled_area":
+      requireBlastRadiusWu(def, path);
       return def;
     case "instant_targeted":
       requireKnockback(def, path);
-      if (def.blastRadius != null || (def.burstDamage != null && def.burstDamage > 0)) {
+      if (
+        def.blastRadiusWu != null ||
+        (def.burstDamage != null && def.burstDamage > 0)
+      ) {
         requireBlastKnockback(def, path);
+        if (def.blastRadiusWu != null) {
+          requireBlastRadiusWu(def, path);
+        }
       }
       return def;
     default:

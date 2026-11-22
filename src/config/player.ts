@@ -1,12 +1,12 @@
 export type AttackMode = "melee" | "ranged" | "auto";
 
 export type PlayerTuning = {
-  moveSpeed: number;
+  moveSpeedWu: number;
   meleeWindupMs: number;
   meleeActiveMs: number;
   meleeRecoveryMs: number;
-  meleeStrikeRange: number;
-  meleeEngageTargetRadius: number;
+  meleeStrikeRangeWu: number;
+  meleeEngageTargetRadiusWu: number;
   meleeActivationSlackWu: number;
   meleeArcDeg: number;
   meleeDamage: number;
@@ -14,18 +14,18 @@ export type PlayerTuning = {
   rangedActiveMs: number;
   rangedRecoveryMs: number;
   rangedDamage: number;
-  rangedMaxRange: number;
-  projectileSpeed: number;
-  meleeKnockback: number;
-  rangedKnockback: number;
+  rangedMaxRangeWu: number;
+  projectileSpeedWu: number;
+  meleeKnockbackWu: number;
+  rangedKnockbackWu: number;
   maxHp: number;
   autoAttackMeleeRange: number;
   autoAttackRangedRange: number;
-  targetTapRadiusWorld: number;
+  targetTapRadiusWu: number;
   playerHitInvulnMs: number;
   nightSpawnInvulnMs: number;
-  /** Arcade physics circle radius (px, design units). */
-  bodyRadius: number;
+  /** Arcade physics circle radius (authored world units). */
+  bodyRadiusWu: number;
 };
 
 /** Active tuning (from JSON after Boot). Uninitialized until `applyPlayerTuning`. */

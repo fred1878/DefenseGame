@@ -188,15 +188,16 @@ export function tickDefenseEnemies(
       if (jav.spawnJavelin) {
         const req = jav.spawnJavelin;
         const id = host.nextProjectileId("ej_");
+        const javTune = e.combatTuning.javelineer!;
         const javProj = spawnEnemyProjectile(
           host.scene,
           req.fromX,
           req.fromY,
           req.toX,
           req.toY,
-          e.combatTuning.javelineer!.projectileSpeed,
+          worldUnit(javTune.projectileSpeedWu, host.scene.registry),
           req.damage,
-          e.combatTuning.javelineer!.projectileMaxTravel,
+          worldUnit(javTune.projectileMaxTravelWu, host.scene.registry),
           id,
         );
         javProj.sourceEnemyId = e.id;
@@ -222,9 +223,9 @@ export function tickDefenseEnemies(
           req.fromY,
           req.toX,
           req.toY,
-          tune.projectileSpeed,
+          worldUnit(tune.projectileSpeedWu, host.scene.registry),
           req.damage,
-          tune.projectileMaxTravel,
+          worldUnit(tune.projectileMaxTravelWu, host.scene.registry),
           id,
         );
         boltProj.sourceEnemyId = e.id;
@@ -249,9 +250,9 @@ export function tickDefenseEnemies(
           req.fromY,
           req.toX,
           req.toY,
-          tune.projectileSpeed,
+          worldUnit(tune.projectileSpeedWu, host.scene.registry),
           req.damage,
-          tune.projectileMaxTravel,
+          worldUnit(tune.projectileMaxTravelWu, host.scene.registry),
           id,
         );
         hybridProj.sourceEnemyId = e.id;
@@ -321,9 +322,9 @@ export function tickDefenseEnemies(
           req.fromY,
           req.toX,
           req.toY,
-          tune.projectileSpeed,
+          tune.projectileSpeedWu,
           req.damage,
-          tune.blastRadius,
+          tune.blastRadiusWu,
           id,
         );
         (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =

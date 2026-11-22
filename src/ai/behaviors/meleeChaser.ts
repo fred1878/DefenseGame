@@ -42,6 +42,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);

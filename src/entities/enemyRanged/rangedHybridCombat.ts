@@ -32,15 +32,15 @@ export function updateRangedHybridCombat(
   const dist = Math.hypot(dx, dy);
 
   if (target.kind === "player" && melee && !enemyIsAttacking(c)) {
-    const inMeleePattern = dist <= melee.triggerRange;
+    const inMeleePattern = dist <= melee.triggerRangeWu;
     const atPreferred =
-      dist >= hybrid.preferredRange - hybrid.retreatRangeSlack;
+      dist >= hybrid.preferredRangeWu - hybrid.retreatRangeSlackWu;
 
     if (extra.mode === "melee") {
       const canAbortMelee =
         extra.meleeSwings === 0 &&
         c.phase === "idle" &&
-        dist > hybrid.closeMeleeRadius;
+        dist > hybrid.closeMeleeRadiusWu;
       if (canAbortMelee) {
         extra.mode = "ranged";
         extra.meleeSwings = 0;

@@ -47,7 +47,7 @@ export function spellGroundAoePalette(def: SpellDefinition): SpellAoeTelegraphPa
 /** Ground-target spells that show a blast-radius telegraph during cast. */
 export function spellNeedsGroundAoeTelegraph(def: SpellDefinition): boolean {
   if (spellTargetMode(def) !== "ground") return false;
-  if ((def.blastRadius ?? 0) <= 0) return false;
+  if ((def.blastRadiusWu ?? 0) <= 0) return false;
   const windup = spellCastMs(def);
   const channel = def.channelMs ?? 0;
   return windup > 0 || channel > 0;

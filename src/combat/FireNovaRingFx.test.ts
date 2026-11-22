@@ -13,11 +13,11 @@ function instantNova(partial: Partial<SpellDefinition> = {}): SpellDefinition {
     cooldownMs: 18000,
     channelMs: 0,
     baseDamage: 42,
-    blastRadius: 100,
+    blastRadiusWu: 100,
     iconFile: "fire_nova.png",
     damageFlavor: "fire",
     centerOnCaster: true,
-    blastKnockback: 0,
+    blastKnockbackWu: 0,
     ...partial,
   };
 }

@@ -23,6 +23,7 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
@@ -55,8 +56,8 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
   }
 
   const bandSlack = worldUnit(tune.kiteBandSlackWu, reg);
-  const preferred = worldUnit(tune.preferredRange, reg);
-  const attackMax = worldUnit(tune.attackTriggerRange, reg);
+  const preferred = worldUnit(tune.preferredRangeWu, reg);
+  const attackMax = worldUnit(tune.attackTriggerRangeWu, reg);
 
   const targetX = desired === "player" ? playerX : goal.x;
   const targetY = desired === "player" ? playerY : goal.y;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY, WALL_VELOCITY_BLEND_MS } from "../../config";
-import { wallMeleeApproachStandoffPx } from "../../core/enemyTuning";
+import { wallMeleeApproachStandoffWu } from "../../core/enemyTuning";
 import { testWallCombat } from "../../test/fixtures/inlineCombat";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -91,7 +91,7 @@ describe("player melee standoff", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     const standoff = playerMeleeChaseStandoffCenterDist(enemy);
     enemy.sprite.x = 0;
@@ -124,8 +124,8 @@ describe("player melee standoff", () => {
   it("uses per-defId body radius for chord width", () => {
     applyEnemyBodyRadii({
       ...enemyDefs,
-      chord_wide: { ...enemyDefs.grunt!, bodyRadius: 50 },
-      chord_narrow: { ...enemyDefs.grunt!, bodyRadius: 1 },
+      chord_wide: { ...enemyDefs.grunt!, bodyRadiusWu: 50 },
+      chord_narrow: { ...enemyDefs.grunt!, bodyRadiusWu: 1 },
     });
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
@@ -147,7 +147,7 @@ describe("player melee standoff", () => {
     applyEnemyBodyRadii(enemyDefs);
   });
 
-  it("reads bodyRadius from JSON for grunt and bruiser", () => {
+  it("reads bodyRadiusWu from JSON for grunt and bruiser", () => {
     expect(enemyCollisionBodyRadius("grunt")).toBe(28);
     expect(enemyCollisionBodyRadius("bruiser")).toBe(28);
   });
@@ -184,7 +184,7 @@ describe("player melee standoff", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 0;
@@ -205,7 +205,7 @@ describe("player melee standoff", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 0;
@@ -228,7 +228,7 @@ describe("player melee standoff", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 0;
@@ -281,18 +281,18 @@ describe("wall melee hold helpers", () => {
   it("keeps closing while idle in the trigger band but outside hit range", () => {
     const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
     const wall = testWallCombat;
-    enemy.sprite.y = northWallAttackY() + (wall.hitRange + wall.triggerRange) / 2;
+    enemy.sprite.y = northWallAttackY() + (wall.hitRangeWu + wall.triggerRangeWu) / 2;
     enemy.combat.phase = "idle";
     enemy.combat.cooldownMs = 0;
-    expect(wallMeleeDistToAttackPlane(enemy)).toBeGreaterThan(wall.hitRange);
-    expect(wallMeleeDistToAttackPlane(enemy)).toBeLessThanOrEqual(wall.triggerRange);
+    expect(wallMeleeDistToAttackPlane(enemy)).toBeGreaterThan(wall.hitRangeWu);
+    expect(wallMeleeDistToAttackPlane(enemy)).toBeLessThanOrEqual(wall.triggerRangeWu);
     expect(shouldHoldAtWallMelee(enemy, "wall")).toBe(false);
   });
 
   it("places standoff inside default wall hit range", () => {
     const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
-    const standoff = wallMeleeApproachStandoffPx(testWallCombat);
-    expect(standoff).toBeLessThanOrEqual(testWallCombat.hitRange);
+    const standoff = wallMeleeApproachStandoffWu(testWallCombat);
+    expect(standoff).toBeLessThanOrEqual(testWallCombat.hitRangeWu);
     enemy.sprite.x = 12;
     const y = wallMeleeStandoffY(enemy);
     expect(y - northWallAttackY()).toBe(standoff);
@@ -306,7 +306,7 @@ describe("wall melee hold helpers", () => {
   });
 
   it("bruiser keeps half chase speed during melee windup", () => {
-    const enemy = mockEnemyInstance({ behavior: "bruiser", speed: 100 });
+    const enemy = mockEnemyInstance({ behavior: "bruiser", speedWu: 100 });
     enemy.combat.phase = "windup";
     enemy.sprite.x = 0;
     enemy.sprite.y = 0;
@@ -319,7 +319,7 @@ describe("wall melee hold helpers", () => {
   it("wall transition blends chase intent only, not residual knockback", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
-      speed: 100,
+      speedWu: 100,
       knockbackVx: 80,
       knockbackVy: 0,
     });
@@ -341,7 +341,7 @@ describe("wall melee hold helpers", () => {
   it("meleeChaser holds chase at zero while attacking but keeps knockback slide", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
-      speed: 100,
+      speedWu: 100,
       knockbackVx: 30,
       knockbackVy: 0,
     });

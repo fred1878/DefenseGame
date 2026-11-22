@@ -49,7 +49,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 0;
@@ -88,7 +88,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     const slot = { x: -35, y: 70 };
     enemy.sprite.x = slot.x;
@@ -127,7 +127,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 0;
@@ -166,7 +166,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 60;
@@ -218,7 +218,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = flank.x;
     enemy.sprite.y = flank.y;
@@ -261,7 +261,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     const flankSlot = { x: -100, y: -15 };
     enemy.sprite.x = flankSlot.x;
@@ -294,7 +294,7 @@ describe("meleeChaserBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",
       defId: "grunt",
-      speed: 80,
+      speedWu: 80,
     });
     enemy.sprite.x = -100;
     enemy.sprite.y = 40;

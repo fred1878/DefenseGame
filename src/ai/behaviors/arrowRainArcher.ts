@@ -47,6 +47,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
@@ -57,8 +58,8 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
 
   if (desired === "player" && arrow) {
     const bandSlack = worldUnit(arrow.kiteBandSlackWu, reg);
-    const preferred = worldUnit(arrow.preferredRange, reg);
-    const attackMax = worldUnit(arrow.attackTriggerRange, reg);
+    const preferred = worldUnit(arrow.preferredRangeWu, reg);
+    const attackMax = worldUnit(arrow.attackTriggerRangeWu, reg);
     const distToPlayer = Math.hypot(playerX - ex, playerY - ey);
     if (distToPlayer < preferred - bandSlack) {
       applyRetreatPathing({
@@ -102,8 +103,8 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
 
   if (desired === "wall" && arrow) {
     const bandSlack = worldUnit(arrow.kiteBandSlackWu, reg);
-    const preferred = worldUnit(arrow.preferredRange, reg);
-    const attackMax = worldUnit(arrow.attackTriggerRange, reg);
+    const preferred = worldUnit(arrow.preferredRangeWu, reg);
+    const attackMax = worldUnit(arrow.attackTriggerRangeWu, reg);
     const distToWall = ey - wallY;
     if (distToWall < preferred - bandSlack) {
       applyRetreatPathing({

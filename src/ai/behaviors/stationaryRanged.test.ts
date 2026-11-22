@@ -10,7 +10,7 @@ function mockSentry(x: number, y: number, combat = createEnemyCombat()) {
     id: "s",
     defId: "sentry_archer",
     behavior: "stationaryRanged",
-    speed: 62,
+    speedWu: 62,
     combat,
     sprite: {
       x,
@@ -37,8 +37,8 @@ describe("stationaryRangedBehavior", () => {
   it("holds still when player is in the preferred band", () => {
     const enemy = mockSentry(0, 0);
     const inRange =
-      (testStationaryRangedCombat.preferredRange +
-        testStationaryRangedCombat.attackTriggerRange) /
+      (testStationaryRangedCombat.preferredRangeWu +
+        testStationaryRangedCombat.attackTriggerRangeWu) /
       2;
     stationaryRangedBehavior({
       enemy,
@@ -58,7 +58,7 @@ describe("stationaryRangedBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: testStationaryRangedCombat.preferredRange - 40,
+      playerX: testStationaryRangedCombat.preferredRangeWu - 40,
       playerY: 0,
       deltaMs: 16,
     });
@@ -70,7 +70,7 @@ describe("stationaryRangedBehavior", () => {
   it("chases when player is beyond attack range", () => {
     const enemy = mockSentry(0, 0);
     const outOfRange =
-      testStationaryRangedCombat.attackTriggerRange * 2 + 120;
+      testStationaryRangedCombat.attackTriggerRangeWu * 2 + 120;
     enemy.nav = {
       ...enemy.nav,
       targetKind: "player",
@@ -99,7 +99,7 @@ describe("stationaryRangedBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: testStationaryRangedCombat.attackTriggerRange + 40,
+      playerX: testStationaryRangedCombat.attackTriggerRangeWu + 40,
       playerY: 0,
       deltaMs: 16,
     });

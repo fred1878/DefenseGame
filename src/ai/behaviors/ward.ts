@@ -220,7 +220,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
   const holdExitRadius = worldUnit(WARD_POST_HOLD_EXIT_RADIUS_PX, reg);
   const breakMovePx = worldUnit(WARD_POST_BREAK_MOVE_PX, reg);
   const aggro = playerAggroRadiusWu(
-    ward?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS,
+    ward?.playerAggroRadiusWu ?? PLAYER_AGGRO_RADIUS,
   );
   const extra = enemy.behaviorExtra;
   extra.wardPostHolding = false;
@@ -229,7 +229,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
     peerAllies,
     ex,
     ey,
-    worldUnit(ward?.protectRadius ?? 220, reg),
+    worldUnit(ward!.protectRadiusWu, reg),
   );
 
   let goalX: number;
@@ -262,6 +262,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       deltaMs,
       worldUnit(aggro, reg),
       ctx.objective ?? "defendWall",
+      reg,
     );
     goalX = resolved.goalX;
     goalY = resolved.goalY;
