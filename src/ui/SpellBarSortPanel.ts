@@ -594,29 +594,4 @@ export class SpellBarSortPanel {
     return [...this.slots];
   }
 
-  /** Touch-input debug overlay: bar slots, pool chips, and Done. */
-  e2eTouchDebugRects(): Array<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }> {
-    const rects: Array<{
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }> = [];
-    const push = (obj: Phaser.GameObjects.GameObject) => {
-      const r = interactiveObjectScreenRect(obj);
-      if (r && r.width > 0 && r.height > 0) rects.push(r);
-    };
-    for (const view of this.slotViews) push(view.frame);
-    for (const chip of this.poolChips) {
-      if (!chip.poolSelectable) continue;
-      push(chip.frame);
-    }
-    if (this.doneBtn) push(this.doneBtn.container);
-    return rects;
-  }
 }

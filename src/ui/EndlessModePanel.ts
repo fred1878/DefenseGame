@@ -883,33 +883,4 @@ export class EndlessModePanel {
     row?.capValue.setText(`${this.caps.get(enemyId)}`);
   }
 
-  /** Touch-input debug overlay: roster rows, cap controls, footer actions. */
-  e2eTouchDebugRects(): Array<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }> {
-    const rects: Array<{
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }> = [];
-    const push = (obj: Phaser.GameObjects.GameObject) => {
-      const r = interactiveObjectScreenRect(obj);
-      if (r && r.width > 0 && r.height > 0) rects.push(r);
-    };
-    for (const row of this.rows) {
-      push(row.bg);
-      push(row.capBg);
-      push(row.capMinus);
-      push(row.capPlus);
-    }
-    push(this.infiniteHpBg);
-    if (this.startBtn) push(this.startBtn.container);
-    if (this.closeBtn) push(this.closeBtn.container);
-    if (this.listViewport.input?.enabled) push(this.listViewport);
-    return rects;
-  }
 }
