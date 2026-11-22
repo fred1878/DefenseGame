@@ -32,6 +32,9 @@ export const TOWN_SPELL_SORT_PANEL = {
   poolBelowBarGapY: 28,
   poolHeaderToGridGapY: 24,
   doneBelowPoolGapY: 28,
+  /** Side-by-side footer: Clear all + Done. */
+  footerButtonWidthPx: 140,
+  footerButtonGapPx: 12,
 } as const;
 
 /** Defense night HUD: 2× slot/tap metrics, 4×2 grid beside vertical AUTO/MEL/ATK on 540-wide. */

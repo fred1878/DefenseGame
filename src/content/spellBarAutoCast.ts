@@ -48,6 +48,15 @@ export function toggleAutoCastSpellId(
 }
 
 /** Per-slot border flags for HUD chrome (derived from spell ids + current slots). */
+/** Drop auto-cast ids for spells that are no longer assigned to a bar slot. */
+export function pruneAutoCastSpellIdsForSlots(
+  autoCastSpellIds: readonly SpellId[],
+  slots: readonly SpellId[],
+): SpellId[] {
+  const onBar = new Set(slots.filter(Boolean));
+  return autoCastSpellIds.filter((id) => onBar.has(id));
+}
+
 export function autoCastFlagsForSlots(
   slots: readonly SpellId[],
   autoCastSpellIds: readonly SpellId[],

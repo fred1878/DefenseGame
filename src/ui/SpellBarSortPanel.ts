@@ -9,13 +9,17 @@ import {
 import { spellIconTextureKey } from "../content/assets";
 import {
   autoCastFlagsForSlots,
+  pruneAutoCastSpellIdsForSlots,
   toggleAutoCastSpellId,
 } from "../content/spellBarAutoCast";
 import {
   isSpellPoolSelectable,
   poolSpellIconAlpha,
 } from "../content/spellPoolReadiness";
-import { toggleSpellOnDefenseBar } from "../content/spellBarSortSlots";
+import {
+  clearAllDefenseBarSlots,
+  toggleSpellOnDefenseBar,
+} from "../content/spellBarSortSlots";
 import {
   getSpellCatalog,
   spellById,
@@ -87,6 +91,7 @@ export class SpellBarSortPanel {
   private readonly poolChips: PoolChip[] = [];
   private poolPress: PoolPressState | null = null;
   private drag: DragState | null = null;
+  private clearAllBtn: ReturnType<typeof createTouchButton> | null = null;
   private doneBtn: ReturnType<typeof createTouchButton> | null = null;
   private readonly modalLease: ModalInputLease;
 
@@ -299,17 +304,42 @@ export class SpellBarSortPanel {
     }
 
     const poolRows = Math.ceil(catalog.length / POOL_COLUMNS);
-    const doneY =
-      poolTop + poolRows * poolRowStride + scaleUiY(panelLayout.doneBelowPoolGapY);
+    const footerY =
+      poolTop +
+      poolRows * poolRowStride +
+      scaleUiY(panelLayout.doneBelowPoolGapY);
+    const footerBtnY = Math.min(footerY, GAME.height - scaleUiY(56));
+    const footerBtnW = scaleUiX(panelLayout.footerButtonWidthPx);
+    const footerBtnH = scaleUiY(44);
+    const footerGap = scaleUiX(panelLayout.footerButtonGapPx);
+    const footerRowW = footerBtnW * 2 + footerGap;
+    const clearAllX = GAME.width / 2 - footerRowW / 2 + footerBtnW / 2;
+    const doneX = GAME.width / 2 + footerRowW / 2 - footerBtnW / 2;
 
+    this.clearAllBtn = createTouchButton(
+      scene,
+      clearAllX,
+      footerBtnY,
+      "Clear all",
+      () => this.clearAllBar(),
+      {
+        width: footerBtnW,
+        height: footerBtnH,
+        depth: 510,
+        fontSize: `${scaleUiX(14)}px`,
+        fillColor: 0x52525b,
+        strokeColor: 0xa1a1aa,
+      },
+    );
     this.doneBtn = createTouchButton(
       scene,
-      GAME.width / 2,
-      Math.min(doneY, GAME.height - scaleUiY(56)),
+      doneX,
+      footerBtnY,
       "Done",
       () => this.finish(),
-      { width: scaleUiX(200), height: scaleUiY(44), depth: 510 },
+      { width: footerBtnW, height: footerBtnH, depth: 510 },
     );
+    this.root.add(this.clearAllBtn.container);
     this.root.add(this.doneBtn.container);
 
     this.refreshSlotDisplay();
@@ -490,13 +520,25 @@ export class SpellBarSortPanel {
     }
   };
 
+  private clearAllBar(): void {
+    this.slots = clearAllDefenseBarSlots();
+    this.autoCastSpellIds = pruneAutoCastSpellIdsForSlots(
+      this.autoCastSpellIds,
+      this.slots,
+    );
+    this.refreshSlotDisplay();
+  }
+
   private togglePoolSpell(spellId: SpellId): void {
     const def = spellById(spellId);
     if (!def || !isSpellPoolSelectable(def)) return;
     const wasOnBar = this.slots.includes(spellId);
     this.slots = toggleSpellOnDefenseBar(this.slots, spellId);
     if (wasOnBar) {
-      this.autoCastSpellIds = this.autoCastSpellIds.filter((id) => id !== spellId);
+      this.autoCastSpellIds = pruneAutoCastSpellIdsForSlots(
+        this.autoCastSpellIds,
+        this.slots,
+      );
     }
     this.refreshSlotDisplay();
   }
@@ -564,6 +606,15 @@ export class SpellBarSortPanel {
         x: r.x + r.width / 2,
         y: r.y + r.height / 2,
       };
+    }
+    if (this.clearAllBtn) {
+      const r = interactiveObjectScreenRect(this.clearAllBtn.container);
+      if (r) {
+        out["spell-sort-clear-all"] = {
+          x: r.x + r.width / 2,
+          y: r.y + r.height / 2,
+        };
+      }
     }
     return out;
   }

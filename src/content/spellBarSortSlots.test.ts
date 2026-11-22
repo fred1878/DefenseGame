@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clearAllDefenseBarSlots,
   isSpellOnDefenseBar,
   normalizeBarSlots,
   toggleSpellOnDefenseBar,
@@ -52,6 +53,21 @@ describe("toggleSpellOnDefenseBar", () => {
     expect(normalizeBarSlots(["nova"])).toHaveLength(8);
     expect(normalizeBarSlots(["nova"])[0]).toBe("nova");
     expect(normalizeBarSlots(["nova"])[1]).toBe("");
+  });
+});
+
+describe("clearAllDefenseBarSlots", () => {
+  it("returns eight empty slots by default", () => {
+    expect(clearAllDefenseBarSlots()).toEqual([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+    ]);
   });
 });
 
