@@ -31,8 +31,8 @@ export const testWallSiegeCombat: EnemyWallSiegeCombat = {
 
 export const testStationaryRangedCombat: EnemyStationaryRangedCombat = {
   damage: 10,
-  preferredRange: 105,
-  attackTriggerRange: 140,
+  preferredRange: 210,
+  attackTriggerRange: 290,
   windupMs: 400,
   activeMs: 80,
   recoveryMs: 400,
@@ -57,8 +57,8 @@ export const testArrowRainCombat: EnemyArrowRainCombat = {
 
 export const testJavelineerCombat: EnemyJavelineerCombat = {
   damage: 10,
-  minRange: 50,
-  maxRange: 180,
+  minRange: 80,
+  maxRange: 289,
   strafeSpeedMul: 0.9,
   orbitFlipMs: 1200,
   windupMs: 300,

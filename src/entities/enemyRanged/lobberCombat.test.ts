@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
+import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { createLobberCombatState } from "./types";
 import { updateLobberCombat } from "./lobberCombat";
 import { mockEnemyInstance } from "../testEnemyInstance";
 
 describe("updateLobberCombat attack commit", () => {
+  const base = shippedEnemyCombat("lobber");
   const combatTuning = resolveEnemyCombat("lobber", {
+    ...base,
     lobber: {
+      ...base.lobber!,
       damage: 12,
       preferredRange: 100,
       attackTriggerRange: 180,
@@ -19,7 +23,7 @@ describe("updateLobberCombat attack commit", () => {
       blastRadius: 50,
       blastDamageScale: 0.9,
     },
-  });
+  }, "lobber");
 
   it("throws at committed aim after player leaves band", () => {
     const enemy = mockEnemyInstance({

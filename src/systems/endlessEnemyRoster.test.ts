@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DataStore } from "../core/DataStore";
+import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
 import { listPlayableDefenseEnemyIds } from "./endlessEnemyRoster";
 
 describe("listPlayableDefenseEnemyIds", () => {
@@ -16,6 +17,7 @@ describe("listPlayableDefenseEnemyIds", () => {
         displayName: "Grunt",
         challengeRating: 1,
         bodyRadius: 28,
+        combat: shippedEnemyCombat("grunt"),
       },
       unused: {
         hp: 1,
@@ -27,6 +29,7 @@ describe("listPlayableDefenseEnemyIds", () => {
         displayName: "Unused",
         challengeRating: 1,
         bodyRadius: 14,
+        combat: shippedEnemyCombat("grunt"),
       },
     };
     store.waves = {

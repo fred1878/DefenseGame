@@ -3,6 +3,7 @@ import { setEnemyChaseVelocity } from "../combat/enemyKnockback";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
+import { RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS } from "../core/enemyTuning";
 import {
   clearEnemyAttackCommit,
   commitEnemyAttack,
@@ -10,13 +11,6 @@ import {
 } from "./enemyRanged/attackCommit";
 
 export type EnemyAttackPhase = "idle" | "windup" | "active" | "recovery";
-
-const RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS = new Set([
-  "arrowRainArcher",
-  "javelineer",
-  "stationaryRanged",
-  "lobber",
-]);
 
 /** Behaviors that use `combat.melee.triggerRange` vs the player for melee windup. */
 export function enemyUsesMeleePlayerActivationRange(behavior: string): boolean {
@@ -103,6 +97,11 @@ export function updateEnemyCombat(
   }
 
   const { wall, melee } = enemy.combatTuning;
+  if (!melee) {
+    throw new Error(
+      `updateEnemyCombat requires combat.melee for behavior ${enemy.behavior}`,
+    );
+  }
   const triggerRange =
     target.kind === "wall" ? wall.triggerRange : melee.triggerRange;
   const inRange = dist <= triggerRange;

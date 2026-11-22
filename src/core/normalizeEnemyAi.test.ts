@@ -12,6 +12,7 @@ describe("normalizeEnemyAi", () => {
       playerAggroRadius: 300,
       playerChaseMemoryMs: 1500,
       wallVelocityBlendMs: 400,
+      northWallMeleeStandoffPx: 32,
     });
     expect(out.playerAggroRadius).toBe(300);
     expect(out.wallVelocityBlendMs).toBe(400);

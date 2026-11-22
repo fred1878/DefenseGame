@@ -11,6 +11,7 @@ import {
   type EnemyCombatState,
 } from "./EnemyCombat";
 import { createRangedHybridCombatState } from "./EnemyRangedCombat";
+import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
 import { mockEnemyInstance } from "./testEnemyInstance";
 
 function mockEnemy(
@@ -20,25 +21,9 @@ function mockEnemy(
   defId = "grunt",
   behavior = "meleeChaser",
 ) {
-  const combatPartial =
-    defId === "bruiser"
-      ? ({
-          wall: { damage: 8, triggerRange: 52, hitRange: 44 },
-          melee: {
-            triggerRange: 75,
-            range: 67,
-            arcDeg: 78,
-            windupMs: 480,
-            activeMs: 130,
-            recoveryMs: 600,
-            cooldownMs: 520,
-          },
-        } as const)
-      : undefined;
   return mockEnemyInstance({
     defId,
     behavior,
-    combatTuning: resolveEnemyCombat(behavior, combatPartial, defId),
     sprite: { x, y, setVelocity: vi.fn() } as unknown as import("./Enemy").EnemyInstance["sprite"],
     combat: combat ?? createEnemyCombat(),
     nav: createEnemyNav(),
@@ -48,7 +33,11 @@ function mockEnemy(
 describe("updateEnemyCombat wall target", () => {
   it("does not zero velocity while idle between hit and trigger range", () => {
     const wy = northWallAttackY();
-    const wall = resolveEnemyCombat("meleeChaser", undefined).wall;
+    const wall = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    ).wall;
     const y = wy + (wall.hitRange + wall.triggerRange) / 2;
     const enemy = mockEnemy(0, y);
     enemy.combat.phase = "idle";
@@ -130,7 +119,7 @@ describe("updateEnemyCombat player target", () => {
   });
 
   it("bruiser connects farther than grunt at the same player offset", () => {
-    const px = 67;
+    const px = 88;
     const target = {
       kind: "player" as const,
       x: px,

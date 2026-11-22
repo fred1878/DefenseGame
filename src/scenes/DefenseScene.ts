@@ -1323,17 +1323,19 @@ export class DefenseScene extends Phaser.Scene {
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
       if (enemyUsesMeleePlayerActivationRange(e.behavior)) {
-        const { melee } = e.combatTuning;
-        this.hitboxDebug.drawMeleeActivationRange(
-          e.sprite.x,
-          e.sprite.y,
-          melee.triggerRange,
-        );
-        this.hitboxDebug.drawMeleeMaxRange(
-          e.sprite.x,
-          e.sprite.y,
-          melee.range,
-        );
+        const melee = e.combatTuning.melee;
+        if (melee) {
+          this.hitboxDebug.drawMeleeActivationRange(
+            e.sprite.x,
+            e.sprite.y,
+            melee.triggerRange,
+          );
+          this.hitboxDebug.drawMeleeMaxRange(
+            e.sprite.x,
+            e.sprite.y,
+            melee.range,
+          );
+        }
       }
       this.hitboxDebug.drawCircle(
         e.sprite.x,
@@ -1341,14 +1343,17 @@ export class DefenseScene extends Phaser.Scene {
         this.wu(enemyCollisionBodyRadius(e.defId)),
       );
       if (enemyShouldDrawMeleeArcOverlay(e)) {
-        const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);
-        this.hitboxDebug.drawMeleeArc(
-          e.sprite.x,
-          e.sprite.y,
-          e.combat.facing,
-          e.combatTuning.melee.range,
-          arcHalf,
-        );
+        const melee = e.combatTuning.melee;
+        if (melee) {
+          const arcHalf = Phaser.Math.DegToRad(melee.arcDeg / 2);
+          this.hitboxDebug.drawMeleeArc(
+            e.sprite.x,
+            e.sprite.y,
+            e.combat.facing,
+            melee.range,
+            arcHalf,
+          );
+        }
       }
       if (e.behavior === "charger") {
         const extra = e.behaviorExtra;

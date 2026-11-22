@@ -7,6 +7,11 @@
     "textureKey": "enemy_grunt",
     "displayName": "Grunt",
     "combat": {
+      "wall": {
+        "damage": 6,
+        "triggerRange": 42,
+        "hitRange": 34
+      },
       "melee": {
         "triggerRange": 78,
         "range": 72,

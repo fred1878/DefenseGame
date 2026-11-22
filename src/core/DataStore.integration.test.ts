@@ -244,29 +244,35 @@ describe("public data fixtures", () => {
     }
   });
 
-  it("enemy-combat-defaults.json defines wall and melee blocks", () => {
-    const defs = readJson("enemy-combat-defaults.json") as {
-      wall: { damage: number };
-      melee: { range: number };
-      arrowRain: { damage: number };
-      javelineer: { damage: number };
-      stationaryRanged: { damage: number };
-      lobber: { damage: number };
-      charger: { chargeDamage: number };
-    };
-    expectFiniteNumber(defs.wall.damage, "combat-defaults.wall.damage");
-    expectFiniteNumber(defs.melee.range, "combat-defaults.melee.range");
-    expectFiniteNumber(defs.arrowRain.damage, "combat-defaults.arrowRain.damage");
-    expectFiniteNumber(defs.javelineer.damage, "combat-defaults.javelineer.damage");
-    expectFiniteNumber(
-      defs.stationaryRanged.damage,
-      "combat-defaults.stationaryRanged.damage",
-    );
-    expectFiniteNumber(defs.lobber.damage, "combat-defaults.lobber.damage");
-    expectFiniteNumber(
-      defs.charger.chargeDamage,
-      "combat-defaults.charger.chargeDamage",
-    );
+  it("enemies.json rows define explicit wall combat (melee when required)", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      {
+        behavior: string;
+        combat: {
+          wall: { damage: number; triggerRange: number; hitRange: number };
+          melee?: { range: number; triggerRange: number };
+        };
+      }
+    >;
+    const rangedOnly = new Set([
+      "arrowRainArcher",
+      "javelineer",
+      "stationaryRanged",
+      "lobber",
+    ]);
+    for (const [id, row] of Object.entries(enemies)) {
+      expectFiniteNumber(row.combat.wall.damage, `${id}.combat.wall.damage`);
+      if (rangedOnly.has(row.behavior)) {
+        expect(row.combat.melee, `${id}.combat.melee`).toBeUndefined();
+        continue;
+      }
+      expectFiniteNumber(row.combat.melee!.range, `${id}.combat.melee.range`);
+      expectFiniteNumber(
+        row.combat.melee!.triggerRange,
+        `${id}.combat.melee.triggerRange`,
+      );
+    }
   });
 
   it("defense-maps.json defines default night-field layout", () => {

@@ -4,9 +4,18 @@ import {
 } from "../entities/entityPhysics";
 import { ConfigLoadError } from "./configValidation";
 import {
-  normalizeEnemyCombatDefaults,
-  type EnemyCombatDefaultsInput,
-} from "./normalizeEnemyCombatDefaults";
+  behaviorCombatKitSections,
+  requireEnemyArrowRainCombat,
+  requireEnemyChargerCombat,
+  requireEnemyHybridCombat,
+  requireEnemyJavelineerCombat,
+  requireEnemyLobberCombat,
+  requireEnemyMeleeCombat,
+  requireEnemyStationaryRangedCombat,
+  requireEnemyWallCombat,
+  requireEnemyWallSiegeCombat,
+  requireEnemyWardCombat,
+} from "./normalizeEnemyCombat";
 
 /** Partial combat stats as authored in `public/data/enemies.json` (`combat` object). */
 export type EnemyCombatPartial = {
@@ -22,7 +31,6 @@ export type EnemyCombatPartial = {
     range?: number;
     /** Extra gap (WU) when chase stops before player body contact — per enemy only, no global default. */
     meleeChaseStandoffWu?: number;
-    engageBodySlackPx?: number;
     arcDeg?: number;
     windupMs?: number;
     activeMs?: number;
@@ -130,8 +138,6 @@ export type EnemyMeleeCombat = {
   cooldownMs: number;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
-  /** Defaults bundle only — touch slack when deriving engage floors from physics. */
-  engageBodySlackPx?: number;
 };
 
 /** Behaviors that must author `combat.melee.meleeChaseStandoffWu` on each enemy row. */
@@ -143,6 +149,18 @@ export const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
   "ward",
   "rangedHybrid",
 ]);
+
+/** Ranged kits — no `combat.melee`; phase timings live on the behavior kit block. */
+export const RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS = new Set([
+  "arrowRainArcher",
+  "javelineer",
+  "stationaryRanged",
+  "lobber",
+]);
+
+export function enemyBehaviorRequiresMeleeBlock(behavior: string): boolean {
+  return !RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS.has(behavior);
+}
 
 export type EnemyArrowRainCombat = {
   damage: number;
@@ -227,7 +245,7 @@ export type EnemyHybridCombat = {
 
 export type ResolvedEnemyCombat = {
   wall: EnemyWallCombat;
-  melee: EnemyMeleeCombat;
+  melee?: EnemyMeleeCombat;
   arrowRain?: EnemyArrowRainCombat;
   javelineer?: EnemyJavelineerCombat;
   stationaryRanged?: EnemyStationaryRangedCombat;
@@ -238,45 +256,9 @@ export type ResolvedEnemyCombat = {
   hybrid?: EnemyHybridCombat;
 };
 
-/** Baseline combat tables from `public/data/enemy-combat-defaults.json`. */
-export type EnemyCombatDefaultsBundle = {
-  wall: EnemyWallCombat;
-  melee: EnemyMeleeCombat;
-  arrowRain: EnemyArrowRainCombat;
-  javelineer: EnemyJavelineerCombat;
-  stationaryRanged: EnemyStationaryRangedCombat;
-  wallSiege: EnemyWallSiegeCombat;
-  charger: EnemyChargerCombat;
-  lobber: EnemyLobberCombat;
-  ward: EnemyWardCombat;
-  hybrid: EnemyHybridCombat;
-};
-
 /** Arcade contact center distance for an enemy vs the player hurtbox. */
 export function enemyMeleeContactCenterDist(defId: string): number {
   return playerBodyRadiusPx() + enemyCollisionBodyRadius(defId);
-}
-
-/** Raise authored melee reach so windups can start at collision contact and arcs connect. */
-export function clampMeleeEngageForPhysics(
-  melee: EnemyMeleeCombat,
-  _behavior: string,
-  defId?: string,
-): EnemyMeleeCombat {
-  const slack = melee.engageBodySlackPx ?? getEnemyCombatDefaults().melee.engageBodySlackPx!;
-  if (!defId) {
-    const { engageBodySlackPx: _omit, ...combat } = melee;
-    return combat;
-  }
-  const contact = enemyMeleeContactCenterDist(defId);
-  const triggerMin = Math.max(0, contact - slack);
-  const rangeMin = enemyCollisionBodyRadius(defId);
-  const { engageBodySlackPx: _omit, ...combat } = melee;
-  return {
-    ...combat,
-    triggerRange: Math.max(melee.triggerRange, triggerMin),
-    range: Math.max(melee.range, rangeMin),
-  };
 }
 
 /** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range. */
@@ -287,38 +269,6 @@ export function wallMeleeApproachStandoffPx(
   const fromHit = Math.max(0, wall.hitRange - slackPx);
   const fromTrigger = Math.max(0, wall.triggerRange - 6);
   return Math.min(fromHit, fromTrigger);
-}
-
-let activeEnemyCombatDefaults: EnemyCombatDefaultsBundle | null = null;
-
-export function getEnemyCombatDefaults(): EnemyCombatDefaultsBundle {
-  if (!activeEnemyCombatDefaults) {
-    throw new ConfigLoadError(
-      "Enemy combat defaults not loaded — call DataStore.loadAll or applyEnemyCombatDefaults first",
-    );
-  }
-  return activeEnemyCombatDefaults;
-}
-
-export function applyEnemyCombatDefaults(raw: EnemyCombatDefaultsInput): void {
-  activeEnemyCombatDefaults = normalizeEnemyCombatDefaults(raw);
-}
-
-function mergeMelee(partial?: EnemyCombatPartial["melee"]): EnemyMeleeCombat {
-  const d = getEnemyCombatDefaults().melee;
-  return {
-    triggerRange: partial?.triggerRange ?? d.triggerRange,
-    range: partial?.range ?? d.range,
-    arcDeg: partial?.arcDeg ?? d.arcDeg,
-    windupMs: partial?.windupMs ?? d.windupMs,
-    activeMs: partial?.activeMs ?? d.activeMs,
-    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
-    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
-    engageBodySlackPx: partial?.engageBodySlackPx ?? d.engageBodySlackPx,
-    ...(partial?.meleeChaseStandoffWu !== undefined
-      ? { meleeChaseStandoffWu: partial.meleeChaseStandoffWu }
-      : {}),
-  };
 }
 
 export function requireMeleeChaseStandoffWu(
@@ -339,186 +289,68 @@ export function requireMeleeChaseStandoffWu(
   return melee.meleeChaseStandoffWu;
 }
 
-function mergeWall(partial?: EnemyCombatPartial["wall"]): EnemyWallCombat {
-  const d = getEnemyCombatDefaults().wall;
-  return {
-    damage: partial?.damage ?? d.damage,
-    triggerRange: partial?.triggerRange ?? d.triggerRange,
-    hitRange: partial?.hitRange ?? d.hitRange,
-  };
-}
-
-function mergeArrowRain(
-  partial?: EnemyCombatPartial["arrowRain"],
-): EnemyArrowRainCombat {
-  const d = getEnemyCombatDefaults().arrowRain;
-  return {
-    damage: partial?.damage ?? d.damage,
-    preferredRange: partial?.preferredRange ?? d.preferredRange,
-    attackTriggerRange:
-      partial?.attackTriggerRange ?? d.attackTriggerRange,
-    windupMs: partial?.windupMs ?? d.windupMs,
-    activeMs: partial?.activeMs ?? d.activeMs,
-    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
-    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
-    zoneRadius: partial?.zoneRadius ?? d.zoneRadius,
-    tickIntervalMs: partial?.tickIntervalMs ?? d.tickIntervalMs,
-    tickDamageScale: partial?.tickDamageScale ?? d.tickDamageScale,
-    maxTicks: partial?.maxTicks ?? d.maxTicks,
-  };
-}
-
-function mergeJavelineer(
-  partial?: EnemyCombatPartial["javelineer"],
-): EnemyJavelineerCombat {
-  const d = getEnemyCombatDefaults().javelineer;
-  return {
-    damage: partial?.damage ?? d.damage,
-    minRange: partial?.minRange ?? d.minRange,
-    maxRange: partial?.maxRange ?? d.maxRange,
-    strafeSpeedMul: partial?.strafeSpeedMul ?? d.strafeSpeedMul,
-    orbitFlipMs: partial?.orbitFlipMs ?? d.orbitFlipMs,
-    windupMs: partial?.windupMs ?? d.windupMs,
-    activeMs: partial?.activeMs ?? d.activeMs,
-    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
-    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
-    projectileSpeed: partial?.projectileSpeed ?? d.projectileSpeed,
-    projectileMaxTravel:
-      partial?.projectileMaxTravel ?? d.projectileMaxTravel,
-  };
-}
-
-function mergeStationaryRanged(
-  partial?: EnemyCombatPartial["stationaryRanged"],
-): EnemyStationaryRangedCombat {
-  const d = getEnemyCombatDefaults().stationaryRanged;
-  return {
-    damage: partial?.damage ?? d.damage,
-    preferredRange: partial?.preferredRange ?? d.preferredRange,
-    attackTriggerRange:
-      partial?.attackTriggerRange ?? d.attackTriggerRange,
-    windupMs: partial?.windupMs ?? d.windupMs,
-    activeMs: partial?.activeMs ?? d.activeMs,
-    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
-    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
-    projectileSpeed: partial?.projectileSpeed ?? d.projectileSpeed,
-    projectileMaxTravel:
-      partial?.projectileMaxTravel ?? d.projectileMaxTravel,
-  };
-}
-
-function mergeWallSiege(
-  partial?: EnemyCombatPartial["wallSiege"],
-): EnemyWallSiegeCombat {
-  const d = getEnemyCombatDefaults().wallSiege;
-  return {
-    playerAggroRadius:
-      partial?.playerAggroRadius ?? d.playerAggroRadius,
-  };
-}
-
-function mergeCharger(
-  partial?: EnemyCombatPartial["charger"],
-): EnemyChargerCombat {
-  const d = getEnemyCombatDefaults().charger;
-  return {
-    chargeDamage: partial?.chargeDamage ?? d.chargeDamage,
-    dashMinRange: partial?.dashMinRange ?? d.dashMinRange,
-    dashTriggerRange: partial?.dashTriggerRange ?? d.dashTriggerRange,
-    dashWindupMs: partial?.dashWindupMs ?? d.dashWindupMs,
-    dashDurationMs: partial?.dashDurationMs ?? d.dashDurationMs,
-    dashSpeedMul: partial?.dashSpeedMul ?? d.dashSpeedMul,
-    dashCooldownMs: partial?.dashCooldownMs ?? d.dashCooldownMs,
-    dashOvershootRange:
-      partial?.dashOvershootRange ?? d.dashOvershootRange,
-  };
-}
-
-function mergeLobber(
-  partial?: EnemyCombatPartial["lobber"],
-): EnemyLobberCombat {
-  const d = getEnemyCombatDefaults().lobber;
-  return {
-    damage: partial?.damage ?? d.damage,
-    preferredRange: partial?.preferredRange ?? d.preferredRange,
-    attackTriggerRange:
-      partial?.attackTriggerRange ?? d.attackTriggerRange,
-    windupMs: partial?.windupMs ?? d.windupMs,
-    activeMs: partial?.activeMs ?? d.activeMs,
-    recoveryMs: partial?.recoveryMs ?? d.recoveryMs,
-    cooldownMs: partial?.cooldownMs ?? d.cooldownMs,
-    projectileSpeed: partial?.projectileSpeed ?? d.projectileSpeed,
-    blastRadius: partial?.blastRadius ?? d.blastRadius,
-    blastDamageScale: partial?.blastDamageScale ?? d.blastDamageScale,
-  };
-}
-
-function mergeWard(
-  partial?: EnemyCombatPartial["ward"],
-): EnemyWardCombat {
-  const d = getEnemyCombatDefaults().ward;
-  return {
-    protectRadius: partial?.protectRadius ?? d.protectRadius,
-    screenOffsetWu: partial?.screenOffsetWu ?? d.screenOffsetWu,
-    playerAggroRadius:
-      partial?.playerAggroRadius ?? d.playerAggroRadius,
-  };
-}
-
-function mergeHybrid(
-  partial?: EnemyCombatPartial["hybrid"],
-): EnemyHybridCombat {
-  const d = getEnemyCombatDefaults().hybrid;
-  return {
-    closeMeleeRadius: partial?.closeMeleeRadius ?? d.closeMeleeRadius,
-    preferredRange: partial?.preferredRange ?? d.preferredRange,
-    maxMeleeSwings: partial?.maxMeleeSwings ?? d.maxMeleeSwings,
-    retreatRangeSlack: partial?.retreatRangeSlack ?? d.retreatRangeSlack,
-  };
-}
-
-/** Merge optional per-enemy `combat` partials onto Boot-loaded `enemy-combat-defaults.json` (not any enemy row). */
+/**
+ * Resolve per-enemy combat from an explicit `combat` block in `enemies.json`.
+ * Missing required keys throw {@link ConfigLoadError} at boot.
+ */
 export function resolveEnemyCombat(
   behavior: string,
-  combat?: EnemyCombatPartial,
-  defId?: string,
+  combat: EnemyCombatPartial | undefined,
+  enemyId: string,
 ): ResolvedEnemyCombat {
+  const root = `enemies.${enemyId}.combat`;
+  if (!combat) {
+    throw new ConfigLoadError(`Expected object at ${root}`);
+  }
   const resolved: ResolvedEnemyCombat = {
-    wall: mergeWall(combat?.wall),
-    melee: clampMeleeEngageForPhysics(
-      mergeMelee(combat?.melee),
-      behavior,
-      defId,
-    ),
+    wall: requireEnemyWallCombat(combat.wall, `${root}.wall`),
   };
-  if (behavior === "arrowRainArcher") {
-    resolved.arrowRain = mergeArrowRain(combat?.arrowRain);
-  }
-  if (behavior === "javelineer") {
-    resolved.javelineer = mergeJavelineer(combat?.javelineer);
-  }
-  if (behavior === "stationaryRanged") {
-    resolved.stationaryRanged = mergeStationaryRanged(
-      combat?.stationaryRanged,
+  if (enemyBehaviorRequiresMeleeBlock(behavior)) {
+    resolved.melee = requireEnemyMeleeCombat(
+      behavior,
+      combat.melee,
+      `${root}.melee`,
     );
   }
-  if (behavior === "wallSiege") {
-    resolved.wallSiege = mergeWallSiege(combat?.wallSiege);
-  }
-  if (behavior === "charger") {
-    resolved.charger = mergeCharger(combat?.charger);
-  }
-  if (behavior === "lobber") {
-    resolved.lobber = mergeLobber(combat?.lobber);
-  }
-  if (behavior === "ward") {
-    resolved.ward = mergeWard(combat?.ward);
-  }
-  if (behavior === "rangedHybrid") {
-    resolved.stationaryRanged = mergeStationaryRanged(
-      combat?.stationaryRanged,
-    );
-    resolved.hybrid = mergeHybrid(combat?.hybrid);
+  for (const section of behaviorCombatKitSections(behavior)) {
+    if (section === "arrowRain") {
+      resolved.arrowRain = requireEnemyArrowRainCombat(
+        combat.arrowRain,
+        `${root}.arrowRain`,
+      );
+    } else if (section === "javelineer") {
+      resolved.javelineer = requireEnemyJavelineerCombat(
+        combat.javelineer,
+        `${root}.javelineer`,
+      );
+    } else if (section === "stationaryRanged") {
+      resolved.stationaryRanged = requireEnemyStationaryRangedCombat(
+        combat.stationaryRanged,
+        `${root}.stationaryRanged`,
+      );
+    } else if (section === "wallSiege") {
+      resolved.wallSiege = requireEnemyWallSiegeCombat(
+        combat.wallSiege,
+        `${root}.wallSiege`,
+      );
+    } else if (section === "charger") {
+      resolved.charger = requireEnemyChargerCombat(
+        combat.charger,
+        `${root}.charger`,
+      );
+    } else if (section === "lobber") {
+      resolved.lobber = requireEnemyLobberCombat(
+        combat.lobber,
+        `${root}.lobber`,
+      );
+    } else if (section === "ward") {
+      resolved.ward = requireEnemyWardCombat(combat.ward, `${root}.ward`);
+    } else if (section === "hybrid") {
+      resolved.hybrid = requireEnemyHybridCombat(
+        combat.hybrid,
+        `${root}.hybrid`,
+      );
+    }
   }
   return resolved;
 }

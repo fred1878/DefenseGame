@@ -1,9 +1,7 @@
 import { vi } from "vitest";
 import { createEnemyNav } from "../ai/EnemyBrain";
-import {
-  MELEE_CHASE_STANDOFF_BEHAVIORS,
-  resolveEnemyCombat,
-} from "../core/enemyTuning";
+import { resolveEnemyCombat } from "../core/enemyTuning";
+import { shippedEnemyCombatForBehavior } from "../test/shippedEnemyCombat";
 import type { EnemyInstance } from "./Enemy";
 import { createEnemyCombat } from "./EnemyCombat";
 
@@ -12,13 +10,13 @@ export function mockEnemyInstance(
 ): EnemyInstance {
   const defId = partial.defId ?? "grunt";
   const behavior = partial.behavior;
-  const defaultCombat =
-    MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)
-      ? { melee: { meleeChaseStandoffWu: 2 } }
-      : undefined;
   const combatTuning =
     partial.combatTuning ??
-    resolveEnemyCombat(behavior, defaultCombat, defId);
+    resolveEnemyCombat(
+      behavior,
+      shippedEnemyCombatForBehavior(behavior, defId),
+      defId,
+    );
   return {
     id: "e",
     speed: 60,

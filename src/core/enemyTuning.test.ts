@@ -1,84 +1,131 @@
 import { describe, expect, it } from "vitest";
-import { enemyCollisionBodyRadius } from "../entities/entityPhysics";
-import {
-  enemyMeleeContactCenterDist,
-  getEnemyCombatDefaults,
-  resolveEnemyCombat,
-} from "./enemyTuning";
+import { resolveEnemyCombat } from "./enemyTuning";
 import { ConfigLoadError } from "./configValidation";
 import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
 import type { EnemyDef } from "./DataStore";
+import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
 
 describe("resolveEnemyCombat", () => {
-  it("merges omitted enemy combat from loaded JSON defaults", () => {
-    const tuned = resolveEnemyCombat("meleeChaser", undefined, "grunt");
+  it("requires a full combat block — no defaults merge", () => {
+    const tuned = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    );
     expect(tuned.wall.damage).toBeGreaterThan(0);
-    expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(tuned.melee.range);
+    expect(tuned.melee!.triggerRange).toBeGreaterThanOrEqual(tuned.melee!.range);
     expect(tuned.arrowRain).toBeUndefined();
   });
 
-  it("merges partial wall override onto loaded defaults", () => {
-    const tuned = resolveEnemyCombat("meleeChaser", {
-      wall: { damage: 9 },
-    });
+  it("uses only authored wall fields", () => {
+    const combat = {
+      ...shippedEnemyCombat("grunt"),
+      wall: { damage: 9, triggerRange: 42, hitRange: 34 },
+    };
+    const tuned = resolveEnemyCombat("meleeChaser", combat, "grunt");
     expect(tuned.wall.damage).toBe(9);
-    expect(tuned.wall.triggerRange).toBe(getEnemyCombatDefaults().wall.triggerRange);
+    expect(tuned.wall.triggerRange).toBe(42);
   });
 
-  it("raises short melee engage values to physics contact for meleeChaser", () => {
-    const contact = enemyMeleeContactCenterDist("grunt");
+  it("passes authored melee triggerRange and range unchanged", () => {
+    const base = shippedEnemyCombat("grunt");
     const tuned = resolveEnemyCombat(
       "meleeChaser",
-      { melee: { triggerRange: 30, range: 20 } },
+      {
+        ...base,
+        melee: {
+          ...base.melee!,
+          triggerRange: 30,
+          range: 20,
+        },
+      },
       "grunt",
     );
-    expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(contact);
-    expect(tuned.melee.range).toBeGreaterThanOrEqual(
-      enemyCollisionBodyRadius("grunt"),
-    );
+    expect(tuned.melee!.triggerRange).toBe(30);
+    expect(tuned.melee!.range).toBe(20);
   });
 
   it("attaches behavior-specific tables when behavior matches", () => {
-    const arrow = resolveEnemyCombat("arrowRainArcher", {});
+    const arrow = resolveEnemyCombat(
+      "arrowRainArcher",
+      shippedEnemyCombat("arrow_rain_archer"),
+      "arrow_rain_archer",
+    );
     expect(arrow.arrowRain).toBeDefined();
     expect(arrow.arrowRain!.maxTicks).toBeGreaterThan(0);
 
-    const jav = resolveEnemyCombat("javelineer", {
-      javelineer: { maxRange: 210 },
-    });
+    const jav = resolveEnemyCombat(
+      "javelineer",
+      {
+        ...shippedEnemyCombat("javelineer"),
+        javelineer: {
+          ...shippedEnemyCombat("javelineer").javelineer!,
+          maxRange: 210,
+        },
+      },
+      "javelineer",
+    );
     expect(jav.javelineer?.maxRange).toBe(210);
     expect(jav.javelineer?.minRange).toBe(
-      getEnemyCombatDefaults().javelineer.minRange,
+      shippedEnemyCombat("javelineer").javelineer!.minRange,
     );
   });
 
-  it("merges meleeChaseStandoffWu from per-enemy partial only", () => {
-    const tuned = resolveEnemyCombat("meleeChaser", {
-      melee: { meleeChaseStandoffWu: 4 },
-    });
-    expect(tuned.melee.meleeChaseStandoffWu).toBe(4);
-    const omitted = resolveEnemyCombat("meleeChaser", undefined);
-    expect(omitted.melee.meleeChaseStandoffWu).toBeUndefined();
+  it("requires meleeChaseStandoffWu for melee chaser behaviors only", () => {
+    const gruntCombat = shippedEnemyCombat("grunt");
+    const tuned = resolveEnemyCombat("meleeChaser", gruntCombat, "grunt");
+    expect(tuned.melee!.meleeChaseStandoffWu).toBe(4);
+
+    const lobber = resolveEnemyCombat(
+      "lobber",
+      shippedEnemyCombat("lobber"),
+      "lobber",
+    );
+    expect(lobber.melee).toBeUndefined();
   });
 
-  it("merges ranged damage overrides onto defaults", () => {
-    const jav = resolveEnemyCombat("javelineer", {
-      javelineer: { damage: 14 },
-    });
+  it("resolves authored ranged and charge damage", () => {
+    const jav = resolveEnemyCombat(
+      "javelineer",
+      {
+        ...shippedEnemyCombat("javelineer"),
+        javelineer: {
+          ...shippedEnemyCombat("javelineer").javelineer!,
+          damage: 14,
+        },
+      },
+      "javelineer",
+    );
     expect(jav.javelineer?.damage).toBe(14);
-    const archer = resolveEnemyCombat("stationaryRanged", {
-      stationaryRanged: { damage: 11 },
-    });
+    const archer = resolveEnemyCombat(
+      "stationaryRanged",
+      {
+        ...shippedEnemyCombat("sentry_archer"),
+        stationaryRanged: {
+          ...shippedEnemyCombat("sentry_archer").stationaryRanged!,
+          damage: 11,
+        },
+      },
+      "sentry_archer",
+    );
     expect(archer.stationaryRanged?.damage).toBe(11);
-    const charger = resolveEnemyCombat("charger", {
-      charger: { chargeDamage: 40 },
-    });
+    const charger = resolveEnemyCombat(
+      "charger",
+      {
+        ...shippedEnemyCombat("charger"),
+        charger: {
+          ...shippedEnemyCombat("charger").charger!,
+          chargeDamage: 40,
+        },
+      },
+      "charger",
+    );
     expect(charger.charger?.chargeDamage).toBe(40);
   });
 });
 
 describe("normalizeEnemyRow", () => {
-  it("requires hp, speed, damage, and weight", () => {
+  it("requires hp, speed, damage, weight, and combat", () => {
     expect(() =>
       normalizeEnemyRow("grunt", {
         behavior: "meleeChaser",
@@ -89,6 +136,7 @@ describe("normalizeEnemyRow", () => {
         bodyRadius: 28,
         weight: 100,
         challengeRating: 1,
+        combat: shippedEnemyCombat("grunt"),
       }),
     ).not.toThrow();
     expect(() =>
@@ -109,6 +157,7 @@ describe("normalizeEnemyRow", () => {
       challengeRating: 4,
       behavior: "arrowRainArcher",
       textureKey: "enemy_arrow_rain_archer",
+      combat: shippedEnemyCombat("arrow_rain_archer"),
     });
     expect(row.displayName).toBe("Arrow Rain Archer");
   });
@@ -123,7 +172,7 @@ describe("normalizeEnemyRow", () => {
       bodyRadius: 28,
       weight: 100,
       challengeRating: 1,
-      combat: { melee: { meleeChaseStandoffWu: 2 } },
+      combat: shippedEnemyCombat("grunt"),
     });
     expect(() => assertEnemyResolvedCombat("grunt", melee)).not.toThrow();
     const charger: EnemyDef = normalizeEnemyRow("charger", {
@@ -135,12 +184,17 @@ describe("normalizeEnemyRow", () => {
       bodyRadius: 21,
       weight: 100,
       challengeRating: 6,
-      combat: { melee: { meleeChaseStandoffWu: 2 } },
+      combat: shippedEnemyCombat("charger"),
     });
     expect(() => assertEnemyResolvedCombat("charger", charger)).not.toThrow();
   });
 
   it("assertEnemyResolvedCombat requires meleeChaseStandoffWu for melee chasers", () => {
+    const broken = {
+      ...shippedEnemyCombat("grunt"),
+      melee: { ...shippedEnemyCombat("grunt").melee! },
+    };
+    delete (broken.melee as { meleeChaseStandoffWu?: number }).meleeChaseStandoffWu;
     const missing: EnemyDef = normalizeEnemyRow("grunt", {
       behavior: "meleeChaser",
       textureKey: "enemy_grunt",
@@ -150,6 +204,7 @@ describe("normalizeEnemyRow", () => {
       bodyRadius: 28,
       weight: 100,
       challengeRating: 1,
+      combat: broken,
     });
     expect(() => assertEnemyResolvedCombat("grunt", missing)).toThrow(
       ConfigLoadError,

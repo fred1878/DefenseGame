@@ -57,7 +57,7 @@ docs/                  # AGENTS, TESTING, CI_RELEASES, REFACTOR_PLAN; ROADMAP at
 |-------|------|--------|
 | **Tuning** | `src/config/` | Canvas/layout only (`GAME`, `SPELL_BAR` / `CAST_BAR` px, render depths). **No gameplay numbers** — combat, player, AI, spells mechanics, entity physics, defense field size, and enemy combat tables load from `public/data/` at Boot with strict validation (`ConfigLoadError` if a field is missing). |
 | **Code content** | `src/content/` | `assets.ts` (texture keys, file paths, nine-slice), `spells.ts` (`SPELL_CATALOG`, spell ids). Candidate to move spells → `public/data/spells.json` later. |
-| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-combat-defaults.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spells.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). |
+| **Runtime JSON** | `public/data/` | `enemies.json`, `enemy-ai.json`, `player.json`, `defense-maps.json`, `spells.json`, `entity-physics.json`, `waves.json`, `buildings.json` (fetched in Boot via `DataStore.loadAll`). |
 
 Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). `src/config.ts` re-exports **tuning only** from `src/config/index.ts`.
 
@@ -65,14 +65,14 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 
 ## Data examples (`public/data/`)
 
-**Config-only data:** TypeScript must not define fallback gameplay numbers. Every value in the table below must exist in the matching JSON file; Boot fails fast with a clear path when something is missing. Per-enemy `combat` blocks are partial overrides merged onto `enemy-combat-defaults.json` at runtime (not code constants).
+**Config-only data:** TypeScript must not define fallback gameplay numbers. Every value in the table below must exist in the matching JSON file; Boot fails fast with a clear path when something is missing. Per-enemy `combat` blocks must be fully authored on each row (no global combat defaults file).
 
-**enemies.json** — per-enemy **required** `hp`, `speed`, `damage`, plus `behavior` id (maps to `src/ai/behaviors/`). Optional `combat` objects hold partial overrides merged at Boot onto `enemy-combat-defaults.json` (combat baselines live in that file, not in any single enemy row). Global chase tuning loads from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` (`applyEnemyAi`).
+**enemies.json** — per-enemy **required** `hp`, `speed`, `damage`, plus `behavior` id (maps to `src/ai/behaviors/`). Required `combat` objects must include `wall`, behavior-specific kits, and `melee` only when the behavior uses player melee activation (see table). Global chase and north-wall path tuning load from `enemy-ai.json` into `PLAYER_AGGRO_RADIUS` / `PLAYER_CHASE_MEMORY_MS` / `WALL_VELOCITY_BLEND_MS` / `NORTH_WALL_MELEE_STANDOFF_PX` (`applyEnemyAi`).
 
 | `combat` block | Used when `behavior` is |
 |----------------|-------------------------|
 | `wall` | All (north wall objective) |
-| `melee` | Player melee kits (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid`) — arc swipe / hybrid melee; **omit** on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber` (global `melee` defaults via `resolveEnemyCombat` only) |
+| `melee` | Player melee kits (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid`) — arc swipe / hybrid melee; **omit** on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber` (phase timings live on the behavior kit only) |
 | `arrowRain` | `arrowRainArcher` (telegraphed floor AoE) |
 | `javelineer` | `javelineer` (kite band + toss) |
 | `stationaryRanged` | `stationaryRanged` (hold + straight bolt) |
@@ -125,7 +125,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 }
 ```
 
-Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius`. Omit `combat` to use loaded `enemy-combat-defaults.json` tables only; override only what you need (e.g. `"combat": { "melee": { "windupMs": 500 } }`).
+Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius` and a complete `combat` block for its behavior (including `meleeChaseStandoffWu` on `melee` when the behavior chases the player).
 
 **waves.json** — keyed by night number:
 
@@ -139,8 +139,6 @@ Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius`. Omit `combat`
   }
 }
 ```
-
-**enemy-combat-defaults.json** — per-behavior combat baselines (`wall`, `melee`, `arrowRain`, …). `resolveEnemyCombat` merges each enemy’s optional `combat` block from `enemies.json` on top of these loaded defaults.
 
 **player.json** — combat/movement tuning (`moveSpeed`, melee/ranged timings, HP, invuln), melee auto-attack gate (`meleeEngageTargetRadius`, `meleeActivationSlackWu` → derived `autoAttackMeleeRange`), plus `endlessPanelDefaultConcurrent` (initial cap in the endless roster UI only).
 
