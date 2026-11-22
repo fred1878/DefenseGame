@@ -12,7 +12,7 @@ function mockArcher(x: number, y: number) {
     id: "a",
     defId: "arrow_rain_archer",
     behavior: "arrowRainArcher",
-    speed: 52,
+    speedWu: 52,
     textureKey: "enemy_arrow_rain_archer",
     sprite: {
       x,
@@ -46,7 +46,7 @@ describe("arrowRainArcherBehavior", () => {
     const grid = buildNavGrid([], DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
     const enemy = mockArcher(0, 0);
     enemy.nav.replanMs = 0;
-    const preferred = testArrowRainCombat.preferredRange - 30;
+    const preferred = testArrowRainCombat.preferredRangeWu - 30;
     arrowRainArcherBehavior({
       enemy,
       nav: enemy.nav,
@@ -69,7 +69,7 @@ describe("arrowRainArcherBehavior", () => {
     const replanSpy = vi.spyOn(EnemyBrain, "replanEnemyPath");
     const enemy = mockArcher(0, 120);
     enemy.nav.replanMs = 0;
-    const preferred = testArrowRainCombat.preferredRange - 30;
+    const preferred = testArrowRainCombat.preferredRangeWu - 30;
     arrowRainArcherBehavior({
       enemy,
       nav: enemy.nav,
@@ -85,8 +85,8 @@ describe("arrowRainArcherBehavior", () => {
   it("holds position in the attack band at preferred range", () => {
     const enemy = mockArcher(0, 0);
     const inBand =
-      (testArrowRainCombat.preferredRange +
-        testArrowRainCombat.attackTriggerRange) /
+      (testArrowRainCombat.preferredRangeWu +
+        testArrowRainCombat.attackTriggerRangeWu) /
       2;
     arrowRainArcherBehavior({
       enemy,

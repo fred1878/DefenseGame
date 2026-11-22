@@ -7,23 +7,23 @@ function spellFieldPath(def: SpellDefinition, field: string): string {
 
 /** Direct-hit knockback from spell row data (projectile impact, cone, swing, primary instant hit). */
 export function spellDirectKnockback(def: SpellDefinition): number {
-  return requireFiniteNumber(def.knockback, spellFieldPath(def, "knockback"));
+  return requireFiniteNumber(def.knockbackWu, spellFieldPath(def, "knockback"));
 }
 
 /** Blast-radius knockback from spell row data (AoE detonation, blast mechanic). Zero disables push. */
 export function spellBlastKnockback(def: SpellDefinition): number {
-  return requireFiniteNumber(def.blastKnockback, spellFieldPath(def, "blastKnockback"));
+  return requireFiniteNumber(def.blastKnockbackWu, spellFieldPath(def, "blastKnockback"));
 }
 
 /** Chain lightning first-target knockback from spell row data. */
 export function spellChainKnockback(def: SpellDefinition): number {
-  return requireFiniteNumber(def.chainKnockback, spellFieldPath(def, "chainKnockback"));
+  return requireFiniteNumber(def.chainKnockbackWu, spellFieldPath(def, "chainKnockback"));
 }
 
 /** Chain lightning hop knockback from spell row data. */
 export function spellChainHopKnockback(def: SpellDefinition): number {
   return requireFiniteNumber(
-    def.chainHopKnockback,
+    def.chainHopKnockbackWu,
     spellFieldPath(def, "chainHopKnockback"),
   );
 }

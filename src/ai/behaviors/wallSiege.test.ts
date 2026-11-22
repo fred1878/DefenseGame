@@ -32,7 +32,7 @@ describe("wallSiegeBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: openGrid,
-      playerX: testWallSiegeCombat.playerAggroRadius + 40,
+      playerX: testWallSiegeCombat.playerAggroRadiusWu + 40,
       playerY: 0,
       deltaMs: 16,
     });
@@ -71,7 +71,7 @@ describe("wallSiegeBehavior", () => {
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     setVelocity.mockClear();
     expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(
-      testWallSiegeCombat.playerAggroRadius,
+      testWallSiegeCombat.playerAggroRadiusWu,
     );
   });
 });

@@ -24,7 +24,12 @@ function mockEnemy(
   return mockEnemyInstance({
     defId,
     behavior,
-    sprite: { x, y, setVelocity: vi.fn() } as unknown as import("./Enemy").EnemyInstance["sprite"],
+    sprite: {
+      x,
+      y,
+      setVelocity: vi.fn(),
+      scene: { registry: { get: () => undefined } },
+    } as unknown as import("./Enemy").EnemyInstance["sprite"],
     combat: combat ?? createEnemyCombat(),
     nav: createEnemyNav(),
   });
@@ -38,7 +43,7 @@ describe("updateEnemyCombat wall target", () => {
       shippedEnemyCombat("grunt"),
       "grunt",
     ).wall;
-    const y = wy + (wall.hitRange + wall.triggerRange) / 2;
+    const y = wy + (wall.hitRangeWu + wall.triggerRangeWu) / 2;
     const enemy = mockEnemy(0, y);
     enemy.combat.phase = "idle";
     enemy.combat.cooldownMs = 200;

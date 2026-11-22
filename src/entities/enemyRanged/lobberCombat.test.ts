@@ -13,14 +13,14 @@ describe("updateLobberCombat attack commit", () => {
     lobber: {
       ...base.lobber!,
       damage: 12,
-      preferredRange: 100,
-      attackTriggerRange: 180,
+      preferredRangeWu: 100,
+      attackTriggerRangeWu: 180,
       windupMs: 400,
       activeMs: 80,
       recoveryMs: 300,
       cooldownMs: 800,
-      projectileSpeed: 200,
-      blastRadius: 50,
+      projectileSpeedWu: 200,
+      blastRadiusWu: 50,
       blastDamageScale: 0.9,
       kiteBandSlackWu: 22,
     },
@@ -48,7 +48,7 @@ describe("updateLobberCombat attack commit", () => {
     enemy.lobber.aimX = 120;
     enemy.lobber.aimY = 40;
 
-    const outOfBand = combatTuning.lobber!.attackTriggerRange + 80;
+    const outOfBand = combatTuning.lobber!.attackTriggerRangeWu + 80;
     const result = updateLobberCombat(
       enemy,
       {

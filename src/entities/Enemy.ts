@@ -72,7 +72,7 @@ export type EnemyInstance = {
   id: string;
   defId: string;
   behavior: string;
-  speed: number;
+  speedWu: number;
   damage: number;
   weight: number;
   textureKey: string;
@@ -163,7 +163,7 @@ export function spawnEnemy(
     id,
     defId,
     behavior: def.behavior,
-    speed: def.speed,
+    speedWu: def.speedWu,
     damage: def.damage,
     weight: def.weight,
     textureKey: def.textureKey,

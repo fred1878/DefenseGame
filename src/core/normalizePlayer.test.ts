@@ -18,8 +18,8 @@ describe("normalizePlayerConfig", () => {
   it("derives autoAttackMeleeRange from engage fields", () => {
     const cfg = normalizePlayerConfig(shippedPlayer() as PlayerConfigInput);
     expect(cfg.autoAttackMeleeRange).toBe(
-      cfg.meleeStrikeRange +
-        cfg.meleeEngageTargetRadius -
+      cfg.meleeStrikeRangeWu +
+        cfg.meleeEngageTargetRadiusWu -
         cfg.meleeActivationSlackWu,
     );
   });

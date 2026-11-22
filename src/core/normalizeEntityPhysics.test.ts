@@ -9,12 +9,12 @@ describe("normalizeEntityPhysics", () => {
 
   it("loads nav path margins only (body radii live on player/enemies)", () => {
     const out = normalizeEntityPhysics({
-      enemyPathClearanceMarginPx: 7,
-      staticObstacleNavClearancePx: 24,
+      enemyPathClearanceMarginWu: 7,
+      staticObstacleNavClearanceWu: 24,
       knockbackVelocityCapMult: 1.35,
     });
-    expect(out.enemyPathClearanceMarginPx).toBe(7);
-    expect(out.staticObstacleNavClearancePx).toBe(24);
+    expect(out.enemyPathClearanceMarginWu).toBe(7);
+    expect(out.staticObstacleNavClearanceWu).toBe(24);
     expect(out.knockbackVelocityCapMult).toBe(1.35);
   });
 });

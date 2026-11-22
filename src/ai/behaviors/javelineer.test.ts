@@ -11,7 +11,7 @@ function mockJavelineer(x: number, y: number) {
     id: "j",
     defId: "javelineer",
     behavior: "javelineer",
-    speed: testJavelineerCombat.maxRange,
+    speedWu: testJavelineerCombat.maxRangeWu,
     textureKey: "enemy_javelineer",
     sprite: {
       x,
@@ -65,7 +65,7 @@ describe("javelineerBehavior", () => {
       enemy,
       nav: enemy.nav,
       grid: navGrid,
-      playerX: testJavelineerCombat.minRange - 10,
+      playerX: testJavelineerCombat.minRangeWu - 10,
       playerY: 0,
       deltaMs: 16,
     });
@@ -79,7 +79,7 @@ describe("javelineerBehavior", () => {
   it("strafes tangentially when at ideal kite distance", () => {
     const enemy = mockJavelineer(0, 0);
     const band =
-      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
       2;
     javelineerBehavior({
       enemy,
@@ -97,7 +97,7 @@ describe("javelineerBehavior", () => {
 
   it("approaches while strafing when beyond ideal range inside the band", () => {
     const enemy = mockJavelineer(0, 0);
-    const dist = testJavelineerCombat.maxRange - 8;
+    const dist = testJavelineerCombat.maxRangeWu - 8;
     javelineerBehavior({
       enemy,
       nav: enemy.nav,
@@ -116,7 +116,7 @@ describe("javelineerBehavior", () => {
     const enemy = mockJavelineer(0, 0);
     enemy.behaviorExtra.strafeFlipMs = 8;
     const band =
-      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
       2;
     javelineerBehavior({
       enemy,

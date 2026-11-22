@@ -20,18 +20,18 @@ describe("public data fixtures", () => {
       string,
       {
         hp?: number;
-        speed?: number;
+        speedWu?: number;
         damage?: number;
         weight?: number;
         challengeRating?: number;
-        bodyRadius?: number;
+        bodyRadiusWu?: number;
       }
     >;
     for (const [id, row] of Object.entries(enemies)) {
       expectFiniteNumber(row.hp, `enemies.${id}.hp`);
-      expectFiniteNumber(row.speed, `enemies.${id}.speed`);
+      expectFiniteNumber(row.speedWu, `enemies.${id}.speedWu`);
       expectFiniteNumber(row.damage, `enemies.${id}.damage`);
-      expectFiniteNumber(row.bodyRadius, `enemies.${id}.bodyRadius`);
+      expectFiniteNumber(row.bodyRadiusWu, `enemies.${id}.bodyRadiusWu`);
       expectFiniteNumber(row.weight, `enemies.${id}.weight`);
       expect((row.weight as number) > 0, `enemies.${id}.weight > 0`).toBe(true);
       expectFiniteNumber(row.challengeRating, `enemies.${id}.challengeRating`);
@@ -60,15 +60,15 @@ describe("public data fixtures", () => {
       {
         behavior: string;
         textureKey: string;
-        combat?: { melee?: { range?: number } };
+        combat?: { melee?: { rangeWu?: number } };
       }
     >;
     const bruiser = enemies.bruiser;
     expect(bruiser).toBeDefined();
     expect(bruiser!.behavior).toBe("bruiser");
     expect(bruiser!.textureKey).toBe("enemy_bruiser");
-    if (bruiser!.combat?.melee?.range != null) {
-      expectFiniteNumber(bruiser!.combat.melee.range, "bruiser.combat.melee.range");
+    if (bruiser!.combat?.melee?.rangeWu != null) {
+      expectFiniteNumber(bruiser!.combat.melee.rangeWu, "bruiser.combat.melee.rangeWu");
     }
   });
 
@@ -123,7 +123,7 @@ describe("public data fixtures", () => {
       {
         behavior: string;
         combat?: {
-          javelineer?: { minRange?: number; maxRange?: number };
+          javelineer?: { minRangeWu?: number; maxRangeWu?: number };
         };
       }
     >;
@@ -131,8 +131,8 @@ describe("public data fixtures", () => {
     expect(javelineer?.behavior).toBe("javelineer");
     const kite = javelineer?.combat?.javelineer;
     expect(kite).toBeDefined();
-    expectFiniteNumber(kite!.minRange, "javelineer.minRange");
-    expectFiniteNumber(kite!.maxRange, "javelineer.maxRange");
+    expectFiniteNumber(kite!.minRangeWu, "javelineer.minRangeWu");
+    expectFiniteNumber(kite!.maxRangeWu, "javelineer.maxRangeWu");
   });
 
   it("arrow_rain_archer documents combat schema with arrowRain block", () => {
@@ -140,14 +140,14 @@ describe("public data fixtures", () => {
       string,
       {
         behavior: string;
-        combat?: { arrowRain?: { zoneRadius?: number; maxTicks?: number } };
+        combat?: { arrowRain?: { zoneRadiusWu?: number; maxTicks?: number } };
       }
     >;
     const archer = enemies.arrow_rain_archer;
     expect(archer?.behavior).toBe("arrowRainArcher");
     const rain = archer?.combat?.arrowRain;
     expect(rain).toBeDefined();
-    expectFiniteNumber(rain!.zoneRadius, "arrowRain.zoneRadius");
+    expectFiniteNumber(rain!.zoneRadiusWu, "arrowRain.zoneRadiusWu");
     expectFiniteNumber(rain!.maxTicks, "arrowRain.maxTicks");
   });
 
@@ -250,8 +250,8 @@ describe("public data fixtures", () => {
       {
         behavior: string;
         combat: {
-          wall: { damage: number; triggerRange: number; hitRange: number };
-          melee?: { range: number; triggerRange: number };
+          wall: { damage: number; triggerRangeWu: number; hitRangeWu: number };
+          melee?: { rangeWu: number; triggerRangeWu: number };
         };
       }
     >;
@@ -267,10 +267,10 @@ describe("public data fixtures", () => {
         expect(row.combat.melee, `${id}.combat.melee`).toBeUndefined();
         continue;
       }
-      expectFiniteNumber(row.combat.melee!.range, `${id}.combat.melee.range`);
+      expectFiniteNumber(row.combat.melee!.rangeWu, `${id}.combat.melee.rangeWu`);
       expectFiniteNumber(
-        row.combat.melee!.triggerRange,
-        `${id}.combat.melee.triggerRange`,
+        row.combat.melee!.triggerRangeWu,
+        `${id}.combat.melee.triggerRangeWu`,
       );
     }
   });
@@ -289,34 +289,34 @@ describe("public data fixtures", () => {
 
   it("entity-physics and enemy-ai json load", () => {
     const physics = readJson("entity-physics.json") as {
-      enemyPathClearanceMarginPx: number;
-      staticObstacleNavClearancePx: number;
+      enemyPathClearanceMarginWu: number;
+      staticObstacleNavClearanceWu: number;
       knockbackVelocityCapMult: number;
     };
-    const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
+    const ai = readJson("enemy-ai.json") as { playerAggroRadiusWu: number };
     expectFiniteNumber(
-      physics.enemyPathClearanceMarginPx,
-      "entity-physics.enemyPathClearanceMarginPx",
+      physics.enemyPathClearanceMarginWu,
+      "entity-physics.enemyPathClearanceMarginWu",
     );
     expectFiniteNumber(
-      physics.staticObstacleNavClearancePx,
-      "entity-physics.staticObstacleNavClearancePx",
+      physics.staticObstacleNavClearanceWu,
+      "entity-physics.staticObstacleNavClearanceWu",
     );
     expectFiniteNumber(
       physics.knockbackVelocityCapMult,
       "entity-physics.knockbackVelocityCapMult",
     );
-    expectFiniteNumber(ai.playerAggroRadius, "enemyAi.playerAggroRadius");
+    expectFiniteNumber(ai.playerAggroRadiusWu, "enemyAi.playerAggroRadiusWu");
   });
 
-  it("player.json defines moveSpeed and endless panel seed", () => {
+  it("player.json defines moveSpeedWu and endless panel seed", () => {
     const player = readJson("player.json") as {
-      moveSpeed: number;
-      bodyRadius: number;
+      moveSpeedWu: number;
+      bodyRadiusWu: number;
       endlessPanelDefaultConcurrent: number;
     };
-    expectFiniteNumber(player.moveSpeed, "player.moveSpeed");
-    expectFiniteNumber(player.bodyRadius, "player.bodyRadius");
+    expectFiniteNumber(player.moveSpeedWu, "player.moveSpeedWu");
+    expectFiniteNumber(player.bodyRadiusWu, "player.bodyRadiusWu");
     expectFiniteNumber(
       player.endlessPanelDefaultConcurrent,
       "player.endlessPanelDefaultConcurrent",
@@ -354,7 +354,7 @@ describe("DataStore.loadAll", () => {
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
     expect(store.spells.length).toBeGreaterThan(0);
-    expect(typeof store.player.moveSpeed).toBe("number");
+    expect(typeof store.player.moveSpeedWu).toBe("number");
     vi.unstubAllGlobals();
   });
 });

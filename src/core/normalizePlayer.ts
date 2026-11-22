@@ -6,12 +6,12 @@ import {
 import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 
 const PLAYER_TUNING_KEYS = [
-  "moveSpeed",
+  "moveSpeedWu",
   "meleeWindupMs",
   "meleeActiveMs",
   "meleeRecoveryMs",
-  "meleeStrikeRange",
-  "meleeEngageTargetRadius",
+  "meleeStrikeRangeWu",
+  "meleeEngageTargetRadiusWu",
   "meleeActivationSlackWu",
   "meleeArcDeg",
   "meleeDamage",
@@ -19,16 +19,16 @@ const PLAYER_TUNING_KEYS = [
   "rangedActiveMs",
   "rangedRecoveryMs",
   "rangedDamage",
-  "rangedMaxRange",
-  "projectileSpeed",
-  "meleeKnockback",
-  "rangedKnockback",
+  "rangedMaxRangeWu",
+  "projectileSpeedWu",
+  "meleeKnockbackWu",
+  "rangedKnockbackWu",
   "maxHp",
   "autoAttackRangedRange",
-  "targetTapRadiusWorld",
+  "targetTapRadiusWu",
   "playerHitInvulnMs",
   "nightSpawnInvulnMs",
-  "bodyRadius",
+  "bodyRadiusWu",
 ] as const satisfies readonly (keyof PlayerTuning)[];
 
 /** Authorable subset of `public/data/player.json` (derived fields omitted). */
@@ -46,14 +46,14 @@ export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined)
   for (const key of PLAYER_TUNING_KEYS) {
     tuning[key] = requireFiniteNumber(root[key], `player.${key}`);
   }
-  const meleeStrikeRange = tuning.meleeStrikeRange!;
-  const meleeEngageTargetRadius = tuning.meleeEngageTargetRadius!;
+  const meleeStrikeRangeWu = tuning.meleeStrikeRangeWu!;
+  const meleeEngageTargetRadiusWu = tuning.meleeEngageTargetRadiusWu!;
   const meleeActivationSlackWu = tuning.meleeActivationSlackWu!;
   const playerTuning: PlayerTuning = {
     ...(tuning as PlayerTuning),
     autoAttackMeleeRange: computeAutoAttackMeleeRange(
-      meleeStrikeRange,
-      meleeEngageTargetRadius,
+      meleeStrikeRangeWu,
+      meleeEngageTargetRadiusWu,
       meleeActivationSlackWu,
     ),
   };
@@ -66,11 +66,11 @@ export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined)
   return { ...playerTuning, endlessPanelDefaultConcurrent };
 }
 
-/** Center-to-center engage gate; matches derivation from strike + engage slack fields. */
+/** Center-to-center engage gate; matches derivation from strike + engage slack fields (WU). */
 function computeAutoAttackMeleeRange(
-  meleeStrikeRange: number,
-  meleeEngageTargetRadius: number,
+  meleeStrikeRangeWu: number,
+  meleeEngageTargetRadiusWu: number,
   meleeActivationSlackWu: number,
 ): number {
-  return meleeStrikeRange + meleeEngageTargetRadius - meleeActivationSlackWu;
+  return meleeStrikeRangeWu + meleeEngageTargetRadiusWu - meleeActivationSlackWu;
 }

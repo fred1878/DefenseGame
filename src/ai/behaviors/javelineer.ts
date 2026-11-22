@@ -170,6 +170,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
@@ -182,8 +183,8 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   const javelineer = enemy.combatTuning.javelineer;
 
   if (desired === "player" && javelineer) {
-    const minRange = worldUnit(javelineer.minRange, reg);
-    const maxRange = worldUnit(javelineer.maxRange, reg);
+    const minRange = worldUnit(javelineer.minRangeWu, reg);
+    const maxRange = worldUnit(javelineer.maxRangeWu, reg);
     const bandSlack = worldUnit(javelineer.kiteBandSlackWu, reg);
     const ideal = (minRange + maxRange) / 2;
     const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
@@ -280,8 +281,8 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   } else if (javelineer) {
     const wallY = northWallAttackY();
     const distToWall = ey - wallY;
-    const minRange = worldUnit(javelineer.minRange, reg);
-    const maxRange = worldUnit(javelineer.maxRange, reg);
+    const minRange = worldUnit(javelineer.minRangeWu, reg);
+    const maxRange = worldUnit(javelineer.maxRangeWu, reg);
     const { strafeSpeedMul } = javelineer;
     if (distToWall < minRange) {
       applyRetreatPathing({

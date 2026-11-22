@@ -4,10 +4,10 @@ import { requireFiniteNumber, requireRecord } from "./configValidation";
 export type EnemyAiInput = Partial<EnemyAiTuning>;
 
 const ENEMY_AI_KEYS = [
-  "playerAggroRadius",
+  "playerAggroRadiusWu",
   "playerChaseMemoryMs",
   "wallVelocityBlendMs",
-  "northWallMeleeStandoffPx",
+  "northWallMeleeStandoffWu",
 ] as const satisfies readonly (keyof EnemyAiTuning)[];
 
 export function normalizeEnemyAi(

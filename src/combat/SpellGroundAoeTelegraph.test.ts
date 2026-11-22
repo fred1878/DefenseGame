@@ -26,7 +26,7 @@ describe("spellNeedsGroundAoeTelegraph", () => {
   it("includes ground-target meteor, blizzard, and flamestrike", () => {
     expect(
       spellNeedsGroundAoeTelegraph(
-        def({ id: "meteor", targetMode: "ground", blastRadius: 44, castMs: 1100 }),
+        def({ id: "meteor", targetMode: "ground", blastRadiusWu: 44, castMs: 1100 }),
       ),
     ).toBe(true);
     expect(
@@ -35,7 +35,7 @@ describe("spellNeedsGroundAoeTelegraph", () => {
           id: "blizzard",
           mechanicType: "channeled",
           targetMode: "ground",
-          blastRadius: 80,
+          blastRadiusWu: 80,
           channelMs: 4000,
           castMs: 800,
         }),
@@ -46,7 +46,7 @@ describe("spellNeedsGroundAoeTelegraph", () => {
         def({
           id: "flamestrike",
           targetMode: "ground",
-          blastRadius: 78,
+          blastRadiusWu: 78,
           castMs: 650,
         }),
       ),
@@ -75,7 +75,7 @@ describe("spellNeedsGroundAoeTelegraph", () => {
     ).toBe(false);
     expect(
       spellNeedsGroundAoeTelegraph(
-        def({ id: "meteor", targetMode: "ground", blastRadius: 0, castMs: 500 }),
+        def({ id: "meteor", targetMode: "ground", blastRadiusWu: 0, castMs: 500 }),
       ),
     ).toBe(false);
   });

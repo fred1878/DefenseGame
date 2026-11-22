@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { setEnemyChaseVelocity } from "../combat/enemyKnockback";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
+import { worldUnit } from "../core/worldPixelScale";
 import type { Damageable } from "../combat/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
 import { RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS } from "../core/enemyTuning";
@@ -12,7 +13,7 @@ import {
 
 export type EnemyAttackPhase = "idle" | "windup" | "active" | "recovery";
 
-/** Behaviors that use `combat.melee.triggerRange` vs the player for melee windup. */
+/** Behaviors that use `combat.melee.triggerRangeWu` vs the player for melee windup. */
 export function enemyUsesMeleePlayerActivationRange(behavior: string): boolean {
   return !RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS.has(behavior);
 }
@@ -102,9 +103,11 @@ export function updateEnemyCombat(
       `updateEnemyCombat requires combat.melee for behavior ${enemy.behavior}`,
     );
   }
-  const triggerRange =
-    target.kind === "wall" ? wall.triggerRange : melee.triggerRange;
-  const inRange = dist <= triggerRange;
+  const reg = enemy.sprite.scene.registry;
+  const triggerRangeWu =
+    target.kind === "wall" ? wall.triggerRangeWu : melee.triggerRangeWu;
+  const triggerRangePx = worldUnit(triggerRangeWu, reg);
+  const inRange = dist <= triggerRangePx;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
     c.phase = "windup";
@@ -154,7 +157,7 @@ export function updateEnemyCombat(
         enemy.sprite.x,
         enemy.sprite.y,
         c.facing,
-        melee.range,
+        worldUnit(melee.rangeWu, reg),
         arcHalf,
         px,
         py,
@@ -164,15 +167,18 @@ export function updateEnemyCombat(
         c.hitThisSwing = true;
         return true;
       }
-    } else if (target.kind === "wall" && dist <= wall.hitRange) {
+    } else if (
+      target.kind === "wall" &&
+      dist <= worldUnit(wall.hitRangeWu, reg)
+    ) {
       c.hitThisSwing = true;
       onWallHit?.();
     }
   }
 
-  const inWallTrigger =
-    target.kind === "wall" && dist <= wall.triggerRange;
-  const inWallHit = target.kind === "wall" && dist <= wall.hitRange;
+  const hitRangePx = worldUnit(wall.hitRangeWu, reg);
+  const inWallTrigger = target.kind === "wall" && dist <= triggerRangePx;
+  const inWallHit = target.kind === "wall" && dist <= hitRangePx;
   const holdPosition =
     inWallTrigger &&
     (enemyIsAttacking(c) || (c.phase === "idle" && inWallHit));

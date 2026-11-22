@@ -24,7 +24,7 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
   const siege = enemy.combatTuning.wallSiege;
   const aggro = playerAggroRadiusWu(
-    siege?.playerAggroRadius ?? PLAYER_AGGRO_RADIUS,
+    siege?.playerAggroRadiusWu ?? PLAYER_AGGRO_RADIUS,
   );
   const resolved = resolveEnemyTarget(
     nav,
@@ -36,6 +36,7 @@ export const wallSiegeBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(aggro, reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 

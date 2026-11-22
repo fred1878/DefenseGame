@@ -37,7 +37,7 @@ describe("DefenseSpellDirector cast interrupt cleanup", () => {
         registry: { get: () => undefined },
         add: { graphics: () => gfx },
       } as unknown as Phaser.Scene,
-      save: { buildings: {}, player: { moveSpeed: 100 } } as unknown as DefenseSpellDirectorHost["save"],
+      save: { buildings: {}, player: { moveSpeedWu: 100 } } as unknown as DefenseSpellDirectorHost["save"],
       player: {
         sprite: { x: 0, y: 0, setVelocity: vi.fn() },
         setVelocityFromStick: vi.fn(),

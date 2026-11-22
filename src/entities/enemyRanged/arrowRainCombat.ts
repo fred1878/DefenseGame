@@ -30,9 +30,9 @@ export function updateArrowRainCombat(
     c.facing = Math.atan2(dy, dx);
   }
 
-  const minVolleyRange = tune.preferredRange - tune.kiteBandSlackWu;
+  const minVolleyRange = tune.preferredRangeWu - tune.kiteBandSlackWu;
   const inRange =
-    dist <= tune.attackTriggerRange &&
+    dist <= tune.attackTriggerRangeWu &&
     dist >= minVolleyRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
@@ -54,7 +54,7 @@ export function updateArrowRainCombat(
         extra.zoneY,
       );
       destroyArrowRainTelegraph(extra.telegraph);
-      const zonePx = worldUnit(tune.zoneRadius, enemy.sprite.scene.registry);
+      const zonePx = worldUnit(tune.zoneRadiusWu, enemy.sprite.scene.registry);
       extra.telegraph = spawnArrowRainTelegraph(
         enemy.sprite.scene,
         extra.zoneX,
@@ -65,7 +65,7 @@ export function updateArrowRainCombat(
     }
   }
 
-  const zonePx = worldUnit(tune.zoneRadius, enemy.sprite.scene.registry);
+  const zonePx = worldUnit(tune.zoneRadiusWu, enemy.sprite.scene.registry);
 
   if (c.phase === "windup" && extra.telegraph) {
     updateArrowRainTelegraph(extra.telegraph, deltaMs, false, zonePx);

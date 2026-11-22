@@ -39,7 +39,7 @@ export class DefenseTargeting {
   }
 
   findEnemyNearWorldPoint(worldX: number, worldY: number): EnemyInstance | null {
-    const r = this.host.wu(PLAYER_TUNING.targetTapRadiusWorld);
+    const r = this.host.wu(PLAYER_TUNING.targetTapRadiusWu);
     let best: { e: EnemyInstance; d: number } | null = null;
     for (const e of this.host.getEnemies()) {
       if (!e.damageable.alive) continue;

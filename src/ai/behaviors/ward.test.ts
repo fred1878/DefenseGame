@@ -373,7 +373,7 @@ describe("wardBehavior", () => {
     const enemy = mockEnemyInstance({
       behavior: "ward",
       defId: "ward",
-      speed: 50,
+      speedWu: 50,
       sprite: {
         x: 0,
         y: 0,

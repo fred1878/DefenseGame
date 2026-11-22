@@ -8,9 +8,9 @@ import type { EnemyDef } from "./DataStore";
 
 export type EnemyDefInput = {
   hp?: number;
-  speed?: number;
+  speedWu?: number;
   damage?: number;
-  bodyRadius?: number;
+  bodyRadiusWu?: number;
   weight?: number;
   challengeRating?: number;
   behavior: string;
@@ -32,14 +32,14 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
   if (raw.hp === undefined) {
     throw new ConfigLoadError(`Missing number at ${path}.hp`);
   }
-  if (raw.speed === undefined) {
-    throw new ConfigLoadError(`Missing number at ${path}.speed`);
+  if (raw.speedWu === undefined) {
+    throw new ConfigLoadError(`Missing number at ${path}.speedWu`);
   }
   if (raw.damage === undefined) {
     throw new ConfigLoadError(`Missing number at ${path}.damage`);
   }
-  if (raw.bodyRadius === undefined) {
-    throw new ConfigLoadError(`Missing number at ${path}.bodyRadius`);
+  if (raw.bodyRadiusWu === undefined) {
+    throw new ConfigLoadError(`Missing number at ${path}.bodyRadiusWu`);
   }
   if (raw.weight === undefined) {
     throw new ConfigLoadError(`Missing number at ${path}.weight`);
@@ -59,9 +59,9 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
   }
   return {
     hp: requireFiniteNumber(raw.hp, `${path}.hp`),
-    speed: requireFiniteNumber(raw.speed, `${path}.speed`),
+    speedWu: requireFiniteNumber(raw.speedWu, `${path}.speedWu`),
     damage: requireFiniteNumber(raw.damage, `${path}.damage`),
-    bodyRadius: requireFiniteNumber(raw.bodyRadius, `${path}.bodyRadius`),
+    bodyRadiusWu: requireFiniteNumber(raw.bodyRadiusWu, `${path}.bodyRadiusWu`),
     weight: requireFiniteNumber(raw.weight, `${path}.weight`),
     challengeRating,
     behavior: raw.behavior,

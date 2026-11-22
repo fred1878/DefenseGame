@@ -5,11 +5,11 @@ import { ConfigLoadError } from "../core/configValidation";
 import type { EnemyDef } from "../core/DataStore";
 import type { EnemyKnockbackCarrier } from "../combat/enemyKnockback";
 
-/** Matches {@link DEFENSE_MAP.cellSize} / 2 − 1 px nav margin on obstacle inflation. */
-export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
+/** Extra path radius beyond body (authored WU from `entity-physics.json`). */
+export let ENEMY_PATH_CLEARANCE_MARGIN_WU = unsetMargin();
 
-/** Nav-grid inflation around static obstacle colliders (independent of agent body size). */
-export let STATIC_OBSTACLE_NAV_CLEARANCE_PX = unsetMargin();
+/** Nav-grid inflation around static obstacle colliders (authored WU). */
+export let STATIC_OBSTACLE_NAV_CLEARANCE_WU = unsetMargin();
 
 /** Caps combined knockback velocity as `strength * knockbackVelocityCapMult`. */
 export let KNOCKBACK_VELOCITY_CAP_MULT = unsetMargin();
@@ -27,12 +27,12 @@ function unsetMargin(): number {
 }
 
 export function applyEntityPhysics(tuning: {
-  enemyPathClearanceMarginPx: number;
-  staticObstacleNavClearancePx: number;
+  enemyPathClearanceMarginWu: number;
+  staticObstacleNavClearanceWu: number;
   knockbackVelocityCapMult: number;
 }): void {
-  ENEMY_PATH_CLEARANCE_MARGIN_PX = tuning.enemyPathClearanceMarginPx;
-  STATIC_OBSTACLE_NAV_CLEARANCE_PX = tuning.staticObstacleNavClearancePx;
+  ENEMY_PATH_CLEARANCE_MARGIN_WU = tuning.enemyPathClearanceMarginWu;
+  STATIC_OBSTACLE_NAV_CLEARANCE_WU = tuning.staticObstacleNavClearanceWu;
   KNOCKBACK_VELOCITY_CAP_MULT = tuning.knockbackVelocityCapMult;
 }
 
@@ -44,14 +44,15 @@ export function knockbackVelocityCapMult(): number {
 export function applyEnemyBodyRadii(enemies: Record<string, EnemyDef>): void {
   const map: Record<string, number> = {};
   for (const [id, row] of Object.entries(enemies)) {
-    map[id] = row.bodyRadius;
+    map[id] = row.bodyRadiusWu;
   }
   enemyBodyRadiusById = map;
 }
 
 /** Arcade physics circle radius for the player (from `public/data/player.json`). */
+/** Player collision radius in authored world units. */
 export function playerBodyRadiusPx(): number {
-  return PLAYER_TUNING.bodyRadius;
+  return PLAYER_TUNING.bodyRadiusWu;
 }
 
 export function enemyCollisionBodyRadius(defId: string): number {
@@ -81,17 +82,17 @@ export function isMeleeBodyCollisionBehavior(behavior: string): boolean {
 }
 
 export function enemyPathClearancePx(defId: string): number {
-  return enemyCollisionBodyRadius(defId) + ENEMY_PATH_CLEARANCE_MARGIN_PX;
+  return enemyCollisionBodyRadius(defId) + ENEMY_PATH_CLEARANCE_MARGIN_WU;
 }
 
 /** Player footprint for A* peer avoidance while routing to the wall. */
 export function playerPathClearancePx(): number {
-  return playerBodyRadiusPx() + ENEMY_PATH_CLEARANCE_MARGIN_PX;
+  return playerBodyRadiusPx() + ENEMY_PATH_CLEARANCE_MARGIN_WU;
 }
 
 /** Static obstacle inflation on the shared defense nav grid. */
 export function maxNavObstacleClearancePx(): number {
-  return STATIC_OBSTACLE_NAV_CLEARANCE_PX;
+  return STATIC_OBSTACLE_NAV_CLEARANCE_WU;
 }
 
 /** Centers a circle body on the sprite anchor after {@link Phaser.GameObjects.Components.DisplaySize#setDisplaySize}. */

@@ -13,21 +13,21 @@ describe("resolveEnemyCombat", () => {
       "grunt",
     );
     expect(tuned.wall.damage).toBeGreaterThan(0);
-    expect(tuned.melee!.triggerRange).toBeGreaterThanOrEqual(tuned.melee!.range);
+    expect(tuned.melee!.triggerRangeWu).toBeGreaterThanOrEqual(tuned.melee!.rangeWu);
     expect(tuned.arrowRain).toBeUndefined();
   });
 
   it("uses only authored wall fields", () => {
     const combat = {
       ...shippedEnemyCombat("grunt"),
-      wall: { damage: 9, triggerRange: 42, hitRange: 34 },
+      wall: { damage: 9, triggerRangeWu: 42, hitRangeWu: 34 },
     };
     const tuned = resolveEnemyCombat("meleeChaser", combat, "grunt");
     expect(tuned.wall.damage).toBe(9);
-    expect(tuned.wall.triggerRange).toBe(42);
+    expect(tuned.wall.triggerRangeWu).toBe(42);
   });
 
-  it("passes authored melee triggerRange and range unchanged", () => {
+  it("passes authored melee triggerRangeWu and range unchanged", () => {
     const base = shippedEnemyCombat("grunt");
     const tuned = resolveEnemyCombat(
       "meleeChaser",
@@ -35,14 +35,14 @@ describe("resolveEnemyCombat", () => {
         ...base,
         melee: {
           ...base.melee!,
-          triggerRange: 30,
-          range: 20,
+          triggerRangeWu: 30,
+          rangeWu: 20,
         },
       },
       "grunt",
     );
-    expect(tuned.melee!.triggerRange).toBe(30);
-    expect(tuned.melee!.range).toBe(20);
+    expect(tuned.melee!.triggerRangeWu).toBe(30);
+    expect(tuned.melee!.rangeWu).toBe(20);
   });
 
   it("attaches behavior-specific tables when behavior matches", () => {
@@ -60,14 +60,14 @@ describe("resolveEnemyCombat", () => {
         ...shippedEnemyCombat("javelineer"),
         javelineer: {
           ...shippedEnemyCombat("javelineer").javelineer!,
-          maxRange: 210,
+          maxRangeWu: 210,
         },
       },
       "javelineer",
     );
-    expect(jav.javelineer?.maxRange).toBe(210);
-    expect(jav.javelineer?.minRange).toBe(
-      shippedEnemyCombat("javelineer").javelineer!.minRange,
+    expect(jav.javelineer?.maxRangeWu).toBe(210);
+    expect(jav.javelineer?.minRangeWu).toBe(
+      shippedEnemyCombat("javelineer").javelineer!.minRangeWu,
     );
   });
 
@@ -131,9 +131,9 @@ describe("normalizeEnemyRow", () => {
         behavior: "meleeChaser",
         textureKey: "enemy_grunt",
         hp: 10,
-        speed: 50,
+        speedWu: 50,
         damage: 5,
-        bodyRadius: 28,
+        bodyRadiusWu: 28,
         weight: 100,
         challengeRating: 1,
         combat: shippedEnemyCombat("grunt"),
@@ -150,9 +150,9 @@ describe("normalizeEnemyRow", () => {
   it("derives displayName from id when omitted", () => {
     const row = normalizeEnemyRow("arrow_rain_archer", {
       hp: 1,
-      speed: 1,
+      speedWu: 1,
       damage: 1,
-      bodyRadius: 14,
+      bodyRadiusWu: 14,
       weight: 100,
       challengeRating: 4,
       behavior: "arrowRainArcher",
@@ -167,9 +167,9 @@ describe("normalizeEnemyRow", () => {
       behavior: "meleeChaser",
       textureKey: "enemy_grunt",
       hp: 10,
-      speed: 50,
+      speedWu: 50,
       damage: 5,
-      bodyRadius: 28,
+      bodyRadiusWu: 28,
       weight: 100,
       challengeRating: 1,
       combat: shippedEnemyCombat("grunt"),
@@ -179,9 +179,9 @@ describe("normalizeEnemyRow", () => {
       behavior: "charger",
       textureKey: "enemy_charger",
       hp: 10,
-      speed: 50,
+      speedWu: 50,
       damage: 20,
-      bodyRadius: 21,
+      bodyRadiusWu: 21,
       weight: 100,
       challengeRating: 6,
       combat: shippedEnemyCombat("charger"),
@@ -199,9 +199,9 @@ describe("normalizeEnemyRow", () => {
       behavior: "meleeChaser",
       textureKey: "enemy_grunt",
       hp: 10,
-      speed: 50,
+      speedWu: 50,
       damage: 5,
-      bodyRadius: 28,
+      bodyRadiusWu: 28,
       weight: 100,
       challengeRating: 1,
       combat: broken,

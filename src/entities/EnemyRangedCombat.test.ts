@@ -34,7 +34,7 @@ describe("updateArrowRainCombat", () => {
     enemy.combat.cooldownMs = 0;
     enemy.sprite.x = 0;
     enemy.sprite.y = 0;
-    const playerDist = testArrowRainCombat.preferredRange - 40;
+    const playerDist = testArrowRainCombat.preferredRangeWu - 40;
     updateArrowRainCombat(
       enemy,
       {
@@ -97,7 +97,7 @@ describe("updateArrowRainCombat wall target", () => {
   it("calls onWallHit once per volley during active phase", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("arrowRainArcher");
-    enemy.sprite.y = wy + testArrowRainCombat.preferredRange;
+    enemy.sprite.y = wy + testArrowRainCombat.preferredRangeWu;
     enemy.arrowRain = createArrowRainCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
@@ -117,7 +117,7 @@ describe("updateJavelineerCombat wall target", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("javelineer");
     const band =
-      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
       2;
     enemy.sprite.y = wy + band;
     enemy.javelineer = createJavelineerCombatState();
@@ -148,7 +148,7 @@ describe("updateJavelineerCombat", () => {
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     const mid =
-      (testJavelineerCombat.minRange + testJavelineerCombat.maxRange) /
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
       2;
     enemy.combat.attackTargetKind = "player";
     enemy.combat.commitAimX = mid;
@@ -214,7 +214,7 @@ describe("updateStationaryRangedCombat", () => {
     enemy.stationaryRanged = createStationaryRangedCombatState();
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
-    const dist = testStationaryRangedCombat.attackTriggerRange - 10;
+    const dist = testStationaryRangedCombat.attackTriggerRangeWu - 10;
     enemy.combat.attackTargetKind = "player";
     enemy.combat.commitAimX = dist;
     enemy.combat.commitAimY = 0;

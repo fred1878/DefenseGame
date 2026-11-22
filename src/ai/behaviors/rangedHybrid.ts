@@ -31,6 +31,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const desired = resolved.targetKind;
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
@@ -46,7 +47,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     desired === "player" &&
     hybrid
   ) {
-    const preferred = worldUnit(hybrid.preferredRange, reg);
+    const preferred = worldUnit(hybrid.preferredRangeWu, reg);
     applyRetreatPathing({
       enemy,
       nav,
@@ -59,7 +60,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
       speedMul: 1.05,
       retreatGoalDistPx: Math.max(
         worldUnit(72, reg),
-        preferred - dist + worldUnit(hybrid.retreatRangeSlack, reg),
+        preferred - dist + worldUnit(hybrid.retreatRangeSlackWu, reg),
       ),
     });
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
@@ -97,10 +98,13 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     hybrid &&
     ranged
   ) {
-    const meleeEngage = worldUnit(enemy.combatTuning.melee!.triggerRange, reg);
+    const meleeEngage = worldUnit(
+      enemy.combatTuning.melee!.triggerRangeWu,
+      reg,
+    );
     const bandSlack = worldUnit(ranged.kiteBandSlackWu, reg);
-    const preferred = worldUnit(hybrid.preferredRange, reg);
-    const attackMax = worldUnit(ranged.attackTriggerRange, reg);
+    const preferred = worldUnit(hybrid.preferredRangeWu, reg);
+    const attackMax = worldUnit(ranged.attackTriggerRangeWu, reg);
 
     if (dist <= meleeEngage) {
       applyChaseVelocity(

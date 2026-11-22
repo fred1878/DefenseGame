@@ -69,16 +69,16 @@ export type SpellDefinition = {
   shadowformAggroRadiusMult?: number;
   onHit?: SpellOnHitEffects;
   baseDamage?: number;
-  projectileSpeed?: number;
-  blastRadius?: number;
+  projectileSpeedWu?: number;
+  blastRadiusWu?: number;
   /** Direct-hit knockback (projectile, cone, swing, instant targeted primary). */
-  knockback?: number;
+  knockbackWu?: number;
   /** Blast-radius knockback (blast mechanic, AoE detonation, secondary bursts). Zero disables. */
-  blastKnockback?: number;
+  blastKnockbackWu?: number;
   /** Chain lightning first-target knockback. */
-  chainKnockback?: number;
+  chainKnockbackWu?: number;
   /** Chain lightning hop knockback. */
-  chainHopKnockback?: number;
+  chainHopKnockbackWu?: number;
   healAmount?: number;
   iconFile: string;
   projectileTextureKey?: string;

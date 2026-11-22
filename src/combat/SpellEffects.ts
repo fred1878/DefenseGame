@@ -49,7 +49,10 @@ export function applyNova(
   damageMult: number,
   status?: EnemySpellStatusMap,
 ): void {
-  const radius = worldUnit(def.blastRadius ?? 80, scene.registry);
+  if (def.blastRadiusWu === undefined) {
+    throw new Error(`Spell ${def.id} missing blastRadiusWu`);
+  }
+  const radius = worldUnit(def.blastRadiusWu, scene.registry);
   const damage = (def.baseDamage ?? 20) * damageMult;
   for (const e of enemies) {
     if (!e.damageable.alive) continue;
@@ -87,8 +90,9 @@ export function spawnSpellProjectile(
   if (!textureKey) {
     throw new Error(`spell ${def.id} has no MobileRPG projectileTextureKey`);
   }
-  const speed =
-    def.projectileSpeed ?? PLAYER_TUNING.projectileSpeed * 1.05;
+  const speedWu =
+    def.projectileSpeedWu ?? PLAYER_TUNING.projectileSpeedWu * 1.05;
+  const speed = worldUnit(speedWu, scene.registry);
   const damage = (def.baseDamage ?? 20) * damageMult;
   const flavor: DamageFlavor = def.damageFlavor ?? "default";
   const projectile = spawnPlayerProjectile(
@@ -98,7 +102,7 @@ export function spawnSpellProjectile(
     angleRad,
     speed,
     damage,
-    worldUnit(PLAYER_TUNING.rangedMaxRange, scene.registry),
+    worldUnit(PLAYER_TUNING.rangedMaxRangeWu, scene.registry),
     id,
     textureKey,
     flavor,
@@ -114,7 +118,10 @@ export function spawnSpellProjectile(
           : "default");
   projectile.spellBehavior = behavior;
   if (behavior === "aoe_on_hit") {
-    projectile.blastRadiusWu = worldUnit(def.blastRadius ?? 56, scene.registry);
+    if (def.blastRadiusWu === undefined) {
+      throw new Error(`Spell ${def.id} missing blastRadiusWu`);
+    }
+    projectile.blastRadiusWu = worldUnit(def.blastRadiusWu, scene.registry);
   }
   if (behavior === "tracking") {
     projectile.trackEnemyId = opts?.trackEnemyId ?? null;
@@ -136,16 +143,19 @@ export function applySpellBlastAt(
   status?: EnemySpellStatusMap,
   knockbackExcludeIds?: ReadonlySet<string>,
 ): void {
-  const r = worldUnit(def.blastRadius ?? 72, scene.registry);
+  if (def.blastRadiusWu === undefined) {
+    throw new Error(`Spell ${def.id} missing blastRadiusWu`);
+  }
+  const r = worldUnit(def.blastRadiusWu, scene.registry);
   const damage = (def.baseDamage ?? 0) * damageMult;
   const flavor = def.damageFlavor ?? "default";
-  const knockback = spellBlastKnockback(def);
+  const knockbackPx = worldUnit(spellBlastKnockback(def), scene.registry);
   for (const e of enemiesInDisk(centerX, centerY, r, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    if (knockback > 0 && !knockbackExcludeIds?.has(full.id)) {
-      applyEnemyKnockbackFrom(full.enemy, centerX, centerY, knockback);
+    if (knockbackPx > 0 && !knockbackExcludeIds?.has(full.id)) {
+      applyEnemyKnockbackFrom(full.enemy, centerX, centerY, knockbackPx);
     }
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
@@ -178,7 +188,12 @@ export function applySpellSwing(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, spellDirectKnockback(def));
+    applyEnemyKnockbackFrom(
+      full.enemy,
+      playerX,
+      playerY,
+      worldUnit(spellDirectKnockback(def), scene.registry),
+    );
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -203,7 +218,12 @@ export function strikeSpellCone(
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, spellDirectKnockback(def));
+    applyEnemyKnockbackFrom(
+      full.enemy,
+      playerX,
+      playerY,
+      worldUnit(spellDirectKnockback(def), scene.registry),
+    );
     if (status && def.onHit) {
       applySpellOnHitEffects(status, full.id, def.onHit, flavor);
     }
@@ -259,13 +279,18 @@ export function applyInstantTargeted(
   const blastKnockbackExclude = new Set<string>([full.id]);
   if (hitDamage > 0) {
     applyDamage(full.damageable, hitDamage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, playerX, playerY, spellDirectKnockback(def));
+    applyEnemyKnockbackFrom(
+      full.enemy,
+      playerX,
+      playerY,
+      worldUnit(spellDirectKnockback(def), scene.registry),
+    );
   } else {
     blastKnockbackExclude.delete(full.id);
   }
   if (def.burstDamage && def.burstDamage > 0) {
     applyDamage(full.damageable, def.burstDamage * damageMult, flavor);
-    if (def.blastRadius) {
+    if (def.blastRadiusWu) {
       applySpellBlastAt(
         scene,
         full.x,
@@ -277,7 +302,7 @@ export function applyInstantTargeted(
         blastKnockbackExclude,
       );
     }
-  } else if (def.blastRadius) {
+  } else if (def.blastRadiusWu) {
     applySpellBlastAt(
       scene,
       full.x,
@@ -327,7 +352,12 @@ export function applyChainLightning(
   };
   const startFull = living.find((e) => e.id === start.id)!;
   applyDamage(startFull.damageable, damage, flavor);
-  applyEnemyKnockbackFrom(startFull.enemy, playerX, playerY, spellChainKnockback(def));
+  applyEnemyKnockbackFrom(
+    startFull.enemy,
+    playerX,
+    playerY,
+    worldUnit(spellChainKnockback(def), scene.registry),
+  );
   applyHopHit(start.id);
   let fromX = start.x;
   let fromY = start.y;
@@ -335,7 +365,12 @@ export function applyChainLightning(
     const full = living.find((e) => e.id === hop.id);
     if (!full) continue;
     applyDamage(full.damageable, damage, flavor);
-    applyEnemyKnockbackFrom(full.enemy, fromX, fromY, spellChainHopKnockback(def));
+    applyEnemyKnockbackFrom(
+      full.enemy,
+      fromX,
+      fromY,
+      worldUnit(spellChainHopKnockback(def), scene.registry),
+    );
     applyHopHit(full.id);
     fromX = hop.x;
     fromY = hop.y;

@@ -4,14 +4,14 @@ import {
 } from "./configValidation";
 
 export type EntityPhysicsInput = {
-  enemyPathClearanceMarginPx?: number;
-  staticObstacleNavClearancePx?: number;
+  enemyPathClearanceMarginWu?: number;
+  staticObstacleNavClearanceWu?: number;
   knockbackVelocityCapMult?: number;
 };
 
 export type EntityPhysicsTuning = {
-  enemyPathClearanceMarginPx: number;
-  staticObstacleNavClearancePx: number;
+  enemyPathClearanceMarginWu: number;
+  staticObstacleNavClearanceWu: number;
   knockbackVelocityCapMult: number;
 };
 
@@ -20,13 +20,13 @@ export function normalizeEntityPhysics(
 ): EntityPhysicsTuning {
   const root = requireRecord(raw, "entity-physics");
   return {
-    enemyPathClearanceMarginPx: requireFiniteNumber(
-      root.enemyPathClearanceMarginPx,
-      "entity-physics.enemyPathClearanceMarginPx",
+    enemyPathClearanceMarginWu: requireFiniteNumber(
+      root.enemyPathClearanceMarginWu,
+      "entity-physics.enemyPathClearanceMarginWu",
     ),
-    staticObstacleNavClearancePx: requireFiniteNumber(
-      root.staticObstacleNavClearancePx,
-      "entity-physics.staticObstacleNavClearancePx",
+    staticObstacleNavClearanceWu: requireFiniteNumber(
+      root.staticObstacleNavClearanceWu,
+      "entity-physics.staticObstacleNavClearanceWu",
     ),
     knockbackVelocityCapMult: requireFiniteNumber(
       root.knockbackVelocityCapMult,

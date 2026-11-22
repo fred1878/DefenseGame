@@ -46,7 +46,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     extra.chargeWindupMs = Math.max(0, extra.chargeWindupMs - deltaMs);
     setEnemyChaseVelocity(enemy, 0, 0);
     if (extra.chargeWindupMs <= 0 && tune) {
-      const overshootPx = worldUnit(tune.dashOvershootRange, reg);
+      const overshootPx = worldUnit(tune.dashOvershootRangeWu, reg);
       let dx = extra.chargeAimX - ex;
       let dy = extra.chargeAimY - ey;
       const len = Math.hypot(dx, dy);
@@ -85,6 +85,7 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     deltaMs,
     worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
     ctx.objective ?? "defendWall",
+    reg,
   );
   const goal = { x: resolved.goalX, y: resolved.goalY };
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
@@ -115,8 +116,8 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     tune &&
     resolved.targetKind === "player" &&
     extra.chargeCooldownMs <= 0 &&
-    dist >= worldUnit(tune.dashMinRange, reg) &&
-    dist <= worldUnit(tune.dashTriggerRange, reg) &&
+    dist >= worldUnit(tune.dashMinRangeWu, reg) &&
+    dist <= worldUnit(tune.dashTriggerRangeWu, reg) &&
     hasLineOfSight(grid, ex, ey, playerX, playerY)
   ) {
     extra.chargeWindupMs = tune.dashWindupMs;

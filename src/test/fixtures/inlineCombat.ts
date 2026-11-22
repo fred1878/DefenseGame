@@ -10,48 +10,48 @@ import type {
 /** Minimal inline combat blocks for behavior tests (not shipped tuning). */
 export const testWallCombat: EnemyWallCombat = {
   damage: 6,
-  triggerRange: 42,
-  hitRange: 34,
+  triggerRangeWu: 42,
+  hitRangeWu: 34,
 };
 
 export const testChargerCombat: EnemyChargerCombat = {
   chargeDamage: 30,
-  dashMinRange: 40,
-  dashTriggerRange: 120,
+  dashMinRangeWu: 40,
+  dashTriggerRangeWu: 120,
   dashWindupMs: 280,
   dashDurationMs: 400,
   dashSpeedMul: 2,
   dashCooldownMs: 2000,
-  dashOvershootRange: 64,
+  dashOvershootRangeWu: 64,
 };
 
 export const testWallSiegeCombat: EnemyWallSiegeCombat = {
-  playerAggroRadius: 80,
+  playerAggroRadiusWu: 80,
 };
 
 export const testStationaryRangedCombat: EnemyStationaryRangedCombat = {
   damage: 10,
-  preferredRange: 210,
-  attackTriggerRange: 290,
+  preferredRangeWu: 210,
+  attackTriggerRangeWu: 290,
   kiteBandSlackWu: 22,
   windupMs: 400,
   activeMs: 80,
   recoveryMs: 400,
   cooldownMs: 1200,
-  projectileSpeed: 300,
-  projectileMaxTravel: 200,
+  projectileSpeedWu: 300,
+  projectileMaxTravelWu: 200,
 };
 
 export const testArrowRainCombat: EnemyArrowRainCombat = {
   damage: 10,
-  preferredRange: 120,
-  attackTriggerRange: 150,
+  preferredRangeWu: 120,
+  attackTriggerRangeWu: 150,
   kiteBandSlackWu: 24,
   windupMs: 800,
   activeMs: 1000,
   recoveryMs: 500,
   cooldownMs: 2000,
-  zoneRadius: 60,
+  zoneRadiusWu: 60,
   tickIntervalMs: 250,
   tickDamageScale: 0.5,
   maxTicks: 4,
@@ -59,8 +59,8 @@ export const testArrowRainCombat: EnemyArrowRainCombat = {
 
 export const testJavelineerCombat: EnemyJavelineerCombat = {
   damage: 10,
-  minRange: 80,
-  maxRange: 289,
+  minRangeWu: 80,
+  maxRangeWu: 289,
   kiteBandSlackWu: 28,
   strafeSpeedMul: 0.9,
   orbitFlipMs: 1200,
@@ -68,6 +68,6 @@ export const testJavelineerCombat: EnemyJavelineerCombat = {
   activeMs: 100,
   recoveryMs: 400,
   cooldownMs: 1000,
-  projectileSpeed: 320,
-  projectileMaxTravel: 220,
+  projectileSpeedWu: 320,
+  projectileMaxTravelWu: 220,
 };
