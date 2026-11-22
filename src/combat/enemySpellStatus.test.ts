@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { applyDamage, type Damageable } from "./DamageSystem";
 import { EnemySpellStatusMap } from "./enemySpellStatus";
 
 describe("EnemySpellStatusMap", () => {
@@ -29,5 +30,25 @@ describe("EnemySpellStatusMap", () => {
     expect(m.moveSpeedMultiplier("e1")).toBeCloseTo(0.6);
     m.tick(600);
     expect(m.moveSpeedMultiplier("e1")).toBe(1);
+  });
+
+  it("fires onDamaged once per DOT tick with stored flavor", () => {
+    const m = new EnemySpellStatusMap();
+    m.applyDot("e1", 20, 2000, "fire");
+    const onDamaged = vi.fn();
+    const damageable: Damageable = {
+      id: "e1",
+      hp: 100,
+      maxHp: 100,
+      alive: true,
+      team: "enemy",
+      onDamaged,
+    };
+    m.tick(250, (enemyId, amount, flavor) => {
+      expect(enemyId).toBe("e1");
+      applyDamage(damageable, amount, flavor);
+    });
+    expect(onDamaged).toHaveBeenCalledTimes(1);
+    expect(onDamaged).toHaveBeenCalledWith(5, "fire");
   });
 });

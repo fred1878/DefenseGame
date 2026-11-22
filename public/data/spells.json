@@ -36,7 +36,7 @@
       "iconFile": "ice_bolt.png",
       "projectileTextureKey": "fx_spell_ice_bolt",
       "projectileFile": "ice-bolt-mrpg-16.png",
-      "damageFlavor": "default",
+      "damageFlavor": "frost",
       "castMs": 1000,
       "onHit": {
         "slowPct": 0.5,
@@ -58,7 +58,7 @@
       "iconFile": "lightning_bolt.png",
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
-      "damageFlavor": "default",
+      "damageFlavor": "physical",
       "castMs": 550,
       "knockback": 140
     },
@@ -199,7 +199,7 @@
       "channelMs": 0,
       "baseDamage": 12,
       "iconFile": "cone_of_cold.png",
-      "damageFlavor": "default",
+      "damageFlavor": "frost",
       "coneRangeWu": 130,
       "coneArcDeg": 72,
       "onHit": {
@@ -263,7 +263,7 @@
       "blastTextureKey": "fx_spell_blizzard",
       "blastFile": "blizzard-mrpg-32.png",
       "iconFile": "blizzard.png",
-      "damageFlavor": "default",
+      "damageFlavor": "frost",
       "castMs": 800,
       "channelTickMs": 250,
       "targetMode": "ground",
@@ -310,7 +310,7 @@
       "blastTextureKey": "fx_spell_shockwave",
       "blastFile": "shockwave-mrpg-64.png",
       "iconFile": "frost_nova.png",
-      "damageFlavor": "default",
+      "damageFlavor": "frost",
       "centerOnCaster": true,
       "onHit": {
         "rootMs": 7000
@@ -327,7 +327,7 @@
       "cooldownMs": 12000,
       "channelMs": 0,
       "iconFile": "ice_wall.png",
-      "damageFlavor": "default",
+      "damageFlavor": "frost",
       "iceWallDistanceWu": 64,
       "iceWallDurationMs": 8000
     },
@@ -379,7 +379,7 @@
       "channelMs": 0,
       "baseDamage": 12,
       "iconFile": "deep_freeze.png",
-      "damageFlavor": "default",
+      "damageFlavor": "frost",
       "castMs": 550,
       "targetMode": "enemy",
       "requireEnemyTarget": true,
@@ -404,7 +404,7 @@
       "iconFile": "chain_lightning.png",
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
-      "damageFlavor": "default",
+      "damageFlavor": "physical",
       "castMs": 450,
       "targetMode": "enemy",
       "requireEnemyTarget": true,

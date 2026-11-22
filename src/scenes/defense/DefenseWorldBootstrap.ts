@@ -8,6 +8,7 @@ import {
   defenseHalfWidth,
   defenseObstacleSpriteDisplayPosition,
 } from "../../config";
+import { flashSpriteTint } from "../../combat/HitFlash";
 import { Player } from "../../entities/Player";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
@@ -67,6 +68,9 @@ export function bootstrapDefenseWorld(
   const player = new Player(scene, start.x, start.y, playerHpMax);
   player.damageable.hp = playerHpMax;
   player.damageable.alive = true;
+  player.damageable.onDamaged = (_amount, flavor = "default") => {
+    flashSpriteTint(scene, player.sprite, flavor);
+  };
 
   const cameraRig = setupDefenseCameraRig(scene, player.sprite, playArea);
   const { registerUi, registerWorld, worldLayer } = cameraRig;

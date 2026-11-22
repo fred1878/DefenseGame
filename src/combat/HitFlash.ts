@@ -1,14 +1,17 @@
 import Phaser from "phaser";
 import type { DamageFlavor } from "./DamageSystem";
 
-const FLASH_MS = 140;
+export const HIT_FLASH_MS = 190;
+
 const TIMER_KEY = "hitFlashTimer";
 const FLAVOR_KEY = "hitFlashFlavor";
 
-/** Visible on enemy art — pure white tint is often a no-op on light pixels. */
+/** Per-flavor tints — default/fire avoid pure white on light enemy pixels; physical is white for lightning. */
 const HIT_TINT: Record<DamageFlavor, number> = {
-  default: 0xffb8b8,
-  fire: 0xff3333,
+  default: 0xff8888,
+  fire: 0xff2222,
+  physical: 0xffffff,
+  frost: 0x99ddff,
 };
 
 export function hitFlashTintFor(flavor: DamageFlavor): number {
@@ -26,6 +29,7 @@ function applyTint(
 export function reapplySpriteHitFlashIfActive(
   sprite: Phaser.GameObjects.Sprite | Phaser.Physics.Arcade.Sprite,
 ): void {
+  if (typeof sprite.getData !== "function") return;
   const flavor = sprite.getData(FLAVOR_KEY) as DamageFlavor | undefined;
   if (!flavor) return;
   applyTint(sprite, flavor);
@@ -40,7 +44,7 @@ export function flashSpriteTint(
   prev?.remove(false);
   sprite.setData(FLAVOR_KEY, flavor);
   applyTint(sprite, flavor);
-  const timer = scene.time.delayedCall(FLASH_MS, () => {
+  const timer = scene.time.delayedCall(HIT_FLASH_MS, () => {
     sprite.clearTint();
     sprite.setData(TIMER_KEY, undefined);
     sprite.setData(FLAVOR_KEY, undefined);
