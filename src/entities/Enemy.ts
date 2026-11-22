@@ -117,7 +117,7 @@ export function spawnEnemy(
   tuneArcadeDynamicBody(
     sprite,
     worldUnit(enemyCollisionBodyRadius(defId), scene.registry),
-    { pushable: true },
+    { pushable: true, worldBounds: true },
   );
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemy);
   sprite.setInteractive(
