@@ -4,7 +4,7 @@ import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../content/
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
-import { applyDamage } from "../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/DamageSystem";
 import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
 import { applyEnemyKnockbackFrom } from "../combat/enemyKnockback";
 import type { EnemyInstance } from "./Enemy";
@@ -220,7 +220,7 @@ export class Player {
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);
-        applyDamage(e.damageable, damage, "default");
+        applyDamage(e.damageable, damage, MELEE_HIT_FLAVOR);
         applyEnemyKnockbackFrom(e, this.sprite.x, this.sprite.y, knockback);
       }
     }

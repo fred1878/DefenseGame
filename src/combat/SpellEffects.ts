@@ -1,7 +1,12 @@
 import Phaser from "phaser";
 import { PLAYER_TUNING } from "../config";
 import type { SpellDefinition } from "../content/spells";
-import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";
+import {
+  applyDamage,
+  swingSpellDamageFlavor,
+  type Damageable,
+  type DamageFlavor,
+} from "./DamageSystem";
 import { applyEnemyKnockbackFrom } from "./enemyKnockback";
 import {
   spellBlastKnockback,
@@ -160,7 +165,7 @@ export function applySpellSwing(
 ): void {
   const range = worldUnit(def.swingRangeWu!, scene.registry);
   const damage = (def.baseDamage ?? 16) * damageMult;
-  const flavor = def.damageFlavor ?? "default";
+  const flavor = swingSpellDamageFlavor(def.damageFlavor);
   showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, 160);
   for (const e of enemiesInSwingArc(
     playerX,

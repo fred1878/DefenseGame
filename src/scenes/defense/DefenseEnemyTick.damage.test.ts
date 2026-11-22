@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Damageable } from "../../combat/DamageSystem";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import { testChargerCombat } from "../../test/fixtures/inlineCombat";
 import { tickDefenseEnemies } from "./DefenseEnemyTick";
@@ -18,12 +19,12 @@ function minimalTickHost(
   enemies: ReturnType<typeof mockEnemyInstance>[],
   playerHp = 100,
 ) {
-  const playerDamageable = {
+  const playerDamageable: Damageable = {
     id: "p",
     hp: playerHp,
     maxHp: playerHp,
     alive: true,
-    team: "player" as const,
+    team: "player",
   };
   return {
     scene: {} as never,
@@ -60,9 +61,15 @@ describe("tickDefenseEnemies damage paths", () => {
     enemy.behaviorExtra.chargeActiveMs = 100;
     enemy.behaviorExtra.chargeHitThisDash = false;
 
+    const onDamaged = vi.fn();
     const host = minimalTickHost([enemy]);
+    host.playerHurtbox.damageable.onDamaged = onDamaged;
     tickDefenseEnemies(host, 16);
     expect(host.playerHurtbox.damageable.hp).toBe(100 - testChargerCombat.chargeDamage);
     expect(enemy.behaviorExtra.chargeHitThisDash).toBe(true);
+    expect(onDamaged).toHaveBeenCalledWith(
+      testChargerCombat.chargeDamage,
+      "physical",
+    );
   });
 });
