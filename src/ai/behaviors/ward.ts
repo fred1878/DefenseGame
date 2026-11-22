@@ -6,6 +6,7 @@ import {
   pathingPeerAgents,
   replanEnemyPath,
   resolveEnemyTarget,
+  wallPathingPlayerClearancePx,
 } from "../EnemyBrain";
 import type { EnemyBehavior, EnemyPeerAlly } from "./types";
 import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
@@ -304,7 +305,13 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       goalX,
       goalY,
       waypointRadius,
-      pathingPeerAgents(peerAgents, targetKind, playerX, playerY),
+      pathingPeerAgents(
+        peerAgents,
+        targetKind,
+        playerX,
+        playerY,
+        wallPathingPlayerClearancePx(enemy.sprite.scene.registry),
+      ),
       enemy,
     );
     nav.replanMs = DEFENSE_MAP.pathReplanMs;

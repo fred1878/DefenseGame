@@ -5,6 +5,7 @@ import {
   isMeleeBodyCollisionBehavior,
   maxNavObstacleClearancePx,
   playerBodyRadiusPx,
+  playerPathClearancePx,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
 
@@ -26,6 +27,7 @@ describe("entityPhysics", () => {
       enemyCollisionBodyRadius("bruiser"),
     );
     expect(maxNavObstacleClearancePx()).toBe(18);
+    expect(playerPathClearancePx()).toBeGreaterThan(playerBodyRadiusPx());
   });
 
   it("tunes bounce, friction, and pushable", () => {

@@ -92,13 +92,50 @@ describe("A*", () => {
       start.y,
       goal.x,
       goal.y,
-      [{ x: mid.x, y: mid.y }],
+      [{ x: mid.x, y: mid.y, clearancePx: gruntClearance }],
       gruntClearance,
     );
     const nearMid = (path: ReturnType<typeof findPath>) =>
       path.some((p) => Math.hypot(p.x - mid.x, p.y - mid.y) < 8);
     expect(nearMid(direct)).toBe(true);
     expect(nearMid(detour)).toBe(false);
+  });
+
+  it("respects each peer's own clearance radius when detouring", () => {
+    const grid = buildNavGrid(
+      [],
+      DEFENSE_MAP.cellSize,
+      DEFENSE_MAP.pathClearancePx,
+    );
+    const start = cellToWorldCenter(grid, 2, 10);
+    const goal = cellToWorldCenter(grid, 18, 10);
+    const mid = cellToWorldCenter(grid, 10, 10);
+    const gruntClearance = enemyPathClearancePx("grunt");
+    const sentryClearance = enemyPathClearancePx("sentry_archer");
+    expect(gruntClearance).toBeGreaterThan(sentryClearance);
+    const nearMid = (path: ReturnType<typeof findPath>) =>
+      path.some((p) => Math.hypot(p.x - mid.x, p.y - mid.y) < 8);
+    const widePeerDetour = findPath(
+      grid,
+      start.x,
+      start.y,
+      goal.x,
+      goal.y,
+      [{ x: mid.x, y: mid.y, clearancePx: gruntClearance }],
+      gruntClearance,
+    );
+    const slimPeerDetour = findPath(
+      grid,
+      start.x,
+      start.y,
+      goal.x,
+      goal.y,
+      [{ x: mid.x, y: mid.y, clearancePx: sentryClearance }],
+      gruntClearance,
+    );
+    expect(nearMid(widePeerDetour)).toBe(false);
+    expect(slimPeerDetour.length).toBeGreaterThan(0);
+    expect(widePeerDetour.length).toBeGreaterThanOrEqual(slimPeerDetour.length);
   });
 
   it("finds a route around spread obstacles to the north wall", () => {

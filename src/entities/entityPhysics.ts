@@ -73,6 +73,11 @@ export function enemyPathClearancePx(defId: string): number {
   return enemyCollisionBodyRadius(defId) + ENEMY_PATH_CLEARANCE_MARGIN_PX;
 }
 
+/** Player footprint for A* peer avoidance while routing to the wall. */
+export function playerPathClearancePx(): number {
+  return playerBodyRadiusPx() + ENEMY_PATH_CLEARANCE_MARGIN_PX;
+}
+
 /** Static obstacle inflation on the shared defense nav grid. */
 export function maxNavObstacleClearancePx(): number {
   return STATIC_OBSTACLE_NAV_CLEARANCE_PX;

@@ -1,6 +1,11 @@
 import { DEFENSE_MAP, northWallAttackY, PLAYER_AGGRO_RADIUS } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
-import { cellBlocked, worldToCell, type NavGrid } from "../../pathfinding/grid";
+import {
+  cellBlocked,
+  worldToCell,
+  type NavGrid,
+  type NavPeerAgent,
+} from "../../pathfinding/grid";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
@@ -39,7 +44,7 @@ function strafeTangentBlocked(
   y: number,
   tangentX: number,
   tangentY: number,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
 ): boolean {
   const probeX = x + tangentX * STRAFE_PROBE_DIST;
   const probeY = y + tangentY * STRAFE_PROBE_DIST;
@@ -53,7 +58,7 @@ function resolveStrafeSign(
   grid: NavGrid,
   tangentX: number,
   tangentY: number,
-  peerAgents?: readonly { x: number; y: number }[],
+  peerAgents?: readonly NavPeerAgent[],
 ): 1 | -1 {
   let sign = enemy.behaviorExtra.strafeSign;
   const ex = enemy.sprite.x;
@@ -104,7 +109,7 @@ function kiteArcVelocity(
     radialBlend: number;
     towardPlayer: boolean;
     speedMul: number;
-    peerAgents?: readonly { x: number; y: number }[];
+    peerAgents?: readonly NavPeerAgent[];
   },
 ): void {
   advanceStrafeSign(enemy, ctx.deltaMs);
