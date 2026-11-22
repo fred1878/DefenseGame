@@ -127,7 +127,7 @@ import {
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { SPRITE_DISPLAY } from "../content/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import type { CombatHudChrome } from "../ui/combatHudChrome";
 import { DefenseMinimap, defenseMinimapLayout } from "../ui/defenseMinimap";
 import {
@@ -1224,6 +1224,8 @@ export class DefenseScene extends Phaser.Scene {
       damage,
       this.wu(PLAYER_TUNING.rangedMaxRangeWu),
       id,
+      COMBAT_FX_TEXTURE.stoneThrow,
+      MELEE_HIT_FLAVOR,
     );
     this.registerWorldDraw(p.sprite);
     this.projectiles.push(p);
