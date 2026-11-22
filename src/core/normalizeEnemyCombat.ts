@@ -32,7 +32,6 @@ const MELEE_KEYS = [
   "activeMs",
   "recoveryMs",
   "cooldownMs",
-  "engageBodySlackPx",
 ] as const;
 const ARROW_RAIN_KEYS = [
   "damage",

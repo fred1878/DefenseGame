@@ -232,7 +232,7 @@ describe("public data fixtures", () => {
         behavior: string;
         combat: {
           wall: { damage: number; triggerRange: number; hitRange: number };
-          melee: { range: number; engageBodySlackPx: number };
+          melee: { range: number; triggerRange: number };
         };
       }
     >;
@@ -240,8 +240,8 @@ describe("public data fixtures", () => {
       expectFiniteNumber(row.combat.wall.damage, `${id}.combat.wall.damage`);
       expectFiniteNumber(row.combat.melee.range, `${id}.combat.melee.range`);
       expectFiniteNumber(
-        row.combat.melee.engageBodySlackPx,
-        `${id}.combat.melee.engageBodySlackPx`,
+        row.combat.melee.triggerRange,
+        `${id}.combat.melee.triggerRange`,
       );
     }
   });

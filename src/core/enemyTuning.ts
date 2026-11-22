@@ -31,7 +31,6 @@ export type EnemyCombatPartial = {
     range?: number;
     /** Extra gap (WU) when chase stops before player body contact — per enemy only, no global default. */
     meleeChaseStandoffWu?: number;
-    engageBodySlackPx?: number;
     arcDeg?: number;
     windupMs?: number;
     activeMs?: number;
@@ -139,8 +138,6 @@ export type EnemyMeleeCombat = {
   cooldownMs: number;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
-  /** Touch slack when deriving engage floors from physics. */
-  engageBodySlackPx?: number;
 };
 
 /** Behaviors that must author `combat.melee.meleeChaseStandoffWu` on each enemy row. */
@@ -253,33 +250,6 @@ export function enemyMeleeContactCenterDist(defId: string): number {
   return playerBodyRadiusPx() + enemyCollisionBodyRadius(defId);
 }
 
-/** Raise authored melee reach so windups can start at collision contact and arcs connect. */
-export function clampMeleeEngageForPhysics(
-  melee: EnemyMeleeCombat,
-  _behavior: string,
-  defId?: string,
-): EnemyMeleeCombat {
-  const slack = melee.engageBodySlackPx;
-  if (slack === undefined) {
-    throw new ConfigLoadError(
-      "Missing engageBodySlackPx on melee combat block",
-    );
-  }
-  if (!defId) {
-    const { engageBodySlackPx: _omit, ...combat } = melee;
-    return combat;
-  }
-  const contact = enemyMeleeContactCenterDist(defId);
-  const triggerMin = Math.max(0, contact - slack);
-  const rangeMin = enemyCollisionBodyRadius(defId);
-  const { engageBodySlackPx: _omit, ...combat } = melee;
-  return {
-    ...combat,
-    triggerRange: Math.max(melee.triggerRange, triggerMin),
-    range: Math.max(melee.range, rangeMin),
-  };
-}
-
 /** Standoff south of {@link northWallAttackY} for path goals and melee holds — inside hit range. */
 export function wallMeleeApproachStandoffPx(
   wall: Pick<EnemyWallCombat, "hitRange" | "triggerRange">,
@@ -323,11 +293,7 @@ export function resolveEnemyCombat(
   }
   const resolved: ResolvedEnemyCombat = {
     wall: requireEnemyWallCombat(combat.wall, `${root}.wall`),
-    melee: clampMeleeEngageForPhysics(
-      requireEnemyMeleeCombat(behavior, combat.melee, `${root}.melee`),
-      behavior,
-      enemyId,
-    ),
+    melee: requireEnemyMeleeCombat(behavior, combat.melee, `${root}.melee`),
   };
   for (const section of behaviorCombatKitSections(behavior)) {
     if (section === "arrowRain") {

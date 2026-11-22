@@ -133,7 +133,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 }
 ```
 
-Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius` and a complete `combat` block for its behavior (including `engageBodySlackPx` on `melee` and `meleeChaseStandoffWu` when the behavior chases the player).
+Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius` and a complete `combat` block for its behavior (including `meleeChaseStandoffWu` on `melee` when the behavior chases the player).
 
 **waves.json** — keyed by night number:
 

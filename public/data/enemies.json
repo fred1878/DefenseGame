@@ -20,8 +20,7 @@
         "windupMs": 100,
         "activeMs": 110,
         "recoveryMs": 300,
-        "cooldownMs": 350,
-        "engageBodySlackPx": 0
+        "cooldownMs": 350
       }
     },
     "weight": 100,
@@ -49,8 +48,7 @@
         "windupMs": 480,
         "activeMs": 130,
         "recoveryMs": 600,
-        "cooldownMs": 520,
-        "engageBodySlackPx": 0
+        "cooldownMs": 520
       }
     },
     "weight": 170,
@@ -77,8 +75,7 @@
         "windupMs": 380,
         "activeMs": 110,
         "recoveryMs": 800,
-        "cooldownMs": 350,
-        "engageBodySlackPx": 0
+        "cooldownMs": 350
       },
       "arrowRain": {
         "damage": 4,
@@ -119,8 +116,7 @@
         "windupMs": 150,
         "activeMs": 80,
         "recoveryMs": 120,
-        "cooldownMs": 180,
-        "engageBodySlackPx": 0
+        "cooldownMs": 180
       }
     },
     "weight": 70,
@@ -147,8 +143,7 @@
         "windupMs": 360,
         "activeMs": 100,
         "recoveryMs": 440,
-        "cooldownMs": 320,
-        "engageBodySlackPx": 0
+        "cooldownMs": 320
       },
       "stationaryRanged": {
         "damage": 10,
@@ -187,8 +182,7 @@
         "windupMs": 360,
         "activeMs": 100,
         "recoveryMs": 460,
-        "cooldownMs": 320,
-        "engageBodySlackPx": 0
+        "cooldownMs": 320
       },
       "javelineer": {
         "damage": 9,
@@ -229,8 +223,7 @@
         "windupMs": 520,
         "activeMs": 140,
         "recoveryMs": 620,
-        "cooldownMs": 480,
-        "engageBodySlackPx": 0
+        "cooldownMs": 480
       },
       "wallSiege": {
         "playerAggroRadius": 90
@@ -261,8 +254,7 @@
         "windupMs": 260,
         "activeMs": 80,
         "recoveryMs": 340,
-        "cooldownMs": 260,
-        "engageBodySlackPx": 0
+        "cooldownMs": 260
       },
       "wallSiege": {
         "playerAggroRadius": 90
@@ -293,8 +285,7 @@
         "windupMs": 360,
         "activeMs": 110,
         "recoveryMs": 450,
-        "cooldownMs": 480,
-        "engageBodySlackPx": 0
+        "cooldownMs": 480
       },
       "charger": {
         "chargeDamage": 22,
@@ -331,8 +322,7 @@
         "windupMs": 340,
         "activeMs": 100,
         "recoveryMs": 440,
-        "cooldownMs": 320,
-        "engageBodySlackPx": 0
+        "cooldownMs": 320
       },
       "lobber": {
         "damage": 10,
@@ -372,8 +362,7 @@
         "windupMs": 100,
         "activeMs": 100,
         "recoveryMs": 50,
-        "cooldownMs": 200,
-        "engageBodySlackPx": 0
+        "cooldownMs": 200
       },
       "stationaryRanged": {
         "damage": 10,
@@ -418,8 +407,7 @@
         "windupMs": 400,
         "activeMs": 110,
         "recoveryMs": 500,
-        "cooldownMs": 360,
-        "engageBodySlackPx": 0
+        "cooldownMs": 360
       },
       "ward": {
         "protectRadius": 230,

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enemyCollisionBodyRadius } from "../entities/entityPhysics";
-import { enemyMeleeContactCenterDist, resolveEnemyCombat } from "./enemyTuning";
+import { resolveEnemyCombat } from "./enemyTuning";
 import { ConfigLoadError } from "./configValidation";
 import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
 import type { EnemyDef } from "./DataStore";
@@ -28,8 +27,7 @@ describe("resolveEnemyCombat", () => {
     expect(tuned.wall.triggerRange).toBe(42);
   });
 
-  it("raises short melee engage values to physics contact for meleeChaser", () => {
-    const contact = enemyMeleeContactCenterDist("grunt");
+  it("passes authored melee triggerRange and range unchanged", () => {
     const base = shippedEnemyCombat("grunt");
     const tuned = resolveEnemyCombat(
       "meleeChaser",
@@ -43,10 +41,8 @@ describe("resolveEnemyCombat", () => {
       },
       "grunt",
     );
-    expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(contact);
-    expect(tuned.melee.range).toBeGreaterThanOrEqual(
-      enemyCollisionBodyRadius("grunt"),
-    );
+    expect(tuned.melee.triggerRange).toBe(30);
+    expect(tuned.melee.range).toBe(20);
   });
 
   it("attaches behavior-specific tables when behavior matches", () => {
