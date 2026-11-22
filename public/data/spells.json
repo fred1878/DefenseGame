@@ -126,7 +126,7 @@
       "iconFile": "water_bolt.png",
       "projectileTextureKey": "fx_spell_water_bolt",
       "projectileFile": "water-bolt-mrpg-16.png",
-      "damageFlavor": "default",
+      "damageFlavor": "water",
       "castMs": 0,
       "knockbackWu": 110
     },
@@ -145,7 +145,7 @@
       "iconFile": "arc_bomb.png",
       "projectileTextureKey": "fx_spell_arc_bomb",
       "projectileFile": "arc-bomb-mrpg-16.png",
-      "damageFlavor": "default",
+      "damageFlavor": "fire",
       "castMs": 550,
       "knockbackWu": 110,
       "blastKnockbackWu": 140
@@ -161,7 +161,7 @@
       "channelMs": 0,
       "baseDamage": 20,
       "iconFile": "swing.png",
-      "damageFlavor": "default",
+      "damageFlavor": "physical",
       "targetMode": "enemy",
       "knockbackWu": 250,
       "swingRangeWu": 72,
@@ -178,7 +178,7 @@
       "channelMs": 0,
       "baseDamage": 14,
       "iconFile": "rend.png",
-      "damageFlavor": "default",
+      "damageFlavor": "physical",
       "castMs": 200,
       "onHit": {
         "dotDps": 18,
@@ -365,7 +365,7 @@
       "cooldownMs": 14000,
       "channelMs": 0,
       "iconFile": "shadowform.png",
-      "damageFlavor": "default",
+      "damageFlavor": "physical",
       "shadowformDurationMs": 10000,
       "shadowformMoveSpeedMult": 1.2,
       "shadowformDamageTakenMult": 0.7,
@@ -430,7 +430,7 @@
       "cooldownMs": 10000,
       "channelMs": 0,
       "iconFile": "blink.png",
-      "damageFlavor": "default",
+      "damageFlavor": "physical",
       "blinkDistanceWu": 250,
       "blinkResolveBinarySearchIterations": 24,
       "blinkPartialMoveEpsilonWu": 0.5

@@ -332,6 +332,14 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
 Runtime/UI fields (name, castMs, icons, assets, onHit effects, etc.) are authored per row but not listed in the boot parity set—see `SpellDefinition` in `src/content/spells.ts`.
 
+#### `damageFlavor` (optional string)
+
+Hit-flash tint and DoT damage flavor when the spell deals damage. Allowed values: `fire`, `frost`, `physical`, `water`. There is no `default` flavor in gameplay — every damage path must pass an explicit flavor. Omit on pure heals; non-damaging buffs/movement (`shadowform`, `blink`) may set `physical` for metadata only.
+
+Allowed enum tokens (spell hit flash): fire (bolts, novas, bombs, combustion), frost (ice, cold cone, blizzard, roots), physical (melee, lightning, enemy projectiles, rend), water (water bolt).
+
+Hit-flash tints in HitFlash.ts: fire 0xff2222, frost 0x99ddff, water 0x6eb0d0 (multiply tint, darker than frost), physical 0xffffff (tint fill).
+
 ### Mechanic-specific boot validation (reference only)
 
 | mechanicType | Extra required numeric fields |

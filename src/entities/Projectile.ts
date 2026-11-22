@@ -84,7 +84,7 @@ export function spawnPlayerProjectile(
   maxTravel: number,
   id: string,
   textureKey: string = COMBAT_FX_TEXTURE.stoneThrow,
-  damageFlavor: DamageFlavor = "default",
+  damageFlavor: DamageFlavor,
 ): PlayerProjectile {
   const sprite = scene.physics.add.sprite(x, y, textureKey);
   const base = SPELL_BOLT_TEXTURES.has(textureKey)
@@ -321,7 +321,7 @@ export function spawnEnemyProjectile(
     maxTravel,
     id,
     textureKey,
-    "default",
+    "physical",
   );
 }
 
@@ -350,7 +350,7 @@ export function spawnEnemyLobProjectile(
     Math.max(dist + 12, 80),
     id,
     textureKey,
-    "default",
+    "physical",
   );
   proj.spellBehavior = "aoe_on_hit";
   proj.blastRadiusWu = blastRadiusWu;

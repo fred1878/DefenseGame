@@ -6,7 +6,7 @@ export function applySpellOnHitEffects(
   status: EnemySpellStatusMap,
   enemyId: string,
   onHit: SpellOnHitEffects,
-  dotFlavor: DamageFlavor = "default",
+  dotFlavor: DamageFlavor,
 ): void {
   if (onHit.rootMs && onHit.rootMs > 0) {
     status.applyRoot(enemyId, onHit.rootMs);

@@ -27,7 +27,7 @@ import {
   readDefenseRunMode,
   resolveEndlessRunSelections,
 } from "../core/defenseRunMode";
-import { applyDamage } from "../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/DamageSystem";
 import { showPlayerMeleeSwipe } from "../combat/MeleeSwipeFx";
 import { SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
@@ -127,7 +127,7 @@ import {
 import type { TouchButtonHandle } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { SPRITE_DISPLAY } from "../content/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import type { CombatHudChrome } from "../ui/combatHudChrome";
 import { DefenseMinimap, defenseMinimapLayout } from "../ui/defenseMinimap";
 import {
@@ -1224,6 +1224,8 @@ export class DefenseScene extends Phaser.Scene {
       damage,
       this.wu(PLAYER_TUNING.rangedMaxRangeWu),
       id,
+      COMBAT_FX_TEXTURE.stoneThrow,
+      MELEE_HIT_FLAVOR,
     );
     this.registerWorldDraw(p.sprite);
     this.projectiles.push(p);
@@ -1619,7 +1621,7 @@ export class DefenseScene extends Phaser.Scene {
   e2eDamageFirstLivingEnemy(amount: number): void {
     const e = this.enemies.find((entry) => entry.damageable.alive);
     if (!e) return;
-    applyDamage(e.damageable, amount);
+    applyDamage(e.damageable, amount, MELEE_HIT_FLAVOR);
   }
 
 }

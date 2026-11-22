@@ -1,3 +1,4 @@
+import { DAMAGE_FLAVORS } from "../combat/DamageSystem";
 import type { SpellDefinition, SpellMechanicType } from "../content/spells";
 import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import { ConfigLoadError, requireFiniteNumber } from "./configValidation";
@@ -51,6 +52,17 @@ const SPELLS_WITHOUT_KNOCKBACK: ReadonlySet<SpellMechanicType> = new Set([
 
 function spellPath(spellId: string, index: number): string {
   return `spells[${index}].${spellId}`;
+}
+
+const DAMAGE_FLAVOR_SET = new Set<string>(DAMAGE_FLAVORS);
+
+function validateSpellDamageFlavor(def: SpellDefinition, path: string): void {
+  if (def.damageFlavor === undefined) return;
+  if (!DAMAGE_FLAVOR_SET.has(def.damageFlavor)) {
+    throw new ConfigLoadError(
+      `${path}.damageFlavor must be one of ${DAMAGE_FLAVORS.join(", ")}`,
+    );
+  }
 }
 
 function requireKnockback(def: SpellDefinition, path: string): number {
@@ -239,6 +251,7 @@ export function normalizeSpellCatalog(raw: SpellsFileInput | null | undefined): 
     if (!row.mechanicType || typeof row.mechanicType !== "string") {
       throw new ConfigLoadError(`Missing string at ${path}.mechanicType`);
     }
+    validateSpellDamageFlavor(row, path);
     return validateSpellKnockbackFields(row, path);
   });
 }
