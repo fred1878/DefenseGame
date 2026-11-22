@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { applyDamage, type Damageable } from "./DamageSystem";
+import {
+  applyDamage,
+  MELEE_HIT_FLAVOR,
+  swingSpellDamageFlavor,
+  type Damageable,
+} from "./DamageSystem";
 
 function makeTarget(hp = 30): Damageable {
   return {
@@ -36,5 +41,25 @@ describe("applyDamage", () => {
     t.alive = false;
     applyDamage(t, 10);
     expect(t.hp).toBe(0);
+  });
+
+  it("passes explicit physical flavor to onDamaged", () => {
+    const onDamaged = vi.fn();
+    const t = makeTarget(20);
+    t.onDamaged = onDamaged;
+    applyDamage(t, 5, MELEE_HIT_FLAVOR);
+    expect(onDamaged).toHaveBeenCalledWith(5, "physical");
+  });
+});
+
+describe("swingSpellDamageFlavor", () => {
+  it("maps missing or default spell flavor to melee physical", () => {
+    expect(swingSpellDamageFlavor(undefined)).toBe("physical");
+    expect(swingSpellDamageFlavor("default")).toBe("physical");
+  });
+
+  it("keeps explicit spell flavors", () => {
+    expect(swingSpellDamageFlavor("fire")).toBe("fire");
+    expect(swingSpellDamageFlavor("frost")).toBe("frost");
   });
 });

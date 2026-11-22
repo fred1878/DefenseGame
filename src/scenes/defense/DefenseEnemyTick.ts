@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { applyDamage } from "../../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { playEnemyMeleeSlashSfx } from "../../audio/enemyMeleeSlashSfx";
 import { showGruntMeleeSwipe } from "../../combat/MeleeSwipeFx";
 import {
@@ -357,6 +357,7 @@ export function tickDefenseEnemies(
       applyDamage(
         playerDamageable,
         playerHitDamage * playerIncomingDamageMult(),
+        MELEE_HIT_FLAVOR,
       );
       if (playerDamageable.hp <= 0) {
         playerDamageable.alive = false;
