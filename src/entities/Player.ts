@@ -5,6 +5,7 @@ import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
+import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
 import { applyEnemyKnockbackFrom } from "../combat/enemyKnockback";
 import type { EnemyInstance } from "./Enemy";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
@@ -145,6 +146,7 @@ export class Player {
     const key = PLAYER_TEXTURE[card];
     if (this.sprite.texture.key !== key) {
       this.sprite.setTexture(key);
+      reapplySpriteHitFlashIfActive(this.sprite);
       const reg = this.sprite.scene.registry;
       const side = worldDisplayPx(SPRITE_DISPLAY.player, reg);
       this.sprite.setDisplaySize(side, side);

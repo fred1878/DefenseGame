@@ -1,4 +1,4 @@
-export type DamageFlavor = "default" | "fire";
+export type DamageFlavor = "default" | "fire" | "physical" | "frost";
 
 export type Damageable = {
   id: string;
