@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFENSE_MAP } from "../../config/defense";
 import type { Damageable } from "../../combat/DamageSystem";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { buildNavGrid } from "../../pathfinding/grid";
 import { testChargerCombat } from "../../test/fixtures/inlineCombat";
 import { tickDefenseEnemies } from "./DefenseEnemyTick";
+
+const testNavGrid = buildNavGrid(
+  [],
+  DEFENSE_MAP.cellSize,
+  DEFENSE_MAP.pathClearancePx,
+);
 
 function spriteStub(x: number, y: number) {
   return {
@@ -27,9 +35,11 @@ function minimalTickHost(
     team: "player",
   };
   return {
-    scene: {} as never,
+    scene: {
+      registry: { get: () => undefined },
+    } as never,
     registry: { get: () => undefined } as never,
-    navGrid: {} as never,
+    navGrid: testNavGrid,
     enemies,
     enemyProjectiles: [],
     enemySpellStatus: { isStunned: () => false, isRooted: () => false } as never,
@@ -47,6 +57,32 @@ function minimalTickHost(
 }
 
 describe("tickDefenseEnemies damage paths", () => {
+  it("passes physical flavor when grunt melee arc hits player", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      damage: 11,
+      sprite: spriteStub(0, 0),
+    });
+    enemy.combat.phase = "active";
+    enemy.combat.phaseMs = 5;
+    enemy.combat.hitThisSwing = false;
+    enemy.combat.attackTargetKind = "player";
+    enemy.combat.facing = 0;
+    enemy.combat.slashFxShown = true;
+
+    const onDamaged = vi.fn();
+    const host = minimalTickHost([enemy]);
+    host.playerHurtbox.x = 36;
+    host.playerHurtbox.y = 0;
+    host.playerHurtbox.damageable.onDamaged = onDamaged;
+
+    tickDefenseEnemies(host, 16);
+
+    expect(host.playerHurtbox.damageable.hp).toBeLessThan(100);
+    expect(onDamaged).toHaveBeenCalledWith(11, "physical");
+  });
+
   it("applies chargeDamage when charger touches player during dash", () => {
     const enemy = mockEnemyInstance({
       behavior: "charger",
