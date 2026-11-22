@@ -179,6 +179,7 @@ describe("public data fixtures", () => {
         "lightning_bolt",
         "fire_nova",
         "heal",
+        "flash_heal",
         "water_bolt",
         "arc_bomb",
         "swing",
