@@ -72,10 +72,11 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
 | `combat` block | Used when `behavior` is |
 |----------------|-------------------------|
 | `wall` | All (north wall objective) |
-| `melee` | `meleeChaser` (arc swipe vs player) |
+| `melee` | Player melee kits (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid`) — arc swipe / hybrid melee; **omit** on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber` (global `melee` defaults via `resolveEnemyCombat` only) |
 | `arrowRain` | `arrowRainArcher` (telegraphed floor AoE) |
 | `javelineer` | `javelineer` (kite band + toss) |
 | `stationaryRanged` | `stationaryRanged` (hold + straight bolt) |
+| `lobber` | `lobber` (arced blast) |
 
 ```json
 {
@@ -107,15 +108,6 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
     "textureKey": "enemy_arrow_rain_archer",
     "combat": {
       "wall": { "damage": 6, "triggerRange": 42, "hitRange": 34 },
-      "melee": {
-        "triggerRange": 36,
-        "range": 26,
-        "arcDeg": 70,
-        "windupMs": 380,
-        "activeMs": 110,
-        "recoveryMs": 480,
-        "cooldownMs": 350
-      },
       "arrowRain": {
         "preferredRange": 150,
         "attackTriggerRange": 168,

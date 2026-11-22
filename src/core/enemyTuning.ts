@@ -141,7 +141,6 @@ export const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
   "wallSiege",
   "charger",
   "ward",
-  "javelineer",
   "rangedHybrid",
 ]);
 
