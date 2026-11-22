@@ -101,6 +101,7 @@ export class SpellCastController {
     this.channelElapsedMs = 0;
     this.channelDurationMs = hasChannel ? def.channelMs : 0;
     this.inChannel = castMs <= 0 && hasChannel;
+    if (this.inChannel) this.armChannelStartCooldown(spellId, def);
     if (castMs > 0) return "windup";
     return "channel";
   }
@@ -135,6 +136,8 @@ export class SpellCastController {
       }
       if (this.channelDurationMs > 0) {
         this.inChannel = true;
+        const def = spellById(spellId);
+        if (def) this.armChannelStartCooldown(spellId, def);
       } else {
         const def = spellById(spellId);
         const inputMode = this.castInputMode;
@@ -160,12 +163,25 @@ export class SpellCastController {
     const inputMode = this.castInputMode;
     this.clearCast();
     if (!def) return { type: "idle" };
-    this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+    if (!this.cooldownArmedDuringChannel(spellId, def)) {
+      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+    }
     return { type: "completed", spellId, def, inputMode };
   }
 
   cancelChannel(): void {
     this.clearCast();
+  }
+
+  /** Blizzard CD starts when channeling begins (after windup), not when channel ends. */
+  private armChannelStartCooldown(spellId: SpellId, def: SpellDefinition): void {
+    if (spellId === "blizzard" && def.channelMs > 0) {
+      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+    }
+  }
+
+  private cooldownArmedDuringChannel(spellId: SpellId, def: SpellDefinition): boolean {
+    return spellId === "blizzard" && def.channelMs > 0;
   }
 
   private clearCast(): void {
