@@ -74,7 +74,7 @@ describe("SpellCastController", () => {
     expect(c.isChanneling()).toBe(false);
   });
 
-  it("arms Blizzard cooldown when windup completes into channel", () => {
+  it("arms channeled spell cooldown when windup completes into channel (blizzard)", () => {
     const blizDef = spellById("blizzard");
     expect(blizDef).toBeTruthy();
     const windupMs = blizDef ? spellCastMs(blizDef) : 0;
@@ -86,15 +86,36 @@ describe("SpellCastController", () => {
     expect(c.getCooldownRemaining("blizzard")).toBe(blizDef!.cooldownMs);
   });
 
-  it("does not arm Blizzard cooldown on auto interrupt during windup", () => {
+  it("arms channeled spell cooldown at channel start on cast begin (heal, cone_of_fire)", () => {
+    const healDef = spellById("heal");
+    const coneDef = spellById("cone_of_fire");
+    expect(healDef?.channelMs).toBeGreaterThan(0);
+    expect(coneDef?.channelMs).toBeGreaterThan(0);
+    expect(spellCastMs(coneDef!)).toBe(0);
+
+    const heal = new SpellCastController();
+    expect(heal.tryBeginCast("heal")).toBe("channel");
+    expect(heal.getCooldownRemaining("heal")).toBe(healDef!.cooldownMs);
+
+    const cone = new SpellCastController();
+    expect(cone.tryBeginCast("cone_of_fire")).toBe("channel");
+    expect(cone.getCooldownRemaining("cone_of_fire")).toBe(coneDef!.cooldownMs);
+  });
+
+  it("does not leave cooldown armed on auto interrupt during windup or channel", () => {
     const blizDef = spellById("blizzard");
     const windupMs = blizDef ? spellCastMs(blizDef) : 0;
-    const c = new SpellCastController();
-    c.tryBeginCast("blizzard", "auto");
-    c.updateChannel(windupMs - 50, 0, 0);
-    const cut = c.updateChannel(10, 0.5, 0);
-    expect(cut.type).toBe("interrupted");
-    expect(c.getCooldownRemaining("blizzard")).toBe(0);
+    const windupCut = new SpellCastController();
+    windupCut.tryBeginCast("blizzard", "auto");
+    windupCut.updateChannel(windupMs - 50, 0, 0);
+    expect(windupCut.updateChannel(10, 0.5, 0).type).toBe("interrupted");
+    expect(windupCut.getCooldownRemaining("blizzard")).toBe(0);
+
+    const heal = new SpellCastController();
+    heal.tryBeginCast("heal", "auto");
+    expect(heal.getCooldownRemaining("heal")).toBe(spellById("heal")!.cooldownMs);
+    expect(heal.updateChannel(10, 0.5, 0).type).toBe("interrupted");
+    expect(heal.getCooldownRemaining("heal")).toBe(0);
   });
 
   it("ticks Blizzard cooldown during channel and does not reset on complete", () => {
@@ -117,15 +138,21 @@ describe("SpellCastController", () => {
     expect(c.getCooldownRemaining("blizzard")).toBe(expectedRemaining);
   });
 
-  it("arms Heal cooldown only after full channel", () => {
+  it("ticks heal cooldown during channel and preserves elapsed CD on complete", () => {
     const healDef = spellById("heal");
     expect(healDef?.channelMs).toBeGreaterThan(0);
+    const channelMs = healDef!.channelMs;
+    const cdMs = healDef!.cooldownMs;
     const c = new SpellCastController();
     c.tryBeginCast("heal");
-    expect(c.getCooldownRemaining("heal")).toBe(0);
-    c.updateChannel(healDef!.channelMs / 2, 0, 0);
-    expect(c.getCooldownRemaining("heal")).toBe(0);
-    c.updateChannel(healDef!.channelMs, 0, 0);
-    expect(c.getCooldownRemaining("heal")).toBe(healDef!.cooldownMs);
+    expect(c.getCooldownRemaining("heal")).toBe(cdMs);
+    const slice = 400;
+    c.updateChannel(slice, 0, 0);
+    c.tickCooldowns(slice);
+    const expected = cdMs - slice;
+    expect(c.getCooldownRemaining("heal")).toBe(expected);
+    const done = c.updateChannel(channelMs - slice + 1, 0, 0);
+    expect(done.type).toBe("completed");
+    expect(c.getCooldownRemaining("heal")).toBe(expected);
   });
 });

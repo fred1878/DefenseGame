@@ -119,6 +119,7 @@ export class SpellCastController {
       mag > SPELL_MOVE_INTERRUPT_EPS
     ) {
       const id = this.activeSpellId;
+      this.cooldownRemainingMs.delete(id);
       this.clearCast();
       return { type: "interrupted", spellId: id };
     }
@@ -173,15 +174,15 @@ export class SpellCastController {
     this.clearCast();
   }
 
-  /** Blizzard CD starts when channeling begins (after windup), not when channel ends. */
-  private armChannelStartCooldown(spellId: SpellId, def: SpellDefinition): void {
-    if (spellId === "blizzard" && def.channelMs > 0) {
-      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+  /** Channeled spells arm CD when channeling begins, not when the channel ends. */
+  private armChannelStartCooldown(_spellId: SpellId, def: SpellDefinition): void {
+    if (def.channelMs > 0) {
+      this.cooldownRemainingMs.set(_spellId, def.cooldownMs);
     }
   }
 
-  private cooldownArmedDuringChannel(spellId: SpellId, def: SpellDefinition): boolean {
-    return spellId === "blizzard" && def.channelMs > 0;
+  private cooldownArmedDuringChannel(_spellId: SpellId, def: SpellDefinition): boolean {
+    return def.channelMs > 0;
   }
 
   private clearCast(): void {
