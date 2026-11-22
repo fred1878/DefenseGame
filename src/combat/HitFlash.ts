@@ -18,11 +18,17 @@ export function hitFlashTintFor(flavor: DamageFlavor): number {
   return HIT_TINT[flavor];
 }
 
+/** Physical/lightning: multiply-tint white is invisible on pale sprites; fill replaces pixels for a strong flash. */
 function applyTint(
   sprite: Phaser.GameObjects.Sprite | Phaser.Physics.Arcade.Sprite,
   flavor: DamageFlavor,
 ): void {
-  sprite.setTint(HIT_TINT[flavor]);
+  const tint = HIT_TINT[flavor];
+  if (flavor === "physical") {
+    sprite.setTintFill(tint);
+  } else {
+    sprite.setTint(tint);
+  }
 }
 
 /** Phaser clears tint on `setTexture`; call after facing texture swaps while flash is active. */
