@@ -5,10 +5,12 @@ import { playerBodyRadiusPx } from "./entityPhysics";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {
   createEnemyCombat,
+  enemyShouldDrawMeleeArcOverlay,
   enemyUsesMeleePlayerActivationRange,
   updateEnemyCombat,
   type EnemyCombatState,
 } from "./EnemyCombat";
+import { createRangedHybridCombatState } from "./EnemyRangedCombat";
 import { mockEnemyInstance } from "./testEnemyInstance";
 
 function mockEnemy(
@@ -165,5 +167,31 @@ describe("enemyUsesMeleePlayerActivationRange", () => {
   it("excludes pure ranged behaviors", () => {
     expect(enemyUsesMeleePlayerActivationRange("arrowRainArcher")).toBe(false);
     expect(enemyUsesMeleePlayerActivationRange("stationaryRanged")).toBe(false);
+  });
+});
+
+describe("enemyShouldDrawMeleeArcOverlay", () => {
+  it("suppresses arc on ranged active phase", () => {
+    const archer = mockEnemyInstance({ behavior: "stationaryRanged" });
+    archer.combat.phase = "active";
+    expect(enemyShouldDrawMeleeArcOverlay(archer)).toBe(false);
+  });
+
+  it("shows arc for melee chaser active phase", () => {
+    const grunt = mockEnemyInstance({ behavior: "meleeChaser" });
+    grunt.combat.phase = "active";
+    expect(enemyShouldDrawMeleeArcOverlay(grunt)).toBe(true);
+  });
+
+  it("hybrid only arcs in melee mode", () => {
+    const reaver = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      rangedHybrid: createRangedHybridCombatState(),
+    });
+    reaver.combat.phase = "active";
+    reaver.rangedHybrid!.mode = "ranged";
+    expect(enemyShouldDrawMeleeArcOverlay(reaver)).toBe(false);
+    reaver.rangedHybrid!.mode = "melee";
+    expect(enemyShouldDrawMeleeArcOverlay(reaver)).toBe(true);
   });
 });

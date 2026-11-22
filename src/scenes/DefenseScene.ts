@@ -50,7 +50,10 @@ import {
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
-import { enemyUsesMeleePlayerActivationRange } from "../entities/EnemyCombat";
+import {
+  enemyShouldDrawMeleeArcOverlay,
+  enemyUsesMeleePlayerActivationRange,
+} from "../entities/EnemyCombat";
 import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
   TouchInputDebugDraw,
@@ -1273,7 +1276,7 @@ export class DefenseScene extends Phaser.Scene {
         e.sprite.y,
         this.wu(enemyCollisionBodyRadius(e.defId)),
       );
-      if (e.combat.phase === "active") {
+      if (enemyShouldDrawMeleeArcOverlay(e)) {
         const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);
         this.hitboxDebug.drawMeleeArc(
           e.sprite.x,
