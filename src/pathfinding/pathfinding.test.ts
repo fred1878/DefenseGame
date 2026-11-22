@@ -68,7 +68,7 @@ describe("A*", () => {
       blocked,
       solidBlocked: blocked,
     };
-    const path = findPath(grid, 5, 5, 25, 25);
+    const { path } = findPath(grid, 5, 5, 25, 25);
     const cutsCorner = path.some(
       (p) => Math.abs(p.x - 15) < 0.01 && Math.abs(p.y - 15) < 0.01,
     );
@@ -95,10 +95,10 @@ describe("A*", () => {
       [{ x: mid.x, y: mid.y, clearancePx: gruntClearance }],
       gruntClearance,
     );
-    const nearMid = (path: ReturnType<typeof findPath>) =>
+    const nearMid = (path: import("./astar").PathPoint[]) =>
       path.some((p) => Math.hypot(p.x - mid.x, p.y - mid.y) < 8);
-    expect(nearMid(direct)).toBe(true);
-    expect(nearMid(detour)).toBe(false);
+    expect(nearMid(direct.path)).toBe(true);
+    expect(nearMid(detour.path)).toBe(false);
   });
 
   it("respects each peer's own clearance radius when detouring", () => {
@@ -113,7 +113,7 @@ describe("A*", () => {
     const gruntClearance = enemyPathClearancePx("grunt");
     const sentryClearance = enemyPathClearancePx("sentry_archer");
     expect(gruntClearance).toBeGreaterThan(sentryClearance);
-    const nearMid = (path: ReturnType<typeof findPath>) =>
+    const nearMid = (path: import("./astar").PathPoint[]) =>
       path.some((p) => Math.hypot(p.x - mid.x, p.y - mid.y) < 8);
     const widePeerDetour = findPath(
       grid,
@@ -133,9 +133,32 @@ describe("A*", () => {
       [{ x: mid.x, y: mid.y, clearancePx: sentryClearance }],
       gruntClearance,
     );
-    expect(nearMid(widePeerDetour)).toBe(false);
-    expect(slimPeerDetour.length).toBeGreaterThan(0);
-    expect(widePeerDetour.length).toBeGreaterThanOrEqual(slimPeerDetour.length);
+    expect(nearMid(widePeerDetour.path)).toBe(false);
+    expect(slimPeerDetour.path.length).toBeGreaterThan(0);
+    expect(widePeerDetour.path.length).toBeGreaterThanOrEqual(
+      slimPeerDetour.path.length,
+    );
+  });
+
+  it("marks reachedGoal false when the agent cannot enter the goal cell", () => {
+    const blocked = new Uint8Array([
+      0, 1, 0,
+      1, 0, 0,
+      0, 0, 0,
+    ]);
+    const grid = {
+      cellSize: 10,
+      cols: 3,
+      rows: 3,
+      minX: 0,
+      minY: 0,
+      clearancePx: 0,
+      blocked,
+      solidBlocked: blocked,
+    };
+    const result = findPath(grid, 5, 5, 25, 25);
+    expect(result.reachedGoal).toBe(false);
+    expect(result.path.length).toBe(1);
   });
 
   it("finds a route around spread obstacles to the north wall", () => {
@@ -146,7 +169,7 @@ describe("A*", () => {
     );
     const northY = -defenseHalfHeight() + 40;
     const halfH = defenseHalfHeight();
-    const path = findPath(grid, 0, halfH - 180, 0, northY);
+    const { path } = findPath(grid, 0, halfH - 180, 0, northY);
     expect(path.length).toBeGreaterThan(1);
     const last = path[path.length - 1]!;
     expect(last.y).toBeLessThan(-200);

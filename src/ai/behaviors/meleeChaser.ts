@@ -13,8 +13,10 @@ import {
   applyPlayerMeleeHold,
   applyWallMeleeHold,
   playerChaseVelocityOpts,
+  playerMeleeChaseHoldPoint,
   shouldHoldAtWallMelee,
   shouldHoldMeleeChaseChordBlocked,
+  shouldMeleeLosShortcutToPlayer,
 } from "./movement";
 
 export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
@@ -95,6 +97,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
 
   if (
     desired === "player" &&
+    shouldMeleeLosShortcutToPlayer(enemy, nav, playerX, playerY) &&
     hasLineOfSight(grid, ex, ey, playerX, playerY) &&
     !chordBlocked
   ) {
@@ -119,6 +122,16 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     } else {
       applyPlayerMeleeHold(enemy);
       return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+    }
+  } else if (desired === "player" && !nav.pathGoalReached) {
+    const tail = nav.path[nav.path.length - 1];
+    if (tail) {
+      moveX = tail.x;
+      moveY = tail.y;
+    } else {
+      const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+      moveX = hold.x;
+      moveY = hold.y;
     }
   }
 

@@ -9,6 +9,12 @@ import {
 
 export type PathPoint = { x: number; y: number };
 
+export type PathFindResult = {
+  path: PathPoint[];
+  /** False when A* exhausts without reaching the goal cell (fallback points at nearest walkable to goal). */
+  reachedGoal: boolean;
+};
+
 const NEIGHBORS = [
   [1, 0],
   [-1, 0],
@@ -32,10 +38,12 @@ export function findPath(
   goalY: number,
   peerAgents?: readonly NavPeerAgent[],
   agentClearancePx?: number,
-): PathPoint[] {
+): PathFindResult {
   const startCell = worldToCell(grid, startX, startY);
   const goalCell = worldToCell(grid, goalX, goalY);
-  if (!startCell || !goalCell) return [];
+  if (!startCell || !goalCell) {
+    return { path: [], reachedGoal: false };
+  }
 
   const start = nearestWalkable(
     grid,
@@ -85,7 +93,10 @@ export function findPath(
         idx = cameFrom[idx] as number | -1;
       }
       cells.reverse();
-      return cells.map((c) => cellToWorldCenter(grid, c.col, c.row));
+      return {
+        path: cells.map((c) => cellToWorldCenter(grid, c.col, c.row)),
+        reachedGoal: true,
+      };
     }
 
     const { col, row } = idxToCR(current);
@@ -117,5 +128,5 @@ export function findPath(
   }
 
   const goalWorld = cellToWorldCenter(grid, goal.col, goal.row);
-  return [goalWorld];
+  return { path: [goalWorld], reachedGoal: false };
 }

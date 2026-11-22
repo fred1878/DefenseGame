@@ -36,6 +36,8 @@ export type EnemyNavState = {
   pathStallMs: number;
   /** Closest distance to the active waypoint since last replan / advance. */
   pathStallBestDist: number;
+  /** Whether the last A* replan reached the goal cell (false = nearest-walkable fallback only). */
+  pathGoalReached: boolean;
 };
 
 export type EnemyTargetResolution = {
@@ -56,6 +58,7 @@ export function createEnemyNav(): EnemyNavState {
     wallTransitionMs: 0,
     pathStallMs: 0,
     pathStallBestDist: Infinity,
+    pathGoalReached: false,
   };
 }
 
@@ -227,7 +230,7 @@ export function replanEnemyPath(
     enemy && reg
       ? worldUnit(enemyPathClearancePx(enemy.defId), reg)
       : grid.clearancePx;
-  const path = findPath(
+  const { path, reachedGoal } = findPath(
     grid,
     ex,
     ey,
@@ -237,6 +240,7 @@ export function replanEnemyPath(
     agentClearancePx,
   );
   nav.path = path;
+  nav.pathGoalReached = reachedGoal;
   nav.pathIndex = 0;
   nav.pathStallMs = 0;
   nav.pathStallBestDist = Infinity;
