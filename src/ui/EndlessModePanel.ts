@@ -68,7 +68,7 @@ export class EndlessModePanel {
   private readonly onDismiss: (() => void) | undefined;
   private readonly modalLease: ModalInputLease;
   private tornDown = false;
-  private infiniteHp = false;
+  private infiniteHp = true;
   private infiniteHpBg!: UiRoundedRect;
   private infiniteHpCheck!: Phaser.GameObjects.Text;
   private infiniteHpRowY = 0;
@@ -506,6 +506,7 @@ export class EndlessModePanel {
     this.refreshSelection();
     this.refreshStartButton();
     this.refreshChallengeRating();
+    this.refreshInfiniteHpVisuals();
     this.applyScroll(0);
 
     this.onWheel = (_pointer, _objects, _dx, deltaY) => {
@@ -726,8 +727,7 @@ export class EndlessModePanel {
     else btn.disableInteractive();
   }
 
-  private toggleInfiniteHp(): void {
-    this.infiniteHp = !this.infiniteHp;
+  private refreshInfiniteHpVisuals(): void {
     paintUiRoundedRect(
       this.infiniteHpBg,
       this.infiniteHp ? 0x1e3a5f : 0x27272a,
@@ -735,6 +735,11 @@ export class EndlessModePanel {
     );
     this.infiniteHpCheck.setText(this.infiniteHp ? "☑" : "☐");
     this.infiniteHpCheck.setColor(this.infiniteHp ? "#93c5fd" : "#a1a1aa");
+  }
+
+  private toggleInfiniteHp(): void {
+    this.infiniteHp = !this.infiniteHp;
+    this.refreshInfiniteHpVisuals();
   }
 
   destroy(): void {

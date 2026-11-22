@@ -7,6 +7,26 @@ const GAME_HEIGHT = 1200;
 const VIEWPORT_MARGIN = 8;
 
 test.describe("endless mode panel layout", () => {
+  test("infinite HP defaults on when panel opens", async ({ page }) => {
+    await gotoE2E(page);
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    expect(
+      await page.evaluate(
+        () => window.__DEFENSEGAME_E2E__?.api?.getEndlessInfiniteHp() ?? false,
+      ),
+    ).toBe(true);
+  });
+
   test("challenge rating sits between infinite HP and start", async ({ page }) => {
     await gotoE2E(page);
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
