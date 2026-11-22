@@ -16,6 +16,60 @@ type TransformGo = Phaser.GameObjects.GameObject & {
   };
 };
 
+/** Mirror InputManager hit-test: input space → pointer (screen) coords. */
+function inputSpaceToScreen(
+  px: number,
+  py: number,
+  sfx: number,
+  sfy: number,
+  cam: Phaser.Cameras.Scene2D.Camera,
+): { x: number; y: number } {
+  const csx = cam.scrollX;
+  const csy = cam.scrollY;
+  const worldPtrX = px - csx * sfx + csx;
+  const worldPtrY = py - csy * sfy + csy;
+  return worldPointToScreen(worldPtrX, worldPtrY, cam);
+}
+
+/** Inverse of Camera.getWorldPoint — world → pointer (screen) space. */
+function worldPointToScreen(
+  worldX: number,
+  worldY: number,
+  cam: Phaser.Cameras.Scene2D.Camera,
+): { x: number; y: number } {
+  const camXf = cam as Phaser.Cameras.Scene2D.Camera & {
+    matrix?: Phaser.GameObjects.Components.TransformMatrix;
+    rotation: number;
+    zoomX: number;
+    zoomY: number;
+  };
+  const cameraMatrix = camXf.matrix?.matrix;
+  if (!cameraMatrix) {
+    return { x: worldX, y: worldY };
+  }
+  const mva = cameraMatrix[0] ?? 1;
+  const mvb = cameraMatrix[1] ?? 0;
+  const mvc = cameraMatrix[2] ?? 0;
+  const mvd = cameraMatrix[3] ?? 1;
+  const mve = cameraMatrix[4] ?? 0;
+  const mvf = cameraMatrix[5] ?? 0;
+
+  const sx = worldX * mva + worldY * mvc + mve;
+  const sy = worldX * mvb + worldY * mvd + mvf;
+
+  const c = Math.cos(camXf.rotation);
+  const s = Math.sin(camXf.rotation);
+  const scrollX = cam.scrollX;
+  const scrollY = cam.scrollY;
+  const zoomX = camXf.zoomX;
+  const zoomY = camXf.zoomY;
+
+  return {
+    x: sx - (scrollX * c - scrollY * s) * zoomX,
+    y: sy - (scrollX * s + scrollY * c) * zoomY,
+  };
+}
+
 /**
  * Screen/canvas bounds of an interactive hit area — matches InputManager hit tests (same space as `pointer.x/y`).
  */
@@ -47,22 +101,14 @@ export function interactiveObjectScreenRect(
   const sfx = (go as { scrollFactorX?: number }).scrollFactorX ?? 1;
   const sfy = (go as { scrollFactorY?: number }).scrollFactorY ?? 1;
 
-  const worldToPointer = (worldX: number, worldY: number): { x: number; y: number } => {
-    if (sfx === 0 && sfy === 0) {
-      return { x: worldX, y: worldY };
-    }
-    const world = new Phaser.Math.Vector2(worldX, worldY);
-    const screen = cam.getWorldPoint(world.x, world.y);
-    return { x: screen.x, y: screen.y };
-  };
+  const toScreen = (px: number, py: number): { x: number; y: number } =>
+    inputSpaceToScreen(px, py, sfx, sfy, cam);
 
   if (shape instanceof Phaser.Geom.Circle) {
-    const offsetX = shape.x - shape.radius;
-    const offsetY = shape.y - shape.radius;
-    const worldX = wx + (offsetX - go.displayOriginX) * scaleX;
-    const worldY = wy + (offsetY - go.displayOriginY) * scaleY;
+    const px = wx + (shape.x - shape.radius) * scaleX;
+    const py = wy + (shape.y - shape.radius) * scaleY;
     const size = shape.radius * 2 * Math.abs(scaleX);
-    const topLeft = worldToPointer(worldX, worldY);
+    const topLeft = toScreen(px, py);
     return {
       x: topLeft.x,
       y: topLeft.y,
@@ -72,12 +118,12 @@ export function interactiveObjectScreenRect(
   }
 
   const rect = shape as Phaser.Geom.Rectangle;
-  const worldX = wx + (rect.x - go.displayOriginX) * scaleX;
-  const worldY = wy + (rect.y - go.displayOriginY) * scaleY;
+  const px0 = wx + rect.x * scaleX;
+  const py0 = wy + rect.y * scaleY;
   const hitW = rect.width * Math.abs(scaleX);
   const hitH = rect.height * Math.abs(scaleY);
-  const tl = worldToPointer(worldX, worldY);
-  const br = worldToPointer(worldX + hitW, worldY + hitH);
+  const tl = toScreen(px0, py0);
+  const br = toScreen(px0 + hitW, py0 + hitH);
   return {
     x: Math.min(tl.x, br.x),
     y: Math.min(tl.y, br.y),
