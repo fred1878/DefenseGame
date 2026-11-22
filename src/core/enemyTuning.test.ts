@@ -13,7 +13,7 @@ describe("resolveEnemyCombat", () => {
       "grunt",
     );
     expect(tuned.wall.damage).toBeGreaterThan(0);
-    expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(tuned.melee.range);
+    expect(tuned.melee!.triggerRange).toBeGreaterThanOrEqual(tuned.melee!.range);
     expect(tuned.arrowRain).toBeUndefined();
   });
 
@@ -41,8 +41,8 @@ describe("resolveEnemyCombat", () => {
       },
       "grunt",
     );
-    expect(tuned.melee.triggerRange).toBe(30);
-    expect(tuned.melee.range).toBe(20);
+    expect(tuned.melee!.triggerRange).toBe(30);
+    expect(tuned.melee!.range).toBe(20);
   });
 
   it("attaches behavior-specific tables when behavior matches", () => {
@@ -74,14 +74,14 @@ describe("resolveEnemyCombat", () => {
   it("requires meleeChaseStandoffWu for melee chaser behaviors only", () => {
     const gruntCombat = shippedEnemyCombat("grunt");
     const tuned = resolveEnemyCombat("meleeChaser", gruntCombat, "grunt");
-    expect(tuned.melee.meleeChaseStandoffWu).toBe(4);
+    expect(tuned.melee!.meleeChaseStandoffWu).toBe(4);
 
     const lobber = resolveEnemyCombat(
       "lobber",
       shippedEnemyCombat("lobber"),
       "lobber",
     );
-    expect(lobber.melee.meleeChaseStandoffWu).toBeUndefined();
+    expect(lobber.melee).toBeUndefined();
   });
 
   it("resolves authored ranged and charge damage", () => {

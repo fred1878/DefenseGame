@@ -150,6 +150,18 @@ export const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
   "rangedHybrid",
 ]);
 
+/** Ranged kits — no `combat.melee`; phase timings live on the behavior kit block. */
+export const RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS = new Set([
+  "arrowRainArcher",
+  "javelineer",
+  "stationaryRanged",
+  "lobber",
+]);
+
+export function enemyBehaviorRequiresMeleeBlock(behavior: string): boolean {
+  return !RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS.has(behavior);
+}
+
 export type EnemyArrowRainCombat = {
   damage: number;
   preferredRange: number;
@@ -233,7 +245,7 @@ export type EnemyHybridCombat = {
 
 export type ResolvedEnemyCombat = {
   wall: EnemyWallCombat;
-  melee: EnemyMeleeCombat;
+  melee?: EnemyMeleeCombat;
   arrowRain?: EnemyArrowRainCombat;
   javelineer?: EnemyJavelineerCombat;
   stationaryRanged?: EnemyStationaryRangedCombat;
@@ -292,8 +304,14 @@ export function resolveEnemyCombat(
   }
   const resolved: ResolvedEnemyCombat = {
     wall: requireEnemyWallCombat(combat.wall, `${root}.wall`),
-    melee: requireEnemyMeleeCombat(behavior, combat.melee, `${root}.melee`),
   };
+  if (enemyBehaviorRequiresMeleeBlock(behavior)) {
+    resolved.melee = requireEnemyMeleeCombat(
+      behavior,
+      combat.melee,
+      `${root}.melee`,
+    );
+  }
   for (const section of behaviorCombatKitSections(behavior)) {
     if (section === "arrowRain") {
       resolved.arrowRain = requireEnemyArrowRainCombat(

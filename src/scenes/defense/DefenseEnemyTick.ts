@@ -270,7 +270,7 @@ export function tickDefenseEnemies(
           e.sprite.x,
           e.sprite.y,
           e.combat.facing,
-          e.combatTuning.melee.activeMs,
+          e.combatTuning.melee!.activeMs,
         );
         playEnemyMeleeSlashSfx(host.scene);
       }
@@ -297,7 +297,7 @@ export function tickDefenseEnemies(
             e.sprite.x,
             e.sprite.y,
             e.combat.facing,
-            e.combatTuning.melee.activeMs,
+            e.combatTuning.melee!.activeMs,
           );
           playEnemyMeleeSlashSfx(host.scene);
         }
@@ -341,7 +341,7 @@ export function tickDefenseEnemies(
           e.sprite.x,
           e.sprite.y,
           e.combat.facing,
-          e.combatTuning.melee.activeMs,
+          e.combatTuning.melee!.activeMs,
         );
         playEnemyMeleeSlashSfx(host.scene);
       }

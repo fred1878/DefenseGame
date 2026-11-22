@@ -97,7 +97,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     hybrid &&
     ranged
   ) {
-    const meleeEngage = worldUnit(enemy.combatTuning.melee.triggerRange, reg);
+    const meleeEngage = worldUnit(enemy.combatTuning.melee!.triggerRange, reg);
     const bandSlack = worldUnit(22, reg);
     const preferred = worldUnit(hybrid.preferredRange, reg);
     const attackMax = worldUnit(ranged.attackTriggerRange, reg);

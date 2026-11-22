@@ -70,8 +70,14 @@ export function playerMeleeChaseStandoffCenterDist(
   enemy: EnemyInstance,
 ): number {
   const reg = enemy.sprite.scene?.registry;
+  const melee = enemy.combatTuning.melee;
+  if (!melee) {
+    throw new Error(
+      `playerMeleeChaseStandoffCenterDist requires combat.melee for ${enemy.behavior}`,
+    );
+  }
   const gapWu = requireMeleeChaseStandoffWu(
-    enemy.combatTuning.melee,
+    melee,
     enemy.behavior,
     enemy.defId,
   );

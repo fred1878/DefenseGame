@@ -17,9 +17,19 @@ describe("resolveEnemyCombat explicit authoring", () => {
       "grunt",
     );
     expect(tuned.wall.damage).toBe(6);
-    expect(tuned.melee.triggerRange).toBeGreaterThanOrEqual(tuned.melee.range);
-    expect(tuned.melee.meleeChaseStandoffWu).toBe(4);
+    expect(tuned.melee!.triggerRange).toBeGreaterThanOrEqual(tuned.melee!.range);
+    expect(tuned.melee!.meleeChaseStandoffWu).toBe(4);
     expect(tuned.arrowRain).toBeUndefined();
+  });
+
+  it("omits melee for ranged-only activation behaviors", () => {
+    const lobber = resolveEnemyCombat(
+      "lobber",
+      shippedEnemyCombat("lobber"),
+      "lobber",
+    );
+    expect(lobber.melee).toBeUndefined();
+    expect(lobber.lobber!.damage).toBeGreaterThan(0);
   });
 
   it("requires behavior-specific kit sections", () => {

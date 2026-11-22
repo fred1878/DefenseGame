@@ -244,22 +244,32 @@ describe("public data fixtures", () => {
     }
   });
 
-  it("enemies.json rows define explicit wall and melee combat", () => {
+  it("enemies.json rows define explicit wall combat (melee when required)", () => {
     const enemies = readJson("enemies.json") as Record<
       string,
       {
         behavior: string;
         combat: {
           wall: { damage: number; triggerRange: number; hitRange: number };
-          melee: { range: number; triggerRange: number };
+          melee?: { range: number; triggerRange: number };
         };
       }
     >;
+    const rangedOnly = new Set([
+      "arrowRainArcher",
+      "javelineer",
+      "stationaryRanged",
+      "lobber",
+    ]);
     for (const [id, row] of Object.entries(enemies)) {
       expectFiniteNumber(row.combat.wall.damage, `${id}.combat.wall.damage`);
-      expectFiniteNumber(row.combat.melee.range, `${id}.combat.melee.range`);
+      if (rangedOnly.has(row.behavior)) {
+        expect(row.combat.melee, `${id}.combat.melee`).toBeUndefined();
+        continue;
+      }
+      expectFiniteNumber(row.combat.melee!.range, `${id}.combat.melee.range`);
       expectFiniteNumber(
-        row.combat.melee.triggerRange,
+        row.combat.melee!.triggerRange,
         `${id}.combat.melee.triggerRange`,
       );
     }

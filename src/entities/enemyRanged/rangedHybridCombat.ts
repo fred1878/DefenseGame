@@ -25,7 +25,7 @@ export function updateRangedHybridCombat(
   onWallHit?: () => void,
 ): { spawnBolt?: JavelinSpawnRequest; meleeHit: boolean } {
   const hybrid = enemy.combatTuning.hybrid!;
-  const melee = enemy.combatTuning.melee;
+  const melee = enemy.combatTuning.melee!;
   const c = enemy.combat;
   const dx = target.x - enemy.sprite.x;
   const dy = target.y - enemy.sprite.y;
