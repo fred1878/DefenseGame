@@ -132,9 +132,8 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `defense-maps.json` | `defaultMapId`, per-map `field` (cols/rows) + obstacle placements (`tileX`/`tileY`/`textureKey`); `selectDefenseMapId` for future map pick |
 | `entity-physics.json` | Path clearance margins only (`enemyPathClearanceMarginPx`, `staticObstacleNavClearancePx`) |
 | `player.json` / `enemies.json` | Required `bodyRadius` per player / enemy (arcade collision) |
-| `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`) |
-| `enemy-combat-defaults.json` | Baseline `wall` / `melee` / behavior combat tables; per-enemy `combat` in `enemies.json` overrides |
-| `enemies.json` | HP, speed, damage, `behavior`, optional `combat` tuning, textures |
+| `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffPx`) |
+| `enemies.json` | HP, speed, damage, `behavior`, required explicit `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
 | `buildings.json` | Upgrade defs: `wall`, `blacksmith` (`costByLevel`, effects) |
 | `town_buildings.json` | Town menu labels, textures, `upgradeId` / `startsNight` / `opensSpellBar` |

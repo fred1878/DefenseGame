@@ -7,6 +7,7 @@ const ENEMY_AI_KEYS = [
   "playerAggroRadius",
   "playerChaseMemoryMs",
   "wallVelocityBlendMs",
+  "northWallMeleeStandoffPx",
 ] as const satisfies readonly (keyof EnemyAiTuning)[];
 
 export function normalizeEnemyAi(

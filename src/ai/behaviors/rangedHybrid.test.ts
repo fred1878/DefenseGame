@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
+import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import {
   createRangedHybridCombatState,
@@ -28,8 +29,11 @@ function playerTarget(
 }
 
 describe("rangedHybrid combat state machine", () => {
+  const base = shippedEnemyCombat("reaver");
   const combatTuning = resolveEnemyCombat("rangedHybrid", {
+    ...base,
     melee: {
+      ...base.melee!,
       windupMs: 80,
       activeMs: 60,
       recoveryMs: 80,
@@ -38,6 +42,7 @@ describe("rangedHybrid combat state machine", () => {
       range: 61,
     },
     stationaryRanged: {
+      ...base.stationaryRanged!,
       preferredRange: 110,
       attackTriggerRange: 200,
       windupMs: 200,
@@ -46,12 +51,13 @@ describe("rangedHybrid combat state machine", () => {
       cooldownMs: 200,
     },
     hybrid: {
+      ...base.hybrid!,
       closeMeleeRadius: 90,
       preferredRange: 110,
       maxMeleeSwings: 3,
       retreatRangeSlack: 12,
     },
-  });
+  }, "reaver");
 
   it("enters melee when the player is within melee trigger range", () => {
     const enemy = mockEnemyInstance({

@@ -4,10 +4,7 @@ import {
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
 } from "../content/assets";
-import {
-  getEnemyCombatDefaults,
-  wallMeleeApproachStandoffPx,
-} from "../core/enemyTuning";
+import { NORTH_WALL_MELEE_STANDOFF_PX } from "./enemy";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 
 /** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
@@ -60,7 +57,7 @@ export function northWallAttackY(): number {
  * Pathing stop line south of the wall so enemies hold attack range instead of walking into the barricade.
  */
 export function northWallApproachY(
-  standoffPx = wallMeleeApproachStandoffPx(getEnemyCombatDefaults().wall),
+  standoffPx = NORTH_WALL_MELEE_STANDOFF_PX,
 ): number {
   return northWallAttackY() + standoffPx;
 }

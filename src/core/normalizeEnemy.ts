@@ -47,6 +47,9 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
   if (raw.challengeRating === undefined) {
     throw new ConfigLoadError(`Missing number at ${path}.challengeRating`);
   }
+  if (!raw.combat) {
+    throw new ConfigLoadError(`Expected object at ${path}.combat`);
+  }
   const challengeRating = requireFiniteNumber(
     raw.challengeRating,
     `${path}.challengeRating`,
@@ -64,7 +67,7 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
     behavior: raw.behavior,
     textureKey: raw.textureKey,
     displayName: raw.displayName?.trim() || titleCaseFromId(id),
-    ...(raw.combat ? { combat: raw.combat } : {}),
+    combat: raw.combat,
   };
 }
 
@@ -75,7 +78,7 @@ function assertPositiveDamage(value: number, path: string): void {
 }
 
 /**
- * After `enemy-combat-defaults.json` is applied, verify behavior-specific combat
+ * Verify behavior-specific combat
  * tables expose required damage fields (melee uses row `damage`).
  */
 export function assertEnemyResolvedCombat(id: string, row: EnemyDef): void {

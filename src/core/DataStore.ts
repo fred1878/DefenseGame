@@ -4,7 +4,6 @@ import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import { applyEnemyBodyRadii, applyEntityPhysics } from "../entities/entityPhysics";
 import { applyPlayerTuning } from "../config/player";
-import { applyEnemyCombatDefaults } from "./enemyTuning";
 import {
   normalizeDefenseMaps,
   type DefenseMapsFileInput,
@@ -15,7 +14,6 @@ import {
 } from "./normalizeEntityPhysics";
 import { normalizeEnemyAi, type EnemyAiInput } from "./normalizeEnemyAi";
 import type { EnemyCombatPartial } from "./enemyTuning";
-import type { EnemyCombatDefaultsInput } from "./normalizeEnemyCombatDefaults";
 import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
 import {
   normalizePlayerConfig,
@@ -45,8 +43,8 @@ export type EnemyDef = {
   displayName: string;
   /** Arcade physics circle radius (px, design units). */
   bodyRadius: number;
-  /** Optional overrides; missing fields use per-behavior defaults. */
-  combat?: EnemyCombatPartial;
+  /** Full explicit combat tables for this enemy row. */
+  combat: EnemyCombatPartial;
 };
 
 export type WaveGroup = {
@@ -88,7 +86,6 @@ export class DataStore {
       townLayout,
       spellsFile,
       playerFile,
-      enemyCombatDefaults,
       defenseMaps,
       entityPhysics,
       enemyAi,
@@ -103,9 +100,6 @@ export class DataStore {
       fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
       fetchJson<{ spells: SpellDefinition[] }>(`${prefix}data/spells.json`),
       fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
-      fetchJson<EnemyCombatDefaultsInput>(
-        `${prefix}data/enemy-combat-defaults.json`,
-      ),
       fetchJson<DefenseMapsFileInput>(`${prefix}data/defense-maps.json`),
       fetchJson<EntityPhysicsInput>(`${prefix}data/entity-physics.json`),
       fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
@@ -127,7 +121,6 @@ export class DataStore {
     this.player = normalizePlayerConfig(playerFile);
     const { endlessPanelDefaultConcurrent: _ui, ...playerTuning } = this.player;
     applyPlayerTuning(playerTuning);
-    applyEnemyCombatDefaults(enemyCombatDefaults);
     applyDefenseMaps(defenseMaps);
     applyEntityPhysics(normalizeEntityPhysics(entityPhysics));
     for (const [id, row] of Object.entries(this.enemies)) {

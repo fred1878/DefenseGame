@@ -7,7 +7,6 @@ import {
   applyEnemyBodyRadii,
   applyEntityPhysics,
 } from "../entities/entityPhysics";
-import { applyEnemyCombatDefaults } from "../core/enemyTuning";
 import { normalizeEnemyRow, type EnemyDefInput } from "../core/normalizeEnemy";
 import { normalizeEnemyAi } from "../core/normalizeEnemyAi";
 import { normalizeEntityPhysics } from "../core/normalizeEntityPhysics";
@@ -21,7 +20,6 @@ function readPublicJson<T>(name: string): T {
 /** Mirror BootScene config apply using shipped `public/data/*.json`. */
 export function bootPublicConfigFixtures(): void {
   applyDefenseMaps(readPublicJson("defense-maps.json"));
-  applyEnemyCombatDefaults(readPublicJson("enemy-combat-defaults.json"));
   const enemiesRaw = readPublicJson<Record<string, EnemyDefInput>>(
     "enemies.json",
   );
