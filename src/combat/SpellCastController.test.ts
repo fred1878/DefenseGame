@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { spellById } from "../content/spells";
 import { spellCastMs } from "../content/spellTargeting";
+import type { Damageable } from "./DamageSystem";
+import { applyChanneledHeal } from "./SpellEffects";
 import { SpellCastController } from "./SpellCastController";
 
 describe("SpellCastController", () => {
@@ -72,5 +74,37 @@ describe("SpellCastController", () => {
     expect(def).not.toBe(false);
     expect(def).not.toBe("channel");
     expect(c.isChanneling()).toBe(false);
+  });
+
+  it("completes flash_heal after windup only and starts cooldown", () => {
+    const def = spellById("flash_heal");
+    expect(def?.channelMs).toBe(0);
+    const windupMs = def ? spellCastMs(def) : 0;
+    expect(windupMs).toBeGreaterThan(0);
+
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("flash_heal")).toBe("windup");
+    expect(c.getCastPhase()).toBe("windup");
+    expect(c.getCastPhase()).not.toBe("channeling");
+
+    const mid = c.updateChannel(windupMs - 1, 0, 0);
+    expect(mid.type).toBe("windup");
+
+    const done = c.updateChannel(2, 0, 0);
+    expect(done.type).toBe("completed");
+    if (done.type === "completed") {
+      expect(done.spellId).toBe("flash_heal");
+      const damageable: Damageable = {
+        id: "player",
+        hp: 10,
+        maxHp: 100,
+        alive: true,
+        team: "player",
+      };
+      applyChanneledHeal(damageable, done.def);
+      expect(damageable.hp).toBe(10 + (def?.healAmount ?? 0));
+    }
+    expect(c.isChanneling()).toBe(false);
+    expect(c.getCooldownRemaining("flash_heal")).toBe(def!.cooldownMs);
   });
 });

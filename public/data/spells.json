@@ -99,6 +99,20 @@
       "channelTickMs": 0
     },
     {
+      "id": "flash_heal",
+      "name": "Flash Heal",
+      "shortLabel": "Flash",
+      "mechanicType": "heal",
+      "castableInDefense": true,
+      "implementationPhase": 1,
+      "cooldownMs": 4000,
+      "castMs": 500,
+      "channelMs": 0,
+      "healAmount": 25,
+      "iconFile": "flash_heal.png",
+      "targetMode": "self"
+    },
+    {
       "id": "water_bolt",
       "name": "Water Bolt",
       "shortLabel": "Water",

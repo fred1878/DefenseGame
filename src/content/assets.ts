@@ -195,6 +195,7 @@ export const SPELL_ICON_ASSETS = [
   { key: "spell_icon_blink", file: "blink.png" },
   { key: "spell_icon_combustion", file: "combustion.png" },
   { key: "spell_icon_heal", file: "heal.png" },
+  { key: "spell_icon_flash_heal", file: "flash_heal.png" },
 ] as const;
 
 export const SPELL_ICON_ROOT = "assets/spells/icons";
