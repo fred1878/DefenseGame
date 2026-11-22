@@ -1,4 +1,5 @@
 import type { EnemyInstance } from "../entities/Enemy";
+import { knockbackVelocityCapMult } from "../entities/entityPhysics";
 
 /** Exponential decay for residual knockback slide (world-ms). */
 export const ENEMY_KNOCKBACK_DECAY_MS = 260;
@@ -56,7 +57,7 @@ export function applyEnemyKnockbackFrom(
   );
   enemy.knockbackVx += nx * scaled;
   enemy.knockbackVy += ny * scaled;
-  const maxV = scaled * 1.35;
+  const maxV = scaled * knockbackVelocityCapMult();
   const vlen = Math.hypot(enemy.knockbackVx, enemy.knockbackVy);
   if (vlen > maxV) {
     enemy.knockbackVx = (enemy.knockbackVx / vlen) * maxV;

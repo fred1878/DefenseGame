@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { applyEntityPhysics } from "../entities/entityPhysics";
 import { mockEnemyInstance } from "../entities/testEnemyInstance";
 import {
   ENEMY_KNOCKBACK_WEIGHT_BASELINE,
@@ -47,6 +48,14 @@ describe("knockbackStrengthForEnemyWeight", () => {
 });
 
 describe("enemyKnockback", () => {
+  beforeAll(() => {
+    applyEntityPhysics({
+      enemyPathClearanceMarginPx: 9,
+      staticObstacleNavClearancePx: 18,
+      knockbackVelocityCapMult: 1.35,
+    });
+  });
+
   it("adds knockback on top of chase velocity", () => {
     const enemy = mockEnemyInstance({
       behavior: "meleeChaser",

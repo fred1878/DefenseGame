@@ -9,6 +9,11 @@ import {
   resolveBlinkLanding,
 } from "./spellMechanics";
 
+const blinkResolve = {
+  binarySearchIterations: 24,
+  partialMoveEpsilonPx: 0.5,
+};
+
 const enemies = [
   { id: "a", x: 40, y: 0, radius: 10 },
   { id: "b", x: 0, y: 50, radius: 10 },
@@ -63,6 +68,7 @@ describe("spellMechanics", () => {
       16,
       [obstacle],
       [],
+      blinkResolve,
     );
     expect(landing.moved).toBe(true);
     expect(landing.x).toBeLessThan(70 - 16);
@@ -74,7 +80,17 @@ describe("spellMechanics", () => {
   it("resolveBlinkLanding slides back from an enemy at the endpoint", () => {
     const bounds = { minX: -200, maxX: 200, minY: -200, maxY: 200 };
     const enemies = [{ id: "e", x: 100, y: 0, radius: 18 }];
-    const landing = resolveBlinkLanding(0, 0, 0, 120, bounds, 16, [], enemies);
+    const landing = resolveBlinkLanding(
+      0,
+      0,
+      0,
+      120,
+      bounds,
+      16,
+      [],
+      enemies,
+      blinkResolve,
+    );
     expect(landing.moved).toBe(true);
     const gap =
       Math.hypot(landing.x - enemies[0]!.x, landing.y - enemies[0]!.y) -
@@ -87,7 +103,17 @@ describe("spellMechanics", () => {
   it("resolveBlinkLanding partial blink stops before a wall", () => {
     const bounds = { minX: -200, maxX: 200, minY: -200, maxY: 200 };
     const wall = { left: 40, top: -100, right: 200, bottom: 100 };
-    const landing = resolveBlinkLanding(0, 0, 0, 120, bounds, 16, [wall], []);
+    const landing = resolveBlinkLanding(
+      0,
+      0,
+      0,
+      120,
+      bounds,
+      16,
+      [wall],
+      [],
+      blinkResolve,
+    );
     expect(landing.moved).toBe(true);
     expect(landing.x).toBeLessThan(40 - 16 + 1);
     expect(isBlinkLandingBlocked(landing.x, landing.y, 16, [wall], [])).toBe(false);

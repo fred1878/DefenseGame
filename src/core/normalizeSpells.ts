@@ -41,6 +41,14 @@ function validateSpellMechanicFields(
       return;
     case "blink":
       requireFiniteNumber(def.blinkDistanceWu, `${path}.blinkDistanceWu`);
+      requireFiniteNumber(
+        def.blinkResolveBinarySearchIterations,
+        `${path}.blinkResolveBinarySearchIterations`,
+      );
+      requireFiniteNumber(
+        def.blinkPartialMoveEpsilonWu,
+        `${path}.blinkPartialMoveEpsilonWu`,
+      );
       return;
     case "ice_wall":
       requireFiniteNumber(def.iceWallDistanceWu, `${path}.iceWallDistanceWu`);

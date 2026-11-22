@@ -111,6 +111,7 @@ Save persistence shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SA
       "arrowRain": {
         "preferredRange": 150,
         "attackTriggerRange": 168,
+        "kiteBandSlackWu": 24,
         "windupMs": 900,
         "activeMs": 1200,
         "recoveryMs": 520,
@@ -144,9 +145,11 @@ Every enemy row must set `hp` / `speed` / `damage` / `bodyRadius` and a complete
 
 **defense-maps.json** — `{ defaultMapId, maps: [{ id, field: { cols, rows }, obstacles: [{ tileX, tileY, textureKey }] }] }`. Boot applies the default map (`applyDefenseMaps`); use `selectDefenseMapId` from `src/config/defenseMaps.ts` when adding map pick UI.
 
-**spells.json** — per-spell damage, channeling, geometry/timing (`coneRangeWu`, `coneArcDeg`, `swingRangeWu`, `chainLightningHops`, `blinkDistanceWu`, `iceWallDurationMs`, `shadowformDamageMult`, etc.), and knockback (`knockback`, `blastKnockback`, `chainKnockback`, `chainHopKnockback` by `mechanicType`). Boot validates required fields via `normalizeSpellCatalog` (e.g. **Fire Nova** uses `blastKnockback: 0`).
+**spells.json** — per-spell damage, channeling, geometry/timing (`coneRangeWu`, `coneArcDeg`, `swingRangeWu`, `chainLightningHops`, `blinkDistanceWu`, `blinkResolveBinarySearchIterations`, `blinkPartialMoveEpsilonWu`, `iceWallDurationMs`, `shadowformDamageMult`, etc.), and knockback (`knockback`, `blastKnockback`, `chainKnockback`, `chainHopKnockback` by `mechanicType`). Boot validates required fields via `normalizeSpellCatalog` (e.g. **Fire Nova** uses `blastKnockback: 0`). **Ground aim** (`clampGroundTarget`) clamps only to spell-authored `*_RangeWu` / `groundTargetMaxRangeWu` passed by callers — no extra TS slack. **Blink** partial-landing binary search uses per-spell `blinkResolveBinarySearchIterations` and `blinkPartialMoveEpsilonWu` (WU → px at cast time).
 
-**entity-physics.json** — `enemyPathClearanceMarginPx` + `staticObstacleNavClearancePx` (nav grid inflation around obstacles). Entity **body** radii: `player.json` → `bodyRadius`; each `enemies.json` row → required `bodyRadius`.
+**entity-physics.json** — `enemyPathClearanceMarginPx`, `staticObstacleNavClearancePx` (nav grid inflation around obstacles), and `knockbackVelocityCapMult` (velocity cap as `strength * mult` for player arcade bodies and enemy impulse). Entity **body** radii: `player.json` → `bodyRadius`; each `enemies.json` row → required `bodyRadius`.
+
+**Ranged enemy slack** — per-row `kiteBandSlackWu` on behavior kits (`arrowRain`, `stationaryRanged`, `lobber`, `javelineer`) drives AI kite bands and volley minimum range (`preferredRange - kiteBandSlackWu`). `rangedHybrid` uses `stationaryRanged.kiteBandSlackWu` for ranged mode; retreat uses existing `hybrid.retreatRangeSlack`.
 
 **enemy-ai.json** — global `playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`.
 

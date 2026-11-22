@@ -57,6 +57,10 @@ export type SpellDefinition = {
   chainLightningHops?: number;
   chainLightningHopRangeWu?: number;
   blinkDistanceWu?: number;
+  /** Binary-search steps when sliding a partial blink away from blockers. */
+  blinkResolveBinarySearchIterations?: number;
+  /** Minimum travel (WU) to treat partial blink as having moved. */
+  blinkPartialMoveEpsilonWu?: number;
   iceWallDistanceWu?: number;
   iceWallDurationMs?: number;
   shadowformDurationMs?: number;

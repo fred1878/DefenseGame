@@ -130,7 +130,7 @@ Loaded at runtime in `BootScene` via `DataStore`:
 |------|---------|
 | `player.json` | Player combat/movement tuning, melee engage slack (`meleeEngageTargetRadius`, `meleeActivationSlackWu`), `endlessPanelDefaultConcurrent` |
 | `defense-maps.json` | `defaultMapId`, per-map `field` (cols/rows) + obstacle placements (`tileX`/`tileY`/`textureKey`); `selectDefenseMapId` for future map pick |
-| `entity-physics.json` | Path clearance margins only (`enemyPathClearanceMarginPx`, `staticObstacleNavClearancePx`) |
+| `entity-physics.json` | Nav clearance margins + `knockbackVelocityCapMult` |
 | `player.json` / `enemies.json` | Required `bodyRadius` per player / enemy (arcade collision) |
 | `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffPx`) |
 | `enemies.json` | HP, speed, damage, `behavior`, required explicit `combat` tuning, textures |

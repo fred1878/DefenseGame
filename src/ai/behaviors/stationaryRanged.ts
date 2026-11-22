@@ -54,7 +54,7 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
-  const bandSlack = worldUnit(22, reg);
+  const bandSlack = worldUnit(tune.kiteBandSlackWu, reg);
   const preferred = worldUnit(tune.preferredRange, reg);
   const attackMax = worldUnit(tune.attackTriggerRange, reg);
 

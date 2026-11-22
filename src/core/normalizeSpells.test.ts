@@ -48,6 +48,8 @@ describe("normalizeSpellCatalog", () => {
     expect(chain?.chainLightningHopRangeWu).toBeDefined();
     const blink = rows.find((s) => s.id === "blink");
     expect(blink?.blinkDistanceWu).toBeDefined();
+    expect(blink?.blinkResolveBinarySearchIterations).toBe(24);
+    expect(blink?.blinkPartialMoveEpsilonWu).toBe(0.5);
     const swing = rows.find((s) => s.id === "swing");
     expect(swing?.swingRangeWu).toBeDefined();
     expect(swing?.swingArcDeg).toBeDefined();

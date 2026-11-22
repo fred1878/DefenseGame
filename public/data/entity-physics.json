@@ -1,4 +1,5 @@
 {
   "enemyPathClearanceMarginPx": 9,
-  "staticObstacleNavClearancePx": 18
+  "staticObstacleNavClearancePx": 18,
+  "knockbackVelocityCapMult": 1.35
 }

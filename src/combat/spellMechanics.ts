@@ -8,6 +8,11 @@ export type EnemyHitTarget = {
   radius: number;
 };
 
+export type BlinkLandingResolveTuning = {
+  binarySearchIterations: number;
+  partialMoveEpsilonPx: number;
+};
+
 /** Enemies whose center is within `radius + target.radius`. */
 export function enemiesInDisk(
   originX: number,
@@ -191,6 +196,7 @@ export function resolveBlinkLanding(
   playerRadius: number,
   obstacles: readonly BlinkObstacleAabb[],
   enemies: readonly EnemyHitTarget[],
+  resolveTuning: BlinkLandingResolveTuning,
 ): { x: number; y: number; moved: boolean } {
   const ideal = blinkDestination(fromX, fromY, facingRad, distance, bounds);
   const landingOk = (x: number, y: number) =>
@@ -203,7 +209,7 @@ export function resolveBlinkLanding(
 
   let lo = 0;
   let hi = 1;
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < resolveTuning.binarySearchIterations; i++) {
     const mid = (lo + hi) / 2;
     const rawX = fromX + (ideal.x - fromX) * mid;
     const rawY = fromY + (ideal.y - fromY) * mid;
@@ -215,7 +221,8 @@ export function resolveBlinkLanding(
   const rawX = fromX + (ideal.x - fromX) * lo;
   const rawY = fromY + (ideal.y - fromY) * lo;
   const { x, y } = clampToBlinkBounds(rawX, rawY, bounds);
-  const moved = Math.hypot(x - fromX, y - fromY) > 0.5;
+  const moved =
+    Math.hypot(x - fromX, y - fromY) > resolveTuning.partialMoveEpsilonPx;
   return { x, y, moved };
 }
 

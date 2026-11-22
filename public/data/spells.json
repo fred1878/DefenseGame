@@ -428,7 +428,9 @@
       "channelMs": 0,
       "iconFile": "blink.png",
       "damageFlavor": "default",
-      "blinkDistanceWu": 250
+      "blinkDistanceWu": 250,
+      "blinkResolveBinarySearchIterations": 24,
+      "blinkPartialMoveEpsilonWu": 0.5
     },
     {
       "id": "combustion",

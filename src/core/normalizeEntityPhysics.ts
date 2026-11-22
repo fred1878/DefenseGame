@@ -6,11 +6,13 @@ import {
 export type EntityPhysicsInput = {
   enemyPathClearanceMarginPx?: number;
   staticObstacleNavClearancePx?: number;
+  knockbackVelocityCapMult?: number;
 };
 
 export type EntityPhysicsTuning = {
   enemyPathClearanceMarginPx: number;
   staticObstacleNavClearancePx: number;
+  knockbackVelocityCapMult: number;
 };
 
 export function normalizeEntityPhysics(
@@ -25,6 +27,10 @@ export function normalizeEntityPhysics(
     staticObstacleNavClearancePx: requireFiniteNumber(
       root.staticObstacleNavClearancePx,
       "entity-physics.staticObstacleNavClearancePx",
+    ),
+    knockbackVelocityCapMult: requireFiniteNumber(
+      root.knockbackVelocityCapMult,
+      "entity-physics.knockbackVelocityCapMult",
     ),
   };
 }
