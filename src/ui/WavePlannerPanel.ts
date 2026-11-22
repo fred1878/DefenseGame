@@ -331,7 +331,7 @@ export class WavePlannerPanel {
     this.wireListViewportDrag();
 
     const footerAnchorY = listBottom + scaleUiY(11);
-    const crTextY = footerAnchorY - scaleUiY(5);
+    const crTextY = footerAnchorY - scaleUiY(9);
     this.challengeRatingText = scene.add
       .text(
         GAME.width / 2,
