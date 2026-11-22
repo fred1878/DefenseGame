@@ -11,6 +11,37 @@ import {
 
 export type EnemyAttackPhase = "idle" | "windup" | "active" | "recovery";
 
+const RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS = new Set([
+  "arrowRainArcher",
+  "javelineer",
+  "stationaryRanged",
+  "lobber",
+]);
+
+/** Behaviors that use `combat.melee.triggerRange` vs the player for melee windup. */
+export function enemyUsesMeleePlayerActivationRange(behavior: string): boolean {
+  return !RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS.has(behavior);
+}
+
+/**
+ * Hitbox debug arcs — ranged kits reuse `combat.phase` for windup/active/recovery but
+ * only arc behaviors deal melee damage on `active` (see `DefenseEnemyTick` slash FX).
+ */
+export function enemyShouldDrawMeleeArcOverlay(enemy: EnemyInstance): boolean {
+  if (enemy.combat.phase !== "active") return false;
+  if (RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS.has(enemy.behavior)) {
+    return false;
+  }
+  if (enemy.behavior === "rangedHybrid") {
+    return enemy.rangedHybrid?.mode === "melee";
+  }
+  if (enemy.behavior === "charger") {
+    const extra = enemy.behaviorExtra;
+    return extra.chargeActiveMs <= 0 && extra.chargeWindupMs <= 0;
+  }
+  return true;
+}
+
 export type EnemyCombatState = {
   phase: EnemyAttackPhase;
   phaseMs: number;

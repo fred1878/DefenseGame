@@ -12,6 +12,14 @@ import { commitEnemyAttack } from "./attackCommit";
 import { advanceCombatPhase, freezeWindupRecovery } from "./combatPhase";
 import type { LobberCombatState, LobSpawnRequest } from "./types";
 
+export function clearLobberAirborneTelegraph(enemy: EnemyInstance): void {
+  const extra = enemy.lobber;
+  if (!extra?.lobAirborne) return;
+  extra.lobAirborne = false;
+  destroyArrowRainTelegraph(extra.telegraph);
+  extra.telegraph = undefined;
+}
+
 export function updateLobberCombat(
   enemy: EnemyInstance,
   target: EnemyAttackTarget,
@@ -79,21 +87,20 @@ export function updateLobberCombat(
     deltaMs,
   );
 
+  const zonePx = worldUnit(tune.blastRadius, enemy.sprite.scene.registry);
   let spawnLob: LobSpawnRequest | undefined;
 
-  if (c.phase === "active") {
-    if (extra.telegraph) {
-      updateArrowRainTelegraph(
-        extra.telegraph,
-        deltaMs,
-        true,
-        worldUnit(tune.blastRadius, enemy.sprite.scene.registry),
-      );
-    }
+  if (
+    (c.phase === "active" || extra.lobAirborne) &&
+    extra.telegraph
+  ) {
+    const raining = c.phase === "active" || extra.lobAirborne;
+    updateArrowRainTelegraph(extra.telegraph, deltaMs, raining, zonePx);
   }
 
   if (c.phase === "active" && !extra.lobThrown && c.attackTargetKind != null) {
     extra.lobThrown = true;
+    extra.lobAirborne = true;
     spawnLob = {
       fromX: enemy.sprite.x,
       fromY: enemy.sprite.y,
@@ -109,7 +116,7 @@ export function updateLobberCombat(
     }
   }
 
-  if (c.phase === "idle" || c.phase === "recovery") {
+  if ((c.phase === "idle" || c.phase === "recovery") && !extra.lobAirborne) {
     destroyArrowRainTelegraph(extra.telegraph);
     extra.telegraph = undefined;
   }

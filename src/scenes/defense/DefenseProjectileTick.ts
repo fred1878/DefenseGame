@@ -15,6 +15,8 @@ import {
   type EnemyProjectile,
   type PlayerProjectile,
 } from "../../entities/Projectile";
+import type { EnemyInstance } from "../../entities/Enemy";
+import { clearLobberAirborneTelegraph } from "../../entities/enemyRanged/lobberCombat";
 import type { Player } from "../../entities/Player";
 
 export type DefenseProjectileEnemyTarget = {
@@ -46,6 +48,7 @@ export type DefenseProjectileTickHost = {
     def?: { blastTextureKey?: string },
   ) => void;
   endlessInfiniteHp?: boolean;
+  findEnemyInstance?: (id: string) => EnemyInstance | undefined;
 };
 
 export type DefenseProjectileTickResult = {
@@ -123,6 +126,10 @@ export function tickDefenseProjectiles(
       },
       PLAYER_TUNING.rangedKnockback * 0.65,
     );
+    if (!alive && p.sourceEnemyId && p.blastRadiusWu !== undefined) {
+      const owner = host.findEnemyInstance?.(p.sourceEnemyId);
+      if (owner) clearLobberAirborneTelegraph(owner);
+    }
     const det = p.pendingDetonation;
     if (!alive && det) {
       const blastR = host.wu(det.radiusWu);

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
 import { createLobberCombatState } from "./types";
 import { updateLobberCombat } from "./lobberCombat";
@@ -65,5 +66,61 @@ describe("updateLobberCombat attack commit", () => {
     expect(result.spawnLob).toBeDefined();
     expect(result.spawnLob?.toX).toBe(120);
     expect(result.spawnLob?.toY).toBe(40);
+  });
+
+  it("keeps telegraph after recovery when lob is airborne", () => {
+    const gfx = { clear: vi.fn(), lineStyle: vi.fn(), fillStyle: vi.fn(), strokeCircle: vi.fn(), fillCircle: vi.fn(), destroy: vi.fn() };
+    const telegraph = {
+      gfx,
+      zoneX: 10,
+      zoneY: 20,
+      phaseMs: 0,
+      windupMs: 400,
+      zoneRadius: 50,
+      palette: { fill: 0, stroke: 0, inner: 0 },
+    } as unknown as ArrowRainTelegraph;
+    const enemy = mockEnemyInstance({
+      behavior: "lobber",
+      combatTuning,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: {
+          add: { graphics: vi.fn(() => ({ destroy: vi.fn() })) },
+          registry: { get: () => undefined },
+        },
+      } as never,
+    });
+    enemy.lobber = {
+      ...createLobberCombatState(),
+      lobAirborne: true,
+      aimX: 10,
+      aimY: 20,
+      telegraph,
+    };
+    enemy.combat.phase = "recovery";
+
+    updateLobberCombat(
+      enemy,
+      {
+        kind: "player",
+        x: 0,
+        y: 0,
+        radius: 14,
+        damageable: {
+          id: "p",
+          hp: 50,
+          maxHp: 50,
+          alive: true,
+          team: "player",
+        },
+      },
+      enemy.lobber!,
+      16,
+    );
+
+    expect(gfx.destroy).not.toHaveBeenCalled();
+    expect(enemy.lobber!.telegraph).toBe(telegraph);
   });
 });

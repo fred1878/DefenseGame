@@ -15,6 +15,8 @@ export type JavelineerCombatState = {
 
 export type LobberCombatState = {
   lobThrown: boolean;
+  /** Ground telegraph stays until the lob detonates. */
+  lobAirborne: boolean;
   aimX: number;
   aimY: number;
   telegraph?: ArrowRainTelegraph;
@@ -60,7 +62,7 @@ export function createJavelineerCombatState(): JavelineerCombatState {
 }
 
 export function createLobberCombatState(): LobberCombatState {
-  return { lobThrown: false, aimX: 0, aimY: 0 };
+  return { lobThrown: false, lobAirborne: false, aimX: 0, aimY: 0 };
 }
 
 export function createRangedHybridCombatState(): RangedHybridCombatState {

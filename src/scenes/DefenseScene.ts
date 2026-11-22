@@ -50,6 +50,10 @@ import {
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
+import {
+  enemyShouldDrawMeleeArcOverlay,
+  enemyUsesMeleePlayerActivationRange,
+} from "../entities/EnemyCombat";
 import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
   TouchInputDebugDraw,
@@ -70,6 +74,7 @@ import {
   type SpellGroundAoeTelegraph,
 } from "../combat/SpellGroundAoeTelegraph";
 import {
+  projectileArcadeRadiusPx,
   spawnPlayerProjectile,
   type EnemyProjectile,
   type PlayerProjectile,
@@ -589,6 +594,7 @@ export class DefenseScene extends Phaser.Scene {
         flashNova: (x, y, r, def) => this.flashNova(x, y, r, def),
         endlessInfiniteHp: this.endlessInfiniteHp,
         enemySpellStatus: this.enemySpellStatus,
+        findEnemyInstance: (id) => this.enemies.find((en) => en.id === id),
       },
       delta,
     );
@@ -1226,6 +1232,16 @@ export class DefenseScene extends Phaser.Scene {
     const px = pBody.center.x;
     const py = pBody.center.y;
     const playerR = pBody.halfWidth;
+    this.hitboxDebug.drawMeleeActivationRange(
+      px,
+      py,
+      this.wu(PLAYER_TUNING.autoAttackMeleeRange),
+    );
+    this.hitboxDebug.drawMeleeMaxRange(
+      px,
+      py,
+      this.wu(PLAYER_TUNING.meleeStrikeRange),
+    );
     this.hitboxDebug.drawCircle(px, py, playerR);
 
     if (
@@ -1244,12 +1260,25 @@ export class DefenseScene extends Phaser.Scene {
 
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
+      if (enemyUsesMeleePlayerActivationRange(e.behavior)) {
+        const { melee } = e.combatTuning;
+        this.hitboxDebug.drawMeleeActivationRange(
+          e.sprite.x,
+          e.sprite.y,
+          melee.triggerRange,
+        );
+        this.hitboxDebug.drawMeleeMaxRange(
+          e.sprite.x,
+          e.sprite.y,
+          melee.range,
+        );
+      }
       this.hitboxDebug.drawCircle(
         e.sprite.x,
         e.sprite.y,
         this.wu(enemyCollisionBodyRadius(e.defId)),
       );
-      if (e.combat.phase === "active") {
+      if (enemyShouldDrawMeleeArcOverlay(e)) {
         const arcHalf = Phaser.Math.DegToRad(e.combatTuning.melee.arcDeg / 2);
         this.hitboxDebug.drawMeleeArc(
           e.sprite.x,
@@ -1259,11 +1288,64 @@ export class DefenseScene extends Phaser.Scene {
           arcHalf,
         );
       }
+      if (e.behavior === "charger") {
+        const extra = e.behaviorExtra;
+        const touchR =
+          this.wu(enemyCollisionBodyRadius(e.defId)) +
+          this.wu(playerBodyRadiusPx());
+        if (extra.chargeActiveMs > 0) {
+          this.hitboxDebug.drawChargeTouchRadius(
+            e.sprite.x,
+            e.sprite.y,
+            touchR,
+          );
+          this.hitboxDebug.drawChargeDashLine(
+            e.sprite.x,
+            e.sprite.y,
+            extra.chargeAimX,
+            extra.chargeAimY,
+          );
+        } else if (extra.chargeWindupMs > 0) {
+          this.hitboxDebug.drawChargeDashLine(
+            e.sprite.x,
+            e.sprite.y,
+            extra.chargeAimX,
+            extra.chargeAimY,
+          );
+        }
+      }
+    }
+
+    const projBodyR = projectileArcadeRadiusPx(this.registry);
+
+    for (const p of this.enemyProjectiles) {
+      if (!p.sprite.active) continue;
+      this.hitboxDebug.drawProjectileBody(
+        p.sprite.x,
+        p.sprite.y,
+        projBodyR,
+      );
+      if (
+        p.spellBehavior === "aoe_on_hit" &&
+        p.blastRadiusWu !== undefined &&
+        p.lobAimX !== undefined &&
+        p.lobAimY !== undefined
+      ) {
+        this.hitboxDebug.drawProjectileBlastRadius(
+          p.lobAimX,
+          p.lobAimY,
+          this.wu(p.blastRadiusWu),
+        );
+      }
     }
 
     for (const p of this.projectiles) {
       if (p.sprite.active) {
-        this.hitboxDebug.drawCircle(p.sprite.x, p.sprite.y, 10);
+        this.hitboxDebug.drawProjectileBody(
+          p.sprite.x,
+          p.sprite.y,
+          projBodyR,
+        );
       }
     }
 

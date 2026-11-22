@@ -38,6 +38,11 @@ export type PlayerProjectile = {
   damagedEnemyIds?: Set<string>;
   spellId?: string;
   pendingDetonation?: ProjectileDetonation;
+  /** Owning enemy when spawned from `DefenseEnemyTick`. */
+  sourceEnemyId?: string;
+  /** Committed lob landing (blast center) while in flight. */
+  lobAimX?: number;
+  lobAimY?: number;
 };
 
 export type ProjectileDetonation = {
@@ -349,8 +354,20 @@ export function spawnEnemyLobProjectile(
   );
   proj.spellBehavior = "aoe_on_hit";
   proj.blastRadiusWu = blastRadiusWu;
+  proj.lobAimX = toX;
+  proj.lobAimY = toY;
   return proj;
 }
+
+/** Arcade circle radius for stone/bolt projectiles (matches `setCircle` in spawn). */
+export function projectileArcadeRadiusPx(
+  registry: Phaser.Data.DataManager,
+): number {
+  return worldDisplayPx(4, registry) / 2;
+}
+
+/** Segment-vs-player hit test uses player body radius + this slack. */
+export const ENEMY_PROJECTILE_PLAYER_HIT_SLACK_PX = 6;
 
 export function updateEnemyProjectile(
   projectile: EnemyProjectile,
@@ -380,7 +397,7 @@ export function updateEnemyProjectile(
     y1,
     player.x,
     player.y,
-    player.radius + 6,
+    player.radius + ENEMY_PROJECTILE_PLAYER_HIT_SLACK_PX,
   );
 
   if (t !== null && player.damageable.alive) {
