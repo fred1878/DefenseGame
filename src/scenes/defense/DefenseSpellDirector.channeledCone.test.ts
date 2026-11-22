@@ -69,6 +69,7 @@ function makeHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
     groundAoeTelegraph: null,
     lingerAoeTelegraph: null,
     blizzardChannelFx: null,
+    healChannelFx: null,
     channelAreaStarted: false,
     shadowformEndsAt: 0,
     iceWallExpires: [],

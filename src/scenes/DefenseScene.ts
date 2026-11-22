@@ -70,6 +70,7 @@ import {
 } from "../entities/Enemy";
 import { destroyArrowRainTelegraph } from "../combat/ArrowRainTelegraph";
 import { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
+import { SpellHealChannelFx } from "../combat/SpellHealChannelFx";
 import {
   updateSpellGroundAoeTelegraph,
   type SpellGroundAoeTelegraph,
@@ -231,6 +232,7 @@ export class DefenseScene extends Phaser.Scene {
   private groundAoeTelegraph: SpellGroundAoeTelegraph | null = null;
   private lingerAoeTelegraph: SpellGroundAoeTelegraph | null = null;
   private blizzardChannelFx: SpellBlizzardChannelFx | null = null;
+  private healChannelFx: SpellHealChannelFx | null = null;
   private channelAreaStarted = false;
   private shadowformEndsAt = 0;
   private iceWallExpires: Array<{
@@ -804,6 +806,8 @@ export class DefenseScene extends Phaser.Scene {
       set lingerAoeTelegraph(v) { scene.lingerAoeTelegraph = v; },
       get blizzardChannelFx() { return scene.blizzardChannelFx; },
       set blizzardChannelFx(v) { scene.blizzardChannelFx = v; },
+      get healChannelFx() { return scene.healChannelFx; },
+      set healChannelFx(v) { scene.healChannelFx = v; },
       get channelAreaStarted() { return scene.channelAreaStarted; },
       set channelAreaStarted(v) { scene.channelAreaStarted = v; },
       get shadowformEndsAt() { return scene.shadowformEndsAt; },
@@ -880,7 +884,12 @@ export class DefenseScene extends Phaser.Scene {
     x: number,
     y: number,
     radius: number,
-    def?: { blastTextureKey?: string },
+    def?: {
+      blastTextureKey?: string;
+      durationMs?: number;
+      startAlpha?: number;
+      scaleEnd?: number;
+    },
   ): void {
     const key = def?.blastTextureKey;
     if (!key || !this.textures.exists(key)) {
@@ -889,10 +898,13 @@ export class DefenseScene extends Phaser.Scene {
       );
       return;
     }
+    const durationMs = def?.durationMs ?? 320;
+    const startAlpha = def?.startAlpha ?? 0.9;
+    const scaleEnd = def?.scaleEnd ?? 1.25;
     const sprite = this.add
       .image(x, y, key)
       .setDepth(DEFENSE_RENDER_DEPTH.playerCombatFx)
-      .setAlpha(0.9)
+      .setAlpha(startAlpha)
       .setBlendMode(Phaser.BlendModes.ADD);
     const size = radius * 2.2;
     sprite.setDisplaySize(size, size);
@@ -900,8 +912,8 @@ export class DefenseScene extends Phaser.Scene {
     this.tweens.add({
       targets: sprite,
       alpha: 0,
-      scale: 1.25,
-      duration: 320,
+      scale: scaleEnd,
+      duration: durationMs,
       ease: "Quad.easeOut",
       onComplete: () => sprite.destroy(),
     });

@@ -43,6 +43,8 @@ import {
 import { spellChannelTickMs } from "../../content/spellTargeting";
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
+import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
+import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import {
   destroySpellGroundAoeTelegraph,
   registerSpellGroundAoeTelegraphWorld,
@@ -112,13 +114,24 @@ export type DefenseSpellDirectorHost = {
   groundAoeTelegraph: SpellGroundAoeTelegraph | null;
   lingerAoeTelegraph: SpellGroundAoeTelegraph | null;
   blizzardChannelFx: SpellBlizzardChannelFx | null;
+  healChannelFx: SpellHealChannelFx | null;
   channelAreaStarted: boolean;
   shadowformEndsAt: number;
   iceWallExpires: Array<{ sprite: Phaser.Physics.Arcade.Image; expiresAt: number }>;
   wu: (n: number) => number;
   enemyTargets: () => import("../../combat/SpellEffects").SpellEnemyTarget[];
   resolveStrikeMode: (auto: boolean) => "melee" | "ranged";
-  flashNova: (x: number, y: number, radius: number, def?: { blastTextureKey?: string }) => void;
+  flashNova: (
+    x: number,
+    y: number,
+    radius: number,
+    def?: {
+      blastTextureKey?: string;
+      durationMs?: number;
+      startAlpha?: number;
+      scaleEnd?: number;
+    },
+  ) => void;
   nextProjectileId: () => string;
   filterDeadEnemies: () => void;
   timeNow: () => number;
@@ -183,6 +196,7 @@ export class DefenseSpellDirector {
       const chDef = spellById(channel.spellId);
       if (chDef) {
         this.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
+        this.syncHealChannelFx(chDef, channel.type, px, py);
       }
       if (channel.type === "channeling" && chDef && !this.host.channelAreaStarted) {
         if (chDef.mechanicType !== "channeled_cone") {
@@ -534,6 +548,8 @@ export class DefenseSpellDirector {
     this.host.groundAoeTelegraph = null;
     this.host.blizzardChannelFx?.destroy();
     this.host.blizzardChannelFx = null;
+    this.host.healChannelFx?.destroy();
+    this.host.healChannelFx = null;
   }
 
   clearLingerAoeTelegraph(): void {
@@ -596,6 +612,27 @@ export class DefenseSpellDirector {
       }
     } else if (this.host.blizzardChannelFx) {
       this.host.blizzardChannelFx.stop();
+    }
+  }
+
+  private syncHealChannelFx(
+    def: SpellDefinition,
+    phase: "windup" | "channeling",
+    px: number,
+    py: number,
+  ): void {
+    if (def.id === "heal" && phase === "channeling") {
+      if (!this.host.healChannelFx) {
+        this.host.healChannelFx = new SpellHealChannelFx(this.host.scene);
+        this.host.healChannelFx.start(px, py, this.host.maskWorldObject);
+      } else {
+        this.host.healChannelFx.follow(px, py);
+      }
+      return;
+    }
+    if (this.host.healChannelFx) {
+      this.host.healChannelFx.stop();
+      this.host.healChannelFx = null;
     }
   }
 
@@ -722,6 +759,12 @@ export class DefenseSpellDirector {
             fireNovaRingDurationMs(def, blastRadiusPx),
             this.host.maskWorldObject,
           );
+          this.host.flashNova(bx, by, blastRadiusPx, {
+            blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
+            durationMs: 440,
+            startAlpha: 0.98,
+            scaleEnd: 1.45,
+          });
         } else {
           this.host.flashNova(bx, by, blastRadiusPx, {
             blastTextureKey:
@@ -844,6 +887,14 @@ export class DefenseSpellDirector {
           }
         } else {
           applyChanneledHeal(this.host.player.damageable, def);
+        }
+        if (def.id === "flash_heal") {
+          showFlashHealPulseFx(
+            this.host.scene,
+            px,
+            py,
+            this.host.maskWorldObject,
+          );
         }
         break;
       case "blink":
