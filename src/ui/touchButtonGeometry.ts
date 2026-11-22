@@ -101,8 +101,12 @@ export function interactiveObjectScreenRect(
   const sfx = (go as { scrollFactorX?: number }).scrollFactorX ?? 1;
   const sfy = (go as { scrollFactorY?: number }).scrollFactorY ?? 1;
 
-  const toScreen = (px: number, py: number): { x: number; y: number } =>
-    inputSpaceToScreen(px, py, sfx, sfy, cam);
+  const toScreen = (px: number, py: number): { x: number; y: number } => {
+    if (sfx === 0 && sfy === 0) {
+      return { x: px, y: py };
+    }
+    return inputSpaceToScreen(px, py, sfx, sfy, cam);
+  };
 
   if (shape instanceof Phaser.Geom.Circle) {
     const px = wx + (shape.x - shape.radius) * scaleX;
