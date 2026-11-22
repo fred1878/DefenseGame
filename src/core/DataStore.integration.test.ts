@@ -86,7 +86,6 @@ describe("public data fixtures", () => {
       "wallSiege",
       "charger",
       "ward",
-      "javelineer",
       "rangedHybrid",
     ]);
     for (const [id, row] of Object.entries(enemies)) {
@@ -95,6 +94,26 @@ describe("public data fixtures", () => {
         row.combat?.melee?.meleeChaseStandoffWu,
         `enemies.${id}.combat.melee.meleeChaseStandoffWu`,
       );
+    }
+  });
+
+  it("ranged-only melee-activation behaviors omit per-enemy combat.melee", () => {
+    const enemies = readJson("enemies.json") as Record<
+      string,
+      {
+        behavior: string;
+        combat?: { melee?: unknown };
+      }
+    >;
+    const rangedOnly = new Set([
+      "arrowRainArcher",
+      "javelineer",
+      "stationaryRanged",
+      "lobber",
+    ]);
+    for (const [id, row] of Object.entries(enemies)) {
+      if (!rangedOnly.has(row.behavior)) continue;
+      expect(row.combat?.melee, `enemies.${id}.combat.melee`).toBeUndefined();
     }
   });
 
