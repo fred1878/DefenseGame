@@ -78,9 +78,18 @@ export function tickDefenseEnemies(
   host.enemyPathGoals.clear();
   const liveEnemies = host.enemies.filter((e) => e.damageable.alive);
   for (const e of liveEnemies) {
-    if (host.enemySpellStatus.isStunned(e.id)) {
+    const bodyRadiusPx = worldUnit(
+      enemyCollisionBodyRadius(e.defId),
+      host.registry,
+    );
+    enforceEnemyDefenseBounds(e, bodyRadiusPx);
+
+    const stunned = host.enemySpellStatus.isStunned(e.id);
+    if (stunned) {
       interruptEnemyAttack(e);
       setEnemyChaseVelocity(e, 0, 0);
+      decayEnemyKnockback(e, delta);
+      enforceEnemyDefenseBounds(e, bodyRadiusPx);
       continue;
     }
     const peerAgents = liveEnemies
@@ -341,10 +350,7 @@ export function tickDefenseEnemies(
     }
 
     decayEnemyKnockback(e, delta);
-    enforceEnemyDefenseBounds(
-      e,
-      worldUnit(enemyCollisionBodyRadius(e.defId), host.registry),
-    );
+    enforceEnemyDefenseBounds(e, bodyRadiusPx);
   }
 
   return { wallHp, playerInvulnMs, enemyProjectiles };

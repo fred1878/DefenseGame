@@ -1,6 +1,11 @@
 import { DEFENSE_MAP } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
-import { enemyPathClearancePx } from "../../entities/entityPhysics";
+import {
+  clampToDefensePlayBounds,
+  defensePlayBoundsInset,
+  enemyCollisionBodyRadius,
+  enemyPathClearancePx,
+} from "../../entities/entityPhysics";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
 import {
@@ -38,15 +43,33 @@ export function retreatGoalFromThreat(
   return { x: ex + nx * goalDistPx, y: ey + ny * goalDistPx };
 }
 
+function clampGoalToEnemyPlayBounds(
+  enemy: EnemyInstance,
+  goalX: number,
+  goalY: number,
+): { x: number; y: number } {
+  const reg = enemy.sprite.scene?.registry;
+  const bodyR = reg
+    ? worldUnit(enemyCollisionBodyRadius(enemy.defId), reg)
+    : enemyCollisionBodyRadius(enemy.defId);
+  const bounds = defensePlayBoundsInset(bodyR);
+  return clampToDefensePlayBounds(goalX, goalY, bounds);
+}
+
 export function snapRetreatGoalToWalkable(
   grid: NavGrid,
   goalX: number,
   goalY: number,
   peerAgents?: readonly NavPeerAgent[],
   agentClearancePx?: number,
+  enemy?: EnemyInstance,
 ): { x: number; y: number } {
-  const cell = worldToCell(grid, goalX, goalY);
-  if (!cell) return { x: goalX, y: goalY };
+  const bounded =
+    enemy !== undefined
+      ? clampGoalToEnemyPlayBounds(enemy, goalX, goalY)
+      : { x: goalX, y: goalY };
+  const cell = worldToCell(grid, bounded.x, bounded.y);
+  if (!cell) return bounded;
   const walk = nearestWalkable(
     grid,
     cell.col,
@@ -54,7 +77,9 @@ export function snapRetreatGoalToWalkable(
     peerAgents,
     agentClearancePx,
   );
-  return cellToWorldCenter(grid, walk.col, walk.row);
+  const center = cellToWorldCenter(grid, walk.col, walk.row);
+  if (enemy === undefined) return center;
+  return clampGoalToEnemyPlayBounds(enemy, center.x, center.y);
 }
 
 function probeDirBlocked(
@@ -222,6 +247,7 @@ export function applyRetreatPathing(opts: ApplyRetreatPathingOpts): void {
         raw.y,
         peerAgents,
         agentClearancePx,
+        enemy,
       );
       replanEnemyPath(
         nav,
