@@ -176,6 +176,17 @@ function isDirectPlayerChaseMove(
   return Math.hypot(moveX - playerX, moveY - playerY) < 1;
 }
 
+/** True when melee may cut from A* to a LOS line-of-march toward the player (not mid-flank). */
+export function shouldMeleeLosShortcutToPlayer(
+  _enemy: EnemyInstance,
+  nav: EnemyNavState,
+  _playerX: number,
+  _playerY: number,
+): boolean {
+  if (!nav.pathGoalReached) return false;
+  return nav.path.length === 0 || nav.pathIndex >= nav.path.length;
+}
+
 /** True when a closer ally's body blocks the direct close line toward the player. */
 export function shouldHoldMeleeChaseChordBlocked(
   enemy: EnemyInstance,
