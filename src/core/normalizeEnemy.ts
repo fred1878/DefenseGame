@@ -9,9 +9,9 @@ import type { EnemyDef } from "./DataStore";
 /** Boot-required top-level keys on each `enemies.json` row (see `DATA_FIELDS.md`). */
 export const ENEMY_ROW_BOOT_KEYS = [
   "hp",
-  "speed",
+  "speedWu",
   "damage",
-  "bodyRadius",
+  "bodyRadiusWu",
   "weight",
   "challengeRating",
   "behavior",

@@ -49,9 +49,9 @@ Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`e
 | Field | Type / unit | Meaning |
 |-------|-------------|---------|
 | `hp` | number (px-scale HP) | `Enemy` max HP, damageable |
-| `speed` | number (px/s) | Movement velocity magnitude |
+| `speedWu` | number (px/s) | Movement velocity magnitude |
 | `damage` | number | Melee swipe damage (behaviors using `combat.melee`); baseline damage stat |
-| `bodyRadius` | number (px) | Arcade circle radius, contact distance, nav clearance |
+| `bodyRadiusWu` | number (px) | Arcade circle radius, contact distance, nav clearance |
 | `weight` | number (dimensionless) | Knockback resistance (`100` = full authored knockback) |
 | `challengeRating` | number (≥ 0) | Endless / wave UI threat tier (not combat math) |
 | `behavior` | string | AI module in `src/ai/behaviors/` |
@@ -84,8 +84,8 @@ North wall objective attacks (`EnemyCombat` wall FSM).
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `damage` | number | Damage for melee swipe or kit baseline; wall kit uses combat.wall.damage. |
-| `triggerRange` | px | Distance in px to begin attack windup toward target or wall. |
-| `hitRange` | px | Distance in px within which wall strikes connect. |
+| `triggerRangeWu` | px | Distance in px to begin attack windup toward target or wall. |
+| `hitRangeWu` | px | Distance in px within which wall strikes connect. |
 
 #### `combat.melee` (melee-activation behaviors)
 
@@ -93,8 +93,8 @@ Player-facing arc swipe (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `triggerRange` | px | Distance in px to begin attack windup toward target or wall. |
-| `range` | px | Maximum melee swipe reach in px from attacker center. |
+| `triggerRangeWu` | px | Distance in px to begin attack windup toward target or wall. |
+| `rangeWu` | px | Maximum melee swipe reach in px from attacker center. |
 | `arcDeg` | deg | Melee swipe arc width in degrees. |
 | `windupMs` | ms | Milliseconds in windup before active damage frames. |
 | `activeMs` | ms | Milliseconds the attack hitbox can deal damage. |
@@ -109,14 +109,14 @@ Telegraphed ground zone ticks.
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `damage` | number | Damage dealt by this attack mode. |
-| `preferredRange` | px | Ideal standoff distance in px from target. |
-| `attackTriggerRange` | px | Px range to begin attack windup. |
+| `preferredRangeWu` | px | Ideal standoff distance in px from target. |
+| `attackTriggerRangeWu` | px | Px range to begin attack windup. |
 | `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
 | `windupMs` | ms | Ms before attack active frames begin. |
 | `activeMs` | ms | Ms the attack hitbox can deal damage. |
 | `recoveryMs` | ms | Ms after active before returning to idle. |
 | `cooldownMs` | ms | Ms before this attack can be used again. |
-| `zoneRadius` | px | Px radius of telegraphed ground AoE. |
+| `zoneRadiusWu` | px | Px radius of telegraphed ground AoE. |
 | `tickIntervalMs` | ms | Ms between AoE damage ticks. |
 | `tickDamageScale` | dimensionless | Per-tick damage multiplier (dimensionless). |
 | `maxTicks` | count | Maximum tick applications per zone. |
@@ -126,8 +126,8 @@ Telegraphed ground zone ticks.
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `damage` | number | Damage dealt by this attack mode. |
-| `minRange` | px | Minimum px range to use ranged attack. |
-| `maxRange` | px | Maximum px range for ranged attack. |
+| `minRangeWu` | px | Minimum px range to use ranged attack. |
+| `maxRangeWu` | px | Maximum px range for ranged attack. |
 | `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
 | `strafeSpeedMul` | dimensionless | Multiplier on strafe speed while kiting. |
 | `orbitFlipMs` | ms | Ms between orbit direction changes. |
@@ -135,75 +135,75 @@ Telegraphed ground zone ticks.
 | `activeMs` | ms | Ms the attack hitbox can deal damage. |
 | `recoveryMs` | ms | Ms after active before returning to idle. |
 | `cooldownMs` | ms | Ms before this attack can be used again. |
-| `projectileSpeed` | px/s | Projectile speed in px/s. |
-| `projectileMaxTravel` | px | Maximum projectile travel in px. |
+| `projectileSpeedWu` | px/s | Projectile speed in px/s. |
+| `projectileMaxTravelWu` | px | Maximum projectile travel in px. |
 
 #### `combat.stationaryRanged` (`stationaryRanged`, `rangedHybrid`)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `damage` | number | Damage dealt by this attack mode. |
-| `preferredRange` | px | Ideal standoff distance in px from target. |
-| `attackTriggerRange` | px | Px range to begin attack windup. |
+| `preferredRangeWu` | px | Ideal standoff distance in px from target. |
+| `attackTriggerRangeWu` | px | Px range to begin attack windup. |
 | `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
 | `windupMs` | ms | Ms before attack active frames begin. |
 | `activeMs` | ms | Ms the attack hitbox can deal damage. |
 | `recoveryMs` | ms | Ms after active before returning to idle. |
 | `cooldownMs` | ms | Ms before this attack can be used again. |
-| `projectileSpeed` | px/s | Projectile speed in px/s. |
-| `projectileMaxTravel` | px | Maximum projectile travel in px. |
+| `projectileSpeedWu` | px/s | Projectile speed in px/s. |
+| `projectileMaxTravelWu` | px | Maximum projectile travel in px. |
 
 #### `combat.wallSiege` (`wallSiege`)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `playerAggroRadius` | px | Overrides global aggro while sieging |
+| `playerAggroRadiusWu` | px | Overrides global aggro while sieging |
 
 #### `combat.charger` (`charger`)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `chargeDamage` | number | Damage dealt when charger dash connects. |
-| `dashMinRange` | WU | Minimum WU spacing required to start dash. |
-| `dashTriggerRange` | px | Px distance to enter dash windup. |
+| `dashMinRangeWu` | WU | Minimum WU spacing required to start dash. |
+| `dashTriggerRangeWu` | px | Px distance to enter dash windup. |
 | `dashWindupMs` | ms | Dash windup duration in ms. |
 | `dashDurationMs` | ms | Dash movement duration in ms. |
 | `dashSpeedMul` | dimensionless | Speed multiplier during dash burst. |
 | `dashCooldownMs` | ms | Ms cooldown before next dash. |
-| `dashOvershootRange` | WU | WU overshoot past dash aim point. |
+| `dashOvershootRangeWu` | WU | WU overshoot past dash aim point. |
 
 #### `combat.lobber` (`lobber`)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `damage` | number | Damage dealt by this attack mode. |
-| `preferredRange` | px | Ideal standoff distance in px from target. |
-| `attackTriggerRange` | px | Px range to begin attack windup. |
+| `preferredRangeWu` | px | Ideal standoff distance in px from target. |
+| `attackTriggerRangeWu` | px | Px range to begin attack windup. |
 | `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
 | `windupMs` | ms | Ms before attack active frames begin. |
 | `activeMs` | ms | Ms the attack hitbox can deal damage. |
 | `recoveryMs` | ms | Ms after active before returning to idle. |
 | `cooldownMs` | ms | Ms before this attack can be used again. |
-| `projectileSpeed` | px/s | Projectile speed in px/s. |
-| `blastRadius` | px | Px blast radius on lob impact. |
+| `projectileSpeedWu` | px/s | Projectile speed in px/s. |
+| `blastRadiusWu` | px | Px blast radius on lob impact. |
 | `blastDamageScale` | dimensionless | Dimensionless lob blast damage scale. |
 
 #### `combat.ward` (`ward`)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `protectRadius` | px | Px radius allies are protected by ward. |
+| `protectRadiusWu` | px | Px radius allies are protected by ward. |
 | `screenOffsetWu` | WU | WU offset for ward screening position. |
-| `playerAggroRadius` | px | Px radius to prefer chasing player over objective. |
+| `playerAggroRadiusWu` | px | Px radius to prefer chasing player over objective. |
 
 #### `combat.hybrid` (`rangedHybrid`)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `closeMeleeRadius` | px | Px threshold to enter hybrid melee phase. |
-| `preferredRange` | px | Ideal standoff distance in px from target. |
+| `closeMeleeRadiusWu` | px | Px threshold to enter hybrid melee phase. |
+| `preferredRangeWu` | px | Ideal standoff distance in px from target. |
 | `maxMeleeSwings` | count | Melee swings allowed before hybrid retreat. |
-| `retreatRangeSlack` | px | Px slack when picking hybrid retreat point. |
+| `retreatRangeSlackWu` | px | Px slack when picking hybrid retreat point. |
 
 **Shipped enemy ids:** `grunt`, `bruiser`, `arrow_rain_archer`, `skirmisher`, `sentry_archer`, `javelineer`, `slow_siege`, `fast_sapper`, `charger`, `lobber`, `reaver`, `ward`.
 
@@ -215,10 +215,10 @@ Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.)
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `playerAggroRadius` | px | Px radius to aggro on player instead of default goal. |
+| `playerAggroRadiusWu` | px | Px radius to aggro on player instead of default goal. |
 | `playerChaseMemoryMs` | ms | Ms to keep chasing last known player after LOS break. |
 | `wallVelocityBlendMs` | ms | Ms blending velocity from chase back toward wall path. |
-| `northWallMeleeStandoffPx` | px | Global px offset south of north wall for path goals. |
+| `northWallMeleeStandoffWu` | px | Global px offset south of north wall for path goals. |
 
 ---
 
@@ -228,8 +228,8 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `enemyPathClearanceMarginPx` | px | Extra px clearance around enemies on nav grid. |
-| `staticObstacleNavClearancePx` | px | Px inflation around obstacles for pathfinding. |
+| `enemyPathClearanceMarginWu` | px | Extra px clearance around enemies on nav grid. |
+| `staticObstacleNavClearanceWu` | px | Px inflation around obstacles for pathfinding. |
 | `knockbackVelocityCapMult` | dimensionless | Caps knockback velocity to strength times this mult. |
 
 ---
@@ -240,34 +240,34 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|
-| `moveSpeed` | px/s | Player locomotion speed in px/s during Defense. |
+| `moveSpeedWu` | px/s | Player locomotion speed in px/s during Defense. |
 | `maxHp` | number | Player maximum hit points at night start. |
-| `bodyRadius` | px | Arcade physics circle radius in world px. |
+| `bodyRadiusWu` | px | Arcade physics circle radius in world px. |
 | `meleeWindupMs` | ms | Boot-required `meleeWindupMs`; see normalize* and combat code for usage. |
 | `meleeActiveMs` | ms | Boot-required `meleeActiveMs`; see normalize* and combat code for usage. |
 | `meleeRecoveryMs` | ms | Boot-required `meleeRecoveryMs`; see normalize* and combat code for usage. |
-| `meleeStrikeRange` | px | Px reach of player melee swipe centerline. |
-| `meleeEngageTargetRadius` | px | Px enemy proximity required to allow melee engage. |
+| `meleeStrikeRangeWu` | px | Px reach of player melee swipe centerline. |
+| `meleeEngageTargetRadiusWu` | px | Px enemy proximity required to allow melee engage. |
 | `meleeActivationSlackWu` | WU | WU subtracted when deriving autoAttackMeleeRange. |
 | `meleeArcDeg` | deg | Player melee arc width in degrees. |
 | `meleeDamage` | number | Player melee hit damage per connect. |
-| `meleeKnockback` | knockback strength | Knockback impulse strength for player melee. |
+| `meleeKnockbackWu` | knockback strength | Knockback impulse strength for player melee. |
 | `rangedWindupMs` | ms | Boot-required `rangedWindupMs`; see normalize* and combat code for usage. |
 | `rangedActiveMs` | ms | Boot-required `rangedActiveMs`; see normalize* and combat code for usage. |
 | `rangedRecoveryMs` | ms | Boot-required `rangedRecoveryMs`; see normalize* and combat code for usage. |
 | `rangedDamage` | number | Player bow shot damage. |
-| `rangedMaxRange` | px | Maximum player ranged shot distance in px. |
-| `rangedKnockback` | knockback strength | Knockback impulse for player ranged hits. |
-| `projectileSpeed` | px/s | Projectile travel speed in px/s. |
+| `rangedMaxRangeWu` | px | Maximum player ranged shot distance in px. |
+| `rangedKnockbackWu` | knockback strength | Knockback impulse for player ranged hits. |
+| `projectileSpeedWu` | px/s | Projectile travel speed in px/s. |
 | `autoAttackRangedRange` | px | Px range for automatic ranged target acquisition. |
-| `targetTapRadiusWorld` | px | Px pick radius for manual enemy tap targeting. |
+| `targetTapRadiusWu` | px | Px pick radius for manual enemy tap targeting. |
 | `playerHitInvulnMs` | ms | Ms of invulnerability after player takes damage. |
 | `nightSpawnInvulnMs` | ms | Ms invulnerability immediately after Defense spawn. |
 | `endlessPanelDefaultConcurrent` | count | Initial concurrent enemy cap in endless UI. |
 
 - `autoAttackMeleeRange` — px; derived at boot from meleeStrikeRange, meleeEngageTargetRadius, and meleeActivationSlackWu (not stored in JSON).
 
-**Derived at boot (not in JSON):** `autoAttackMeleeRange` = `meleeStrikeRange` + `meleeEngageTargetRadius` − `meleeActivationSlackWu`.
+**Derived at boot (not in JSON):** `autoAttackMeleeRange` = `meleeStrikeRangeWu` + `meleeEngageTargetRadiusWu` − `meleeActivationSlackWu`.
 
 ---
 

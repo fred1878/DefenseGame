@@ -17,8 +17,8 @@ export type EntityPhysicsTuning = {
 
 /** Boot-required keys for `public/data/entity-physics.json` (see `DATA_FIELDS.md`). */
 export const ENTITY_PHYSICS_BOOT_KEYS = [
-  "enemyPathClearanceMarginPx",
-  "staticObstacleNavClearancePx",
+  "enemyPathClearanceMarginWu",
+  "staticObstacleNavClearanceWu",
   "knockbackVelocityCapMult",
 ] as const satisfies readonly (keyof EntityPhysicsTuning)[];
 
