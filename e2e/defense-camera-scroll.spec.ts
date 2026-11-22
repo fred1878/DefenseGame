@@ -4,7 +4,7 @@ import { e2eApi, gotoE2E, startDefense } from "./helpers/game";
 const SCROLL_POLL_OPTS = { timeout: 15_000 };
 
 test.describe("defense vertical camera scroll", () => {
-  test("camera scroll shifts when player moves on tall/wide map", async ({
+  test("camera scroll shifts vertically on tall map but not horizontally", async ({
     page,
   }) => {
     await gotoE2E(page);
@@ -48,6 +48,6 @@ test.describe("defense vertical camera scroll", () => {
         async () => api.eval<number>("api.getDefenseCameraScroll().x"),
         SCROLL_POLL_OPTS,
       )
-      .not.toBe(before.x);
+      .toBe(before.x);
   });
 });
