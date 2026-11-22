@@ -5,10 +5,10 @@ import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,
-  applyDirectVelocity,
   playerChaseVelocityOpts,
   setEnemyChaseVelocity,
 } from "./movement";
+import { applyRetreatPathing } from "./retreatPathing";
 
 export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
@@ -36,21 +36,6 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      peerAgents,
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
-
   const targetX = desired === "player" ? playerX : goal.x;
   const targetY = desired === "player" ? playerY : goal.y;
   const dist = Math.hypot(targetX - ex, targetY - ey);
@@ -60,7 +45,22 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     desired === "player" &&
     hybrid
   ) {
-    applyDirectVelocity(enemy, ex - targetX, ey - targetY, 1.05);
+    const preferred = worldUnit(hybrid.preferredRange, reg);
+    applyRetreatPathing({
+      enemy,
+      nav,
+      grid,
+      threatX: targetX,
+      threatY: targetY,
+      deltaMs,
+      waypointRadius,
+      peerAgents,
+      speedMul: 1.05,
+      retreatGoalDistPx: Math.max(
+        worldUnit(72, reg),
+        preferred - dist + worldUnit(hybrid.retreatRangeSlack, reg),
+      ),
+    });
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
@@ -120,8 +120,38 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
     }
 
     if (dist < preferred - bandSlack) {
-      applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.88);
-    } else if (dist <= attackMax) {
+      applyRetreatPathing({
+        enemy,
+        nav,
+        grid,
+        threatX: playerX,
+        threatY: playerY,
+        deltaMs,
+        waypointRadius,
+        peerAgents,
+        speedMul: 0.88,
+        retreatGoalDistPx: Math.max(
+          worldUnit(64, reg),
+          preferred - dist + bandSlack,
+        ),
+      });
+      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+    }
+    if (nav.replanMs <= 0 || nav.path.length === 0) {
+      replanEnemyPath(
+        nav,
+        grid,
+        ex,
+        ey,
+        goal.x,
+        goal.y,
+        waypointRadius,
+        peerAgents,
+        enemy,
+      );
+      nav.replanMs = DEFENSE_MAP.pathReplanMs;
+    }
+    if (dist <= attackMax) {
       setEnemyChaseVelocity(enemy, 0, 0);
     } else {
       let moveX = goal.x;
@@ -140,6 +170,21 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
       applyChaseVelocity(enemy, moveX, moveY, 0.92, { nav, deltaMs });
     }
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+  }
+
+  if (nav.replanMs <= 0 || nav.path.length === 0) {
+    replanEnemyPath(
+      nav,
+      grid,
+      ex,
+      ey,
+      goal.x,
+      goal.y,
+      waypointRadius,
+      peerAgents,
+      enemy,
+    );
+    nav.replanMs = DEFENSE_MAP.pathReplanMs;
   }
 
   let moveX = goal.x;

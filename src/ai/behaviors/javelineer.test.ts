@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFENSE_MAP } from "../../config";
+import { buildNavGrid } from "../../pathfinding/grid";
 import { testJavelineerCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
@@ -54,13 +56,15 @@ describe("javelineerBehavior", () => {
     height: 1,
     cellSize: 40,
   } as unknown as import("../../pathfinding/grid").NavGrid;
+  const navGrid = buildNavGrid([], DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
 
   it("retreats and arcs when player is inside min range", () => {
     const enemy = mockJavelineer(0, 0);
+    enemy.nav.replanMs = 0;
     javelineerBehavior({
       enemy,
       nav: enemy.nav,
-      grid: openGrid,
+      grid: navGrid,
       playerX: testJavelineerCombat.minRange - 10,
       playerY: 0,
       deltaMs: 16,

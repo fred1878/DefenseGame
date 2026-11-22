@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
+import { buildNavGrid } from "../../pathfinding/grid";
 import { testArrowRainCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 import { arrowRainArcherBehavior } from "./arrowRainArcher";
+import * as EnemyBrain from "../EnemyBrain";
 
 function mockArcher(x: number, y: number) {
   return mockEnemyInstance({
@@ -40,12 +43,14 @@ describe("arrowRainArcherBehavior", () => {
   } as unknown as import("../../pathfinding/grid").NavGrid;
 
   it("backs away when player is inside arrow rain preferred range", () => {
+    const grid = buildNavGrid([], DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
     const enemy = mockArcher(0, 0);
+    enemy.nav.replanMs = 0;
     const preferred = testArrowRainCombat.preferredRange - 30;
     arrowRainArcherBehavior({
       enemy,
       nav: enemy.nav,
-      grid: openGrid,
+      grid,
       playerX: preferred,
       playerY: 0,
       deltaMs: 16,
@@ -57,6 +62,24 @@ describe("arrowRainArcherBehavior", () => {
     expect(calls.length).toBeGreaterThan(0);
     const [vx] = calls[0]!;
     expect(vx).toBeLessThan(0);
+  });
+
+  it("replans a flee path when inside preferred range", () => {
+    const grid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
+    const replanSpy = vi.spyOn(EnemyBrain, "replanEnemyPath");
+    const enemy = mockArcher(0, 120);
+    enemy.nav.replanMs = 0;
+    const preferred = testArrowRainCombat.preferredRange - 30;
+    arrowRainArcherBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid,
+      playerX: preferred,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(replanSpy).toHaveBeenCalled();
+    replanSpy.mockRestore();
   });
 
   it("holds position in the attack band at preferred range", () => {

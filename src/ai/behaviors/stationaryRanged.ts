@@ -3,11 +3,8 @@ import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import {
-  applyChaseVelocity,
-  applyDirectVelocity,
-  setEnemyChaseVelocity,
-} from "./movement";
+import { applyChaseVelocity, setEnemyChaseVelocity } from "./movement";
+import { applyRetreatPathing } from "./retreatPathing";
 
 export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
@@ -31,23 +28,22 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      peerAgents,
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
-
   const tune = enemy.combatTuning.stationaryRanged;
   if (!tune) {
+    if (nav.replanMs <= 0 || nav.path.length === 0) {
+      replanEnemyPath(
+        nav,
+        grid,
+        ex,
+        ey,
+        goal.x,
+        goal.y,
+        waypointRadius,
+        peerAgents,
+        enemy,
+      );
+      nav.replanMs = DEFENSE_MAP.pathReplanMs;
+    }
     applyChaseVelocity(enemy, goal.x, goal.y, 1, { nav, deltaMs });
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
@@ -69,8 +65,38 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
     const wallY = northWallAttackY();
     const distToWall = ey - wallY;
     if (distToWall < preferred - bandSlack) {
-      applyDirectVelocity(enemy, 0, 1, 0.65);
-    } else if (distToWall <= attackMax) {
+      applyRetreatPathing({
+        enemy,
+        nav,
+        grid,
+        threatX: ex,
+        threatY: wallY,
+        deltaMs,
+        waypointRadius,
+        peerAgents,
+        speedMul: 0.65,
+        retreatGoalDistPx: Math.max(
+          worldUnit(56, reg),
+          preferred - distToWall + bandSlack,
+        ),
+      });
+      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+    }
+    if (nav.replanMs <= 0 || nav.path.length === 0) {
+      replanEnemyPath(
+        nav,
+        grid,
+        ex,
+        ey,
+        goal.x,
+        goal.y,
+        waypointRadius,
+        peerAgents,
+        enemy,
+      );
+      nav.replanMs = DEFENSE_MAP.pathReplanMs;
+    }
+    if (distToWall <= attackMax) {
       setEnemyChaseVelocity(enemy, 0, 0);
     } else {
       let moveX = goal.x;
@@ -92,8 +118,40 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
   }
 
   if (dist < preferred - bandSlack) {
-    applyDirectVelocity(enemy, ex - playerX, ey - playerY, 0.82);
-  } else if (dist <= attackMax) {
+    applyRetreatPathing({
+      enemy,
+      nav,
+      grid,
+      threatX: playerX,
+      threatY: playerY,
+      deltaMs,
+      waypointRadius,
+      peerAgents,
+      speedMul: 0.82,
+      retreatGoalDistPx: Math.max(
+        worldUnit(64, reg),
+        preferred - dist + bandSlack,
+      ),
+    });
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+  }
+
+  if (nav.replanMs <= 0 || nav.path.length === 0) {
+    replanEnemyPath(
+      nav,
+      grid,
+      ex,
+      ey,
+      goal.x,
+      goal.y,
+      waypointRadius,
+      peerAgents,
+      enemy,
+    );
+    nav.replanMs = DEFENSE_MAP.pathReplanMs;
+  }
+
+  if (dist <= attackMax) {
     setEnemyChaseVelocity(enemy, 0, 0);
   } else {
     let moveX = goal.x;

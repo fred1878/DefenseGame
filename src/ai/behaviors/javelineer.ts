@@ -14,6 +14,7 @@ import {
   applyDirectVelocity,
   setEnemyChaseVelocity,
 } from "./movement";
+import { applyRetreatPathing } from "./retreatPathing";
 
 const STRAFE_PROBE_DIST = 44;
 /** Blend weight for closing distance while in the kite band. */
@@ -99,9 +100,13 @@ function playerOrbitDirs(
 
 function kiteArcVelocity(
   enemy: EnemyInstance,
+  nav: import("../EnemyBrain").EnemyNavState,
   ctx: {
     grid: NavGrid;
     deltaMs: number;
+    waypointRadius: number;
+    threatX: number;
+    threatY: number;
     tangentX: number;
     tangentY: number;
     nx: number;
@@ -110,6 +115,7 @@ function kiteArcVelocity(
     towardPlayer: boolean;
     speedMul: number;
     peerAgents?: readonly NavPeerAgent[];
+    retreatGoalDistPx?: number;
   },
 ): void {
   advanceStrafeSign(enemy, ctx.deltaMs);
@@ -121,10 +127,29 @@ function kiteArcVelocity(
     ctx.peerAgents,
   );
   const radialSign = ctx.towardPlayer ? 1 : -1;
-  const moveX =
-    ctx.tangentX * sign + ctx.nx * radialSign * ctx.radialBlend;
-  const moveY =
-    ctx.tangentY * sign + ctx.ny * radialSign * ctx.radialBlend;
+  const tangentX = ctx.tangentX * sign;
+  const tangentY = ctx.tangentY * sign;
+
+  if (!ctx.towardPlayer && ctx.radialBlend > 0.05) {
+    const strafeWeight = 1 / (1 + ctx.radialBlend);
+    applyRetreatPathing({
+      enemy,
+      nav,
+      grid: ctx.grid,
+      threatX: ctx.threatX,
+      threatY: ctx.threatY,
+      deltaMs: ctx.deltaMs,
+      waypointRadius: ctx.waypointRadius,
+      peerAgents: ctx.peerAgents,
+      speedMul: ctx.speedMul,
+      retreatGoalDistPx: ctx.retreatGoalDistPx,
+      blendMove: { x: tangentX, y: tangentY, weight: strafeWeight },
+    });
+    return;
+  }
+
+  const moveX = tangentX + ctx.nx * radialSign * ctx.radialBlend;
+  const moveY = tangentY + ctx.ny * radialSign * ctx.radialBlend;
   applyDirectVelocity(enemy, moveX, moveY, ctx.speedMul);
 }
 
@@ -150,21 +175,6 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      peerAgents,
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
-
   const dx = playerX - ex;
   const dy = playerY - ey;
   const dist = Math.hypot(dx, dy);
@@ -178,9 +188,12 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
     const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
 
     if (dist < minRange) {
-      kiteArcVelocity(enemy, {
+      kiteArcVelocity(enemy, nav, {
         grid,
         deltaMs,
+        waypointRadius,
+        threatX: playerX,
+        threatY: playerY,
         tangentX,
         tangentY,
         nx,
@@ -189,8 +202,23 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         towardPlayer: false,
         speedMul: 1.1,
         peerAgents,
+        retreatGoalDistPx: Math.max(minRange - dist + worldUnit(48, reg), worldUnit(72, reg)),
       });
     } else if (dist > maxRange) {
+      if (nav.replanMs <= 0 || nav.path.length === 0) {
+        replanEnemyPath(
+          nav,
+          grid,
+          ex,
+          ey,
+          goal.x,
+          goal.y,
+          waypointRadius,
+          peerAgents,
+          enemy,
+        );
+        nav.replanMs = DEFENSE_MAP.pathReplanMs;
+      }
       let moveX = goal.x;
       let moveY = goal.y;
       if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
@@ -229,9 +257,12 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         speedMul = Math.max(speedMul, 1.02);
       }
 
-      kiteArcVelocity(enemy, {
+      kiteArcVelocity(enemy, nav, {
         grid,
         deltaMs,
+        waypointRadius,
+        threatX: playerX,
+        threatY: playerY,
         tangentX,
         tangentY,
         nx,
@@ -240,6 +271,9 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         towardPlayer,
         speedMul,
         peerAgents,
+        retreatGoalDistPx: !towardPlayer
+          ? Math.max(ideal - dist + bandSlack, worldUnit(56, reg))
+          : undefined,
       });
     }
   } else if (javelineer) {
@@ -249,8 +283,36 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
     const maxRange = worldUnit(javelineer.maxRange, reg);
     const { strafeSpeedMul } = javelineer;
     if (distToWall < minRange) {
-      applyDirectVelocity(enemy, 0, 1, 1.05);
+      applyRetreatPathing({
+        enemy,
+        nav,
+        grid,
+        threatX: ex,
+        threatY: wallY,
+        deltaMs,
+        waypointRadius,
+        peerAgents,
+        speedMul: 1.05,
+        retreatGoalDistPx: Math.max(
+          minRange - distToWall + worldUnit(40, reg),
+          worldUnit(64, reg),
+        ),
+      });
     } else if (distToWall > maxRange) {
+      if (nav.replanMs <= 0 || nav.path.length === 0) {
+        replanEnemyPath(
+          nav,
+          grid,
+          ex,
+          ey,
+          goal.x,
+          goal.y,
+          waypointRadius,
+          peerAgents,
+          enemy,
+        );
+        nav.replanMs = DEFENSE_MAP.pathReplanMs;
+      }
       let moveX = goal.x;
       let moveY = goal.y;
       if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
@@ -271,6 +333,20 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
       applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
     }
+  } else if (nav.replanMs <= 0 || nav.path.length === 0) {
+    replanEnemyPath(
+      nav,
+      grid,
+      ex,
+      ey,
+      goal.x,
+      goal.y,
+      waypointRadius,
+      peerAgents,
+      enemy,
+    );
+    nav.replanMs = DEFENSE_MAP.pathReplanMs;
+    applyChaseVelocity(enemy, goal.x, goal.y, 1, { nav, deltaMs });
   }
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };
