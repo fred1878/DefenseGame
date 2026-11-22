@@ -882,4 +882,5 @@ export class EndlessModePanel {
     const row = this.rows.find((r) => r.enemyId === enemyId);
     row?.capValue.setText(`${this.caps.get(enemyId)}`);
   }
+
 }

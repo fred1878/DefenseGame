@@ -49,6 +49,7 @@ import {
   pushInputModality,
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
+import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import {
   enemyShouldDrawMeleeArcOverlay,
@@ -1200,8 +1201,14 @@ export class DefenseScene extends Phaser.Scene {
       };
       if (this.focusTapFlash.ageMs >= 900) this.focusTapFlash = null;
     }
+    const skipDebug = [
+      this.touchDebug.uiGraphics(),
+      this.touchDebug.worldGraphics(),
+    ];
     this.touchDebug.draw({
       stick: this.stick,
+      excludeZones: this.stick.getDebugLayout().excludeZones,
+      uiScreenRects: collectInteractiveScreenRects(this, { skip: skipDebug }),
       pointerUiBlocked: (p) => this.targeting.isPointerOverUi(p),
       focusFlash: this.focusTapFlash,
     });

@@ -87,6 +87,7 @@ export class SpellBarSortPanel {
   private readonly poolChips: PoolChip[] = [];
   private poolPress: PoolPressState | null = null;
   private drag: DragState | null = null;
+  private doneBtn: ReturnType<typeof createTouchButton> | null = null;
   private readonly modalLease: ModalInputLease;
 
   constructor(
@@ -301,7 +302,7 @@ export class SpellBarSortPanel {
     const doneY =
       poolTop + poolRows * poolRowStride + scaleUiY(panelLayout.doneBelowPoolGapY);
 
-    const done = createTouchButton(
+    this.doneBtn = createTouchButton(
       scene,
       GAME.width / 2,
       Math.min(doneY, GAME.height - scaleUiY(56)),
@@ -309,7 +310,7 @@ export class SpellBarSortPanel {
       () => this.finish(),
       { width: scaleUiX(200), height: scaleUiY(44), depth: 510 },
     );
-    this.root.add(done.container);
+    this.root.add(this.doneBtn.container);
 
     this.refreshSlotDisplay();
     this.refreshAutoCastBorders();
@@ -592,4 +593,5 @@ export class SpellBarSortPanel {
   e2eBarSlots(): SpellId[] {
     return [...this.slots];
   }
+
 }

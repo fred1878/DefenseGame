@@ -15,6 +15,7 @@ import {
   pauseForDebugMenu,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
+import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
@@ -256,7 +257,11 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eTownBuildingDebugRectCount(): number {
-    return this.townBuildingDebugRects().length;
+    return this.e2eTownTouchDebugRectCount();
+  }
+
+  e2eTownTouchDebugRectCount(): number {
+    return this.collectTouchDebugUiRects().length;
   }
 
   e2eIsTouchButtonPressed(testId: string): boolean {
@@ -437,25 +442,16 @@ export class TownScene extends Phaser.Scene {
       this.touchDebug.clear();
       return;
     }
-    const uiScreenRects = [...this.townBuildingDebugRects()];
     this.touchDebug.draw({
       pointerUiBlocked: (pointer) => this.isPointerOverInteractive(pointer),
-      uiScreenRects,
+      uiScreenRects: this.collectTouchDebugUiRects(),
     });
   }
 
-  private townBuildingDebugRects(): {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }[] {
-    const rects: { x: number; y: number; width: number; height: number }[] = [];
-    for (const control of this.buildingControls.values()) {
-      const r = control.hitFootprintScreenRect();
-      if (r && r.width > 0 && r.height > 0) rects.push(r);
-    }
-    return rects;
+  private collectTouchDebugUiRects() {
+    return collectInteractiveScreenRects(this, {
+      skip: [this.touchDebug.uiGraphics(), this.touchDebug.worldGraphics()],
+    });
   }
 
   private isPointerOverInteractive(pointer: Phaser.Input.Pointer): boolean {

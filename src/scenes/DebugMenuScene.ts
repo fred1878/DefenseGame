@@ -9,6 +9,7 @@ import {
   showTouchInput,
 } from "../debug/DebugState";
 import { configureSceneInput } from "../input/inputTuning";
+import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { createTouchButton } from "../ui/touchButton";
 import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
@@ -185,6 +186,9 @@ export class DebugMenuScene extends Phaser.Scene {
     }
     this.touchDebug.draw({
       pointerUiBlocked: (pointer) => this.isPointerOverInteractive(pointer),
+      uiScreenRects: collectInteractiveScreenRects(this, {
+        skip: [this.touchDebug.uiGraphics(), this.touchDebug.worldGraphics()],
+      }),
     });
   }
 
