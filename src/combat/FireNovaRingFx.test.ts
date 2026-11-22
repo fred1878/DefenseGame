@@ -31,8 +31,8 @@ describe("fireNovaRingDurationMs", () => {
 
   it("derives duration from radius for instant novas", () => {
     const d = fireNovaRingDurationMs(instantNova(), 120);
-    expect(d).toBeGreaterThanOrEqual(300);
-    expect(d).toBeLessThanOrEqual(420);
+    expect(d).toBeGreaterThanOrEqual(360);
+    expect(d).toBeLessThanOrEqual(520);
   });
 });
 

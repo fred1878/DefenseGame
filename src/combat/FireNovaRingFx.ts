@@ -9,9 +9,9 @@ const RING_MID = 0xff5533;
 const FILL_CORE = 0xff2200;
 
 /** Expand duration when the spell has no windup/channel (instant nova). */
-const INSTANT_RING_BASE_MS = 300;
-const INSTANT_RING_PER_RADIUS_PX = 1.1;
-const INSTANT_RING_MAX_MS = 420;
+const INSTANT_RING_BASE_MS = 360;
+const INSTANT_RING_PER_RADIUS_PX = 1.35;
+const INSTANT_RING_MAX_MS = 520;
 
 export function fireNovaRingDurationMs(
   def: Pick<SpellDefinition, "castMs" | "channelMs">,
@@ -45,18 +45,18 @@ export function showFireNovaRingFx(
   const redraw = () => {
     const t = anim.t;
     const r = Math.max(4, radiusPx * t);
-    const fade = 1 - t * 0.85;
+    const fade = 1 - t * 0.78;
     gfx.clear();
 
-    gfx.fillStyle(FILL_CORE, 0.1 * fade);
-    gfx.fillCircle(centerX, centerY, r * 0.92);
+    gfx.fillStyle(FILL_CORE, 0.22 * fade);
+    gfx.fillCircle(centerX, centerY, r * 0.95);
 
-    gfx.lineStyle(4, RING_OUTER, 0.75 * fade);
+    gfx.lineStyle(6, RING_OUTER, 0.92 * fade);
     gfx.strokeCircle(centerX, centerY, r);
 
     if (r > 10) {
-      gfx.lineStyle(2, RING_MID, 0.45 * fade);
-      gfx.strokeCircle(centerX, centerY, r * 0.82);
+      gfx.lineStyle(3, RING_MID, 0.62 * fade);
+      gfx.strokeCircle(centerX, centerY, r * 0.84);
     }
   };
 

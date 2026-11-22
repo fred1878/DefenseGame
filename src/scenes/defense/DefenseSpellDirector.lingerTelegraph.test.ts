@@ -61,6 +61,7 @@ function spellDirectorTestHost(
       lingerAoeTelegraph = v;
     },
     blizzardChannelFx: null,
+    healChannelFx: null,
     channelAreaStarted: false,
     shadowformEndsAt: 0,
     iceWallExpires: [],
