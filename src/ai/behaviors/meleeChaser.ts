@@ -94,6 +94,11 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
 
   let moveX = goal.x;
   let moveY = goal.y;
+  if (desired === "player") {
+    const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+    moveX = hold.x;
+    moveY = hold.y;
+  }
 
   if (
     desired === "player" &&
