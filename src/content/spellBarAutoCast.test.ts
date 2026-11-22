@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   autoCastFlagsForSlots,
   normalizeAutoCastSpellIds,
+  pruneAutoCastSpellIdsForSlots,
   toggleAutoCastSpellId,
 } from "./spellBarAutoCast";
 
@@ -52,6 +53,19 @@ describe("spellBarAutoCast", () => {
       false,
       false,
     ]);
+  });
+
+  it("pruneAutoCastSpellIdsForSlots drops ids not on the bar", () => {
+    const slots = ["heal", "", "", "", "", "", "", ""];
+    expect(
+      pruneAutoCastSpellIdsForSlots(["heal", "meteor", "fire_bolt"], slots),
+    ).toEqual(["heal"]);
+    expect(
+      pruneAutoCastSpellIdsForSlots(
+        ["meteor"],
+        ["", "", "", "", "", "", "", ""],
+      ),
+    ).toEqual([]);
   });
 
   it("swap does not give the new spell auto-cast from the slot", () => {

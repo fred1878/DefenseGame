@@ -39,3 +39,10 @@ export function isSpellOnDefenseBar(
 ): boolean {
   return spellId !== "" && slots.includes(spellId);
 }
+
+/** Empty every defense spell bar slot (town sort + defense grid share slot count). */
+export function clearAllDefenseBarSlots(
+  slotCount = SPELL_BAR.slotCount,
+): SpellId[] {
+  return Array.from({ length: slotCount }, () => "");
+}
