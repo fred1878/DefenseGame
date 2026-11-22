@@ -102,7 +102,7 @@ export type EnemyCombatPartial = {
   /** Bodyguard screening (`ward` behavior). */
   ward?: {
     protectRadius?: number;
-    screenBlend?: number;
+    screenOffsetWu?: number;
     playerAggroRadius?: number;
   };
   /** Close-in melee burst then retreat (`rangedHybrid` behavior). */
@@ -215,7 +215,7 @@ export type EnemyLobberCombat = {
 
 export type EnemyWardCombat = {
   protectRadius: number;
-  screenBlend: number;
+  screenOffsetWu: number;
   playerAggroRadius: number;
 };
 
@@ -460,7 +460,7 @@ function mergeWard(
   const d = getEnemyCombatDefaults().ward;
   return {
     protectRadius: partial?.protectRadius ?? d.protectRadius,
-    screenBlend: partial?.screenBlend ?? d.screenBlend,
+    screenOffsetWu: partial?.screenOffsetWu ?? d.screenOffsetWu,
     playerAggroRadius:
       partial?.playerAggroRadius ?? d.playerAggroRadius,
   };

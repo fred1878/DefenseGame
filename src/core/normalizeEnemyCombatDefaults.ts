@@ -87,7 +87,7 @@ const LOBBER_KEYS = [
   "blastRadius",
   "blastDamageScale",
 ] as const;
-const WARD_KEYS = ["protectRadius", "screenBlend", "playerAggroRadius"] as const;
+const WARD_KEYS = ["protectRadius", "screenOffsetWu", "playerAggroRadius"] as const;
 const HYBRID_KEYS = [
   "closeMeleeRadius",
   "preferredRange",
