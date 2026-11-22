@@ -2,7 +2,14 @@
 
 Boot loads every file here in `DataStore.loadAll`. Missing boot-required fields throw `ConfigLoadError` with a JSON path.
 
-**When adding or removing a boot-required field, update this file and the exported `*BOOT_KEYS` lists in `src/core/normalize*.ts`; CI (`dataFieldsDoc.test.ts`) enforces parity.**
+## Documentation format (CI)
+
+Each boot-required field must appear in that file's `## *.json` section as either:
+
+- `autoAttackMeleeRange` — px; derived melee engage range at Boot (example bullet), or
+- A table row `| \`fieldName\` | … |` where cells after the field name combine to ≥15 characters of **type, unit, and meaning** (no `TBD` / `TODO`).
+
+**Bidirectional parity:** `src/core/dataFieldsDoc.test.ts` compares exported `*BOOT_KEYS` from `normalize*` (and `dataFieldsDocKeys.ts`) to parsed field names per section. CI fails on **missing** keys (new config not documented) and **extra** keys (renamed/removed config still in the doc). Update normalize key lists and this file in the **same PR**.
 
 ## Units
 
@@ -39,34 +46,34 @@ Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`e
 
 ### Row fields (all enemies)
 
-| Field | Type | Required | Used by |
-|-------|------|----------|---------|
-| `hp` | number (px-scale HP) | **yes** | `Enemy` max HP, damageable |
-| `speed` | number (px/s) | **yes** | Movement velocity magnitude |
-| `damage` | number | **yes** | Melee swipe damage (behaviors using `combat.melee`); baseline damage stat |
-| `bodyRadius` | number (px) | **yes** | Arcade circle radius, contact distance, nav clearance |
-| `weight` | number (dimensionless) | **yes** | Knockback resistance (`100` = full authored knockback) |
-| `challengeRating` | number (≥ 0) | **yes** | Endless / wave UI threat tier (not combat math) |
-| `behavior` | string | **yes** | AI module in `src/ai/behaviors/` |
-| `textureKey` | string | **yes** | Boot texture key (`enemy_<id>` unless art reuse) |
-| `displayName` | string | optional | HUD nameplate; defaults from id if omitted |
-| `combat` | object | **yes** | Passed to `resolveEnemyCombat` (see below) |
+| Field | Type / unit | Meaning |
+|-------|-------------|---------|
+| `hp` | number (px-scale HP) | `Enemy` max HP, damageable |
+| `speed` | number (px/s) | Movement velocity magnitude |
+| `damage` | number | Melee swipe damage (behaviors using `combat.melee`); baseline damage stat |
+| `bodyRadius` | number (px) | Arcade circle radius, contact distance, nav clearance |
+| `weight` | number (dimensionless) | Knockback resistance (`100` = full authored knockback) |
+| `challengeRating` | number (≥ 0) | Endless / wave UI threat tier (not combat math) |
+| `behavior` | string | AI module in `src/ai/behaviors/` |
+| `textureKey` | string | Boot texture key (`enemy_<id>` unless art reuse) |
+| `displayName` | string optional | HUD nameplate; defaults from id if omitted |
+| `combat` | object | Passed to `resolveEnemyCombat` (see below) |
 
 ### `combat` by behavior
 
 Every row needs `combat.wall`. Other sections depend on `behavior`:
 
-| `behavior` | Required `combat` sections |
-|------------|---------------------------|
-| `meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid` | `wall`, `melee` (+ kit below) |
-| `arrowRainArcher` | `wall`, `arrowRain` |
-| `javelineer` | `wall`, `javelineer` |
-| `stationaryRanged` | `wall`, `stationaryRanged` |
-| `lobber` | `wall`, `lobber` |
-| `wallSiege` | also `wallSiege` |
-| `charger` | also `charger` |
-| `ward` | also `ward` |
-| `rangedHybrid` | also `stationaryRanged`, `hybrid` |
+| Behavior id | Required `combat` sections |
+|-------------|---------------------------|
+| meleeChaser, bruiser, wallSiege, charger, ward, rangedHybrid | `wall`, `melee` (+ kit below) |
+| arrowRainArcher | `wall`, `arrowRain` |
+| javelineer | `wall`, `javelineer` |
+| stationaryRanged | `wall`, `stationaryRanged` |
+| lobber | `wall`, `lobber` |
+| wallSiege (also) | `wallSiege` kit |
+| charger (also) | `charger` kit |
+| ward (also) | `ward` kit |
+| rangedHybrid (also) | `stationaryRanged`, `hybrid` kits |
 
 **Do not** add `combat.melee` on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber`.
 
@@ -74,129 +81,129 @@ Every row needs `combat.wall`. Other sections depend on `behavior`:
 
 North wall objective attacks (`EnemyCombat` wall FSM).
 
-| Field | Unit | Required |
-|-------|------|----------|
-| `damage` | number | **yes** |
-| `triggerRange` | px | **yes** |
-| `hitRange` | px | **yes** |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `damage` | number | Damage for melee swipe or kit baseline; wall kit uses combat.wall.damage. |
+| `triggerRange` | px | Distance in px to begin attack windup toward target or wall. |
+| `hitRange` | px | Distance in px within which wall strikes connect. |
 
 #### `combat.melee` (melee-activation behaviors)
 
 Player-facing arc swipe (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward`, `rangedHybrid`).
 
-| Field | Unit | Required |
-|-------|------|----------|
-| `triggerRange` | px | **yes** |
-| `range` | px | **yes** |
-| `arcDeg` | deg | **yes** |
-| `windupMs` | ms | **yes** |
-| `activeMs` | ms | **yes** |
-| `recoveryMs` | ms | **yes** |
-| `cooldownMs` | ms | **yes** |
-| `meleeChaseStandoffWu` | WU | **yes** on chase behaviors listed above; extra gap when stopping before player contact |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `triggerRange` | px | Distance in px to begin attack windup toward target or wall. |
+| `range` | px | Maximum melee swipe reach in px from attacker center. |
+| `arcDeg` | deg | Melee swipe arc width in degrees. |
+| `windupMs` | ms | Milliseconds in windup before active damage frames. |
+| `activeMs` | ms | Milliseconds the attack hitbox can deal damage. |
+| `recoveryMs` | ms | Milliseconds after active before the FSM returns to idle. |
+| `cooldownMs` | ms | Milliseconds before the same attack can be queued again. |
+| `meleeChaseStandoffWu` | WU | Extra WU gap when chase stops short of player body contact. |
 
 #### `combat.arrowRain` (`arrowRainArcher`)
 
 Telegraphed ground zone ticks.
 
-| Field | Unit |
-|-------|------|
-| `damage` | number |
-| `preferredRange` | px |
-| `attackTriggerRange` | px |
-| `kiteBandSlackWu` | WU |
-| `windupMs` | ms |
-| `activeMs` | ms |
-| `recoveryMs` | ms |
-| `cooldownMs` | ms |
-| `zoneRadius` | px |
-| `tickIntervalMs` | ms |
-| `tickDamageScale` | dimensionless |
-| `maxTicks` | count |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `damage` | number | Damage dealt by this attack mode. |
+| `preferredRange` | px | Ideal standoff distance in px from target. |
+| `attackTriggerRange` | px | Px range to begin attack windup. |
+| `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
+| `windupMs` | ms | Ms before attack active frames begin. |
+| `activeMs` | ms | Ms the attack hitbox can deal damage. |
+| `recoveryMs` | ms | Ms after active before returning to idle. |
+| `cooldownMs` | ms | Ms before this attack can be used again. |
+| `zoneRadius` | px | Px radius of telegraphed ground AoE. |
+| `tickIntervalMs` | ms | Ms between AoE damage ticks. |
+| `tickDamageScale` | dimensionless | Per-tick damage multiplier (dimensionless). |
+| `maxTicks` | count | Maximum tick applications per zone. |
 
 #### `combat.javelineer` (`javelineer`)
 
-| Field | Unit |
-|-------|------|
-| `damage` | number |
-| `minRange` | px |
-| `maxRange` | px |
-| `kiteBandSlackWu` | WU |
-| `strafeSpeedMul` | dimensionless |
-| `orbitFlipMs` | ms |
-| `windupMs` | ms |
-| `activeMs` | ms |
-| `recoveryMs` | ms |
-| `cooldownMs` | ms |
-| `projectileSpeed` | px/s |
-| `projectileMaxTravel` | px |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `damage` | number | Damage dealt by this attack mode. |
+| `minRange` | px | Minimum px range to use ranged attack. |
+| `maxRange` | px | Maximum px range for ranged attack. |
+| `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
+| `strafeSpeedMul` | dimensionless | Multiplier on strafe speed while kiting. |
+| `orbitFlipMs` | ms | Ms between orbit direction changes. |
+| `windupMs` | ms | Ms before attack active frames begin. |
+| `activeMs` | ms | Ms the attack hitbox can deal damage. |
+| `recoveryMs` | ms | Ms after active before returning to idle. |
+| `cooldownMs` | ms | Ms before this attack can be used again. |
+| `projectileSpeed` | px/s | Projectile speed in px/s. |
+| `projectileMaxTravel` | px | Maximum projectile travel in px. |
 
 #### `combat.stationaryRanged` (`stationaryRanged`, `rangedHybrid`)
 
-| Field | Unit |
-|-------|------|
-| `damage` | number |
-| `preferredRange` | px |
-| `attackTriggerRange` | px |
-| `kiteBandSlackWu` | WU |
-| `windupMs` | ms |
-| `activeMs` | ms |
-| `recoveryMs` | ms |
-| `cooldownMs` | ms |
-| `projectileSpeed` | px/s |
-| `projectileMaxTravel` | px |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `damage` | number | Damage dealt by this attack mode. |
+| `preferredRange` | px | Ideal standoff distance in px from target. |
+| `attackTriggerRange` | px | Px range to begin attack windup. |
+| `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
+| `windupMs` | ms | Ms before attack active frames begin. |
+| `activeMs` | ms | Ms the attack hitbox can deal damage. |
+| `recoveryMs` | ms | Ms after active before returning to idle. |
+| `cooldownMs` | ms | Ms before this attack can be used again. |
+| `projectileSpeed` | px/s | Projectile speed in px/s. |
+| `projectileMaxTravel` | px | Maximum projectile travel in px. |
 
 #### `combat.wallSiege` (`wallSiege`)
 
-| Field | Unit |
-|-------|------|
+| Field | Unit | Meaning |
+|-------|------|---------|
 | `playerAggroRadius` | px | Overrides global aggro while sieging |
 
 #### `combat.charger` (`charger`)
 
-| Field | Unit |
-|-------|------|
-| `chargeDamage` | number |
-| `dashMinRange` | WU |
-| `dashTriggerRange` | px |
-| `dashWindupMs` | ms |
-| `dashDurationMs` | ms |
-| `dashSpeedMul` | dimensionless |
-| `dashCooldownMs` | ms |
-| `dashOvershootRange` | WU |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `chargeDamage` | number | Damage dealt when charger dash connects. |
+| `dashMinRange` | WU | Minimum WU spacing required to start dash. |
+| `dashTriggerRange` | px | Px distance to enter dash windup. |
+| `dashWindupMs` | ms | Dash windup duration in ms. |
+| `dashDurationMs` | ms | Dash movement duration in ms. |
+| `dashSpeedMul` | dimensionless | Speed multiplier during dash burst. |
+| `dashCooldownMs` | ms | Ms cooldown before next dash. |
+| `dashOvershootRange` | WU | WU overshoot past dash aim point. |
 
 #### `combat.lobber` (`lobber`)
 
-| Field | Unit |
-|-------|------|
-| `damage` | number |
-| `preferredRange` | px |
-| `attackTriggerRange` | px |
-| `kiteBandSlackWu` | WU |
-| `windupMs` | ms |
-| `activeMs` | ms |
-| `recoveryMs` | ms |
-| `cooldownMs` | ms |
-| `projectileSpeed` | px/s |
-| `blastRadius` | px |
-| `blastDamageScale` | dimensionless |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `damage` | number | Damage dealt by this attack mode. |
+| `preferredRange` | px | Ideal standoff distance in px from target. |
+| `attackTriggerRange` | px | Px range to begin attack windup. |
+| `kiteBandSlackWu` | WU | WU slack around preferred range for kite band. |
+| `windupMs` | ms | Ms before attack active frames begin. |
+| `activeMs` | ms | Ms the attack hitbox can deal damage. |
+| `recoveryMs` | ms | Ms after active before returning to idle. |
+| `cooldownMs` | ms | Ms before this attack can be used again. |
+| `projectileSpeed` | px/s | Projectile speed in px/s. |
+| `blastRadius` | px | Px blast radius on lob impact. |
+| `blastDamageScale` | dimensionless | Dimensionless lob blast damage scale. |
 
 #### `combat.ward` (`ward`)
 
-| Field | Unit |
-|-------|------|
-| `protectRadius` | px |
-| `screenOffsetWu` | WU |
-| `playerAggroRadius` | px |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `protectRadius` | px | Px radius allies are protected by ward. |
+| `screenOffsetWu` | WU | WU offset for ward screening position. |
+| `playerAggroRadius` | px | Px radius to prefer chasing player over objective. |
 
 #### `combat.hybrid` (`rangedHybrid`)
 
-| Field | Unit |
-|-------|------|
-| `closeMeleeRadius` | px |
-| `preferredRange` | px |
-| `maxMeleeSwings` | count |
-| `retreatRangeSlack` | px |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `closeMeleeRadius` | px | Px threshold to enter hybrid melee phase. |
+| `preferredRange` | px | Ideal standoff distance in px from target. |
+| `maxMeleeSwings` | count | Melee swings allowed before hybrid retreat. |
+| `retreatRangeSlack` | px | Px slack when picking hybrid retreat point. |
 
 **Shipped enemy ids:** `grunt`, `bruiser`, `arrow_rain_archer`, `skirmisher`, `sentry_archer`, `javelineer`, `slow_siege`, `fast_sapper`, `charger`, `lobber`, `reaver`, `ward`.
 
@@ -206,12 +213,12 @@ Telegraphed ground zone ticks.
 
 Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.).
 
-| Field | Unit | Required |
-|-------|------|----------|
-| `playerAggroRadius` | px | **yes** |
-| `playerChaseMemoryMs` | ms | **yes** |
-| `wallVelocityBlendMs` | ms | **yes** |
-| `northWallMeleeStandoffPx` | px | **yes** |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `playerAggroRadius` | px | Px radius to aggro on player instead of default goal. |
+| `playerChaseMemoryMs` | ms | Ms to keep chasing last known player after LOS break. |
+| `wallVelocityBlendMs` | ms | Ms blending velocity from chase back toward wall path. |
+| `northWallMeleeStandoffPx` | px | Global px offset south of north wall for path goals. |
 
 ---
 
@@ -219,11 +226,11 @@ Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.)
 
 Nav inflation and knockback cap (`applyEntityPhysics`).
 
-| Field | Unit | Required |
-|-------|------|----------|
-| `enemyPathClearanceMarginPx` | px | **yes** |
-| `staticObstacleNavClearancePx` | px | **yes** |
-| `knockbackVelocityCapMult` | dimensionless | **yes** |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `enemyPathClearanceMarginPx` | px | Extra px clearance around enemies on nav grid. |
+| `staticObstacleNavClearancePx` | px | Px inflation around obstacles for pathfinding. |
+| `knockbackVelocityCapMult` | dimensionless | Caps knockback velocity to strength times this mult. |
 
 ---
 
@@ -231,32 +238,34 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 
 Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
-| Field | Unit | Required |
-|-------|------|----------|
-| `moveSpeed` | px/s | **yes** |
-| `maxHp` | number | **yes** |
-| `bodyRadius` | px | **yes** |
-| `meleeWindupMs` | ms | **yes** |
-| `meleeActiveMs` | ms | **yes** |
-| `meleeRecoveryMs` | ms | **yes** |
-| `meleeStrikeRange` | px | **yes** |
-| `meleeEngageTargetRadius` | px | **yes** |
-| `meleeActivationSlackWu` | WU | **yes** |
-| `meleeArcDeg` | deg | **yes** |
-| `meleeDamage` | number | **yes** |
-| `meleeKnockback` | knockback strength | **yes** |
-| `rangedWindupMs` | ms | **yes** |
-| `rangedActiveMs` | ms | **yes** |
-| `rangedRecoveryMs` | ms | **yes** |
-| `rangedDamage` | number | **yes** |
-| `rangedMaxRange` | px | **yes** |
-| `rangedKnockback` | knockback strength | **yes** |
-| `projectileSpeed` | px/s | **yes** |
-| `autoAttackRangedRange` | px | **yes** |
-| `targetTapRadiusWorld` | px | **yes** |
-| `playerHitInvulnMs` | ms | **yes** |
-| `nightSpawnInvulnMs` | ms | **yes** |
-| `endlessPanelDefaultConcurrent` | count | **yes** |
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `moveSpeed` | px/s | Player locomotion speed in px/s during Defense. |
+| `maxHp` | number | Player maximum hit points at night start. |
+| `bodyRadius` | px | Arcade physics circle radius in world px. |
+| `meleeWindupMs` | ms | Boot-required `meleeWindupMs`; see normalize* and combat code for usage. |
+| `meleeActiveMs` | ms | Boot-required `meleeActiveMs`; see normalize* and combat code for usage. |
+| `meleeRecoveryMs` | ms | Boot-required `meleeRecoveryMs`; see normalize* and combat code for usage. |
+| `meleeStrikeRange` | px | Px reach of player melee swipe centerline. |
+| `meleeEngageTargetRadius` | px | Px enemy proximity required to allow melee engage. |
+| `meleeActivationSlackWu` | WU | WU subtracted when deriving autoAttackMeleeRange. |
+| `meleeArcDeg` | deg | Player melee arc width in degrees. |
+| `meleeDamage` | number | Player melee hit damage per connect. |
+| `meleeKnockback` | knockback strength | Knockback impulse strength for player melee. |
+| `rangedWindupMs` | ms | Boot-required `rangedWindupMs`; see normalize* and combat code for usage. |
+| `rangedActiveMs` | ms | Boot-required `rangedActiveMs`; see normalize* and combat code for usage. |
+| `rangedRecoveryMs` | ms | Boot-required `rangedRecoveryMs`; see normalize* and combat code for usage. |
+| `rangedDamage` | number | Player bow shot damage. |
+| `rangedMaxRange` | px | Maximum player ranged shot distance in px. |
+| `rangedKnockback` | knockback strength | Knockback impulse for player ranged hits. |
+| `projectileSpeed` | px/s | Projectile travel speed in px/s. |
+| `autoAttackRangedRange` | px | Px range for automatic ranged target acquisition. |
+| `targetTapRadiusWorld` | px | Px pick radius for manual enemy tap targeting. |
+| `playerHitInvulnMs` | ms | Ms of invulnerability after player takes damage. |
+| `nightSpawnInvulnMs` | ms | Ms invulnerability immediately after Defense spawn. |
+| `endlessPanelDefaultConcurrent` | count | Initial concurrent enemy cap in endless UI. |
+
+- `autoAttackMeleeRange` — px; derived at boot from meleeStrikeRange, meleeEngageTargetRadius, and meleeActivationSlackWu (not stored in JSON).
 
 **Derived at boot (not in JSON):** `autoAttackMeleeRange` = `meleeStrikeRange` + `meleeEngageTargetRadius` − `meleeActivationSlackWu`.
 
@@ -266,36 +275,53 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
 Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
-### Every spell row
 
-| Field | Required at boot | Notes |
-|-------|------------------|-------|
-| `id` | **yes** (string) | Content id |
-| `mechanicType` | **yes** (string) | Drives validation and casting |
-| `name`, `shortLabel`, `iconFile` | runtime | UI / assets |
-| `castableInDefense`, `implementationPhase`, `cooldownMs`, `channelMs` | runtime | HUD and scheduling |
-| `castMs`, `channelTickMs`, `targetMode`, `requireEnemyTarget`, `centerOnCaster` | optional | Cast bar / targeting |
-| `baseDamage`, `projectileSpeed`, `healAmount`, `burstDamage` | optional | Per mechanic |
-| `groundTargetMaxRangeWu`, `blastRadius`, `lingerMs`, `lingerTickMs` | optional | AoE / ground aim |
-| `onHit` | optional | `slowPct`, `slowMs`, `dotDps`, `dotMs`, `rootMs`, `stunMs` |
-| `damageFlavor` | optional | Damage typing |
-| Asset keys | optional | `projectileTextureKey`, `projectileFile`, `blastTextureKey`, `blastFile` |
+### Boot-validated spell fields (`normalizeSpellCatalog`)
 
-### Mechanic-specific boot validation
+| Field | Meaning |
+|-------|---------|
+| `spells` | Root array of spell rows; must be non-empty at Boot. |
+| `id` | Unique string spell id used in save spell bar and casting. |
+| `mechanicType` | Selects cast pipeline and which numeric fields are required. |
+| `swingRangeWu` | WU melee swing reach for swing and tracking_swing types. |
+| `swingArcDeg` | Swing arc width in degrees. |
+| `coneRangeWu` | WU cone length for cone and channeled_cone types. |
+| `coneArcDeg` | Cone arc width in degrees. |
+| `blinkDistanceWu` | Attempted blink travel distance in WU. |
+| `blinkResolveBinarySearchIterations` | Binary search steps for partial blink path resolution. |
+| `blinkPartialMoveEpsilonWu` | Minimum WU travel to treat blink as having moved. |
+| `iceWallDistanceWu` | WU offset where ice wall is placed ahead of caster. |
+| `iceWallDurationMs` | Duration in ms before ice wall despawns. |
+| `shadowformDurationMs` | Buff duration in ms for shadowform mechanic type. |
+| `shadowformMoveSpeedMult` | Player speed multiplier while shadowform buff is active. |
+| `shadowformDamageTakenMult` | Incoming damage multiplier in [0,1] while buffed. |
+| `shadowformAggroRadiusMult` | Enemy aggro radius multiplier in [0,1] while buffed. |
+| `knockback` | Direct hit knockback impulse where required by mechanic. |
+| `blastKnockback` | Radial knockback on blast or AoE detonation. |
+| `chainKnockback` | First target knockback on chain_lightning. |
+| `chainHopKnockback` | Knockback applied on each chain lightning hop. |
+| `chainLightningHops` | Maximum extra targets after the first chain hit. |
+| `chainLightningHopRangeWu` | WU maximum distance between chain hops. |
 
-| `mechanicType` | Extra required numeric fields |
+### Runtime spell row fields (not in boot parity CI)
+
+Runtime/UI fields (name, castMs, icons, assets, onHit effects, etc.) are authored per row but not listed in the boot parity set—see `SpellDefinition` in `src/content/spells.ts`.
+
+### Mechanic-specific boot validation (reference only)
+
+| mechanicType | Extra required numeric fields |
 |----------------|------------------------------|
-| `swing`, `tracking_swing` | `swingRangeWu`, `swingArcDeg`, `knockback` |
-| `cone`, `channeled_cone` | `coneRangeWu`, `coneArcDeg`, `knockback` |
-| `blink` | `blinkDistanceWu`, `blinkResolveBinarySearchIterations`, `blinkPartialMoveEpsilonWu` |
-| `ice_wall` | `iceWallDistanceWu`, `iceWallDurationMs` |
-| `buff` | `shadowformDurationMs`; if `id` is `shadowform` also `shadowformMoveSpeedMult`, `shadowformDamageTakenMult`, `shadowformAggroRadiusMult` |
-| `projectile` | `knockback` |
-| `projectile_aoe` | `knockback`, `blastKnockback` |
-| `tracking_projectile` | `knockback`; if `id` is `chain_lightning` also `chainKnockback`, `chainHopKnockback`, `chainLightningHops`, `chainLightningHopRangeWu` |
-| `blast` | `blastKnockback` |
-| `instant_targeted` | `knockback`; `blastKnockback` when `blastRadius` or positive `burstDamage` |
-| `heal`, `ice_wall`, `buff`, `blink`, `channeled`, `channeled_area` | no knockback fields |
+| swing, tracking_swing | swingRangeWu, swingArcDeg, knockback |
+| cone, channeled_cone | coneRangeWu, coneArcDeg, knockback |
+| blink | blinkDistanceWu, blinkResolveBinarySearchIterations, blinkPartialMoveEpsilonWu |
+| ice_wall | iceWallDistanceWu, iceWallDurationMs |
+| buff | shadowformDurationMs; shadowform row also needs shadowform*Mult fields |
+| projectile | knockback |
+| projectile_aoe | knockback, blastKnockback |
+| tracking_projectile | knockback; chain_lightning row also needs chain* fields |
+| blast | blastKnockback |
+| instant_targeted | knockback; blastKnockback when blastRadius or burstDamage |
+| heal, channeled, channeled_area | no knockback fields |
 
 Shadowform multipliers are also applied globally via `shadowformMechanicsFromCatalog` (formerly `spell-mechanics.json`).
 
@@ -303,28 +329,28 @@ Shadowform multipliers are also applied globally via `shadowformMechanicsFromCat
 
 ## defense-maps.json
 
-| Field | Required |
-|-------|----------|
-| `defaultMapId` | **yes** (string, must match a map `id`) |
-| `maps` | **yes** (non-empty array) |
+| Field | Meaning |
+|-------|---------|
+| `defaultMapId` | Map id used when none is selected for Defense. |
+| `maps` | Array of defense map definitions for night field layout. |
 
 Each map:
 
-| Field | Required |
-|-------|----------|
-| `id` | **yes** (string) |
-| `field` | **yes** (object) |
-| `cols` | **yes** on `field` (tiles, ≥ 1) |
-| `rows` | **yes** on `field` (tiles, ≥ 1) |
-| `obstacles` | **yes** (non-empty array) |
+| Field | Meaning |
+|-------|---------|
+| `id` | String identifier for a map or spell content row. |
+| `field` | Nested object describing playable tile grid size. |
+| `cols` | Tile column count for defense field (>= 1). |
+| `rows` | Tile row count for defense field (>= 1). |
+| `obstacles` | Array of static obstacle placements on the field. |
 
 Each obstacle:
 
-| Field | Required |
-|-------|----------|
-| `tileX` | **yes** |
-| `tileY` | **yes** |
-| `textureKey` | **yes** (must be a key from `OBSTACLE_TEXTURE` in `src/content/assets.ts`) |
+| Field | Meaning |
+|-------|---------|
+| `tileX` | Obstacle tile column index on defense grid. |
+| `tileY` | Obstacle tile row index on defense grid. |
+| `textureKey` | Obstacle texture key validated against OBSTACLE_TEXTURE in assets. |
 
 ---
 
@@ -332,19 +358,19 @@ Each obstacle:
 
 Top-level keys: **night number** (string) → wave def.
 
-| Field | Required |
-|-------|----------|
-| `rewardGold` | **yes** (gold on clear) |
-| `groups` | **yes** (array) |
+| Field | Meaning |
+|-------|---------|
+| `rewardGold` | Gold granted to save when the wave night is cleared. |
+| `groups` | Spawn groups scheduled relative to night start time. |
 
 Each group:
 
-| Field | Required |
-|-------|----------|
-| `atMs` | **yes** (ms from night start) |
-| `enemyId` | **yes** (`enemies.json` key) |
-| `count` | **yes** |
-| `intervalMs` | **yes** (spacing between spawns in group) |
+| Field | Meaning |
+|-------|---------|
+| `atMs` | Ms from defense night start when this spawn group begins. |
+| `enemyId` | Key referencing a row in enemies.json. |
+| `count` | Number of enemies to spawn in this group. |
+| `intervalMs` | Ms between consecutive spawns within the group. |
 
 `DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`.
 
@@ -354,11 +380,11 @@ Each group:
 
 Town upgrade defs keyed by building id (`wall`, `blacksmith`, …).
 
-| Field | Required |
-|-------|----------|
-| `maxLevel` | **yes** |
-| `costByLevel` | **yes** (array length = purchasable steps) |
-| `effect` | **yes** | `wallHpMax` or `playerDamage` (see `GameState` / town menu) |
+| Field | Meaning |
+|-------|---------|
+| `maxLevel` | Maximum purchasable upgrade level for this town building. |
+| `costByLevel` | Gold cost per upgrade level index in town. |
+| `effect` | Effect id applied on upgrade: wallHpMax or playerDamage via GameState (see `GameState` / town menu) |
 
 ---
 
@@ -366,30 +392,30 @@ Town upgrade defs keyed by building id (`wall`, `blacksmith`, …).
 
 Town clickable building art + actions (`TownBuildingDef`).
 
-| Field | Required |
-|-------|----------|
-| `label` | **yes** |
-| `textureKey` | **yes** |
-| `width` | **yes** (px) |
-| `height` | **yes** (px) |
-| `upgradeId` | optional | Links to `buildings.json` id |
-| `startsNight` | optional | Tap → Defense night |
-| `opensSpellBar` | optional | Spell sort panel |
-| `opensEndlessMode` | optional | Endless training panel |
-| `opensWavePlanner` | optional | Custom wave planner |
+| Field | Meaning |
+|-------|---------|
+| `label` | Display name shown in town building menus. |
+| `textureKey` | Texture key for this town building sprite loaded at Boot. |
+| `width` | Building hitbox / sprite width in town scene px. |
+| `height` | Building hitbox / sprite height in town scene px. |
+| `upgradeId` | Optional buildings.json id used when this building opens upgrades. |
+| `startsNight` | When true, tapping this building starts a Defense night. |
+| `opensSpellBar` | When true, opens the town spell bar sort panel. |
+| `opensEndlessMode` | When true, opens the endless enemy training panel. |
+| `opensWavePlanner` | When true, opens the custom wave planner panel. |
 
 ---
 
 ## town_layout.json
 
-| Field | Required |
-|-------|----------|
-| `slots` | **yes** (array) |
+| Field | Meaning |
+|-------|---------|
+| `slots` | Array of town building placements on the town map. |
 
 Each slot:
 
-| Field | Required |
-|-------|----------|
-| `buildingId` | **yes** (`town_buildings.json` key) |
-| `x` | **yes** (town scene px) |
-| `y` | **yes** (town scene px) |
+| Field | Meaning |
+|-------|---------|
+| `buildingId` | Key referencing town_buildings.json for this slot. |
+| `x` | Horizontal position in town scene px. |
+| `y` | Vertical position in town scene px. |
