@@ -13,6 +13,7 @@ import type { EnemyInstance } from "../../entities/Enemy";
 import {
   enemyCollisionBodyRadius,
   enemyPathClearancePx,
+  enforceEnemyDefenseBounds,
 } from "../../entities/entityPhysics";
 import { worldUnit } from "../../core/worldPixelScale";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
@@ -340,6 +341,10 @@ export function tickDefenseEnemies(
     }
 
     decayEnemyKnockback(e, delta);
+    enforceEnemyDefenseBounds(
+      e,
+      worldUnit(enemyCollisionBodyRadius(e.defId), host.registry),
+    );
   }
 
   return { wallHp, playerInvulnMs, enemyProjectiles };

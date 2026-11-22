@@ -1,7 +1,9 @@
 import Phaser from "phaser";
+import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import { PLAYER_TUNING } from "../config/player";
 import { ConfigLoadError } from "../core/configValidation";
 import type { EnemyDef } from "../core/DataStore";
+import type { EnemyKnockbackCarrier } from "../combat/enemyKnockback";
 
 /** Matches {@link DEFENSE_MAP.cellSize} / 2 − 1 px nav margin on obstacle inflation. */
 export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
@@ -91,6 +93,58 @@ export function applyArcadeCircleCollider(
   const offsetX = sprite.displayWidth / 2 - circleRadius;
   const offsetY = sprite.displayHeight / 2 - circleRadius;
   sprite.setCircle(circleRadius, offsetX, offsetY);
+}
+
+export type DefensePlayBounds = {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
+/** Inset defense field so a circle body at (x, y) stays fully on the playable ground. */
+export function defensePlayBoundsInset(bodyRadiusPx: number): DefensePlayBounds {
+  const halfW = defenseHalfWidth();
+  const halfH = defenseHalfHeight();
+  const inset = Math.max(0, bodyRadiusPx);
+  return {
+    minX: -halfW + inset,
+    maxX: halfW - inset,
+    minY: -halfH + inset,
+    maxY: halfH - inset,
+  };
+}
+
+export function clampToDefensePlayBounds(
+  x: number,
+  y: number,
+  bounds: DefensePlayBounds,
+): { x: number; y: number; changed: boolean } {
+  const nx = Math.min(bounds.maxX, Math.max(bounds.minX, x));
+  const ny = Math.min(bounds.maxY, Math.max(bounds.minY, y));
+  return { x: nx, y: ny, changed: nx !== x || ny !== y };
+}
+
+/**
+ * Snap an enemy back onto the field when knockback displaced the body center outside
+ * nav / camera bounds; clears residual knockback so pathing can recover.
+ */
+export function enforceEnemyDefenseBounds(
+  enemy: EnemyKnockbackCarrier,
+  bodyRadiusPx: number,
+): boolean {
+  const bounds = defensePlayBoundsInset(bodyRadiusPx);
+  const clamped = clampToDefensePlayBounds(
+    enemy.sprite.x,
+    enemy.sprite.y,
+    bounds,
+  );
+  if (!clamped.changed) return false;
+  enemy.sprite.setPosition(clamped.x, clamped.y);
+  enemy.knockbackVx = 0;
+  enemy.knockbackVy = 0;
+  enemy.sprite.setVelocity(0, 0);
+  return true;
 }
 
 export function tuneArcadeDynamicBody(
