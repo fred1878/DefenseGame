@@ -330,11 +330,12 @@ export class WavePlannerPanel {
 
     this.wireListViewportDrag();
 
-    const crY = listBottom + scaleUiY(11);
+    const footerAnchorY = listBottom + scaleUiY(11);
+    const crTextY = footerAnchorY - scaleUiY(9);
     this.challengeRatingText = scene.add
       .text(
         GAME.width / 2,
-        crY,
+        crTextY,
         "Challenge rating: 0",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(14)}px`,
@@ -344,7 +345,7 @@ export class WavePlannerPanel {
       .setOrigin(0.5);
     this.root.add(this.challengeRatingText);
 
-    const startY = crY + scaleUiY(26);
+    const startY = footerAnchorY + scaleUiY(26);
     this.startBtn = createTouchButton(
       scene,
       GAME.width / 2,
