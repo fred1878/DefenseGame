@@ -12,11 +12,11 @@ const OBSTACLE_LINE_ALPHA = 0.9;
 const MELEE_ACTIVATION_FILL = 0xfff59d;
 const MELEE_ACTIVATION_FILL_ALPHA = 0.07;
 const MELEE_ACTIVATION_LINE = 0xfff176;
-const MELEE_ACTIVATION_LINE_ALPHA = 0.32;
+const MELEE_ACTIVATION_LINE_ALPHA = 0.52;
 const MELEE_MAX_RANGE_FILL = 0xffb74d;
 const MELEE_MAX_RANGE_FILL_ALPHA = 0.07;
 const MELEE_MAX_RANGE_LINE = 0xff9800;
-const MELEE_MAX_RANGE_LINE_ALPHA = 0.32;
+const MELEE_MAX_RANGE_LINE_ALPHA = 0.52;
 
 /** Clears and redraws combat hitboxes in world space. */
 export class HitboxDebugDraw {
@@ -49,7 +49,7 @@ export class HitboxDebugDraw {
   drawMeleeActivationRange(x: number, y: number, radius: number): void {
     this.g.fillStyle(MELEE_ACTIVATION_FILL, MELEE_ACTIVATION_FILL_ALPHA);
     this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.25, MELEE_ACTIVATION_LINE, MELEE_ACTIVATION_LINE_ALPHA);
+    this.g.lineStyle(1.5, MELEE_ACTIVATION_LINE, MELEE_ACTIVATION_LINE_ALPHA);
     this.g.strokeCircle(x, y, radius);
   }
 
@@ -57,7 +57,7 @@ export class HitboxDebugDraw {
   drawMeleeMaxRange(x: number, y: number, radius: number): void {
     this.g.fillStyle(MELEE_MAX_RANGE_FILL, MELEE_MAX_RANGE_FILL_ALPHA);
     this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.25, MELEE_MAX_RANGE_LINE, MELEE_MAX_RANGE_LINE_ALPHA);
+    this.g.lineStyle(1.5, MELEE_MAX_RANGE_LINE, MELEE_MAX_RANGE_LINE_ALPHA);
     this.g.strokeCircle(x, y, radius);
   }
 
