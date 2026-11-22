@@ -42,6 +42,7 @@ export type EnemyCombatPartial = {
     damage?: number;
     preferredRange?: number;
     attackTriggerRange?: number;
+    kiteBandSlackWu?: number;
     windupMs?: number;
     activeMs?: number;
     recoveryMs?: number;
@@ -56,6 +57,7 @@ export type EnemyCombatPartial = {
     damage?: number;
     minRange?: number;
     maxRange?: number;
+    kiteBandSlackWu?: number;
     strafeSpeedMul?: number;
     orbitFlipMs?: number;
     windupMs?: number;
@@ -70,6 +72,7 @@ export type EnemyCombatPartial = {
     damage?: number;
     preferredRange?: number;
     attackTriggerRange?: number;
+    kiteBandSlackWu?: number;
     windupMs?: number;
     activeMs?: number;
     recoveryMs?: number;
@@ -99,6 +102,7 @@ export type EnemyCombatPartial = {
     damage?: number;
     preferredRange?: number;
     attackTriggerRange?: number;
+    kiteBandSlackWu?: number;
     windupMs?: number;
     activeMs?: number;
     recoveryMs?: number;
@@ -166,6 +170,7 @@ export type EnemyArrowRainCombat = {
   damage: number;
   preferredRange: number;
   attackTriggerRange: number;
+  kiteBandSlackWu: number;
   windupMs: number;
   activeMs: number;
   recoveryMs: number;
@@ -180,6 +185,7 @@ export type EnemyJavelineerCombat = {
   damage: number;
   minRange: number;
   maxRange: number;
+  kiteBandSlackWu: number;
   strafeSpeedMul: number;
   orbitFlipMs: number;
   windupMs: number;
@@ -194,6 +200,7 @@ export type EnemyStationaryRangedCombat = {
   damage: number;
   preferredRange: number;
   attackTriggerRange: number;
+  kiteBandSlackWu: number;
   windupMs: number;
   activeMs: number;
   recoveryMs: number;
@@ -221,6 +228,7 @@ export type EnemyLobberCombat = {
   damage: number;
   preferredRange: number;
   attackTriggerRange: number;
+  kiteBandSlackWu: number;
   windupMs: number;
   activeMs: number;
   recoveryMs: number;

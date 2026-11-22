@@ -22,6 +22,7 @@ describe("updateLobberCombat attack commit", () => {
       projectileSpeed: 200,
       blastRadius: 50,
       blastDamageScale: 0.9,
+      kiteBandSlackWu: 22,
     },
   }, "lobber");
 

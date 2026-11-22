@@ -56,7 +56,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
   const wallY = northWallAttackY();
 
   if (desired === "player" && arrow) {
-    const bandSlack = worldUnit(24, reg);
+    const bandSlack = worldUnit(arrow.kiteBandSlackWu, reg);
     const preferred = worldUnit(arrow.preferredRange, reg);
     const attackMax = worldUnit(arrow.attackTriggerRange, reg);
     const distToPlayer = Math.hypot(playerX - ex, playerY - ey);
@@ -101,7 +101,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
   }
 
   if (desired === "wall" && arrow) {
-    const bandSlack = worldUnit(24, reg);
+    const bandSlack = worldUnit(arrow.kiteBandSlackWu, reg);
     const preferred = worldUnit(arrow.preferredRange, reg);
     const attackMax = worldUnit(arrow.attackTriggerRange, reg);
     const distToWall = ey - wallY;

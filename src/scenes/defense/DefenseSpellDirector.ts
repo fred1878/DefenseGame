@@ -964,6 +964,10 @@ export class DefenseSpellDirector {
       playerR,
       this.blinkObstacleAABBs(),
       enemies,
+      {
+        binarySearchIterations: def.blinkResolveBinarySearchIterations!,
+        partialMoveEpsilonPx: this.host.wu(def.blinkPartialMoveEpsilonWu!),
+      },
     );
     const blinkFxR = playerR * 1.4;
     this.host.flashNova(px, py, blinkFxR, {

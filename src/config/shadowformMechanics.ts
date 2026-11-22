@@ -1,10 +1,14 @@
-import type { ShadowformMechanics } from "../core/normalizeSpellMechanics";
+export type ShadowformMechanics = {
+  moveSpeedMult: number;
+  damageTakenMult: number;
+  aggroRadiusMult: number;
+};
 
 function unsetShadowform(): ShadowformMechanics {
   return new Proxy({} as ShadowformMechanics, {
     get() {
       throw new Error(
-        "SHADOWFORM_MECHANICS not loaded — Boot must apply public/data/spell-mechanics.json",
+        "SHADOWFORM_MECHANICS not loaded — Boot must apply shadowform fields from spells.json",
       );
     },
   });

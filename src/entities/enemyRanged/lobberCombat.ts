@@ -38,7 +38,7 @@ export function updateLobberCombat(
     c.facing = Math.atan2(dy, dx);
   }
 
-  const minVolley = tune.preferredRange - 22;
+  const minVolley = tune.preferredRange - tune.kiteBandSlackWu;
   const inRange = dist <= tune.attackTriggerRange && dist >= minVolley;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {

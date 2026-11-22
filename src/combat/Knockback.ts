@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { knockbackVelocityCapMult } from "../entities/entityPhysics";
 
 export function applyKnockbackFrom(
   sprite: Phaser.Physics.Arcade.Sprite,
@@ -15,7 +16,7 @@ export function applyKnockbackFrom(
   if (!body) return;
   body.velocity.x += nx * strength;
   body.velocity.y += ny * strength;
-  const maxV = strength * 1.35;
+  const maxV = strength * knockbackVelocityCapMult();
   const vlen = Math.hypot(body.velocity.x, body.velocity.y);
   if (vlen > maxV) {
     body.velocity.x = (body.velocity.x / vlen) * maxV;

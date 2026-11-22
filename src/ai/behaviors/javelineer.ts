@@ -184,7 +184,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
   if (desired === "player" && javelineer) {
     const minRange = worldUnit(javelineer.minRange, reg);
     const maxRange = worldUnit(javelineer.maxRange, reg);
-    const bandSlack = worldUnit(28, reg);
+    const bandSlack = worldUnit(javelineer.kiteBandSlackWu, reg);
     const ideal = (minRange + maxRange) / 2;
     const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
 

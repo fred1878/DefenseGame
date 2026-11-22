@@ -64,7 +64,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   const targetX = desired === "player" ? playerX : goal.x;
   const targetY = desired === "player" ? playerY : goal.y;
   const dist = Math.hypot(targetX - ex, targetY - ey);
-  const bandSlack = worldUnit(22, reg);
+  const bandSlack = worldUnit(lob.kiteBandSlackWu, reg);
   const preferred = worldUnit(lob.preferredRange, reg);
   const attackMax = worldUnit(lob.attackTriggerRange, reg);
 

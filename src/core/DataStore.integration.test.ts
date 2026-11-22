@@ -291,6 +291,7 @@ describe("public data fixtures", () => {
     const physics = readJson("entity-physics.json") as {
       enemyPathClearanceMarginPx: number;
       staticObstacleNavClearancePx: number;
+      knockbackVelocityCapMult: number;
     };
     const ai = readJson("enemy-ai.json") as { playerAggroRadius: number };
     expectFiniteNumber(
@@ -300,6 +301,10 @@ describe("public data fixtures", () => {
     expectFiniteNumber(
       physics.staticObstacleNavClearancePx,
       "entity-physics.staticObstacleNavClearancePx",
+    );
+    expectFiniteNumber(
+      physics.knockbackVelocityCapMult,
+      "entity-physics.knockbackVelocityCapMult",
     );
     expectFiniteNumber(ai.playerAggroRadius, "enemyAi.playerAggroRadius");
   });

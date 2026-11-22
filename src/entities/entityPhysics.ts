@@ -11,6 +11,9 @@ export let ENEMY_PATH_CLEARANCE_MARGIN_PX = unsetMargin();
 /** Nav-grid inflation around static obstacle colliders (independent of agent body size). */
 export let STATIC_OBSTACLE_NAV_CLEARANCE_PX = unsetMargin();
 
+/** Caps combined knockback velocity as `strength * knockbackVelocityCapMult`. */
+export let KNOCKBACK_VELOCITY_CAP_MULT = unsetMargin();
+
 let enemyBodyRadiusById: Record<string, number> | null = null;
 
 function unsetMargin(): number {
@@ -26,9 +29,15 @@ function unsetMargin(): number {
 export function applyEntityPhysics(tuning: {
   enemyPathClearanceMarginPx: number;
   staticObstacleNavClearancePx: number;
+  knockbackVelocityCapMult: number;
 }): void {
   ENEMY_PATH_CLEARANCE_MARGIN_PX = tuning.enemyPathClearanceMarginPx;
   STATIC_OBSTACLE_NAV_CLEARANCE_PX = tuning.staticObstacleNavClearancePx;
+  KNOCKBACK_VELOCITY_CAP_MULT = tuning.knockbackVelocityCapMult;
+}
+
+export function knockbackVelocityCapMult(): number {
+  return KNOCKBACK_VELOCITY_CAP_MULT;
 }
 
 /** Build lookup table from normalized `enemies.json` rows (Boot / tests). */

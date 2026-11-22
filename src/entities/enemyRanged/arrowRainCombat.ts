@@ -30,7 +30,7 @@ export function updateArrowRainCombat(
     c.facing = Math.atan2(dy, dx);
   }
 
-  const minVolleyRange = tune.preferredRange - 24;
+  const minVolleyRange = tune.preferredRange - tune.kiteBandSlackWu;
   const inRange =
     dist <= tune.attackTriggerRange &&
     dist >= minVolleyRange;

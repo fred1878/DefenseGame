@@ -11,8 +11,10 @@ describe("normalizeEntityPhysics", () => {
     const out = normalizeEntityPhysics({
       enemyPathClearanceMarginPx: 7,
       staticObstacleNavClearancePx: 24,
+      knockbackVelocityCapMult: 1.35,
     });
     expect(out.enemyPathClearanceMarginPx).toBe(7);
     expect(out.staticObstacleNavClearancePx).toBe(24);
+    expect(out.knockbackVelocityCapMult).toBe(1.35);
   });
 });

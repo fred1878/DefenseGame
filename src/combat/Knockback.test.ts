@@ -1,7 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { applyEntityPhysics } from "../entities/entityPhysics";
 import { applyKnockbackFrom } from "./Knockback";
 
 describe("applyKnockbackFrom", () => {
+  beforeAll(() => {
+    applyEntityPhysics({
+      enemyPathClearanceMarginPx: 9,
+      staticObstacleNavClearancePx: 18,
+      knockbackVelocityCapMult: 1.35,
+    });
+  });
   it("pushes sprite away from the impact origin", () => {
     const body = { velocity: { x: 0, y: 0 } };
     const sprite = {
