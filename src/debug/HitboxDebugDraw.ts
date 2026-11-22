@@ -9,6 +9,10 @@ const OBSTACLE_LINE = 0x38bdf8;
 const OBSTACLE_FILL = 0x38bdf8;
 const OBSTACLE_FILL_ALPHA = 0.12;
 const OBSTACLE_LINE_ALPHA = 0.9;
+const MELEE_ACTIVATION_FILL = 0xfff59d;
+const MELEE_ACTIVATION_FILL_ALPHA = 0.22;
+const MELEE_ACTIVATION_LINE = 0xfff176;
+const MELEE_ACTIVATION_LINE_ALPHA = 0.55;
 
 /** Clears and redraws combat hitboxes in world space. */
 export class HitboxDebugDraw {
@@ -34,6 +38,14 @@ export class HitboxDebugDraw {
     this.g.fillStyle(FILL, FILL_ALPHA);
     this.g.fillCircle(x, y, radius);
     this.g.lineStyle(1.5, LINE, LINE_ALPHA);
+    this.g.strokeCircle(x, y, radius);
+  }
+
+  /** Distance at which melee windup / player auto-melee can start (center-to-center). */
+  drawMeleeActivationRange(x: number, y: number, radius: number): void {
+    this.g.fillStyle(MELEE_ACTIVATION_FILL, MELEE_ACTIVATION_FILL_ALPHA);
+    this.g.fillCircle(x, y, radius);
+    this.g.lineStyle(1.25, MELEE_ACTIVATION_LINE, MELEE_ACTIVATION_LINE_ALPHA);
     this.g.strokeCircle(x, y, radius);
   }
 

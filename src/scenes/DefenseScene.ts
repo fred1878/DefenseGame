@@ -50,6 +50,7 @@ import {
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
+import { enemyUsesMeleePlayerActivationRange } from "../entities/EnemyCombat";
 import { PathDebugDraw } from "../debug/PathDebugDraw";
 import {
   TouchInputDebugDraw,
@@ -1226,6 +1227,11 @@ export class DefenseScene extends Phaser.Scene {
     const px = pBody.center.x;
     const py = pBody.center.y;
     const playerR = pBody.halfWidth;
+    this.hitboxDebug.drawMeleeActivationRange(
+      px,
+      py,
+      this.wu(PLAYER_TUNING.autoAttackMeleeRange),
+    );
     this.hitboxDebug.drawCircle(px, py, playerR);
 
     if (
@@ -1244,6 +1250,13 @@ export class DefenseScene extends Phaser.Scene {
 
     for (const e of this.enemies) {
       if (!e.damageable.alive) continue;
+      if (enemyUsesMeleePlayerActivationRange(e.behavior)) {
+        this.hitboxDebug.drawMeleeActivationRange(
+          e.sprite.x,
+          e.sprite.y,
+          e.combatTuning.melee.triggerRange,
+        );
+      }
       this.hitboxDebug.drawCircle(
         e.sprite.x,
         e.sprite.y,

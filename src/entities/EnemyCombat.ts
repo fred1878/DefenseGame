@@ -11,6 +11,18 @@ import {
 
 export type EnemyAttackPhase = "idle" | "windup" | "active" | "recovery";
 
+const RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS = new Set([
+  "arrowRainArcher",
+  "javelineer",
+  "stationaryRanged",
+  "lobber",
+]);
+
+/** Behaviors that use `combat.melee.triggerRange` vs the player for melee windup. */
+export function enemyUsesMeleePlayerActivationRange(behavior: string): boolean {
+  return !RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS.has(behavior);
+}
+
 export type EnemyCombatState = {
   phase: EnemyAttackPhase;
   phaseMs: number;

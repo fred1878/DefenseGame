@@ -5,6 +5,7 @@ import { playerBodyRadiusPx } from "./entityPhysics";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {
   createEnemyCombat,
+  enemyUsesMeleePlayerActivationRange,
   updateEnemyCombat,
   type EnemyCombatState,
 } from "./EnemyCombat";
@@ -152,5 +153,17 @@ describe("updateEnemyCombat player target", () => {
     bruiser.combat.phaseMs = 0;
     bruiser.combat.hitThisSwing = false;
     expect(updateEnemyCombat(bruiser, target, 0)).toBe(true);
+  });
+});
+
+describe("enemyUsesMeleePlayerActivationRange", () => {
+  it("includes melee chasers and hybrids", () => {
+    expect(enemyUsesMeleePlayerActivationRange("meleeChaser")).toBe(true);
+    expect(enemyUsesMeleePlayerActivationRange("rangedHybrid")).toBe(true);
+  });
+
+  it("excludes pure ranged behaviors", () => {
+    expect(enemyUsesMeleePlayerActivationRange("arrowRainArcher")).toBe(false);
+    expect(enemyUsesMeleePlayerActivationRange("stationaryRanged")).toBe(false);
   });
 });
