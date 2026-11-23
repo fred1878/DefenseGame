@@ -22,6 +22,11 @@ import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
 import { configurePixelArtTextures } from "../core/pixelArtTextures";
+import {
+  HOLY_FX_ASSETS,
+  HOLY_FX_ROOT,
+  registerHolyFxAnimations,
+} from "../content/holyFxAssets";
 import { markE2EAssetsLoaded } from "../e2e/installE2E";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
@@ -110,8 +115,15 @@ export class BootScene extends Phaser.Scene {
       for (const { key, file } of TOWN_BUILDING_ASSETS) {
         loader.image(key, `${TOWN_BUILDING_ASSET_ROOT}/${file}`);
       }
+      for (const entry of HOLY_FX_ASSETS) {
+        loader.spritesheet(entry.key, `${HOLY_FX_ROOT}/${entry.file}`, {
+          frameWidth: entry.frameWidth,
+          frameHeight: entry.frameHeight,
+        });
+      }
       loader.once(Phaser.Loader.Events.COMPLETE, () => {
         configurePixelArtTextures(this);
+        registerHolyFxAnimations(this);
         resolve();
       });
       loader.once(
