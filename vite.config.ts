@@ -6,6 +6,15 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "dist",
     sourcemap: mode !== "production",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/phaser")) {
+            return "phaser";
+          }
+        },
+      },
+    },
   },
   server: {
     host: "127.0.0.1",

@@ -9,6 +9,22 @@ const host = process.env.E2E_HOST ?? "127.0.0.1";
 const port = process.env.E2E_PORT ?? "4173";
 const baseURL = `http://${host}:${port}`;
 const runs = Number(process.env.LOAD_RUNS ?? 5);
+const profile = process.env.LOAD_PROFILE ?? "localhost";
+
+/** @type {Record<string, { throughput: number, latency: number, cpu: number } | null>} */
+const PROFILES = {
+  localhost: null,
+  Slow4G: {
+    throughput: (500 * 1024) / 8,
+    latency: 400,
+    cpu: 4,
+  },
+  Fast3G: {
+    throughput: (1.6 * 1024 * 1024) / 8,
+    latency: 150,
+    cpu: 2,
+  },
+};
 
 function startPreview() {
   return spawn(
@@ -54,6 +70,16 @@ async function measureOnce(browser) {
   const client = await context.newCDPSession(page);
   await client.send("Network.enable");
   await client.send("Network.clearBrowserCache");
+  const throttle = PROFILES[profile];
+  if (throttle) {
+    await client.send("Network.emulateNetworkConditions", {
+      offline: false,
+      downloadThroughput: throttle.throughput,
+      uploadThroughput: throttle.throughput / 2,
+      latency: throttle.latency,
+    });
+    await client.send("Emulation.setCPUThrottlingRate", { rate: throttle.cpu });
+  }
 
   const requests = [];
   client.on("Network.responseReceived", (ev) => {
@@ -165,6 +191,7 @@ try {
   const townTimes = results.map((r) => r.townInteractiveMs);
   const report = {
     baseURL,
+    profile,
     runs,
     townInteractiveMs: {
       min: Math.min(...townTimes),
