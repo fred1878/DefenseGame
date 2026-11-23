@@ -84,7 +84,7 @@ describe("normalizeHitFlash", () => {
             peakAlpha: 1,
             colorFade: "yes",
             alphaFade: true,
-          },
+          } as unknown as (typeof completeFixture.flavors)["fire"],
         },
       }),
     ).toThrow(ConfigLoadError);
