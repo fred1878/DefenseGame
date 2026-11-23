@@ -24,6 +24,12 @@ const PROFILES = {
     latency: 150,
     cpu: 2,
   },
+  /** Lighter than Fast3G: decent bandwidth, mild latency, minimal CPU throttle. */
+  Mild: {
+    throughput: (5 * 1024 * 1024) / 8,
+    latency: 40,
+    cpu: 1.25,
+  },
 };
 
 function startPreview() {
