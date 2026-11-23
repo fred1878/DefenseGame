@@ -53,7 +53,7 @@
     },
     "weight": 170,
     "challengeRating": 70,
-    "bodyRadiusWu": 28
+    "bodyRadiusWu": 32
   },
   "arrow_rain_archer": {
     "hp": 40,
@@ -85,7 +85,7 @@
     },
     "weight": 80,
     "challengeRating": 15,
-    "bodyRadiusWu": 14
+    "bodyRadiusWu": 25
   },
   "skirmisher": {
     "hp": 34,
@@ -206,7 +206,7 @@
     },
     "weight": 300,
     "challengeRating": 10,
-    "bodyRadiusWu": 21
+    "bodyRadiusWu": 25
   },
   "fast_sapper": {
     "hp": 39,
@@ -217,9 +217,9 @@
     "displayName": "Fast Sapper",
     "combat": {
       "wall": {
-        "damage": 5,
-        "triggerRangeWu": 44,
-        "hitRangeWu": 36
+        "damage": 9,
+        "triggerRangeWu": 60,
+        "hitRangeWu": 55,
       },
       "melee": {
         "triggerRangeWu": 45,
@@ -237,7 +237,7 @@
     },
     "weight": 60,
     "challengeRating": 6,
-    "bodyRadiusWu": 21
+    "bodyRadiusWu": 18
   },
   "charger": {
     "hp": 85,
