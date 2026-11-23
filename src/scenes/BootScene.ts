@@ -28,6 +28,24 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 
 const ASSET_ROOT = "assets";
 
+function markBoot(name: string): void {
+  if (typeof performance === "undefined" || typeof performance.mark !== "function") {
+    return;
+  }
+  performance.mark(name);
+}
+
+function measureBoot(name: string, start: string, end: string): void {
+  if (typeof performance === "undefined" || typeof performance.measure !== "function") {
+    return;
+  }
+  try {
+    performance.measure(name, start, end);
+  } catch {
+    /* marks missing in tests */
+  }
+}
+
 export class BootScene extends Phaser.Scene {
   constructor() {
     super({ key: "Boot" });
@@ -38,10 +56,21 @@ export class BootScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    await this.loadGameAssets();
     const store = new DataStore();
+    const baseUrl = import.meta.env.BASE_URL;
+    markBoot("defensegame:boot-start");
     try {
-      await store.loadAll(import.meta.env.BASE_URL);
+      markBoot("defensegame:boot-assets-start");
+      const assetsPromise = this.loadGameAssets().then(() => {
+        markBoot("defensegame:boot-assets-end");
+      });
+      markBoot("defensegame:boot-data-start");
+      const dataPromise = store.loadAll(baseUrl).then(() => {
+        markBoot("defensegame:boot-data-end");
+      });
+      await Promise.all([assetsPromise, dataPromise]);
+      measureBoot("defensegame:boot-assets", "defensegame:boot-assets-start", "defensegame:boot-assets-end");
+      measureBoot("defensegame:boot-data", "defensegame:boot-data-start", "defensegame:boot-data-end");
       const { endlessPanelDefaultConcurrent: _uiSeed, ...tuning } = store.player;
       applyPlayerTuning(tuning);
       // Enemy combat baselines applied inside DataStore.loadAll.
@@ -63,6 +92,7 @@ export class BootScene extends Phaser.Scene {
       markE2EAssetsLoaded(this.game);
       publishE2E({ scene: "Boot", ready: false, assetsLoaded: true });
     }
+    markBoot("defensegame:town-handoff");
     this.scene.start("Town");
   }
 
