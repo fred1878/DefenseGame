@@ -15,6 +15,8 @@ const GAME_HEIGHT = 1200;
 const VIEWPORT_MARGIN = 8;
 /** Defense spell slots use 2× tap padding; allow bleed at bottom safe edge. */
 const TAP_HIT_BLEED = 6;
+/** Matches `DEFENSE_BOTTOM_HUD_SHIFT_PX` in `src/ui/screenLayout.ts`. */
+const BOTTOM_HUD_STRIP_SHIFT_PX = 6;
 
 test.describe("defense HUD layout", () => {
   test.describe.configure({ mode: "serial" });
@@ -86,7 +88,10 @@ test.describe("defense HUD layout", () => {
       expect(pt!.y).toBeLessThanOrEqual(GAME_HEIGHT - VIEWPORT_MARGIN);
       expect(rect!.y).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
       expect(rect!.y + rect!.height).toBeLessThanOrEqual(
-        GAME_HEIGHT - VIEWPORT_MARGIN + TAP_HIT_BLEED,
+        GAME_HEIGHT -
+          VIEWPORT_MARGIN +
+          TAP_HIT_BLEED +
+          BOTTOM_HUD_STRIP_SHIFT_PX,
       );
     }
 
