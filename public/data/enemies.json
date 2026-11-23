@@ -219,7 +219,7 @@
       "wall": {
         "damage": 9,
         "triggerRangeWu": 60,
-        "hitRangeWu": 55,
+        "hitRangeWu": 55
       },
       "melee": {
         "triggerRangeWu": 45,
