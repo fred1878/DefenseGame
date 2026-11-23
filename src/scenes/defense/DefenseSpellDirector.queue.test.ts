@@ -6,6 +6,11 @@ import {
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
 
+function peekSpellId(q: SpellInputQueue): string | null {
+  const item = q.peek();
+  return item?.kind === "spell" ? item.spellId : null;
+}
+
 function spellDirectorTestHost(
   overrides: Partial<DefenseSpellDirectorHost> & {
     spellInputQueue: SpellInputQueue;
@@ -24,7 +29,10 @@ function spellDirectorTestHost(
     player: player as unknown as DefenseSpellDirectorHost["player"],
     enemies: [],
     projectiles: [],
-    targeting: { focusEnemyId: null } as DefenseSpellDirectorHost["targeting"],
+    targeting: {
+      focusEnemyId: null,
+      facingTarget: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["targeting"],
     spellBar: {} as DefenseSpellDirectorHost["spellBar"],
     castBar: { setVisible: vi.fn(), setPhase: vi.fn(), setProgress: vi.fn(), setWorldPosition: vi.fn() } as unknown as DefenseSpellDirectorHost["castBar"],
     groundReticle: { showAt: vi.fn(), hide: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
@@ -67,7 +75,7 @@ describe("DefenseSpellDirector spell queue", () => {
     );
 
     director.onSpellCastRequest("fire_nova");
-    expect(spellInputQueue.peek()).toBe("fire_nova");
+    expect(peekSpellId(spellInputQueue)).toBe("fire_nova");
   });
 
   it("enqueues a tap while a channeled spell is active", () => {
@@ -82,7 +90,7 @@ describe("DefenseSpellDirector spell queue", () => {
 
     director.onSpellCastRequest("fire_nova");
 
-    expect(spellInputQueue.peek()).toBe("fire_nova");
+    expect(peekSpellId(spellInputQueue)).toBe("fire_nova");
   });
 
   it("flushes a queued spell once channeling and attacks are idle", () => {
@@ -94,7 +102,7 @@ describe("DefenseSpellDirector spell queue", () => {
 
     spellCaster.tryBeginCast("heal");
     director.onSpellCastRequest("fire_nova");
-    expect(spellInputQueue.peek()).toBe("fire_nova");
+    expect(peekSpellId(spellInputQueue)).toBe("fire_nova");
 
     let ticks = 0;
     while (spellCaster.isChanneling() && ticks < 10_000) {
@@ -110,6 +118,74 @@ describe("DefenseSpellDirector spell queue", () => {
     director.tryFlushQueuedSpellCast(0, 0);
     expect(spellInputQueue.peek()).toBeNull();
     expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual");
+  });
+
+  it("flushes a queued manual ATK once attacks are idle", () => {
+    const spellInputQueue = new SpellInputQueue();
+    const spellCaster = new SpellCastController();
+    const tryStartAttack = vi.fn();
+    const faceToward = vi.fn();
+    const facingTarget = vi.fn(() => ({ x: 10, y: 0 }));
+    const host = spellDirectorTestHost({
+      spellInputQueue,
+      spellCaster,
+      player: {
+        canAttack: () => true,
+        mode: "melee",
+        sprite: { x: 0, y: 0, setVelocity: vi.fn() },
+        getFacingAngle: () => 0,
+        faceToward,
+        tryStartAttack,
+      } as unknown as DefenseSpellDirectorHost["player"],
+      targeting: { focusEnemyId: null, facingTarget } as unknown as DefenseSpellDirectorHost["targeting"],
+    });
+    const director = new DefenseSpellDirector(host);
+
+    spellInputQueue.enqueueManualAttack();
+    director.tryFlushQueuedSpellCast(0, 0);
+
+    expect(spellInputQueue.peek()).toBeNull();
+    expect(facingTarget).toHaveBeenCalledWith("melee", true);
+    expect(faceToward).toHaveBeenCalledWith(10, 0);
+    expect(tryStartAttack).toHaveBeenCalledWith(undefined);
+  });
+
+  it("does not auto-cast while manual ATK is queued", () => {
+    const spellInputQueue = new SpellInputQueue();
+    const spellCaster = new SpellCastController();
+    const save = {
+      buildings: {},
+      spellBar: {
+        slots: ["fire_bolt", "fire_nova", "", "", "", "", "", ""],
+        autoCastSpellIds: ["fire_bolt"],
+      },
+    };
+    const host = spellDirectorTestHost({
+      spellInputQueue,
+      spellCaster,
+      save: save as unknown as DefenseSpellDirectorHost["save"],
+      enemies: [
+        {
+          id: "e1",
+          sprite: { x: 80, y: 0 },
+          damageable: { alive: true },
+        },
+      ] as unknown as DefenseSpellDirectorHost["enemies"],
+      targeting: {
+        focusEnemyId: "e1",
+        setFocusEnemy: vi.fn(),
+        facingTarget: vi.fn(),
+      } as unknown as DefenseSpellDirectorHost["targeting"],
+    });
+    const director = new DefenseSpellDirector(host);
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
+
+    spellInputQueue.enqueueManualAttack();
+    director.tryAutoCastSpells(0, 0);
+
+    expect(beginSpy).not.toHaveBeenCalled();
   });
 
   it("does not auto-cast while a manual spell is queued", () => {

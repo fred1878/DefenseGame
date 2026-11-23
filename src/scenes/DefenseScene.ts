@@ -963,7 +963,13 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private manualAttack(): void {
-    if (this.spellCaster.isChanneling()) return;
+    if (
+      this.spellCaster.isChanneling() ||
+      !this.player.canAttack()
+    ) {
+      this.spellInputQueue.enqueueManualAttack();
+      return;
+    }
     const strike =
       this.player.mode === "auto"
         ? this.resolveStrikeMode(true)
