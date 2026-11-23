@@ -16,7 +16,6 @@ import {
   townBuildingGridClearsStatus,
   townBuildingGridColumnX,
   townBuildingGridFootY,
-  defenseBottomHudStripHeight,
 } from "./screenLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
 import { scaleUiX } from "../core/displayScale";
