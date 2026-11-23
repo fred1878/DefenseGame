@@ -36,14 +36,14 @@ export function showFlashHealPulseFx(
 
   const redraw = () => {
     const t = anim.t;
-    const r = 12 + 52 * t;
-    const fade = 1 - t * 0.92;
+    const r = 16 + 62 * t;
+    const fade = 1 - t * 0.88;
     gfx.clear();
-    gfx.fillStyle(RING_WHITE, 0.22 * fade);
-    gfx.fillCircle(centerX, centerY, r * 0.55);
-    gfx.lineStyle(4, RING_GOLD, 0.9 * fade);
+    gfx.fillStyle(RING_WHITE, 0.38 * fade);
+    gfx.fillCircle(centerX, centerY, r * 0.58);
+    gfx.lineStyle(7, RING_GOLD, 0.98 * fade);
     gfx.strokeCircle(centerX, centerY, r);
-    gfx.lineStyle(2, RING_WHITE, 0.65 * fade);
+    gfx.lineStyle(4, RING_WHITE, 0.88 * fade);
     gfx.strokeCircle(centerX, centerY, r * 0.78);
   };
 

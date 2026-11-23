@@ -563,6 +563,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     damageFirstLivingEnemy(amount: number) {
       activeDefense(game)?.e2eDamageFirstLivingEnemy(amount);
     },
+    previewHolyFx(kind: "flash" | "channel") {
+      activeDefense(game)?.e2ePreviewHolyFx(kind);
+    },
   };
 }
 

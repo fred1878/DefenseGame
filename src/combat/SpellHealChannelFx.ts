@@ -3,7 +3,7 @@ import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 
 /** Holy beacon radius in world pixels while channeling heal. */
-const BEACON_RADIUS_PX = 44;
+const BEACON_RADIUS_PX = 52;
 const BEACON_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 const GOLD_RING = 0xffe8a0;
@@ -42,7 +42,7 @@ export class SpellHealChannelFx {
         .image(centerX, centerY, shockKey)
         .setDepth(BEACON_DEPTH - 1)
         .setTint(0xffe6a8)
-        .setAlpha(0.42)
+        .setAlpha(0.58)
         .setBlendMode(Phaser.BlendModes.ADD)
         .setDisplaySize(BEACON_RADIUS_PX * 2.4, BEACON_RADIUS_PX * 2.4);
       registerWorldDraw?.(glow);
@@ -82,17 +82,17 @@ export class SpellHealChannelFx {
     const r = BEACON_RADIUS_PX * (0.92 + 0.08 * breathe);
     gfx.clear();
 
-    gfx.fillStyle(GOLD_FILL, 0.14 * breathe);
-    gfx.fillCircle(centerX, centerY, r * 0.72);
+    gfx.fillStyle(GOLD_FILL, 0.28 * breathe);
+    gfx.fillCircle(centerX, centerY, r * 0.74);
 
-    gfx.fillStyle(WHITE_CORE, 0.1 * breathe);
-    gfx.fillCircle(centerX, centerY, r * 0.38);
+    gfx.fillStyle(WHITE_CORE, 0.22 * breathe);
+    gfx.fillCircle(centerX, centerY, r * 0.42);
 
-    gfx.lineStyle(3, GOLD_RING, 0.82 * breathe);
+    gfx.lineStyle(5.5, GOLD_RING, 0.95 * breathe);
     gfx.strokeCircle(centerX, centerY, r);
 
-    gfx.lineStyle(1.5, WHITE_CORE, 0.55 * breathe);
-    gfx.strokeCircle(centerX, centerY, r * 0.62);
+    gfx.lineStyle(3, WHITE_CORE, 0.82 * breathe);
+    gfx.strokeCircle(centerX, centerY, r * 0.64);
   }
 
   stop(): void {
