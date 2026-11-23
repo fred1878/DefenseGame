@@ -8,19 +8,27 @@ export function isStickMoving(stickX: number, stickY: number): boolean {
   return Math.hypot(stickX, stickY) > SPELL_MOVE_INTERRUPT_EPS;
 }
 
+export type QueuedCombatInput =
+  | { kind: "spell"; spellId: SpellId }
+  | { kind: "manual_attack" };
+
 /**
- * Holds at most one manual spell press while the player attack FSM is busy.
- * A newer press replaces any existing queued spell.
+ * Holds at most one manual spell or ATK press while the player attack FSM is busy.
+ * A newer press replaces any existing queued input.
  */
 export class SpellInputQueue {
-  private queued: SpellId | null = null;
+  private queued: QueuedCombatInput | null = null;
 
-  peek(): SpellId | null {
+  peek(): QueuedCombatInput | null {
     return this.queued;
   }
 
   enqueue(spellId: SpellId): void {
-    this.queued = spellId;
+    this.queued = { kind: "spell", spellId };
+  }
+
+  enqueueManualAttack(): void {
+    this.queued = { kind: "manual_attack" };
   }
 
   clear(): void {
@@ -28,23 +36,28 @@ export class SpellInputQueue {
   }
 
   /**
-   * Returns the queued manual spell to cast when attacks are idle, or null when
-   * the queue is empty or the spell is unknown. Manual windup/channel casts may
-   * start while the stick is active (movement is suppressed for the cast).
+   * Returns the queued manual input when attacks are idle, or null when the queue
+   * is empty or a queued spell is unknown. Manual windup/channel casts may start
+   * while the stick is active (movement is suppressed for the cast).
    */
   consumeIfReady(
     _stickX: number,
     _stickY: number,
     lookup: (id: SpellId) => SpellDefinition | undefined,
-  ): SpellId | null {
+  ): QueuedCombatInput | null {
     if (!this.queued) return null;
-    const spellId = this.queued;
+    if (this.queued.kind === "manual_attack") {
+      const item = this.queued;
+      this.queued = null;
+      return item;
+    }
+    const spellId = this.queued.spellId;
     const def = lookup(spellId);
     if (!def) {
       this.queued = null;
       return null;
     }
     this.queued = null;
-    return spellId;
+    return { kind: "spell", spellId };
   }
 }

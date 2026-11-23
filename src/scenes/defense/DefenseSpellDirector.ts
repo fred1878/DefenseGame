@@ -310,8 +310,17 @@ export class DefenseSpellDirector {
   tryFlushQueuedSpellCast(stickX: number, stickY: number): void {
     if (!this.host.player.canAttack()) return;
     if (this.host.spellCaster.isChanneling()) return;
-    const spellId = this.host.spellInputQueue.consumeIfReady(stickX, stickY, spellById);
-    if (!spellId) return;
+    const queued = this.host.spellInputQueue.consumeIfReady(
+      stickX,
+      stickY,
+      spellById,
+    );
+    if (!queued) return;
+    if (queued.kind === "manual_attack") {
+      this.flushQueuedManualAttack();
+      return;
+    }
+    const spellId = queued.spellId;
     const def = spellById(spellId);
     if (!def) return;
     if (
@@ -325,6 +334,19 @@ export class DefenseSpellDirector {
       this.host.groundAim = this.defaultGroundTarget(def);
     }
     this.beginSpellCast(spellId, "manual");
+  }
+
+  private flushQueuedManualAttack(): void {
+    const player = this.host.player;
+    const strike =
+      player.mode === "auto"
+        ? this.host.resolveStrikeMode(true)
+        : player.mode === "ranged"
+          ? "ranged"
+          : "melee";
+    const target = this.host.targeting.facingTarget(strike, true);
+    if (target) player.faceToward(target.x, target.y);
+    player.tryStartAttack(player.mode === "auto" ? strike : undefined);
   }
 
   beginSpellCast(spellId: string, inputMode: SpellCastInputMode = "manual"): void {
