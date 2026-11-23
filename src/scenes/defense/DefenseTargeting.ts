@@ -4,7 +4,7 @@ import { PLAYER_TUNING } from "../../config";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { Player } from "../../entities/Player";
 import { FOCUS_SELECT_LOCK_MS } from "../../input/inputTuning";
-import { hudBandHeight } from "../../ui/screenLayout";
+import { defensePlayAreaLayout } from "../../ui/screenLayout";
 import type { SafeInsets } from "../../ui/screenLayout";
 import type { TargetIndicator } from "../../ui/TargetIndicator";
 
@@ -135,9 +135,12 @@ export class DefenseTargeting {
   }
 
   isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
-    const hudBand = hudBandHeight(this.host.safe.top);
+    const playTop = defensePlayAreaLayout(
+      this.host.scene,
+      this.host.safe,
+    ).topBandBottom;
     if (
-      pointer.y <= hudBand &&
+      pointer.y < playTop &&
       pointer.x >= 0 &&
       pointer.x <= this.host.scale.width
     ) {

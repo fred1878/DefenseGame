@@ -3,6 +3,8 @@ import { GAME } from "../config";
 import {
   combatChromeLayout,
   defensePlayAreaLayout,
+  DEFENSE_BOTTOM_HUD_SHIFT_PX,
+  DEFENSE_TOP_CHROME_TRIM_PX,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
@@ -39,11 +41,16 @@ describe("screenLayout", () => {
   it("defensePlayAreaLayout sits between HUD bands", () => {
     const play = defensePlayAreaLayout(scene, safe);
     const chrome = combatChromeLayout(scene, safe);
-    expect(play.y).toBe(chrome.hudBand);
+    expect(play.y).toBe(play.topBandBottom);
+    expect(play.topBandBottom).toBe(chrome.hudBand - DEFENSE_TOP_CHROME_TRIM_PX);
+    expect(play.y).toBeLessThan(chrome.hudBand);
     expect(play.y + play.height).toBe(chrome.bottomStrip.stripTop);
     expect(play.bottomBandTop).toBe(chrome.bottomStrip.stripTop);
     expect(play.height).toBe(
-      GAME.height - hudBandHeight(0) - defenseBottomHudStripHeight(),
+      chrome.bottomStrip.stripTop - play.topBandBottom,
+    );
+    expect(chrome.bottomStrip.stripBottom).toBe(
+      GAME.height + DEFENSE_BOTTOM_HUD_SHIFT_PX,
     );
     expect(play.width).toBe(GAME.width);
   });
@@ -102,6 +109,7 @@ describe("screenLayout", () => {
   });
 
   it("spell grid stays inside portrait viewport with tap padding", () => {
+    const chrome = combatChromeLayout(scene, safe);
     const { firstSlotCenterX, centerY } = spellBarSlotOrigin(
       scene,
       safe,
@@ -126,7 +134,7 @@ describe("screenLayout", () => {
       (DEFENSE_SPELL_BAR.rowCount - 1) *
         (DEFENSE_SPELL_BAR.slotSizePx + DEFENSE_SPELL_BAR.rowGapPx);
     const gridBottom = lastRowCenterY + half + pad;
-    expect(gridBottom).toBeLessThanOrEqual(GAME.height);
+    expect(gridBottom).toBeLessThanOrEqual(chrome.bottomStrip.stripBottom + 1);
     const gridTop = centerY - half - pad;
     expect(gridTop).toBeGreaterThanOrEqual(margin);
   });
