@@ -162,6 +162,7 @@ export type DefenseGameE2EApi = {
   hasLeaveEndlessButton(): boolean;
   canFocusFirstLivingEnemy(): boolean;
   damageFirstLivingEnemy(amount: number): void;
+  previewHolyFx(kind: "flash" | "channel"): void;
 };
 
 declare global {
