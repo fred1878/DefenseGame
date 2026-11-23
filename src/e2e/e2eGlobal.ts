@@ -18,6 +18,8 @@ export type DefenseGameE2EApi = {
   castSpell(slot: number): Promise<void>;
   getSave(): SaveGame | null;
   setSave(partial: Partial<SaveGame>): void;
+  /** Override live movement tuning via PLAYER_TUNING. */
+  setPlayerMoveSpeedWu(moveSpeedWu: number): void;
   spawnTestEnemy(x?: number, y?: number): void;
   setGodMode(on: boolean): void;
   damagePlayer(amount: number): void;

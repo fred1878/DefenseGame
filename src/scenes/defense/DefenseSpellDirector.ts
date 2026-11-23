@@ -154,7 +154,7 @@ export class DefenseSpellDirector {
     this.host.player.setVelocityFromStick(
       dir.x,
       dir.y,
-      this.host.wu(this.host.save.player.moveSpeed),
+      this.host.wu(PLAYER_TUNING.moveSpeedWu),
       { lockMeleeAim },
     );
     if (lockMeleeAim) {

@@ -26,9 +26,7 @@ test.describe("@manual obstacle bump metrics capture", () => {
     await startDefense(page);
     const api = e2eApi(page);
     await api.eval<void>("api.setGodMode(false)");
-    await api.eval<void>(
-      `api.setSave({ player: { moveSpeed: ${MOVE_SPEED} } })`,
-    );
+    await api.eval<void>(`api.setPlayerMoveSpeedWu(${MOVE_SPEED})`);
 
     const blocker = await api.eval<{
       cx: number;
@@ -68,9 +66,7 @@ test.describe("@manual obstacle bump metrics capture", () => {
         .toBe(true);
       await startDefense(page);
       await api.eval<void>("api.setGodMode(false)");
-      await api.eval<void>(
-        `api.setSave({ player: { moveSpeed: ${MOVE_SPEED} } })`,
-      );
+      await api.eval<void>(`api.setPlayerMoveSpeedWu(${MOVE_SPEED})`);
 
       const start = await api.eval<{ x: number; y: number }>(
         `api.getFlushTangentPosition(${TARGET_OBSTACLE_INDEX}, ${JSON.stringify(approach)}, ${BEYOND_FLUSH_PX})`,
