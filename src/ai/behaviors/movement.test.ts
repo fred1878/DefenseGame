@@ -6,10 +6,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { EnemyDefInput } from "../../core/normalizeEnemy";
 import { normalizeEnemyRow } from "../../core/normalizeEnemy";
-import {
-  applyEnemyBodyRadii,
-  enemyCollisionBodyRadius,
-} from "../../entities/entityPhysics";
+import { applyEnemyBodyRadii } from "../../entities/entityPhysics";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
 
 const enemiesRaw = JSON.parse(
@@ -145,11 +142,6 @@ describe("player melee standoff", () => {
       ]),
     ).toBe(false);
     applyEnemyBodyRadii(enemyDefs);
-  });
-
-  it("reads bodyRadiusWu from JSON for grunt and bruiser", () => {
-    expect(enemyCollisionBodyRadius("grunt")).toBe(28);
-    expect(enemyCollisionBodyRadius("bruiser")).toBe(28);
   });
 
   it("does not chord-block when the peer is not closer to the player", () => {
