@@ -580,7 +580,7 @@ export class DefenseScene extends Phaser.Scene {
       this.player.setVelocityFromStick(
         dir.x,
         dir.y,
-        this.wu(this.save.player.moveSpeed) * moveSpeed,
+        this.wu(PLAYER_TUNING.moveSpeedWu) * moveSpeed,
         {
           lockMeleeAim,
         },

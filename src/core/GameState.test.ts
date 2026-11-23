@@ -1,15 +1,46 @@
-import { describe, expect, it } from "vitest";
-import { SPELL_BAR } from "../config";
+import { describe, expect, it, vi } from "vitest";
+import { PLAYER_TUNING, SPELL_BAR } from "../config";
+import { applyPlayerTuning } from "../config/player";
+import { SAVE_VERSION } from "./saveTypes";
+import { saveStorageKey } from "../e2e/e2eMode";
 import {
   applyEndlessRunExit,
   applyNightResult,
   createNewSave,
+  loadSave,
   playerDamageMult,
   prepareDefenseNight,
   wallHpBonusFromBuildings,
 } from "./GameState";
 
 describe("GameState", () => {
+  it("loadSave replaces stale player moveSpeed from PLAYER_TUNING", () => {
+    const tuningMoveSpeed = 222;
+    applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: tuningMoveSpeed });
+
+    const stale = createNewSave();
+    stale.player.moveSpeed = 73;
+    const key = saveStorageKey();
+    const items = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => items.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        items.set(k, v);
+      },
+      removeItem: (k: string) => {
+        items.delete(k);
+      },
+    });
+    items.set(
+      key,
+      JSON.stringify({ version: SAVE_VERSION, save: stale }),
+    );
+
+    const loaded = loadSave();
+    expect(loaded.player.moveSpeed).toBe(tuningMoveSpeed);
+    vi.unstubAllGlobals();
+  });
+
   it("creates a valid starting save", () => {
     const save = createNewSave();
     expect(save.night).toBe(1);

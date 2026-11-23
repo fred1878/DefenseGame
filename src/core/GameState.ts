@@ -90,7 +90,11 @@ function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): Save
   return {
     ...base,
     ...save,
-    player: { ...base.player, ...save.player },
+    player: {
+      ...base.player,
+      ...save.player,
+      moveSpeed: PLAYER_TUNING.moveSpeedWu,
+    },
     buildings: { ...base.buildings, ...save.buildings },
     spellBar,
   };

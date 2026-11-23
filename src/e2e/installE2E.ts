@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { GAME, SPELL_BAR } from "../config";
+import { GAME, PLAYER_TUNING, SPELL_BAR } from "../config";
+import { applyPlayerTuning } from "../config/player";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore } from "../core/DataStore";
@@ -215,6 +216,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       });
       game.registry.set("save", next);
       persistSave(next);
+    },
+    setPlayerMoveSpeedWu(moveSpeedWu: number) {
+      applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu });
     },
     spawnTestEnemy(x = 80, y = 0) {
       activeDefense(game)?.e2eSpawnEnemy(x, y);
