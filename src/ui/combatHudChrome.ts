@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import {
   defensePlayAreaLayout,
-  hudBandHeight,
+  defenseTopChromeHeight,
   type SafeInsets,
 } from "./screenLayout";
 
@@ -23,7 +23,7 @@ export function createCombatHudChrome(
   const play = defensePlayAreaLayout(scene, safe);
   const w = scene.scale.width;
   const h = scene.scale.height;
-  const topH = hudBandHeight(safe.top);
+  const topH = defenseTopChromeHeight(safe.top);
   const bottomY = play.bottomBandTop;
   const bottomH = Math.max(0, h - bottomY);
 

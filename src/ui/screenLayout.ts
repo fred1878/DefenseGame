@@ -49,6 +49,17 @@ export function hudBandHeight(safeTop = 0): number {
   return scaleUiY(96) + safeTop;
 }
 
+/** Shorter top chrome fill/border; HUD controls stay at `hudBandHeight`. */
+export const DEFENSE_TOP_CHROME_TRIM_PX = scaleUiY(10);
+
+/** Defense bottom HUD strip shifted toward screen bottom; play area gains matching height. */
+export const DEFENSE_BOTTOM_HUD_SHIFT_PX = scaleUiY(6);
+
+/** Visible top panel height (fill + border), not full HUD control band. */
+export function defenseTopChromeHeight(safeTop = 0): number {
+  return Math.max(1, hudBandHeight(safeTop) - DEFENSE_TOP_CHROME_TRIM_PX);
+}
+
 /** World camera rect between top status band and bottom spell/combat band. */
 export type DefensePlayArea = {
   x: number;
@@ -63,7 +74,7 @@ export function defensePlayAreaLayout(
   scene: Phaser.Scene,
   safe: SafeInsets,
 ): DefensePlayArea {
-  const topBandBottom = hudBandHeight(safe.top);
+  const topBandBottom = hudBandHeight(safe.top) - DEFENSE_TOP_CHROME_TRIM_PX;
   const bottomBandTop = bottomHudStripLayout(scene, safe).stripTop;
   const x = safe.left;
   const width = scene.scale.width - safe.left - safe.right;
@@ -182,7 +193,11 @@ export function bottomHudStripLayout(
   safe: SafeInsets,
 ): BottomHudStrip {
   const stripH = defenseBottomHudStripHeight();
-  const stripCenterY = scene.scale.height - safe.bottom - stripH / 2;
+  const stripCenterY =
+    scene.scale.height -
+    safe.bottom -
+    stripH / 2 +
+    DEFENSE_BOTTOM_HUD_SHIFT_PX;
   return {
     stripH,
     stripCenterY,
