@@ -21,7 +21,6 @@ export type SaveGame = {
     hp: number;
     hpMax: number;
     weaponId: string;
-    moveSpeed: number;
   };
   spellBar: SaveSpellBar;
   flags: string[];

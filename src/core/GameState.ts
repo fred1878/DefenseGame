@@ -28,7 +28,6 @@ export function createNewSave(): SaveGame {
       hp: PLAYER_TUNING.maxHp,
       hpMax: PLAYER_TUNING.maxHp,
       weaponId: "sword",
-      moveSpeed: PLAYER_TUNING.moveSpeedWu,
     },
     spellBar: {
       slots: createDefaultSpellBarSlots(),
@@ -78,7 +77,23 @@ function remapSpellBarIds(spellBar: SaveSpellBar): SaveSpellBar {
   };
 }
 
-function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): SaveGame {
+export type LegacySavePlayer = Partial<SaveGame["player"]> & { moveSpeed?: number };
+
+export function mergePlayerWithoutLegacyMoveSpeed(
+  base: SaveGame["player"],
+  raw?: LegacySavePlayer,
+): SaveGame["player"] {
+  if (!raw) return { ...base };
+  const { moveSpeed: _legacy, ...rest } = raw;
+  return { ...base, ...rest };
+}
+
+function migrateSave(
+  save: SaveGame & {
+    spellBar?: SaveGame["spellBar"];
+    player?: LegacySavePlayer;
+  },
+): SaveGame {
   const base = createNewSave();
   const spellBar = remapSpellBarIds(normalizeSpellBar(save.spellBar));
   if (save.spellBar?.slots?.length === 3) {
@@ -90,11 +105,7 @@ function migrateSave(save: SaveGame & { spellBar?: SaveGame["spellBar"] }): Save
   return {
     ...base,
     ...save,
-    player: {
-      ...base.player,
-      ...save.player,
-      moveSpeed: PLAYER_TUNING.moveSpeedWu,
-    },
+    player: mergePlayerWithoutLegacyMoveSpeed(base.player, save.player),
     buildings: { ...base.buildings, ...save.buildings },
     spellBar,
   };

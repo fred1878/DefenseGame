@@ -6,7 +6,11 @@ import type { SaveGame } from "../core/saveTypes";
 import type { DataStore } from "../core/DataStore";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
-import { persistSave } from "../core/GameState";
+import {
+  mergePlayerWithoutLegacyMoveSpeed,
+  persistSave,
+  type LegacySavePlayer,
+} from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
 import { isE2EEnabled } from "./e2eMode";
@@ -209,7 +213,10 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const next = structuredClone({
         ...cur,
         ...partial,
-        player: { ...cur.player, ...partial.player },
+        player: mergePlayerWithoutLegacyMoveSpeed(
+          cur.player,
+          partial.player as LegacySavePlayer | undefined,
+        ),
         buildings: { ...cur.buildings, ...partial.buildings },
         spellBar: partial.spellBar ?? cur.spellBar,
         flags: partial.flags ?? cur.flags,

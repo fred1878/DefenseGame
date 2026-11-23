@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { PLAYER_TUNING, SPELL_BAR } from "../config";
 import { applyPlayerTuning } from "../config/player";
-import { SAVE_VERSION } from "./saveTypes";
+import {
+  DefenseSpellDirector,
+  type DefenseSpellDirectorHost,
+} from "../scenes/defense/DefenseSpellDirector";
+import { SAVE_VERSION, type SaveGame } from "./saveTypes";
 import { saveStorageKey } from "../e2e/e2eMode";
 import {
   applyEndlessRunExit,
@@ -14,12 +18,16 @@ import {
 } from "./GameState";
 
 describe("GameState", () => {
-  it("loadSave replaces stale player moveSpeed from PLAYER_TUNING", () => {
+  it("loadSave drops legacy player.moveSpeed from save blob", () => {
     const tuningMoveSpeed = 222;
     applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: tuningMoveSpeed });
 
-    const stale = createNewSave();
-    stale.player.moveSpeed = 73;
+    const base = createNewSave();
+    const legacySave = {
+      ...base,
+      player: { ...base.player, moveSpeed: 73 },
+    } as SaveGame & { player: SaveGame["player"] & { moveSpeed: number } };
+
     const key = saveStorageKey();
     const items = new Map<string, string>();
     vi.stubGlobal("localStorage", {
@@ -33,12 +41,48 @@ describe("GameState", () => {
     });
     items.set(
       key,
-      JSON.stringify({ version: SAVE_VERSION, save: stale }),
+      JSON.stringify({ version: SAVE_VERSION, save: legacySave }),
     );
 
     const loaded = loadSave();
-    expect(loaded.player.moveSpeed).toBe(tuningMoveSpeed);
+    expect(loaded.player).not.toHaveProperty("moveSpeed");
+    expect(PLAYER_TUNING.moveSpeedWu).toBe(tuningMoveSpeed);
     vi.unstubAllGlobals();
+  });
+
+  it("Defense movement uses PLAYER_TUNING (not save) for stick velocity", () => {
+    const tuningMoveSpeed = 333;
+    applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: tuningMoveSpeed });
+
+    const setVelocityFromStick = vi.fn();
+    const host = {
+      scene: { registry: { get: () => undefined } } as unknown as Phaser.Scene,
+      save: createNewSave(),
+      player: {
+        sprite: { x: 0, y: 0, setVelocity: vi.fn() },
+        setVelocityFromStick,
+        faceToward: vi.fn(),
+      },
+      targeting: { facingTarget: vi.fn(() => null) },
+      wu: (n: number) => n,
+    } as unknown as DefenseSpellDirectorHost;
+
+    const director = new DefenseSpellDirector(host);
+    (
+      director as unknown as {
+        resumeMovementFromStick: (
+          dir: { x: number; y: number },
+          lock: () => boolean,
+        ) => void;
+      }
+    ).resumeMovementFromStick({ x: 1, y: 0 }, () => false);
+
+    expect(setVelocityFromStick).toHaveBeenCalledWith(
+      1,
+      0,
+      tuningMoveSpeed,
+      expect.objectContaining({ lockMeleeAim: false }),
+    );
   });
 
   it("creates a valid starting save", () => {
@@ -46,6 +90,7 @@ describe("GameState", () => {
     expect(save.night).toBe(1);
     expect(save.townWallHp).toBe(save.townWallHpMax);
     expect(save.player.hp).toBe(save.player.hpMax);
+    expect(save.player).not.toHaveProperty("moveSpeed");
     expect(save.spellBar.slots).toHaveLength(SPELL_BAR.slotCount);
   });
 
