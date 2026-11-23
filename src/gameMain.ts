@@ -10,8 +10,6 @@ import {
 } from "./core/worldPixelScale";
 import { bindViewportToScale } from "./ui/screenLayout";
 import { BootScene } from "./scenes/BootScene";
-import { DebugMenuScene } from "./scenes/DebugMenuScene";
-import { DefenseScene } from "./scenes/DefenseScene";
 import { TownScene } from "./scenes/TownScene";
 
 const parent = "game";
@@ -46,7 +44,7 @@ const config: Phaser.Types.Core.GameConfig = {
   input: {
     activePointers: 2,
   },
-  scene: [BootScene, TownScene, DefenseScene, DebugMenuScene],
+  scene: [BootScene, TownScene],
 };
 
 seedE2EWindowStub();

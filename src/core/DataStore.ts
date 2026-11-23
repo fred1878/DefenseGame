@@ -37,17 +37,12 @@ export type EnemyDef = {
   hp: number;
   speedWu: number;
   damage: number;
-  /** Knockback resistance baseline: 100 = full authored knockback strength. */
   weight: number;
-  /** Relative threat tier for UI / wave planning (not combat math yet). */
   challengeRating: number;
   behavior: string;
   textureKey: string;
-  /** HUD / nameplate label (Title Case); not the content id. */
   displayName: string;
-  /** Arcade physics circle radius (authored world units). */
   bodyRadiusWu: number;
-  /** Full explicit combat tables for this enemy row. */
   combat: EnemyCombatPartial;
 };
 
@@ -77,19 +72,35 @@ export class DataStore {
   townLayout: TownLayoutDef = { slots: [] };
   spells: SpellDefinition[] = [];
   shadowformMechanics!: ShadowformMechanics;
-  /** From `public/data/player.json` (combat tuning + endless panel UI seed). */
   player!: PlayerConfig;
 
-  async loadAll(baseUrl = ""): Promise<void> {
+  defenseDataReady = false;
+  private defenseDataPromise: Promise<void> | null = null;
+
+  async loadTownBoot(baseUrl = ""): Promise<void> {
+    const prefix = baseUrl.replace(/\/?$/, "/");
+    const [buildings, townBuildings, townLayout, playerFile] = await Promise.all([
+      fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
+      fetchJson<Record<string, TownBuildingDef>>(
+        `${prefix}data/town_buildings.json`,
+      ),
+      fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
+      fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
+    ]);
+    this.buildings = buildings;
+    this.townBuildings = townBuildings;
+    this.townLayout = townLayout;
+    this.player = normalizePlayerConfig(playerFile);
+    const { endlessPanelDefaultConcurrent: _ui, ...playerTuning } = this.player;
+    applyPlayerTuning(playerTuning);
+  }
+
+  async loadDefenseData(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
     const [
       enemies,
       waves,
-      buildings,
-      townBuildings,
-      townLayout,
       spellsFile,
-      playerFile,
       defenseMaps,
       entityPhysics,
       enemyAi,
@@ -97,13 +108,7 @@ export class DataStore {
     ] = await Promise.all([
       fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
-      fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
-      fetchJson<Record<string, TownBuildingDef>>(
-        `${prefix}data/town_buildings.json`,
-      ),
-      fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
       fetchJson<{ spells: SpellDefinition[] }>(`${prefix}data/spells.json`),
-      fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
       fetchJson<DefenseMapsFileInput>(`${prefix}data/defense-maps.json`),
       fetchJson<EntityPhysicsInput>(`${prefix}data/entity-physics.json`),
       fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
@@ -117,14 +122,8 @@ export class DataStore {
     );
     applyEnemyBodyRadii(this.enemies);
     this.waves = waves;
-    this.buildings = buildings;
-    this.townBuildings = townBuildings;
-    this.townLayout = townLayout;
     this.spells = normalizeSpellCatalog(spellsFile);
     setSpellCatalog(this.spells);
-    this.player = normalizePlayerConfig(playerFile);
-    const { endlessPanelDefaultConcurrent: _ui, ...playerTuning } = this.player;
-    applyPlayerTuning(playerTuning);
     applyDefenseMaps(defenseMaps);
     applyEntityPhysics(normalizeEntityPhysics(entityPhysics));
     for (const [id, row] of Object.entries(this.enemies)) {
@@ -135,9 +134,24 @@ export class DataStore {
     this.shadowformMechanics = shadowformMechanicsFromCatalog(this.spells);
     applyShadowformMechanics(this.shadowformMechanics);
     this.defenseMaps = normalizeDefenseMaps(defenseMaps);
+    this.defenseDataReady = true;
   }
 
-  /** Resolved defense map registry (set in `loadAll`). */
+  ensureDefenseDataLoaded(baseUrl = ""): Promise<void> {
+    if (this.defenseDataReady) return Promise.resolve();
+    if (this.defenseDataPromise) return this.defenseDataPromise;
+    this.defenseDataPromise = this.loadDefenseData(baseUrl).catch((err) => {
+      this.defenseDataPromise = null;
+      throw err;
+    });
+    return this.defenseDataPromise;
+  }
+
+  async loadAll(baseUrl = ""): Promise<void> {
+    await this.loadTownBoot(baseUrl);
+    await this.loadDefenseData(baseUrl);
+  }
+
   defenseMaps!: ReturnType<typeof normalizeDefenseMaps>;
 
   getWaveForNight(night: number): WaveDef | undefined {
@@ -151,6 +165,11 @@ export class DataStore {
     }
     if (best !== null) return this.waves[String(best)];
     return this.waves["1"];
+  }
+
+  resetDefenseDataForTests(): void {
+    this.defenseDataReady = false;
+    this.defenseDataPromise = null;
   }
 }
 

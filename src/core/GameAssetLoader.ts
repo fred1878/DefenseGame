@@ -1,10 +1,5 @@
 import Phaser from "phaser";
-import {
-  COMBAT_SFX_ASSETS,
-  ECONOMY_SFX_ASSETS,
-  SPELL_SFX_ASSETS,
-  SFX_ASSET_ROOT,
-} from "../content/audioAssets";
+import { SFX_ASSETS, SFX_ASSET_ROOT } from "../content/audioAssets";
 import {
   COMBAT_FX_ASSETS,
   ENEMY_SPRITE_ASSETS,
@@ -22,14 +17,29 @@ import {
   TOWN_BUILDING_ASSETS,
 } from "../content/townBuildingAssets";
 import { configurePixelArtTextures } from "./pixelArtTextures";
+import type { DataStore } from "./DataStore";
+import { ensureDefenseScene } from "./lazyScenes";
 
 const ASSET_ROOT = "assets";
 export const DEFENSE_ASSETS_READY_KEY = "defenseAssetsReady";
+export const TOWN_FLUFF_READY_KEY = "townFluffReady";
 
 let defenseLoadPromise: Promise<void> | null = null;
+let townFluffPromise: Promise<void> | null = null;
 
-/** Town-first boot: HUD, spell icons, town art, economy SFX only. */
-export function queueTownBootAssets(
+/** First paint Town: building sprites only. */
+export function queueMinimalTownBootAssets(
+  loader: Phaser.Loader.LoaderPlugin,
+  baseUrl: string,
+): void {
+  loader.setBaseURL(baseUrl);
+  for (const { key, file } of TOWN_BUILDING_ASSETS) {
+    loader.image(key, `${TOWN_BUILDING_ASSET_ROOT}/${file}`);
+  }
+}
+
+/** Post–Town-ready: HUD art, spell icons, all SFX (prefetch). */
+export function queueTownFluffAssets(
   loader: Phaser.Loader.LoaderPlugin,
   baseUrl: string,
 ): void {
@@ -42,15 +52,12 @@ export function queueTownBootAssets(
   for (const { key, file } of UI_ASSETS) {
     loader.image(key, `${UI_ASSET_ROOT}/${file}`);
   }
-  for (const { key, file } of TOWN_BUILDING_ASSETS) {
-    loader.image(key, `${TOWN_BUILDING_ASSET_ROOT}/${file}`);
-  }
-  for (const { key, file } of ECONOMY_SFX_ASSETS) {
+  for (const { key, file } of SFX_ASSETS) {
     loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
   }
 }
 
-/** Loaded before `DefenseScene` (prefetch in Town or await on night start). */
+/** Combat field textures (prefetch / night start). */
 export function queueDefenseBootAssets(
   loader: Phaser.Loader.LoaderPlugin,
   baseUrl: string,
@@ -74,12 +81,6 @@ export function queueDefenseBootAssets(
   }
   for (const entry of COMBAT_FX_ASSETS) {
     loader.image(entry.key, `${ASSET_ROOT}/combat/fx/${entry.file}`);
-  }
-  for (const { key, file } of COMBAT_SFX_ASSETS) {
-    loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
-  }
-  for (const { key, file } of SPELL_SFX_ASSETS) {
-    loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
   }
   for (const entry of SPELL_FX_ASSETS) {
     const root = entry.root ?? "assets/spells/fx";
@@ -113,6 +114,20 @@ export function runQueuedLoader(
   });
 }
 
+export function ensureTownFluffLoaded(scene: Phaser.Scene): Promise<void> {
+  if (scene.game.registry.get(TOWN_FLUFF_READY_KEY)) {
+    return Promise.resolve();
+  }
+  if (townFluffPromise) return townFluffPromise;
+  const base = import.meta.env.BASE_URL;
+  townFluffPromise = runQueuedLoader(scene, (loader) =>
+    queueTownFluffAssets(loader, base),
+  ).then(() => {
+    scene.game.registry.set(TOWN_FLUFF_READY_KEY, true);
+  });
+  return townFluffPromise;
+}
+
 export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   if (scene.game.registry.get(DEFENSE_ASSETS_READY_KEY)) {
     return Promise.resolve();
@@ -127,7 +142,21 @@ export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   return defenseLoadPromise;
 }
 
-/** Test hook: reset singleton between vitest cases. */
-export function resetDefenseAssetLoaderForTests(): void {
+/** Night, endless, spell sort, or full combat E2E readiness. */
+export function ensureNightReady(
+  scene: Phaser.Scene,
+  store: DataStore,
+): Promise<void> {
+  const base = import.meta.env.BASE_URL;
+  return Promise.all([
+    ensureTownFluffLoaded(scene),
+    ensureDefenseAssetsLoaded(scene),
+    store.ensureDefenseDataLoaded(base),
+    ensureDefenseScene(scene.game),
+  ]).then(() => undefined);
+}
+
+export function resetGameAssetLoaderForTests(): void {
   defenseLoadPromise = null;
+  townFluffPromise = null;
 }
