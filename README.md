@@ -21,7 +21,7 @@ After merging to `main`, Pages updates automatically (see [docs/CI_RELEASES.md](
 2. **Defense (night)** — Move with the virtual stick, melee/ranged/auto combat, cast spells, keep wall HP above zero, clear waves.
 3. **Results** — Win or lose returns a `NightResult`; gold and wall damage apply in town. Progress saves to **`localStorage`**.
 
-**Campaign content today:** nights **1–10** in `public/data/waves.json`. After night 10, wave data **repeats night 10** (`DataStore.getWaveForNight`).
+**Campaign content today:** nights **1–12** in `public/data/waves.json`. After night 12, wave data **repeats night 12** (`DataStore.getWaveForNight`).
 
 ---
 
@@ -34,7 +34,7 @@ Verified against the current codebase (not a wish list):
 | **Scenes** | `BootScene` (load JSON + assets), `TownScene`, `DefenseScene`, `DebugMenuScene` |
 | **Save** | `GameState` persist/restore; town reset (tap twice on Town) |
 | **Enemies** | **12 types**, JSON-driven stats/behaviors (`public/data/enemies.json`) |
-| **Waves** | **10 nights** of scheduled groups + gold rewards |
+| **Waves** | **12 nights** of scheduled groups + gold rewards |
 | **Town** | Layout from `town_layout.json`; upgrades for **wall** and **blacksmith** via Moon Brazier / Witchlight Beacon; spell sort panel from daylit beacon |
 | **Unwired buildings** | Haunted Well, Plague Clinic, both Market Stalls — visible, labeled “Not available yet” |
 | **Combat** | Melee arcs, ranged shots, enemy melee/ranged/lob/arrow-rain behaviors, A* pathing, knockback, focus target |
@@ -43,7 +43,7 @@ Verified against the current codebase (not a wish list):
 | **Debug** | Hitboxes, touch overlay, enemy paths, world pixel scale (session-only) |
 | **Deploy** | Versioned bundles + `version.json` cache bust on Pages |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music/SFX, walk-cycle animation, campaign ending after night 10, Capacitor store builds, object pooling for enemies/projectiles.
+**Not implemented yet:** title/settings/pause menus, tutorial, music/SFX, walk-cycle animation, campaign ending after night 12, Capacitor store builds, object pooling for enemies/projectiles.
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 
