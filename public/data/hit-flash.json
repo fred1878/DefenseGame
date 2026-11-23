@@ -1,0 +1,33 @@
+{
+  "durationMs": 190,
+  "flavors": {
+    "physical": {
+      "tint": 16777215,
+      "mode": "fill",
+      "peakAlpha": 1,
+      "colorFade": false,
+      "alphaFade": true
+    },
+    "fire": {
+      "tint": 16724738,
+      "mode": "multiply",
+      "peakAlpha": 1,
+      "colorFade": true,
+      "alphaFade": true
+    },
+    "frost": {
+      "tint": 10075895,
+      "mode": "multiply",
+      "peakAlpha": 1,
+      "colorFade": true,
+      "alphaFade": true
+    },
+    "water": {
+      "tint": 7254992,
+      "mode": "multiply",
+      "peakAlpha": 1,
+      "colorFade": true,
+      "alphaFade": true
+    }
+  }
+}

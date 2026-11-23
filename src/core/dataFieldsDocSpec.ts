@@ -20,6 +20,10 @@ import {
 } from "./normalizeEnemy";
 import { ENEMY_AI_BOOT_KEYS } from "./normalizeEnemyAi";
 import { ENTITY_PHYSICS_BOOT_KEYS } from "./normalizeEntityPhysics";
+import {
+  HIT_FLASH_BOOT_KEYS,
+  HIT_FLASH_FLAVOR_BOOT_KEYS,
+} from "./normalizeHitFlash";
 import { PLAYER_BOOT_KEYS } from "./normalizePlayer";
 import {
   SPELL_KNOCKBACK_BOOT_FIELDS,
@@ -47,6 +51,10 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
   ]),
   "enemy-ai.json": [...ENEMY_AI_BOOT_KEYS],
   "entity-physics.json": [...ENTITY_PHYSICS_BOOT_KEYS],
+  "hit-flash.json": uniqueSorted([
+    ...HIT_FLASH_BOOT_KEYS,
+    ...HIT_FLASH_FLAVOR_BOOT_KEYS,
+  ]),
   "player.json": [...PLAYER_BOOT_KEYS, "autoAttackMeleeRange"],
   "defense-maps.json": uniqueSorted([
     ...DEFENSE_MAPS_FILE_BOOT_KEYS,
