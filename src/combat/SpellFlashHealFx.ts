@@ -3,6 +3,8 @@ import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import {
   HOLY_FX_ANIM,
+  HOLY_FX_FLASH_ALPHA,
+  HOLY_FX_FLASH_DISPLAY_PX,
   HOLY_FX_TEXTURE,
 } from "../content/holyFxAssets";
 
@@ -11,6 +13,10 @@ const FLASH_DURATION_MS = 420;
 
 const RING_GOLD = 0xffe090;
 const RING_WHITE = 0xffffff;
+
+/** Vector ring radii at t=0 / t=1 — slightly under boosted #278 sizes (78px peak). */
+const FLASH_RING_START_PX = 14;
+const FLASH_RING_SPAN_PX = 54;
 
 /** Short holy pulse when Flash Heal resolves (after windup). */
 export function showFlashHealPulseFx(
@@ -24,20 +30,20 @@ export function showFlashHealPulseFx(
   gfx.setBlendMode(Phaser.BlendModes.ADD);
   registerWorldDraw?.(gfx);
 
+  const anim = { t: 0 };
+  let overlay: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | undefined;
+
   const holySpriteActive =
     scene.textures.exists(HOLY_FX_TEXTURE.impact) &&
     (scene.anims?.exists(HOLY_FX_ANIM.flashImpact) ?? false);
-  const vectorGain = holySpriteActive ? 0.34 : 1;
-
-  const anim = { t: 0 };
-  let overlay: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | undefined;
 
   if (holySpriteActive) {
     const holy = scene.add
       .sprite(centerX, centerY, HOLY_FX_TEXTURE.impact)
       .setDepth(FLASH_DEPTH + 1)
       .setBlendMode(Phaser.BlendModes.ADD)
-      .setDisplaySize(112, 112)
+      .setAlpha(HOLY_FX_FLASH_ALPHA)
+      .setDisplaySize(HOLY_FX_FLASH_DISPLAY_PX, HOLY_FX_FLASH_DISPLAY_PX)
       .play(HOLY_FX_ANIM.flashImpact);
     registerWorldDraw?.(holy);
     overlay = holy;
@@ -62,14 +68,14 @@ export function showFlashHealPulseFx(
 
   const redraw = () => {
     const t = anim.t;
-    const r = 16 + 62 * t;
-    const fade = (1 - t * 0.88) * vectorGain;
+    const r = FLASH_RING_START_PX + FLASH_RING_SPAN_PX * t;
+    const fade = 1 - t * 0.88;
     gfx.clear();
-    gfx.fillStyle(RING_WHITE, 0.38 * fade);
+    gfx.fillStyle(RING_WHITE, 0.32 * fade);
     gfx.fillCircle(centerX, centerY, r * 0.58);
-    gfx.lineStyle(7, RING_GOLD, 0.98 * fade);
+    gfx.lineStyle(6, RING_GOLD, 0.92 * fade);
     gfx.strokeCircle(centerX, centerY, r);
-    gfx.lineStyle(4, RING_WHITE, 0.88 * fade);
+    gfx.lineStyle(3.5, RING_WHITE, 0.82 * fade);
     gfx.strokeCircle(centerX, centerY, r * 0.78);
   };
 

@@ -3,11 +3,13 @@ import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import {
   HOLY_FX_ANIM,
+  HOLY_FX_CHANNEL_ALPHA,
+  HOLY_FX_CHANNEL_SPRITE_SCALE,
   HOLY_FX_TEXTURE,
 } from "../content/holyFxAssets";
 
-/** Holy beacon radius in world pixels while channeling heal. */
-const BEACON_RADIUS_PX = 52;
+/** Holy beacon radius — between pre-boost 44 and boosted #278 (52). */
+const BEACON_RADIUS_PX = 48;
 const BEACON_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 const GOLD_RING = 0xffe8a0;
@@ -26,7 +28,6 @@ export class SpellHealChannelFx {
   private pulse = { phase: 0 };
   private centerX = 0;
   private centerY = 0;
-  private vectorGain = 1;
 
   constructor(private readonly scene: Phaser.Scene) {}
 
@@ -39,7 +40,6 @@ export class SpellHealChannelFx {
     const holyActive =
       this.scene.textures.exists(HOLY_FX_TEXTURE.channel) &&
       (this.scene.anims?.exists(HOLY_FX_ANIM.channelLoop) ?? false);
-    this.vectorGain = holyActive ? 0.3 : 1;
 
     const gfx = this.scene.add.graphics();
     gfx.setDepth(BEACON_DEPTH);
@@ -48,11 +48,13 @@ export class SpellHealChannelFx {
     this.gfx = gfx;
 
     if (holyActive) {
+      const loopSize = BEACON_RADIUS_PX * HOLY_FX_CHANNEL_SPRITE_SCALE;
       const loop = this.scene.add
         .sprite(centerX, centerY, HOLY_FX_TEXTURE.channel)
         .setDepth(BEACON_DEPTH + 1)
         .setBlendMode(Phaser.BlendModes.ADD)
-        .setDisplaySize(BEACON_RADIUS_PX * 3.1, BEACON_RADIUS_PX * 3.1)
+        .setAlpha(HOLY_FX_CHANNEL_ALPHA)
+        .setDisplaySize(loopSize, loopSize)
         .play(HOLY_FX_ANIM.channelLoop);
       registerWorldDraw?.(loop);
       this.holyLoop = loop;
@@ -63,7 +65,7 @@ export class SpellHealChannelFx {
           .image(centerX, centerY, shockKey)
           .setDepth(BEACON_DEPTH - 1)
           .setTint(0xffe6a8)
-          .setAlpha(0.58)
+          .setAlpha(0.42)
           .setBlendMode(Phaser.BlendModes.ADD)
           .setDisplaySize(BEACON_RADIUS_PX * 2.4, BEACON_RADIUS_PX * 2.4);
         registerWorldDraw?.(glow);
@@ -105,19 +107,18 @@ export class SpellHealChannelFx {
     if (!gfx) return;
     const breathe = 0.72 + 0.28 * Math.sin(this.pulse.phase * Math.PI);
     const r = BEACON_RADIUS_PX * (0.92 + 0.08 * breathe);
-    const gain = this.vectorGain * breathe;
     gfx.clear();
 
-    gfx.fillStyle(GOLD_FILL, 0.28 * gain);
+    gfx.fillStyle(GOLD_FILL, 0.22 * breathe);
     gfx.fillCircle(centerX, centerY, r * 0.74);
 
-    gfx.fillStyle(WHITE_CORE, 0.22 * gain);
+    gfx.fillStyle(WHITE_CORE, 0.18 * breathe);
     gfx.fillCircle(centerX, centerY, r * 0.42);
 
-    gfx.lineStyle(5.5, GOLD_RING, 0.95 * gain);
+    gfx.lineStyle(4.5, GOLD_RING, 0.9 * breathe);
     gfx.strokeCircle(centerX, centerY, r);
 
-    gfx.lineStyle(3, WHITE_CORE, 0.82 * gain);
+    gfx.lineStyle(2.5, WHITE_CORE, 0.78 * breathe);
     gfx.strokeCircle(centerX, centerY, r * 0.64);
   }
 
