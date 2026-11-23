@@ -1,31 +1,23 @@
 import Phaser from "phaser";
+import {
+  hitFlashDurationMs,
+  hitFlashFlavorEntry,
+  hitFlashTintFor,
+} from "../config/hitFlash";
 import type { DamageFlavor } from "./DamageSystem";
 
-export const HIT_FLASH_MS = 190;
+export { hitFlashDurationMs, hitFlashTintFor } from "../config/hitFlash";
 
 const TIMER_KEY = "hitFlashTimer";
 const FLAVOR_KEY = "hitFlashFlavor";
 const STRENGTH_KEY = "hitFlashStrength";
-
-/** Per-flavor tints — fire avoids pure white on light enemy pixels; physical is white for lightning. */
-const HIT_TINT: Record<DamageFlavor, number> = {
-  fire: 0xff2222,
-  physical: 0xffffff,
-  frost: 0x99ddff,
-  /** Slightly darker than frost (0x99ddff) so multiply-tint reads on pale sprites. */
-  water: 0x6eb0d0,
-};
-
-export function hitFlashTintFor(flavor: DamageFlavor): number {
-  return HIT_TINT[flavor];
-}
 
 /** Multiply-style tint at linear flash strength (1 = full hit color, 0 = white / no tint). */
 export function hitFlashTintAtStrength(
   flavor: DamageFlavor,
   strength: number,
 ): number {
-  const full = HIT_TINT[flavor];
+  const full = hitFlashTintFor(flavor);
   const fr = (full >> 16) & 0xff;
   const fg = (full >> 8) & 0xff;
   const fb = full & 0xff;
@@ -45,7 +37,6 @@ function finishFlash(
   sprite.setData(STRENGTH_KEY, undefined);
 }
 
-/** Physical/lightning: multiply-tint white is invisible on pale sprites; fill replaces pixels for a strong flash. */
 function applyTint(
   sprite: Phaser.GameObjects.Sprite | Phaser.Physics.Arcade.Sprite,
   flavor: DamageFlavor,
@@ -57,15 +48,24 @@ function applyTint(
     return;
   }
 
-  const tint = HIT_TINT[flavor];
-  if (flavor === "physical") {
-    sprite.setTintFill(tint);
-    sprite.setAlpha(Math.max(strength, 0.001));
+  const entry = hitFlashFlavorEntry(flavor);
+
+  if (entry.alphaFade) {
+    sprite.setAlpha(Math.max(entry.peakAlpha * strength, 0.001));
+  } else {
+    sprite.setAlpha(1);
+  }
+
+  if (entry.mode === "fill") {
+    sprite.setTintFill(entry.tint);
     return;
   }
 
-  sprite.setAlpha(1);
-  sprite.setTint(hitFlashTintAtStrength(flavor, strength));
+  if (entry.colorFade) {
+    sprite.setTint(hitFlashTintAtStrength(flavor, strength));
+  } else {
+    sprite.setTint(entry.tint);
+  }
 }
 
 /** Phaser clears tint on `setTexture`; call after facing texture swaps while flash is active. */
@@ -95,7 +95,7 @@ export function flashSpriteTint(
   const tween = scene.tweens.add({
     targets: counter,
     strength: 0,
-    duration: HIT_FLASH_MS,
+    duration: hitFlashDurationMs(),
     ease: "Linear",
     onUpdate: () => {
       sprite.setData(STRENGTH_KEY, counter.strength);

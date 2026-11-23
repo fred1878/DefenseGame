@@ -287,6 +287,35 @@ describe("public data fixtures", () => {
     expect(Array.isArray(active!.obstacles)).toBe(true);
   });
 
+  it("hit-flash.json defines duration and flavor entries", () => {
+    const hitFlash = readJson("hit-flash.json") as {
+      durationMs: number;
+      flavors: Record<
+        string,
+        {
+          tint: number;
+          mode: string;
+          peakAlpha: number;
+          colorFade: boolean;
+          alphaFade: boolean;
+        }
+      >;
+    };
+    expectFiniteNumber(hitFlash.durationMs, "hit-flash.durationMs");
+    for (const flavor of ["physical", "fire", "frost", "water"]) {
+      const entry = hitFlash.flavors[flavor];
+      expect(entry, `hit-flash.flavors.${flavor}`).toBeDefined();
+      expectFiniteNumber(entry!.tint, `hit-flash.flavors.${flavor}.tint`);
+      expect(["fill", "multiply"]).toContain(entry!.mode);
+      expectFiniteNumber(
+        entry!.peakAlpha,
+        `hit-flash.flavors.${flavor}.peakAlpha`,
+      );
+      expect(typeof entry!.colorFade).toBe("boolean");
+      expect(typeof entry!.alphaFade).toBe("boolean");
+    }
+  });
+
   it("entity-physics and enemy-ai json load", () => {
     const physics = readJson("entity-physics.json") as {
       enemyPathClearanceMarginWu: number;

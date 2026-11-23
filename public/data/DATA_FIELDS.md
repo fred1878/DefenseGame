@@ -30,6 +30,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `enemies.json` | yes (`normalizeEnemyRow`, `resolveEnemyCombat`) |
 | `enemy-ai.json` | yes (`normalizeEnemyAi`) |
 | `entity-physics.json` | yes (`normalizeEntityPhysics`) |
+| `hit-flash.json` | yes (`normalizeHitFlash`) |
 | `player.json` | yes (`normalizePlayerConfig`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
 | `town_buildings.json` | yes (no schema validator) |
@@ -45,6 +46,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `enemies.json` | [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts) | [EnemyDef](../src/core/DataStore.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) | [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts) |
 | `enemy-ai.json` | [EnemyAiInput](../src/core/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
 | `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
+| `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
 | `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
 | `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
 | `town_buildings.json` | — | [TownBuildingDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
@@ -255,6 +257,24 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 
 ---
 
+## hit-flash.json
+
+**TypeScript:** [HitFlashInput](../src/core/normalizeHitFlash.ts), [HitFlashConfig](../src/core/normalizeHitFlash.ts), [HitFlashFlavorEntry](../src/core/normalizeHitFlash.ts) — [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts).
+
+Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitFlash` → `applyHitFlashConfig` → `HitFlash.ts`).
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `durationMs` | ms | Linear tween length for hit-flash strength 1→0 on damaged sprites. |
+| `flavors` | object | Required map keyed by `damageFlavor` (`fire`, `frost`, `physical`, `water`); one entry per flavor. |
+| `tint` | dimensionless | ARGB tint integer (0–16777215) applied at flash peak via fill or multiply mode. |
+| `mode` | string | `fill` uses `setTintFill` at full tint; `multiply` uses `setTint` (optionally lerped toward white). |
+| `peakAlpha` | dimensionless | Sprite alpha ceiling at strength 1 when `alphaFade` is true (`peakAlpha * strength` each frame). |
+| `colorFade` | boolean | When true on `multiply`, tween tint from flavor color toward white as strength drops; `fill` always uses full tint. |
+| `alphaFade` | boolean | When true, scales sprite alpha with strength; when false alpha stays 1 for the whole flash. |
+
+---
+
 ## player.json
 
 **TypeScript:** [PlayerConfigInput](../src/core/normalizePlayer.ts), [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts).
@@ -338,7 +358,7 @@ Hit-flash tint and DoT damage flavor when the spell deals damage. Allowed values
 
 Allowed enum tokens (spell hit flash): fire (bolts, novas, bombs, combustion), frost (ice, cold cone, blizzard, roots), physical (melee, lightning, enemy projectiles, rend), water (water bolt).
 
-Hit-flash tints in HitFlash.ts: fire 0xff2222, frost 0x99ddff, water 0x6eb0d0 (multiply tint, darker than frost), physical 0xffffff (tint fill).
+Hit-flash timing and per-flavor `colorFade` / `alphaFade` live in [hit-flash.json](hit-flash.json) (`applyHitFlashConfig`); `damageFlavor` selects the matching `flavors` entry.
 
 ### Mechanic-specific boot validation (reference only)
 

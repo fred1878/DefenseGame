@@ -7,7 +7,7 @@ export const DAMAGE_FLAVORS = [
 
 export type DamageFlavor = (typeof DAMAGE_FLAVORS)[number];
 
-/** White hit-flash tint for sword arcs and enemy melee (see `HitFlash.ts`). */
+/** Melee hit-flash flavor for sword arcs and enemy melee (see `hit-flash.json`). */
 export const MELEE_HIT_FLAVOR: DamageFlavor = "physical";
 
 /** Keeps explicit spell flavors from data; maps unset swing rows to melee physical. */
