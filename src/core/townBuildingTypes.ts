@@ -22,5 +22,7 @@ export type TownLayoutSlot = {
 };
 
 export type TownLayoutDef = {
+  /** Multiplier for on-screen building sprite size (PNG defs unchanged). */
+  buildingDisplayScale: number;
   slots: TownLayoutSlot[];
 };

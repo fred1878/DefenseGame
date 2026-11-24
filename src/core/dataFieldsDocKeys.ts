@@ -26,7 +26,13 @@ export const TOWN_BUILDINGS_DOC_KEYS = [
   "opensWavePlanner",
 ] as const;
 
-export const TOWN_LAYOUT_DOC_KEYS = ["slots", "buildingId", "x", "y"] as const;
+export const TOWN_LAYOUT_DOC_KEYS = [
+  "buildingDisplayScale",
+  "slots",
+  "buildingId",
+  "x",
+  "y",
+] as const;
 
 /** Shipped runtime JSON under `public/data/` (excludes removed legacy files). */
 export const SHIPPED_DATA_JSON_FILES = [

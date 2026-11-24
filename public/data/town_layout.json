@@ -1,4 +1,5 @@
 {
+  "buildingDisplayScale": 2,
   "slots": [
     { "buildingId": "town_special_gallows_square", "x": 170, "y": 1064 },
     { "buildingId": "town_market_stall_daylit", "x": 370, "y": 1064 },

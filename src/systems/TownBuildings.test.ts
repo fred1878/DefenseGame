@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { scaleUiX } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
 import {
-  TOWN_BUILDING_DISPLAY_SCALE,
   townBuildingFootprintHitArea,
   townBuildingLabelWrapWidth,
 } from "./TownBuildings";
@@ -31,9 +30,10 @@ describe("town building footprints", () => {
       width: 112,
       height: 72,
     };
-    const area = townBuildingFootprintHitArea(def);
-    const w = 112 * TOWN_BUILDING_DISPLAY_SCALE;
-    const h = 72 * TOWN_BUILDING_DISPLAY_SCALE;
+    const displayScale = 2;
+    const area = townBuildingFootprintHitArea(def, displayScale);
+    const w = def.width * displayScale;
+    const h = def.height * displayScale;
     expect(area.width).toBe(w);
     expect(area.height).toBe(h);
     expect(area.x).toBe(-w / 2);
@@ -53,6 +53,7 @@ describe("town building footprints", () => {
 
   it("keeps separate ids for daylit variants", () => {
     const layout: TownLayoutDef = {
+      buildingDisplayScale: 1,
       slots: [{ buildingId: "town_market_stall_daylit", x: 100, y: 200 }],
     };
     expect(defs[layout.slots[0]!.buildingId]?.textureKey).toBe(
