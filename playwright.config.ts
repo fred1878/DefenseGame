@@ -4,6 +4,15 @@ const previewHost = process.env.E2E_HOST ?? "127.0.0.1";
 const previewPort = process.env.E2E_PORT ?? "4173";
 const baseURL = `http://${previewHost}:${previewPort}`;
 
+function resolveE2EWorkers(): number {
+  const raw = process.env.E2E_WORKERS;
+  if (raw !== undefined && raw !== "") {
+    const n = Number(raw);
+    if (Number.isFinite(n) && n > 0) return Math.floor(n);
+  }
+  return process.env.CI ? 6 : 1;
+}
+
 export default defineConfig({
   testDir: "e2e",
   // CI skips suites/tests tagged @manual in describe/title (see docs/TESTING.md).
@@ -12,7 +21,7 @@ export default defineConfig({
   fullyParallel: !!process.env.CI,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 4 : 1,
+  workers: resolveE2EWorkers(),
   reporter: [["list"], ["html", { open: "never" }]],
   timeout: 90_000,
   use: {

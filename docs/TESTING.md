@@ -113,7 +113,20 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
 | `obstacle-bump-capture.spec.ts` | Player–obstacle separation (stick push cardinals) |
 
-**Expected CI e2e wall-clock (Chromium, 4 workers, `timeScale` 2):** about **4–7 minutes** on `ubuntu-24.04` after the `@manual` trim (~40 gate tests). Full local suite (~60 tests) is typically **8–12 minutes**. Verify job still downloads `dist-e2e` from `verify` (no duplicate E2E build in the e2e job).
+**Workers:** `playwright.config.ts` uses `E2E_WORKERS` when set; otherwise **6** in CI (`CI` set) and **1** locally. GitHub Actions sets `E2E_WORKERS=6` on the Playwright step.
+
+**Expected CI e2e wall-clock (Chromium, 6 workers, `timeScale` 2):** about **3–6 minutes** on `ubuntu-24.04` after the `@manual` trim (~40 gate tests). Full local suite (~60 tests) is typically **8–12 minutes** (still 1 worker unless you set `E2E_WORKERS`). Verify job still downloads `dist-e2e` from `verify` (no duplicate E2E build in the e2e job).
+
+**VM benchmark (gated Chromium, same `ubuntu-24.04` class runner, post-`npm run build:e2e`):** wall-clock for the full CI-filtered suite — see PR description for the latest table. Rough guide from a Nov 2026 agent VM run:
+
+| Workers | Wall-clock (s) | Playwright reported | Flakes/retries |
+|--------:|---------------:|---------------------|----------------|
+| 4 | 73 | 1.2m | none (47/47) |
+| 6 | 68 | 1.1m | none (47/47) |
+
+Same cloud-agent VM, Nov 2026; GitHub `ubuntu-24.04` free runners are typically slower — use the **ratio** (~7% faster at 6 workers here), not these absolute seconds, for CI planning.
+
+Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file parallelism inside a job increases with worker count.
 
 ### Local-only (`@manual` in title/describe)
 
@@ -127,7 +140,7 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `town-spell-panel-layout.spec.ts`, `town-spell-panel-drag.spec.ts` | Redundant with tap-toggle behavior |
 | `fps.spec.ts` | Weak threshold (`> 5` fps); hook smoke only |
 
-CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=true` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
+CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=true` and `E2E_WORKERS=6` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
 
 ## Manual review captures vs e2e
 
