@@ -47,10 +47,9 @@ import {
 import { showFlashHealPulseFx } from "../combat/SpellFlashHealFx";
 import {
   DEBUG_MENU_CLOSE,
-  pauseForDebugMenu,
+  openDebugMenuFromHost,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
-import { ensureDebugMenuScene } from "../core/lazyScenes";
 import {
   blocksBaseLayerInput,
   clearInputModalities,
@@ -1126,11 +1125,8 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private openDebugMenu(): void {
-    void ensureDebugMenuScene(this.game).then(() => {
-      pushInputModality(this, INPUT_MODALITY.debugMenu);
-      this.setHudChromeVisible(false);
-      pauseForDebugMenu(this);
-      this.scene.launch("DebugMenu");
+    openDebugMenuFromHost(this, {
+      beforeLaunch: () => this.setHudChromeVisible(false),
     });
   }
 

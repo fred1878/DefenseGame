@@ -16,7 +16,7 @@ import {
 import { showTouchInput } from "../debug/DebugState";
 import {
   DEBUG_MENU_CLOSE,
-  pauseForDebugMenu,
+  launchDebugMenuFromHost,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
 import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
@@ -28,7 +28,6 @@ import {
   INPUT_MODALITY,
   INPUT_MODALITY_CHANGED,
   popInputModality,
-  pushInputModality,
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import {
@@ -494,11 +493,7 @@ export class TownScene extends Phaser.Scene {
 
   private launchDebugMenuFromTown(): void {
     const store = this.registry.get("dataStore") as DataStore;
-    const launch = () => {
-      pushInputModality(this, INPUT_MODALITY.debugMenu);
-      pauseForDebugMenu(this);
-      this.scene.launch("DebugMenu");
-    };
+    const launch = () => launchDebugMenuFromHost(this);
     if (isTownReachableReady(this.game, store)) {
       launch();
       return;
