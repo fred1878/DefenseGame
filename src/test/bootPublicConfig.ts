@@ -3,6 +3,7 @@ import path from "node:path";
 import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import { applyHitFlashConfig } from "../config/hitFlash";
+import { applySpellInputTuning } from "../config/spellInput";
 import { applyPlayerTuning } from "../config/player";
 import {
   applyEnemyBodyRadii,
@@ -12,6 +13,7 @@ import { normalizeEnemyRow, type EnemyDefInput } from "../core/normalizeEnemy";
 import { normalizeEnemyAi } from "../core/normalizeEnemyAi";
 import { normalizeEntityPhysics } from "../core/normalizeEntityPhysics";
 import { normalizeHitFlash } from "../core/normalizeHitFlash";
+import { normalizeSpellInput } from "../core/normalizeSpellInput";
 import { normalizePlayerConfig } from "../core/normalizePlayer";
 const dataDir = path.join(process.cwd(), "public/data");
 
@@ -39,6 +41,7 @@ export function bootPublicConfigFixtures(): void {
   );
   applyPlayerTuning(tuning);
   applyHitFlashConfig(normalizeHitFlash(readPublicJson("hit-flash.json")));
+  applySpellInputTuning(normalizeSpellInput(readPublicJson("spell_input.json")));
 }
 
 bootPublicConfigFixtures();

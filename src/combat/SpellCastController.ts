@@ -3,10 +3,8 @@ import {
   type SpellDefinition,
   type SpellId,
 } from "../content/spells";
-import {
-  SPELL_MOVE_INTERRUPT_EPS,
-  spellCastMs,
-} from "../content/spellTargeting";
+import { CAST_INTERRUPT_STICK_DELTA_EPS } from "../config/spellInput";
+import { spellCastMs } from "../content/spellTargeting";
 
 export type ChannelUpdateResult =
   | { type: "idle" }
@@ -122,7 +120,7 @@ export class SpellCastController {
 
     const dx = stickX - this.moveInterruptBaselineX;
     const dy = stickY - this.moveInterruptBaselineY;
-    if (Math.hypot(dx, dy) > SPELL_MOVE_INTERRUPT_EPS) {
+    if (Math.hypot(dx, dy) > CAST_INTERRUPT_STICK_DELTA_EPS) {
       const id = this.activeSpellId;
       this.clearCast();
       return { type: "interrupted", spellId: id };

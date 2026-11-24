@@ -25,6 +25,7 @@ import {
   HIT_FLASH_FLAVOR_BOOT_KEYS,
 } from "./normalizeHitFlash";
 import { PLAYER_BOOT_KEYS } from "./normalizePlayer";
+import { SPELL_INPUT_BOOT_KEYS } from "./normalizeSpellInput";
 import {
   SPELL_KNOCKBACK_BOOT_FIELDS,
   SPELL_MECHANIC_TYPE_BOOT_FIELDS,
@@ -62,6 +63,7 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...DEFENSE_MAP_FIELD_BOOT_KEYS,
     ...DEFENSE_MAP_OBSTACLE_BOOT_KEYS,
   ]),
+  "spell_input.json": [...SPELL_INPUT_BOOT_KEYS],
   "spells.json": uniqueSorted([
     ...SPELLS_FILE_BOOT_KEYS,
     ...SPELL_ROW_BOOT_STRING_FIELDS,

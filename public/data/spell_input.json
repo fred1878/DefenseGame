@@ -1,0 +1,4 @@
+{
+  "castInterruptStickDeltaEps": 0.12,
+  "stickMovingMagnitudeEps": 0.12
+}

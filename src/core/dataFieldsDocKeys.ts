@@ -37,6 +37,7 @@ export const SHIPPED_DATA_JSON_FILES = [
   "entity-physics.json",
   "hit-flash.json",
   "player.json",
+  "spell_input.json",
   "spells.json",
   "town_buildings.json",
   "town_layout.json",

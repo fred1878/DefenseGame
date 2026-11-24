@@ -20,6 +20,10 @@ import {
   type HitFlashInput,
 } from "./normalizeHitFlash";
 import {
+  normalizeSpellInput,
+  type SpellInputConfigInput,
+} from "./normalizeSpellInput";
+import {
   normalizePlayerConfig,
   type PlayerConfig,
   type PlayerConfigInput,
@@ -30,6 +34,7 @@ import {
 } from "./normalizeSpells";
 import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import { applyHitFlashConfig } from "../config/hitFlash";
+import { applySpellInputTuning } from "../config/spellInput";
 import { applyShadowformMechanics } from "../config/shadowformMechanics";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
@@ -105,6 +110,7 @@ export class DataStore {
       entityPhysics,
       enemyAi,
       hitFlash,
+      spellInput,
     ] = await Promise.all([
       fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
@@ -113,6 +119,7 @@ export class DataStore {
       fetchJson<EntityPhysicsInput>(`${prefix}data/entity-physics.json`),
       fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
       fetchJson<HitFlashInput>(`${prefix}data/hit-flash.json`),
+      fetchJson<SpellInputConfigInput>(`${prefix}data/spell_input.json`),
     ]);
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
@@ -131,6 +138,7 @@ export class DataStore {
     }
     applyEnemyAi(normalizeEnemyAi(enemyAi));
     applyHitFlashConfig(normalizeHitFlash(hitFlash));
+    applySpellInputTuning(normalizeSpellInput(spellInput));
     this.shadowformMechanics = shadowformMechanicsFromCatalog(this.spells);
     applyShadowformMechanics(this.shadowformMechanics);
     this.defenseMaps = normalizeDefenseMaps(defenseMaps);

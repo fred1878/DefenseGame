@@ -32,6 +32,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `entity-physics.json` | yes (`normalizeEntityPhysics`) |
 | `hit-flash.json` | yes (`normalizeHitFlash`) |
 | `player.json` | yes (`normalizePlayerConfig`) |
+| `spell_input.json` | yes (`normalizeSpellInput`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
 | `town_buildings.json` | yes (no schema validator) |
 | `town_layout.json` | yes (no schema validator) |
@@ -48,6 +49,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
 | `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
 | `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
+| `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
 | `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
 | `town_buildings.json` | — | [TownBuildingDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
 | `town_layout.json` | — | [TownLayoutDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
@@ -254,6 +256,19 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 | `enemyPathClearanceMarginWu` | px | Extra px clearance around enemies on nav grid. |
 | `staticObstacleNavClearanceWu` | px | Px inflation around obstacles for pathfinding. |
 | `knockbackVelocityCapMult` | dimensionless | Caps knockback velocity to strength times this mult. |
+
+---
+
+## spell_input.json
+
+**TypeScript:** [SpellInputConfigInput](../src/core/normalizeSpellInput.ts), [SpellInputTuning](../src/config/spellInput.ts) — [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts).
+
+Virtual stick thresholds for spell cast interrupt vs movement detection (`applySpellInputTuning`).
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `castInterruptStickDeltaEps` | dimensionless | Deflection delta from cast-start baseline that cancels windup/channel (`SpellCastController.updateChannel`). |
+| `stickMovingMagnitudeEps` | dimensionless | Raw stick magnitude above which the player counts as moving (`isStickMoving`, auto-cast stationary skip). |
 
 ---
 
