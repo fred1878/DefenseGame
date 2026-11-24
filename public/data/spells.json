@@ -247,7 +247,7 @@
       "damageFlavor": "fire",
       "targetMode": "ground",
       "groundTargetMaxRangeWu": 240,
-      "blastKnockbackWu": 300,
+      "blastKnockbackWu": 300
     },
     {
       "id": "blizzard",
