@@ -264,6 +264,9 @@ export class TownScene extends Phaser.Scene {
     if (this.spellSortPanel) {
       Object.assign(out, this.spellSortPanel.e2eTapTargets());
     }
+    if (this.endlessPanelLoading) {
+      Object.assign(out, this.endlessPanelLoading.e2eTapTargets());
+    }
     if (this.endlessPanel) {
       Object.assign(out, this.endlessPanel.e2eTapTargets());
     }
@@ -451,9 +454,17 @@ export class TownScene extends Phaser.Scene {
       open();
       return;
     }
-    this.endlessPanelLoading = new EndlessModePanelLoadingSkeleton(this);
+    let endlessOpenCancelled = false;
+    const dismissLoading = (): void => {
+      endlessOpenCancelled = true;
+      this.endlessPanelLoading = null;
+    };
+    this.endlessPanelLoading = new EndlessModePanelLoadingSkeleton(this, dismissLoading);
     void ensureTownReachableReady(this, store)
-      .then(open)
+      .then(() => {
+        if (endlessOpenCancelled) return;
+        open();
+      })
       .catch((err) => {
         console.error("Endless panel readiness failed", err);
         this.endlessPanelLoading?.showError("Could not load endless roster. Try again.");

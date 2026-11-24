@@ -7,6 +7,7 @@ import {
   bindModalDimBackdrop,
   type ModalInputLease,
 } from "../input/modalBackdrop";
+import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { uiTextStyle } from "./uiTextStyle";
 
 /** Placeholder roster rows shown while endless panel data is still loading. */
@@ -19,8 +20,11 @@ export class EndlessModePanelLoadingSkeleton {
   private readonly root: Phaser.GameObjects.Container;
   private readonly modalLease: ModalInputLease;
   private readonly statusText: Phaser.GameObjects.Text;
+  private readonly closeBtn: ReturnType<typeof createTouchButton>;
+  private readonly onDismiss: (() => void) | undefined;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, onDismiss?: () => void) {
+    this.onDismiss = onDismiss;
     this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townEndless);
     this.root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
 
@@ -51,6 +55,32 @@ export class EndlessModePanelLoadingSkeleton {
     const gap = scaleUiY(8);
     const rowStride = rowH + gap;
     const listTop = scaleUiY(148);
+
+    const infiniteRowH = scaleUiY(44);
+    const crLineHalf = scaleUiY(11);
+    const gapAfterInfinite = scaleUiY(16);
+    const gapCrToStart = scaleUiY(12);
+    const startBtnH = scaleUiY(48);
+    const closeBtnH = scaleUiY(40);
+    const footerBlockH =
+      scaleUiY(12) +
+      infiniteRowH +
+      gapAfterInfinite +
+      crLineHalf * 2 +
+      gapCrToStart +
+      startBtnH +
+      scaleUiY(56) +
+      closeBtnH +
+      scaleUiY(28);
+    const listBottom = GAME.height - footerBlockH;
+    const crY =
+      listBottom +
+      scaleUiY(12) +
+      infiniteRowH +
+      gapAfterInfinite +
+      crLineHalf;
+    const startY = crY + crLineHalf + gapCrToStart + startBtnH / 2;
+    const closeY = startY + scaleUiY(56);
 
     const hintSk = scene.add
       .rectangle(
@@ -101,6 +131,39 @@ export class EndlessModePanelLoadingSkeleton {
       )
       .setOrigin(0.5);
     this.root.add(this.statusText);
+
+    this.closeBtn = createTouchButton(
+      scene,
+      GAME.width / 2,
+      closeY,
+      "Close",
+      () => this.dismiss(),
+      {
+        width: scaleUiX(120),
+        height: closeBtnH,
+        depth: 2,
+        fontSize: `${scaleUiX(14)}px`,
+        fillColor: 0x52525b,
+        strokeColor: 0xa1a1aa,
+      },
+    );
+    this.root.add(this.closeBtn.container);
+  }
+
+  e2eTapTargets(): Record<string, { x: number; y: number }> {
+    const r = interactiveObjectScreenRect(this.closeBtn.container);
+    if (!r) return {};
+    return {
+      "endless-close": {
+        x: r.x + r.width / 2,
+        y: r.y + r.height / 2,
+      },
+    };
+  }
+
+  private dismiss(): void {
+    this.onDismiss?.();
+    this.destroy();
   }
 
   showError(message: string): void {
