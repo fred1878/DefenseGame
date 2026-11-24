@@ -38,7 +38,17 @@ describe("normalizeSpellCatalog", () => {
   });
 
   it("accepts shipped spells.json knockback wiring", () => {
-    const rows = normalizeSpellCatalog(shippedSpells());
+    const shipped = shippedSpells();
+    const rawShade = shipped.spells.find((s: { id: string }) => s.id === "shadowform") as
+      | {
+          shadowformMoveSpeedMult: number;
+          shadowformDamageTakenMult: number;
+          shadowformAggroRadiusMult: number;
+        }
+      | undefined;
+    expect(rawShade).toBeDefined();
+
+    const rows = normalizeSpellCatalog(shipped);
     expect(rows.length).toBeGreaterThan(0);
     const nova = rows.find((s) => s.id === "fire_nova");
     expect(typeof nova?.blastKnockbackWu).toBe("number");
@@ -57,13 +67,13 @@ describe("normalizeSpellCatalog", () => {
     expect(swing?.swingRangeWu).toBeDefined();
     expect(swing?.swingArcDeg).toBeDefined();
     const shade = rows.find((s) => s.id === "shadowform");
-    expect(shade?.shadowformMoveSpeedMult).toBe(1.2);
-    expect(shade?.shadowformDamageTakenMult).toBe(0.7);
-    expect(shade?.shadowformAggroRadiusMult).toBe(0.5);
+    expect(shade?.shadowformMoveSpeedMult).toBe(rawShade!.shadowformMoveSpeedMult);
+    expect(shade?.shadowformDamageTakenMult).toBe(rawShade!.shadowformDamageTakenMult);
+    expect(shade?.shadowformAggroRadiusMult).toBe(rawShade!.shadowformAggroRadiusMult);
     const mechanics = shadowformMechanicsFromCatalog(rows);
-    expect(mechanics.moveSpeedMult).toBe(1.2);
-    expect(mechanics.damageTakenMult).toBe(0.7);
-    expect(mechanics.aggroRadiusMult).toBe(0.5);
+    expect(mechanics.moveSpeedMult).toBe(rawShade!.shadowformMoveSpeedMult);
+    expect(mechanics.damageTakenMult).toBe(rawShade!.shadowformDamageTakenMult);
+    expect(mechanics.aggroRadiusMult).toBe(rawShade!.shadowformAggroRadiusMult);
   });
 
   it("rejects invalid shadowform damage taken mult", () => {
