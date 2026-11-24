@@ -5,6 +5,7 @@ import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore } from "../core/DataStore";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
+import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import {
   mergePlayerWithoutLegacyMoveSpeed,
@@ -563,6 +564,9 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     damageFirstLivingEnemy(amount: number) {
       activeDefense(game)?.e2eDamageFirstLivingEnemy(amount);
     },
+    previewHolyFx(kind: "flash" | "channel") {
+      activeDefense(game)?.e2ePreviewHolyFx(kind);
+    },
   };
 }
 
@@ -589,6 +593,7 @@ export function markE2EAssetsLoaded(game: Phaser.Game): void {
   const keys = [
     ...COMBAT_FX_ASSETS.map((a) => a.key),
     ...SPELL_FX_ASSETS.map((a) => a.key),
+    ...HOLY_FX_ASSETS.map((a) => a.key),
   ];
   const ok = keys.every((k) => game.textures.exists(k));
   publishE2E({ assetsLoaded: ok, flags: { combatFxKeys: keys.join(",") } });

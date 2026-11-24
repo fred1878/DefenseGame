@@ -16,6 +16,11 @@ import {
   TOWN_BUILDING_ASSET_ROOT,
   TOWN_BUILDING_ASSETS,
 } from "../content/townBuildingAssets";
+import {
+  HOLY_FX_ASSETS,
+  HOLY_FX_ROOT,
+  registerHolyFxAnimations,
+} from "../content/holyFxAssets";
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
 import { ensureDefenseScene } from "./lazyScenes";
@@ -86,6 +91,16 @@ export function queueDefenseBootAssets(
     const root = entry.root ?? "assets/spells/fx";
     loader.image(entry.key, `${root}/${entry.file}`);
   }
+  for (const entry of HOLY_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${HOLY_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+}
+
+function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {
+  registerHolyFxAnimations(scene);
 }
 
 export function runQueuedLoader(
@@ -137,6 +152,7 @@ export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   defenseLoadPromise = runQueuedLoader(scene, (loader) =>
     queueDefenseBootAssets(loader, base),
   ).then(() => {
+    afterDefenseAssetsLoaded(scene);
     scene.game.registry.set(DEFENSE_ASSETS_READY_KEY, true);
   });
   return defenseLoadPromise;

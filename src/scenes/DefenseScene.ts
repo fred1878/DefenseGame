@@ -39,10 +39,12 @@ import {
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { correctPlayerObstacleBlockerOverlap } from "../world/defenseObstacleBlocker";
 import {
+  setShowHitboxes,
   showEnemyPaths,
   showHitboxes,
   showTouchInput,
 } from "../debug/DebugState";
+import { showFlashHealPulseFx } from "../combat/SpellFlashHealFx";
 import {
   DEBUG_MENU_CLOSE,
   pauseForDebugMenu,
@@ -1628,6 +1630,22 @@ export class DefenseScene extends Phaser.Scene {
     const e = this.enemies.find((entry) => entry.damageable.alive);
     if (!e) return;
     applyDamage(e.damageable, amount, MELEE_HIT_FLAVOR);
+  }
+
+  /** E2E: trigger holy heal VFX at the player for before/after capture compares. */
+  e2ePreviewHolyFx(kind: "flash" | "channel"): void {
+    this.e2eKillAllEnemies();
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    this.cameras.main.centerOn(px, py);
+    setShowHitboxes(this.registry, false);
+    if (kind === "flash") {
+      showFlashHealPulseFx(this, px, py, (go) => this.registerWorldDraw(go));
+      return;
+    }
+    this.healChannelFx?.destroy();
+    this.healChannelFx = new SpellHealChannelFx(this);
+    this.healChannelFx.start(px, py, (go) => this.registerWorldDraw(go));
   }
 
 }

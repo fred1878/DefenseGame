@@ -1,9 +1,15 @@
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
+import {
+  HOLY_FX_ANIM,
+  HOLY_FX_CHANNEL_ALPHA,
+  HOLY_FX_CHANNEL_SPRITE_SCALE,
+  HOLY_FX_TEXTURE,
+} from "../content/holyFxAssets";
 
-/** Holy beacon radius in world pixels while channeling heal. */
-const BEACON_RADIUS_PX = 44;
+/** Holy beacon radius — between pre-boost 44 and boosted #278 (52). */
+const BEACON_RADIUS_PX = 48;
 const BEACON_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 const GOLD_RING = 0xffe8a0;
@@ -17,6 +23,7 @@ const GOLD_FILL = 0xffcc44;
 export class SpellHealChannelFx {
   private gfx: Phaser.GameObjects.Graphics | null = null;
   private glow: Phaser.GameObjects.Image | null = null;
+  private holyLoop: Phaser.GameObjects.Sprite | null = null;
   private pulseTween: Phaser.Tweens.Tween | null = null;
   private pulse = { phase: 0 };
   private centerX = 0;
@@ -30,23 +37,40 @@ export class SpellHealChannelFx {
     registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ): void {
     this.stop();
+    const holyActive =
+      this.scene.textures.exists(HOLY_FX_TEXTURE.channel) &&
+      (this.scene.anims?.exists(HOLY_FX_ANIM.channelLoop) ?? false);
+
     const gfx = this.scene.add.graphics();
     gfx.setDepth(BEACON_DEPTH);
     gfx.setBlendMode(Phaser.BlendModes.ADD);
     registerWorldDraw?.(gfx);
     this.gfx = gfx;
 
-    const shockKey = COMBAT_FX_TEXTURE.spellShockwave;
-    if (this.scene.textures.exists(shockKey)) {
-      const glow = this.scene.add
-        .image(centerX, centerY, shockKey)
-        .setDepth(BEACON_DEPTH - 1)
-        .setTint(0xffe6a8)
-        .setAlpha(0.42)
+    if (holyActive) {
+      const loopSize = BEACON_RADIUS_PX * HOLY_FX_CHANNEL_SPRITE_SCALE;
+      const loop = this.scene.add
+        .sprite(centerX, centerY, HOLY_FX_TEXTURE.channel)
+        .setDepth(BEACON_DEPTH + 1)
         .setBlendMode(Phaser.BlendModes.ADD)
-        .setDisplaySize(BEACON_RADIUS_PX * 2.4, BEACON_RADIUS_PX * 2.4);
-      registerWorldDraw?.(glow);
-      this.glow = glow;
+        .setAlpha(HOLY_FX_CHANNEL_ALPHA)
+        .setDisplaySize(loopSize, loopSize)
+        .play(HOLY_FX_ANIM.channelLoop);
+      registerWorldDraw?.(loop);
+      this.holyLoop = loop;
+    } else {
+      const shockKey = COMBAT_FX_TEXTURE.spellShockwave;
+      if (this.scene.textures.exists(shockKey)) {
+        const glow = this.scene.add
+          .image(centerX, centerY, shockKey)
+          .setDepth(BEACON_DEPTH - 1)
+          .setTint(0xffe6a8)
+          .setAlpha(0.42)
+          .setBlendMode(Phaser.BlendModes.ADD)
+          .setDisplaySize(BEACON_RADIUS_PX * 2.4, BEACON_RADIUS_PX * 2.4);
+        registerWorldDraw?.(glow);
+        this.glow = glow;
+      }
     }
 
     this.centerX = centerX;
@@ -70,6 +94,9 @@ export class SpellHealChannelFx {
     if (this.glow) {
       this.glow.setPosition(centerX, centerY);
     }
+    if (this.holyLoop) {
+      this.holyLoop.setPosition(centerX, centerY);
+    }
     this.redraw();
   }
 
@@ -82,17 +109,17 @@ export class SpellHealChannelFx {
     const r = BEACON_RADIUS_PX * (0.92 + 0.08 * breathe);
     gfx.clear();
 
-    gfx.fillStyle(GOLD_FILL, 0.14 * breathe);
-    gfx.fillCircle(centerX, centerY, r * 0.72);
+    gfx.fillStyle(GOLD_FILL, 0.22 * breathe);
+    gfx.fillCircle(centerX, centerY, r * 0.74);
 
-    gfx.fillStyle(WHITE_CORE, 0.1 * breathe);
-    gfx.fillCircle(centerX, centerY, r * 0.38);
+    gfx.fillStyle(WHITE_CORE, 0.18 * breathe);
+    gfx.fillCircle(centerX, centerY, r * 0.42);
 
-    gfx.lineStyle(3, GOLD_RING, 0.82 * breathe);
+    gfx.lineStyle(4.5, GOLD_RING, 0.9 * breathe);
     gfx.strokeCircle(centerX, centerY, r);
 
-    gfx.lineStyle(1.5, WHITE_CORE, 0.55 * breathe);
-    gfx.strokeCircle(centerX, centerY, r * 0.62);
+    gfx.lineStyle(2.5, WHITE_CORE, 0.78 * breathe);
+    gfx.strokeCircle(centerX, centerY, r * 0.64);
   }
 
   stop(): void {
@@ -102,6 +129,8 @@ export class SpellHealChannelFx {
     this.gfx = null;
     this.glow?.destroy();
     this.glow = null;
+    this.holyLoop?.destroy();
+    this.holyLoop = null;
   }
 
   destroy(): void {
