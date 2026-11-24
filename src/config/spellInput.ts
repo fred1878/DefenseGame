@@ -1,6 +1,6 @@
 export type SpellInputTuning = {
-  /** Stick deflection delta from cast baseline that cancels windup/channel. */
-  castInterruptStickDeltaEps: number;
+  /** Bearing change (degrees) from cast-start stick aim that cancels windup/channel. */
+  castInterruptStickAngleDeg: number;
   /** Raw stick magnitude above which the player counts as moving (auto-cast / queue). */
   stickMovingMagnitudeEps: number;
 };
@@ -15,8 +15,8 @@ function unsetSpellInputScalar(label: string): number {
   }) as unknown as number;
 }
 
-export let CAST_INTERRUPT_STICK_DELTA_EPS = unsetSpellInputScalar(
-  "CAST_INTERRUPT_STICK_DELTA_EPS",
+export let CAST_INTERRUPT_STICK_ANGLE_DEG = unsetSpellInputScalar(
+  "CAST_INTERRUPT_STICK_ANGLE_DEG",
 );
 
 export let STICK_MOVING_MAGNITUDE_EPS = unsetSpellInputScalar(
@@ -24,6 +24,6 @@ export let STICK_MOVING_MAGNITUDE_EPS = unsetSpellInputScalar(
 );
 
 export function applySpellInputTuning(tuning: SpellInputTuning): void {
-  CAST_INTERRUPT_STICK_DELTA_EPS = tuning.castInterruptStickDeltaEps;
+  CAST_INTERRUPT_STICK_ANGLE_DEG = tuning.castInterruptStickAngleDeg;
   STICK_MOVING_MAGNITUDE_EPS = tuning.stickMovingMagnitudeEps;
 }

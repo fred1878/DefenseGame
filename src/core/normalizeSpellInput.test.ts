@@ -9,10 +9,10 @@ describe("normalizeSpellInput", () => {
 
   it("returns parsed numbers from a complete fixture", () => {
     const out = normalizeSpellInput({
-      castInterruptStickDeltaEps: 0.15,
+      castInterruptStickAngleDeg: 25,
       stickMovingMagnitudeEps: 0.1,
     });
-    expect(out.castInterruptStickDeltaEps).toBe(0.15);
+    expect(out.castInterruptStickAngleDeg).toBe(25);
     expect(out.stickMovingMagnitudeEps).toBe(0.1);
   });
 });

@@ -5,7 +5,7 @@ export type SpellInputConfigInput = Partial<SpellInputTuning>;
 
 /** Boot-required keys for `public/data/spell_input.json` (see `DATA_FIELDS.md`). */
 export const SPELL_INPUT_BOOT_KEYS = [
-  "castInterruptStickDeltaEps",
+  "castInterruptStickAngleDeg",
   "stickMovingMagnitudeEps",
 ] as const satisfies readonly (keyof SpellInputTuning)[];
 
