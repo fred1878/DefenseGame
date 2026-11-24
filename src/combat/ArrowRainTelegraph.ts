@@ -20,6 +20,16 @@ export const LOBBER_TELEGRAPH_PALETTE: ArrowRainTelegraphPalette = {
   inner: 0xede9fe,
 };
 
+/** Slightly darken palette RGB during active windup (pre-impact) telegraph. */
+const TELEGRAPH_WINDUP_COLOR_SCALE = 0.82;
+
+function scaleTelegraphRgb(color: number, factor: number): number {
+  const r = Math.min(255, Math.floor(((color >> 16) & 0xff) * factor));
+  const g = Math.min(255, Math.floor(((color >> 8) & 0xff) * factor));
+  const b = Math.min(255, Math.floor((color & 0xff) * factor));
+  return (r << 16) | (g << 8) | b;
+}
+
 export type ArrowRainTelegraph = {
   gfx: Phaser.GameObjects.Graphics;
   zoneX: number;
@@ -58,16 +68,23 @@ export function updateArrowRainTelegraph(
   const pulse = 0.35 + 0.25 * Math.sin(telegraph.phaseMs * 0.012);
   const fillAlpha = raining ? 0.22 + pulse * 0.12 : 0.12 + t * 0.2;
   const strokeAlpha = raining ? 0.85 : 0.45 + t * 0.35;
+  const colorScale = raining ? 1 : TELEGRAPH_WINDUP_COLOR_SCALE;
+  const fillColor = scaleTelegraphRgb(pal.fill, colorScale);
+  const strokeColor = scaleTelegraphRgb(pal.stroke, colorScale);
 
   telegraph.gfx.clear();
-  telegraph.gfx.lineStyle(3, pal.stroke, strokeAlpha);
-  telegraph.gfx.fillStyle(pal.fill, fillAlpha);
+  telegraph.gfx.lineStyle(3, strokeColor, strokeAlpha);
+  telegraph.gfx.fillStyle(fillColor, fillAlpha);
   telegraph.gfx.strokeCircle(telegraph.zoneX, telegraph.zoneY, r);
   telegraph.gfx.fillCircle(telegraph.zoneX, telegraph.zoneY, r);
 
   if (!raining) {
     const inner = r * (0.35 + t * 0.45);
-    telegraph.gfx.lineStyle(2, pal.inner, 0.25 + t * 0.35);
+    telegraph.gfx.lineStyle(
+      2,
+      scaleTelegraphRgb(pal.inner, TELEGRAPH_WINDUP_COLOR_SCALE),
+      0.25 + t * 0.35,
+    );
     telegraph.gfx.strokeCircle(telegraph.zoneX, telegraph.zoneY, inner);
   }
 }

@@ -15,7 +15,10 @@ import {
   ENDLESS_CONCURRENT_MIN,
 } from "../systems/endlessSpawnScheduler";
 import { sumChallengeRating } from "../systems/challengeRating";
-import { pickEndlessEnemyRowAtScreen } from "./endlessModePanelPick";
+import {
+  endlessRowCenterOverlapsViewport,
+  pickEndlessEnemyRowAtScreen,
+} from "./endlessModePanelPick";
 import {
   createTouchButton,
   interactiveObjectScreenRect,
@@ -243,8 +246,7 @@ export class EndlessModePanel {
 
       const bg = scene.add
         .rectangle(nameCx, cy, this.nameColW, this.rowH, 0x3f3f46, 1)
-        .setStrokeStyle(2, 0x71717a)
-        .setInteractive(nameHit, Phaser.Geom.Rectangle.Contains);
+        .setStrokeStyle(2, 0x71717a);
       const check = scene.add
         .text(
           this.listLeft + scaleUiX(14),
@@ -265,8 +267,7 @@ export class EndlessModePanel {
 
       const capBg = scene.add
         .rectangle(capCx, cy, this.capColW, this.rowH, 0x27272a, 1)
-        .setStrokeStyle(2, 0x52525b)
-        .setInteractive(capHit, Phaser.Geom.Rectangle.Contains);
+        .setStrokeStyle(2, 0x52525b);
 
       const capBtnW = scaleUiX(28);
       const capBtnH = scaleUiY(30);
@@ -279,12 +280,7 @@ export class EndlessModePanel {
         0x3f3f46,
         0x71717a,
       );
-      capMinus
-        .setPosition(minusX, cy)
-        .setInteractive(
-          new Phaser.Geom.Rectangle(-capBtnW / 2, -capBtnH / 2, capBtnW, capBtnH),
-          Phaser.Geom.Rectangle.Contains,
-        );
+      capMinus.setPosition(minusX, cy);
       const capPlus = createUiRoundedRect(
         scene,
         capBtnW,
@@ -292,12 +288,7 @@ export class EndlessModePanel {
         0x3f3f46,
         0x71717a,
       );
-      capPlus
-        .setPosition(plusX, cy)
-        .setInteractive(
-          new Phaser.Geom.Rectangle(-capBtnW / 2, -capBtnH / 2, capBtnW, capBtnH),
-          Phaser.Geom.Rectangle.Contains,
-        );
+      capPlus.setPosition(plusX, cy);
       /** UI seed from `player.json` only — defense spawns use `buildSelections()` caps. */
       const capDefault = store.player.endlessPanelDefaultConcurrent;
       this.caps.set(enemyId, capDefault);
@@ -338,6 +329,16 @@ export class EndlessModePanel {
         capValue,
         capLocalY: localY,
       };
+      const capBtnHit = new Phaser.Geom.Rectangle(
+        -capBtnW / 2,
+        -capBtnH / 2,
+        capBtnW,
+        capBtnH,
+      );
+      bg.setInteractive(nameHit, this.rowNameHitTest(row));
+      capBg.setInteractive(capHit, this.rowCapHitTest(row));
+      capMinus.setInteractive(capBtnHit, this.rowCapHitTest(row));
+      capPlus.setInteractive(capBtnHit, this.rowCapHitTest(row));
       this.rows.push(row);
       this.listContent.add([
         bg,
@@ -624,6 +625,58 @@ export class EndlessModePanel {
     this.dragRowEnemyId = null;
     this.detachSceneDragListeners();
     return tapped;
+  }
+
+  private rowViewportState(row: EnemyRow) {
+    return {
+      listTop: this.listTop,
+      listViewportH: this.listViewportH,
+      listContentY: this.listContent.y,
+      rowCenterY: row.bg.y,
+      rowH: this.rowH,
+    };
+  }
+
+  private rowNameHitTest(
+    row: EnemyRow,
+  ): (
+    hitArea: Phaser.Geom.Rectangle,
+    x: number,
+    y: number,
+    gameObject: Phaser.GameObjects.GameObject,
+  ) => boolean {
+    return (hitArea, x, y, gameObject) => {
+      if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
+      const screenX = (gameObject as Phaser.GameObjects.Rectangle).x + x;
+      const screenY = this.listContent.y + row.bg.y + y;
+      return (
+        pickEndlessEnemyRowAtScreen({
+          screenX,
+          screenY,
+          capColLeft: this.capColLeft,
+          listTop: this.listTop,
+          listViewportH: this.listViewportH,
+          listContentY: this.listContent.y,
+          rowStride: this.rowStride,
+          rowH: this.rowH,
+          enemyIds: this.rows.map((r) => r.enemyId),
+          topHitSlopPx: scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX),
+        }) === row.enemyId
+      );
+    };
+  }
+
+  private rowCapHitTest(
+    row: EnemyRow,
+  ): (
+    hitArea: Phaser.Geom.Rectangle,
+    x: number,
+    y: number,
+  ) => boolean {
+    return (hitArea, x, y) => {
+      if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
+      return endlessRowCenterOverlapsViewport(this.rowViewportState(row));
+    };
   }
 
   private pickVisibleRowAtScreen(

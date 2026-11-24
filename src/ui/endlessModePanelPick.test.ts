@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { pickEndlessEnemyRowAtScreen } from "./endlessModePanelPick";
+import {
+  endlessRowCenterOverlapsViewport,
+  pickEndlessEnemyRowAtScreen,
+} from "./endlessModePanelPick";
 
 const ROSTER = ["grunt", "skirmisher", "javelineer", "archer", "boss"] as const;
 
@@ -83,5 +86,47 @@ describe("pickEndlessEnemyRowAtScreen", () => {
         screenX: 200,
       }),
     ).toBe(ROSTER[4]);
+  });
+});
+
+describe("endlessRowCenterOverlapsViewport", () => {
+  const base = {
+    listTop: 210,
+    listViewportH: 6 * 74 - 11,
+    rowH: 63,
+  };
+
+  it("rejects rows entirely above or below the viewport", () => {
+    expect(
+      endlessRowCenterOverlapsViewport({
+        ...base,
+        listContentY: 210,
+        rowCenterY: 31.5 - 200,
+      }),
+    ).toBe(false);
+    expect(
+      endlessRowCenterOverlapsViewport({
+        ...base,
+        listContentY: 210 - 500,
+        rowCenterY: 4 * 74 + 31.5,
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts rows that intersect the viewport band", () => {
+    expect(
+      endlessRowCenterOverlapsViewport({
+        ...base,
+        listContentY: 210,
+        rowCenterY: 31.5,
+      }),
+    ).toBe(true);
+    expect(
+      endlessRowCenterOverlapsViewport({
+        ...base,
+        listContentY: 190,
+        rowCenterY: 15,
+      }),
+    ).toBe(true);
   });
 });
