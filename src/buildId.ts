@@ -7,12 +7,13 @@ export function shortBuildIdLabel(id: string): string {
   return id.length <= 8 ? id : id.slice(0, 8);
 }
 
-/** One HUD line when `?b=` is set; `null` if absent. */
-export function urlBuildParamLine(
+/** Town HUD line: short build id, with match/mismatch when `?b=` is set. */
+export function townBuildIdLine(
   embedded: string,
   urlB: string | null,
-): string | null {
-  if (!urlB) return null;
+): string {
+  const base = `Build ${shortBuildIdLabel(embedded)}`;
+  if (!urlB) return base;
   const ok = urlB === embedded;
-  return `URL b=${urlB} · ${ok ? "match" : "mismatch"}`;
+  return `${base} · ${ok ? "match" : "mismatch"}`;
 }
