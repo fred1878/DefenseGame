@@ -6,6 +6,13 @@ import { applyChanneledHeal } from "./SpellEffects";
 import { SpellCastController } from "./SpellCastController";
 
 describe("SpellCastController", () => {
+  it("does not interrupt windup while stick matches cast-start deflection", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("fire_bolt", "manual", 0.5, 0)).toBe("windup");
+    expect(c.updateChannel(16, 0.5, 0).type).toBe("windup");
+    expect(c.isChanneling()).toBe(true);
+  });
+
   it("interrupts auto cast windup when stick moves", () => {
     const c = new SpellCastController();
     expect(c.tryBeginCast("fire_bolt", "auto")).toBe("windup");

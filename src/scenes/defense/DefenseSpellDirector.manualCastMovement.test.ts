@@ -77,6 +77,21 @@ describe("DefenseSpellDirector manual cast movement", () => {
     resolveSpy.mockRestore();
   });
 
+  it("suppresses drift when manual cast begins with stick already deflected", () => {
+    const spellCaster = new SpellCastController();
+    const host = minimalHost(spellCaster);
+    const director = new DefenseSpellDirector(host);
+
+    director.beginSpellCast("fire_bolt", "manual", 0.55, 0);
+    expect(host.player.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
+    expect(
+      spellCaster.updateChannel(16, 0.55, 0),
+    ).toMatchObject({ type: "windup" });
+    director.updateChanneling(16, { x: 0.55, y: 0 }, () => false);
+    expect(spellCaster.isChanneling()).toBe(true);
+    expect(host.player.setVelocityFromStick).not.toHaveBeenCalled();
+  });
+
   it("cancels manual windup when stick moves and resumes movement", () => {
     const spellCaster = new SpellCastController();
     const host = minimalHost(spellCaster);

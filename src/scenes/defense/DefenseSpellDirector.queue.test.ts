@@ -117,7 +117,7 @@ describe("DefenseSpellDirector spell queue", () => {
       .mockImplementation(() => {});
     director.tryFlushQueuedSpellCast(0, 0);
     expect(spellInputQueue.peek()).toBeNull();
-    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual");
+    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual", 0, 0);
   });
 
   it("flushes a queued manual ATK once attacks are idle", () => {
@@ -250,6 +250,6 @@ describe("DefenseSpellDirector spell queue", () => {
     director.tryAutoCastSpells(0, 0);
 
     expect(beginSpy).toHaveBeenCalledTimes(1);
-    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual");
+    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "manual", 0, 0);
   });
 });
