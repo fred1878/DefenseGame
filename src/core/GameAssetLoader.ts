@@ -23,14 +23,16 @@ import {
 } from "../content/holyFxAssets";
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
-import { ensureDefenseScene } from "./lazyScenes";
+import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
 
 const ASSET_ROOT = "assets";
 export const DEFENSE_ASSETS_READY_KEY = "defenseAssetsReady";
 export const TOWN_FLUFF_READY_KEY = "townFluffReady";
+export const TOWN_REACHABLE_READY_KEY = "townReachableReady";
 
 let defenseLoadPromise: Promise<void> | null = null;
 let townFluffPromise: Promise<void> | null = null;
+let townReachablePromise: Promise<void> | null = null;
 
 /** First paint Town: building sprites only. */
 export function queueMinimalTownBootAssets(
@@ -158,7 +160,7 @@ export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   return defenseLoadPromise;
 }
 
-/** Synchronous gate before starting Defense (prefetch + lazy scene chunk). */
+/** Synchronous gate before starting Defense (subset of town-reachable prefetch). */
 export function isNightReady(game: Phaser.Game, store: DataStore): boolean {
   return (
     !!game.registry.get(TOWN_FLUFF_READY_KEY) &&
@@ -168,22 +170,51 @@ export function isNightReady(game: Phaser.Game, store: DataStore): boolean {
   );
 }
 
+/** Everything launchable from Town: fluff, defense assets/data, Defense + DebugMenu chunks. */
+export function isTownReachableReady(
+  game: Phaser.Game,
+  store: DataStore,
+): boolean {
+  return (
+    isNightReady(game, store) && game.scene.getScene("DebugMenu") !== null
+  );
+}
+
+/** Background Town prefetch and on-demand gate (deduped with per-asset loaders). */
+export function ensureTownReachableReady(
+  scene: Phaser.Scene,
+  store: DataStore,
+): Promise<void> {
+  if (isTownReachableReady(scene.game, store)) return Promise.resolve();
+  if (townReachablePromise) return townReachablePromise;
+  const base = import.meta.env.BASE_URL;
+  townReachablePromise = Promise.all([
+    ensureTownFluffLoaded(scene),
+    ensureDefenseAssetsLoaded(scene),
+    store.ensureDefenseDataLoaded(base),
+    ensureDefenseScene(scene.game),
+    ensureDebugMenuScene(scene.game),
+  ])
+    .then(() => {
+      scene.game.registry.set(TOWN_REACHABLE_READY_KEY, true);
+    })
+    .catch((err) => {
+      townReachablePromise = null;
+      throw err;
+    });
+  return townReachablePromise;
+}
+
 /** Night, endless, spell sort, or full combat E2E readiness. */
 export function ensureNightReady(
   scene: Phaser.Scene,
   store: DataStore,
 ): Promise<void> {
-  if (isNightReady(scene.game, store)) return Promise.resolve();
-  const base = import.meta.env.BASE_URL;
-  return Promise.all([
-    ensureTownFluffLoaded(scene),
-    ensureDefenseAssetsLoaded(scene),
-    store.ensureDefenseDataLoaded(base),
-    ensureDefenseScene(scene.game),
-  ]).then(() => undefined);
+  return ensureTownReachableReady(scene, store);
 }
 
 export function resetGameAssetLoaderForTests(): void {
   defenseLoadPromise = null;
   townFluffPromise = null;
+  townReachablePromise = null;
 }
