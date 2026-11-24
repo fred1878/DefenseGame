@@ -11,17 +11,23 @@ export default defineConfig(({ mode }) => ({
     alias: {
       phaser: path.join(
         repoRoot,
-        "node_modules/phaser/dist/phaser-arcade-physics.js",
+        "node_modules/phaser/dist/phaser-defensegame.js",
       ),
     },
   },
   build: {
     outDir: "dist",
     sourcemap: mode !== "production",
+    commonjsOptions: {
+      defaultIsModuleExports: true,
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules/phaser")) {
+          if (
+            id.includes("node_modules/phaser") ||
+            id.includes("phaser-defensegame.js")
+          ) {
             return "phaser";
           }
         },

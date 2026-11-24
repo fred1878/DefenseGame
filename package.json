@@ -8,7 +8,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/write-version.mjs",
+    "build:phaser": "node scripts/build-phaser-custom.mjs",
+    "postinstall": "node scripts/install-phaser-defense.mjs",
+    "build": "node scripts/install-phaser-defense.mjs && tsc -b && vite build && node scripts/assert-phaser-chunk-size.mjs && node scripts/write-version.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
@@ -28,6 +30,7 @@
     "@vitest/coverage-v8": "^2.1.5",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
-    "vitest": "^2.1.5"
+    "vitest": "^2.1.5",
+    "webpack": "^5.99.9"
   }
 }

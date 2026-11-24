@@ -1,0 +1,9 @@
+{
+  "phaserVersion": "3.90.0",
+  "builtAt": "2026-11-24T09:00:27.932Z",
+  "bytes": 6358906,
+  "entry": "vendor/phaser-trim/phaser-defense-entry.js",
+  "trims": [
+    "vendor/phaser-trim/gameobjects-index.js"
+  ]
+}
