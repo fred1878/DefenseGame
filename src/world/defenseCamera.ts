@@ -1,5 +1,9 @@
 import Phaser from "phaser";
-import { DEFENSE_FIELD_PX, defenseHalfWidth } from "../config/defense";
+import {
+  DEFENSE_FIELD_PX,
+  defenseFieldPx,
+  defenseHalfWidth,
+} from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
 import { adoptDefenseWorldObject, isInDefenseWorldLayer } from "./defenseWorldLayer";
 
@@ -58,7 +62,7 @@ export function setupDefenseCameraRig(
   );
   worldCamera.setBackgroundColor(0x0c0c0e);
 
-  configureDefenseFollowCamera(worldCamera, follow, playArea);
+  configureDefenseFollowCamera(worldCamera, follow, playArea, scene.registry);
 
   uiCamera.ignore(worldLayer);
 
@@ -82,8 +86,11 @@ export function configureDefenseFollowCamera(
   camera: Phaser.Cameras.Scene2D.Camera,
   follow: Phaser.GameObjects.GameObject,
   playArea: DefensePlayArea,
+  registry?: Phaser.Data.DataManager,
 ): void {
-  const fieldW = DEFENSE_FIELD_PX.width;
+  const fieldW = registry
+    ? defenseFieldPx(registry).width
+    : DEFENSE_FIELD_PX.width;
 
   const fitsHorizontally = fieldW <= playArea.width;
 
@@ -94,7 +101,7 @@ export function configureDefenseFollowCamera(
   camera.setDeadzone(fitsHorizontally ? playArea.width + 1 : 0, 0);
 
   if (fitsHorizontally) {
-    const halfW = defenseHalfWidth();
+    const halfW = defenseHalfWidth(registry);
     const padX = (playArea.width - fieldW) / 2;
     camera.setScroll(-halfW - padX, camera.scrollY);
   }

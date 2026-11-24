@@ -303,6 +303,7 @@ export class DefenseScene extends Phaser.Scene {
       this.obstacleBlockers,
       worldUnit(DEFENSE_MAP.cellSize, this.registry),
       worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
+      this.registry,
     );
     this.registerWorldDraw = world.registerWorldDraw;
     this.registerUiDraw = world.registerUiDraw;
@@ -828,6 +829,7 @@ export class DefenseScene extends Phaser.Scene {
       store: this.registry.get("dataStore") as DataStore,
       enemies: this.enemies,
       e2e: isE2EEnabled(),
+      registry: this.registry,
       spawnEnemyAt: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
     });
   }

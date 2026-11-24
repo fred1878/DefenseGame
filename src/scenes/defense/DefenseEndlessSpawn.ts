@@ -1,3 +1,4 @@
+import type Phaser from "phaser";
 import type { DataStore, EnemyDef } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 import type { EnemyInstance } from "../../entities/Enemy";
@@ -36,6 +37,7 @@ export type EndlessSpawnCapInput = {
   store: DataStore;
   enemies: readonly EnemyInstance[];
   e2e: boolean;
+  registry: Phaser.Data.DataManager;
   spawnEnemyAt: (x: number, y: number, def: EnemyDef, defId: string) => void;
 };
 
@@ -49,7 +51,7 @@ export function ensureEndlessSpawnCap(input: EndlessSpawnCapInput): void {
     const def = input.store.enemies[entry.enemyId];
     if (!def) continue;
     for (let i = 0; i < entry.spawnCount; i++) {
-      const { x, y } = pickWaveSpawnPoint(input.e2e);
+      const { x, y } = pickWaveSpawnPoint(input.e2e, input.registry);
       input.spawnEnemyAt(x, y, def, entry.enemyId);
     }
   }

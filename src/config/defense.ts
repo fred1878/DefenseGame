@@ -6,7 +6,11 @@ import {
 } from "../content/assets";
 import { NORTH_WALL_MELEE_STANDOFF_WU } from "./enemy";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
-import { worldUnit } from "../core/worldPixelScale";
+import {
+  worldDisplayPx,
+  worldScaleFactor,
+  worldUnit,
+} from "../core/worldPixelScale";
 import type Phaser from "phaser";
 
 /** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
@@ -23,11 +27,23 @@ export function assertDefenseFieldLoaded(): void {
   }
 }
 
-export function defenseFieldPx(): { width: number; height: number } {
+/** Ground tile edge length in world px for the active debug world scale (64 at default 2×). */
+export function defenseGroundTileStep(
+  registry?: Phaser.Data.DataManager,
+): number {
+  return registry
+    ? worldDisplayPx(GROUND_TILE_SIZE, registry)
+    : GROUND_TILE_SIZE;
+}
+
+export function defenseFieldPx(
+  registry?: Phaser.Data.DataManager,
+): { width: number; height: number } {
   assertDefenseFieldLoaded();
+  const step = defenseGroundTileStep(registry);
   return {
-    width: DEFENSE_FIELD_TILES.cols * GROUND_TILE_SIZE,
-    height: DEFENSE_FIELD_TILES.rows * GROUND_TILE_SIZE,
+    width: DEFENSE_FIELD_TILES.cols * step,
+    height: DEFENSE_FIELD_TILES.rows * step,
   };
 }
 
@@ -41,18 +57,19 @@ export const DEFENSE_FIELD_PX = {
   },
 };
 
-export function defenseHalfWidth(): number {
-  return defenseFieldPx().width / 2;
+export function defenseHalfWidth(registry?: Phaser.Data.DataManager): number {
+  return defenseFieldPx(registry).width / 2;
 }
 
-export function defenseHalfHeight(): number {
-  return defenseFieldPx().height / 2;
+export function defenseHalfHeight(registry?: Phaser.Data.DataManager): number {
+  return defenseFieldPx(registry).height / 2;
 }
 
 /** North settlement wall — attack target plane (world y). */
-export function northWallAttackY(): number {
-  const half = defenseHalfHeight();
-  return -half + 20 + 20;
+export function northWallAttackY(registry?: Phaser.Data.DataManager): number {
+  const half = defenseHalfHeight(registry);
+  const inset = registry ? worldUnit(20, registry) : 20;
+  return -half + inset + inset;
 }
 
 /**
@@ -65,19 +82,24 @@ export function northWallApproachY(
   const standoffPx = registry
     ? worldUnit(standoffWu, registry)
     : standoffWu;
-  return northWallAttackY() + standoffPx;
+  return northWallAttackY(registry) + standoffPx;
 }
 
 /** Center of a ground tile in world space (same layout as `buildGroundLayer`). */
-export function defenseTileCenter(tileX: number, tileY: number): {
+export function defenseTileCenter(
+  tileX: number,
+  tileY: number,
+  registry?: Phaser.Data.DataManager,
+): {
   x: number;
   y: number;
 } {
-  const originX = -defenseHalfWidth();
-  const originY = -defenseHalfHeight();
+  const step = defenseGroundTileStep(registry);
+  const originX = -defenseHalfWidth(registry);
+  const originY = -defenseHalfHeight(registry);
   return {
-    x: originX + tileX * GROUND_TILE_SIZE + GROUND_TILE_SIZE / 2,
-    y: originY + tileY * GROUND_TILE_SIZE + GROUND_TILE_SIZE / 2,
+    x: originX + tileX * step + step / 2,
+    y: originY + tileY * step + step / 2,
   };
 }
 
@@ -104,10 +126,14 @@ export type ObstaclePhysicsLayout = {
 };
 
 /** Gameplay blocker footprint (nav grid + Arcade body), tighter than sprite crop. */
-export function obstaclePhysicsLayout(textureKey: ObstacleTextureKey): ObstaclePhysicsLayout {
+export function obstaclePhysicsLayout(
+  textureKey: ObstacleTextureKey,
+  registry?: Phaser.Data.DataManager,
+): ObstaclePhysicsLayout {
   const crop = OBSTACLE_SPRITE_CROP[textureKey];
   const block = OBSTACLE_BLOCKER_FOOTPRINT[textureKey];
-  const s = DEFENSE_OBSTACLE_WORLD_SCALE;
+  const s =
+    DEFENSE_OBSTACLE_WORLD_SCALE * (registry ? worldScaleFactor(registry) : 1);
   const bodyW =
     Math.min(block.w, crop.w) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
   const bodyH =
@@ -124,21 +150,26 @@ export function obstaclePhysicsLayout(textureKey: ObstacleTextureKey): ObstacleP
   };
 }
 
-export function obstacleColliderSize(textureKey: ObstacleTextureKey): {
+export function obstacleColliderSize(
+  textureKey: ObstacleTextureKey,
+  registry?: Phaser.Data.DataManager,
+): {
   w: number;
   h: number;
 } {
-  const layout = obstaclePhysicsLayout(textureKey);
+  const layout = obstaclePhysicsLayout(textureKey, registry);
   return { w: layout.bodyW, h: layout.bodyH };
 }
 
-export function obstacleDisplaySize(textureKey: ObstacleTextureKey): {
+export function obstacleDisplaySize(
+  textureKey: ObstacleTextureKey,
+  registry?: Phaser.Data.DataManager,
+): {
   w: number;
   h: number;
 } {
-  const crop = OBSTACLE_SPRITE_CROP[textureKey];
-  const s = DEFENSE_OBSTACLE_WORLD_SCALE;
-  return { w: crop.w * s, h: crop.h * s };
+  const layout = obstaclePhysicsLayout(textureKey, registry);
+  return { w: layout.displayW, h: layout.displayH };
 }
 
 export const DEFENSE_MAP = {
@@ -178,9 +209,10 @@ export let DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [];
 
 export function defenseObstacleSpriteAnchor(
   placement: DefenseObstaclePlacement,
+  registry?: Phaser.Data.DataManager,
 ): { x: number; y: number } {
-  const tile = defenseTileCenter(placement.tileX, placement.tileY);
-  const { displayH } = obstaclePhysicsLayout(placement.textureKey);
+  const tile = defenseTileCenter(placement.tileX, placement.tileY, registry);
+  const { displayH } = obstaclePhysicsLayout(placement.textureKey, registry);
   return {
     x: tile.x,
     y: tile.y - displayH / 2,
@@ -190,19 +222,24 @@ export function defenseObstacleSpriteAnchor(
 /** Screen position for obstacle `Image` sprites — anchor plus cosmetic Y only. */
 export function defenseObstacleSpriteDisplayPosition(
   placement: DefenseObstaclePlacement,
+  registry?: Phaser.Data.DataManager,
 ): { x: number; y: number } {
-  const anchor = defenseObstacleSpriteAnchor(placement);
+  const anchor = defenseObstacleSpriteAnchor(placement, registry);
+  const yOff = registry
+    ? worldUnit(DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET, registry)
+    : DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET;
   return {
     x: anchor.x,
-    y: anchor.y + DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET,
+    y: anchor.y + yOff,
   };
 }
 
 export function defenseObstacleColliderFromPlacement(
   placement: DefenseObstaclePlacement,
+  registry?: Phaser.Data.DataManager,
 ): DefenseObstacleRect {
-  const anchor = defenseObstacleSpriteAnchor(placement);
-  const layout = obstaclePhysicsLayout(placement.textureKey);
+  const anchor = defenseObstacleSpriteAnchor(placement, registry);
+  const layout = obstaclePhysicsLayout(placement.textureKey, registry);
   return {
     x: anchor.x + layout.bodyCenterOffsetX,
     y: anchor.y + layout.bodyCenterOffsetY,
@@ -216,8 +253,8 @@ export function defenseObstacleColliderFromPlacement(
 export let DEFENSE_OBSTACLES: DefenseObstacleRect[] = [];
 
 function refreshDefenseObstacleColliders(): void {
-  DEFENSE_OBSTACLES = DEFENSE_OBSTACLE_PLACEMENTS.map(
-    defenseObstacleColliderFromPlacement,
+  DEFENSE_OBSTACLES = DEFENSE_OBSTACLE_PLACEMENTS.map((p) =>
+    defenseObstacleColliderFromPlacement(p),
   );
 }
 

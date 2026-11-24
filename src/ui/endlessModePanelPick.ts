@@ -54,3 +54,18 @@ export function pickEndlessEnemyRowAtScreen(
 
   return input.enemyIds[index] ?? null;
 }
+
+/** True when any part of the row band intersects the clipped list viewport. */
+export function endlessRowCenterOverlapsViewport(input: {
+  listTop: number;
+  listViewportH: number;
+  listContentY: number;
+  rowCenterY: number;
+  rowH: number;
+}): boolean {
+  const cy = input.listContentY + input.rowCenterY;
+  const half = input.rowH / 2;
+  if (cy + half < input.listTop) return false;
+  if (cy - half > input.listTop + input.listViewportH) return false;
+  return true;
+}

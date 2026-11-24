@@ -286,7 +286,8 @@ export function shouldHoldMeleeChaseChordBlocked(
 
 /** Distance to the north-wall swing plane (same x as the enemy). */
 export function wallMeleeDistToAttackPlane(enemy: EnemyInstance): number {
-  return Math.abs(enemy.sprite.y - northWallAttackY());
+  const reg = enemy.sprite.scene?.registry;
+  return Math.abs(enemy.sprite.y - northWallAttackY(reg));
 }
 
 /** Hold at the wall standoff while in range but not free to close (cooldown / swing). */
@@ -307,7 +308,7 @@ export function shouldHoldAtWallMelee(
 export function wallMeleeStandoffY(enemy: EnemyInstance): number {
   const reg = enemy.sprite.scene.registry;
   const standoffWu = wallMeleeApproachStandoffWu(enemy.combatTuning.wall);
-  return northWallAttackY() + worldUnit(standoffWu, reg);
+  return northWallAttackY(reg) + worldUnit(standoffWu, reg);
 }
 
 export function applyWallMeleeHold(enemy: EnemyInstance): void {
