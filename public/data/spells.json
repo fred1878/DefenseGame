@@ -9,7 +9,7 @@
       "implementationPhase": 1,
       "cooldownMs": 0,
       "channelMs": 0,
-      "baseDamage": 32,
+      "baseDamage": 40,
       "projectileSpeedWu": 320,
       "iconFile": "fire_bolt.png",
       "projectileTextureKey": "fx_spell_fire_bolt",
@@ -31,16 +31,16 @@
       "implementationPhase": 1,
       "cooldownMs": 0,
       "channelMs": 0,
-      "baseDamage": 15,
+      "baseDamage": 24,
       "projectileSpeedWu": 450,
       "iconFile": "ice_bolt.png",
       "projectileTextureKey": "fx_spell_ice_bolt",
       "projectileFile": "ice-bolt-mrpg-16.png",
       "damageFlavor": "frost",
-      "castMs": 1000,
+      "castMs": 700,
       "onHit": {
-        "slowPct": 0.5,
-        "slowMs": 4000
+        "slowPct": 0.7,
+        "slowMs": 5000
       },
       "knockbackWu": 20
     },
@@ -59,7 +59,7 @@
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
       "damageFlavor": "physical",
-      "castMs": 550,
+      "castMs": 400,
       "knockbackWu": 140
     },
     {
@@ -71,7 +71,7 @@
       "implementationPhase": 1,
       "cooldownMs": 18000,
       "channelMs": 0,
-      "baseDamage": 42,
+      "baseDamage": 52,
       "blastRadiusWu": 100,
       "iconFile": "fire_nova.png",
       "blastTextureKey": "fx_spell_fire_nova",
@@ -82,7 +82,7 @@
         "dotDps": 8,
         "dotMs": 3000
       },
-      "blastKnockbackWu": 0
+      "blastKnockbackWu": 200
     },
     {
       "id": "heal",
@@ -106,9 +106,9 @@
       "castableInDefense": true,
       "implementationPhase": 1,
       "cooldownMs": 4000,
-      "castMs": 500,
+      "castMs": 300,
       "channelMs": 0,
-      "healAmount": 25,
+      "healAmount": 15,
       "iconFile": "flash_heal.png",
       "targetMode": "self"
     },
@@ -119,16 +119,16 @@
       "mechanicType": "projectile",
       "castableInDefense": true,
       "implementationPhase": 2,
-      "cooldownMs": 350,
+      "cooldownMs": 150,
       "channelMs": 0,
       "baseDamage": 6,
-      "projectileSpeedWu": 380,
+      "projectileSpeedWu": 700,
       "iconFile": "water_bolt.png",
       "projectileTextureKey": "fx_spell_water_bolt",
       "projectileFile": "water-bolt-mrpg-16.png",
       "damageFlavor": "water",
       "castMs": 0,
-      "knockbackWu": 110
+      "knockbackWu": 40
     },
     {
       "id": "arc_bomb",
@@ -141,14 +141,14 @@
       "channelMs": 0,
       "baseDamage": 50,
       "projectileSpeedWu": 220,
-      "blastRadiusWu": 70,
+      "blastRadiusWu": 90,
       "iconFile": "arc_bomb.png",
       "projectileTextureKey": "fx_spell_arc_bomb",
       "projectileFile": "arc-bomb-mrpg-16.png",
       "damageFlavor": "fire",
-      "castMs": 550,
+      "castMs": 750,
       "knockbackWu": 110,
-      "blastKnockbackWu": 140
+      "blastKnockbackWu": 180
     },
     {
       "id": "swing",
@@ -195,18 +195,18 @@
       "mechanicType": "cone",
       "castableInDefense": true,
       "implementationPhase": 3,
-      "cooldownMs": 7000,
+      "cooldownMs": 8000,
       "channelMs": 0,
-      "baseDamage": 12,
+      "baseDamage": 20,
       "iconFile": "cone_of_cold.png",
       "damageFlavor": "frost",
-      "coneRangeWu": 130,
-      "coneArcDeg": 72,
+      "coneRangeWu": 200,
+      "coneArcDeg": 90,
       "onHit": {
-        "slowPct": 0.4,
-        "slowMs": 2000
+        "slowPct": 0.7,
+        "slowMs": 5000
       },
-      "knockbackWu": 90
+      "knockbackWu": 30
     },
     {
       "id": "cone_of_fire",
@@ -218,7 +218,7 @@
       "cooldownMs": 6000,
       "channelMs": 750,
       "channelTickMs": 250,
-      "baseDamage": 16,
+      "baseDamage": 72,
       "iconFile": "cone_of_fire.png",
       "damageFlavor": "fire",
       "castMs": 0,
@@ -228,7 +228,7 @@
         "dotDps": 5,
         "dotMs": 5000
       },
-      "knockbackWu": 90
+      "knockbackWu": 80
     },
     {
       "id": "fire_blast",
@@ -247,7 +247,7 @@
       "damageFlavor": "fire",
       "targetMode": "ground",
       "groundTargetMaxRangeWu": 240,
-      "blastKnockbackWu": 140
+      "blastKnockbackWu": 300,
     },
     {
       "id": "blizzard",
@@ -258,7 +258,7 @@
       "implementationPhase": 4,
       "cooldownMs": 1100,
       "channelMs": 4000,
-      "baseDamage": 12,
+      "baseDamage": 10,
       "blastRadiusWu": 80,
       "blastTextureKey": "fx_spell_blizzard",
       "blastFile": "blizzard-mrpg-32.png",
@@ -267,9 +267,9 @@
       "castMs": 800,
       "channelTickMs": 250,
       "targetMode": "ground",
-      "groundTargetMaxRangeWu": 240,
+      "groundTargetMaxRangeWu": 270,
       "onHit": {
-        "slowPct": 0.4,
+        "slowPct": 0.5,
         "slowMs": 2000
       }
     },
