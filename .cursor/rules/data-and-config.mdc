@@ -1,0 +1,17 @@
+---
+description: Gameplay data lives in public/data JSON; src/config is layout only
+globs:
+  - public/data/**
+  - src/core/DataStore.ts
+  - src/core/normalize*.ts
+  - src/core/dataFieldsDoc.test.ts
+  - src/config/**
+  - src/content/**
+alwaysApply: false
+---
+
+- Gameplay numbers belong in `public/data/*.json`, loaded at Boot through `DataStore`. Missing required fields must throw `ConfigLoadError`; no TypeScript fallbacks.
+- `src/config/` is canvas, HUD layout and render depths only.
+- Per-enemy `combat` blocks live on each `enemies.json` row. Behavior id maps to `src/ai/behaviors/`.
+- Adding or renaming a boot-required field means updating `public/data/DATA_FIELDS.md` in the same change.
+- Spell ids stay in `src/content/spells.ts`; numeric spell tuning is in `spells.json` and `spell_input.json`.

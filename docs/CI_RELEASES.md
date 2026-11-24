@@ -28,13 +28,13 @@ Tagged releases (`v*.*.*`) also deploy the same way and add an optional zip on t
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci.yml` | Push/PR to `main` | Parallel `verify` (always) + conditional `e2e` (path filter on PR; on `main` only after conflict-resolution merge) |
+| `ci.yml` | Push/PR to `main` | `verify` always, then conditional `e2e` (e2e needs verify; path filter on PR; on `main` only after conflict-resolution merge) |
 
 **CI dependency caching:** `setup-node` caches **npm** (`~/.npm`) in both jobs. The **e2e** job also caches Playwright **browser binaries** under `~/.cache/ms-playwright`, keyed by runner OS plus `package-lock.json` (so the resolved `@playwright/test` version). `npx playwright install --with-deps chromium` still runs each time; on a cache hit it skips re-downloading browsers.
 | `pages.yml` | Push to `main` | Publish playable site |
 | `release.yml` | Push tag `v*.*.*` | Pages deploy + GitHub Release notes + optional zip |
 
-CI does **not** upload Actions artifacts (large Phaser bundles were hitting account storage limits). Verification is build success only; hosting is **Pages**.
+CI uploads Actions artifacts: **`vitest-coverage`** (from `verify`), **`dist-e2e`** (when e2e will run, retained 1 day), and **`playwright-report`** (on e2e failure, retained 7 days). Hosting is **Pages**.
 
 ---
 

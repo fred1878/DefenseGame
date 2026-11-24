@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build and test output (also in .gitignore)
+dist/
+dist-types/
+coverage/
+*.tsbuildinfo
+
+# Tool caches
+.vite/
+.cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Env / OS
+.env
+.env.*
+!.env.example
+.DS_Store
+*.local
+
+# Binary game assets — keys and paths live in src/content/assets.ts
+public/assets/**/*.png
+public/assets/**/*.mp3
+public/assets/**/*.wav
+public/assets/**/*.ogg
+public/assets/**/*.webm
+
+# Generated custom Phaser build (6.36 MB).
+# Leave vendor/phaser-trim/ and vendor/phaser-defense.manifest.json readable.
+vendor/phaser-defense.js
+
+# Atlas dump used only by MobileRPG asset-sync scripts
+scripts/data/mobilerpg-atlas.txt
