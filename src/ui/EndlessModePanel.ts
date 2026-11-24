@@ -659,7 +659,7 @@ export class EndlessModePanel {
           listContentY: this.listContent.y,
           rowStride: this.rowStride,
           rowH: this.rowH,
-          enemyIds: [row.enemyId],
+          enemyIds: this.rows.map((r) => r.enemyId),
           topHitSlopPx: scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX),
         }) === row.enemyId
       );
