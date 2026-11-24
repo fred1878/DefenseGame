@@ -25,7 +25,7 @@ export function scheduleWave(
       const at = group.atMs + i * group.intervalMs;
       maxAt = Math.max(maxAt, at);
       scene.time.delayedCall(at, () => {
-        const { x, y } = pickWaveSpawnPoint(e2eMode);
+        const { x, y } = pickWaveSpawnPoint(e2eMode, scene.registry);
         callbacks.spawnEnemy(x, y, enemyDef, group.enemyId);
       });
     }

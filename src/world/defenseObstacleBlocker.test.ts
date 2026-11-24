@@ -51,7 +51,8 @@ describe("defenseObstacleBlockerRects", () => {
     );
     expect(half[0]!.w).toBeCloseTo(full[0]!.w * 0.5, 5);
     expect(half[0]!.h).toBeCloseTo(full[0]!.h * 0.5, 5);
-    expect(half[0]!.x).toBeCloseTo(full[0]!.x, 5);
+    expect(half[0]!.x).toBeCloseTo(full[0]!.x * 0.5, 5);
+    expect(half[0]!.y).toBeCloseTo(full[0]!.y * 0.5, 5);
   });
 
   it("measures circle–rect penetration depth for bump asserts", () => {

@@ -4,7 +4,6 @@ import {
   type DefenseObstacleRect,
   defenseObstacleColliderFromPlacement,
 } from "../config/defense";
-import { worldScaleFactor } from "../core/worldPixelScale";
 
 export const DEFENSE_OBSTACLE_BLOCKER_DATA_KEY = "defenseBlocker";
 
@@ -23,17 +22,9 @@ export type DefenseObstacleBlockerAabb = {
 export function defenseObstacleBlockerRects(
   registry: Phaser.Data.DataManager,
 ): DefenseObstacleRect[] {
-  const f = worldScaleFactor(registry);
-  return DEFENSE_OBSTACLE_PLACEMENTS.map((placement) => {
-    const base = defenseObstacleColliderFromPlacement(placement);
-    return {
-      x: base.x,
-      y: base.y,
-      w: base.w * f,
-      h: base.h * f,
-      textureKey: base.textureKey,
-    };
-  });
+  return DEFENSE_OBSTACLE_PLACEMENTS.map((placement) =>
+    defenseObstacleColliderFromPlacement(placement, registry),
+  );
 }
 
 /** World AABB from center-sized blocker (PathDebug stroke, nav inflation). */

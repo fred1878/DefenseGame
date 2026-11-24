@@ -54,7 +54,7 @@ export const arrowRainArcherBehavior: EnemyBehavior = (ctx) => {
 
   const goal = { x: resolved.goalX, y: resolved.goalY };
   const arrow = enemy.combatTuning.arrowRain;
-  const wallY = northWallAttackY();
+  const wallY = northWallAttackY(reg);
 
   if (desired === "player" && arrow) {
     const bandSlack = worldUnit(arrow.kiteBandSlackWu, reg);

@@ -155,19 +155,18 @@ describe("screenLayout", () => {
     expect(y0).toBeLessThan(GAME.height);
   });
 
-  it("town chrome buttons sit in top corners with safe insets", () => {
+  it("town chrome buttons sit flush to top corners with safe insets only", () => {
     const fsW = scaleUiX(168);
     const fsH = scaleUiX(36);
     const resetW = scaleUiX(118);
     const fs = townFullscreenButtonPosition(scene, safe, fsW, fsH);
     const reset = townResetSaveButtonPosition(scene, safe, resetW, fsH);
-    const margin = scaleUiX(12);
-    expect(fs.x - fsW / 2).toBeCloseTo(margin + safe.left, 0);
-    expect(fs.y - fsH / 2).toBeCloseTo(margin + safe.top, 0);
-    expect(reset.x + resetW / 2).toBeCloseTo(GAME.width - margin - safe.right, 0);
-    expect(reset.y - fsH / 2).toBeCloseTo(margin + safe.top, 0);
+    expect(fs.x - fsW / 2).toBeCloseTo(safe.left, 0);
+    expect(fs.y - fsH / 2).toBeCloseTo(safe.top, 0);
+    expect(reset.x + resetW / 2).toBeCloseTo(GAME.width - safe.right, 0);
+    expect(reset.y - fsH / 2).toBeCloseTo(safe.top, 0);
     expect(townStatusTextTopY()).toBeGreaterThan(townTitleY());
-    expect(townStatusTextTopY()).toBeLessThan(scaleUiY(140));
+    expect(townStatusTextTopY()).toBeLessThan(scaleUiY(128));
   });
 
   it("town building grid fills band between status and bottom", () => {

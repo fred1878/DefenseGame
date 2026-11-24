@@ -64,7 +64,7 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
   const dist = Math.hypot(targetX - ex, targetY - ey);
 
   if (desired === "wall") {
-    const wallY = northWallAttackY();
+    const wallY = northWallAttackY(reg);
     const distToWall = ey - wallY;
     if (distToWall < preferred - bandSlack) {
       applyRetreatPathing({
