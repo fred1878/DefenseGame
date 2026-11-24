@@ -58,9 +58,10 @@ export function worldToMinimapPoint(
   worldX: number,
   worldY: number,
   layout: DefenseMinimapLayout,
+  registry?: Phaser.Data.DataManager,
 ): { x: number; y: number } {
-  const halfW = defenseHalfWidth();
-  const halfH = defenseHalfHeight();
+  const halfW = defenseHalfWidth(registry);
+  const halfH = defenseHalfHeight(registry);
   const fieldW = halfW * 2;
   const fieldH = halfH * 2;
   const inset = scaleUiX(4);
@@ -76,11 +77,13 @@ export function worldToMinimapPoint(
 
 export class DefenseMinimap {
   private readonly g: Phaser.GameObjects.Graphics;
+  private readonly registry: Phaser.Data.DataManager;
 
   constructor(
     scene: Phaser.Scene,
     registerUiDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ) {
+    this.registry = scene.registry;
     this.g = scene.add
       .graphics()
       .setScrollFactor(0)
@@ -113,14 +116,14 @@ export class DefenseMinimap {
     const playerDotR = Math.max(2, scaleUiX(2.5));
     const enemyDotR = Math.max(2, scaleUiX(2));
 
-    const pp = worldToMinimapPoint(playerX, playerY, layout);
+    const pp = worldToMinimapPoint(playerX, playerY, layout, this.registry);
     this.g.fillStyle(PLAYER_DOT, 1);
     this.g.fillCircle(pp.x, pp.y, playerDotR);
 
     this.g.fillStyle(ENEMY_DOT, 1);
     for (const e of enemies) {
       if (!e.damageable.alive) continue;
-      const pt = worldToMinimapPoint(e.sprite.x, e.sprite.y, layout);
+      const pt = worldToMinimapPoint(e.sprite.x, e.sprite.y, layout, this.registry);
       this.g.fillCircle(pt.x, pt.y, enemyDotR);
     }
   }

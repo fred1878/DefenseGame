@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import {
   defenseHalfHeight,
   defenseHalfWidth,
@@ -60,9 +61,10 @@ export function buildNavGrid(
   obstacles: DefenseObstacleRect[],
   cellSize = 40,
   clearancePx = 0,
+  registry?: Phaser.Data.DataManager,
 ): NavGrid {
-  const halfW = defenseHalfWidth();
-  const halfH = defenseHalfHeight();
+  const halfW = defenseHalfWidth(registry);
+  const halfH = defenseHalfHeight(registry);
   const minX = -halfW;
   const minY = -halfH;
   const cols = Math.ceil((halfW * 2) / cellSize);

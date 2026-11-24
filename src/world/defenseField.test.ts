@@ -1,11 +1,26 @@
+import Phaser from "phaser";
 import { describe, expect, it } from "vitest";
 import { GAME } from "../config/game";
 import {
   DEFENSE_FIELD_PX,
   DEFENSE_FIELD_TILES,
+  defenseFieldPx,
   defenseHalfHeight,
 } from "../config/defense";
 import { GROUND_TILE_SIZE } from "../content/assets";
+import {
+  WORLD_PIXEL_SCALE_REGISTRY_KEY,
+  worldDisplayPx,
+} from "../core/worldPixelScale";
+
+function fakeRegistry(store: Record<string, unknown> = {}): Phaser.Data.DataManager {
+  return {
+    get: (key: string) => store[key],
+    set: (key: string, value: unknown) => {
+      store[key] = value;
+    },
+  } as Phaser.Data.DataManager;
+}
 
 describe("defense field tiles", () => {
   it("uses fewer cols than rows", () => {
@@ -31,5 +46,18 @@ describe("defense field tiles", () => {
 
   it("places north wall inside the north edge", () => {
     expect(defenseHalfHeight() * 2).toBe(DEFENSE_FIELD_PX.height);
+  });
+
+  it("scales field footprint with debug world pixel scale", () => {
+    const baseline = defenseFieldPx();
+    const reg1 = fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 1 });
+    const reg3 = fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 3 });
+    const at1 = defenseFieldPx(reg1);
+    const at3 = defenseFieldPx(reg3);
+    const step2 = worldDisplayPx(GROUND_TILE_SIZE, fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 2 }));
+    expect(baseline.width).toBe(DEFENSE_FIELD_TILES.cols * step2);
+    expect(at1.width).toBeCloseTo(baseline.width * 0.5, 5);
+    expect(at3.width).toBeCloseTo(baseline.width * 1.5, 5);
+    expect(at1.height).toBeCloseTo(baseline.height * 0.5, 5);
   });
 });

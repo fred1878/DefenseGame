@@ -54,8 +54,9 @@ export function bootstrapDefenseWorld(
   input: DefenseWorldBootstrapInput,
 ): DefenseWorldBootstrapResult {
   const { scene, night, playerHpMax, endless } = input;
-  const halfW = defenseHalfWidth();
-  const halfH = defenseHalfHeight();
+  const reg = scene.registry;
+  const halfW = defenseHalfWidth(reg);
+  const halfH = defenseHalfHeight(reg);
   scene.registry.remove(DEFENSE_WORLD_LAYER_REGISTRY_KEY);
   scene.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
   const groundLayer = buildGroundLayer(scene, halfW, halfH);
@@ -92,10 +93,10 @@ export function bootstrapDefenseWorld(
   for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
     const blocker = obstacleBlockers[i]!;
-    const displayPos = defenseObstacleSpriteDisplayPosition(placement);
+    const displayPos = defenseObstacleSpriteDisplayPosition(placement, reg);
     const art = scene.add.image(displayPos.x, displayPos.y, placement.textureKey);
     art.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
-    configureDefenseObstacleArt(art, placement.textureKey);
+    configureDefenseObstacleArt(art, placement.textureKey, reg);
     registerWorld(art);
 
     const collider = createDefenseObstacleCollider(

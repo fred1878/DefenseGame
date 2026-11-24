@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import { PLAYER_TUNING } from "../config/player";
 import { ConfigLoadError } from "../core/configValidation";
@@ -113,9 +113,12 @@ export type DefensePlayBounds = {
 };
 
 /** Inset defense field so a circle body at (x, y) stays fully on the playable ground. */
-export function defensePlayBoundsInset(bodyRadiusPx: number): DefensePlayBounds {
-  const halfW = defenseHalfWidth();
-  const halfH = defenseHalfHeight();
+export function defensePlayBoundsInset(
+  bodyRadiusPx: number,
+  registry?: Phaser.Data.DataManager,
+): DefensePlayBounds {
+  const halfW = defenseHalfWidth(registry);
+  const halfH = defenseHalfHeight(registry);
   const inset = Math.max(0, bodyRadiusPx);
   return {
     minX: -halfW + inset,
@@ -143,7 +146,8 @@ export function enforceEnemyDefenseBounds(
   enemy: EnemyKnockbackCarrier,
   bodyRadiusPx: number,
 ): boolean {
-  const bounds = defensePlayBoundsInset(bodyRadiusPx);
+  const registry = enemy.sprite.scene?.registry;
+  const bounds = defensePlayBoundsInset(bodyRadiusPx, registry);
   const clamped = clampToDefensePlayBounds(
     enemy.sprite.x,
     enemy.sprite.y,

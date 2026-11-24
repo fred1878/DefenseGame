@@ -443,6 +443,7 @@ export class DefenseScene extends Phaser.Scene {
       this.obstacleBlockers,
       worldUnit(DEFENSE_MAP.cellSize, this.registry),
       worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
+      this.registry,
     );
     this.registerWorldDraw = world.registerWorldDraw;
     this.registerUiDraw = world.registerUiDraw;
@@ -1466,7 +1467,7 @@ export class DefenseScene extends Phaser.Scene {
       const def = store.enemies[entry.enemyId];
       if (!def) continue;
       for (let i = 0; i < entry.spawnCount; i++) {
-        const { x, y } = pickWaveSpawnPoint(isE2EEnabled());
+        const { x, y } = pickWaveSpawnPoint(isE2EEnabled(), this.registry);
         this.spawnEnemyAt(x, y, def, entry.enemyId);
       }
     }

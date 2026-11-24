@@ -159,7 +159,7 @@ export function tickDefenseEnemies(
           }
         : {
             kind: "wall" as const,
-            ...wallCombatPoint(e.sprite.x),
+            ...wallCombatPoint(e.sprite.x, host.scene.registry),
           };
 
     let playerHitDamage = 0;

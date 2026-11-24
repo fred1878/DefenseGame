@@ -52,7 +52,7 @@ function clampGoalToEnemyPlayBounds(
   const bodyR = reg
     ? worldUnit(enemyCollisionBodyRadius(enemy.defId), reg)
     : enemyCollisionBodyRadius(enemy.defId);
-  const bounds = defensePlayBoundsInset(bodyR);
+  const bounds = defensePlayBoundsInset(bodyR, reg);
   return clampToDefensePlayBounds(goalX, goalY, bounds);
 }
 

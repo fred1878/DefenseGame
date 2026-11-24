@@ -196,8 +196,11 @@ export function wallTargetPoint(
 }
 
 /** Combat targeting plane on the wall (projectiles, swing arcs, range checks). */
-export function wallCombatPoint(ex: number): { x: number; y: number } {
-  return { x: ex, y: northWallAttackY() };
+export function wallCombatPoint(
+  ex: number,
+  registry?: Phaser.Data.DataManager,
+): { x: number; y: number } {
+  return { x: ex, y: northWallAttackY(registry) };
 }
 
 /** World-scaled player nav footprint while routing to the wall. */
