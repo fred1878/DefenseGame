@@ -17,6 +17,15 @@ export async function gotoE2E(page: Page): Promise<void> {
       { timeout: 45_000 },
     )
     .toBe(true);
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () => window.__DEFENSEGAME_E2E__?.assetsLoaded === true,
+        ),
+      { timeout: 60_000 },
+    )
+    .toBe(true);
 }
 
 export async function startDefense(page: Page): Promise<void> {

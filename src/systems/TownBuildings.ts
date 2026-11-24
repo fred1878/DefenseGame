@@ -5,6 +5,17 @@ import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import { bindContainerPress } from "../ui/touchButton";
 import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
 
+/** Demo scale for on-screen town building sprites (PNG defs unchanged). */
+export const TOWN_BUILDING_DISPLAY_SCALE = 2;
+
+function townBuildingDisplayWidth(def: TownBuildingDef): number {
+  return def.width * TOWN_BUILDING_DISPLAY_SCALE;
+}
+
+function townBuildingDisplayHeight(def: TownBuildingDef): number {
+  return def.height * TOWN_BUILDING_DISPLAY_SCALE;
+}
+
 export type TownBuildingControl = {
   container: Phaser.GameObjects.Container;
   buildingId: string;
@@ -28,11 +39,13 @@ export function townBuildingLabelWrapWidth(def: TownBuildingDef): number {
 export function townBuildingFootprintHitArea(
   def: TownBuildingDef,
 ): Phaser.Geom.Rectangle {
+  const width = townBuildingDisplayWidth(def);
+  const height = townBuildingDisplayHeight(def);
   return new Phaser.Geom.Rectangle(
-    -def.width / 2,
-    -def.height,
-    def.width,
-    def.height,
+    -width / 2,
+    -height,
+    width,
+    height,
   );
 }
 
@@ -82,7 +95,10 @@ export function spawnTownBuildingControls(
     const sprite = scene.add
       .image(0, 0, def.textureKey)
       .setOrigin(0.5, 1)
-      .setDisplaySize(def.width, def.height);
+      .setDisplaySize(
+        townBuildingDisplayWidth(def),
+        townBuildingDisplayHeight(def),
+      );
 
     const labelWrap = townBuildingLabelWrapWidth(def);
     const labelY = -scaleUiY(4);
@@ -120,7 +136,7 @@ export function spawnTownBuildingControls(
 
     const spriteCenter = (): { x: number; y: number } => ({
       x: footX,
-      y: footY - def.height / 2,
+      y: footY - townBuildingDisplayHeight(def) / 2,
     });
 
     out.push({

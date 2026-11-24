@@ -1,5 +1,9 @@
 import Phaser from "phaser";
-import { getEmbeddedBuildId, urlBuildParamLine } from "../buildId";
+import {
+  getEmbeddedBuildId,
+  shortBuildIdLabel,
+  urlBuildParamLine,
+} from "../buildId";
 import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
 import { DataStore } from "../core/DataStore";
@@ -31,8 +35,15 @@ import {
   createTouchButton,
   isTouchButtonVisuallyPressed,
 } from "../ui/touchButton";
-import { debugButtonPosition, readSafeInsets } from "../ui/screenLayout";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import {
+  debugButtonPosition,
+  readSafeInsets,
+  townFullscreenButtonPosition,
+  townResetSaveButtonPosition,
+  townStatusTextTopY,
+  townTitleY,
+} from "../ui/screenLayout";
+import { scaleUiX } from "../core/displayScale";
 import { uiTextStyle } from "../ui/uiTextStyle";
 import {
   fullscreenButtonLabel,
@@ -109,7 +120,7 @@ export class TownScene extends Phaser.Scene {
       .rectangle(0, 0, GAME.width, GAME.height, 0x1a1c24)
       .setOrigin(0);
 
-    const titleY = scaleUiY(72);
+    const titleY = townTitleY();
     this.add
       .text(
         GAME.width / 2,
@@ -125,7 +136,7 @@ export class TownScene extends Phaser.Scene {
     this.statusText = this.add
       .text(
         GAME.width / 2,
-        scaleUiY(140),
+        townStatusTextTopY(),
         "",
         uiTextStyle(this, {
           fontSize: `${scaleUiX(18)}px`,
@@ -175,16 +186,19 @@ export class TownScene extends Phaser.Scene {
       },
     );
 
+    const fsWidth = scaleUiX(168);
+    const fsHeight = scaleUiX(36);
+    const fsPos = townFullscreenButtonPosition(this, safe, fsWidth, fsHeight);
     const fsLabel = fullscreenButtonLabel(this.scale);
     this.fullscreenButton = createTouchButton(
       this,
-      scaleUiX(94) + safe.left,
-      scaleUiY(44) + safe.top,
+      fsPos.x,
+      fsPos.y,
       fsLabel,
       () => toggleFullscreen(this.scale),
       {
-        width: scaleUiX(168),
-        height: scaleUiX(36),
+        width: fsWidth,
+        height: fsHeight,
         depth: 200,
         fontSize: `${scaleUiX(13)}px`,
         fillColor: 0x1e3a5f,
@@ -193,15 +207,18 @@ export class TownScene extends Phaser.Scene {
       },
     );
 
+    const resetWidth = scaleUiX(118);
+    const resetHeight = scaleUiX(36);
+    const resetPos = townResetSaveButtonPosition(this, safe, resetWidth, resetHeight);
     this.resetButton = createTouchButton(
       this,
-      GAME.width - scaleUiX(70) - safe.right,
-      scaleUiY(44) + safe.top,
+      resetPos.x,
+      resetPos.y,
       "Reset save",
       () => this.onResetTap(),
       {
-        width: scaleUiX(118),
-        height: scaleUiX(36),
+        width: resetWidth,
+        height: resetHeight,
         depth: 200,
         fontSize: `${scaleUiX(14)}px`,
         fillColor: 0x7f1d1d,
@@ -690,8 +707,10 @@ export class TownScene extends Phaser.Scene {
       typeof window !== "undefined"
         ? new URL(window.location.href).searchParams.get("b")
         : null;
-    const buildLines = [`Build ${embedded}`, urlBuildParamLine(embedded, urlB)]
-      .filter((line): line is string => line !== null);
+    const buildLines = [
+      `Build ${shortBuildIdLabel(embedded)}`,
+      urlBuildParamLine(embedded, urlB),
+    ].filter((line): line is string => line !== null);
     this.statusText.setText(
       [
         `Night ${this.save.night} · Gold ${this.save.gold}`,
