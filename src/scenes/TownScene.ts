@@ -64,11 +64,11 @@ import {
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
 import {
-  ensureDefenseAssetsLoaded,
   ensureNightReady,
-  ensureTownFluffLoaded,
+  ensureTownReachableReady,
+  isTownReachableReady,
 } from "../core/GameAssetLoader";
-import { ensureDebugMenuScene } from "../core/lazyScenes";
+import { TownDefenseLoadingOverlay } from "../ui/TownDefenseLoadingOverlay";
 import { markE2EAssetsLoaded } from "../e2e/installE2E";
 
 export class TownScene extends Phaser.Scene {
@@ -84,6 +84,7 @@ export class TownScene extends Phaser.Scene {
   private spellSortPanel: SpellBarSortPanel | null = null;
   private endlessPanel: EndlessModePanel | null = null;
   private wavePlannerPanel: WavePlannerPanel | null = null;
+  private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
   private readonly onInputModalityChanged = (): void => this.syncTownBaseInput();
   private readonly onDebugMenuClose = (): void => {
     popInputModality(this, INPUT_MODALITY.debugMenu.id);
@@ -160,11 +161,7 @@ export class TownScene extends Phaser.Scene {
       dbgPos.y,
       "Debug",
       () => {
-        void ensureDebugMenuScene(this.game).then(() => {
-          pushInputModality(this, INPUT_MODALITY.debugMenu);
-          pauseForDebugMenu(this);
-          this.scene.launch("DebugMenu");
-        });
+        this.launchDebugMenuFromTown();
       },
       {
         width: scaleUiX(88),
@@ -227,12 +224,7 @@ export class TownScene extends Phaser.Scene {
     });
 
     markBoot("defensegame:town-prefetch-start");
-    const baseUrl = import.meta.env.BASE_URL;
-    void Promise.all([
-      ensureTownFluffLoaded(this),
-      ensureDefenseAssetsLoaded(this),
-      store.ensureDefenseDataLoaded(baseUrl),
-    ])
+    void ensureTownReachableReady(this, store)
       .then(() => {
         markBoot("defensegame:town-prefetch-end");
         measureBoot(
@@ -253,8 +245,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartNight(): void {
-    const store = this.registry.get("dataStore") as DataStore;
-    void ensureNightReady(this, store).then(() => this.beginDefenseNight());
+    this.transitionToDefense(() => this.beginDefenseNight());
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
@@ -381,10 +372,11 @@ export class TownScene extends Phaser.Scene {
   private openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    void Promise.all([
-      ensureTownFluffLoaded(this),
-      store.ensureDefenseDataLoaded(import.meta.env.BASE_URL),
-    ]).then(() => {
+    if (isTownReachableReady(this.game, store)) {
+      this.createSpellSortPanel();
+      return;
+    }
+    void ensureTownReachableReady(this, store).then(() => {
       if (this.spellSortPanel) return;
       this.createSpellSortPanel();
     });
@@ -407,7 +399,7 @@ export class TownScene extends Phaser.Scene {
   private openWavePlannerPanel(): void {
     if (this.wavePlannerPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    void store.ensureDefenseDataLoaded(import.meta.env.BASE_URL).then(() => {
+    const open = () => {
       if (this.wavePlannerPanel) return;
       this.wavePlannerPanel = new WavePlannerPanel(
       this,
@@ -420,13 +412,18 @@ export class TownScene extends Phaser.Scene {
         this.wavePlannerPanel = null;
       },
       );
-    });
+    };
+    if (isTownReachableReady(this.game, store)) {
+      open();
+      return;
+    }
+    void ensureTownReachableReady(this, store).then(open);
   }
 
   private openEndlessPanel(): void {
     if (this.endlessPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    void store.ensureDefenseDataLoaded(import.meta.env.BASE_URL).then(() => {
+    const open = () => {
       if (this.endlessPanel) return;
       this.endlessPanel = new EndlessModePanel(
       this,
@@ -441,7 +438,26 @@ export class TownScene extends Phaser.Scene {
         this.endlessPanel = null;
       },
       );
-    });
+    };
+    if (isTownReachableReady(this.game, store)) {
+      open();
+      return;
+    }
+    void ensureTownReachableReady(this, store).then(open);
+  }
+
+  private launchDebugMenuFromTown(): void {
+    const store = this.registry.get("dataStore") as DataStore;
+    const launch = () => {
+      pushInputModality(this, INPUT_MODALITY.debugMenu);
+      pauseForDebugMenu(this);
+      this.scene.launch("DebugMenu");
+    };
+    if (isTownReachableReady(this.game, store)) {
+      launch();
+      return;
+    }
+    void ensureTownReachableReady(this, store).then(launch);
   }
 
   private teardownTownOverlays(): void {
@@ -451,6 +467,8 @@ export class TownScene extends Phaser.Scene {
     this.wavePlannerPanel = null;
     this.spellSortPanel?.destroy();
     this.spellSortPanel = null;
+    this.defenseLoadingOverlay?.destroy();
+    this.defenseLoadingOverlay = null;
   }
 
   /** Re-enable town layout + header chrome only when no modal owns input. */
@@ -466,7 +484,29 @@ export class TownScene extends Phaser.Scene {
 
   private transitionToDefense(run: () => void): void {
     const store = this.registry.get("dataStore") as DataStore;
-    void ensureNightReady(this, store).then(run);
+    if (isTownReachableReady(this.game, store)) {
+      run();
+      return;
+    }
+    if (!this.defenseLoadingOverlay) {
+      this.defenseLoadingOverlay = new TownDefenseLoadingOverlay(this);
+    }
+    void ensureNightReady(this, store)
+      .then(() => {
+        this.defenseLoadingOverlay?.destroy();
+        this.defenseLoadingOverlay = null;
+        run();
+      })
+      .catch((err) => {
+        console.error("Night readiness failed", err);
+        this.defenseLoadingOverlay?.showError(
+          "Could not load defense. Try again.",
+        );
+        this.time.delayedCall(2800, () => {
+          this.defenseLoadingOverlay?.destroy();
+          this.defenseLoadingOverlay = null;
+        });
+      });
   }
 
   private beginDefenseNight(): void {

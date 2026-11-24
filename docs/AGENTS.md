@@ -23,6 +23,8 @@ flowchart LR
 
 **Invariant:** `DefenseScene` never mutates town rules directly. It returns a `NightResult`; `GameState.applyNightResult()` applies changes once in `TownScene` or Boot handoff.
 
+**Town reachable prefetch:** After Town is interactive, `TownScene` runs background `ensureTownReachableReady` (deduped): town fluff (spell icons, HUD, SFX), defense combat assets, defense JSON (`DataStore.ensureDefenseDataLoaded`), lazy `DefenseScene`, and lazy `DebugMenuScene`. Registry `townReachableReady` is set when the bundle completes. E2E `assetsLoaded` stays tied to that prefetch chain (Town `ready` may fire earlier). Spell sort, endless, wave planner, Debug, and `transitionToDefense` reuse the same helper; if prefetch finished, open/transition is immediate. If the player acts before prefetch completes, `transitionToDefense` shows `TownDefenseLoadingOverlay` (`#0f1014`) until `ensureTownReachableReady` resolves (or a short error).
+
 ---
 
 ## Repository layout
