@@ -696,7 +696,6 @@ export class DefenseSpellDirector {
       this.host.spellGroundZones.push(
         spawnGroundZone(this.host.scene, def, center.x, center.y, mult, this.host.timeNow(), {
           durationMs: def.channelMs,
-          tickDamageScale: def.mechanicType === "channeled" ? 0.35 : 0.4,
           includeBurst: Boolean(def.burstDamage),
         }),
       );
@@ -728,7 +727,6 @@ export class DefenseSpellDirector {
         {
           durationMs: def.lingerMs,
           lingerDot: true,
-          tickDamageScale: 0,
         },
       ),
     );

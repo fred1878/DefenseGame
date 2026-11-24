@@ -1,5 +1,6 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GAME } from "./config";
+import { markBoot, measureBoot } from "./core/bootPerf";
 import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
 import { publishE2E } from "./e2e/e2eGlobal";
@@ -15,42 +16,64 @@ import { TownScene } from "./scenes/TownScene";
 const parent = "game";
 const e2eBuild = import.meta.env.VITE_E2E === "true";
 
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  parent,
-  width: GAME.width,
-  height: GAME.height,
-  backgroundColor: "#0f1014",
-  physics: {
-    default: "arcade",
-    arcade: {
-      gravity: { x: 0, y: 0 },
-      debug: false,
-    },
-  },
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    autoRound: true,
-    expandParent: true,
-    width: GAME.width,
-    height: GAME.height,
-  },
-  render: {
-    roundPixels: true,
-    antialias: false,
-    preserveDrawingBuffer: e2eBuild,
-  },
-  input: {
-    activePointers: 2,
-  },
-  scene: [BootScene, TownScene],
-};
-
 seedE2EWindowStub();
 
-function start(): void {
-  const game = new Phaser.Game(config);
+function hideLoadingSplash(): void {
+  document.getElementById("loading-splash")?.remove();
+}
+
+async function start(): Promise<void> {
+  markBoot("defensegame:phaser-import-start");
+  const { default: PhaserRuntime } = await import("phaser");
+  markBoot("defensegame:phaser-import-end");
+  measureBoot(
+    "defensegame:phaser-import",
+    "defensegame:phaser-import-start",
+    "defensegame:phaser-import-end",
+  );
+
+  const config: Phaser.Types.Core.GameConfig = {
+    type: PhaserRuntime.AUTO,
+    parent,
+    width: GAME.width,
+    height: GAME.height,
+    backgroundColor: "#0f1014",
+    physics: {
+      default: "arcade",
+      arcade: {
+        gravity: { x: 0, y: 0 },
+        debug: false,
+      },
+    },
+    scale: {
+      mode: PhaserRuntime.Scale.FIT,
+      autoCenter: PhaserRuntime.Scale.CENTER_BOTH,
+      autoRound: true,
+      expandParent: true,
+      width: GAME.width,
+      height: GAME.height,
+    },
+    render: {
+      roundPixels: true,
+      antialias: false,
+      preserveDrawingBuffer: e2eBuild,
+    },
+    input: {
+      activePointers: 2,
+    },
+    scene: [BootScene, TownScene],
+  };
+
+  markBoot("defensegame:phaser-game-start");
+  const game = new PhaserRuntime.Game(config);
+  markBoot("defensegame:phaser-game-end");
+  measureBoot(
+    "defensegame:phaser-game-init",
+    "defensegame:phaser-game-start",
+    "defensegame:phaser-game-end",
+  );
+  hideLoadingSplash();
+
   game.registry.set("renderResolution", clampRenderResolution());
   game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
@@ -60,7 +83,7 @@ function start(): void {
         scene.time.timeScale = 2;
       }
     };
-    game.events.on(Phaser.Scenes.Events.CREATE, e2eTimeScale);
+    game.events.on(PhaserRuntime.Scenes.Events.CREATE, e2eTimeScale);
     e2eTimeScale();
     if (e2eManualReturnFromQuery()) {
       game.registry.set("e2eManualReturn", true);
@@ -70,4 +93,4 @@ function start(): void {
   }
 }
 
-start();
+void start();

@@ -6,6 +6,11 @@ import { enemiesInDisk, type EnemyHitTarget } from "./spellMechanics";
 import type { EnemySpellStatusMap } from "./enemySpellStatus";
 import { applySpellOnHitEffects } from "./spellOnHitEffects";
 import { worldUnit } from "../core/worldPixelScale";
+import {
+  channeledGroundZoneCompletionRemainder,
+  channeledGroundZoneMaxTicks,
+  channeledGroundZonePerTickDamage,
+} from "./channeledGroundZoneChannel";
 
 export type SpellGroundZone = {
   id: string;
@@ -17,6 +22,10 @@ export type SpellGroundZone = {
   tickAccumMs: number;
   tickEveryMs: number;
   tickDamage: number;
+  /** Ticks that dealt channel damage (channeled zones only). */
+  channelTicksDone?: number;
+  channelMaxTicks?: number;
+  channelDamageRemainder?: number;
   burstDamage?: number;
   damageFlavor: DamageFlavor;
   onHit?: SpellDefinition["onHit"];
@@ -35,7 +44,6 @@ export function spawnGroundZone(
   now: number,
   opts?: {
     durationMs: number;
-    tickDamageScale?: number;
     includeBurst?: boolean;
     lingerDot?: boolean;
   },
@@ -44,8 +52,14 @@ export function spawnGroundZone(
     throw new Error(`spawnGroundZone requires blastRadiusWu for ${def.id}`);
   }
   const r = worldUnit(def.blastRadiusWu, scene.registry);
-  const tickScale = opts?.tickDamageScale ?? 1;
-  const tickDamage = (def.baseDamage ?? 0) * damageMult * tickScale;
+  const lingerDot = opts?.lingerDot ?? false;
+  const tickDamage = lingerDot
+    ? 0
+    : channeledGroundZonePerTickDamage(def, damageMult);
+  const channelMaxTicks = lingerDot ? undefined : channeledGroundZoneMaxTicks(def);
+  const channelDamageRemainder = lingerDot
+    ? undefined
+    : channeledGroundZoneCompletionRemainder(def, damageMult);
   return {
     id: `zone_${def.id}_${now}`,
     spellId: def.id,
@@ -54,18 +68,19 @@ export function spawnGroundZone(
     radiusWu: r,
     expiresAt: now + (opts?.durationMs ?? def.channelMs ?? 2500),
     tickAccumMs: 0,
-    tickEveryMs: opts?.lingerDot
-      ? def.lingerTickMs ?? 250
-      : spellChannelTickMs(def),
+    tickEveryMs: lingerDot ? def.lingerTickMs ?? 250 : spellChannelTickMs(def),
     tickDamage,
+    channelTicksDone: lingerDot ? undefined : 0,
+    channelMaxTicks,
+    channelDamageRemainder,
     burstDamage:
       opts?.includeBurst && def.burstDamage
         ? def.burstDamage * damageMult
         : undefined,
     damageFlavor: def.damageFlavor ?? "fire",
     onHit: def.onHit,
-    lingerDotDps: opts?.lingerDot ? def.onHit?.dotDps : undefined,
-    lingerDotMs: opts?.lingerDot ? def.onHit?.dotMs : undefined,
+    lingerDotDps: lingerDot ? def.onHit?.dotDps : undefined,
+    lingerDotMs: lingerDot ? def.onHit?.dotMs : undefined,
     didBurst: false,
   };
 }
@@ -80,7 +95,6 @@ export function tickSpellGroundZones(
   damageMult: number,
 ): SpellGroundZone[] {
   return zones.filter((z) => {
-    if (now >= z.expiresAt) return false;
     z.tickAccumMs += deltaMs;
     const inZone = enemiesInDisk(z.x, z.y, z.radiusWu, enemies);
     if (z.burstDamage && !z.didBurst) {
@@ -94,10 +108,24 @@ export function tickSpellGroundZones(
     }
     while (z.tickAccumMs >= z.tickEveryMs) {
       z.tickAccumMs -= z.tickEveryMs;
-      const tickDmg =
+      let tickDmg =
         z.lingerDotDps && z.lingerDotDps > 0
           ? z.lingerDotDps * damageMult * (z.tickEveryMs / 1000)
           : z.tickDamage;
+      if (
+        !z.lingerDotDps &&
+        z.channelMaxTicks !== undefined &&
+        z.channelDamageRemainder !== undefined &&
+        z.channelDamageRemainder > 0
+      ) {
+        const nextTick = (z.channelTicksDone ?? 0) + 1;
+        if (nextTick >= z.channelMaxTicks) {
+          tickDmg += z.channelDamageRemainder;
+        }
+      }
+      if (!z.lingerDotDps) {
+        z.channelTicksDone = (z.channelTicksDone ?? 0) + 1;
+      }
       if (tickDmg <= 0) continue;
       for (const e of inZone) {
         const full = enemies.find((x) => x.id === e.id);
@@ -108,6 +136,6 @@ export function tickSpellGroundZones(
         }
       }
     }
-    return true;
+    return now < z.expiresAt;
   });
 }
