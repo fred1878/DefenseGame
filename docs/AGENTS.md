@@ -240,7 +240,7 @@ npm run preview      # serve dist locally
 ## Related docs
 
 - [Data JSON fields](../public/data/DATA_FIELDS.md) — schema and units for every shipped `public/data/*.json` file; changing boot-required keys in `normalize*` requires updating that doc in the same PR (`dataFieldsDoc.test.ts` enforces bidirectional parity)
-- [Testing](./TESTING.md)
+- [Testing](./TESTING.md) — Vitest must not hardcode expectations against shipped `public/data/*.json` tuning; use inline fixtures (see **Vitest data fixtures** there)
 - [CI and releases](./CI_RELEASES.md)
 - [Refactor plan](./REFACTOR_PLAN.md) — splitting `DefenseScene` and other large files
 - [Roadmap](../ROADMAP.md) — milestones and known gaps

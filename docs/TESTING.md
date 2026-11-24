@@ -73,6 +73,10 @@ Golden-path specs auto-skip to Town after night end. UX specs add `manualReturn=
 
 Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets()` / `api.syncDomMirrors()`. Prefer **canvas** `tap()` at those coordinates for real Phaser pointer input; DOM mirrors are a stable fallback.
 
+## Vitest data fixtures
+
+**Do not assert gameplay tuning from shipped `public/data/*.json` in unit tests.** Balance numbers change often; Vitest should use **inline minimal fixtures** and assert **normalization, validation, defaults, and wiring** only. Reserve reading shipped JSON for dedicated integration tests (for example `DataStore.integration.test.ts`, `dataFieldsDoc.test.ts`) that intentionally verify catalog shape or doc parity — not spell/enemy/player balance values.
+
 ## Vitest suites (representative)
 
 | Area | File |
