@@ -35,7 +35,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `spell_input.json` | yes (`normalizeSpellInput`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
 | `town_buildings.json` | yes (no schema validator) |
-| `town_layout.json` | yes (no schema validator) |
+| `town_layout.json` | yes (`normalizeTownLayout`) |
 | `waves.json` | yes (no schema validator) |
 
 ### TypeScript types
@@ -52,7 +52,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
 | `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
 | `town_buildings.json` | — | [TownBuildingDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
-| `town_layout.json` | — | [TownLayoutDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
+| `town_layout.json` | [TownLayoutInput](../src/core/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
 | `waves.json` | — | [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
 
 **Removed (do not re-add):** `enemy-combat-defaults.json`, `spell-mechanics.json` — combat is fully per row in `enemies.json`; Shadowform tuning lives on the `shadowform` spell row.
@@ -486,10 +486,11 @@ Town clickable building art + actions (`TownBuildingDef`).
 
 ## town_layout.json
 
-**TypeScript:** [TownLayoutDef](../src/core/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
+**TypeScript:** [TownLayoutInput](../src/core/normalizeTownLayout.ts) → [TownLayoutDef](../src/core/townBuildingTypes.ts) — [normalizeTownLayout.ts](../src/core/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
 
 | Field | Meaning |
 |-------|---------|
+| `buildingDisplayScale` | On-screen size multiplier for town building sprites (>= 1); PNG width/height in town_buildings.json stay logical footprint size. |
 | `slots` | Array of town building placements on the town map. |
 
 Each slot:

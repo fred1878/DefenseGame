@@ -36,6 +36,7 @@ import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import { applyHitFlashConfig } from "../config/hitFlash";
 import { applySpellInputTuning } from "../config/spellInput";
 import { applyShadowformMechanics } from "../config/shadowformMechanics";
+import { normalizeTownLayout, type TownLayoutInput } from "./normalizeTownLayout";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
@@ -74,7 +75,7 @@ export class DataStore {
   waves: Record<string, WaveDef> = {};
   buildings: Record<string, BuildingDef> = {};
   townBuildings: Record<string, TownBuildingDef> = {};
-  townLayout: TownLayoutDef = { slots: [] };
+  townLayout: TownLayoutDef = { buildingDisplayScale: 1, slots: [] };
   spells: SpellDefinition[] = [];
   shadowformMechanics!: ShadowformMechanics;
   player!: PlayerConfig;
@@ -89,12 +90,12 @@ export class DataStore {
       fetchJson<Record<string, TownBuildingDef>>(
         `${prefix}data/town_buildings.json`,
       ),
-      fetchJson<TownLayoutDef>(`${prefix}data/town_layout.json`),
+      fetchJson<TownLayoutInput>(`${prefix}data/town_layout.json`),
       fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
     ]);
     this.buildings = buildings;
     this.townBuildings = townBuildings;
-    this.townLayout = townLayout;
+    this.townLayout = normalizeTownLayout(townLayout);
     this.player = normalizePlayerConfig(playerFile);
     const { endlessPanelDefaultConcurrent: _ui, ...playerTuning } = this.player;
     applyPlayerTuning(playerTuning);
