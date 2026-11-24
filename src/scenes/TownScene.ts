@@ -712,7 +712,6 @@ export class TownScene extends Phaser.Scene {
         `Wall L${wall} (HP ${this.save.townWallHp}/${this.save.townWallHpMax})${wallCost !== undefined ? ` — next ${wallCost}g` : ""}`,
         `Blacksmith L${smith} (damage x${dmg})`,
         ...buildLines,
-        "Reset save: fresh start + latest build",
       ].join("\n"),
     );
   }

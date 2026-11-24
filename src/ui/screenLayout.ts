@@ -110,7 +110,7 @@ export function nightReturnButtonPosition(
   };
 }
 
-const TOWN_TITLE_Y = scaleUiY(72);
+const TOWN_TITLE_Y = scaleUiY(60);
 const TOWN_TITLE_FONT_PX = scaleUiX(28);
 const TOWN_STATUS_BELOW_TITLE_GAP = scaleUiY(6);
 const TOWN_STATUS_BLOCK_HEIGHT = scaleUiY(108);
@@ -131,10 +131,9 @@ export function townFullscreenButtonPosition(
   width: number,
   height: number,
 ): { x: number; y: number } {
-  const margin = scaleUiX(12);
   return {
-    x: margin + safe.left + width / 2,
-    y: margin + safe.top + height / 2,
+    x: safe.left + width / 2,
+    y: safe.top + height / 2,
   };
 }
 
@@ -144,10 +143,9 @@ export function townResetSaveButtonPosition(
   width: number,
   height: number,
 ): { x: number; y: number } {
-  const margin = scaleUiX(12);
   return {
-    x: scene.scale.width - margin - safe.right - width / 2,
-    y: margin + safe.top + height / 2,
+    x: scene.scale.width - safe.right - width / 2,
+    y: safe.top + height / 2,
   };
 }
 
