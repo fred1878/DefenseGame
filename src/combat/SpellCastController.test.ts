@@ -34,13 +34,13 @@ describe("SpellCastController", () => {
     expect(c.isChanneling()).toBe(false);
   });
 
-  it("interrupts manual channel when stick moves and clears armed cooldown", () => {
+  it("interrupts manual channel when stick moves and keeps armed cooldown", () => {
     const healDef = spellById("heal");
     const c = new SpellCastController();
     expect(c.tryBeginCast("heal", "manual")).toBe("channel");
     expect(c.getCooldownRemaining("heal")).toBe(healDef!.cooldownMs);
     expect(c.updateChannel(10, 0.5, 0).type).toBe("interrupted");
-    expect(c.getCooldownRemaining("heal")).toBe(0);
+    expect(c.getCooldownRemaining("heal")).toBe(healDef!.cooldownMs);
   });
 
   it("completes windup-only meteor when still", () => {
@@ -115,7 +115,7 @@ describe("SpellCastController", () => {
     expect(cone.getCooldownRemaining("cone_of_fire")).toBe(coneDef!.cooldownMs);
   });
 
-  it("does not leave cooldown armed on auto interrupt during windup or channel", () => {
+  it("leaves cooldown unarmed on windup interrupt but keeps it on channel interrupt", () => {
     const blizDef = spellById("blizzard");
     const windupMs = blizDef ? spellCastMs(blizDef) : 0;
     const windupCut = new SpellCastController();
@@ -124,11 +124,12 @@ describe("SpellCastController", () => {
     expect(windupCut.updateChannel(10, 0.5, 0).type).toBe("interrupted");
     expect(windupCut.getCooldownRemaining("blizzard")).toBe(0);
 
+    const healCd = spellById("heal")!.cooldownMs;
     const heal = new SpellCastController();
     heal.tryBeginCast("heal", "auto");
-    expect(heal.getCooldownRemaining("heal")).toBe(spellById("heal")!.cooldownMs);
+    expect(heal.getCooldownRemaining("heal")).toBe(healCd);
     expect(heal.updateChannel(10, 0.5, 0).type).toBe("interrupted");
-    expect(heal.getCooldownRemaining("heal")).toBe(0);
+    expect(heal.getCooldownRemaining("heal")).toBe(healCd);
   });
 
   it("ticks Blizzard cooldown during channel and does not reset on complete", () => {

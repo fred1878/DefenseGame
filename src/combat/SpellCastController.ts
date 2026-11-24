@@ -116,7 +116,6 @@ export class SpellCastController {
     const mag = Math.hypot(stickX, stickY);
     if (mag > SPELL_MOVE_INTERRUPT_EPS) {
       const id = this.activeSpellId;
-      this.cooldownRemainingMs.delete(id);
       this.clearCast();
       return { type: "interrupted", spellId: id };
     }
