@@ -883,7 +883,8 @@ export class DefenseScene extends Phaser.Scene {
 
   /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
   onSpellCastRequest(spellId: string): void {
-    this.spellDirector.onSpellCastRequest(spellId);
+    const dir = this.stick.getDirection();
+    this.spellDirector.onSpellCastRequest(spellId, dir.x, dir.y);
   }
 
   /** Spell-bar press on a manual ground spell: arm reticle and track this pointer. */
@@ -906,8 +907,14 @@ export class DefenseScene extends Phaser.Scene {
     this.spellDirector.tryFlushQueuedSpellCast(stickX, stickY);
   }
 
-  private beginSpellCast(spellId: string): void {
-    this.spellDirector.beginSpellCast(spellId);
+  private beginSpellCast(spellId: string, stickX?: number, stickY?: number): void {
+    const dir = this.stick.getDirection();
+    this.spellDirector.beginSpellCast(
+      spellId,
+      "manual",
+      stickX ?? dir.x,
+      stickY ?? dir.y,
+    );
   }
 
   private clearGroundCastTelegraphs(): void {

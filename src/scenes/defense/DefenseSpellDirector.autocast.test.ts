@@ -102,7 +102,7 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
 
     director.tryAutoCastSpells(0, 0);
 
-    expect(beginSpy).toHaveBeenCalledWith("meteor", "auto");
+    expect(beginSpy).toHaveBeenCalledWith("meteor", "auto", 0, 0);
     expect(host.groundAim).toEqual({ x: 100, y: 0 });
   });
 
@@ -136,7 +136,7 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
 
     director.tryAutoCastSpells(0, 0);
 
-    expect(beginSpy).toHaveBeenCalledWith("flamestrike", "auto");
+    expect(beginSpy).toHaveBeenCalledWith("flamestrike", "auto", 0, 0);
     expect(host.groundAim).toEqual({ x: 0, y: 90 });
   });
 
@@ -157,7 +157,7 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
 
     director.tryAutoCastSpells(0, 0);
 
-    expect(beginSpy).toHaveBeenCalledWith("meteor", "auto");
+    expect(beginSpy).toHaveBeenCalledWith("meteor", "auto", 0, 0);
     expect(host.groundAim?.x).toBeCloseTo(240, 5);
     expect(host.groundAim?.y).toBeCloseTo(0, 5);
   });
@@ -201,7 +201,7 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
 
     director.tryAutoCastSpells(0, 0);
 
-    expect(beginSpy).toHaveBeenCalledWith("water_bolt", "auto");
+    expect(beginSpy).toHaveBeenCalledWith("water_bolt", "auto", 0, 0);
     expect(setFocusEnemy).toHaveBeenCalledWith("e1");
     expect(faceToward).toHaveBeenCalledWith(120, 40);
   });
@@ -225,6 +225,6 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
 
     director.tryAutoCastSpells(0, 0);
 
-    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "auto");
+    expect(beginSpy).toHaveBeenCalledWith("fire_nova", "auto", 0, 0);
   });
 });

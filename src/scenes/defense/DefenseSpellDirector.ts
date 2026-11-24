@@ -270,11 +270,11 @@ export class DefenseSpellDirector {
         this.host.player.faceToward(target.x, target.y);
       }
     }
-    this.beginSpellCast(pick.spellId, "auto");
+    this.beginSpellCast(pick.spellId, "auto", stickX, stickY);
   }
 
   /** @internal Used by `defense/DefenseSceneE2E` until spell director lands */
-  onSpellCastRequest(spellId: string): void {
+  onSpellCastRequest(spellId: string, stickX = 0, stickY = 0): void {
     const def = spellById(spellId);
     if (!def) return;
     if (
@@ -304,7 +304,7 @@ export class DefenseSpellDirector {
       );
       return;
     }
-    this.beginSpellCast(spellId, "manual");
+    this.beginSpellCast(spellId, "manual", stickX, stickY);
   }
 
   tryFlushQueuedSpellCast(stickX: number, stickY: number): void {
@@ -333,7 +333,7 @@ export class DefenseSpellDirector {
     if (spellTargetMode(def) === "ground") {
       this.host.groundAim = this.defaultGroundTarget(def);
     }
-    this.beginSpellCast(spellId, "manual");
+    this.beginSpellCast(spellId, "manual", stickX, stickY);
   }
 
   private flushQueuedManualAttack(): void {
@@ -349,7 +349,12 @@ export class DefenseSpellDirector {
     player.tryStartAttack(player.mode === "auto" ? strike : undefined);
   }
 
-  beginSpellCast(spellId: string, inputMode: SpellCastInputMode = "manual"): void {
+  beginSpellCast(
+    spellId: string,
+    inputMode: SpellCastInputMode = "manual",
+    stickX = 0,
+    stickY = 0,
+  ): void {
     const def = spellById(spellId);
     if (!def || this.host.spellCaster.isChanneling()) return;
     if (spellTargetMode(def) === "ground") {
@@ -362,7 +367,7 @@ export class DefenseSpellDirector {
         ? { x: target.x, y: target.y }
         : { x: this.host.player.sprite.x, y: this.host.player.sprite.y };
     }
-    const begun = this.host.spellCaster.tryBeginCast(spellId, inputMode);
+    const begun = this.host.spellCaster.tryBeginCast(spellId, inputMode, stickX, stickY);
     if (begun === false) return;
     this.host.channelAreaStarted = false;
     this.channeledConeTicks = createChanneledConeTickState();
