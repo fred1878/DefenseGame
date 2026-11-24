@@ -42,6 +42,7 @@ import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
 import { EndlessModePanel } from "../ui/EndlessModePanel";
+import { EndlessModePanelLoadingSkeleton } from "../ui/EndlessModePanelLoadingSkeleton";
 import { WavePlannerPanel } from "../ui/WavePlannerPanel";
 import {
   setEndlessDefenseRun,
@@ -83,6 +84,7 @@ export class TownScene extends Phaser.Scene {
   private touchDebug!: TouchInputDebugDraw;
   private spellSortPanel: SpellBarSortPanel | null = null;
   private endlessPanel: EndlessModePanel | null = null;
+  private endlessPanelLoading: EndlessModePanelLoadingSkeleton | null = null;
   private wavePlannerPanel: WavePlannerPanel | null = null;
   private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
   private readonly onInputModalityChanged = (): void => this.syncTownBaseInput();
@@ -314,6 +316,10 @@ export class TownScene extends Phaser.Scene {
     return this.endlessPanel !== null;
   }
 
+  e2eIsEndlessPanelLoading(): boolean {
+    return this.endlessPanelLoading !== null;
+  }
+
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
     const store = this.registry.get("dataStore") as DataStore;
     const cap = clampEndlessConcurrent(store.player.endlessPanelDefaultConcurrent);
@@ -421,9 +427,11 @@ export class TownScene extends Phaser.Scene {
   }
 
   private openEndlessPanel(): void {
-    if (this.endlessPanel) return;
+    if (this.endlessPanel || this.endlessPanelLoading) return;
     const store = this.registry.get("dataStore") as DataStore;
     const open = () => {
+      this.endlessPanelLoading?.destroy();
+      this.endlessPanelLoading = null;
       if (this.endlessPanel) return;
       this.endlessPanel = new EndlessModePanel(
       this,
@@ -443,7 +451,17 @@ export class TownScene extends Phaser.Scene {
       open();
       return;
     }
-    void ensureTownReachableReady(this, store).then(open);
+    this.endlessPanelLoading = new EndlessModePanelLoadingSkeleton(this);
+    void ensureTownReachableReady(this, store)
+      .then(open)
+      .catch((err) => {
+        console.error("Endless panel readiness failed", err);
+        this.endlessPanelLoading?.showError("Could not load endless roster. Try again.");
+        this.time.delayedCall(2800, () => {
+          this.endlessPanelLoading?.destroy();
+          this.endlessPanelLoading = null;
+        });
+      });
   }
 
   private launchDebugMenuFromTown(): void {
@@ -461,6 +479,8 @@ export class TownScene extends Phaser.Scene {
   }
 
   private teardownTownOverlays(): void {
+    this.endlessPanelLoading?.destroy();
+    this.endlessPanelLoading = null;
     this.endlessPanel?.destroy();
     this.endlessPanel = null;
     this.wavePlannerPanel?.destroy();
