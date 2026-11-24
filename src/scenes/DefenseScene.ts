@@ -50,6 +50,7 @@ import {
   pauseForDebugMenu,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
+import { ensureDebugMenuScene } from "../core/lazyScenes";
 import {
   blocksBaseLayerInput,
   clearInputModalities,
@@ -1125,10 +1126,12 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private openDebugMenu(): void {
-    pushInputModality(this, INPUT_MODALITY.debugMenu);
-    this.setHudChromeVisible(false);
-    pauseForDebugMenu(this);
-    this.scene.launch("DebugMenu");
+    void ensureDebugMenuScene(this.game).then(() => {
+      pushInputModality(this, INPUT_MODALITY.debugMenu);
+      this.setHudChromeVisible(false);
+      pauseForDebugMenu(this);
+      this.scene.launch("DebugMenu");
+    });
   }
 
   private syncDefenseGroundAimModality(): void {
