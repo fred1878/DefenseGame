@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type Phaser from "phaser";
 import type { SpellDefinition } from "../content/spells";
 import type { Damageable } from "./DamageSystem";
+import { EnemySpellStatusMap } from "./enemySpellStatus";
 import { spawnGroundZone, tickSpellGroundZones } from "./spellGroundZone";
 import type { EnemyHitTarget } from "./spellMechanics";
 
@@ -56,7 +57,7 @@ describe("spellGroundZone channeled damage", () => {
     damageable.onDamaged = (amount) => {
       totalDamage += amount;
     };
-    const status = new Map();
+    const status = new EnemySpellStatusMap();
     const tickEvery = zone.tickEveryMs;
     for (let i = 0; i < 6; i++) {
       tickSpellGroundZones(
@@ -120,7 +121,7 @@ describe("spellGroundZone channeled damage", () => {
       zone.tickEveryMs,
       zone.tickEveryMs,
       [enemy],
-      new Map(),
+      new EnemySpellStatusMap(),
       1,
     );
     expect(zone.didBurst).toBe(true);
