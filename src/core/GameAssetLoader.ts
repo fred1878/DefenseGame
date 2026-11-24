@@ -158,11 +158,22 @@ export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   return defenseLoadPromise;
 }
 
+/** Synchronous gate before starting Defense (prefetch + lazy scene chunk). */
+export function isNightReady(game: Phaser.Game, store: DataStore): boolean {
+  return (
+    !!game.registry.get(TOWN_FLUFF_READY_KEY) &&
+    !!game.registry.get(DEFENSE_ASSETS_READY_KEY) &&
+    store.defenseDataReady &&
+    game.scene.getScene("Defense") !== null
+  );
+}
+
 /** Night, endless, spell sort, or full combat E2E readiness. */
 export function ensureNightReady(
   scene: Phaser.Scene,
   store: DataStore,
 ): Promise<void> {
+  if (isNightReady(scene.game, store)) return Promise.resolve();
   const base = import.meta.env.BASE_URL;
   return Promise.all([
     ensureTownFluffLoaded(scene),

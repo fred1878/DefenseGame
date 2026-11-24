@@ -67,8 +67,10 @@ import {
   ensureDefenseAssetsLoaded,
   ensureNightReady,
   ensureTownFluffLoaded,
+  isNightReady,
 } from "../core/GameAssetLoader";
-import { ensureDebugMenuScene } from "../core/lazyScenes";
+import { ensureDebugMenuScene, ensureDefenseScene } from "../core/lazyScenes";
+import { TownDefenseLoadingOverlay } from "../ui/TownDefenseLoadingOverlay";
 import { markE2EAssetsLoaded } from "../e2e/installE2E";
 
 export class TownScene extends Phaser.Scene {
@@ -84,6 +86,7 @@ export class TownScene extends Phaser.Scene {
   private spellSortPanel: SpellBarSortPanel | null = null;
   private endlessPanel: EndlessModePanel | null = null;
   private wavePlannerPanel: WavePlannerPanel | null = null;
+  private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
   private readonly onInputModalityChanged = (): void => this.syncTownBaseInput();
   private readonly onDebugMenuClose = (): void => {
     popInputModality(this, INPUT_MODALITY.debugMenu.id);
@@ -232,6 +235,7 @@ export class TownScene extends Phaser.Scene {
       ensureTownFluffLoaded(this),
       ensureDefenseAssetsLoaded(this),
       store.ensureDefenseDataLoaded(baseUrl),
+      ensureDefenseScene(this.game),
     ])
       .then(() => {
         markBoot("defensegame:town-prefetch-end");
@@ -253,8 +257,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartNight(): void {
-    const store = this.registry.get("dataStore") as DataStore;
-    void ensureNightReady(this, store).then(() => this.beginDefenseNight());
+    this.transitionToDefense(() => this.beginDefenseNight());
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
@@ -451,6 +454,8 @@ export class TownScene extends Phaser.Scene {
     this.wavePlannerPanel = null;
     this.spellSortPanel?.destroy();
     this.spellSortPanel = null;
+    this.defenseLoadingOverlay?.destroy();
+    this.defenseLoadingOverlay = null;
   }
 
   /** Re-enable town layout + header chrome only when no modal owns input. */
@@ -466,7 +471,29 @@ export class TownScene extends Phaser.Scene {
 
   private transitionToDefense(run: () => void): void {
     const store = this.registry.get("dataStore") as DataStore;
-    void ensureNightReady(this, store).then(run);
+    if (isNightReady(this.game, store)) {
+      run();
+      return;
+    }
+    if (!this.defenseLoadingOverlay) {
+      this.defenseLoadingOverlay = new TownDefenseLoadingOverlay(this);
+    }
+    void ensureNightReady(this, store)
+      .then(() => {
+        this.defenseLoadingOverlay?.destroy();
+        this.defenseLoadingOverlay = null;
+        run();
+      })
+      .catch((err) => {
+        console.error("Night readiness failed", err);
+        this.defenseLoadingOverlay?.showError(
+          "Could not load defense. Try again.",
+        );
+        this.time.delayedCall(2800, () => {
+          this.defenseLoadingOverlay?.destroy();
+          this.defenseLoadingOverlay = null;
+        });
+      });
   }
 
   private beginDefenseNight(): void {

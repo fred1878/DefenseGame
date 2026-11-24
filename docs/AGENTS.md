@@ -23,6 +23,8 @@ flowchart LR
 
 **Invariant:** `DefenseScene` never mutates town rules directly. It returns a `NightResult`; `GameState.applyNightResult()` applies changes once in `TownScene` or Boot handoff.
 
+**Town → defense readiness:** After Town is interactive, `TownScene` prefetches in the background: town fluff assets, defense combat assets, defense JSON (`DataStore.ensureDefenseDataLoaded`), and the lazy `DefenseScene` chunk (`ensureDefenseScene`). E2E `assetsLoaded` stays tied to that prefetch chain completing (Town `ready` may fire earlier). When the player starts a night (or endless / wave planner confirm), `transitionToDefense` calls `ensureNightReady` (same promises, deduped). If everything is already ready, transition is immediate; otherwise a full-screen modal overlay (`TownDefenseLoadingOverlay`, boot-tone `#0f1014`) blocks town input until load finishes or shows a short error.
+
 ---
 
 ## Repository layout
