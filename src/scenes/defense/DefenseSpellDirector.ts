@@ -570,8 +570,11 @@ export class DefenseSpellDirector {
     this.host.groundAoeTelegraph = null;
     this.host.blizzardChannelFx?.destroy();
     this.host.blizzardChannelFx = null;
-    this.host.healChannelFx?.destroy();
-    this.host.healChannelFx = null;
+    if (this.host.healChannelFx) {
+      const healFx = this.host.healChannelFx;
+      this.host.healChannelFx = null;
+      healFx.fadeOut();
+    }
   }
 
   clearLingerAoeTelegraph(): void {
@@ -653,8 +656,9 @@ export class DefenseSpellDirector {
       return;
     }
     if (this.host.healChannelFx) {
-      this.host.healChannelFx.stop();
+      const healFx = this.host.healChannelFx;
       this.host.healChannelFx = null;
+      healFx.fadeOut();
     }
   }
 

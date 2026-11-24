@@ -20,7 +20,7 @@ export type ChannelUpdateResult =
       inputMode: SpellCastInputMode;
     };
 
-/** Manual casts suppress movement for windup/channel; auto casts interrupt on stick. */
+/** Movement during windup/channel cancels the cast (auto or manual). */
 export type SpellCastInputMode = "manual" | "auto";
 
 export class SpellCastController {
@@ -114,10 +114,7 @@ export class SpellCastController {
     if (!this.activeSpellId) return { type: "idle" };
 
     const mag = Math.hypot(stickX, stickY);
-    if (
-      this.castInputMode === "auto" &&
-      mag > SPELL_MOVE_INTERRUPT_EPS
-    ) {
+    if (mag > SPELL_MOVE_INTERRUPT_EPS) {
       const id = this.activeSpellId;
       this.cooldownRemainingMs.delete(id);
       this.clearCast();

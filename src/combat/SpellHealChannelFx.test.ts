@@ -56,4 +56,35 @@ describe("SpellHealChannelFx", () => {
     expect(glowDestroy).toHaveBeenCalled();
     fx.destroy();
   });
+
+  it("fadeOut tweens alpha instead of immediate destroy", () => {
+    const gfxDestroy = vi.fn();
+    const tweenAdd = vi.fn(() => ({ stop: vi.fn() }));
+    const gfx = {
+      setDepth: vi.fn(),
+      setBlendMode: vi.fn(),
+      clear: vi.fn(),
+      fillStyle: vi.fn(),
+      fillCircle: vi.fn(),
+      lineStyle: vi.fn(),
+      strokeCircle: vi.fn(),
+      destroy: gfxDestroy,
+    };
+    const scene = {
+      textures: { exists: () => false },
+      add: {
+        graphics: () => gfx,
+        image: vi.fn(),
+      },
+      tweens: { add: tweenAdd },
+    } as unknown as Phaser.Scene;
+
+    const fx = new SpellHealChannelFx(scene);
+    fx.start(0, 0);
+    fx.fadeOut();
+
+    expect(tweenAdd).toHaveBeenCalled();
+    expect(gfxDestroy).not.toHaveBeenCalled();
+    fx.stop();
+  });
 });

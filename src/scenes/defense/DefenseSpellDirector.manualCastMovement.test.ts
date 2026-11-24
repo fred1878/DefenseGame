@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { spellById } from "../../content/spells";
+import { spellCastMs } from "../../content/spellTargeting";
 import { SpellCastController } from "../../combat/SpellCastController";
 import {
   DefenseSpellDirector,
@@ -52,7 +54,7 @@ function minimalHost(spellCaster: SpellCastController): DefenseSpellDirectorHost
 }
 
 describe("DefenseSpellDirector manual cast movement", () => {
-  it("stops on windup begin and resumes from stick when manual cast completes", () => {
+  it("stops on windup begin and completes when the stick stays still", () => {
     const spellCaster = new SpellCastController();
     const host = minimalHost(spellCaster);
     const director = new DefenseSpellDirector(host);
@@ -63,14 +65,29 @@ describe("DefenseSpellDirector manual cast movement", () => {
     director.beginSpellCast("fire_bolt", "manual");
     expect(host.player.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
 
-    let ticks = 0;
-    while (spellCaster.isChanneling() && ticks < 500) {
-      director.updateChanneling(16, { x: 0.6, y: 0 }, () => false);
-      ticks += 1;
+    const windupMs = spellCastMs(spellById("fire_bolt")!);
+    let elapsed = 0;
+    while (spellCaster.isChanneling() && elapsed < windupMs) {
+      director.updateChanneling(16, { x: 0, y: 0 }, () => false);
+      elapsed += 16;
     }
+    director.updateChanneling(windupMs - elapsed + 1, { x: 0, y: 0 }, () => false);
+    expect(spellCaster.isChanneling()).toBe(false);
+    expect(host.player.setVelocityFromStick).not.toHaveBeenCalled();
+    resolveSpy.mockRestore();
+  });
+
+  it("cancels manual windup when stick moves and resumes movement", () => {
+    const spellCaster = new SpellCastController();
+    const host = minimalHost(spellCaster);
+    const director = new DefenseSpellDirector(host);
+
+    director.beginSpellCast("fire_bolt", "manual");
+    director.updateChanneling(16, { x: 0, y: 0 }, () => false);
+    director.updateChanneling(8, { x: 0.5, y: 0 }, () => false);
+
     expect(spellCaster.isChanneling()).toBe(false);
     expect(host.player.setVelocityFromStick).toHaveBeenCalled();
-    resolveSpy.mockRestore();
   });
 
   it("does not resume movement on auto cast completion", () => {

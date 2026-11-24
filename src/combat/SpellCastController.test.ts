@@ -24,12 +24,23 @@ describe("SpellCastController", () => {
     expect(c.isChanneling()).toBe(false);
   });
 
-  it("does not interrupt manual cast windup when stick is active", () => {
+  it("interrupts manual cast windup when stick moves", () => {
     const c = new SpellCastController();
     expect(c.tryBeginCast("fire_bolt", "manual")).toBe("windup");
-    const mid = c.updateChannel(50, 0.5, 0);
+    const mid = c.updateChannel(50, 0, 0);
     expect(mid.type).toBe("windup");
-    expect(c.isChanneling()).toBe(true);
+    const cut = c.updateChannel(10, 0.5, 0);
+    expect(cut.type).toBe("interrupted");
+    expect(c.isChanneling()).toBe(false);
+  });
+
+  it("interrupts manual channel when stick moves and clears armed cooldown", () => {
+    const healDef = spellById("heal");
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("heal", "manual")).toBe("channel");
+    expect(c.getCooldownRemaining("heal")).toBe(healDef!.cooldownMs);
+    expect(c.updateChannel(10, 0.5, 0).type).toBe("interrupted");
+    expect(c.getCooldownRemaining("heal")).toBe(0);
   });
 
   it("completes windup-only meteor when still", () => {
