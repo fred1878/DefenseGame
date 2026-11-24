@@ -1,10 +1,12 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import { phaserModulePreloadPlugin } from "./vite-plugin-phaser-preload";
 
 const repoRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => ({
+  plugins: [phaserModulePreloadPlugin()],
   /** Dev: `/`. Production: GitHub Pages project path (override with VITE_BASE). */
   base: process.env.VITE_BASE ?? (mode === "production" ? "/DefenseGame/" : "/"),
   resolve: {
