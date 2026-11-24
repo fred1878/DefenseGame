@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { scaleUiX } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
 import {
+  TOWN_BUILDING_DISPLAY_SCALE,
   townBuildingFootprintHitArea,
   townBuildingLabelWrapWidth,
 } from "./TownBuildings";
@@ -31,10 +32,12 @@ describe("town building footprints", () => {
       height: 72,
     };
     const area = townBuildingFootprintHitArea(def);
-    expect(area.width).toBe(112);
-    expect(area.height).toBe(72);
-    expect(area.x).toBe(-56);
-    expect(area.y).toBe(-72);
+    const w = 112 * TOWN_BUILDING_DISPLAY_SCALE;
+    const h = 72 * TOWN_BUILDING_DISPLAY_SCALE;
+    expect(area.width).toBe(w);
+    expect(area.height).toBe(h);
+    expect(area.x).toBe(-w / 2);
+    expect(area.y).toBe(-h);
   });
 
   it("label wrap is at least def width and a readable minimum", () => {
