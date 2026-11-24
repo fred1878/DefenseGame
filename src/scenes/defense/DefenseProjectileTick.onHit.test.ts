@@ -120,6 +120,6 @@ describe("tickDefenseProjectiles onHit", () => {
     tickDefenseProjectiles(host, 16);
 
     expect(destroyed).toHaveBeenCalled();
-    expect(host.status.moveSpeedMultiplier("grunt")).toBeCloseTo(0.5);
+    expect(host.status.moveSpeedMultiplier("grunt")).toBeCloseTo(0.3);
   });
 });
