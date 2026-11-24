@@ -30,9 +30,27 @@
         height: 100%;
         margin: 0;
       }
+      #loading-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background: #0f1014;
+        color: rgba(255, 255, 255, 0.55);
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        z-index: 1;
+        pointer-events: none;
+        user-select: none;
+      }
     </style>
   </head>
   <body>
+    <p id="loading-splash" aria-live="polite">Loading…</p>
     <div id="game"></div>
     <script type="module" src="/src/bootstrap.ts"></script>
   </body>

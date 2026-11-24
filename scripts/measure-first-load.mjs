@@ -135,13 +135,21 @@ async function measureOnce(browser) {
         duration: r.duration,
         startTime: r.startTime,
       }));
-    const bootMeasures = performance
+    const defensegameMeasures = performance
       .getEntriesByType("measure")
       .filter((m) => m.name.startsWith("defensegame:"))
       .map((m) => ({
         name: m.name,
         durationMs: Math.round(m.duration * 10) / 10,
       }));
+    const startupMarkNames = [
+      "defensegame:phaser-import-end",
+      "defensegame:phaser-game-end",
+    ];
+    const startupMarks = performance
+      .getEntriesByType("mark")
+      .filter((m) => startupMarkNames.includes(m.name))
+      .map((m) => ({ name: m.name, startTimeMs: Math.round(m.startTime * 10) / 10 }));
     return {
       domContentLoaded: nav?.domContentLoadedEventEnd ?? 0,
       loadEvent: nav?.loadEventEnd ?? 0,
@@ -150,7 +158,8 @@ async function measureOnce(browser) {
       fcp: paints["first-contentful-paint"] ?? null,
       fp: paints["first-paint"] ?? null,
       resourceCount: resources.length,
-      bootMeasures,
+      bootMeasures: defensegameMeasures,
+      startupMarks,
       resources,
     };
   });
@@ -216,6 +225,7 @@ try {
       transferBytes: results.at(-1).transferBytes,
       byMime: results.at(-1).byMime,
       bootMeasures: results.at(-1).perf.bootMeasures,
+      startupMarks: results.at(-1).perf.startupMarks,
     },
     note: "townInteractiveMs = navigation start to __DEFENSEGAME_E2E__.ready && scene===Town (includes JS parse, Phaser boot, asset+JSON load, Town create).",
   };
