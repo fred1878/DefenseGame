@@ -12,10 +12,15 @@ test.describe("smoke", () => {
 
   test("smoke-assets", async ({ page }) => {
     await gotoE2E(page);
-    const assetsLoaded = await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.assetsLoaded === true,
-    );
-    expect(assetsLoaded).toBe(true);
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => window.__DEFENSEGAME_E2E__?.assetsLoaded === true,
+          ),
+        { timeout: 60_000 },
+      )
+      .toBe(true);
     const keys = [
       COMBAT_FX_TEXTURE.fireBolt,
       COMBAT_FX_TEXTURE.stoneThrow,

@@ -366,6 +366,27 @@ describe("public data fixtures", () => {
   });
 });
 
+describe("DataStore.loadTownBoot", () => {
+  it("loads town json only", async () => {
+    const store = new DataStore();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) => {
+        const href = typeof url === "string" ? url : url.toString();
+        const name = href.split("/").pop() ?? "";
+        const body = readFileSync(path.join(dataDir, name), "utf8");
+        return new Response(body, { status: 200 });
+      }),
+    );
+    await store.loadTownBoot("https://example.test/");
+    expect(store.buildings.wall).toBeDefined();
+    expect(store.townBuildings).toBeTruthy();
+    expect(store.defenseDataReady).toBe(false);
+    expect(Object.keys(store.enemies)).toHaveLength(0);
+    vi.unstubAllGlobals();
+  });
+});
+
 describe("DataStore.loadAll", () => {
   it("loads json via mocked fetch", async () => {
     const store = new DataStore();

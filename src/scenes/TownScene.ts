@@ -62,6 +62,14 @@ import {
   townBuildingSubtitle,
 } from "../systems/townBuildingMenu";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
+import { markBoot, measureBoot } from "../core/bootPerf";
+import {
+  ensureDefenseAssetsLoaded,
+  ensureNightReady,
+  ensureTownFluffLoaded,
+} from "../core/GameAssetLoader";
+import { ensureDebugMenuScene } from "../core/lazyScenes";
+import { markE2EAssetsLoaded } from "../e2e/installE2E";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -152,9 +160,11 @@ export class TownScene extends Phaser.Scene {
       dbgPos.y,
       "Debug",
       () => {
-        pushInputModality(this, INPUT_MODALITY.debugMenu);
-        pauseForDebugMenu(this);
-        this.scene.launch("DebugMenu");
+        void ensureDebugMenuScene(this.game).then(() => {
+          pushInputModality(this, INPUT_MODALITY.debugMenu);
+          pauseForDebugMenu(this);
+          this.scene.launch("DebugMenu");
+        });
       },
       {
         width: scaleUiX(88),
@@ -216,13 +226,35 @@ export class TownScene extends Phaser.Scene {
       this.touchDebug.destroy();
     });
 
+    markBoot("defensegame:town-prefetch-start");
+    const baseUrl = import.meta.env.BASE_URL;
+    void Promise.all([
+      ensureTownFluffLoaded(this),
+      ensureDefenseAssetsLoaded(this),
+      store.ensureDefenseDataLoaded(baseUrl),
+    ])
+      .then(() => {
+        markBoot("defensegame:town-prefetch-end");
+        measureBoot(
+          "defensegame:town-prefetch",
+          "defensegame:town-prefetch-start",
+          "defensegame:town-prefetch-end",
+        );
+        if (isE2EEnabled()) {
+          markE2EAssetsLoaded(this.game);
+          publishE2E({ assetsLoaded: true });
+        }
+      })
+      .catch((err) => console.error("Town prefetch failed", err));
+
     if (isE2EEnabled()) {
       publishE2E({ scene: "Town", ready: true });
     }
   }
 
   e2eStartNight(): void {
-    this.beginDefenseNight();
+    const store = this.registry.get("dataStore") as DataStore;
+    void ensureNightReady(this, store).then(() => this.beginDefenseNight());
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
@@ -299,7 +331,9 @@ export class TownScene extends Phaser.Scene {
     ];
     this.endlessPanel?.destroy();
     this.endlessPanel = null;
-    this.beginEndlessDefense(selections, infiniteHp);
+    this.transitionToDefense(() =>
+      this.beginEndlessDefense(selections, infiniteHp),
+    );
   }
 
   e2eEndlessInfiniteHpEnabled(): boolean {
@@ -346,6 +380,17 @@ export class TownScene extends Phaser.Scene {
 
   private openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
+    const store = this.registry.get("dataStore") as DataStore;
+    void Promise.all([
+      ensureTownFluffLoaded(this),
+      store.ensureDefenseDataLoaded(import.meta.env.BASE_URL),
+    ]).then(() => {
+      if (this.spellSortPanel) return;
+      this.createSpellSortPanel();
+    });
+  }
+
+  private createSpellSortPanel(): void {
     this.spellSortPanel = new SpellBarSortPanel(
       this,
       this.save.spellBar.slots,
@@ -361,33 +406,42 @@ export class TownScene extends Phaser.Scene {
 
   private openWavePlannerPanel(): void {
     if (this.wavePlannerPanel) return;
-    this.wavePlannerPanel = new WavePlannerPanel(
+    const store = this.registry.get("dataStore") as DataStore;
+    void store.ensureDefenseDataLoaded(import.meta.env.BASE_URL).then(() => {
+      if (this.wavePlannerPanel) return;
+      this.wavePlannerPanel = new WavePlannerPanel(
       this,
       this.registry.get("dataStore") as DataStore,
       (groups) => {
         this.wavePlannerPanel = null;
-        this.beginWavePlannerDefense(groups);
+        this.transitionToDefense(() => this.beginWavePlannerDefense(groups));
       },
       () => {
         this.wavePlannerPanel = null;
       },
-    );
+      );
+    });
   }
 
   private openEndlessPanel(): void {
     if (this.endlessPanel) return;
     const store = this.registry.get("dataStore") as DataStore;
-    this.endlessPanel = new EndlessModePanel(
+    void store.ensureDefenseDataLoaded(import.meta.env.BASE_URL).then(() => {
+      if (this.endlessPanel) return;
+      this.endlessPanel = new EndlessModePanel(
       this,
       store,
       (selections, infiniteHp) => {
         this.endlessPanel = null;
-        this.beginEndlessDefense(selections, infiniteHp);
+        this.transitionToDefense(() =>
+          this.beginEndlessDefense(selections, infiniteHp),
+        );
       },
       () => {
         this.endlessPanel = null;
       },
-    );
+      );
+    });
   }
 
   private teardownTownOverlays(): void {
@@ -408,6 +462,11 @@ export class TownScene extends Phaser.Scene {
     setContainerInputEnabled(this.resetButton.container, enabled);
     setContainerInputEnabled(this.debugButton.container, enabled);
     setContainerInputEnabled(this.fullscreenButton.container, enabled);
+  }
+
+  private transitionToDefense(run: () => void): void {
+    const store = this.registry.get("dataStore") as DataStore;
+    void ensureNightReady(this, store).then(run);
   }
 
   private beginDefenseNight(): void {
@@ -496,7 +555,7 @@ export class TownScene extends Phaser.Scene {
     const goldBefore = this.save.gold;
     const { save, result } = handleTownBuildingTap(store, this.save, def);
     if (result.kind === "startNight") {
-      this.beginDefenseNight();
+      this.transitionToDefense(() => this.beginDefenseNight());
       return;
     }
     if (result.kind === "openSpellBar") {
