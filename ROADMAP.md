@@ -11,19 +11,19 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 
 ## Execution order (agent / team)
 
-Do work in this sequence unless a PR blocks you:
+Do work in this sequence unless a PR blocks you. Steps **0** and **1** are **done**.
 
 | Step | Work | Effort |
 |------|------|--------|
-| **0** | Merge [docs PR #108](https://github.com/fred1878/DefenseGame/pull/108) (`REFACTOR_PLAN.md`, README, this roadmap) | S |
-| **1** | **DefenseScene refactor** — [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) PRs **1→12** on `main` (one concern per PR, CI green each time) | L |
+| **0** | Merge [docs PR #108](https://github.com/fred1878/DefenseGame/pull/108) (`REFACTOR_PLAN.md`, README, this roadmap) — **done** | S |
+| **1** | **DefenseScene refactor** — **done** (PRs 1–11, P1, P2; PR12 pooling skipped). Historical plan: [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) | L |
 | **2** | Tag **`v0.1.0`** + optional GitHub Release | S |
 | **3** | Milestone **B** content (post–night 10, four town buildings) | M–L |
 | **4** | Milestone **C** (cone art VFX, pooling) | M–L |
 | **5** | Milestone **D** UX/audio/meta | L–XL |
 | **6** | Milestone **F** Capacitor + stores | XL |
 
-Refactor (**step 1**) runs **immediately after step 0**, before new feature polish, so later content PRs touch smaller modules.
+Continue from **step 2** (tag `v0.1.0`) or Milestone B. The historical refactor plan is archived; its line counts are stale.
 
 ### Refactor checklist (Milestone E detail)
 
@@ -105,7 +105,7 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
-| `DefenseScene` decomposition | L | Plan in REFACTOR_PLAN | **Execute steps 0→1 now** |
+| `DefenseScene` decomposition | L | Done (see execution order steps 0–1) | Further splits are follow-up work; archived plan line counts are stale |
 | `touchButton` / `EnemyRangedCombat` splits | — | Done ([#133](https://github.com/fred1878/DefenseGame/pull/133), [#134](https://github.com/fred1878/DefenseGame/pull/134)) | — |
 | `defenseNightLogic` pure guard | S | Yes | Keep covered when moving `endNight` |
 

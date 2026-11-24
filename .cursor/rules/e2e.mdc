@@ -1,0 +1,13 @@
+---
+description: Playwright and in-game E2E hooks
+globs:
+  - e2e/**/*.ts
+  - src/e2e/**/*.ts
+  - playwright.config.ts
+alwaysApply: false
+---
+
+- Hooks are on only with `VITE_E2E=true` or `?e2e=1`. API is `window.__DEFENSEGAME_E2E__` (`src/e2e/e2eGlobal.ts`, `installE2E.ts`).
+- Scene helpers live in `DefenseSceneE2E.ts` and TownScene `e2e*` wrappers. Specs call the API or DOM mirrors, not Phaser internals.
+- CI Chromium is the merge gate. `@manual` suites are skipped in CI.
+- Run `npm run build:e2e` before Playwright. Visual proof uses `scripts/capture-*.mjs` (see docs/MANUAL_UI_CAPTURE.md).

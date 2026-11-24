@@ -1,0 +1,12 @@
+---
+description: Shared HUD layout helpers and modal input
+globs:
+  - src/ui/**/*.ts
+  - src/input/inputModality.ts
+  - src/input/modalBackdrop.ts
+alwaysApply: false
+---
+
+- Design canvas is 540×1200. Use `src/ui/screenLayout.ts` helpers and `scaleUiX`/`scaleUiY` rather than hard-coded HUD coordinates.
+- Modals acquire modal input, bind the dim backdrop, and pop the modality on close.
+- Touch button helpers are already split (`touchButton.ts` barrel and its parts).

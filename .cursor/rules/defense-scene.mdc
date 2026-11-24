@@ -1,0 +1,14 @@
+---
+description: DefenseScene is a thin coordinator; don't grow it or bypass NightResult
+globs:
+  - src/scenes/DefenseScene.ts
+  - src/scenes/defense/**/*.ts
+  - src/scenes/defenseNightLogic.ts
+alwaysApply: false
+---
+
+- `DefenseScene` orchestrates modules under `src/scenes/defense/`. Put new night-loop behavior there, not as more methods on the scene class.
+- Already split: WorldBootstrap, HudController, WaveSpawner, EnemySpawner, EnemyTick, ProjectileTick, NightEnd, Targeting, SpellDirector, SceneE2E, defenseGroundAimInput. Extend these; don't re-extract them.
+- Never mutate town/save rules from the scene. End a night through the night-end module and a `NightResult`.
+- Keep `e2e*` wrappers as one-liners delegating to `DefenseSceneE2E.ts`.
+- `@internal until X module lands` comments are stale once the module exists.

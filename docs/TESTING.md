@@ -4,18 +4,19 @@
 
 | Command | What it runs |
 |---------|----------------|
+| `npm run verify` | Local inner loop: `typecheck` + Vitest (`npm run test`) |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
 | `npm run test:e2e` | Playwright browser suites (`e2e/`) |
 
-CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` and build when e2e is not skipped):
+The **`e2e`** job **needs `verify`** (they run sequentially, not in parallel). Each job still has its own `npm ci`. When e2e is skipped, the e2e job is a single skip step (still green).
 
 | Job | Steps |
 |-----|--------|
-| `verify` | Always: `typecheck`, `test`, production `build` |
+| `verify` | Always: `typecheck`, `test:coverage`, then `build` (production, or E2E build when `run_e2e`) |
 | `changes` | Path filter + (on `main` only) conflict-merge detection → `run_e2e` |
-| `e2e` | When `run_e2e`: E2E `build`, Playwright (Chromium). Otherwise one skip step (job still green). |
+| `e2e` | Starts after `verify`. When `run_e2e`: downloads the e2e `dist` artifact, Playwright (Chromium). Otherwise one skip step (job still green). |
 
 **When Playwright runs**
 
@@ -24,11 +25,11 @@ CI runs **`verify`** and **`e2e`** in parallel (each job runs its own `npm ci` a
 | **PR → `main`** | Only if the diff touches gameplay paths (`src/`, `e2e/`, `public/`, `index.html`, Vite/TS/Playwright config, `package*.json`). Docs / other `.github/workflows` → skipped. |
 | **Push to `main`** | Only if paths match **and** the commit is a **merge commit that resolved conflicts** (auto-merge tree ≠ landed tree, or `merge-tree` reports conflicts). Clean squash/merge → skipped on `main`. |
 
-Wall-clock time is roughly **max(verify, e2e)** when e2e runs; doc-only PRs are usually **`verify` only**.
+Wall-clock time is roughly **verify + e2e** when e2e runs (e2e waits for verify); doc-only PRs are usually **`verify` only**.
 
-**Parallel jobs:** `verify` and `e2e` run independently; a failure in one job leaves that job (and the workflow) at conclusion **failure**, not self-cancelled. PR pushes use workflow **concurrency** (`cancel-in-progress`) to drop superseded runs on the same PR.
+**Job failure:** a failure in `verify` skips a real e2e run (`e2e` needs `verify`). A failure leaves the workflow at conclusion **failure**, not self-cancelled. PR pushes use workflow **concurrency** (`cancel-in-progress`) to drop superseded runs on the same PR.
 
-Locally, run the same checks in sequence (or in two terminals): `npm run typecheck && npm run test && npm run build` and `npm run build:e2e && npm run test:e2e`.
+Local inner loop: `npm run verify` (typecheck + Vitest). Before a merge-ready PR, also `npm run build`, and when gameplay paths change `npm run build:e2e && npm run test:e2e`.
 
 ## E2E gate
 

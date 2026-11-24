@@ -140,7 +140,7 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `town_layout.json` | Building slot positions on the town screen |
 | `spells.json` | Full spell catalog (damage, channeling, targeting, per-spell geometry/timing, knockback, icons) |
 
-Spells and waves are the primary content levers; prefer new JSON rows over growing `DefenseScene.ts` (see [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md)).
+Spells and waves are the primary content levers; prefer new JSON rows over growing `DefenseScene.ts` (the 2026 split plan is complete; see [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md)).
 
 ---
 
@@ -148,7 +148,7 @@ Spells and waves are the primary content levers; prefer new JSON rows over growi
 
 | Workflow | Trigger | What runs |
 |----------|---------|-----------|
-| `ci.yml` | Push/PR to `main` | Parallel **verify** (typecheck, Vitest, build) and **e2e** (Playwright) |
+| `ci.yml` | Push/PR to `main` | **verify** (typecheck, Vitest coverage, build), then conditional **e2e** (Playwright) |
 | `pages.yml` | Push to `main` | Publish `dist/` to GitHub Pages |
 | `release.yml` | Tag `v*.*.*` | Pages deploy + GitHub Release notes |
 
@@ -161,7 +161,7 @@ Details: [docs/TESTING.md](./docs/TESTING.md), [docs/CI_RELEASES.md](./docs/CI_R
 | Doc | Description |
 |-----|-------------|
 | [docs/AGENTS.md](./docs/AGENTS.md) | Architecture, data formats, commands, agent workflow |
-| [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) | Plan to split large files (`DefenseScene`, etc.) |
+| [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) | Completed Nov 2026 file-split plan (archived; line counts are stale) |
 | [ROADMAP.md](./ROADMAP.md) | Milestones and known gaps |
 | [docs/WAVES.md](./docs/WAVES.md) | Night-by-night wave reference |
 | [docs/CI_RELEASES.md](./docs/CI_RELEASES.md) | Deploy, tags, future mobile builds |
