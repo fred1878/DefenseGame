@@ -69,6 +69,7 @@ Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`)
 - **Combat:** Arcade bodies for movement; custom hitboxes for attacks. Player FSM `idle → windup → active → recovery` (damage only in `active`). Objective is `townWallHp`.
 - **Input:** one owner at a time via `src/input/inputModality.ts`. Modals use `acquireModalInput` + `bindModalDimBackdrop`; host scenes react to `INPUT_MODALITY_CHANGED`.
 - **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
+- **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx`).
 - **CI:** typecheck, unit tests and build must stay green. Merges to main publish Pages.
 
 ## Related docs

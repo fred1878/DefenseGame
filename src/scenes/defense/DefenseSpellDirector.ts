@@ -964,16 +964,18 @@ export class DefenseSpellDirector {
   }
 
   castBlink(facingRad: number, def: SpellDefinition): void {
-    const halfW = defenseHalfWidth();
-    const halfH = defenseHalfHeight();
+    const reg = this.host.scene.registry;
+    const halfW = defenseHalfWidth(reg);
+    const halfH = defenseHalfHeight(reg);
+    const inset = this.host.wu(24);
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
     const playerR = this.host.wu(playerBodyRadiusPx());
     const bounds = {
-      minX: -halfW + 24,
-      maxX: halfW - 24,
-      minY: -halfH + 24,
-      maxY: halfH - 24,
+      minX: -halfW + inset,
+      maxX: halfW - inset,
+      minY: -halfH + inset,
+      maxY: halfH - inset,
     };
     const enemies = this.host
       .enemyTargets()
