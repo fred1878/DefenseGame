@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { urlBuildParamLine } from "./buildId";
+import { shortBuildIdLabel, urlBuildParamLine } from "./buildId";
+
+describe("shortBuildIdLabel", () => {
+  it("keeps short ids intact", () => {
+    expect(shortBuildIdLabel("local")).toBe("local");
+  });
+
+  it("truncates long hashes to 8 chars", () => {
+    expect(shortBuildIdLabel("deadbeefcafebabe")).toBe("deadbeef");
+  });
+});
 
 describe("urlBuildParamLine", () => {
   it("returns null when b param absent", () => {

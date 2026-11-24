@@ -110,6 +110,47 @@ export function nightReturnButtonPosition(
   };
 }
 
+const TOWN_TITLE_Y = scaleUiY(72);
+const TOWN_TITLE_FONT_PX = scaleUiX(28);
+const TOWN_STATUS_BELOW_TITLE_GAP = scaleUiY(6);
+const TOWN_STATUS_BLOCK_HEIGHT = scaleUiY(108);
+
+/** Town scene title baseline Y (`Town — Day`, centered). */
+export function townTitleY(): number {
+  return TOWN_TITLE_Y;
+}
+
+/** Top of the status word-wrap block (origin 0.5, 0), just under the title. */
+export function townStatusTextTopY(): number {
+  return TOWN_TITLE_Y + TOWN_TITLE_FONT_PX / 2 + TOWN_STATUS_BELOW_TITLE_GAP;
+}
+
+export function townFullscreenButtonPosition(
+  _scene: Phaser.Scene,
+  safe: SafeInsets,
+  width: number,
+  height: number,
+): { x: number; y: number } {
+  const margin = scaleUiX(12);
+  return {
+    x: margin + safe.left + width / 2,
+    y: margin + safe.top + height / 2,
+  };
+}
+
+export function townResetSaveButtonPosition(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+  width: number,
+  height: number,
+): { x: number; y: number } {
+  const margin = scaleUiX(12);
+  return {
+    x: scene.scale.width - margin - safe.right - width / 2,
+    y: margin + safe.top + height / 2,
+  };
+}
+
 /** Town: bottom-left debug (away from action stack). */
 export function debugButtonPosition(
   scene: Phaser.Scene,
@@ -402,9 +443,9 @@ export function townActionButtonY(
 
 const TOWN_BUILDING_GRID_MAX_HEIGHT = 112;
 
-/** Bottom edge of the TownScene status word-wrap block (`statusText` at scaleUiY(140)). */
+/** Bottom edge of the TownScene status word-wrap block (below `townStatusTextTopY`). */
 export function townBuildingGridStatusBottomY(): number {
-  return scaleUiY(140) + scaleUiY(108);
+  return townStatusTextTopY() + TOWN_STATUS_BLOCK_HEIGHT;
 }
 
 /** Foot Y for the bottom grid row (above bottom safe / old Start night band). */
