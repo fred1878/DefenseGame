@@ -4,7 +4,10 @@ import { spellById } from "../../content/spells";
 import type { EnemyDef } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
-import { setShowEnemyPaths } from "../../debug/DebugState";
+import { setShowEnemyPaths, setShowHitboxes } from "../../debug/DebugState";
+import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
+import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
+import type { DefenseTargeting } from "./DefenseTargeting";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { PlayerProjectile } from "../../entities/Projectile";
 import { Player } from "../../entities/Player";
@@ -84,6 +87,9 @@ export type DefenseSceneE2eDelegate = Phaser.Scene & {
   readonly endlessInfiniteHp: boolean;
   readonly safe: SafeInsets;
   readonly minimapLayout: ReturnType<typeof defenseMinimapLayout>;
+  readonly targeting: DefenseTargeting;
+  healChannelFx: SpellHealChannelFx | null;
+  readonly registerWorldDraw: (go: Phaser.GameObjects.GameObject) => void;
 };
 
 export function defenseSceneE2eIsReady(scene: DefenseSceneE2eDelegate): boolean {
@@ -665,4 +671,52 @@ export function defenseSceneE2eSampleHudBandPixelsAsync(
       });
     });
   });
+}
+
+export function defenseSceneE2eIsEndlessInfiniteHp(
+  scene: DefenseSceneE2eDelegate,
+): boolean {
+  return scene.endlessInfiniteHp;
+}
+
+export function defenseSceneE2ePlayerHp(scene: DefenseSceneE2eDelegate): number {
+  return Math.floor(scene.player.damageable.hp);
+}
+
+/** Playwright: targeting must see respawned endless enemies after dead culls. */
+export function defenseSceneE2eCanFocusFirstLivingEnemy(
+  scene: DefenseSceneE2eDelegate,
+): boolean {
+  const e = scene.enemies.find((entry) => entry.damageable.alive);
+  if (!e) return false;
+  const pick = scene.targeting.findEnemyNearWorldPoint(e.sprite.x, e.sprite.y);
+  return pick?.id === e.id;
+}
+
+export function defenseSceneE2eDamageFirstLivingEnemy(
+  scene: DefenseSceneE2eDelegate,
+  amount: number,
+): void {
+  const e = scene.enemies.find((entry) => entry.damageable.alive);
+  if (!e) return;
+  applyDamage(e.damageable, amount, MELEE_HIT_FLAVOR);
+}
+
+/** E2E: trigger holy heal VFX at the player for before/after capture compares. */
+export function defenseSceneE2ePreviewHolyFx(
+  scene: DefenseSceneE2eDelegate,
+  kind: "flash" | "channel",
+): void {
+  defenseSceneE2eKillAllEnemies(scene);
+  const px = scene.player.sprite.x;
+  const py = scene.player.sprite.y;
+  scene.cameras.main.centerOn(px, py);
+  setShowHitboxes(scene.registry, false);
+  if (kind === "flash") {
+    showFlashHealPulseFx(scene, px, py, (go) => scene.registerWorldDraw(go));
+    return;
+  }
+  scene.healChannelFx?.destroy();
+  scene.healChannelFx = new SpellHealChannelFx(scene);
+  scene.healChannelFx.start(px, py, (go) => scene.registerWorldDraw(go));
 }

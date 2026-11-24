@@ -1,4 +1,4 @@
-import type Phaser from "phaser";
+import Phaser from "phaser";
 import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
@@ -12,6 +12,7 @@ import { flashSpriteTint } from "../../combat/HitFlash";
 import { Player } from "../../entities/Player";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
+  correctPlayerObstacleBlockerOverlap,
   createDefenseObstacleCollider,
   defenseObstacleBlockerRects,
 } from "../../world/defenseObstacleBlocker";
@@ -128,4 +129,28 @@ export function bootstrapDefenseWorld(
     registerWorldDraw: registerWorld,
     registerUiDraw: registerUi,
   };
+}
+
+/** Push the player out of obstacle blockers after every Arcade world step (unbound on shutdown). */
+export function bindPlayerObstacleCorrection(
+  scene: Phaser.Scene,
+  getPlayer: () => Player,
+  getObstacleBlockers: () => DefenseObstacleRect[],
+): void {
+  const onObstacleWorldStep = (): void => {
+    correctPlayerObstacleBlockerOverlap(
+      getPlayer().sprite,
+      getObstacleBlockers(),
+    );
+  };
+  scene.physics.world.on(
+    Phaser.Physics.Arcade.Events.WORLD_STEP,
+    onObstacleWorldStep,
+  );
+  scene.events.once("shutdown", () => {
+    scene.physics.world?.off(
+      Phaser.Physics.Arcade.Events.WORLD_STEP,
+      onObstacleWorldStep,
+    );
+  });
 }
