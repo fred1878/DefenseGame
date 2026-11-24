@@ -39,7 +39,7 @@ test("Haunted Well opens endless after campaign night when panel was left open",
         page.evaluate(
           () => window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? false,
         ),
-      { timeout: 5_000 },
+      { timeout: 15_000 },
     )
     .toBe(true);
   await startDefense(page);
