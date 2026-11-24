@@ -239,7 +239,7 @@
       "implementationPhase": 3,
       "cooldownMs": 10000,
       "channelMs": 0,
-      "baseDamage": 22,
+      "baseDamage": 35,
       "blastRadiusWu": 72,
       "blastTextureKey": "fx_spell_shockwave",
       "blastFile": "shockwave-mrpg-64.png",
@@ -256,15 +256,15 @@
       "mechanicType": "channeled",
       "castableInDefense": true,
       "implementationPhase": 4,
-      "cooldownMs": 1100,
+      "cooldownMs": 1500,
       "channelMs": 4000,
-      "baseDamage": 10,
+      "baseDamage": 64,
       "blastRadiusWu": 80,
       "blastTextureKey": "fx_spell_blizzard",
       "blastFile": "blizzard-mrpg-32.png",
       "iconFile": "blizzard.png",
       "damageFlavor": "frost",
-      "castMs": 800,
+      "castMs": 200,
       "channelTickMs": 250,
       "targetMode": "ground",
       "groundTargetMaxRangeWu": 270,
@@ -294,7 +294,7 @@
         "dotDps": 8,
         "dotMs": 3000
       },
-      "blastKnockbackWu": 140
+      "blastKnockbackWu": 400
     },
     {
       "id": "frost_nova",
@@ -315,7 +315,7 @@
       "onHit": {
         "rootMs": 7000
       },
-      "blastKnockbackWu": 140
+      "blastKnockbackWu": 0
     },
     {
       "id": "ice_wall",
@@ -362,13 +362,13 @@
       "mechanicType": "buff",
       "castableInDefense": true,
       "implementationPhase": 5,
-      "cooldownMs": 14000,
+      "cooldownMs": 15000,
       "channelMs": 0,
       "iconFile": "shadowform.png",
       "damageFlavor": "physical",
-      "shadowformDurationMs": 10000,
-      "shadowformMoveSpeedMult": 1.2,
-      "shadowformDamageTakenMult": 0.7,
+      "shadowformDurationMs": 7000,
+      "shadowformMoveSpeedMult": 1.7,
+      "shadowformDamageTakenMult": 0.5,
       "shadowformAggroRadiusMult": 0.5
     },
     {
