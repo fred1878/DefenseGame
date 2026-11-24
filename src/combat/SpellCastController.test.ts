@@ -13,6 +13,27 @@ describe("SpellCastController", () => {
     expect(c.isChanneling()).toBe(true);
   });
 
+  it("does not interrupt channel when stick is released from cast-start deflection", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("heal", "manual", 0.6, 0)).toBe("channel");
+    expect(c.updateChannel(100, 0, 0).type).toBe("channeling");
+    expect(c.isChanneling()).toBe(true);
+  });
+
+  it("does not interrupt windup when stick eases on the same bearing", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("fire_bolt", "manual", 0.6, 0)).toBe("windup");
+    expect(c.updateChannel(16, 0.2, 0).type).toBe("windup");
+    expect(c.isChanneling()).toBe(true);
+  });
+
+  it("interrupts channel when stick aim changes from cast-start bearing", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("heal", "manual", 0.6, 0)).toBe("channel");
+    expect(c.updateChannel(10, 0, 0.6).type).toBe("interrupted");
+    expect(c.isChanneling()).toBe(false);
+  });
+
   it("interrupts auto cast windup when stick moves", () => {
     const c = new SpellCastController();
     expect(c.tryBeginCast("fire_bolt", "auto")).toBe("windup");

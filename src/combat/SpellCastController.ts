@@ -3,10 +3,8 @@ import {
   type SpellDefinition,
   type SpellId,
 } from "../content/spells";
-import {
-  SPELL_MOVE_INTERRUPT_EPS,
-  spellCastMs,
-} from "../content/spellTargeting";
+import { spellCastMs } from "../content/spellTargeting";
+import { stickDeflectionInterruptsCast } from "./spellStickInterrupt";
 
 export type ChannelUpdateResult =
   | { type: "idle" }
@@ -31,7 +29,7 @@ export class SpellCastController {
   private channelDurationMs = 0;
   private inChannel = false;
   private castInputMode: SpellCastInputMode = "auto";
-  /** Stick deflection when windup/channel started; interrupt only on change from here. */
+  /** Stick deflection when windup/channel started; interrupt only on aim angle change. */
   private moveInterruptBaselineX = 0;
   private moveInterruptBaselineY = 0;
   private readonly cooldownRemainingMs = new Map<SpellId, number>();
@@ -120,9 +118,14 @@ export class SpellCastController {
   ): ChannelUpdateResult {
     if (!this.activeSpellId) return { type: "idle" };
 
-    const dx = stickX - this.moveInterruptBaselineX;
-    const dy = stickY - this.moveInterruptBaselineY;
-    if (Math.hypot(dx, dy) > SPELL_MOVE_INTERRUPT_EPS) {
+    if (
+      stickDeflectionInterruptsCast(
+        stickX,
+        stickY,
+        this.moveInterruptBaselineX,
+        this.moveInterruptBaselineY,
+      )
+    ) {
       const id = this.activeSpellId;
       this.clearCast();
       return { type: "interrupted", spellId: id };

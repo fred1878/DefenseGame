@@ -46,9 +46,6 @@ export function spellRequiresStationary(def: SpellDefinition): boolean {
   return spellCastMs(def) > 0 || def.channelMs > 0;
 }
 
-/** Stick magnitude above this counts as moving for spell queue / auto-cast. */
-export const SPELL_MOVE_INTERRUPT_EPS = 0.12;
-
 /** Spells that auto-cast should resolve an enemy target for (manual rules unchanged). */
 export function spellAutoCastNeedsEnemyTarget(def: SpellDefinition): boolean {
   if (spellTargetMode(def) === "enemy") return true;

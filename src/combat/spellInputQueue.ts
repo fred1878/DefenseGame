@@ -1,11 +1,11 @@
+import { STICK_MOVING_MAGNITUDE_EPS } from "../config/spellInput";
 import type { SpellId } from "../content/spells";
 import type { SpellDefinition } from "../content/spells";
-import { SPELL_MOVE_INTERRUPT_EPS } from "../content/spellTargeting";
 
-export { SPELL_MOVE_INTERRUPT_EPS as spellQueueMoveEpsilon };
+export { STICK_MOVING_MAGNITUDE_EPS as spellQueueMoveEpsilon };
 
 export function isStickMoving(stickX: number, stickY: number): boolean {
-  return Math.hypot(stickX, stickY) > SPELL_MOVE_INTERRUPT_EPS;
+  return Math.hypot(stickX, stickY) > STICK_MOVING_MAGNITUDE_EPS;
 }
 
 export type QueuedCombatInput =
