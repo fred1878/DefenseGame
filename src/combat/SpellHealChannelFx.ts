@@ -11,6 +11,8 @@ import {
 /** Holy beacon radius — between pre-boost 44 and boosted #278 (52). */
 const BEACON_RADIUS_PX = 48;
 const BEACON_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
+/** Brief fade when channel ends or is cancelled by movement. */
+const CHANNEL_FADE_OUT_MS = 280;
 
 const GOLD_RING = 0xffe8a0;
 const WHITE_CORE = 0xfffef5;
@@ -25,9 +27,11 @@ export class SpellHealChannelFx {
   private glow: Phaser.GameObjects.Image | null = null;
   private holyLoop: Phaser.GameObjects.Sprite | null = null;
   private pulseTween: Phaser.Tweens.Tween | null = null;
+  private fadeTween: Phaser.Tweens.Tween | null = null;
   private pulse = { phase: 0 };
   private centerX = 0;
   private centerY = 0;
+  private fading = false;
 
   constructor(private readonly scene: Phaser.Scene) {}
 
@@ -122,7 +126,31 @@ export class SpellHealChannelFx {
     gfx.strokeCircle(centerX, centerY, r * 0.64);
   }
 
+  /** Brief alpha fade then destroy (natural end or movement cancel). */
+  fadeOut(): void {
+    if (this.fading) return;
+    const hasGfx = this.gfx || this.glow || this.holyLoop;
+    if (!hasGfx) return;
+    this.fading = true;
+    this.pulseTween?.stop();
+    this.pulseTween = null;
+    const targets: Phaser.GameObjects.Components.AlphaSingle[] = [];
+    if (this.gfx) targets.push(this.gfx);
+    if (this.glow) targets.push(this.glow);
+    if (this.holyLoop) targets.push(this.holyLoop);
+    this.fadeTween = this.scene.tweens.add({
+      targets,
+      alpha: 0,
+      duration: CHANNEL_FADE_OUT_MS,
+      ease: "Linear",
+      onComplete: () => this.stop(),
+    });
+  }
+
   stop(): void {
+    this.fadeTween?.stop();
+    this.fadeTween = null;
+    this.fading = false;
     this.pulseTween?.stop();
     this.pulseTween = null;
     this.gfx?.destroy();
