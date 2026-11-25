@@ -14,5 +14,6 @@ describe("normalizeSpellInput", () => {
     });
     expect(out.castInterruptStickAngleDeg).toBe(25);
     expect(out.stickMovingMagnitudeEps).toBe(0.1);
+    expect(out.groundTapAutoCastSpellIds).toEqual([]);
   });
 });

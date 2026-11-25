@@ -82,9 +82,9 @@ function fakeScene() {
 
 const catalog = getSpellCatalog();
 const instant = catalog.find((d) => !spellUsesManualGroundAim(d))!;
-const groundAim = catalog.find(
-  (d) => spellUsesManualGroundAim(d) && !spellGroundTapAutoCasts(d.id),
-);
+const groundTap = catalog.find(
+  (d) => spellUsesManualGroundAim(d) && spellGroundTapAutoCasts(d.id),
+)!;
 const cooldownSpell = catalog.find((d) => d.cooldownMs > 0)!;
 
 function make(slots: string[], auto: string[] = [], cooldown = () => 0) {
@@ -128,13 +128,13 @@ describe("SpellBar", () => {
     expect(callbacks.onAutoCastToggle).toHaveBeenCalledWith(0);
   });
 
-  it.runIf(groundAim)("manual ground spells arm on press and do not cast on tap", () => {
-    const { callbacks } = make([groundAim!.id]);
+  it("targeted ground AoE arms on press and casts on short tap", () => {
+    const { callbacks } = make([groundTap.id]);
     const pointer = { id: 1, x: 0, y: 0 };
     bound[0]!.onPressStart!(pointer as never);
-    expect(callbacks.onGroundCastArm).toHaveBeenCalledWith(groundAim!.id, pointer);
+    expect(callbacks.onGroundCastArm).toHaveBeenCalledWith(groundTap.id, pointer);
     bound[0]!.onTap();
-    expect(callbacks.onCastRequest).not.toHaveBeenCalled();
+    expect(callbacks.onCastRequest).toHaveBeenCalledWith(groundTap.id, 0);
   });
 
   it("instant spells do not arm ground aim", () => {

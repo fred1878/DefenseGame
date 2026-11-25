@@ -22,9 +22,6 @@ export function normalizeSpellInput(
   const tapIds = root.groundTapAutoCastSpellIds;
   out.groundTapAutoCastSpellIds = Array.isArray(tapIds)
     ? tapIds.filter((id): id is string => typeof id === "string")
-    : ["blizzard"];
-  if (out.groundTapAutoCastSpellIds.length === 0) {
-    out.groundTapAutoCastSpellIds = ["blizzard"];
-  }
+    : [];
   return out;
 }
