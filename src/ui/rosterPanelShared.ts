@@ -3,7 +3,7 @@
  * scrollbar + mask, scrollbar thumb layout, row selection paint and the Start
  * button enabled state.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { createTouchButton } from "./touchButton";

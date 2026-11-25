@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** Holy VFX pack 01/02 — Peter-approved combat FX under `public/assets/combat/fx/holy/`. */
 

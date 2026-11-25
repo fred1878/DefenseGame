@@ -1,7 +1,7 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
-import { type SafeInsets } from "./screenLayoutCore";
+import type { SafeInsets } from "./screenLayoutCore";
 
 /** Town HUD layout: title/status block, header buttons, action stack, building grid. */
 

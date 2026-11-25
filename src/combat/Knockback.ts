@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { knockbackVelocityCapMult } from "../entities/entityPhysics";
 
 export function applyKnockbackFrom(

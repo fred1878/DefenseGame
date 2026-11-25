@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { applySpellInputTuning } from "../../config/spellInput";
 import { normalizeSpellInput } from "../../core/normalizeSpellInput";
 import { SpellCastController } from "../../combat/SpellCastController";

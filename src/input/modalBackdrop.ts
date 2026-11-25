@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { InputModalityToken } from "./inputModality";
 import { popInputModality, pushInputModality } from "./inputModality";
 

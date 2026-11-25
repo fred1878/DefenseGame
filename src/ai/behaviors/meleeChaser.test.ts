@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, type vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid, cellToWorldCenter } from "../../pathfinding/grid";
 import { hasLineOfSight } from "../../pathfinding/los";

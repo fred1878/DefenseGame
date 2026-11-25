@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GROUND_TILE_SIZE, GROUND_TILE_TEXTURE } from "../content/assets";
 import { worldDisplayPx } from "../core/worldPixelScale";
 

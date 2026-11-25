@@ -32,7 +32,7 @@
       "preset": "recommended",
       "style": {
         "noNonNullAssertion": "off",
-        "useImportType": "warn"
+        "useImportType": "error"
       }
     }
   }

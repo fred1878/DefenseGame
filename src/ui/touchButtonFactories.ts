@@ -6,7 +6,7 @@ import {
   uiTextStrokeAllowed,
 } from "./uiTextStyle";
 import {
-  BgVisual,
+  type BgVisual,
   STROKE_PX,
   MEDIEVAL_LABEL,
   bindPress,

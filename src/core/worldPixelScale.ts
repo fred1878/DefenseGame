@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GAME } from "../config/game";
 import type { DefenseObstacleRect } from "../config/defense";
 import { defenseObstacleBlockerRects } from "../world/defenseObstacleBlocker";

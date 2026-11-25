@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** Ice Effect 01 — Peter-approved combat FX under `public/assets/combat/fx/ice/`. */
 

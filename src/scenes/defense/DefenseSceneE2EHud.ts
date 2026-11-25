@@ -1,5 +1,5 @@
-import Phaser from "phaser";
-import { defenseMinimapLayout } from "../../ui/defenseMinimap";
+import type Phaser from "phaser";
+import type { defenseMinimapLayout } from "../../ui/defenseMinimap";
 import {
   combatChromeLayout,
   defensePlayAreaLayout,

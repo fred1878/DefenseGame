@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** Small marker above a targeted enemy with a bobbing animation. */
 export class TargetIndicator {
