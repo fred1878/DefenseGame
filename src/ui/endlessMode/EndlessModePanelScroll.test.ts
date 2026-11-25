@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
 import { scaleUiY } from "../../core/displayScale";
 import { FakeEmitter, fakePointer } from "../../test/fakeInput";
@@ -27,13 +28,38 @@ function setup(overrides: Partial<EndlessListLayout> = {}) {
   const input = new FakeEmitter();
   const scene = { input } as unknown as Phaser.Scene;
   const onTapRow = vi.fn();
-  const rows = Array.from({ length: ROWS }, (_, i) => ({
-    enemyId: `e${i}`,
-    bg: { x: 150, y: i * 60 + 25 },
-    capBg: { y: i * 60 + 25 },
-    capMinus: { x: 390 },
-    capPlus: { x: 450 },
-  })) as unknown as EnemyRow[];
+  const listContentY = layout.listTop;
+  const rows = Array.from({ length: ROWS }, (_, i) => {
+    const rowY = i * 60 + 25;
+    const matrix = {
+      tx: 150,
+      ty: listContentY + rowY,
+      scaleX: 1,
+      scaleY: 1,
+    };
+    const bg = {
+      x: 150,
+      y: rowY,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: layout.nameColW / 2,
+      displayOriginY: layout.rowH / 2,
+      scrollFactorX: 0,
+      scrollFactorY: 0,
+      scene: { cameras: { main: { scrollX: 0, scrollY: 0, rotation: 0, zoomX: 1, zoomY: 1 } } },
+      getWorldTransformMatrix(temp: typeof matrix) {
+        Object.assign(temp, matrix);
+        return temp;
+      },
+    };
+    return {
+      enemyId: `e${i}`,
+      bg,
+      capBg: { y: rowY },
+      capMinus: { x: 390 },
+      capPlus: { x: 450 },
+    };
+  }) as unknown as EnemyRow[];
   const view = {
     listContent: { y: layout.listTop },
     scrollTrack: bar(),
@@ -120,12 +146,14 @@ describe("EndlessModePanelScroll", () => {
     expect(onTapRow).not.toHaveBeenCalled();
   });
 
-  it("viewport scroll catcher only claims gaps in the name column", () => {
+  it("viewport scroll catcher claims row gaps across the full panel width", () => {
     const { scroll } = setup();
-    expect(scroll.listViewportHitForScroll(380, 300)).toBe(false); // cap column
+    expect(scroll.listViewportHitForScroll(69, 300)).toBe(false); // left of list
     expect(scroll.listViewportHitForScroll(100, 150)).toBe(false); // above list
-    expect(scroll.listViewportHitForScroll(100, 210)).toBe(false); // on row 0
-    expect(scroll.listViewportHitForScroll(100, 255)).toBe(true); // gap 0/1
+    expect(scroll.listViewportHitForScroll(100, 210)).toBe(false); // on row 0 name
+    expect(scroll.listViewportHitForScroll(380, 210)).toBe(false); // on row 0 cap
+    expect(scroll.listViewportHitForScroll(100, 255)).toBe(true); // gap 0/1, name side
+    expect(scroll.listViewportHitForScroll(380, 255)).toBe(true); // gap 0/1, cap side
   });
 
   it("reports row and cap centers only while visible", () => {
@@ -141,12 +169,23 @@ describe("EndlessModePanelScroll", () => {
 
   it("row hit tests follow the clipped viewport", () => {
     const { scroll, rows } = setup();
-    const hitArea = {} as Phaser.Geom.Rectangle;
     const nameHit = scroll.rowNameHitTest(rows[0]!);
-    // Local (x, y) relative to the row background at x=150, y=25 in content.
-    expect(nameHit(hitArea, -50, 0, rows[0]!.bg as never)).toBe(true);
-    expect(nameHit(hitArea, 300, 0, rows[0]!.bg as never)).toBe(false);
-    expect(scroll.rowCapHitTest(rows[0]!)(hitArea, 0, 0)).toBe(true);
-    expect(scroll.rowCapHitTest(rows[9]!)(hitArea, 0, 0)).toBe(false);
+    const rowHit = new Phaser.Geom.Rectangle(
+      -layout.nameColW / 2,
+      -layout.rowH / 2,
+      layout.nameColW,
+      layout.rowH,
+    );
+  const capHit = new Phaser.Geom.Rectangle(
+      -layout.capColW / 2,
+      -layout.rowH / 2,
+      layout.capColW,
+      layout.rowH,
+    );
+    expect(nameHit(rowHit, -50, 0, rows[0]!.bg as never)).toBe(true);
+    expect(nameHit(rowHit, 140, 0, rows[0]!.bg as never)).toBe(true);
+    expect(nameHit(rowHit, 0, 0, rows[9]!.bg as never)).toBe(false);
+    expect(scroll.rowCapHitTest(rows[0]!)(capHit, 0, 0)).toBe(true);
+    expect(scroll.rowCapHitTest(rows[9]!)(capHit, 0, 0)).toBe(false);
   });
 });

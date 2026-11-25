@@ -104,6 +104,51 @@ function hitLocalToInputPx(
 }
 
 /**
+ * Map a pointer position in a Game Object's local hit-test space to screen/canvas
+ * coordinates (same space as `pointer.x` / `pointer.y`).
+ */
+export function hitAreaLocalPointToScreen(
+  obj: Phaser.GameObjects.GameObject,
+  localX: number,
+  localY: number,
+  camera?: Phaser.Cameras.Scene2D.Camera,
+): { x: number; y: number } | null {
+  const go = obj as TransformGo;
+  if (!go.scene) return null;
+  const cam = camera ?? go.scene.cameras.main;
+
+  let wx = go.x;
+  let wy = go.y;
+  let scaleX = go.scaleX;
+  let scaleY = go.scaleY;
+  if (go.getWorldTransformMatrix) {
+    const matrix = new Phaser.GameObjects.Components.TransformMatrix();
+    go.getWorldTransformMatrix(matrix);
+    wx = matrix.tx;
+    wy = matrix.ty;
+    scaleX = matrix.scaleX;
+    scaleY = matrix.scaleY;
+  }
+
+  const sfx = (go as { scrollFactorX?: number }).scrollFactorX ?? 1;
+  const sfy = (go as { scrollFactorY?: number }).scrollFactorY ?? 1;
+  const { px, py } = hitLocalToInputPx(
+    wx,
+    wy,
+    localX,
+    localY,
+    go.displayOriginX,
+    go.displayOriginY,
+    scaleX,
+    scaleY,
+  );
+  if (sfx === 0 && sfy === 0) {
+    return { x: px, y: py };
+  }
+  return inputSpaceToScreen(px, py, sfx, sfy, cam);
+}
+
+/**
  * Screen/canvas bounds of an interactive hit area — matches InputManager hit tests (same space as `pointer.x/y`).
  */
 export function interactiveObjectScreenRect(

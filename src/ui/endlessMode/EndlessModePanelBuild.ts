@@ -9,7 +9,7 @@ import {
   type ModalInputLease,
 } from "../../input/modalBackdrop";
 import { addRosterListChrome } from "../rosterPanelShared";
-import { createTouchButton } from "../touchButton";
+import { createTouchButton, hitAreaLocalPointToScreen } from "../touchButton";
 import { uiTextStyle } from "../uiTextStyle";
 import { createUiRoundedRect, type UiRoundedRect } from "../uiRoundedRect";
 
@@ -59,6 +59,11 @@ export type EndlessModePanelBuildHandlers = {
   listViewportHitForScroll: (screenX: number, screenY: number) => boolean;
   rowNameHitTest: (row: EnemyRow) => HitTest;
   rowCapHitTest: (row: EnemyRow) => HitTest;
+  listViewportPointerToScreen: (
+    viewport: Phaser.GameObjects.Rectangle,
+    localX: number,
+    localY: number,
+  ) => { screenX: number; screenY: number } | null;
   onBumpCap: (enemyId: string, delta: number) => void;
   onRowPointerDown: (pointer: Phaser.Input.Pointer, enemyId: string) => void;
   onCapPointerDown: (pointer: Phaser.Input.Pointer) => void;
@@ -191,29 +196,19 @@ export function buildEndlessModePanelUi(
     (hitArea, x, y, gameObject) => {
       if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
       const viewport = gameObject as Phaser.GameObjects.Rectangle;
-      const screenX = viewport.x + x;
-      const screenY = viewport.y + y;
-      return h.listViewportHitForScroll(screenX, screenY);
+      const mapped = h.listViewportPointerToScreen(viewport, x, y);
+      const pt =
+        mapped != null
+          ? { x: mapped.screenX, y: mapped.screenY }
+          : hitAreaLocalPointToScreen(viewport, x, y);
+      if (!pt) return false;
+      return h.listViewportHitForScroll(pt.x, pt.y);
     },
   );
   root.add(listViewport);
 
   const listContent = scene.add.container(0, listTop);
   root.add(listContent);
-
-  const nameHit = new Phaser.Geom.Rectangle(
-    -nameColW / 2,
-    -rowH / 2,
-    nameColW,
-    rowH,
-  );
-
-  const capHit = new Phaser.Geom.Rectangle(
-    -capColW / 2,
-    -rowH / 2,
-    capColW,
-    rowH,
-  );
 
   const rows: EnemyRow[] = [];
   let localY = 0;
@@ -309,14 +304,20 @@ export function buildEndlessModePanelUi(
       capValue,
       capLocalY: localY,
     };
+    bg.setInteractive(
+      new Phaser.Geom.Rectangle(-nameColW / 2, -rowH / 2, nameColW, rowH),
+      h.rowNameHitTest(row),
+    );
+    capBg.setInteractive(
+      new Phaser.Geom.Rectangle(-capColW / 2, -rowH / 2, capColW, rowH),
+      h.rowCapHitTest(row),
+    );
     const capBtnHit = new Phaser.Geom.Rectangle(
       -capBtnW / 2,
       -capBtnH / 2,
       capBtnW,
       capBtnH,
     );
-    bg.setInteractive(nameHit, h.rowNameHitTest(row));
-    capBg.setInteractive(capHit, h.rowCapHitTest(row));
     capMinus.setInteractive(capBtnHit, h.rowCapHitTest(row));
     capPlus.setInteractive(capBtnHit, h.rowCapHitTest(row));
     rows.push(row);
@@ -345,7 +346,6 @@ export function buildEndlessModePanelUi(
   listViewport.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
     h.onViewportPointerDown(pointer);
   });
-  root.bringToTop(listViewport);
 
   const infiniteHpRowY = listBottom + scaleUiY(12) + infiniteRowH / 2;
   const infiniteHpBg = createUiRoundedRect(

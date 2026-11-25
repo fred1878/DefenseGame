@@ -2,7 +2,12 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import Phaser from "phaser";
-import { type CameraView, cameraWorldToScreen, interactiveObjectScreenRect } from "./touchButtonGeometry";
+import {
+  type CameraView,
+  cameraWorldToScreen,
+  hitAreaLocalPointToScreen,
+  interactiveObjectScreenRect,
+} from "./touchButtonGeometry";
 
 function identityCamera(
   scroll: { x: number; y: number } = { x: 0, y: 0 },
@@ -284,3 +289,29 @@ describe("cameraWorldToScreen", () => {
   }
 });
 
+describe("hitAreaLocalPointToScreen", () => {
+  it("matches the center of a scrollFactor-0 touch button", () => {
+    const camera = identityCamera();
+    const hitW = 100;
+    const hitH = 48;
+    const go = {
+      x: 90,
+      y: 1100,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: hitW / 2,
+      displayOriginY: hitH / 2,
+      scrollFactorX: 0,
+      scrollFactorY: 0,
+      scene: fakeScene(camera),
+      input: {
+        hitArea: new Phaser.Geom.Rectangle(0, 0, hitW, hitH),
+      },
+    } as unknown as Phaser.GameObjects.GameObject;
+
+    const center = hitAreaLocalPointToScreen(go, hitW / 2, hitH / 2, camera);
+    expect(center).not.toBeNull();
+    expect(center!.x).toBeCloseTo(90, 4);
+    expect(center!.y).toBeCloseTo(1100, 4);
+  });
+});
