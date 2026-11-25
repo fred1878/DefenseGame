@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import {
+  enemyMeleeFxRotation,
   enemyMeleeFxSpec,
   meleeFxPackLoaded,
   type EnemyMeleeFxSpec,
@@ -121,7 +122,7 @@ function spawnEnemyMeleeAnim(
     worldDisplayPx(spec.displayH, reg),
   );
   sprite.setOrigin(0.5, 0.5);
-  sprite.setRotation(meleeSwipeRotation(facingRad));
+  sprite.setRotation(enemyMeleeFxRotation(facingRad, spec));
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx);
   sprite.setAlpha(0.92);
   sprite.play(spec.animKey);

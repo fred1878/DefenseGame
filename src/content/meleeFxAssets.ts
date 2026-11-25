@@ -4,6 +4,37 @@ import Phaser from "phaser";
 
 export const MELEE_FX_ROOT = "assets/combat/fx/melee";
 
+/** Sprite sheet default strike direction at rotation 0. */
+export type MeleeAnimFacing = "slashArcV2" | "eastAtZero";
+
+const MELEE_ANIM_FACING_OFFSET: Record<MeleeAnimFacing, number> = {
+  /** `slash-arc-v2` bisector points west at rot 0; add π to align +X attack. */
+  slashArcV2: Math.PI,
+  /** PVFX / smear sheets authored facing +X (east) at rot 0. */
+  eastAtZero: 0,
+};
+
+/** Per-clip facing; all enemy PVFX smears use eastAtZero. */
+export const MELEE_FX_ANIM_FACING: Record<
+  keyof typeof MELEE_FX_ANIM,
+  MeleeAnimFacing
+> = {
+  grunt: "eastAtZero",
+  skirmisher: "eastAtZero",
+  bruiser: "eastAtZero",
+  slow_siege: "eastAtZero",
+  charger: "eastAtZero",
+  ward: "eastAtZero",
+  fast_sapper: "eastAtZero",
+  reaver: "eastAtZero",
+};
+
+export function rotationOffsetRadForAnimFacing(
+  facing: MeleeAnimFacing,
+): number {
+  return MELEE_ANIM_FACING_OFFSET[facing];
+}
+
 export const MELEE_FX_ASSETS = [
   {
     key: "fx_melee_grunt",
@@ -128,6 +159,8 @@ export type EnemyMeleeFxSpec = {
   displayW: number;
   displayH: number;
   offsetWu: number;
+  animFacing: MeleeAnimFacing;
+  rotationOffsetRad: number;
 };
 
 export function meleeFxPackLoaded(scene: Phaser.Scene): boolean {
@@ -150,6 +183,7 @@ export function enemyMeleeFxSpec(
   );
   if (!asset) return undefined;
   const display = MELEE_FX_DISPLAY[clipId];
+  const animFacing = MELEE_FX_ANIM_FACING[clipId];
   return {
     clipId,
     textureKey: asset.key,
@@ -157,7 +191,16 @@ export function enemyMeleeFxSpec(
     displayW: display.w,
     displayH: display.h,
     offsetWu: MELEE_FX_OFFSET_WU[clipId],
+    animFacing,
+    rotationOffsetRad: rotationOffsetRadForAnimFacing(animFacing),
   };
+}
+
+export function enemyMeleeFxRotation(
+  facingRad: number,
+  spec: EnemyMeleeFxSpec,
+): number {
+  return facingRad + spec.rotationOffsetRad;
 }
 
 export function registerMeleeFxAnimations(scene: Phaser.Scene): void {

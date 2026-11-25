@@ -31,7 +31,11 @@ const ENEMY_MELEE_DEFS = [
 ];
 
 const SWIPE_POLL_MS = 1800;
-const HOLD_AFTER_SWIPE_MS = 1200;
+const HOLD_AFTER_SWIPE_MS = 1100;
+const SPAWN_FACINGS = [
+  { offX: 44, side: "enemyRight" },
+  { offX: -44, side: "enemyLeft" },
+];
 const HOLD_PLAYER_MS = 2000;
 
 const defaultOut =
@@ -119,22 +123,27 @@ try {
 
   const swipeSources = [];
   for (const defId of ENEMY_MELEE_DEFS) {
-    await page.evaluate((id) => {
-      const api = window.__DEFENSEGAME_E2E__?.api;
-      api?.clearEnemyMeleeFxFlag();
-      api?.setSpawnPlanComplete(false);
-      api?.killAllEnemies();
-      api?.spawnTestEnemyByDef(id, 44, 0);
-    }, defId);
-    const stillDefense = await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.scene === "Defense",
-    );
-    if (!stillDefense) {
-      throw new Error("Left Defense scene during capture (night end?)");
+    for (const { offX, side } of SPAWN_FACINGS) {
+      await page.evaluate(
+        ({ id, ox }) => {
+          const api = window.__DEFENSEGAME_E2E__?.api;
+          api?.clearEnemyMeleeFxFlag();
+          api?.setSpawnPlanComplete(false);
+          api?.killAllEnemies();
+          api?.spawnTestEnemyByDef(id, ox, 0);
+        },
+        { id: defId, ox: offX },
+      );
+      const stillDefense = await page.evaluate(
+        () => window.__DEFENSEGAME_E2E__?.scene === "Defense",
+      );
+      if (!stillDefense) {
+        throw new Error("Left Defense scene during capture (night end?)");
+      }
+      const src = await pollEnemySwipe(page, defId);
+      swipeSources.push({ defId, side, src });
+      await wait(HOLD_AFTER_SWIPE_MS);
     }
-    const src = await pollEnemySwipe(page, defId);
-    swipeSources.push({ defId, src });
-    await wait(HOLD_AFTER_SWIPE_MS);
   }
 
   await page.evaluate(() => {
