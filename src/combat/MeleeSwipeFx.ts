@@ -2,8 +2,8 @@ import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import {
-  enemyMeleeFxRotation,
   enemyMeleeFxSpec,
+  enemyMeleeFxTransform,
   meleeFxPackLoaded,
   type EnemyMeleeFxSpec,
 } from "../content/meleeFxAssets";
@@ -78,15 +78,16 @@ function publishEnemyMeleeFxE2E(
 ): void {
   if (!isE2EEnabled()) return;
   const spec = enemyMeleeFxSpec(enemyDefId);
-  const rot = spec
-    ? enemyMeleeFxRotation(facingRad, spec)
-    : meleeSwipeRotation(facingRad);
+  const pose = spec
+    ? enemyMeleeFxTransform(facingRad, spec)
+    : { rotation: meleeSwipeRotation(facingRad), flipX: false };
   publishE2E({
     flags: {
       enemyMeleeFxSpawned: 1,
       lastEnemyMeleeFxDef: enemyDefId,
       lastEnemyMeleeFxFacing: facingRad,
-      lastEnemyMeleeFxRot: rot,
+      lastEnemyMeleeFxRot: pose.rotation,
+      lastEnemyMeleeFxFlipX: pose.flipX ? 1 : 0,
     },
   });
 }
@@ -130,7 +131,9 @@ function spawnEnemyMeleeAnim(
     worldDisplayPx(spec.displayH, reg),
   );
   sprite.setOrigin(0.5, 0.5);
-  sprite.setRotation(enemyMeleeFxRotation(facingRad, spec));
+  const { rotation, flipX } = enemyMeleeFxTransform(facingRad, spec);
+  sprite.setFlipX(flipX);
+  sprite.setRotation(rotation);
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx);
   sprite.setAlpha(0.92);
   sprite.play(spec.animKey);

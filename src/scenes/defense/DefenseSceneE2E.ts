@@ -7,8 +7,8 @@ import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowEnemyPaths, setShowHitboxes } from "../../debug/DebugState";
 import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
 import {
-  enemyMeleeFxRotation,
   enemyMeleeFxSpec,
+  enemyMeleeFxTransform,
 } from "../../content/meleeFxAssets";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
@@ -730,6 +730,7 @@ export function defenseSceneE2ePreviewHolyFx(
 export type EnemyMeleeFxShowcaseResult = {
   facingRad: number;
   spriteRotation: number;
+  flipX: boolean;
   offX: number;
   side: "L" | "R";
 };
@@ -767,9 +768,10 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
     enemy.sprite.setPosition(ex, ey);
   }
   const spec = enemyMeleeFxSpec(enemyDefId);
-  const spriteRotation = spec
-    ? enemyMeleeFxRotation(facingRad, spec)
-    : facingRad + Math.PI;
+  const pose = spec
+    ? enemyMeleeFxTransform(facingRad, spec)
+    : { rotation: facingRad + Math.PI, flipX: false };
+  const spriteRotation = pose.rotation;
   const side: "L" | "R" = offX >= 0 ? "R" : "L";
   const label = scene.add.text(ex, ey - 48, side, {
     fontFamily: "monospace",
@@ -783,7 +785,7 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
   scene.time.delayedCall(2200, () => label.destroy());
   const activeMs = enemy?.combatTuning.melee?.activeMs ?? 220;
   showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, activeMs);
-  return { facingRad, spriteRotation, offX, side };
+  return { facingRad, spriteRotation, flipX: pose.flipX, offX, side };
 }
 
 /** E2E: spawn one enemy and play its melee swipe FX toward the player. */

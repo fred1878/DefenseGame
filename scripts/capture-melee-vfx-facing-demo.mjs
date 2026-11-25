@@ -28,7 +28,7 @@ const HOLD_MS = 2000;
 
 const defaultOut =
   process.env.MELEE_VFX_FACING_DEMO_OUT ??
-  "/cursor/stores/bc-231c7aa6-7e8f-4ab4-8431-454b2117da2f/media/melee-vfx-facing-left-vs-right-2026-11-25.webm";
+  "/cursor/stores/bc-231c7aa6-7e8f-4ab4-8431-454b2117da2f/media/melee-vfx-flip-and-rotate-2026-11-25.webm";
 
 function trimFromSec(inputWebm, outputWebm, startSec) {
   execSync(
@@ -96,6 +96,7 @@ try {
       const flags = await page.evaluate(() => ({
         rot: Number(window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxRot),
         facing: Number(window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxFacing),
+        flipX: Number(window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxFlipX),
         spawned: window.__DEFENSEGAME_E2E__?.flags.enemyMeleeFxSpawned,
         side: window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxSide,
       }));
@@ -143,11 +144,15 @@ try {
       pairDeltas,
     }),
   );
-  const bad = pairDeltas.filter(
-    (p) => p.rotDelta < Math.PI - 0.35 || p.facingDelta < Math.PI - 0.35,
+  const flipMismatch = rotReport.filter(
+    (r) =>
+      (r.side === "R" && r.flipX === 0) || (r.side === "L" && r.flipX !== 0),
   );
-  if (bad.length > 0) {
-    console.error("Left/right rotation not ~π apart:", bad);
+  if (flipMismatch.length > 0) {
+    console.error(
+      "flipX should be 1 for R spawns (attack west) and 0 for L (attack east):",
+      flipMismatch,
+    );
     process.exitCode = 1;
   }
 } finally {

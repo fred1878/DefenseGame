@@ -609,6 +609,7 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
           lastEnemyMeleeFxDef: "",
           lastEnemyMeleeFxFacing: 0,
           lastEnemyMeleeFxRot: 0,
+          lastEnemyMeleeFxFlipX: 0,
           lastEnemyMeleeFxSide: "",
         },
       });

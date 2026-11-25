@@ -4,8 +4,11 @@ import { meleeSwipeRotation } from "../combat/MeleeSwipeFx";
 import {
   MELEE_FX_ANIM,
   MELEE_FX_ASSETS,
+  enemyMeleeFxFlipX,
   enemyMeleeFxRotation,
   enemyMeleeFxSpec,
+  enemyMeleeFxTransform,
+  meleeFxAnimDurationMs,
   registerMeleeFxAnimations,
 } from "./meleeFxAssets";
 
@@ -43,22 +46,42 @@ describe("enemyMeleeFxSpec", () => {
   });
 });
 
-describe("enemyMeleeFxRotation", () => {
-  it("uses eastAtZero offset for PVFX so left attacks differ from slash-arc", () => {
-    const spec = enemyMeleeFxSpec("skirmisher");
-    expect(spec).toBeDefined();
-    const facingLeft = Math.PI;
-    const pvfxRot = enemyMeleeFxRotation(facingLeft, spec!);
-    const slashRot = meleeSwipeRotation(facingLeft);
-    expect(pvfxRot).toBeCloseTo(facingLeft);
-    expect(slashRot).toBeCloseTo(facingLeft + Math.PI);
-    expect(pvfxRot).not.toBeCloseTo(slashRot);
+describe("enemyMeleeFxTransform", () => {
+  it("flips west-half attacks for eastAtZero PVFX", () => {
+    const spec = enemyMeleeFxSpec("skirmisher")!;
+    const east = enemyMeleeFxTransform(0, spec);
+    expect(east.flipX).toBe(false);
+    expect(east.rotation).toBeCloseTo(0);
+    const west = enemyMeleeFxTransform(Math.PI, spec);
+    expect(west.flipX).toBe(true);
+    expect(west.rotation).toBeCloseTo(0);
+    expect(enemyMeleeFxFlipX(Math.PI, spec)).toBe(true);
+    expect(enemyMeleeFxFlipX(0, spec)).toBe(false);
   });
 
-  it("tracks facing for eastAtZero clips", () => {
+  it("keeps slashArcV2 rotation-only (no flip)", () => {
+    const spec = enemyMeleeFxSpec("grunt")!;
+    const slashSpec = {
+      ...spec,
+      animFacing: "slashArcV2" as const,
+      rotationOffsetRad: Math.PI,
+    };
+    const west = enemyMeleeFxTransform(Math.PI, slashSpec);
+    expect(west.flipX).toBe(false);
+    expect(west.rotation).toBeCloseTo(meleeSwipeRotation(Math.PI));
+  });
+
+  it("meleeFxAnimDurationMs matches frameCount/frameRate", () => {
+    expect(meleeFxAnimDurationMs("grunt")).toBeCloseTo(750);
+    expect(meleeFxAnimDurationMs("skirmisher")).toBeCloseTo(600);
+  });
+
+  it("eastAtZero left vs right flip differs at same |facing|", () => {
     const spec = enemyMeleeFxSpec("bruiser")!;
-    for (const facing of [0, Math.PI / 2, Math.PI]) {
-      expect(enemyMeleeFxRotation(facing, spec)).toBeCloseTo(facing);
-    }
+    const right = enemyMeleeFxTransform(0, spec);
+    const left = enemyMeleeFxTransform(Math.PI, spec);
+    expect(right.flipX).not.toBe(left.flipX);
+    const slashRot = meleeSwipeRotation(Math.PI);
+    expect(enemyMeleeFxRotation(Math.PI, spec)).not.toBeCloseTo(slashRot);
   });
 });

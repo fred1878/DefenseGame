@@ -196,11 +196,52 @@ export function enemyMeleeFxSpec(
   };
 }
 
+export type EnemyMeleeFxTransform = {
+  rotation: number;
+  flipX: boolean;
+};
+
+/**
+ * PVFX/smears are authored facing +X at rotation 0. West-half attacks (cos < 0)
+ * mirror on X and use rotation `facing − π` so flip + angle match body aim.
+ * `slashArcV2` (grunt static fallback) keeps rotation-only + π offset — no flip.
+ */
+export function enemyMeleeFxTransform(
+  facingRad: number,
+  spec: EnemyMeleeFxSpec,
+): EnemyMeleeFxTransform {
+  if (spec.animFacing === "slashArcV2") {
+    return {
+      rotation: facingRad + spec.rotationOffsetRad,
+      flipX: false,
+    };
+  }
+  const flipX = Math.cos(facingRad) < 0;
+  return {
+    flipX,
+    rotation: flipX ? facingRad - Math.PI : facingRad + spec.rotationOffsetRad,
+  };
+}
+
 export function enemyMeleeFxRotation(
   facingRad: number,
   spec: EnemyMeleeFxSpec,
 ): number {
-  return facingRad + spec.rotationOffsetRad;
+  return enemyMeleeFxTransform(facingRad, spec).rotation;
+}
+
+export function enemyMeleeFxFlipX(
+  facingRad: number,
+  spec: EnemyMeleeFxSpec,
+): boolean {
+  return enemyMeleeFxTransform(facingRad, spec).flipX;
+}
+
+/** Phaser anim play time in ms (`frameCount / frameRate`). */
+export function meleeFxAnimDurationMs(clipId: MeleeFxClipId): number {
+  const asset = MELEE_FX_ASSETS.find((a) => a.key === `fx_melee_${clipId}`);
+  if (!asset || asset.frameRate <= 0) return 0;
+  return (asset.frameCount / asset.frameRate) * 1000;
 }
 
 export function registerMeleeFxAnimations(scene: Phaser.Scene): void {
