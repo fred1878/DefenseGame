@@ -76,6 +76,7 @@ function mockHost() {
         setDepth: vi.fn().mockReturnThis(),
         setPosition: vi.fn().mockReturnThis(),
         setAlpha: vi.fn().mockReturnThis(),
+        setVisible: vi.fn().mockReturnThis(),
       })),
     },
   } as unknown as Phaser.Scene;
@@ -101,6 +102,7 @@ describe("spawnDefenseEnemyAt pool", () => {
     dead.damageable.onDeath?.();
     host.enemies.length = 0;
     expect(dead.sprite.setActive).toHaveBeenCalledWith(false);
+    expect(dead.nameplate.container.setVisible).toHaveBeenCalledWith(false);
 
     spawnDefenseEnemyAt(host, 10, 10, gruntDef, "grunt");
     expect(host.enemies).toHaveLength(1);

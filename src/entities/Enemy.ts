@@ -36,6 +36,7 @@ import {
 import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
 import {
   createEnemyNameplate,
+  prepareEnemyNameplateForRespawn,
   recycleEnemyNameplateAfterDeath,
   updateEnemyNameplate,
   type EnemyNameplate,
@@ -226,6 +227,7 @@ export function reconfigureEnemyInstance(
   body.setVelocity(0, 0);
   bindEnemySpriteTap(sprite, onTap);
 
+  prepareEnemyNameplateForRespawn(enemy.nameplate, scene);
   enemy.nameplate.nameText.setText(def.displayName);
   updateEnemyNameplate(enemy.nameplate, x, y, side, enemy.damageable);
 }
