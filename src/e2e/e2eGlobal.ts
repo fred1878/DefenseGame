@@ -164,7 +164,8 @@ export type DefenseGameE2EApi = {
   canFocusFirstLivingEnemy(): boolean;
   damageFirstLivingEnemy(amount: number): void;
   previewHolyFx(kind: "flash" | "channel"): void;
-  previewEnemyMeleeFx(enemyDefId: string): void;
+  previewEnemyMeleeFx(enemyDefId: string, offX?: number): void;
+  showcaseEnemyMeleeSwipe(defId: string, offX: number): void;
   clearEnemyMeleeFxFlag(): void;
 };
 

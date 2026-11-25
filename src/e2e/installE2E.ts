@@ -582,18 +582,35 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     previewHolyFx(kind: "flash" | "channel") {
       activeDefense(game)?.e2ePreviewHolyFx(kind);
     },
-    previewEnemyMeleeFx(enemyDefId: string) {
-      activeDefense(game)?.e2ePreviewEnemyMeleeFx(enemyDefId);
+    showcaseEnemyMeleeSwipe(defId: string, offX: number) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const result = defense.e2eShowcaseEnemyMeleeSwipe(defId, offX);
       publishE2E({
         flags: {
-          enemyMeleeFxSpawned: 1,
-          lastEnemyMeleeFxDef: enemyDefId,
+          lastEnemyMeleeFxSide: result.side,
+        },
+      });
+    },
+    previewEnemyMeleeFx(enemyDefId: string, offX = 52) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const result = defense.e2ePreviewEnemyMeleeFx(enemyDefId, offX);
+      publishE2E({
+        flags: {
+          lastEnemyMeleeFxSide: result.side,
         },
       });
     },
     clearEnemyMeleeFxFlag() {
       publishE2E({
-        flags: { enemyMeleeFxSpawned: 0, lastEnemyMeleeFxDef: "" },
+        flags: {
+          enemyMeleeFxSpawned: 0,
+          lastEnemyMeleeFxDef: "",
+          lastEnemyMeleeFxFacing: 0,
+          lastEnemyMeleeFxRot: 0,
+          lastEnemyMeleeFxSide: "",
+        },
       });
     },
   };

@@ -65,19 +65,28 @@ export function showEnemyMeleeSwipe(
     scene.textures.exists(spec.textureKey) &&
     scene.anims.exists(spec.animKey)
   ) {
-    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, activeMs, enemyDefId);
-    return;
+    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, activeMs);
+  } else {
+    spawnGruntMeleeFallback(scene, x, y, facingRad, activeMs);
   }
-  spawnGruntMeleeFallback(scene, x, y, facingRad, activeMs);
-  publishEnemyMeleeFxE2E(enemyDefId);
+  publishEnemyMeleeFxE2E(enemyDefId, facingRad);
 }
 
-function publishEnemyMeleeFxE2E(enemyDefId: string): void {
+function publishEnemyMeleeFxE2E(
+  enemyDefId: string,
+  facingRad: number,
+): void {
   if (!isE2EEnabled()) return;
+  const spec = enemyMeleeFxSpec(enemyDefId);
+  const rot = spec
+    ? enemyMeleeFxRotation(facingRad, spec)
+    : meleeSwipeRotation(facingRad);
   publishE2E({
     flags: {
       enemyMeleeFxSpawned: 1,
       lastEnemyMeleeFxDef: enemyDefId,
+      lastEnemyMeleeFxFacing: facingRad,
+      lastEnemyMeleeFxRot: rot,
     },
   });
 }
@@ -110,7 +119,6 @@ function spawnEnemyMeleeAnim(
   y: number,
   facingRad: number,
   _activeMs: number,
-  enemyDefId: string,
 ): void {
   const offset = worldUnit(spec.offsetWu, scene.registry);
   const ox = x + Math.cos(facingRad) * offset;
@@ -126,14 +134,6 @@ function spawnEnemyMeleeAnim(
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx);
   sprite.setAlpha(0.92);
   sprite.play(spec.animKey);
-  if (isE2EEnabled()) {
-    publishE2E({
-      flags: {
-        enemyMeleeFxSpawned: 1,
-        lastEnemyMeleeFxDef: enemyDefId,
-      },
-    });
-  }
   sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
     sprite.destroy();
   });
