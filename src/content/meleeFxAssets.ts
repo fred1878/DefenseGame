@@ -187,7 +187,7 @@ export type EnemyMeleeFxTransform = {
  * mirror on X and use rotation `facing − π` so flip + angle match body aim.
  * `slashArcV2` (static fallback) keeps rotation-only + π offset — no flip.
  * `slashTopBiasRight` (`slash-128x128-s3-c1`): top-of-frame strike + slight right bias at rot 0;
- * rotation aligns that bearing to `facingRad`, flipX on the west half.
+ * rotation alone aligns that bearing to `facingRad` (no flipX — mirror breaks NW/SW aim).
  */
 export function enemyMeleeFxTransform(
   facingRad: number,
@@ -203,10 +203,9 @@ export function enemyMeleeFxTransform(
     const strike0 = slashTopBiasRightStrikeAtRot0(
       GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD,
     );
-    const flipX = Math.cos(facingRad) < 0;
     return {
-      flipX,
-      rotation: flipX ? facingRad - Math.PI - strike0 : facingRad - strike0,
+      flipX: false,
+      rotation: facingRad - strike0,
     };
   }
   const flipX = Math.cos(facingRad) < 0;
@@ -226,8 +225,7 @@ export function enemyMeleeFxStrikeAim(
     const strike0 = slashTopBiasRightStrikeAtRot0(
       GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD,
     );
-    const localAim = rotation + strike0;
-    return flipX ? Math.PI - localAim : localAim;
+    return rotation + strike0;
   }
   if (spec.animFacing === "eastAtZero") {
     return flipX ? Math.PI : rotation;

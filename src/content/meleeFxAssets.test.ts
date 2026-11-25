@@ -62,16 +62,25 @@ describe("enemyMeleeFxTransform", () => {
     expect(enemyMeleeFxFlipX(0, spec)).toBe(false);
   });
 
-  it("grunt slashTopBiasRight flips west-half and aligns strike to facing", () => {
+  it("grunt slashTopBiasRight aligns strike to facing without flipX", () => {
     const spec = enemyMeleeFxSpec("grunt")!;
     expect(spec.animFacing).toBe("slashTopBiasRight");
-    const facings = [0, Math.PI / 3, Math.PI / 2, Math.PI, -Math.PI / 3];
+    const facings = [
+      0,
+      Math.PI / 4,
+      Math.PI / 2,
+      Math.PI,
+      -Math.PI / 4,
+      -Math.PI / 2,
+      (-3 * Math.PI) / 4,
+      (3 * Math.PI) / 4,
+    ];
     for (const facing of facings) {
+      const pose = enemyMeleeFxTransform(facing, spec);
+      expect(pose.flipX).toBe(false);
       const aim = enemyMeleeFxStrikeAim(facing, spec);
       expect(aim).toBeCloseTo(facing, 4);
     }
-    expect(enemyMeleeFxTransform(0, spec).flipX).toBe(false);
-    expect(enemyMeleeFxTransform(Math.PI, spec).flipX).toBe(true);
   });
 
   it("keeps slashArcV2 rotation-only (no flip)", () => {
