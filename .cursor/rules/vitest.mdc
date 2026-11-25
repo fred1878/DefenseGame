@@ -9,5 +9,6 @@ alwaysApply: false
 
 - Tests are `src/**/*.test.ts` (node environment, Phaser stubbed via `src/test/phaserStub.ts`).
 - Don't assert against shipped `public/data/*.json` values; use inline fixtures.
-- Default check is `npm run verify`. Don't start Playwright for a unit-test change.
+- Default check is `npm run verify` (typecheck + Biome lint + knip + Vitest). Don't start Playwright for a unit-test change.
+- Input fakes: `src/test/fakeInput.ts` (`FakeEmitter`, `fakePointer`). Coverage thresholds in `vitest.config.ts` sit just under the actual numbers, so don't lower them.
 - Colocate tests next to the module (`Foo.ts` + `Foo.test.ts`).

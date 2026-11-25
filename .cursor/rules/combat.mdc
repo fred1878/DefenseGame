@@ -1,0 +1,11 @@
+---
+description: Spells, hitboxes, damage and combat FX
+globs:
+  - src/combat/**/*.ts
+alwaysApply: false
+---
+
+- Attacks use custom hitboxes (`Hitbox.ts`) resolved through `DamageSystem.ts`; Arcade bodies are for movement only. Damage applies only in the `active` phase.
+- Spell ids live in `src/content/spells.ts`; numbers live in `spells.json` / `spell_input.json`. `SpellCastController` owns windup and cooldown; effect resolution is in `SpellEffects.ts` plus the `channeled*` modules.
+- FX classes (`*Fx.ts`) are visual only. They must not change game state.
+- Scene wiring for spells goes in `src/scenes/defense/DefenseSpell*.ts`, not here.

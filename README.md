@@ -36,14 +36,17 @@ Verified against the current codebase (not a wish list):
 | **Enemies** | **12 types**, JSON-driven stats/behaviors (`public/data/enemies.json`) |
 | **Waves** | **12 nights** of scheduled groups + gold rewards |
 | **Town** | Layout from `town_layout.json`; upgrades for **wall** and **blacksmith** via Moon Brazier / Witchlight Beacon; spell sort panel from daylit beacon |
-| **Unwired buildings** | Haunted Well, Plague Clinic, both Market Stalls — visible, labeled “Not available yet” |
+| **Endless / wave planner** | Haunted Well opens endless training (pick enemies + caps); Plague Clinic opens the wave planner (build a custom night) |
+| **Unwired buildings** | Both Market Stalls — visible, labeled “Not available yet” |
+| **Audio** | SFX for melee slashes, fire whoosh and coin gain/spend (`src/audio/`, `public/assets/audio/sfx/`) |
+| **Performance** | Enemy and projectile pooling in Defense |
 | **Combat** | Melee arcs, ranged shots, enemy melee/ranged/lob/arrow-rain behaviors, A* pathing, knockback, focus target |
-| **Spells** | **22 spells** in `spells.json`; **8 equipped slots** (4×2); channeling, ground targeting, auto-cast (long-press); cooldown UI |
+| **Spells** | **23 spells** in `spells.json`; **8 equipped slots** (4×2); channeling, ground targeting, auto-cast (long-press); cooldown UI |
 | **HUD** | Combat chrome, spell bar, cast bar under player, minimap, mode/auto toggles, wall/night status text |
 | **Debug** | Hitboxes, touch overlay, enemy paths, world pixel scale (session-only) |
 | **Deploy** | Versioned bundles + `version.json` cache bust on Pages |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music/SFX, walk-cycle animation, campaign ending after night 12, Capacitor store builds.
+**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, campaign ending after night 12, Capacitor store builds.
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 
@@ -87,14 +90,17 @@ npm install
 npm run dev          # Vite dev server
 npm run build        # tsc + production bundle → dist/
 npm run preview      # serve dist locally
-npm run typecheck
+npm run verify       # typecheck + Biome lint + knip + Vitest (default check)
+npm run typecheck    # src, e2e, configs
+npm run lint         # Biome (errors); lint:all shows warnings
+npm run knip         # dead files/exports/deps
 npm run test         # Vitest (src/**/*.test.ts)
 npm run test:coverage
 npm run build:e2e    # build with VITE_E2E hooks
 npm run test:e2e     # Playwright (run build:e2e first)
 ```
 
-**CI parity (agents):** `npm run typecheck && npm run test && npm run build`
+**CI parity (agents):** `npm run verify && npm run build`
 
 ---
 
@@ -111,13 +117,14 @@ src/
   ai/                  # EnemyBrain + behaviors
   pathfinding/         # Nav grid, A*
   scenes/              # Boot, Town, Defense, DebugMenu (+ defenseNightLogic)
-  systems/             # Town building spawn/menu helpers
+  systems/             # Town buildings, wave spawner, endless roster/scheduler
+  audio/               # SFX helpers
   ui/                  # Spell bar, touch controls, HUD chrome, minimap
   world/               # Ground layers, camera, spawn points
   e2e/                 # Test hooks (VITE_E2E / ?e2e=1)
 public/data/           # Runtime JSON (see below)
 e2e/                   # Playwright specs
-docs/                  # AGENTS, testing, CI, refactor plan
+docs/                  # AGENTS, DATA_FIELDS, testing, CI, waves
 ```
 
 ---
@@ -136,11 +143,11 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `enemies.json` | HP, speed, damage, `behavior`, required explicit `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
 | `buildings.json` | Upgrade defs: `wall`, `blacksmith` (`costByLevel`, effects) |
-| `town_buildings.json` | Town menu labels, textures, `upgradeId` / `startsNight` / `opensSpellBar` |
+| `town_buildings.json` | Town menu labels, textures, `upgradeId` / `startsNight` / `opensSpellBar` / `opensEndlessMode` / `opensWavePlanner` |
 | `town_layout.json` | Building slot positions on the town screen |
 | `spells.json` | Full spell catalog (damage, channeling, targeting, per-spell geometry/timing, knockback, icons) |
 
-Spells and waves are the primary content levers; prefer new JSON rows over growing `DefenseScene.ts` (the 2026 split plan is complete; see [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md)).
+Spells and waves are the primary content levers; prefer new JSON rows over growing `DefenseScene.ts` (the 2026 split plan is complete; history in [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md)). Field reference: [docs/DATA_FIELDS.md](./docs/DATA_FIELDS.md).
 
 ---
 
@@ -148,7 +155,7 @@ Spells and waves are the primary content levers; prefer new JSON rows over growi
 
 | Workflow | Trigger | What runs |
 |----------|---------|-----------|
-| `ci.yml` | Push/PR to `main` | **verify** (typecheck, Vitest coverage, build), then conditional **e2e** (Playwright) |
+| `ci.yml` | Push/PR to `main` | **verify** (typecheck, Biome lint, knip, Vitest coverage, build), then conditional **e2e** (Playwright) |
 | `pages.yml` | Push to `main` | Publish `dist/` to GitHub Pages |
 | `release.yml` | Tag `v*.*.*` | Pages deploy + GitHub Release notes |
 
@@ -161,7 +168,9 @@ Details: [docs/TESTING.md](./docs/TESTING.md), [docs/CI_RELEASES.md](./docs/CI_R
 | Doc | Description |
 |-----|-------------|
 | [docs/AGENTS.md](./docs/AGENTS.md) | Architecture, data formats, commands, agent workflow |
-| [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) | Completed Nov 2026 file-split plan (archived; line counts are stale) |
+| [docs/DATA_FIELDS.md](./docs/DATA_FIELDS.md) | Every boot-required JSON field (checked by `dataFieldsDoc.test.ts`) |
+| [docs/TESTING.md](./docs/TESTING.md) | Unit/e2e test map and CI gates |
+| [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) | Completed Nov 2026 file-split plan (historical; line counts are stale) |
 | [ROADMAP.md](./ROADMAP.md) | Milestones and known gaps |
 | [docs/WAVES.md](./docs/WAVES.md) | Night-by-night wave reference |
 | [docs/CI_RELEASES.md](./docs/CI_RELEASES.md) | Deploy, tags, future mobile builds |
