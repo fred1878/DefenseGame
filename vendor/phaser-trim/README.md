@@ -2,10 +2,13 @@
 
 Official `phaser-arcade-physics.js` already drops Matter; this build also trims the **Tilemaps** namespace, the **Tilemap loader file types**, and **game object** factories we do not call.
 
-| Build (Phaser 3.90.0) | Vendor UMD | Vite `phaser-*.js` chunk |
+| Build | Vendor UMD | Vite 8 `phaser-*.js` chunk |
 |---|---|---|
-| Arcade + Tilemaps (before Nov 2026 trim) | 6,358,906 B (990,920 gzip) | 1,204,700 B (268,145 gzip) |
-| Current (no Tilemaps, no Tilemap loaders) | 5,845,393 B (915,464 gzip) | 1,113,316 B (248,233 gzip) |
+| Phaser 3.90: Arcade + Tilemaps (before Nov 2026 trim) | 6,358,906 B (990,920 gzip) | 948,713 B (248,997 gzip) |
+| Phaser 3.90: no Tilemaps, no Tilemap loaders | 5,845,393 B (915,464 gzip) | 878,116 B (230,349 gzip) |
+| **Current: Phaser 4.2.1**, same trims, no Create/FX/Camera3D/FBInstant | 6,495,414 B (1,077,206 gzip) | 1,017,445 B (261,236 gzip) |
+
+(Under Vite 5 the chunk was 1,204,700 B / 268,145 gzip before and 1,113,316 B / 248,233 gzip after.)
 
 The game loads assets with `image`, `spritesheet` and `audio` only, and never touches `Phaser.Tilemaps`.
 Arcade physics still pulls in a few small tile-collision helpers internally; that is expected.

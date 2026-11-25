@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** Mobile Phaser input defaults — topOnly off so container buttons reliably receive hits. */
 export function configureSceneInput(scene: Phaser.Scene): void {

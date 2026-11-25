@@ -230,6 +230,10 @@ try {
     note: "townInteractiveMs = navigation start to __DEFENSEGAME_E2E__.ready && scene===Town (includes JS parse, Phaser boot, asset+JSON load, Town create).",
   };
   console.log(JSON.stringify(report, null, 2));
+} catch (err) {
+  // Surface the preview server log when a run fails (e.g. port in use).
+  process.stderr.write(previewOut);
+  throw err;
 } finally {
   preview.kill("SIGTERM");
 }

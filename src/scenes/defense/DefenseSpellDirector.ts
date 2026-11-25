@@ -1,18 +1,18 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
 import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
 import type { SaveGame } from "../../core/saveTypes";
 import { persistSave, playerDamageMult } from "../../core/GameState";
 import { pickAutoCastSpell } from "../../combat/spellAutoCast";
-import { isStickMoving, SpellInputQueue } from "../../combat/spellInputQueue";
-import {
+import { isStickMoving, type SpellInputQueue } from "../../combat/spellInputQueue";
+import type {
   SpellCastController,
-  type SpellCastInputMode,
+  SpellCastInputMode,
 } from "../../combat/SpellCastController";
-import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
-import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
+import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
+import type { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
+import type { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
 import type { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
 import type { EnemyIceRootFxController } from "../../combat/EnemyIceRootFx";
 import type { EnemyIceStunFxController } from "../../combat/EnemyIceStunFx";
@@ -20,7 +20,7 @@ import {
   spellNeedsGroundAoeTelegraph,
   type SpellGroundAoeTelegraph,
 } from "../../combat/SpellGroundAoeTelegraph";
-import { type SpellGroundZone } from "../../combat/spellGroundZone";
+import type { SpellGroundZone } from "../../combat/spellGroundZone";
 import { PLAYER_TUNING } from "../../config";
 import {
   spellAutoCastRequiresCombatTarget,

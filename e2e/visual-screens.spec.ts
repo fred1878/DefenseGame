@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { expect, type Page, test } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 import { getTapTarget, tapCanvas, waitForTapTargets } from "./helpers/touch";
@@ -10,7 +11,8 @@ import { freezeGameLoop, installVisualDeterminism, waitFrames } from "./helpers/
  * and drawing over the footer.
  *
  * Determinism: fixed-seed Math.random, game loop frozen before capture, CSS
- * animations disabled. Baselines live in `visual-screens.spec.ts-snapshots/` and
+ * animations disabled, and fonts pinned to the bundled DejaVu Sans (e2e/fonts) so
+ * text renders the same on every Linux machine. Baselines live in `visual-screens.spec.ts-snapshots/` and
  * were generated on CI's runner (ubuntu-24.04, Chromium, software WebGL).
  * Update with: `npx playwright test e2e/visual-screens.spec.ts --update-snapshots`
  * (only after checking the diff is intended).
@@ -30,6 +32,16 @@ const SHOT = {
 };
 
 test.describe.configure({ mode: "parallel" });
+
+// This spec's browser resolves every font family to e2e/fonts/DejaVuSans.ttf.
+test.use({
+  launchOptions: {
+    env: {
+      ...process.env,
+      FONTCONFIG_FILE: fileURLToPath(new URL("./fonts/fonts.conf", import.meta.url)),
+    },
+  },
+});
 
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium", "Baselines are Chromium desktop (540×1200) only");

@@ -17,8 +17,7 @@ npm install
 npm run dev              # Vite, http://127.0.0.1:5173
 npm run verify           # typecheck + lint + knip + vitest (default agent check)
 npm run typecheck        # tsc: src, e2e, configs
-npm run lint             # Biome, errors only (CI gate)
-npm run lint:all         # Biome incl. warnings
+npm run lint             # Biome; warnings fail too (CI gate)
 npm run knip             # unused files/exports/deps (CI gate)
 npm run format           # Biome formatter (not enforced; avoid repo-wide churn)
 npm run test             # Vitest only

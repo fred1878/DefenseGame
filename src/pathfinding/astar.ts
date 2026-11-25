@@ -113,6 +113,7 @@ export function findPath(
         }
       }
       const neighbor = nr * grid.cols + nc;
+      // biome-ignore lint/suspicious/noApproximativeNumericConstant: keep the historical diagonal cost; Math.SQRT2 would change tie-breaks and enemy paths
       const stepCost = dc !== 0 && dr !== 0 ? 1.414 : 1;
         const gCur = gScore[current] ?? Infinity;
         const tentative = gCur + stepCost;

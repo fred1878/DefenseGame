@@ -4,7 +4,7 @@ import path from "node:path";
 export default defineConfig({
   resolve: {
     alias: {
-      phaser: path.resolve(__dirname, "src/test/phaserStub.ts"),
+      phaser: path.resolve(import.meta.dirname, "src/test/phaserStub.ts"),
     },
   },
   test: {
@@ -22,11 +22,14 @@ export default defineConfig({
         "src/scenes/**",
         "src/world/**",
       ],
+      // Re-baselined for Vitest 5: its v8 provider maps coverage through the
+      // AST (Vitest 2 counted per source line), so the same tests report lower
+      // numbers. Keep these just under the actual totals.
       thresholds: {
-        lines: 62,
-        functions: 75,
-        branches: 77,
-        statements: 62,
+        lines: 60,
+        functions: 58,
+        branches: 54,
+        statements: 58,
       },
     },
   },

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { ECONOMY_AUDIO } from "../config/audio";
 
 export const COIN_SPEND_SFX_KEY = "sfx_coin_spend_01";

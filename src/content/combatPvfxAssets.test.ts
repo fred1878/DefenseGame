@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
 import {
   projectileTextureRotationOffset,

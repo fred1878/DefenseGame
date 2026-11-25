@@ -46,20 +46,20 @@ export function attachE2EGame(game: Phaser.Game): void {
     }
     if (key === "Defense") {
       const defense = game.scene.getScene("Defense") as DefenseScene | null;
-      if (defense?.scene.isActive() && defense.e2eIsReady()) {
-        patch.player = defense.e2ePlayerPosition();
+      if (defense?.scene.isActive() && defense.e2e.isReady()) {
+        patch.player = defense.e2e.playerPosition();
         patch.flags = {
-          attackPhase: defense.e2eAttackPhase(),
-          projectileCount: defense.e2eProjectileCount(),
-          enemyCount: defense.e2eEnemyCount(),
-          endlessMode: defense.e2eIsEndlessMode(),
-          endlessEnemyId: defense.e2eEndlessEnemyId() ?? "",
-          nightEnded: defense.e2eNightEnded(),
-          hasReturnButton: defense.e2eHasReturnButton(),
-          defenseWallHp: defense.e2eWallHp(),
-          autoAttackOn: defense.e2eAutoAttackEnabled(),
+          attackPhase: defense.e2e.attackPhase(),
+          projectileCount: defense.e2e.projectileCount(),
+          enemyCount: defense.e2e.enemyCount(),
+          endlessMode: defense.e2e.isEndlessMode(),
+          endlessEnemyId: defense.e2e.endlessEnemyId() ?? "",
+          nightEnded: defense.e2e.nightEnded(),
+          hasReturnButton: defense.e2e.hasReturnButton(),
+          defenseWallHp: defense.e2e.wallHp(),
+          autoAttackOn: defense.e2e.autoAttackEnabled(),
         };
-        positionDomMirrors(defense.e2eGetUiTapTargets());
+        positionDomMirrors(defense.e2e.getUiTapTargets());
       }
     }
     publishE2E(patch);

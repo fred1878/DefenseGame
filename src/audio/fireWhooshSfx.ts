@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { COMBAT_AUDIO } from "../config/audio";
 import type { SpellDefinition } from "../content/spells";
 

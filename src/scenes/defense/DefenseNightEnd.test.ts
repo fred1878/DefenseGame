@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { DEFENSE_RUN_MODE_KEY } from "../../core/defenseRunMode";
 import {
   scheduleAfterPointerHandler,

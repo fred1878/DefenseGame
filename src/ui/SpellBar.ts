@@ -6,7 +6,7 @@ import { spellGroundTapAutoCasts } from "../content/spellGroundTapCast";
 import { spellUsesManualGroundAim } from "../content/spellTargeting";
 import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../core/displayScale";
-import { SpellCastController } from "../combat/SpellCastController";
+import type { SpellCastController } from "../combat/SpellCastController";
 import {
   bindTapOrLongPress,
   createTouchButton,

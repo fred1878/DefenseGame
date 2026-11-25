@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { ScreenRect } from "../input/VirtualStick";
 import type { VirtualStick } from "../input/VirtualStick";
 import { interactiveObjectScreenRect } from "../ui/touchButton";

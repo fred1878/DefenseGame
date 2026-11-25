@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /**
  * Fullscreen must be entered from a user gesture (use pointerup on buttons — not autoplay).

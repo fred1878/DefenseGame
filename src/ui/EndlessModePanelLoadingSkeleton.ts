@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { INPUT_MODALITY } from "../input/inputModality";

@@ -92,7 +92,7 @@ npm run build        # tsc + production bundle → dist/
 npm run preview      # serve dist locally
 npm run verify       # typecheck + Biome lint + knip + Vitest (default check)
 npm run typecheck    # src, e2e, configs
-npm run lint         # Biome (errors); lint:all shows warnings
+npm run lint         # Biome; any warning fails
 npm run knip         # dead files/exports/deps
 npm run test         # Vitest (src/**/*.test.ts)
 npm run test:coverage

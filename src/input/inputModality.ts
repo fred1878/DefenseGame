@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** Emitted on a scene when the modality stack changes (push/pop). */
 export const INPUT_MODALITY_CHANGED = "input-modality-changed";

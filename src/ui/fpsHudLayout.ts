@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { defenseMinimapLayout } from "./defenseMinimap";
-import { type SafeInsets } from "./screenLayoutCore";
+import type { SafeInsets } from "./screenLayoutCore";
 
 /** Screen position for the FPS overlay — below minimap (Defense) or header row (Town). */
 export function fpsDebugOverlayPosition(

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 
 const FILL = 0xff3333;
