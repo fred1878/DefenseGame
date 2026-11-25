@@ -13,19 +13,19 @@
         "hitRangeWu": 34
       },
       "melee": {
-        "triggerRangeWu": 78,
-        "rangeWu": 72,
+        "triggerRangeWu": 72,
+        "rangeWu": 68,
         "meleeChaseStandoffWu": 4,
         "arcDeg": 70,
-        "windupMs": 100,
-        "activeMs": 110,
+        "windupMs": 160,
+        "activeMs": 150,
         "recoveryMs": 300,
         "cooldownMs": 350,
-        "fxStartMs": 100,
-        "fxDurationMs": 750,
+        "fxStartMs": 80,
+        "fxDurationMs": 450,
         "vfxDisplayW": 112,
         "vfxDisplayH": 112,
-        "vfxOffsetWu": 21
+        "vfxOffsetWu": 24
       }
     },
     "weight": 100,
@@ -54,7 +54,7 @@
         "activeMs": 130,
         "recoveryMs": 600,
         "cooldownMs": 520,
-        "fxStartMs": 480,
+        "fxStartMs": 400,
         "fxDurationMs": 720,
         "vfxDisplayW": 72,
         "vfxDisplayH": 58,
@@ -119,8 +119,8 @@
         "activeMs": 80,
         "recoveryMs": 120,
         "cooldownMs": 180,
-        "fxStartMs": 150,
-        "fxDurationMs": 600,
+        "fxStartMs": 70,
+        "fxDurationMs": 300,
         "vfxDisplayW": 78,
         "vfxDisplayH": 28,
         "vfxOffsetWu": 26
@@ -214,7 +214,7 @@
         "activeMs": 140,
         "recoveryMs": 620,
         "cooldownMs": 480,
-        "fxStartMs": 520,
+        "fxStartMs": 400,
         "fxDurationMs": 900,
         "vfxDisplayW": 50,
         "vfxDisplayH": 34,
@@ -250,7 +250,7 @@
         "activeMs": 80,
         "recoveryMs": 340,
         "cooldownMs": 260,
-        "fxStartMs": 260,
+        "fxStartMs": 180,
         "fxDurationMs": 417,
         "vfxDisplayW": 48,
         "vfxDisplayH": 48,
@@ -284,9 +284,9 @@
         "arcDeg": 92,
         "windupMs": 360,
         "activeMs": 110,
-        "recoveryMs": 450,
+        "recoveryMs": 650,
         "cooldownMs": 480,
-        "fxStartMs": 360,
+        "fxStartMs": 330,
         "fxDurationMs": 840,
         "vfxDisplayW": 60,
         "vfxDisplayH": 36,
@@ -332,7 +332,7 @@
         "projectileSpeedWu": 160,
         "blastRadiusWu": 100,
         "blastDamageScale": 0.92,
-        "impactVfxBlastMul": 2.4
+        "impactVfxBlastMul": 3
       }
     },
     "weight": 110,
@@ -361,11 +361,11 @@
         "activeMs": 100,
         "recoveryMs": 50,
         "cooldownMs": 200,
-        "fxStartMs": 100,
-        "fxDurationMs": 1120,
+        "fxStartMs": 80,
+        "fxDurationMs": 280,
         "vfxDisplayW": 52,
         "vfxDisplayH": 50,
-        "vfxOffsetWu": 17
+        "vfxOffsetWu": 10
       },
       "stationaryRanged": {
         "damage": 10,
@@ -413,7 +413,7 @@
         "recoveryMs": 500,
         "cooldownMs": 360,
         "fxStartMs": 400,
-        "fxDurationMs": 960,
+        "fxDurationMs": 640,
         "vfxDisplayW": 44,
         "vfxDisplayH": 32,
         "vfxOffsetWu": 16
