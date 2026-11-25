@@ -420,8 +420,16 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
   label.setDepth(10_000);
   label.setOrigin(0.5, 0.5);
   scene.time.delayedCall(2200, () => label.destroy());
-  const activeMs = enemy?.combatTuning.melee?.activeMs ?? 220;
-  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, undefined, activeMs);
+  const melee = enemy?.combatTuning.melee;
+  const activeMs = melee?.activeMs ?? 220;
+  if (!melee) {
+    throw new Error(`E2E melee FX preview requires combat.melee on ${enemyDefId}`);
+  }
+  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, undefined, activeMs, {
+    vfxDisplayW: melee.vfxDisplayW,
+    vfxDisplayH: melee.vfxDisplayH,
+    vfxOffsetWu: melee.vfxOffsetWu,
+  });
   return { facingRad, spriteRotation, flipX: pose.flipX, offX, side };
 }
 
