@@ -156,7 +156,7 @@ CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=tru
 1. `gotoE2E(page)` — waits for Town + `ready`.
 2. Prefer `api` over raw canvas coordinates.
 3. Wait on `__DEFENSEGAME_E2E__` fields, not fixed `sleep`.
-4. Assert behavior, layout, or asset hooks — not full-page pixels.
+4. Assert behavior, layout, or asset hooks — not full-page pixels (the only exception is `visual-screens.spec.ts`, below).
 
 ## Local workflow
 
@@ -172,3 +172,24 @@ Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `
 ## Coverage notes
 
 Vitest thresholds apply to included `src/**` modules (scenes and Phaser boot stay excluded). `npm run test:coverage` enforces modest line/branch floors in CI.
+## Visual checks (screenshot baselines)
+
+`e2e/visual-screens.spec.ts` compares four screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):
+
+| Screenshot | State |
+|---|---|
+| `town` | Town after boot, fresh save |
+| `endless-panel-scrolled` | Endless panel with the roster scrolled 130 px (rows cut off at both list edges, so a missing clip mask shows) |
+| `wave-planner` | Wave planner opened from the Plague Clinic |
+| `defense-night-won` | Defense after the night is won (no enemies, HUD + return button) |
+
+Determinism (`e2e/helpers/visual.ts`): `Math.random` is a fixed-seed PRNG, Phaser's `requestAnimationFrame` loop is frozen before capture (e2e builds use `preserveDrawingBuffer`), and CSS animations are disabled. Fonts are pinned for this spec only: its browser gets `FONTCONFIG_FILE=e2e/fonts/fonts.conf`, which maps every family (the UI stack starts with `system-ui`) to the bundled DejaVu Sans, so text renders identically on any Linux machine. The e2e build id must be `e2e-local` (used by `npm run build:e2e` and CI) because the Town header prints it. Tolerance: per-pixel `threshold` 0.2 and at most 0.2% differing pixels; a roster-mask regression changes ~14%.
+
+Baselines were generated on CI's runner (ubuntu-24.04, software WebGL). If a change is intentional, regenerate and review the diff:
+
+```bash
+npm run build:e2e
+npx playwright test e2e/visual-screens.spec.ts --project=chromium --update-snapshots
+```
+
+If your local renderer differs from CI, take the `actual` PNGs from the failed CI run's `playwright-report` artifact instead.

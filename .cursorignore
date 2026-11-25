@@ -28,7 +28,7 @@ public/assets/**/*.wav
 public/assets/**/*.ogg
 public/assets/**/*.webm
 
-# Generated custom Phaser build (6.36 MB).
+# Generated custom Phaser build (~5.8 MB).
 # Leave vendor/phaser-trim/ and vendor/phaser-defense.manifest.json readable.
 vendor/phaser-defense.js
 

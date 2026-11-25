@@ -1,9 +1,14 @@
 {
   "phaserVersion": "3.90.0",
-  "builtAt": "2026-11-24T09:00:27.932Z",
-  "bytes": 6358906,
+  "builtAt": "2026-11-25T19:58:04.512Z",
+  "bytes": 5845393,
   "entry": "vendor/phaser-trim/phaser-defense-entry.js",
   "trims": [
-    "vendor/phaser-trim/gameobjects-index.js"
+    "physics: arcade-only (entry)",
+    "tilemaps: removed from entry (no Phaser.Tilemaps namespace)",
+    "gameobjects: trimmed index (see vendor/phaser-trim/gameobjects-index.js)",
+    "loader: no Tilemap file types (see vendor/phaser-trim/loader-filetypes-index.js)",
+    "vendor/phaser-trim/gameobjects-index.js",
+    "vendor/phaser-trim/loader-filetypes-index.js"
   ]
 }

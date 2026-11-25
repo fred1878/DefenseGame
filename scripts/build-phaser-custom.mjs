@@ -23,6 +23,10 @@ const PHASER_OVERLAYS = [
     target: path.join(phaserSrc, "gameobjects/index.js"),
     overlay: path.join(trimDir, "gameobjects-index.js"),
   },
+  {
+    target: path.join(phaserSrc, "loader/filetypes/index.js"),
+    overlay: path.join(trimDir, "loader-filetypes-index.js"),
+  },
 ];
 
 function readPhaserVersion() {
@@ -97,7 +101,9 @@ async function main() {
     entry: "vendor/phaser-trim/phaser-defense-entry.js",
     trims: [
       "physics: arcade-only (entry)",
+      "tilemaps: removed from entry (no Phaser.Tilemaps namespace)",
       "gameobjects: trimmed index (see vendor/phaser-trim/gameobjects-index.js)",
+      "loader: no Tilemap file types (see vendor/phaser-trim/loader-filetypes-index.js)",
       ...PHASER_OVERLAYS.map((o) => path.relative(repoRoot, o.overlay)),
     ],
   };

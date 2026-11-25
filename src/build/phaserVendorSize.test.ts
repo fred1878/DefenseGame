@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
  * Fast guard on the committed vendor UMD (production phaser chunk tracks this within ~5%).
  * Baseline gzip bytes — update when rebuilding vendor/phaser-defense.js on purpose.
  */
-const VENDOR_BASELINE_GZIP = 990_920;
+const VENDOR_BASELINE_GZIP = 915_464;
 const MAX_REGRESSION_RATIO = 1.05;
 
 describe("phaser custom vendor bundle", () => {
