@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { testChargerCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { spawnChargerChargeStartSmokeFx } from "../../combat/ChargerChargeSmokeFx";
+
+vi.mock("../../combat/ChargerChargeSmokeFx", () => ({
+  spawnChargerChargeStartSmokeFx: vi.fn(),
+}));
+
 import { chargerBehavior } from "./charger";
 
 describe("chargerBehavior", () => {
@@ -37,6 +43,7 @@ describe("chargerBehavior", () => {
   });
 
   it("starts dash windup when player is in trigger range", () => {
+    vi.mocked(spawnChargerChargeStartSmokeFx).mockClear();
     const enemy = mockEnemyInstance({
       behavior: "charger",
       sprite: {
@@ -64,6 +71,42 @@ describe("chargerBehavior", () => {
       testChargerCombat.dashTriggerRangeWu - 20,
     );
     expect(enemy.behaviorExtra.chargeAimY).toBe(0);
+    expect(spawnChargerChargeStartSmokeFx).toHaveBeenCalledWith(
+      enemy.sprite.scene,
+      0,
+      0,
+      false,
+    );
+  });
+
+  it("spawns charge smoke with flipX when player is left of charger", () => {
+    vi.mocked(spawnChargerChargeStartSmokeFx).mockClear();
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      sprite: {
+        x: 100,
+        y: 50,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as unknown as import("../../entities/Enemy").EnemyInstance["sprite"],
+    });
+    enemy.combatTuning.charger = testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeCooldownMs = 0;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 20,
+      playerY: 50,
+      deltaMs: 16,
+    });
+    expect(spawnChargerChargeStartSmokeFx).toHaveBeenCalledWith(
+      enemy.sprite.scene,
+      100,
+      50,
+      true,
+    );
   });
 
   it("dashes in a fixed direction past the windup aim point", () => {

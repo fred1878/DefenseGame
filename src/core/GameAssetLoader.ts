@@ -36,6 +36,11 @@ import {
   MELEE_FX_ROOT,
   registerMeleeFxAnimations,
 } from "../content/meleeFxAssets";
+import {
+  SMOKE_FX_ASSETS,
+  SMOKE_FX_ROOT,
+  registerSmokeFxAnimations,
+} from "../content/smokeFxAssets";
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
@@ -132,6 +137,12 @@ export function queueDefenseBootAssets(
       frameHeight: entry.frameHeight,
     });
   }
+  for (const entry of SMOKE_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${SMOKE_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
 }
 
 function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {
@@ -139,6 +150,7 @@ function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {
   registerIceFxAnimations(scene);
   registerCombatPvfxAnimations(scene);
   registerMeleeFxAnimations(scene);
+  registerSmokeFxAnimations(scene);
 }
 
 export function runQueuedLoader(
