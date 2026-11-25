@@ -145,4 +145,150 @@ describe("normalizeSpellCatalog", () => {
       }),
     ).toThrow(ConfigLoadError);
   });
+
+  it("rejects a missing file, blank ids, and unknown flavors", () => {
+    expect(() => normalizeSpellCatalog(null)).toThrow(/non-empty spells/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [spellRow({ id: "", mechanicType: "heal" })],
+      }),
+    ).toThrow(/Missing string/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [
+          spellRow({
+            id: "x",
+            mechanicType: "" as never,
+          }),
+        ],
+      }),
+    ).toThrow(/mechanicType/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [
+          spellRow({
+            id: "x",
+            mechanicType: "heal",
+            damageFlavor: "not-a-flavor" as never,
+          }),
+        ],
+      }),
+    ).toThrow(/damageFlavor/);
+  });
+
+  it("requires per-mechanic fields and rejects unknown types", () => {
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [spellRow({ id: "c", mechanicType: "cone" })],
+      }),
+    ).toThrow(/coneRangeWu/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [spellRow({ id: "iw", mechanicType: "ice_wall" })],
+      }),
+    ).toThrow(/iceWallDistanceWu/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [spellRow({ id: "area", mechanicType: "channeled_area" })],
+      }),
+    ).toThrow(/blastRadiusWu/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [
+          spellRow({
+            id: "boom",
+            mechanicType: "projectile_aoe",
+            knockbackWu: 10,
+          }),
+        ],
+      }),
+    ).toThrow(/blastKnockbackWu/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [
+          spellRow({
+            id: "mystery",
+            mechanicType: "not_real" as never,
+          }),
+        ],
+      }),
+    ).toThrow(/unsupported spell mechanicType/);
+  });
+
+  it("validates shadowform bounds and catalog helpers", () => {
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [
+          spellRow({
+            id: "shadowform",
+            mechanicType: "buff",
+            shadowformDurationMs: 1000,
+            shadowformMoveSpeedMult: 0,
+            shadowformDamageTakenMult: 0.5,
+            shadowformAggroRadiusMult: 0.5,
+          }),
+        ],
+      }),
+    ).toThrow(/shadowformMoveSpeedMult/);
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [
+          spellRow({
+            id: "shadowform",
+            mechanicType: "buff",
+            shadowformDurationMs: 1000,
+            shadowformMoveSpeedMult: 1,
+            shadowformDamageTakenMult: 0.5,
+            shadowformAggroRadiusMult: 1.2,
+          }),
+        ],
+      }),
+    ).toThrow(/shadowformAggroRadiusMult/);
+    expect(() => shadowformMechanicsFromCatalog([])).toThrow(
+      /shadowform spell/,
+    );
+    expect(() =>
+      shadowformMechanicsFromCatalog([
+        spellRow({ id: "shadowform", mechanicType: "buff" }),
+      ]),
+    ).toThrow(/missing shadowformMoveSpeedMult/);
+  });
+
+  it("accepts tracking, cone, and instant-targeted knockback variants", () => {
+    const rows = normalizeSpellCatalog({
+      spells: [
+        spellRow({
+          id: "bolt",
+          mechanicType: "tracking_projectile",
+          knockbackWu: 12,
+        }),
+        spellRow({
+          id: "cone",
+          mechanicType: "cone",
+          coneRangeWu: 40,
+          coneArcDeg: 50,
+          knockbackWu: 8,
+        }),
+        spellRow({
+          id: "mark",
+          mechanicType: "instant_targeted",
+          knockbackWu: 9,
+        }),
+        spellRow({
+          id: "burst",
+          mechanicType: "instant_targeted",
+          knockbackWu: 9,
+          blastRadiusWu: 30,
+          blastKnockbackWu: 15,
+          burstDamage: 4,
+        }),
+        spellRow({
+          id: "pool",
+          mechanicType: "channeled_area",
+          blastRadiusWu: 40,
+        }),
+      ],
+    });
+    expect(rows).toHaveLength(5);
+  });
 });

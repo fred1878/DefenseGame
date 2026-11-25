@@ -130,4 +130,188 @@ describe("javelineerBehavior", () => {
     });
     expect(enemy.behaviorExtra.strafeSign).toBe(-1);
   });
+
+  it("flips strafe sign from left back to right when the timer elapses", () => {
+    const enemy = mockJavelineer(0, 0);
+    enemy.behaviorExtra.strafeSign = -1;
+    enemy.behaviorExtra.strafeFlipMs = 8;
+    const band =
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: band,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.strafeSign).toBe(1);
+  });
+
+  it("defaults the orbit flip interval when the tune is omitted", () => {
+    const enemy = mockJavelineer(0, 0);
+    const { orbitFlipMs: _omit, ...rest } = enemy.combatTuning.javelineer!;
+    void _omit;
+    enemy.combatTuning = {
+      ...enemy.combatTuning,
+      javelineer: rest,
+    } as typeof enemy.combatTuning;
+    enemy.behaviorExtra.strafeFlipMs = 0;
+    const band =
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: band,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.strafeFlipMs).toBe(1400);
+  });
+
+  it("nudges slightly outward when a bit closer than ideal inside slack", () => {
+    const enemy = mockJavelineer(0, 0);
+    const ideal =
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: ideal - 16,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("nudges slightly inward when a bit farther than ideal inside slack", () => {
+    const enemy = mockJavelineer(0, 0);
+    const ideal =
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: ideal + 16,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("retreats while still inside the kite band when well inside ideal", () => {
+    const enemy = mockJavelineer(0, 0);
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: testJavelineerCombat.minRangeWu + 20,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("approaches along a path when the player is beyond max range", () => {
+    const enemy = mockJavelineer(0, 0);
+    enemy.nav.replanMs = 0;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: testJavelineerCombat.maxRangeWu + 80,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("keeps moving when stacked on the player (zero separation)", () => {
+    const enemy = mockJavelineer(0, 0);
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 0,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("stops strafing when both tangent probes leave the map", () => {
+    const enemy = mockJavelineer(20_000, 0);
+    const band =
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: 20_000 + band,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("chases the resolved goal when javelineer combat is untuned", () => {
+    const enemy = mockJavelineer(0, 200);
+    enemy.nav.replanMs = 0;
+    delete (enemy.combatTuning as { javelineer?: unknown }).javelineer;
+    javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: 40,
+      playerY: 200,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("retreats from the wall when targeting it from too close", () => {
+    const enemy = mockJavelineer(0, -400);
+    enemy.nav.replanMs = 0;
+    const result = javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: 10_000,
+      playerY: 10_000,
+      deltaMs: 16,
+    });
+    expect(result.targetKind).toBe("wall");
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("approaches the wall when targeting it from beyond max range", () => {
+    const enemy = mockJavelineer(0, 400);
+    enemy.nav.replanMs = 0;
+    const result = javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: 10_000,
+      playerY: 10_000,
+      deltaMs: 16,
+    });
+    expect(result.targetKind).toBe("wall");
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
+
+  it("strafes sideways when holding the wall at band range", () => {
+    const enemy = mockJavelineer(0, -200);
+    enemy.nav.replanMs = 0;
+    const result = javelineerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: 10_000,
+      playerY: 10_000,
+      deltaMs: 16,
+    });
+    expect(result.targetKind).toBe("wall");
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+  });
 });

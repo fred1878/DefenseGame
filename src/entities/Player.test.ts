@@ -94,3 +94,67 @@ describe("Player melee swing hitbox", () => {
     expect(player.meleeHitboxFacingRad()).toBeCloseTo(0);
   });
 });
+
+describe("Player attack mode and phases", () => {
+  it("exposes mode getters and cycles melee → ranged → auto", () => {
+    const player = mockPlayer();
+    expect(player.attackPhaseNow).toBe("idle");
+    expect(player.mode).toBe("melee");
+    expect(player.canAttack()).toBe(true);
+    expect(player.cycleAttackMode()).toBe("ranged");
+    expect(player.mode).toBe("ranged");
+    expect(player.toggleAttackMode()).toBe("auto");
+    expect(player.strikeMode()).toBe("ranged");
+    expect(player.cycleAttackMode()).toBe("melee");
+    player.setAttackMode("auto");
+    expect(player.mode).toBe("auto");
+  });
+
+  it("roots the player during ranged windup and recovery", () => {
+    const player = mockPlayer();
+    player.setAttackMode("ranged");
+    player.tryStartAttack("ranged");
+    player.setVelocityFromStick(1, 0, 200);
+    const sprite = player.sprite as unknown as {
+      setVelocity: ReturnType<typeof vi.fn>;
+    };
+    expect(sprite.setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("resets facing texture when the stick is released", () => {
+    const player = mockPlayer();
+    player.setVelocityFromStick(0, 0, 0);
+    expect(player.getFacingAngle()).toBeTypeOf("number");
+  });
+
+  it("walks windup/active/recovery and consumes a ranged shot once", () => {
+    const player = mockPlayer();
+    player.setAttackMode("ranged");
+    expect(player.consumeRangedShot()).toBe(false);
+    expect(player.tryStartAttack("ranged")).toBe(true);
+    expect(player.tryStartAttack("ranged")).toBe(false);
+    player.updateAttack(PLAYER_TUNING.rangedWindupMs);
+    expect(player.attackPhaseNow).toBe("active");
+    expect(player.consumeRangedShot()).toBe(true);
+    expect(player.consumeRangedShot()).toBe(false);
+    player.updateAttack(PLAYER_TUNING.rangedActiveMs);
+    expect(player.attackPhaseNow).toBe("recovery");
+    player.updateAttack(PLAYER_TUNING.rangedRecoveryMs);
+    expect(player.attackPhaseNow).toBe("idle");
+    expect(player.canAttack()).toBe(true);
+  });
+
+  it("uses locked melee swing facing until the strike ends", () => {
+    const player = mockPlayer();
+    player.faceToward(100, 0);
+    player.tryStartAttack("melee");
+    const locked = player.meleeHitboxFacingRad();
+    player.setVelocityFromStick(0, 1, 0);
+    expect(player.meleeHitboxFacingRad()).toBe(locked);
+    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
+    player.updateAttack(PLAYER_TUNING.meleeActiveMs);
+    player.updateAttack(PLAYER_TUNING.meleeRecoveryMs);
+    expect(player.attackPhaseNow).toBe("idle");
+    expect(player.meleeHitboxFacingRad()).toBe(player.getFacingAngle());
+  });
+});

@@ -17,10 +17,12 @@ import {
   applyHealAmount,
   applyInstantTargeted,
   applyNova,
+  applySpellBlastAt,
   applySpellCone,
   applySpellSwing,
   spawnChanneledFireball,
   spawnSpellProjectile,
+  strikeSpellCone,
   type SpellEnemyTarget,
 } from "./SpellEffects";
 
@@ -591,5 +593,68 @@ describe("spawnSpellProjectile", () => {
       PVFX_TEXTURE.fireballFlight,
     );
     expect(p.pvfxFlightFx).toBeDefined();
+  });
+});
+
+describe("SpellEffects fallbacks", () => {
+  it("nova uses default damage, skips dead enemies, and can apply on-hit", () => {
+    const scene = fakeScene();
+    const live = target("live", 5, 0, 80);
+    const dead = target("dead", 5, 0, 0);
+    dead.damageable.alive = false;
+    const status = fakeStatus();
+    applyNova(
+      asScene(scene),
+      0,
+      0,
+      def({
+        blastRadiusWu: 40,
+        onHit: { stunMs: 200 },
+      }),
+      [live, dead],
+      1,
+      status,
+    );
+    expect(hp(live)).toBeLessThan(80);
+    expect(hp(dead)).toBe(0);
+    expect(status.applyStun).toHaveBeenCalled();
+  });
+
+  it("blast, swing, and cone skip corpses and default the damage", () => {
+    const scene = fakeScene();
+    const live = target("live", 8, 0, 60);
+    const dead = target("dead", 8, 0, 0);
+    dead.damageable.alive = false;
+    const status = fakeStatus();
+    applySpellBlastAt(
+      asScene(scene),
+      0,
+      0,
+      def({ blastRadiusWu: 40, onHit: { slowMs: 100 } }),
+      [live, dead],
+      1,
+      status,
+    );
+    applySpellSwing(
+      asScene(scene),
+      0,
+      0,
+      0,
+      def({ swingRangeWu: 40, swingArcDeg: 90 }),
+      [live, dead],
+      1,
+      status,
+    );
+    strikeSpellCone(
+      asScene(scene),
+      0,
+      0,
+      0,
+      def({ coneRangeWu: 40, coneArcDeg: 90, onHit: { rootMs: 100 } }),
+      [live, dead],
+      1,
+      status,
+    );
+    expect(hp(dead)).toBe(0);
   });
 });

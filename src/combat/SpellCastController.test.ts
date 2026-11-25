@@ -230,3 +230,32 @@ describe("SpellCastController", () => {
     expect(c.getCooldownRemaining("flash_heal")).toBe(def!.cooldownMs);
   });
 });
+
+describe("SpellCastController idle and reject paths", () => {
+  it("reports idle progress and phase when no spell is active", () => {
+    const c = new SpellCastController();
+    expect(c.getChannelProgress()).toBe(0);
+    expect(c.getCastPhase()).toBeNull();
+    expect(c.getActiveSpellId()).toBeNull();
+    expect(c.updateChannel(16, 0, 0).type).toBe("idle");
+  });
+
+  it("rejects a missing spell, a second begin, and a cooling-down spell", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("missing_spell_id" as never, "manual", 0, 0)).toBe(
+      false,
+    );
+    expect(c.tryBeginCast("fire_bolt", "manual", 1, 0)).toBe("windup");
+    expect(c.getCastPhase()).toBe("windup");
+    expect(c.tryBeginCast("heal", "manual", 0, 0)).toBe(false);
+    // Instant nova arms cooldown immediately.
+    const other = new SpellCastController();
+    const begun = other.tryBeginCast("fire_nova", "manual", 0, 0);
+    expect(begun).not.toBe(false);
+    expect(other.tryBeginCast("fire_nova", "manual", 0, 0)).toBe(false);
+    expect(other.getCooldownRemaining("fire_nova")).toBeGreaterThan(0);
+    other.tickCooldowns(other.getCooldownRemaining("fire_nova"));
+    expect(other.getCooldownRemaining("fire_nova")).toBe(0);
+    expect(other.getCooldownRemaining("never-cast" as never)).toBe(0);
+  });
+});
