@@ -40,7 +40,10 @@ import {
   ICE_FX_TEXTURE,
   assertIceCombatFxReady,
 } from "../content/iceFxAssets";
-import { attachIceBoltProjectileFx } from "./SpellIceBoltProjectileFx";
+import {
+  attachIceBoltProjectileFx,
+  playIceBoltHitFx,
+} from "./SpellIceBoltProjectileFx";
 import { attachPvfxProjectileFx } from "./SpellPvfxProjectileFx";
 import { PVFX_TEXTURE, spellProjectileTextureKey } from "../content/combatPvfxAssets";
 
@@ -265,7 +268,7 @@ export function applySpellCone(
   enemies: SpellEnemyTarget[],
   damageMult: number,
   status?: EnemySpellStatusMap,
-  opts?: { showFx?: boolean },
+  opts?: { showFx?: boolean; registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void },
 ): void {
   if (opts?.showFx !== false) {
     showSpellConeFx(
@@ -276,6 +279,15 @@ export function applySpellCone(
       def.coneRangeWu!,
       def.coneArcDeg!,
     );
+    if (def.id === "cone_of_cold") {
+      playIceBoltHitFx(
+        scene,
+        playerX,
+        playerY,
+        facingRad,
+        opts?.registerWorldDraw,
+      );
+    }
   }
   strikeSpellCone(scene, playerX, playerY, facingRad, def, enemies, damageMult, status);
 }

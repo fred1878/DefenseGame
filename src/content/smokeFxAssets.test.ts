@@ -25,6 +25,9 @@ describe("registerSmokeFxAnimations", () => {
 
     registerSmokeFxAnimations(scene);
 
-    expect(created).toEqual([SMOKE_FX_ANIM.chargeStart]);
+    expect(created).toEqual([
+      SMOKE_FX_ANIM.chargeStart,
+      SMOKE_FX_ANIM.lobImpact,
+    ]);
   });
 });

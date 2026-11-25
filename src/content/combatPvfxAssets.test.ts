@@ -39,6 +39,9 @@ describe("combatPvfxAssets", () => {
         PVFX_ANIM.arrowFlight,
         PVFX_ANIM.fireballFlight,
         PVFX_ANIM.lightningFlight,
+        PVFX_ANIM.critHit,
+        PVFX_ANIM.holyCast,
+        PVFX_ANIM.shadowCast,
       ]),
     );
   });

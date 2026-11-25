@@ -40,6 +40,7 @@ import { updateEnemyNameplate } from "../../ui/enemyNameplate";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../../content/assets";
 import { enemyProjectileTextureKey, PVFX_TEXTURE } from "../../content/combatPvfxAssets";
 import { attachPvfxProjectileFx } from "../../combat/SpellPvfxProjectileFx";
+import { playBruiserMeleeCritHitOnPlayerFx } from "../../combat/BruiserPlayerCritHitFx";
 
 export type DefenseEnemyTickHost = {
   scene: Phaser.Scene;
@@ -325,7 +326,17 @@ export function tickDefenseEnemies(
       }
     } else {
       const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
-      if (hitPlayer) playerHitDamage += e.damage;
+      if (hitPlayer) {
+        playerHitDamage += e.damage;
+        if (e.behavior === "bruiser" && attackTarget.kind === "player") {
+          playBruiserMeleeCritHitOnPlayerFx(
+            host.scene,
+            attackTarget.x,
+            attackTarget.y,
+            host.maskWorldObject,
+          );
+        }
+      }
     }
 
     if (

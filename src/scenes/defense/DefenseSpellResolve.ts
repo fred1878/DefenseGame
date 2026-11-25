@@ -20,7 +20,9 @@ import {
 } from "../../combat/FireNovaRingFx";
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
+import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
 import { playMeteorStrikeFx } from "../../combat/SpellMeteorStrikeFx";
+import { playShadowformCastFx } from "../../combat/ShadowformCastFx";
 import {
   DEFENSE_RENDER_DEPTH,
   defenseHalfHeight,
@@ -155,7 +157,9 @@ export function resolveDefenseSpellEffect(
       break;
     }
     case "cone":
-      applySpellCone(host.scene, px, py, angle, def, targets, mult, host.enemySpellStatus);
+      applySpellCone(host.scene, px, py, angle, def, targets, mult, host.enemySpellStatus, {
+        registerWorldDraw: host.maskWorldObject,
+      });
       break;
     case "channeled_cone":
     case "channeled":
@@ -203,6 +207,9 @@ export function resolveDefenseSpellEffect(
     case "buff":
       if (def.shadowformDurationMs != null) {
         host.shadowformEndsAt = host.timeNow() + def.shadowformDurationMs;
+        if (def.id === "shadowform") {
+          playShadowformCastFx(host.scene, px, py, host.maskWorldObject);
+        }
       }
       break;
     case "ice_wall":
@@ -329,6 +336,12 @@ export function tickDefenseIceWalls(host: DefenseSpellDirectorHost): void {
   const now = host.timeNow();
   host.iceWallExpires = host.iceWallExpires.filter((entry) => {
     if (entry.expiresAt > now) return true;
+    playIceWallSegmentEndFx(
+      host.scene,
+      entry.sprite.x,
+      entry.sprite.y,
+      host.maskWorldObject,
+    );
     host.obstacleGroup.remove(entry.sprite, true, true);
     return false;
   });
