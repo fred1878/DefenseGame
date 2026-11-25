@@ -234,17 +234,29 @@ export class DefenseSpellDirector {
    * Returns false when no valid target exists for spells that need one.
    */
   prepareManualCastTargeting(def: SpellDefinition): boolean {
-    const needsLivingTarget =
-      spellAutoCastRequiresCombatTarget(def) ||
-      (def.requireEnemyTarget === true && spellTargetMode(def) === "enemy");
-    if (!needsLivingTarget) return true;
+    const mode = spellTargetMode(def);
     const target = this.autoCastCombatTarget(def);
-    if (!target) return false;
-    if (spellTargetMode(def) === "enemy" && !this.host.targeting.focusEnemyId) {
+
+    if (def.requireEnemyTarget === true && mode === "enemy") {
+      if (!this.host.targeting.focusEnemyId && !target) return false;
+      if (!this.host.targeting.focusEnemyId && target) {
+        this.host.targeting.setFocusEnemy(target.id);
+        this.host.player.faceToward(target.x, target.y);
+      }
+      return true;
+    }
+
+    if (spellGroundTapAutoCasts(def.id) && mode === "ground") {
+      if (!target) return false;
+      this.host.groundAim = this.autoCastGroundTarget(def);
+      return true;
+    }
+
+    if (target && mode === "enemy" && !this.host.targeting.focusEnemyId) {
       this.host.targeting.setFocusEnemy(target.id);
       this.host.player.faceToward(target.x, target.y);
     }
-    if (spellTargetMode(def) === "ground") {
+    if (target && mode === "ground" && !this.host.groundAim) {
       this.host.groundAim = this.autoCastGroundTarget(def);
     }
     return true;

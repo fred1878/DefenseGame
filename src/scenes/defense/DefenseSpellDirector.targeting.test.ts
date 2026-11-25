@@ -119,6 +119,25 @@ describe("DefenseSpellDirector manual targeting", () => {
     expect(director.prepareManualCastTargeting(deepFreezeDef)).toBe(false);
   });
 
+  it("allows fire_bolt with no enemies present", () => {
+    const director = new DefenseSpellDirector(
+      makeHost({ enemies: [], enemyTargets: () => [] }),
+    );
+    expect(
+      director.prepareManualCastTargeting({
+        id: "fire_bolt",
+        name: "Fire Bolt",
+        shortLabel: "Fire",
+        mechanicType: "projectile",
+        castableInDefense: true,
+        implementationPhase: 1,
+        cooldownMs: 0,
+        channelMs: 0,
+        iconFile: "fire_bolt.png",
+      }),
+    ).toBe(true);
+  });
+
   it("tap-casts blizzard without entering pending ground aim", () => {
     const h = makeHost();
     const director = new DefenseSpellDirector(h);
