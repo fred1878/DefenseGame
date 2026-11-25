@@ -16,6 +16,7 @@ import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { ICE_FX_ASSETS } from "../content/iceFxAssets";
 import { PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
 import { MELEE_FX_ASSETS } from "../content/meleeFxAssets";
+import { SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
@@ -39,6 +40,7 @@ export function configurePixelArtTextures(scene: Phaser.Scene): void {
     ...ICE_FX_ASSETS.map((a) => a.key),
     ...PVFX_FX_ASSETS.map((a) => a.key),
     ...MELEE_FX_ASSETS.map((a) => a.key),
+    ...SMOKE_FX_ASSETS.map((a) => a.key),
   ];
   for (const key of keys) {
     if (!scene.textures.exists(key)) continue;
