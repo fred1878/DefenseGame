@@ -420,3 +420,45 @@ describe("DataStore.loadAll", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("DataStore wave lookup and prefetch", () => {
+  it("picks the latest wave at or below the night, ignoring non-numeric keys", () => {
+    const store = new DataStore();
+    store.waves = {
+      x: { rewardGold: 1, groups: [] },
+      "2": {
+        rewardGold: 2,
+        groups: [{ enemyId: "grunt", count: 1, atMs: 0, intervalMs: 0 }],
+      },
+      "5": { rewardGold: 5, groups: [] },
+    };
+    expect(store.getWaveForNight(2)?.rewardGold).toBe(2);
+    expect(store.getWaveForNight(4)?.rewardGold).toBe(2);
+    expect(store.getWaveForNight(9)?.rewardGold).toBe(5);
+    expect(store.getWaveForNight(1)?.rewardGold).toBeUndefined();
+  });
+
+  it("dedupes defense data loads and retries after a failure", async () => {
+    const store = new DataStore();
+    let calls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        calls += 1;
+        return new Response("nope", { status: 500 });
+      }),
+    );
+    const first = store.ensureDefenseDataLoaded("/data/");
+    const second = store.ensureDefenseDataLoaded("/data/");
+    expect(first).toBe(second);
+    await expect(first).rejects.toThrow(/Failed to load/);
+    expect(calls).toBeGreaterThan(0);
+
+    // After failure the promise is cleared; a ready store short-circuits.
+    store.defenseDataReady = true;
+    await expect(store.ensureDefenseDataLoaded()).resolves.toBeUndefined();
+    store.resetDefenseDataForTests();
+    expect(store.defenseDataReady).toBe(false);
+    vi.unstubAllGlobals();
+  });
+});

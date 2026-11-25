@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { scaleUiX } from "../core/displayScale";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
+import { asScene, fakeScene } from "../test/fakeScene";
 import {
+  spawnTownBuildingControls,
   townBuildingFootprintHitArea,
   townBuildingLabelWrapWidth,
 } from "./TownBuildings";
@@ -61,5 +63,76 @@ describe("town building footprints", () => {
     expect(defs[layout.slots[0]!.buildingId]?.textureKey).toBe(
       "town_market_stall_daylit",
     );
+  });
+});
+
+describe("spawnTownBuildingControls", () => {
+  const market: TownBuildingDef = {
+    label: "Market",
+    textureKey: "town_market_stall",
+    width: 112,
+    height: 72,
+  };
+  const beacon: TownBuildingDef = {
+    label: "Beacon",
+    textureKey: "town_beacon",
+    width: 80,
+    height: 112,
+    startsNight: true,
+  };
+
+  it("skips unknown and missing-texture buildings and warns", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const scene = fakeScene({ textures: ["town_market_stall"] });
+    const onTap = vi.fn();
+    const controls = spawnTownBuildingControls(
+      asScene(scene),
+      { market, beacon },
+      {
+        buildingDisplayScale: 2,
+        slots: [
+          { buildingId: "missing", x: 0, y: 0 },
+          { buildingId: "beacon", x: 10, y: 20 },
+          { buildingId: "market", x: 40, y: 80 },
+        ],
+      },
+      {
+        labelFor: (def) => def.label,
+        onTap,
+      },
+    );
+    expect(controls).toHaveLength(1);
+    expect(controls[0]!.buildingId).toBe("market");
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+
+    const { x, y } = controls[0]!.spriteCenter();
+    expect(x).toBe(40);
+    expect(y).toBe(80 - 72);
+    controls[0]!.setLabel("Shop");
+    controls[0]!.setInputEnabled(false);
+    controls[0]!.setInputEnabled(true);
+  });
+
+  it("uses the start-night test id for night-starting buildings", () => {
+    const scene = fakeScene({ textures: ["town_beacon"] });
+    const controls = spawnTownBuildingControls(
+      asScene(scene),
+      { beacon },
+      {
+        buildingDisplayScale: 1,
+        slots: [{ buildingId: "beacon", x: 0, y: 0 }],
+      },
+      {
+        depth: 30,
+        labelFor: (def) => def.label,
+        onTap: vi.fn(),
+      },
+    );
+    expect(controls).toHaveLength(1);
+    const container = controls[0]!.container as unknown as {
+      last: (method: string) => unknown[] | undefined;
+    };
+    expect(container.last("setData")).toEqual(["testid", "start-night"]);
   });
 });

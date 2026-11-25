@@ -109,3 +109,28 @@ describe("enemyMeleeFxTransform", () => {
     expect(enemyMeleeFxRotation(Math.PI, spec)).not.toBeCloseTo(slashRot);
   });
 });
+
+it("skips registration when textures are missing or the anim already exists", () => {
+  const create = vi.fn();
+  const missing = {
+    textures: { exists: () => false },
+    anims: {
+      exists: () => false,
+      create,
+      generateFrameNumbers: vi.fn(),
+    },
+  } as unknown as Phaser.Scene;
+  registerMeleeFxAnimations(missing);
+  expect(create).not.toHaveBeenCalled();
+
+  const already = {
+    textures: { exists: () => true },
+    anims: {
+      exists: () => true,
+      create,
+      generateFrameNumbers: vi.fn(),
+    },
+  } as unknown as Phaser.Scene;
+  registerMeleeFxAnimations(already);
+  expect(create).not.toHaveBeenCalled();
+});

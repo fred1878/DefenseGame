@@ -14,6 +14,8 @@ import {
   loadSave,
   playerDamageMult,
   prepareDefenseNight,
+  persistSave,
+  resetSaveAndReload,
   wallHpBonusFromBuildings,
 } from "./GameState";
 
@@ -138,5 +140,98 @@ describe("GameState", () => {
     const ready = prepareDefenseNight(save);
     expect(ready.townWallHp).toBe(72);
     expect(ready.player.hp).toBe(1);
+  });
+});
+
+describe("GameState save persistence", () => {
+  it("returns a new save when storage is missing, invalid, or corrupt", () => {
+    vi.stubGlobal("localStorage", undefined);
+    expect(loadSave().night).toBe(1);
+
+    const items = new Map<string, string>();
+    const key = saveStorageKey();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => items.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        items.set(k, v);
+      },
+      removeItem: (k: string) => {
+        items.delete(k);
+      },
+    });
+    items.set(
+      key,
+      JSON.stringify({ version: SAVE_VERSION + 1, save: createNewSave() }),
+    );
+    expect(loadSave().gold).toBe(0);
+    items.set(key, "{not-json");
+    expect(loadSave().night).toBe(1);
+    items.set(key, JSON.stringify({ version: SAVE_VERSION }));
+    expect(loadSave().night).toBe(1);
+    vi.unstubAllGlobals();
+  });
+
+  it("migrates a 3-slot legacy bar, remapping old spell ids", () => {
+    const key = saveStorageKey();
+    const items = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => items.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        items.set(k, v);
+      },
+      removeItem: (k: string) => {
+        items.delete(k);
+      },
+    });
+    const base = createNewSave();
+    items.set(
+      key,
+      JSON.stringify({
+        version: SAVE_VERSION,
+        save: {
+          ...base,
+          spellBar: {
+            slots: ["nova", "fireball", "heal"],
+            autoCastSpellIds: [],
+          },
+        },
+      }),
+    );
+    const loaded = loadSave();
+    expect(loaded.spellBar.slots[0]).toBe("fire_nova");
+    expect(loaded.spellBar.slots[1]).toBe("fire_bolt");
+    expect(loaded.spellBar.slots[2]).toBe("heal");
+    expect(loaded.spellBar.slots).toHaveLength(SPELL_BAR.slotCount);
+    persistSave(loaded);
+    expect(items.get(key)).toContain("fire_nova");
+    vi.unstubAllGlobals();
+  });
+
+  it("clears the save and reloads with a fresh query", () => {
+    const items = new Map<string, string>([[saveStorageKey(), "x"]]);
+    const replace = vi.fn();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => items.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        items.set(k, v);
+      },
+      removeItem: (k: string) => {
+        items.delete(k);
+      },
+    });
+    vi.stubGlobal("window", {
+      location: { href: "https://example.com/game", replace },
+    });
+    resetSaveAndReload();
+    expect(items.size).toBe(0);
+    expect(replace).toHaveBeenCalledOnce();
+    expect(String(replace.mock.calls[0]![0])).toContain("fresh=");
+    vi.unstubAllGlobals();
+
+    // No window: just clear storage (or no-op if storage is also missing).
+    vi.stubGlobal("localStorage", undefined);
+    vi.stubGlobal("window", undefined);
+    expect(() => resetSaveAndReload()).not.toThrow();
+    vi.unstubAllGlobals();
   });
 });
