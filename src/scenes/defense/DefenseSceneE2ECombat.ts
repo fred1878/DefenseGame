@@ -58,6 +58,12 @@ export function defenseSceneE2eEnemyCount(
   return scene.enemies.filter((e) => e.damageable.alive).length;
 }
 
+export function defenseSceneE2eLivingEnemyDefIds(
+  scene: DefenseSceneE2eDelegate,
+): string[] {
+  return scene.enemies.filter((e) => e.damageable.alive).map((e) => e.defId);
+}
+
 export function defenseSceneE2eWallHp(scene: DefenseSceneE2eDelegate): number {
   return Math.max(0, Math.floor(scene.wallHp));
 }
