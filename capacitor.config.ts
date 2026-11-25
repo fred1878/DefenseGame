@@ -1,15 +1,16 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-/**
- * Install @capacitor/core + cli when ready for device builds.
- * Web bundle path matches Vite output.
- */
 const config: CapacitorConfig = {
-  appId: "com.defensegame.app",
+  appId: "com.fred1878.defensegame",
   appName: "DefenseGame",
   webDir: "dist",
+  backgroundColor: "#0f1014",
   server: {
     androidScheme: "https",
+  },
+  android: {
+    allowMixedContent: false,
+    backgroundColor: "#0f1014",
   },
 };
 

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DefenseGame</string>
+    <string name="title_activity_main">DefenseGame</string>
+    <string name="package_name">com.fred1878.defensegame</string>
+    <string name="custom_url_scheme">com.fred1878.defensegame</string>
+</resources>

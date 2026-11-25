@@ -21,6 +21,8 @@ export default defineConfig({
         "src/main.ts",
         "src/scenes/**",
         "src/world/**",
+        "src/appUpdate/apkInstallerPlugin.ts",
+        "src/appUpdate/runCheckForUpdate.ts",
       ],
       // Re-baselined for Vitest 5: its v8 provider maps coverage through the
       // AST (Vitest 2 counted per source line), so the same tests report lower

@@ -1,4 +1,9 @@
 import type Phaser from "phaser";
+import { isNativeApp } from "../../appUpdate/isNativeApp";
+import {
+  formatUpdateStatus,
+  type UpdateStatus,
+} from "../../appUpdate/checkForUpdate";
 import { getEmbeddedBuildId, townBuildIdLine } from "../../buildId";
 import { GAME } from "../../config";
 import type { DataStore } from "../../core/DataStore";
@@ -11,6 +16,7 @@ import {
   readSafeInsets,
   townFullscreenButtonPosition,
   townResetSaveButtonPosition,
+  townUpdateButtonPosition,
   townStatusTextTopY,
   townTitleY,
 } from "../../ui/screenLayout";
@@ -55,6 +61,7 @@ export type TownHeaderButtons = {
   debugButton: TouchButton;
   fullscreenButton: TouchButton;
   resetButton: TouchButton;
+  updateButton?: TouchButton;
 };
 
 /** Debug, fullscreen and reset-save buttons (created in that order). */
@@ -127,7 +134,84 @@ export function createTownHeaderButtons(
     },
   );
 
-  return { debugButton, fullscreenButton, resetButton };
+  const nativeButtons = isNativeApp()
+    ? createTownUpdateButton(scene, safe, fsWidth, fsHeight)
+    : {};
+
+  return {
+    debugButton,
+    fullscreenButton,
+    resetButton,
+    ...nativeButtons,
+  };
+}
+
+function createTownUpdateButton(
+  scene: Phaser.Scene,
+  safe: ReturnType<typeof readSafeInsets>,
+  fsWidth: number,
+  fsHeight: number,
+): { updateButton: TouchButton } {
+  const width = fsWidth;
+  const height = scaleUiX(36);
+  const pos = townUpdateButtonPosition(
+    scene,
+    safe,
+    width,
+    height,
+    fsWidth,
+    fsHeight,
+  );
+  const statusText = scene.add
+    .text(
+      pos.x,
+      pos.y + height / 2 + scaleUiX(4),
+      "",
+      uiTextStyle(scene, {
+        fontSize: `${scaleUiX(12)}px`,
+        color: "#93c5fd",
+        align: "center",
+        wordWrap: { width: width + scaleUiX(16) },
+      }),
+    )
+    .setOrigin(0.5, 0)
+    .setDepth(200);
+
+  let inFlight = false;
+  const setStatus = (status: UpdateStatus): void => {
+    statusText.setText(formatUpdateStatus(status));
+  };
+
+  const updateButton = createTouchButton(
+    scene,
+    pos.x,
+    pos.y,
+    "Check for update",
+    () => {
+      if (inFlight) return;
+      inFlight = true;
+      void import("../../appUpdate/runCheckForUpdate")
+        .then(({ runCheckForUpdate }) => runCheckForUpdate(setStatus))
+        .catch((err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : "Update check failed";
+          setStatus({ kind: "error", message });
+        })
+        .finally(() => {
+          inFlight = false;
+        });
+    },
+    {
+      width,
+      height,
+      depth: 200,
+      fontSize: `${scaleUiX(12)}px`,
+      fillColor: 0x1e3a5f,
+      strokeColor: 0x60a5fa,
+    },
+  );
+
+  return { updateButton };
 }
 
 /** Status block text: night/gold, wall, blacksmith, build id lines. */

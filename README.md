@@ -9,11 +9,14 @@ Top-down **real-time action RPG**: upgrade your town **by day**, defend the **no
 | Build | URL |
 |-------|-----|
 | **Latest (GitHub Pages)** | https://fred1878.github.io/DefenseGame/ |
+| **Android APK** | [GitHub Releases](https://github.com/fred1878/DefenseGame/releases/latest) — see [installing the Android app](./docs/CI_RELEASES.md#android-app) |
 | **Local dev** | `npm run dev` → http://127.0.0.1:5173 |
 
 After merging to `main`, Pages updates automatically (see [docs/CI_RELEASES.md](./docs/CI_RELEASES.md)).
 
-**Install it:** open the Pages URL in Chrome, Edge, or Safari (phone or desktop), then **Add to Home Screen** / **Install app**. The game opens in its own window and works **offline** after that first load. A new deploy applies the next time you open it.
+**Install the web app:** open the Pages URL in Chrome, Edge, or Safari (phone or desktop), then **Add to Home Screen** / **Install app**. The game opens in its own window and works **offline** after that first load. A new deploy applies the next time you open it.
+
+**Install on Android:** download the APK from the latest GitHub Release. After it's installed, a **Check for update** button in town (top-left) looks for a newer release and can install it. You must allow the app to install unknown apps. Details: [docs/CI_RELEASES.md](./docs/CI_RELEASES.md#android-app).
 
 ---
 
@@ -49,8 +52,9 @@ Verified against the current codebase (not a wish list):
 | **Debug** | Hitboxes, touch overlay, enemy paths, world pixel scale (session-only) |
 | **Deploy** | Versioned bundles + `version.json` cache bust on Pages |
 | **PWA** | Installable standalone app; service worker precaches JS (including the Phaser chunk and lazy-loaded scenes), JSON data, images and audio. Updates activate on the next load |
+| **Android app** | Capacitor APK on GitHub Releases; in-town **Check for update** installs a newer APK (native only) |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, campaign ending after night 12, Capacitor store builds. Larger gameplay features (upgradeable town, equipment, talents, wall-defense maze, daytime adventuring, spell combos) are on the [roadmap](./ROADMAP.md).
+**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, campaign ending after night 12, iOS / Play Store builds. Larger gameplay features (upgradeable town, equipment, talents, wall-defense maze, daytime adventuring, spell combos) are on the [roadmap](./ROADMAP.md).
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 
@@ -104,6 +108,8 @@ npm run test         # Vitest (src/**/*.test.ts)
 npm run test:coverage
 npm run build:e2e    # build with VITE_E2E hooks
 npm run test:e2e     # Playwright (run build:e2e first)
+npm run build:android  # Vite bundle with relative base for Capacitor
+npm run android:sync   # build:android + cap sync android
 ```
 
 **CI parity (agents):** `npm run verify && npm run build`
@@ -163,7 +169,8 @@ Spells and waves are the primary content levers; prefer new JSON rows over growi
 |----------|---------|-----------|
 | `ci.yml` | Push/PR to `main` | **verify** (typecheck, Biome lint, knip, Vitest coverage, build), then conditional **e2e** (Playwright) |
 | `pages.yml` | Push to `main` | Publish `dist/` to GitHub Pages |
-| `release.yml` | Tag `v*.*.*` | Pages deploy + GitHub Release notes |
+| `release.yml` | Tag `v*.*.*` | Pages deploy + GitHub Release notes + optional zip |
+| `android-release.yml` | Tag `v*` or manual dispatch | Signed Android APK attached to the GitHub Release |
 
 Details: [docs/TESTING.md](./docs/TESTING.md), [docs/CI_RELEASES.md](./docs/CI_RELEASES.md).
 
@@ -179,7 +186,7 @@ Details: [docs/TESTING.md](./docs/TESTING.md), [docs/CI_RELEASES.md](./docs/CI_R
 | [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) | Completed Nov 2026 file-split plan (historical; line counts are stale) |
 | [ROADMAP.md](./ROADMAP.md) | Milestones and known gaps |
 | [docs/WAVES.md](./docs/WAVES.md) | Night-by-night wave reference |
-| [docs/CI_RELEASES.md](./docs/CI_RELEASES.md) | Deploy, tags, future mobile builds |
+| [docs/CI_RELEASES.md](./docs/CI_RELEASES.md) | Deploy, tags, Android APK installs and updates |
 
 ---
 

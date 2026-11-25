@@ -72,6 +72,7 @@ export class TownScene extends Phaser.Scene {
   private resetButton!: ReturnType<typeof createTouchButton>;
   private debugButton!: ReturnType<typeof createTouchButton>;
   private fullscreenButton!: ReturnType<typeof createTouchButton>;
+  private updateButton: ReturnType<typeof createTouchButton> | undefined;
   private buildingControls = new Map<string, TownBuildingControl>();
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
@@ -140,6 +141,7 @@ export class TownScene extends Phaser.Scene {
     this.debugButton = buttons.debugButton;
     this.fullscreenButton = buttons.fullscreenButton;
     this.resetButton = buttons.resetButton;
+    this.updateButton = buttons.updateButton;
 
     this.touchDebug = new TouchInputDebugDraw(this);
     this.fpsOverlay = new FpsDebugOverlay(this);
@@ -296,6 +298,9 @@ export class TownScene extends Phaser.Scene {
     setContainerInputEnabled(this.resetButton.container, enabled);
     setContainerInputEnabled(this.debugButton.container, enabled);
     setContainerInputEnabled(this.fullscreenButton.container, enabled);
+    if (this.updateButton) {
+      setContainerInputEnabled(this.updateButton.container, enabled);
+    }
   }
 
   /** Write the slot into the live autosave and restart Town on that state. */

@@ -1,10 +1,12 @@
+import { isNativeApp } from "../appUpdate/isNativeApp";
 import { isE2EEnabled } from "../e2e/e2eMode";
 
 export function shouldRegisterServiceWorker(options: {
   prod: boolean;
   e2e: boolean;
+  native?: boolean;
 }): boolean {
-  return options.prod && !options.e2e;
+  return options.prod && !options.e2e && options.native !== true;
 }
 
 /** Service worker URL under the Vite/Pages base path. */
@@ -50,6 +52,7 @@ export async function registerServiceWorker(): Promise<
   const enabled = shouldRegisterServiceWorker({
     prod: import.meta.env.PROD,
     e2e: import.meta.env.VITE_E2E === "true" || isE2EEnabled(),
+    native: isNativeApp(),
   });
   const serviceWorker =
     typeof navigator === "undefined" ? undefined : navigator.serviceWorker;

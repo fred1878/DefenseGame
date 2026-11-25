@@ -12,6 +12,7 @@
   ],
   "ignoreDependencies": [
     "@biomejs/biome",
+    "@capacitor/android",
     "playwright"
   ],
   "ignoreBinaries": [

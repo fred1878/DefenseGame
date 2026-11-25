@@ -44,6 +44,31 @@ export function townResetSaveButtonPosition(
   };
 }
 
+/**
+ * Native-only "Check for update" button, stacked under the fullscreen
+ * control in the top-left so it does not appear in the web town layout.
+ */
+export function townUpdateButtonPosition(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+  _width: number,
+  height: number,
+  fullscreenWidth: number,
+  fullscreenHeight: number,
+): { x: number; y: number } {
+  const fs = townFullscreenButtonPosition(
+    scene,
+    safe,
+    fullscreenWidth,
+    fullscreenHeight,
+  );
+  const gap = scaleUiY(8);
+  return {
+    x: fs.x,
+    y: fs.y + fullscreenHeight / 2 + gap + height / 2,
+  };
+}
+
 /** Town: bottom-left debug (away from action stack). */
 export function debugButtonPosition(
   scene: Phaser.Scene,
