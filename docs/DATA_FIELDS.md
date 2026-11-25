@@ -288,7 +288,7 @@ Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitF
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `durationMs` | ms | Linear tween length for hit-flash strength 1→0 on damaged sprites. |
-| `flavors` | object | Required map keyed by `damageFlavor` (`fire`, `frost`, `physical`, `water`); one entry per flavor. |
+| `flavors` | object | Required map keyed by `damageFlavor` (`fire`, `frost`, `physical`, `water`, `lightning`); one entry per flavor. |
 | `tint` | dimensionless | ARGB tint integer (0–16777215) applied at flash peak via fill or multiply mode. |
 | `mode` | string | `fill` uses `setTintFill` at full tint; `multiply` uses `setTint` (optionally lerped toward white). |
 | `peakAlpha` | dimensionless | Sprite alpha ceiling at strength 1 when `alphaFade` is true (`peakAlpha * strength` each frame). |
@@ -380,9 +380,9 @@ For **channeled** and **channeled_area** ground zones, `baseDamage` is the **tot
 
 #### `damageFlavor` (optional string)
 
-Hit-flash tint and DoT damage flavor when the spell deals damage. Allowed values: `fire`, `frost`, `physical`, `water`. There is no `default` flavor in gameplay — every damage path must pass an explicit flavor. Omit on pure heals; non-damaging buffs/movement (`shadowform`, `blink`) may set `physical` for metadata only.
+Hit-flash tint and DoT damage flavor when the spell deals damage. Allowed values: `fire`, `frost`, `physical`, `water`, `lightning`. There is no `default` flavor in gameplay — every damage path must pass an explicit flavor. Omit on pure heals; non-damaging buffs/movement (`shadowform`, `blink`) may set `physical` for metadata only.
 
-Allowed enum tokens (spell hit flash): fire (bolts, novas, bombs, combustion), frost (ice, cold cone, blizzard, roots), physical (melee, lightning, enemy projectiles, rend), water (water bolt).
+Allowed enum tokens (spell hit flash): fire (bolts, novas, bombs, combustion), frost (ice, cold cone, blizzard, roots), physical (melee, enemy projectiles, rend), lightning (lightning bolt, chain lightning), water (water bolt).
 
 Hit-flash timing and per-flavor `colorFade` / `alphaFade` live in [hit-flash.json](hit-flash.json) (`applyHitFlashConfig`); `damageFlavor` selects the matching `flavors` entry.
 

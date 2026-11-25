@@ -427,6 +427,23 @@ describe("heals", () => {
     expect(d.hp).toBe(60);
   });
 
+  it("reports the applied heal and ignores overheal on the callback", () => {
+    const onHealed = vi.fn();
+    const d = {
+      id: "p",
+      hp: 50,
+      maxHp: 60,
+      alive: true,
+      team: "player" as const,
+      onHealed,
+    };
+    applyHealAmount(d, 4);
+    expect(onHealed).toHaveBeenCalledWith(4);
+    applyHealAmount(d, 20);
+    expect(onHealed).toHaveBeenLastCalledWith(6);
+    expect(d.hp).toBe(60);
+  });
+
   it("revives the alive flag when a downed target is healed above zero", () => {
     const d = {
       id: "p",

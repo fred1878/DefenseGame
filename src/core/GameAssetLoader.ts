@@ -44,6 +44,10 @@ import {
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
+import {
+  DAMAGE_NUMBER_FONT_PATH,
+  queueDamageNumberFont,
+} from "../config/damageNumbers";
 
 const ASSET_ROOT = "assets";
 export const DEFENSE_ASSETS_READY_KEY = "defenseAssetsReady";
@@ -143,6 +147,9 @@ export function queueDefenseBootAssets(
       frameHeight: entry.frameHeight,
     });
   }
+  const assetRev = import.meta.env.VITE_BUILD_ID ?? "";
+  const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+  queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
 }
 
 function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {

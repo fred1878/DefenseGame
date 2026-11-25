@@ -35,6 +35,13 @@ const completeFixture = {
       peakAlpha: 1,
       ...flavorDefaults,
     },
+    lightning: {
+      tint: 16761446,
+      mode: "fill",
+      peakAlpha: 1,
+      colorFade: false,
+      alphaFade: true,
+    },
   },
 };
 

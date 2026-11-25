@@ -15,6 +15,7 @@
  * | 12 | player attack / spell cone FX |
  * | 18–19 | player cast bar (world) |
  * | 20 | enemy nameplate + HP bar |
+ * | 21 | floating damage numbers |
  */
 export const DEFENSE_RENDER_DEPTH = {
   /** Cosmetic obstacle art — above player/enemy sprites, below projectiles. */
@@ -30,4 +31,5 @@ export const DEFENSE_RENDER_DEPTH = {
   castBarBg: 18,
   castBarFill: 19,
   enemyNameplate: 20,
+  damageNumber: 21,
 } as const;

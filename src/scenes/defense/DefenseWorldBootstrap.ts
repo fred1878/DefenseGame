@@ -10,6 +10,7 @@ import {
 } from "../../config";
 import { flashSpriteTint } from "../../combat/HitFlash";
 import { Player } from "../../entities/Player";
+import { DamageNumberFx } from "./DamageNumberFx";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
   correctPlayerObstacleBlockerOverlap,
@@ -41,6 +42,7 @@ export type DefenseWorldBootstrapResult = {
   cameraRig: DefenseCameraRig;
   registerWorldDraw: (go: Phaser.GameObjects.GameObject) => void;
   registerUiDraw: (go: Phaser.GameObjects.GameObject) => void;
+  damageNumbers: DamageNumberFx;
 };
 
 export type DefenseWorldBootstrapInput = {
@@ -70,8 +72,17 @@ export function bootstrapDefenseWorld(
   const player = new Player(scene, start.x, start.y, playerHpMax);
   player.damageable.hp = playerHpMax;
   player.damageable.alive = true;
-  player.damageable.onDamaged = (_amount, flavor) => {
+  const damageNumbers = new DamageNumberFx(scene);
+  player.damageable.onDamaged = (amount, flavor) => {
     flashSpriteTint(scene, player.sprite, flavor);
+    damageNumbers.floatFromSource(player.damageable.id, player.sprite, amount, {
+      flavor,
+    });
+  };
+  player.damageable.onHealed = (amount) => {
+    damageNumbers.floatFromSource(player.damageable.id, player.sprite, amount, {
+      heal: true,
+    });
   };
 
   const cameraRig = setupDefenseCameraRig(scene, player.sprite, playArea);
@@ -139,6 +150,7 @@ export function bootstrapDefenseWorld(
     cameraRig,
     registerWorldDraw: registerWorld,
     registerUiDraw: registerUi,
+    damageNumbers,
   };
 }
 
