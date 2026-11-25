@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultEnemyMeleeFxDurationMs,
-  defaultEnemyMeleeFxStartMs,
   finalizeEnemyMeleeFxTiming,
   meleeFxPlaybackTimeScale,
 } from "./meleeFxTiming";
@@ -14,17 +13,12 @@ const baseMelee = {
   activeMs: 100,
   recoveryMs: 300,
   cooldownMs: 400,
+  fxStartMs: 200,
   meleeChaseStandoffWu: 3,
 };
 
 describe("meleeFxTiming", () => {
-  it("defaults fxStartMs to windupMs when omitted", () => {
-    expect(defaultEnemyMeleeFxStartMs(200)).toBe(200);
-    const resolved = finalizeEnemyMeleeFxTiming("grunt", baseMelee);
-    expect(resolved.fxStartMs).toBe(200);
-  });
-
-  it("preserves authored fxStartMs from windup begin", () => {
+  it("keeps authored fxStartMs from windup begin", () => {
     const resolved = finalizeEnemyMeleeFxTiming("grunt", {
       ...baseMelee,
       fxStartMs: 0,

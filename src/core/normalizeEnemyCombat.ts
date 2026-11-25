@@ -37,11 +37,9 @@ export const ENEMY_COMBAT_MELEE_KEYS = [
   "activeMs",
   "recoveryMs",
   "cooldownMs",
-] as const;
-export const ENEMY_COMBAT_MELEE_OPTIONAL_KEYS = [
   "fxStartMs",
-  "fxDurationMs",
 ] as const;
+export const ENEMY_COMBAT_MELEE_OPTIONAL_KEYS = ["fxDurationMs"] as const;
 export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY = "meleeChaseStandoffWu" as const;
 export const ENEMY_COMBAT_ARROW_RAIN_KEYS = [
   "damage",
@@ -168,10 +166,6 @@ export function requireEnemyMeleeCombat(
 ): EnemyMeleeCombat {
   const block = requireRecord(raw, path);
   const base = requireNumberFields(block, ENEMY_COMBAT_MELEE_KEYS, path);
-  const fxStartMs = optionalFiniteNumber(
-    block.fxStartMs,
-    `${path}.fxStartMs`,
-  );
   const fxDurationMs = optionalFiniteNumber(
     block.fxDurationMs,
     `${path}.fxDurationMs`,
@@ -184,7 +178,7 @@ export function requireEnemyMeleeCombat(
     activeMs: base.activeMs!,
     recoveryMs: base.recoveryMs!,
     cooldownMs: base.cooldownMs!,
-    fxStartMs,
+    fxStartMs: base.fxStartMs!,
     fxDurationMs,
   };
   if (MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {

@@ -36,7 +36,7 @@ export type EnemyCombatPartial = {
     activeMs?: number;
     recoveryMs?: number;
     cooldownMs?: number;
-    /** Ms after windup begins before melee swipe VFX spawns; default `windupMs`. */
+    /** Ms after windup begins before melee swipe VFX spawns (required when `melee` is authored). */
     fxStartMs?: number;
     /** Target on-screen VFX length in ms; default sheet natural duration. */
     fxDurationMs?: number;
@@ -144,7 +144,7 @@ export type EnemyMeleeCombat = {
   cooldownMs: number;
   /**
    * Delay from swing windup start (idle→windup) until swipe VFX spawns.
-   * `0` = first windup frame; `windupMs` = active phase start (legacy default).
+   * `0` = first windup frame; required in JSON (boot).
    */
   fxStartMs: number;
   /** Target on-screen swipe VFX duration (ms); anim uses timeScale to match. */

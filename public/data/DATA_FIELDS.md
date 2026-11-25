@@ -121,7 +121,7 @@ Player-facing arc swipe (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward
 | `activeMs` | ms | Milliseconds the attack hitbox can deal damage. |
 | `recoveryMs` | ms | Milliseconds after active before the FSM returns to idle. |
 | `cooldownMs` | ms | Milliseconds before the same attack can be queued again. |
-| `fxStartMs` | ms | Optional. Delay from **windup start** (idle→windup) until melee swipe VFX spawns. `0` = first windup frame; defaults to `windupMs` (VFX at active, prior behavior). |
+| `fxStartMs` | ms | Required. Delay from **windup start** (idle→windup) until melee swipe VFX spawns. `0` = first windup frame. |
 | `fxDurationMs` | ms | Optional. Target on-screen swipe VFX length; anim timeScale matches. Defaults to sheet natural duration (`meleeFxAnimDurationMs`) or `activeMs` without a clip. |
 | `meleeChaseStandoffWu` | WU | Extra WU gap when chase stops short of player body contact. |
 
@@ -306,7 +306,7 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 | `bodyRadiusWu` | px | Arcade physics circle radius in world px. |
 | `meleeWindupMs` | ms | Boot-required `meleeWindupMs`; see normalize* and combat code for usage. |
 | `meleeActiveMs` | ms | Boot-required `meleeActiveMs`; see normalize* and combat code for usage. |
-| `meleeFxStartMs` | ms | Optional. Delay from player melee **windup start** until swipe VFX; defaults to `meleeWindupMs`. |
+| `meleeFxStartMs` | ms | Required. Delay from player melee **windup start** until swipe VFX. `0` = first windup frame. |
 | `meleeFxDurationMs` | ms | Optional. Target on-screen player slash fade duration; defaults to `meleeActiveMs`. |
 | `meleeRecoveryMs` | ms | Boot-required `meleeRecoveryMs`; see normalize* and combat code for usage. |
 | `meleeStrikeRangeWu` | px | Px reach of player melee swipe centerline. |

@@ -6,12 +6,8 @@ import type { EnemyMeleeCombat } from "../core/enemyTuning";
 
 /**
  * `fxStartMs` in data is delay from swing windup start (idle→windup), not from active.
- * Omit in JSON → {@link defaultEnemyMeleeFxStartMs} (`windupMs`) so VFX lines up with today.
+ * Required in JSON — no runtime default.
  */
-export function defaultEnemyMeleeFxStartMs(windupMs: number): number {
-  return windupMs;
-}
-
 export function defaultEnemyMeleeFxDurationMs(
   enemyDefId: string,
   activeMs: number,
@@ -24,14 +20,12 @@ export function defaultEnemyMeleeFxDurationMs(
 
 export function finalizeEnemyMeleeFxTiming(
   enemyDefId: string,
-  melee: Omit<EnemyMeleeCombat, "fxStartMs" | "fxDurationMs"> & {
-    fxStartMs?: number;
+  melee: Omit<EnemyMeleeCombat, "fxDurationMs"> & {
     fxDurationMs?: number;
   },
 ): EnemyMeleeCombat {
   return {
     ...melee,
-    fxStartMs: melee.fxStartMs ?? defaultEnemyMeleeFxStartMs(melee.windupMs),
     fxDurationMs:
       melee.fxDurationMs ??
       defaultEnemyMeleeFxDurationMs(enemyDefId, melee.activeMs),

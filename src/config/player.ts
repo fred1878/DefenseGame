@@ -5,9 +5,7 @@ export type PlayerTuning = {
   meleeWindupMs: number;
   meleeActiveMs: number;
   meleeRecoveryMs: number;
-  /**
-   * Ms after player melee windup begins until swipe VFX; default `meleeWindupMs`.
-   */
+  /** Ms after player melee windup begins until swipe VFX (required in `player.json`). */
   meleeFxStartMs: number;
   /** Target on-screen player melee swipe duration; default `meleeActiveMs`. */
   meleeFxDurationMs: number;

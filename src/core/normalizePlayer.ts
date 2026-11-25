@@ -11,6 +11,7 @@ export const PLAYER_TUNING_BOOT_KEYS = [
   "moveSpeedWu",
   "meleeWindupMs",
   "meleeActiveMs",
+  "meleeFxStartMs",
   "meleeRecoveryMs",
   "meleeStrikeRangeWu",
   "meleeEngageTargetRadiusWu",
@@ -34,10 +35,7 @@ export const PLAYER_TUNING_BOOT_KEYS = [
 ] as const satisfies readonly (keyof PlayerTuning)[];
 
 /** Authorable subset of `public/data/player.json` (derived fields omitted). */
-export const PLAYER_MELEE_FX_OPTIONAL_KEYS = [
-  "meleeFxStartMs",
-  "meleeFxDurationMs",
-] as const;
+export const PLAYER_MELEE_FX_OPTIONAL_KEYS = ["meleeFxDurationMs"] as const;
 
 export const PLAYER_BOOT_KEYS = [
   ...PLAYER_TUNING_BOOT_KEYS,
@@ -62,15 +60,11 @@ export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined)
   const meleeStrikeRangeWu = tuning.meleeStrikeRangeWu!;
   const meleeEngageTargetRadiusWu = tuning.meleeEngageTargetRadiusWu!;
   const meleeActivationSlackWu = tuning.meleeActivationSlackWu!;
-  const meleeFxStartMs =
-    optionalFiniteNumber(root.meleeFxStartMs, "player.meleeFxStartMs") ??
-    tuning.meleeWindupMs!;
   const meleeFxDurationMs =
     optionalFiniteNumber(root.meleeFxDurationMs, "player.meleeFxDurationMs") ??
     tuning.meleeActiveMs!;
   const playerTuning: PlayerTuning = {
     ...(tuning as PlayerTuning),
-    meleeFxStartMs,
     meleeFxDurationMs,
     autoAttackMeleeRange: computeAutoAttackMeleeRange(
       meleeStrikeRangeWu,
