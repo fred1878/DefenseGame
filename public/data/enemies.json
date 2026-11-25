@@ -287,10 +287,10 @@
         "recoveryMs": 650,
         "cooldownMs": 480,
         "fxStartMs": 330,
-        "fxDurationMs": 840,
-        "vfxDisplayW": 60,
-        "vfxDisplayH": 36,
-        "vfxOffsetWu": 19
+        "fxDurationMs": 420,
+        "vfxDisplayW": 120
+        "vfxDisplayH": 72
+        "vfxOffsetWu": 40
       },
       "charger": {
         "chargeDamage": 22,
