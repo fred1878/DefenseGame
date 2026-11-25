@@ -396,7 +396,9 @@ export class DefenseScene extends Phaser.Scene {
     if (endless) {
       this.spawnPlanComplete = true;
       this.ensureEndlessSpawnCap();
-    } else if (wave && !isE2EEnabled()) {
+    } else if (wave && (!isE2EEnabled() || wavePlanner)) {
+      // E2E skips campaign waves (tests spawn their own enemies), but a wave
+      // planner run is an explicit player-built plan, so it always runs.
       scheduleDefenseWave(this, store, wave, {
         spawnEnemy: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
         markSpawnPlanComplete: () => {
@@ -927,6 +929,7 @@ export class DefenseScene extends Phaser.Scene {
   e2eAttackPhase(): string { return sceneE2E.defenseSceneE2eAttackPhase(this.e2eDelegate()); }
   e2eProjectileCount(): number { return sceneE2E.defenseSceneE2eProjectileCount(this.e2eDelegate()); }
   e2eEnemyCount(): number { return sceneE2E.defenseSceneE2eEnemyCount(this.e2eDelegate()); }
+  e2eLivingEnemyDefIds(): string[] { return sceneE2E.defenseSceneE2eLivingEnemyDefIds(this.e2eDelegate()); }
   e2eWallHp(): number { return sceneE2E.defenseSceneE2eWallHp(this.e2eDelegate()); }
   e2eTapMelee(): void { sceneE2E.defenseSceneE2eTapMelee(this.e2eDelegate()); }
   e2eTapRanged(): void { sceneE2E.defenseSceneE2eTapRanged(this.e2eDelegate()); }

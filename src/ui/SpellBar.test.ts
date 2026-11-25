@@ -1,0 +1,188 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DEFENSE_SPELL_BAR } from "../config";
+import { spellGroundTapAutoCasts } from "../content/spellGroundTapCast";
+import { getSpellCatalog } from "../content/spells";
+import { spellUsesManualGroundAim } from "../content/spellTargeting";
+import type { TapOrLongPressCallbacks } from "./touchButtonPress";
+
+type FakeObj = Record<string, ReturnType<typeof vi.fn>> & {
+  x: number;
+  y: number;
+  list: unknown[];
+};
+
+const bound: TapOrLongPressCallbacks[] = [];
+const buttons: FakeObj[] = [];
+
+function chainable(x = 0, y = 0): FakeObj {
+  const obj = { x, y, list: [] } as unknown as FakeObj;
+  for (const m of [
+    "setStrokeStyle",
+    "setFillStyle",
+    "setScrollFactor",
+    "setDepth",
+    "setVisible",
+    "setOrigin",
+    "setAlpha",
+    "setPosition",
+    "setSize",
+    "setDisplaySize",
+    "destroy",
+    "add",
+    "bringToTop",
+  ]) {
+    obj[m] = vi.fn(() => obj);
+  }
+  return obj;
+}
+
+vi.mock("./screenLayout", () => ({
+  readSafeInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  spellBarSlotCenter: (_s: unknown, _i: unknown, index: number) => ({
+    x: 100 + index * 70,
+    y: 1000,
+  }),
+}));
+
+vi.mock("./touchButton", () => ({
+  createTouchButton: (_s: unknown, x: number, y: number) => {
+    const container = chainable(x, y);
+    buttons.push(container);
+    return { container };
+  },
+  bindTapOrLongPress: (_s: unknown, _o: unknown, cb: TapOrLongPressCallbacks) => {
+    bound.push(cb);
+  },
+  interactiveObjectScreenRect: (o: FakeObj) => ({
+    x: o.x - 30,
+    y: o.y - 30,
+    width: 60,
+    height: 60,
+  }),
+}));
+
+const { SpellBar } = await import("./SpellBar");
+
+function fakeScene() {
+  const rects: FakeObj[] = [];
+  return {
+    rects,
+    scene: {
+      textures: { exists: () => false },
+      add: {
+        rectangle: vi.fn((x: number, y: number) => {
+          const r = chainable(x, y);
+          rects.push(r);
+          return r;
+        }),
+      },
+    } as unknown as Phaser.Scene,
+  };
+}
+
+const catalog = getSpellCatalog();
+const instant = catalog.find((d) => !spellUsesManualGroundAim(d))!;
+const groundAim = catalog.find(
+  (d) => spellUsesManualGroundAim(d) && !spellGroundTapAutoCasts(d.id),
+);
+const cooldownSpell = catalog.find((d) => d.cooldownMs > 0)!;
+
+function make(slots: string[], auto: string[] = [], cooldown = () => 0) {
+  const callbacks = {
+    onCastRequest: vi.fn(),
+    onAutoCastToggle: vi.fn(),
+    onGroundCastArm: vi.fn(),
+    onGroundCastCancel: vi.fn(),
+  };
+  const caster = { getCooldownRemaining: vi.fn(cooldown) };
+  const { scene, rects } = fakeScene();
+  const bar = new SpellBar(scene, slots, auto, caster as never, callbacks);
+  return { bar, callbacks, rects, caster };
+}
+
+beforeEach(() => {
+  bound.length = 0;
+  buttons.length = 0;
+});
+
+describe("SpellBar", () => {
+  it("creates one button per slot, padding empty slots", () => {
+    const { bar } = make([instant.id]);
+    expect(buttons).toHaveLength(DEFENSE_SPELL_BAR.slotCount);
+    expect(bound).toHaveLength(DEFENSE_SPELL_BAR.slotCount);
+    expect(bar.getUiContainers()).toHaveLength(DEFENSE_SPELL_BAR.slotCount);
+  });
+
+  it("tap casts the slot's spell; empty slots do nothing", () => {
+    const { callbacks } = make([instant.id]);
+    bound[0]!.onTap();
+    expect(callbacks.onCastRequest).toHaveBeenCalledWith(instant.id, 0);
+    bound[1]!.onTap();
+    expect(callbacks.onCastRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("long press cancels ground aim and toggles auto-cast", () => {
+    const { callbacks } = make([instant.id]);
+    bound[0]!.onLongPress();
+    expect(callbacks.onGroundCastCancel).toHaveBeenCalled();
+    expect(callbacks.onAutoCastToggle).toHaveBeenCalledWith(0);
+  });
+
+  it.runIf(groundAim)("manual ground spells arm on press and do not cast on tap", () => {
+    const { callbacks } = make([groundAim!.id]);
+    const pointer = { id: 1, x: 0, y: 0 };
+    bound[0]!.onPressStart!(pointer as never);
+    expect(callbacks.onGroundCastArm).toHaveBeenCalledWith(groundAim!.id, pointer);
+    bound[0]!.onTap();
+    expect(callbacks.onCastRequest).not.toHaveBeenCalled();
+  });
+
+  it("instant spells do not arm ground aim", () => {
+    const { callbacks } = make([instant.id]);
+    bound[0]!.onPressStart!({ id: 1, x: 0, y: 0 } as never);
+    expect(callbacks.onGroundCastArm).not.toHaveBeenCalled();
+  });
+
+  it("shows auto-cast borders for auto slots and refreshes them", () => {
+    const { bar, rects } = make([instant.id, cooldownSpell.id], [instant.id]);
+    // Per slot: auto border then cooldown overlay.
+    const border0 = rects[0]!;
+    const border1 = rects[2]!;
+    expect(border0.setVisible).toHaveBeenLastCalledWith(true);
+    expect(border1.setVisible).toHaveBeenLastCalledWith(false);
+    bar.refreshAutoCastBorders([instant.id, cooldownSpell.id], [cooldownSpell.id]);
+    expect(border0.setVisible).toHaveBeenLastCalledWith(false);
+    expect(border1.setVisible).toHaveBeenLastCalledWith(true);
+  });
+
+  it("cooldown overlay covers the remaining fraction and dims the slot", () => {
+    const remaining = cooldownSpell.cooldownMs / 2;
+    const { bar, rects } = make([cooldownSpell.id], [], () => remaining);
+    bar.refreshCooldownOverlays();
+    const overlay0 = rects[1]!;
+    expect(buttons[0]!.setAlpha).toHaveBeenLastCalledWith(0.45);
+    expect(overlay0.setVisible).toHaveBeenLastCalledWith(true);
+    expect(overlay0.setSize).toHaveBeenLastCalledWith(
+      DEFENSE_SPELL_BAR.slotSizePx,
+      DEFENSE_SPELL_BAR.slotSizePx / 2,
+    );
+    // Empty slot: never on cooldown.
+    expect(buttons[1]!.setAlpha).toHaveBeenLastCalledWith(1);
+  });
+
+  it("screen rect spans all slots plus padding; e2e helpers report every slot", () => {
+    const { bar } = make([instant.id]);
+    const r = bar.getScreenRect();
+    const n = DEFENSE_SPELL_BAR.slotCount;
+    expect(r.width).toBeGreaterThan((n - 1) * 70 + 60);
+    expect(bar.e2eSlotTapCenters()).toHaveLength(n);
+    expect(bar.e2eSlotTapCenters()[0]).toEqual({ index: 0, x: 100, y: 1000 });
+    expect(bar.e2eSlotHitRects()[1]).toEqual({ index: 1, x: 140, y: 970, width: 60, height: 60 });
+  });
+
+  it("destroy removes overlays and borders", () => {
+    const { bar, rects } = make([instant.id]);
+    bar.destroy();
+    for (const r of rects) expect(r.destroy).toHaveBeenCalled();
+  });
+});

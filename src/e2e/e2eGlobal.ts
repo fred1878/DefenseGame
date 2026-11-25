@@ -158,6 +158,9 @@ export type DefenseGameE2EApi = {
   toggleEndlessEnemy(enemyId: string): void;
   setEndlessEnemyCap(enemyId: string, cap: number): void;
   isEndlessDefense(): boolean;
+  isWavePlannerDefense(): boolean;
+  /** `defId` of every living enemy in the active Defense scene. */
+  getLivingEnemyDefIds(): string[];
   getEndlessEnemyId(): string | null;
   getEndlessEnemyIds(): string[];
   hasLeaveEndlessButton(): boolean;

@@ -406,6 +406,12 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     isEndlessDefense() {
       return activeDefense(game)?.e2eIsEndlessMode() ?? false;
     },
+    isWavePlannerDefense() {
+      return activeDefense(game)?.isWavePlannerMode() ?? false;
+    },
+    getLivingEnemyDefIds() {
+      return activeDefense(game)?.e2eLivingEnemyDefIds() ?? [];
+    },
     getEndlessEnemyId() {
       return activeDefense(game)?.e2eEndlessEnemyId() ?? null;
     },

@@ -21,6 +21,7 @@ const MathNS = {
       Math.hypot(x2 - x1, y2 - y1),
   },
   DegToRad: (deg: number) => (deg * Math.PI) / 180,
+  Clamp: (v: number, min: number, max: number) => Math.max(min, Math.min(max, v)),
 };
 
 const Phaser = {
@@ -43,6 +44,9 @@ const Phaser = {
     Rectangle: class {},
     Arc: class {},
     Ellipse: class {},
+    Image: class {},
+    Graphics: class {},
+    Text: class {},
     GameObject: class {},
   },
   Geom: {
@@ -65,6 +69,7 @@ const Phaser = {
     },
   },
   Types: { Input: { EventData: class {} } },
+  Textures: { FilterMode: { LINEAR: 0, NEAREST: 1 } },
   Physics: { Arcade: { Sprite: class {}, Body: class {} } },
   Cameras: { Scene2D: { Camera: class {} } },
 };
