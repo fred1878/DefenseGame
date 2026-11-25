@@ -1,9 +1,5 @@
 import type Phaser from "phaser";
-import {
-  getEmbeddedBuildId,
-  shortBuildIdLabel,
-  urlBuildParamLine,
-} from "../../buildId";
+import { getEmbeddedBuildId, townBuildIdLine } from "../../buildId";
 import { GAME } from "../../config";
 import type { DataStore } from "../../core/DataStore";
 import { playerDamageMult } from "../../core/GameState";
@@ -146,14 +142,10 @@ export function formatTownStatus(save: SaveGame, store: DataStore): string {
     typeof window !== "undefined"
       ? new URL(window.location.href).searchParams.get("b")
       : null;
-  const buildLines = [
-    `Build ${shortBuildIdLabel(embedded)}`,
-    urlBuildParamLine(embedded, urlB),
-  ].filter((line): line is string => line !== null);
   return [
     `Night ${save.night} · Gold ${save.gold}`,
     `Wall L${wall} (HP ${save.townWallHp}/${save.townWallHpMax})${wallCost !== undefined ? ` — next ${wallCost}g` : ""}`,
     `Blacksmith L${smith} (damage x${dmg})`,
-    ...buildLines,
+    townBuildIdLine(embedded, urlB),
   ].join("\n");
 }
