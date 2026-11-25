@@ -12,3 +12,4 @@ alwaysApply: false
 - Never mutate town/save rules from the scene. End a night through the night-end module and a `NightResult`.
 - Keep `e2e*` wrappers as one-liners delegating to `DefenseSceneE2E.ts`.
 - `@internal until X module lands` comments are stale once the module exists.
+- `DefenseSpellDirector` keeps the queue/auto-cast/cast-start logic; channel ticks live in `DefenseSpellChannel.ts`, telegraphs/heal FX in `DefenseSpellTelegraphs.ts`, effect resolution/blink/ice wall in `DefenseSpellResolve.ts`.
