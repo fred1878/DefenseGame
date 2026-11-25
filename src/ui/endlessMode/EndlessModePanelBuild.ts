@@ -8,6 +8,7 @@ import {
   bindModalDimBackdrop,
   type ModalInputLease,
 } from "../../input/modalBackdrop";
+import { addRosterListChrome } from "../rosterPanelShared";
 import { createTouchButton } from "../touchButton";
 import { uiTextStyle } from "../uiTextStyle";
 import { createUiRoundedRect, type UiRoundedRect } from "../uiRoundedRect";
@@ -334,36 +335,12 @@ export function buildEndlessModePanelUi(
   const contentHeight = Math.max(localY - gap, rowH);
   const maxScroll = Math.max(0, contentHeight - listViewportH);
 
-  const trackW = scaleUiX(6);
-  const trackX =
-    (GAME.width + rowW) / 2 + scaleUiX(4) + trackW / 2;
-  const scrollTrack = scene.add
-    .rectangle(
-      trackX,
-      listTop + listViewportH / 2,
-      trackW,
-      listViewportH,
-      0x3f3f46,
-      0.85,
-    )
-    .setOrigin(0.5)
-    .setVisible(maxScroll > 0);
-  const scrollThumb = scene.add
-    .rectangle(trackX, listTop, trackW, scaleUiY(32), 0x71717a, 1)
-    .setOrigin(0.5, 0)
-    .setVisible(maxScroll > 0);
-  root.add([scrollTrack, scrollThumb]);
-
-  const maskGraphics = scene.make.graphics({ x: 0, y: 0 }, false);
-  maskGraphics.fillStyle(0xffffff);
-  maskGraphics.fillRect(
-    listLeft,
-    listTop,
-    rowW,
-    listViewportH,
+  const { scrollTrack, scrollThumb, maskGraphics } = addRosterListChrome(
+    scene,
+    root,
+    listContent,
+    { listLeft, listTop, rowW, listViewportH, maxScroll },
   );
-  const mask = maskGraphics.createGeometryMask();
-  listContent.setMask(mask);
 
   listViewport.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
     h.onViewportPointerDown(pointer);

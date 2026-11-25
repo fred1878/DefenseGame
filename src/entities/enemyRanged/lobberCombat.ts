@@ -9,7 +9,11 @@ import { worldUnit } from "../../core/worldPixelScale";
 import type { EnemyInstance } from "../Enemy";
 import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";
-import { advanceCombatPhase, freezeWindupRecovery } from "./combatPhase";
+import {
+  advanceCombatPhase,
+  freezeWindupRecovery,
+  tickCooldownAndFaceTarget,
+} from "./combatPhase";
 import type { LobberCombatState, LobSpawnRequest } from "./types";
 
 export function clearLobberAirborneTelegraph(enemy: EnemyInstance): void {
@@ -29,14 +33,7 @@ export function updateLobberCombat(
 ): { spawnLob?: LobSpawnRequest } {
   const c = enemy.combat;
   const tune = enemy.combatTuning.lobber!;
-  if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
-
-  const dx = target.x - enemy.sprite.x;
-  const dy = target.y - enemy.sprite.y;
-  const dist = Math.hypot(dx, dy);
-  if (c.phase === "idle") {
-    c.facing = Math.atan2(dy, dx);
-  }
+  const dist = tickCooldownAndFaceTarget(enemy, target, deltaMs);
 
   const minVolley = tune.preferredRangeWu - tune.kiteBandSlackWu;
   const inRange = dist <= tune.attackTriggerRangeWu && dist >= minVolley;

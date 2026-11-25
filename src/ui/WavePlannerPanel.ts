@@ -12,6 +12,10 @@ import {
   WAVE_PLANNER_TIME_STEP_MS,
 } from "../systems/wavePlannerTiming";
 import {
+  paintRosterRowSelection,
+  setRosterStartEnabled,
+} from "./rosterPanelShared";
+import {
   type createTouchButton,
   interactiveObjectScreenRect,
 } from "./touchButton";
@@ -147,7 +151,6 @@ export class WavePlannerPanel {
     );
   }
 
-
   private toggleSelect(enemyId: string): void {
     if (this.selectedIds.has(enemyId)) {
       this.selectedIds.delete(enemyId);
@@ -162,10 +165,7 @@ export class WavePlannerPanel {
   private refreshSelection(): void {
     for (const row of this.rows) {
       const on = this.selectedIds.has(row.enemyId);
-      row.bg.setFillStyle(on ? 0x1e3a5f : 0x3f3f46);
-      row.bg.setStrokeStyle(2, on ? 0x60a5fa : 0x71717a);
-      row.check.setText(on ? "☑" : "☐");
-      row.check.setColor(on ? "#93c5fd" : "#a1a1aa");
+      paintRosterRowSelection(row, on);
       const alpha = on ? 1 : 0.55;
       for (const key of ["count", "atMs", "intervalMs"] as const) {
         row.minus[key].setAlpha(alpha);
@@ -176,12 +176,7 @@ export class WavePlannerPanel {
   }
 
   private refreshStartButton(): void {
-    const enabled = this.selectedIds.size > 0;
-    const btn = this.startBtn?.container;
-    if (!btn) return;
-    btn.setAlpha(enabled ? 1 : 0.45);
-    if (enabled) btn.setInteractive();
-    else btn.disableInteractive();
+    setRosterStartEnabled(this.startBtn, this.selectedIds.size > 0);
   }
 
   destroy(): void {
