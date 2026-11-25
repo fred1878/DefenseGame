@@ -15,6 +15,7 @@ import {
   playerChaseVelocityOpts,
   setEnemyChaseVelocity,
 } from "./movement";
+import { spawnChargerChargeStartSmokeFx } from "../../combat/ChargerChargeSmokeFx";
 
 export const chargerBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
@@ -125,6 +126,15 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     extra.chargeAimX = playerX;
     extra.chargeAimY = playerY;
     setEnemyChaseVelocity(enemy, 0, 0);
+    const chargeScene = enemy.sprite.scene;
+    if (chargeScene) {
+      spawnChargerChargeStartSmokeFx(
+        chargeScene,
+        ex,
+        ey,
+        playerX < ex,
+      );
+    }
     return {
       targetX: playerX,
       targetY: playerY,
