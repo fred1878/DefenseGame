@@ -2,7 +2,7 @@
 
 ## Play the game (URL)
 
-This is a **web game** — players open a link in the browser (phone or desktop). There is no install step for web play.
+This is a **web game** — players open a link in the browser (phone or desktop), or **install** it: in Chrome, Edge, or Safari choose **Add to Home Screen** / **Install app**. After the first load the service worker precaches the build, so it works offline. A new deploy activates the next time the game is opened.
 
 | What | URL |
 |------|-----|
@@ -17,7 +17,8 @@ Every merge to `main` runs **`pages.yml`**, which builds and publishes `dist/` t
 
 - JS/CSS files use **content hashes** in filenames (Vite default).
 - Each CI/Pages build sets **`VITE_BUILD_ID`** to the git commit SHA and writes **`version.json`**.
-- On load, the game fetches `version.json` with `cache: 'no-store'`; if it differs from the embedded id, it **reloads once** with `?b=<sha>` so players pick up the new bundle without a manual hard refresh.
+- On load, the game fetches `version.json` with `cache: 'no-store'` (the service worker does not precache it); if it differs from the embedded id, it **reloads once** with `?b=<sha>` so players pick up the new bundle without a manual hard refresh.
+- The production service worker precaches hashed JS (including the Phaser chunk and lazy-loaded scenes), CSS, HTML, JSON data, images and audio. A new worker `skipWaiting`s but does not claim open clients, so the new version **activates on the next load**. Outdated caches are cleaned up. The worker is **not registered** in dev or e2e builds.
 - `index.html` includes **no-cache** meta tags to reduce stale HTML shell caching (GitHub Pages does not allow custom `Cache-Control` headers).
 
 Tagged releases (`v*.*.*`) also deploy the same way and add an optional zip on the GitHub Release page for archival only — normal play is still the Pages URL.

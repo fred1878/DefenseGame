@@ -1,5 +1,6 @@
 import { markBoot, measureBoot } from "./core/bootPerf";
 import { ensureFreshBuild } from "./ensureFreshBuild";
+import { registerServiceWorker } from "./pwa/registerServiceWorker";
 
 /**
  * Thin entry: version check, then dynamically import the Phaser app chunk.
@@ -8,6 +9,7 @@ import { ensureFreshBuild } from "./ensureFreshBuild";
 async function boot(): Promise<void> {
   markBoot("defensegame:bootstrap-start");
   void import("phaser");
+  void registerServiceWorker();
 
   markBoot("defensegame:ensure-fresh-build-start");
   await ensureFreshBuild();
