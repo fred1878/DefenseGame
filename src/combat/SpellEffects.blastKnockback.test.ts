@@ -37,12 +37,14 @@ describe("applySpellBlastAt knockback", () => {
       behavior: "meleeChaser",
       sprite: { x: 100, y: 100 } as never,
     });
+    const def = blastDef();
+    delete def.blastKnockbackWu;
     expect(() =>
       applySpellBlastAt(
         scene,
         100,
         100,
-        blastDef({ blastKnockbackWu: undefined }),
+        def,
         [
           {
             id: enemy.id,

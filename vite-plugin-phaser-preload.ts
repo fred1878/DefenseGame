@@ -1,7 +1,10 @@
 import type { Plugin } from "vite";
 
 function phaserChunkHref(
-  bundle: Record<string, { type?: string; name?: string }>,
+  bundle: Record<
+    string,
+    { type?: string | undefined; name?: string | undefined }
+  >,
   base: string,
 ): string | null {
   for (const [fileName, chunk] of Object.entries(bundle)) {

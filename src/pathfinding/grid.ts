@@ -9,7 +9,7 @@ export type NavPeerAgent = {
   x: number;
   y: number;
   /** World px — peer body radius + path margin; falls back to the replanning agent clearance. */
-  clearancePx?: number;
+  clearancePx?: number | undefined;
 };
 
 export type NavGrid = {

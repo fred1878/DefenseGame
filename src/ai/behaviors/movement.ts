@@ -27,14 +27,14 @@ export type MeleeChasePeer = {
 };
 
 export type ChaseVelocityOptions = {
-  nav?: EnemyNavState;
-  deltaMs?: number;
-  targetKind?: EnemyTargetKind;
+  nav?: EnemyNavState | undefined;
+  deltaMs?: number | undefined;
+  targetKind?: EnemyTargetKind | undefined;
   /** Live player position — used for melee standoff while chasing the player. */
-  playerX?: number;
-  playerY?: number;
+  playerX?: number | undefined;
+  playerY?: number | undefined;
   /** Live ally positions for peer chord blocking on direct player closes. */
-  meleeChasePeers?: readonly MeleeChasePeer[];
+  meleeChasePeers?: readonly MeleeChasePeer[] | undefined;
 };
 
 export function meleeChasePeersFromAllies(
@@ -50,12 +50,12 @@ export function meleeChasePeersFromAllies(
 export function playerChaseVelocityOpts(
   enemy: EnemyInstance,
   params: {
-    nav?: EnemyNavState;
+    nav?: EnemyNavState | undefined;
     deltaMs?: number;
     targetKind: EnemyTargetKind;
     playerX: number;
     playerY: number;
-    peerAllies?: readonly EnemyPeerAlly[];
+    peerAllies?: readonly EnemyPeerAlly[] | undefined;
   },
 ): ChaseVelocityOptions {
   return {

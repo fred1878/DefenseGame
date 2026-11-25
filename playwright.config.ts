@@ -16,7 +16,7 @@ function resolveE2EWorkers(): number {
 export default defineConfig({
   testDir: "e2e",
   // CI skips suites/tests tagged @manual in describe/title (see docs/TESTING.md).
-  grepInvert: process.env.CI ? /@manual/ : undefined,
+  ...(process.env.CI ? { grepInvert: /@manual/ } : {}),
   // CI: parallel files (specs use serial + shared boot where state mutates).
   fullyParallel: !!process.env.CI,
   forbidOnly: !!process.env.CI,
@@ -30,14 +30,16 @@ export default defineConfig({
     screenshot: "only-on-failure",
     viewport: { width: 540, height: 1200 },
   },
-  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
-    ? undefined
+  ...(process.env.PLAYWRIGHT_SKIP_WEBSERVER
+    ? {}
     : {
-        command: `VITE_BASE=/ npm run preview -- --port ${previewPort} --host ${previewHost}`,
-        url: baseURL,
-        reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
-        timeout: 120_000,
-      },
+        webServer: {
+          command: `VITE_BASE=/ npm run preview -- --port ${previewPort} --host ${previewHost}`,
+          url: baseURL,
+          reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
+          timeout: 120_000,
+        },
+      }),
   projects: [
     {
       name: "chromium",

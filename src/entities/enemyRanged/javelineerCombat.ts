@@ -14,7 +14,7 @@ export function updateJavelineerCombat(
   extra: JavelineerCombatState,
   deltaMs: number,
   onWallHit?: () => void,
-): { spawnJavelin?: JavelinSpawnRequest; meleeHit: boolean } {
+): { spawnJavelin?: JavelinSpawnRequest | undefined; meleeHit: boolean } {
   const c = enemy.combat;
   const tune = enemy.combatTuning.javelineer!;
   const dist = tickCooldownAndFaceTarget(enemy, target, deltaMs);
