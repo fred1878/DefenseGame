@@ -70,6 +70,7 @@ const Phaser = {
   },
   Types: { Input: { EventData: class {} } },
   Textures: { FilterMode: { LINEAR: 0, NEAREST: 1 } },
+  TintModes: { MULTIPLY: 0, FILL: 1, ADD: 2, SCREEN: 4, OVERLAY: 5, HARD_LIGHT: 6 },
   Physics: { Arcade: { Sprite: class {}, Body: class {} } },
   Cameras: { Scene2D: { Camera: class {} } },
 };

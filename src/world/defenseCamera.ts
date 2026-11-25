@@ -5,6 +5,7 @@ import {
   defenseHalfWidth,
 } from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
+import { snapCameraLikePhaser3 } from "../core/phaser3PixelParity";
 import { adoptDefenseWorldObject, isInDefenseWorldLayer } from "./defenseWorldLayer";
 
 export const DEFENSE_UI_CAMERA_NAME = "defenseUi";
@@ -61,6 +62,8 @@ export function setupDefenseCameraRig(
     playArea.height,
   );
   worldCamera.setBackgroundColor(0x0c0c0e);
+  // Odd-height play area + follow lerp: keep Phaser 3's whole-pixel world view.
+  snapCameraLikePhaser3(worldCamera);
 
   configureDefenseFollowCamera(worldCamera, follow, playArea, scene.registry);
 

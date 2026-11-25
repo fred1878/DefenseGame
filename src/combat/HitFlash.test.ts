@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi, beforeAll } from "vitest";
+import Phaser from "phaser";
 import { applyHitFlashConfig } from "../config/hitFlash";
 import { normalizeHitFlash } from "../core/normalizeHitFlash";
 import {
@@ -19,17 +20,18 @@ function mockFlashScene(): Phaser.Scene {
 
 function mockFlashSprite() {
   const data = new Map<string, unknown>();
-  return {
+  const sprite = {
     getData: vi.fn((key: string) => data.get(key)),
     setData: vi.fn((key: string, value: unknown) => {
       data.set(key, value);
     }),
-    setTint: vi.fn(),
-    setTintFill: vi.fn(),
+    setTint: vi.fn(() => sprite),
+    setTintMode: vi.fn(() => sprite),
     setAlpha: vi.fn(),
     clearTint: vi.fn(),
     _data: data,
   };
+  return sprite;
 }
 
 beforeAll(() => {
@@ -67,8 +69,9 @@ describe("HitFlash", () => {
     const sprite = mockFlashSprite();
     const scene = mockFlashScene();
     flashSpriteTint(scene, sprite as unknown as Phaser.GameObjects.Sprite, "physical");
-    expect(sprite.setTintFill).toHaveBeenCalledWith(16777215);
-    expect(sprite.setTint).not.toHaveBeenCalled();
+    expect(sprite.setTint).toHaveBeenCalledWith(16777215);
+    expect(sprite.setTintMode).toHaveBeenCalledWith(Phaser.TintModes.FILL);
+    expect(sprite.setTintMode).not.toHaveBeenCalledWith(Phaser.TintModes.MULTIPLY);
     expect(sprite.setAlpha).toHaveBeenCalledWith(1);
   });
 
@@ -77,7 +80,8 @@ describe("HitFlash", () => {
     const scene = mockFlashScene();
     flashSpriteTint(scene, sprite as unknown as Phaser.GameObjects.Sprite, "water");
     expect(sprite.setTint).toHaveBeenCalledWith(7254992);
-    expect(sprite.setTintFill).not.toHaveBeenCalled();
+    expect(sprite.setTintMode).toHaveBeenCalledWith(Phaser.TintModes.MULTIPLY);
+    expect(sprite.setTintMode).not.toHaveBeenCalledWith(Phaser.TintModes.FILL);
     expect(sprite.setAlpha).toHaveBeenCalledWith(1);
   });
 
