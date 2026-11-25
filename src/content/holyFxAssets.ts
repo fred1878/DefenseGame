@@ -29,6 +29,11 @@ export const HOLY_FX_ANIM = {
   channelLoop: "holy_channel_loop",
 } as const;
 
+/** World-pixel display size for holy pack 01 flash (subtle, not a full beam). */
+export const HOLY_FX_FLASH_DISPLAY_PX = 68;
+/** Peak ADD alpha for holy flash sprite overlay. */
+export const HOLY_FX_FLASH_ALPHA = 0.48;
+
 /** Channel loop sprite diameter = beacon radius × this (still smaller than v1 wired 3.1×). */
 export const HOLY_FX_CHANNEL_SPRITE_SCALE = 1.65;
 export const HOLY_FX_CHANNEL_ALPHA = 0.42;
