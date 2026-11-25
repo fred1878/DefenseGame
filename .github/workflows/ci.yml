@@ -125,7 +125,9 @@ jobs:
         run: npm run build:app
         env:
           VITE_E2E: "true"
-          VITE_BUILD_ID: e2e-ci
+          # Same id as `npm run build:e2e`: the Town header prints it, and the
+          # visual baselines (e2e/visual-screens.spec.ts) must match locally and on CI.
+          VITE_BUILD_ID: e2e-local
           VITE_BASE: /
       - name: Upload e2e dist
         if: needs.changes.outputs.run_e2e == 'true'

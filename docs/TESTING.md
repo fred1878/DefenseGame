@@ -183,7 +183,7 @@ Vitest thresholds apply to included `src/**` modules (scenes and Phaser boot sta
 | `wave-planner` | Wave planner opened from the Plague Clinic |
 | `defense-night-won` | Defense after the night is won (no enemies, HUD + return button) |
 
-Determinism (`e2e/helpers/visual.ts`): `Math.random` is a fixed-seed PRNG, Phaser's `requestAnimationFrame` loop is frozen before capture (e2e builds use `preserveDrawingBuffer`), and CSS animations are disabled. Tolerance: per-pixel `threshold` 0.2 and at most 0.2% differing pixels; a roster-mask regression changes ~14%.
+Determinism (`e2e/helpers/visual.ts`): `Math.random` is a fixed-seed PRNG, Phaser's `requestAnimationFrame` loop is frozen before capture (e2e builds use `preserveDrawingBuffer`), and CSS animations are disabled. Fonts are pinned for this spec only: its browser gets `FONTCONFIG_FILE=e2e/fonts/fonts.conf`, which maps every family (the UI stack starts with `system-ui`) to the bundled DejaVu Sans, so text renders identically on any Linux machine. The e2e build id must be `e2e-local` (used by `npm run build:e2e` and CI) because the Town header prints it. Tolerance: per-pixel `threshold` 0.2 and at most 0.2% differing pixels; a roster-mask regression changes ~14%.
 
 Baselines were generated on CI's runner (ubuntu-24.04, software WebGL). If a change is intentional, regenerate and review the diff:
 

@@ -6,3 +6,4 @@ blob-report/
 
 # Visual-check baselines (binary PNGs; open on request)
 e2e/*-snapshots/
+e2e/fonts/*.ttf
