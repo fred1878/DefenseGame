@@ -11,7 +11,7 @@
     "build:phaser": "node scripts/build-phaser-custom.mjs",
     "postinstall": "node scripts/install-phaser-defense.mjs",
     "build": "tsc -b && npm run build:app",
-    "build:app": "node scripts/install-phaser-defense.mjs && vite build && node scripts/assert-phaser-chunk-size.mjs && node scripts/write-version.mjs",
+    "build:app": "node scripts/install-phaser-defense.mjs && vite build && node scripts/assert-phaser-chunk-size.mjs && node scripts/assert-pwa-precache.mjs && node scripts/write-version.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "biome check --error-on-warnings",
@@ -37,6 +37,7 @@
     "knip": "6.48.0",
     "typescript": "^5.6.3",
     "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.1.2",
     "webpack": "^5.99.9"
   }

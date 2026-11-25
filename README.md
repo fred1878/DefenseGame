@@ -1,6 +1,6 @@
 # DefenseGame
 
-Top-down **real-time action RPG**: upgrade your town **by day**, defend the **north wall by night**. Built with **Phaser 3**, **Vite**, and **TypeScript** — no game editor, all logic in code + JSON.
+Top-down **real-time action RPG**: upgrade your town **by day**, defend the **north wall by night**. Built with **Phaser 4**, **Vite**, and **TypeScript** — no game editor, all logic in code + JSON.
 
 **Portrait touch UI:** design resolution **540×1200** (9:20), scaled with Phaser `FIT` for phones and desktop browsers.
 
@@ -12,6 +12,8 @@ Top-down **real-time action RPG**: upgrade your town **by day**, defend the **no
 | **Local dev** | `npm run dev` → http://127.0.0.1:5173 |
 
 After merging to `main`, Pages updates automatically (see [docs/CI_RELEASES.md](./docs/CI_RELEASES.md)).
+
+**Install it:** open the Pages URL in Chrome, Edge, or Safari (phone or desktop), then **Add to Home Screen** / **Install app**. The game opens in its own window and works **offline** after that first load. A new deploy applies the next time you open it.
 
 ---
 
@@ -45,8 +47,9 @@ Verified against the current codebase (not a wish list):
 | **HUD** | Combat chrome, spell bar, cast bar under player, minimap, mode/auto toggles, wall/night status text |
 | **Debug** | Hitboxes, touch overlay, enemy paths, world pixel scale (session-only) |
 | **Deploy** | Versioned bundles + `version.json` cache bust on Pages |
+| **PWA** | Installable standalone app; service worker precaches JS (including the Phaser chunk and lazy-loaded scenes), JSON data, images and audio. Updates activate on the next load |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, campaign ending after night 12, Capacitor store builds.
+**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, campaign ending after night 12, Capacitor store builds. Larger gameplay features (upgradeable town, equipment, talents, wall-defense maze, daytime adventuring, spell combos) are on the [roadmap](./ROADMAP.md).
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 

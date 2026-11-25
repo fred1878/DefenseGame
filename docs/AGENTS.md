@@ -2,7 +2,7 @@
 
 Code-only top-down real-time action RPG: **town by day**, **defend the settlement by night**. No game editor. Work is TypeScript + JSON.
 
-**Stack:** Phaser 3 · Vite · TypeScript · Vitest · Playwright. Capacitor is planned (config only today). Playable build: https://fred1878.github.io/DefenseGame/
+**Stack:** Phaser 4 · Vite · TypeScript · Vitest · Playwright. Installable PWA on the Pages build; Capacitor is planned (config only today). Playable build: https://fred1878.github.io/DefenseGame/
 
 ## Product loop
 
