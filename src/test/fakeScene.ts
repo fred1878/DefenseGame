@@ -10,6 +10,7 @@
  */
 import Phaser from "phaser";
 import { vi } from "vitest";
+import { FakeEmitter } from "./fakeInput";
 
 type Fn = (...args: unknown[]) => unknown;
 
@@ -74,6 +75,11 @@ export function fakeGameObject(
     active: true,
     list: [] as unknown[],
     anims: { timeScale: 1 },
+    /** Phaser 4 filter lists (`enableFilters()` then `filters.internal.addMask`). */
+    filters: {
+      internal: { addMask: (src: unknown) => fakeGameObject("mask", [src]) },
+      external: { addMask: (src: unknown) => fakeGameObject("mask", [src]) },
+    },
     texture: { key: typeof args[2] === "string" ? args[2] : "" },
     body: {
       velocity: { x: 0, y: 0 },
@@ -188,7 +194,13 @@ export type FakeScene = ReturnType<typeof fakeScene>;
 
 /** A scene with recording `add`, `tweens`, `time`, `textures` and `anims`. */
 export function fakeScene(
-  opts: { textures?: string[]; anims?: string[]; audio?: string[] } = {},
+  opts: {
+    textures?: string[];
+    anims?: string[];
+    audio?: string[];
+    width?: number;
+    height?: number;
+  } = {},
 ) {
   const created: FakeGameObject[] = [];
   const tweenConfigs: TweenConfig[] = [];
@@ -213,6 +225,8 @@ export function fakeScene(
   const registryData = new Map<string, unknown>();
   const scene = {
     add,
+    /** `make.graphics` creates kind `make.graphics` (off-display objects, e.g. masks). */
+    make: factory("make."),
     /** `physics.add.sprite` creates kind `physics.sprite`. */
     physics: { add: factory("physics.") },
     registry: {
@@ -259,8 +273,23 @@ export function fakeScene(
         },
       ),
     },
+    scene: { key: "FakeScene" },
+    cameras: {
+      main: {
+        scrollX: 0,
+        scrollY: 0,
+        zoom: 1,
+        getWorldPoint: (x: number, y: number) => ({ x, y }),
+      },
+    },
+    scale: { width: opts.width ?? 540, height: opts.height ?? 1200 },
     cache: { audio: { exists: (key: string) => audio.has(key) } },
     sound: { play: vi.fn() },
+    /** Scene input: an emitter plus a stubbed `hitTestPointer`. */
+    input: Object.assign(new FakeEmitter(), {
+      hitTestPointer: vi.fn((_pointer: unknown): unknown[] => []),
+    }),
+    events: new FakeEmitter(),
     sys: { isActive: () => true },
   };
   return scene;
