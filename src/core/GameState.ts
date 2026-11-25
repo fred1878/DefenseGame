@@ -90,6 +90,19 @@ export function mergePlayerWithoutLegacyMoveSpeed(
   return { ...base, ...rest };
 }
 
+/**
+ * Same-version compatibility fixes (legacy spell ids, missing fields).
+ * Not a schema bump — callers still reject `version !== SAVE_VERSION`.
+ */
+export function normalizeSave(
+  save: SaveGame & {
+    spellBar?: SaveGame["spellBar"];
+    player?: LegacySavePlayer;
+  },
+): SaveGame {
+  return migrateSave(save);
+}
+
 function migrateSave(
   save: SaveGame & {
     spellBar?: SaveGame["spellBar"];

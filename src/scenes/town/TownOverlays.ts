@@ -13,6 +13,7 @@ import { EndlessModePanelLoadingSkeleton } from "../../ui/EndlessModePanelLoadin
 import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
 import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
 import { WavePlannerPanel } from "../../ui/WavePlannerPanel";
+import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
 import type { ScreenRect } from "../../ui/screenLayout";
 
 /** Scene callbacks the Town overlays need (save access + run launch). */
@@ -22,17 +23,20 @@ export type TownOverlaysHost = {
   onSpellBarSorted(result: SaveGame["spellBar"]): void;
   onStartEndless(selections: EndlessRunSelection[], infiniteHp: boolean): void;
   onStartWavePlanner(groups: WaveGroup[]): void;
+  /** Persist the slot and restart Town with the loaded save. */
+  onLoadSaveSlot(save: SaveGame): void;
 };
 
 /**
  * Town modal overlays: spell bar sort, endless roster (+ loading skeleton),
- * wave planner, debug menu launch, and the defense loading overlay.
+ * wave planner, save menu, debug menu launch, and the defense loading overlay.
  */
 export class TownOverlays {
   spellSortPanel: SpellBarSortPanel | null = null;
   endlessPanel: EndlessModePanel | null = null;
   endlessPanelLoading: EndlessModePanelLoadingSkeleton | null = null;
   wavePlannerPanel: WavePlannerPanel | null = null;
+  saveMenuPanel: SaveMenuPanel | null = null;
   private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
 
   constructor(
@@ -88,6 +92,21 @@ export class TownOverlays {
       return;
     }
     void ensureTownReachableReady(this.scene, store).then(open);
+  }
+
+  openSaveMenuPanel(): void {
+    if (this.saveMenuPanel) return;
+    this.saveMenuPanel = new SaveMenuPanel(
+      this.scene,
+      () => this.host.getSave(),
+      (save) => {
+        this.saveMenuPanel = null;
+        this.host.onLoadSaveSlot(save);
+      },
+      () => {
+        this.saveMenuPanel = null;
+      },
+    );
   }
 
   openEndlessPanel(): void {
@@ -162,6 +181,8 @@ export class TownOverlays {
     this.endlessPanel = null;
     this.wavePlannerPanel?.destroy();
     this.wavePlannerPanel = null;
+    this.saveMenuPanel?.destroy();
+    this.saveMenuPanel = null;
     this.spellSortPanel?.destroy();
     this.spellSortPanel = null;
     this.defenseLoadingOverlay?.destroy();
@@ -217,6 +238,9 @@ export class TownOverlays {
     }
     if (this.wavePlannerPanel) {
       Object.assign(out, this.wavePlannerPanel.e2eTapTargets());
+    }
+    if (this.saveMenuPanel) {
+      Object.assign(out, this.saveMenuPanel.e2eTapTargets());
     }
   }
 }

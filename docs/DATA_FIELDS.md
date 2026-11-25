@@ -490,6 +490,7 @@ Town clickable building art + actions (`TownBuildingDef`).
 | `opensSpellBar` | When true, opens the town spell bar sort panel. |
 | `opensEndlessMode` | When true, opens the endless enemy training panel. |
 | `opensWavePlanner` | When true, opens the custom wave planner panel. |
+| `opensSaveMenu` | When true, opens the manual save-slot menu. |
 
 ---
 
