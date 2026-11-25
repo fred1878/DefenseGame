@@ -21,6 +21,7 @@ export type DefenseGameE2EApi = {
   /** Override live movement tuning via PLAYER_TUNING. */
   setPlayerMoveSpeedWu(moveSpeedWu: number): void;
   spawnTestEnemy(x?: number, y?: number): void;
+  spawnTestEnemyByDef(defId: string, offX?: number, offY?: number): void;
   setGodMode(on: boolean): void;
   damagePlayer(amount: number): void;
   killAllEnemies(): void;

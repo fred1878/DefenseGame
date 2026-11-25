@@ -8,6 +8,7 @@ import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../conte
 import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { ICE_FX_ASSETS } from "../content/iceFxAssets";
 import { PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
+import { MELEE_FX_ASSETS } from "../content/meleeFxAssets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import {
   mergePlayerWithoutLegacyMoveSpeed,
@@ -232,6 +233,18 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     spawnTestEnemy(x = 80, y = 0) {
       activeDefense(game)?.e2eSpawnEnemy(x, y);
+    },
+    spawnTestEnemyByDef(defId: string, offX = 56, offY = 0) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const pos = defense.e2ePlayerPosition();
+      defense.spawnEnemyAt(
+        pos.x + offX,
+        pos.y + offY,
+        undefined,
+        defId,
+        999,
+      );
     },
     setGodMode(on: boolean) {
       game.registry.set("e2eGodMode", on);
@@ -598,6 +611,7 @@ export function markE2EAssetsLoaded(game: Phaser.Game): void {
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),
     ...PVFX_FX_ASSETS.map((a) => a.key),
+    ...MELEE_FX_ASSETS.map((a) => a.key),
   ];
   const ok = keys.every((k) => game.textures.exists(k));
   publishE2E({ assetsLoaded: ok, flags: { combatFxKeys: keys.join(",") } });

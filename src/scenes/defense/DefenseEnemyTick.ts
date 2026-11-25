@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { playEnemyMeleeSlashSfx } from "../../audio/enemyMeleeSlashSfx";
-import { showGruntMeleeSwipe } from "../../combat/MeleeSwipeFx";
+import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
 import {
   pickEnemyCombatTarget,
   updateEnemyBrain,
@@ -284,8 +284,9 @@ export function tickDefenseEnemies(
         !e.combat.slashFxShown
       ) {
         e.combat.slashFxShown = true;
-        showGruntMeleeSwipe(
+        showEnemyMeleeSwipe(
           host.scene,
+          e.defId,
           e.sprite.x,
           e.sprite.y,
           e.combat.facing,
@@ -311,8 +312,9 @@ export function tickDefenseEnemies(
         const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
         if (e.combat.phase === "active" && !e.combat.slashFxShown) {
           e.combat.slashFxShown = true;
-          showGruntMeleeSwipe(
+          showEnemyMeleeSwipe(
             host.scene,
+            e.defId,
             e.sprite.x,
             e.sprite.y,
             e.combat.facing,
@@ -355,8 +357,9 @@ export function tickDefenseEnemies(
       const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
       if (e.combat.phase === "active" && !e.combat.slashFxShown) {
         e.combat.slashFxShown = true;
-        showGruntMeleeSwipe(
+        showEnemyMeleeSwipe(
           host.scene,
+          e.defId,
           e.sprite.x,
           e.sprite.y,
           e.combat.facing,
