@@ -46,6 +46,20 @@ export function defenseSceneE2eAttackPhase(
   return scene.player.attackPhaseNow;
 }
 
+/** Player attack mode as cycled by the MEL/RNG/AUTO toggle. */
+export function defenseSceneE2eAttackMode(scene: DefenseSceneE2eDelegate): string {
+  return scene.player.mode;
+}
+
+/** Current HP of every living enemy, in spawn order. */
+export function defenseSceneE2eLivingEnemyHps(
+  scene: DefenseSceneE2eDelegate,
+): number[] {
+  return scene.enemies
+    .filter((e) => e.damageable.alive)
+    .map((e) => e.damageable.hp);
+}
+
 export function defenseSceneE2eProjectileCount(
   scene: DefenseSceneE2eDelegate,
 ): number {

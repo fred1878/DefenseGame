@@ -38,6 +38,10 @@ export type DefenseGameE2EApi = {
   sampleFps(seconds?: number): Promise<number>;
   getAttackPhase(): string;
   getProjectileCount(): number;
+  /** "melee" | "ranged" | "auto" in Defense; null outside Defense. */
+  getAttackMode(): string | null;
+  /** HP of each living enemy in the active Defense scene. */
+  getLivingEnemyHps(): number[];
   getEnemyCount(): number;
   setManualReturnToTown(on: boolean): void;
   nightEnded(): boolean;

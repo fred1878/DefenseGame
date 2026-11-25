@@ -927,6 +927,8 @@ export class DefenseScene extends Phaser.Scene {
   e2eSetStick(dx: number, dy: number): void { sceneE2E.defenseSceneE2eSetStick(this.e2eDelegate(), dx, dy); }
   e2ePlayerPosition() { return sceneE2E.defenseSceneE2ePlayerPosition(this.e2eDelegate()); }
   e2eAttackPhase(): string { return sceneE2E.defenseSceneE2eAttackPhase(this.e2eDelegate()); }
+  e2eAttackMode(): string { return sceneE2E.defenseSceneE2eAttackMode(this.e2eDelegate()); }
+  e2eLivingEnemyHps(): number[] { return sceneE2E.defenseSceneE2eLivingEnemyHps(this.e2eDelegate()); }
   e2eProjectileCount(): number { return sceneE2E.defenseSceneE2eProjectileCount(this.e2eDelegate()); }
   e2eEnemyCount(): number { return sceneE2E.defenseSceneE2eEnemyCount(this.e2eDelegate()); }
   e2eLivingEnemyDefIds(): string[] { return sceneE2E.defenseSceneE2eLivingEnemyDefIds(this.e2eDelegate()); }
