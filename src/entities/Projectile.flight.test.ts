@@ -193,6 +193,17 @@ describe("updateProjectile", () => {
     expect(near.enemy.knockbackVx).toBeGreaterThan(0);
   });
 
+  it("knocks back from the impact point even when the step overshoots the enemy", () => {
+    // Regression: knockback used to be applied from the post-step position,
+    // which for a fast shot lies past the enemy and pulled it toward the shooter.
+    const p = spawn(fakeScene());
+    const e = enemyAt("e", 20, 0);
+    moveTo(p, 60, 0);
+    expect(updateProjectile(p, 16, [e], 100).hitEnemyId).toBe("e");
+    expect(e.enemy.knockbackVx).toBeGreaterThan(0);
+    expect(e.enemy.knockbackVy).toBeCloseTo(0);
+  });
+
   it("pierce passes through, never double-hitting, and stops when pierce runs out", () => {
     const p = spawn(fakeScene());
     p.spellBehavior = "pierce";
@@ -284,6 +295,16 @@ describe("updateEnemyProjectile", () => {
     expect((pl.sprite as Sprite).body).toMatchObject({
       velocity: { x: expect.any(Number) },
     });
+    expect(
+      ((pl.sprite as Sprite).body as { velocity: { x: number } }).velocity.x,
+    ).toBeGreaterThan(0);
+  });
+
+  it("knocks the player back from the impact point when the step overshoots", () => {
+    const p = spawn(fakeScene());
+    const pl = player(30);
+    moveTo(p, 80, 0);
+    expect(updateEnemyProjectile(p, 16, pl, 100)).toBe(false);
     expect(
       ((pl.sprite as Sprite).body as { velocity: { x: number } }).velocity.x,
     ).toBeGreaterThan(0);

@@ -330,10 +330,10 @@ export function applyInstantTargeted(
     def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
     scene.registry,
   );
+  const living = enemies.filter((e) => e.damageable.alive);
   const target =
-    (targetId &&
-      enemies.find((e) => e.id === targetId && e.damageable.alive)) ||
-    nearestEnemy(playerX, playerY, enemies, maxR);
+    (targetId && living.find((e) => e.id === targetId)) ||
+    nearestEnemy(playerX, playerY, living, maxR);
   if (!target) return null;
   const full = enemies.find((e) => e.id === target.id);
   if (!full) return null;
@@ -399,10 +399,11 @@ export function applyChainLightning(
     (startEnemyId && living.find((e) => e.id === startEnemyId)) ||
     nearestEnemy(playerX, playerY, living);
   if (!start) return;
+  // The start enemy is struck directly below; hops jump to other enemies only.
   const chain = pickChainLightningTargets(
     start.x,
     start.y,
-    living,
+    living.filter((e) => e.id !== start.id),
     def.chainLightningHops!,
     hopRange,
   );

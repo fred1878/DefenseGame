@@ -222,6 +222,42 @@ describe("applyInstantTargeted", () => {
     expect(id).toBe("near");
   });
 
+  it("the nearest-enemy fallback skips dead enemies", () => {
+    // Regression: a dead enemy closer than any living one used to be picked.
+    const dead = target("dead", 10, 0);
+    dead.damageable.alive = false;
+    const living = target("living", 60, 0);
+    const id = applyInstantTargeted(
+      asScene(fakeScene()),
+      def({ groundTargetMaxRangeWu: 100, baseDamage: 10 }),
+      [dead, living],
+      null,
+      0,
+      0,
+      1,
+    );
+    expect(id).toBe("living");
+    expect(hp(living)).toBe(90);
+    expect(hp(dead)).toBe(100);
+  });
+
+  it("returns null when only dead enemies are in range", () => {
+    const dead = target("dead", 10, 0);
+    dead.damageable.alive = false;
+    expect(
+      applyInstantTargeted(
+        asScene(fakeScene()),
+        def({ groundTargetMaxRangeWu: 100, baseDamage: 10 }),
+        [dead],
+        null,
+        0,
+        0,
+        1,
+      ),
+    ).toBeNull();
+    expect(hp(dead)).toBe(100);
+  });
+
   it("burst damage hits the target, then splashes 65% around it (not re-pushing the target)", () => {
     const primary = target("p", 50, 0);
     const neighbour = target("n", 70, 0);
@@ -335,6 +371,36 @@ describe("applyChainLightning", () => {
     const stunned = status.applyStun.mock.calls.map((c) => c[0]);
     expect(stunned).toEqual(expect.arrayContaining(["a", "b"]));
     expect(stunned).not.toContain("far");
+  });
+
+  it("hits the start enemy once and spends every hop on other enemies", () => {
+    // Regression: the first hop used to land on the start enemy itself
+    // (distance 0), double-hitting it and wasting a hop.
+    const a = target("a", 100, 0);
+    const b = target("b", 140, 0);
+    const c = target("c", 180, 0);
+    const d = target("d", 220, 0);
+    const e = target("e", 260, 0);
+    const scene = fakeScene();
+    applyChainLightning(
+      asScene(scene),
+      0,
+      0,
+      chainDef,
+      [a, b, c, d, e],
+      1,
+      "a",
+    );
+    expect([a, b, c, d].map(hp)).toEqual([90, 90, 90, 90]);
+    expect(hp(e)).toBe(100); // 3 hops: b, c, d
+  });
+
+  it("a lone enemy is struck once with no chain drawn", () => {
+    const solo = target("solo", 50, 0);
+    const scene = fakeScene();
+    applyChainLightning(asScene(scene), 0, 0, chainDef, [solo], 1);
+    expect(hp(solo)).toBe(90);
+    expect(scene.made("graphics")).toHaveLength(0);
   });
 
   it("starts from the nearest enemy when no start is given", () => {
