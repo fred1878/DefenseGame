@@ -3,3 +3,6 @@ package-lock.json
 playwright-report/
 test-results/
 blob-report/
+
+# Visual-check baselines (binary PNGs; open on request)
+e2e/*-snapshots/

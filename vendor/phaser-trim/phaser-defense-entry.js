@@ -1,5 +1,5 @@
 /**
- * DefenseGame custom Phaser entry — arcade physics only, trimmed loader/game objects.
+ * DefenseGame custom Phaser entry — arcade physics only, no Tilemaps, trimmed loader/game objects.
  * Built from node_modules/phaser@<version> via scripts/build-phaser-custom.mjs
  *
  * @license MIT (Phaser source is MIT; this entry file is project-authored)
@@ -46,7 +46,6 @@ var Phaser = {
   Scenes: require("./scene"),
   Structs: require("./structs"),
   Textures: require("./textures"),
-  Tilemaps: require("./tilemaps"),
   Time: require("./time"),
   Tweens: require("./tweens"),
   Utils: require("./utils"),
