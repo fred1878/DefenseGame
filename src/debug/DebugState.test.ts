@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   getDebugFlags,
+  setShowCombatRanges,
   setShowTouchInput,
+  showCombatRanges,
   showTouchInput,
 } from "./DebugState";
 
@@ -37,5 +39,12 @@ describe("DebugState", () => {
     getDebugFlags(reg);
     setShowTouchInput(reg, true);
     expect(showTouchInput(reg)).toBe(true);
+  });
+
+  it("persists showCombatRanges toggle", () => {
+    const reg = fakeRegistry();
+    getDebugFlags(reg);
+    setShowCombatRanges(reg, true);
+    expect(showCombatRanges(reg)).toBe(true);
   });
 });
