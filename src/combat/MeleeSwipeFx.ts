@@ -5,7 +5,6 @@ import {
   enemyMeleeFxSpec,
   enemyMeleeFxTransform,
   meleeFxAnimDurationMs,
-  meleeFxPackLoaded,
   type EnemyMeleeFxSpec,
 } from "../content/meleeFxAssets";
 import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
@@ -64,12 +63,17 @@ export function showEnemyMeleeSwipe(
   fallbackNaturalMs: number,
 ): void {
   const spec = enemyMeleeFxSpec(enemyDefId);
-  if (
-    spec &&
-    meleeFxPackLoaded(scene) &&
-    scene.textures.exists(spec.textureKey) &&
-    scene.anims.exists(spec.animKey)
-  ) {
+  if (spec) {
+    if (!scene.textures.exists(spec.textureKey)) {
+      throw new Error(
+        `Missing melee FX texture ${spec.textureKey} (${enemyDefId})`,
+      );
+    }
+    if (!scene.anims.exists(spec.animKey)) {
+      throw new Error(
+        `Missing melee FX animation ${spec.animKey} (${enemyDefId})`,
+      );
+    }
     spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, fxDurationMs);
   } else {
     spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs, fallbackNaturalMs);

@@ -27,6 +27,7 @@ import {
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
 import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
+import type { CombatRangeDebugDraw } from "../debug/CombatRangeDebugDraw";
 import type { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import type { PathDebugDraw } from "../debug/PathDebugDraw";
 import type { FocusTapFlash, TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
@@ -76,7 +77,7 @@ import { DefenseSpellDirector, type DefenseSpellDirectorHost } from "./defense/D
 import { tickDefenseSpellWorld } from "./defense/DefenseSpellWorldTick";
 import {
   createDefenseDebugDrawers,
-  drawDefenseDebugHitboxes,
+  drawDefenseCombatDebug,
   drawDefenseEnemyPaths,
   drawDefenseTouchDebug,
 } from "./defense/DefenseDebugDraw";
@@ -114,6 +115,7 @@ export class DefenseScene extends Phaser.Scene {
   private navGrid!: NavGrid;
   private playerInvulnMs = 0;
   private hitboxDebug!: HitboxDebugDraw;
+  private rangeDebug!: CombatRangeDebugDraw;
   private pathDebug!: PathDebugDraw;
   private touchDebug!: TouchInputDebugDraw;
   private fpsOverlay!: FpsDebugOverlay;
@@ -195,6 +197,7 @@ export class DefenseScene extends Phaser.Scene {
       castBar: this.castBar,
       spellBar: this.spellBar,
       hitboxDebug: this.hitboxDebug,
+      rangeDebug: this.rangeDebug,
       pathDebug: this.pathDebug,
       touchDebug: this.touchDebug,
       fpsOverlay: this.fpsOverlay,
@@ -383,6 +386,7 @@ export class DefenseScene extends Phaser.Scene {
     this.spellDirector = new DefenseSpellDirector(this.sceneHost);
     ({
       hitboxDebug: this.hitboxDebug,
+      rangeDebug: this.rangeDebug,
       pathDebug: this.pathDebug,
       touchDebug: this.touchDebug,
     } = createDefenseDebugDrawers(this, this.registerWorldDraw, this.registerUiDraw));
@@ -612,8 +616,9 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private drawDebugOverlays(delta: number): void {
-    drawDefenseDebugHitboxes({
+    drawDefenseCombatDebug({
       registry: this.registry,
+      rangeDebug: this.rangeDebug,
       hitboxDebug: this.hitboxDebug,
       player: this.player,
       enemies: this.enemies,

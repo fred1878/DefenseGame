@@ -7,6 +7,7 @@ import {
   enemyMeleeFxFlipX,
   enemyMeleeFxRotation,
   enemyMeleeFxSpec,
+  enemyMeleeFxStrikeAim,
   enemyMeleeFxTransform,
   meleeFxAnimDurationMs,
   registerMeleeFxAnimations,
@@ -59,8 +60,20 @@ describe("enemyMeleeFxTransform", () => {
     expect(enemyMeleeFxFlipX(0, spec)).toBe(false);
   });
 
-  it("keeps slashArcV2 rotation-only (no flip)", () => {
+  it("grunt slashTopBiasRight flips west-half and aligns strike to facing", () => {
     const spec = enemyMeleeFxSpec("grunt")!;
+    expect(spec.animFacing).toBe("slashTopBiasRight");
+    const facings = [0, Math.PI / 3, Math.PI / 2, Math.PI, -Math.PI / 3];
+    for (const facing of facings) {
+      const aim = enemyMeleeFxStrikeAim(facing, spec);
+      expect(aim).toBeCloseTo(facing, 4);
+    }
+    expect(enemyMeleeFxTransform(0, spec).flipX).toBe(false);
+    expect(enemyMeleeFxTransform(Math.PI, spec).flipX).toBe(true);
+  });
+
+  it("keeps slashArcV2 rotation-only (no flip)", () => {
+    const spec = enemyMeleeFxSpec("skirmisher")!;
     const slashSpec = {
       ...spec,
       animFacing: "slashArcV2" as const,

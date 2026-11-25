@@ -5,21 +5,35 @@ import type Phaser from "phaser";
 export const MELEE_FX_ROOT = "assets/combat/fx/melee";
 
 /** Sprite sheet default strike direction at rotation 0. */
-export type MeleeAnimFacing = "slashArcV2" | "eastAtZero";
+export type MeleeAnimFacing = "slashArcV2" | "eastAtZero" | "slashTopBiasRight";
 
-const MELEE_ANIM_FACING_OFFSET: Record<MeleeAnimFacing, number> = {
+const MELEE_ANIM_FACING_OFFSET: Record<
+  Exclude<MeleeAnimFacing, "slashTopBiasRight">,
+  number
+> = {
   /** `slash-arc-v2` bisector points west at rot 0; add π to align +X attack. */
   slashArcV2: Math.PI,
   /** PVFX / smear sheets authored facing +X (east) at rot 0. */
   eastAtZero: 0,
 };
 
+/**
+ * `slash-128x128-s3-c1` — strike reads toward the **top of the frame** in source art,
+ * with a slight rightward bias (tune `GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD`, not a fixed °).
+ */
+export const GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD = Math.atan2(1, 14);
+
+/** World-space strike bearing when the sprite rotation is 0. */
+export function slashTopBiasRightStrikeAtRot0(biasRad: number): number {
+  return -Math.PI / 2 + biasRad;
+}
+
 /** Per-clip facing; all enemy PVFX smears use eastAtZero. */
 export const MELEE_FX_ANIM_FACING: Record<
   keyof typeof MELEE_FX_ANIM,
   MeleeAnimFacing
 > = {
-  grunt: "eastAtZero",
+  grunt: "slashTopBiasRight",
   skirmisher: "eastAtZero",
   bruiser: "eastAtZero",
   slow_siege: "eastAtZero",
@@ -32,15 +46,20 @@ export const MELEE_FX_ANIM_FACING: Record<
 export function rotationOffsetRadForAnimFacing(
   facing: MeleeAnimFacing,
 ): number {
+  if (facing === "slashTopBiasRight") {
+    return -slashTopBiasRightStrikeAtRot0(
+      GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD,
+    );
+  }
   return MELEE_ANIM_FACING_OFFSET[facing];
 }
 
 export const MELEE_FX_ASSETS = [
   {
     key: "fx_melee_grunt",
-    file: "grunt-slash-64-s1-c2.png",
-    frameWidth: 64,
-    frameHeight: 64,
+    file: "grunt-slash-128x128-s3-c1.png",
+    frameWidth: 128,
+    frameHeight: 128,
     frameCount: 9,
     frameRate: 12,
   },
@@ -115,7 +134,7 @@ export const MELEE_FX_ANIM = {
 
 /** On-screen display size (art px) before world display scaling. */
 export const MELEE_FX_DISPLAY = {
-  grunt: { w: 56, h: 56 },
+  grunt: { w: 112, h: 112 },
   skirmisher: { w: 54, h: 24 },
   bruiser: { w: 72, h: 58 },
   slow_siege: { w: 50, h: 34 },
@@ -163,10 +182,6 @@ export type EnemyMeleeFxSpec = {
   rotationOffsetRad: number;
 };
 
-export function meleeFxPackLoaded(scene: Phaser.Scene): boolean {
-  return MELEE_FX_ASSETS.every((a) => scene.textures.exists(a.key));
-}
-
 export function enemyMeleeFxClipId(
   enemyDefId: string,
 ): MeleeFxClipId | undefined {
@@ -204,7 +219,9 @@ export type EnemyMeleeFxTransform = {
 /**
  * PVFX/smears are authored facing +X at rotation 0. West-half attacks (cos < 0)
  * mirror on X and use rotation `facing − π` so flip + angle match body aim.
- * `slashArcV2` (grunt static fallback) keeps rotation-only + π offset — no flip.
+ * `slashArcV2` (static fallback) keeps rotation-only + π offset — no flip.
+ * `slashTopBiasRight` (`slash-128x128-s3-c1`): top-of-frame strike + slight right bias at rot 0;
+ * rotation aligns that bearing to `facingRad`, flipX on the west half.
  */
 export function enemyMeleeFxTransform(
   facingRad: number,
@@ -216,11 +233,40 @@ export function enemyMeleeFxTransform(
       flipX: false,
     };
   }
+  if (spec.animFacing === "slashTopBiasRight") {
+    const strike0 = slashTopBiasRightStrikeAtRot0(
+      GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD,
+    );
+    const flipX = Math.cos(facingRad) < 0;
+    return {
+      flipX,
+      rotation: flipX ? facingRad - Math.PI - strike0 : facingRad - strike0,
+    };
+  }
   const flipX = Math.cos(facingRad) < 0;
   return {
     flipX,
     rotation: flipX ? facingRad - Math.PI : facingRad + spec.rotationOffsetRad,
   };
+}
+
+/** Strike bearing in world space after rotation + flip (for tests and E2E). */
+export function enemyMeleeFxStrikeAim(
+  facingRad: number,
+  spec: EnemyMeleeFxSpec,
+): number {
+  const { rotation, flipX } = enemyMeleeFxTransform(facingRad, spec);
+  if (spec.animFacing === "slashTopBiasRight") {
+    const strike0 = slashTopBiasRightStrikeAtRot0(
+      GRUNT_SLASH_128_S3_C1_TOP_RIGHT_BIAS_RAD,
+    );
+    const localAim = rotation + strike0;
+    return flipX ? Math.PI - localAim : localAim;
+  }
+  if (spec.animFacing === "eastAtZero") {
+    return flipX ? Math.PI : rotation;
+  }
+  return rotation + spec.rotationOffsetRad;
 }
 
 export function enemyMeleeFxRotation(

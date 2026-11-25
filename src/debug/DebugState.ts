@@ -1,5 +1,6 @@
 export type DebugFlags = {
   showHitboxes: boolean;
+  showCombatRanges: boolean;
   showTouchInput: boolean;
   showEnemyPaths: boolean;
   showFpsCounter: boolean;
@@ -12,6 +13,7 @@ export function getDebugFlags(registry: Phaser.Data.DataManager): DebugFlags {
   if (existing) {
     return {
       showHitboxes: existing.showHitboxes ?? false,
+      showCombatRanges: existing.showCombatRanges ?? false,
       showTouchInput: existing.showTouchInput ?? false,
       showEnemyPaths: existing.showEnemyPaths ?? false,
       showFpsCounter: existing.showFpsCounter ?? false,
@@ -19,6 +21,7 @@ export function getDebugFlags(registry: Phaser.Data.DataManager): DebugFlags {
   }
   const defaults: DebugFlags = {
     showHitboxes: false,
+    showCombatRanges: false,
     showTouchInput: false,
     showEnemyPaths: false,
     showFpsCounter: false,
@@ -38,6 +41,19 @@ export function setShowHitboxes(
 
 export function showHitboxes(registry: Phaser.Data.DataManager): boolean {
   return getDebugFlags(registry).showHitboxes;
+}
+
+export function setShowCombatRanges(
+  registry: Phaser.Data.DataManager,
+  value: boolean,
+): void {
+  const flags = getDebugFlags(registry);
+  flags.showCombatRanges = value;
+  registry.set(REGISTRY_KEY, { ...flags });
+}
+
+export function showCombatRanges(registry: Phaser.Data.DataManager): boolean {
+  return getDebugFlags(registry).showCombatRanges;
 }
 
 export function setShowTouchInput(
