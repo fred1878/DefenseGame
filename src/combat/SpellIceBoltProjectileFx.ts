@@ -6,7 +6,7 @@ import {
   ICE_FX_BOLT_DISPLAY_H_PX,
   ICE_FX_BOLT_DISPLAY_W_PX,
   ICE_FX_TEXTURE,
-  iceFxPackLoaded,
+  assertIceCombatFxReady,
 } from "../content/iceFxAssets";
 import type { PlayerProjectile } from "../entities/Projectile";
 
@@ -22,21 +22,13 @@ export type IceBoltProjectileFxState = {
   phase: "start" | "travel";
 };
 
-function iceBoltFxReady(scene: Phaser.Scene): boolean {
-  return (
-    iceFxPackLoaded(scene) &&
-    (scene.anims?.exists(ICE_FX_ANIM.boltStart) ?? false) &&
-    (scene.anims?.exists(ICE_FX_ANIM.boltRepeat) ?? false)
-  );
-}
-
-/** Attach animated Ice VFX 1 to an ice_bolt projectile (hides MRPG slice when strips load). */
+/** Attach Ice VFX 1 travel on `ice_bolt` (physics sprite stays invisible). */
 export function attachIceBoltProjectileFx(
   scene: Phaser.Scene,
   projectile: PlayerProjectile,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
-  if (!iceBoltFxReady(scene)) return;
+  assertIceCombatFxReady(scene, "ice_bolt travel");
   const { sprite: body } = projectile;
   const overlay = scene.add
     .sprite(body.x, body.y, ICE_FX_TEXTURE.boltStart)
@@ -78,12 +70,7 @@ export function playIceBoltHitFx(
   angleRad: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
-  if (
-    !scene.textures.exists(ICE_FX_TEXTURE.boltHit) ||
-    !(scene.anims?.exists(ICE_FX_ANIM.boltHit) ?? false)
-  ) {
-    return;
-  }
+  assertIceCombatFxReady(scene, "ice_bolt impact");
   const hit = scene.add
     .sprite(x, y, ICE_FX_TEXTURE.boltHit)
     .setDepth(DEPTH + 0.3)

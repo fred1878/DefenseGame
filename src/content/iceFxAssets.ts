@@ -80,6 +80,29 @@ export function iceFxPackLoaded(scene: Phaser.Scene): boolean {
   return ICE_FX_ASSETS.every((a) => scene.textures.exists(a.key));
 }
 
+function iceFxAnimsReady(scene: Phaser.Scene): boolean {
+  return Object.values(ICE_FX_ANIM).every(
+    (key) => scene.anims?.exists(key) ?? false,
+  );
+}
+
+/** Require full ice pack + registered anims — no MobileRPG spell-slice fallback. */
+export function assertIceCombatFxReady(
+  scene: Phaser.Scene,
+  context: string,
+): void {
+  const missingTextures = ICE_FX_ASSETS.filter(
+    (a) => !scene.textures.exists(a.key),
+  ).map((a) => a.key);
+  const missingAnims = Object.values(ICE_FX_ANIM).filter(
+    (key) => !(scene.anims?.exists(key) ?? false),
+  );
+  if (missingTextures.length === 0 && missingAnims.length === 0) return;
+  throw new Error(
+    `Ice combat FX not ready (${context}): missing textures [${missingTextures.join(", ")}]; missing anims [${missingAnims.join(", ")}]`,
+  );
+}
+
 export function registerIceFxAnimations(scene: Phaser.Scene): void {
   const createOnce = (
     key: string,
@@ -146,4 +169,10 @@ export function registerIceFxAnimations(scene: Phaser.Scene): void {
     12,
     0,
   );
+
+  if (iceFxPackLoaded(scene) && !iceFxAnimsReady(scene)) {
+    throw new Error(
+      "Ice FX textures loaded but Phaser animations were not registered",
+    );
+  }
 }
