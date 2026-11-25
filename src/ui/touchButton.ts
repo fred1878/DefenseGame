@@ -1,10 +1,5 @@
 /** Stable import path for touch UI — implementations live in sibling modules. */
-export type {
-  TouchButtonRectOptions,
-  TouchToggleOptions,
-  TouchButtonHandle,
-} from "./touchButtonFactories";
-export type { TapOrLongPressCallbacks } from "./touchButtonPress";
+export type { TouchButtonHandle } from "./touchButtonFactories";
 
 export {
   createTouchButton,

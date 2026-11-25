@@ -25,24 +25,6 @@ export const ENEMY_SPRITE_IDS = [
   "reaver",
 ] as const;
 
-export type EnemySpriteId = (typeof ENEMY_SPRITE_IDS)[number];
-
-/** Peter mapping: game id → mixed-pipeline roster (`enemy_<rosterId>/`). */
-export const ENEMY_SPRITE_ROSTER: Record<EnemySpriteId, string> = {
-  grunt: "melee_01",
-  bruiser: "melee_04",
-  skirmisher: "melee_02",
-  arrow_rain_archer: "ranged_01",
-  sentry_archer: "ranged_06",
-  javelineer: "caster_01",
-  slow_siege: "melee_06",
-  fast_sapper: "ranged_02",
-  charger: "melee_03",
-  lobber: "caster_06",
-  ward: "melee_07",
-  reaver: "melee_05",
-};
-
 const ENEMY_CARDINALS: PlayerCardinal[] = ["n", "e", "s", "w"];
 
 export const enemyTextureKey = (
@@ -265,16 +247,6 @@ export const UI_TEXTURE = {
   panelCompact: "ui_hud_panel_compact",
   panelSquare: "ui_hud_panel_square",
   panelTall: "ui_hud_panel_tall",
-} as const;
-
-/** 9-slice insets (source pixels) for scalable HUD panels. */
-export const UI_NINE_SLICE = {
-  bottomStrip: { left: 64, right: 64, top: 56, bottom: 56 },
-  panelCompact: { left: 48, right: 48, top: 40, bottom: 40 },
-  panelSquare: { left: 56, right: 56, top: 56, bottom: 56 },
-  panelTall: { left: 56, right: 56, top: 72, bottom: 72 },
-  /** Full-width bottom HUD using tall panel art (short height) — crop baked sample in center. */
-  panelTallBottomBar: { left: 52, right: 52, top: 288, bottom: 64 },
 } as const;
 
 export const UI_ASSET_ROOT = "assets/ui/gothic";

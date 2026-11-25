@@ -167,19 +167,24 @@ test.describe("defense HUD layout", () => {
     const chrome = layout.probe!.chrome;
     const t = layout.targets;
     const tol = 4;
+    const target = (id: string) => {
+      const hit = t[id];
+      if (!hit) throw new Error(`missing tap target ${id}`);
+      return hit;
+    };
 
-    expect(Math.abs(t["combat-atk"].x - chrome.atkX)).toBeLessThanOrEqual(tol);
-    expect(Math.abs(t["combat-atk"].y - chrome.btnY)).toBeLessThanOrEqual(tol);
-    expect(Math.abs(t["combat-mode"].x - chrome.modeX)).toBeLessThanOrEqual(
+    expect(Math.abs(target("combat-atk").x - chrome.atkX)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(target("combat-atk").y - chrome.btnY)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(target("combat-mode").x - chrome.modeX)).toBeLessThanOrEqual(
       tol,
     );
-    expect(Math.abs(t["combat-mode"].y - chrome.modeY)).toBeLessThanOrEqual(
+    expect(Math.abs(target("combat-mode").y - chrome.modeY)).toBeLessThanOrEqual(
       tol,
     );
-    expect(Math.abs(t["combat-auto"].x - chrome.autoX)).toBeLessThanOrEqual(
+    expect(Math.abs(target("combat-auto").x - chrome.autoX)).toBeLessThanOrEqual(
       tol,
     );
-    expect(Math.abs(t["combat-auto"].y - chrome.autoY)).toBeLessThanOrEqual(
+    expect(Math.abs(target("combat-auto").y - chrome.autoY)).toBeLessThanOrEqual(
       tol,
     );
     expect(chrome.bottomStrip.stripCenterY).toBeGreaterThan(1020);

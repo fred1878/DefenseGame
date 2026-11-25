@@ -3,6 +3,7 @@ import { gotoE2E, startDefense } from "./helpers/game";
 import {
   HUD_BAND_MIN_LUMINANCE,
   HUD_BAND_MIN_LUMINANCE_LIFT,
+  hudBandPixelProbesPass,
 } from "./helpers/defenseHudBandPixels";
 
 type PixelSample = { r: number; g: number; b: number; luminance: number };
@@ -33,8 +34,8 @@ test.describe("@manual defense HUD band pixels", () => {
   type HudBandSamples = Awaited<
     ReturnType<
       NonNullable<
-        typeof window.__DEFENSEGAME_E2E__
-      >["api"]["sampleDefenseHudBandPixelsAsync"]
+        NonNullable<typeof window.__DEFENSEGAME_E2E__>["api"]
+      >["sampleDefenseHudBandPixelsAsync"]
     >
   >;
 
@@ -43,19 +44,12 @@ test.describe("@manual defense HUD band pixels", () => {
     await expect
       .poll(
         async () => {
-          samples = await page.evaluate(async () =>
-            window.__DEFENSEGAME_E2E__?.api?.sampleDefenseHudBandPixelsAsync(),
-          );
+          samples =
+            (await page.evaluate(async () =>
+              window.__DEFENSEGAME_E2E__?.api?.sampleDefenseHudBandPixelsAsync(),
+            )) ?? null;
           if (!samples) return false;
-          const play = samples.playArea.luminance;
-          return (
-            samples.topBand.luminance > play + HUD_BAND_MIN_LUMINANCE_LIFT &&
-            samples.bottomBand.luminance > play + HUD_BAND_MIN_LUMINANCE_LIFT &&
-            samples.topBand.luminance >= HUD_BAND_MIN_LUMINANCE &&
-            samples.bottomBand.luminance >= HUD_BAND_MIN_LUMINANCE &&
-            samples.topBand.r > 52 &&
-            samples.bottomBand.r > 52
-          );
+          return hudBandPixelProbesPass(samples);
         },
         { timeout: 15_000 },
       )

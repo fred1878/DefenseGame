@@ -172,6 +172,8 @@ export type DefenseGameE2EApi = {
 declare global {
   interface Window {
     __DEFENSEGAME_E2E__?: DefenseGameE2EState;
+    /** Defense HUD layout snapshot written by DefenseHudController (e2e/debug only). */
+    __HUD_DEBUG__?: Record<string, unknown>;
   }
 }
 

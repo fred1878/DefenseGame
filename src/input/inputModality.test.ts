@@ -20,7 +20,7 @@ function mockScene() {
     },
     events: {
       emit: (event: string) => {
-        listeners.get(event)?.forEach((fn) => fn());
+        for (const fn of listeners.get(event) ?? []) fn();
       },
       on: (event: string, fn: () => void) => {
         if (!listeners.has(event)) listeners.set(event, new Set());

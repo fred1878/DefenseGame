@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.ts",
+    "src/test/phaserStub.ts",
+    "scripts/**/*.{mjs,cjs}"
+  ],
+  "project": [
+    "src/**/*.ts",
+    "e2e/**/*.ts",
+    "scripts/**/*.{mjs,cjs}"
+  ],
+  "ignoreDependencies": [
+    "@biomejs/biome",
+    "playwright"
+  ],
+  "ignoreBinaries": [
+    "ffmpeg",
+    "ffprobe"
+  ],
+  "ignoreExportsUsedInFile": true
+}

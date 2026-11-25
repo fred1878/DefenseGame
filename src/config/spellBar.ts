@@ -68,12 +68,6 @@ export const TOWN_SPELL_SORT_BAR = {
   iconInsetFrac: SPELL_BAR.iconInsetFrac,
 } as const;
 
-/** On-screen spell icon size inside a slot (legacy 1× metrics; town-only if needed). */
-export function spellBarIconDisplayPx(): number {
-  const pad = Math.round(SPELL_BAR.slotSizePx * SPELL_BAR.iconInsetFrac);
-  return SPELL_BAR.slotSizePx - pad;
-}
-
 /** On-screen spell icon size in the defense night HUD (2× base bar). */
 export function defenseSpellBarIconDisplayPx(): number {
   const pad = Math.round(

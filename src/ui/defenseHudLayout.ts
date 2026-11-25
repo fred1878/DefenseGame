@@ -113,7 +113,6 @@ export type CombatChromeLayout = {
 
 /** Gothic `action-mode-rect` / AUTO slabs — source art is 64×64; display ~50% wider on X. */
 export const COMBAT_MODE_TOGGLE_HEIGHT_DESIGN_PX = 64;
-export const COMBAT_MODE_TOGGLE_WIDTH_DESIGN_PX = 96;
 /** Narrower combat column so 4×2 spell grid fits beside vertical AUTO/MEL/ATK on 540-wide. */
 const DEFENSE_COMBAT_TOGGLE_WIDTH_DESIGN_PX = 48;
 

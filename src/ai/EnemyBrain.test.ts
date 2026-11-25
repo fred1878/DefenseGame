@@ -20,7 +20,6 @@ import {
   createEnemyNav,
   noteEnemyPathProgress,
   pathingPeerAgents,
-  pickEnemyCombatTarget,
   pickEnemyTarget,
   replanEnemyPath,
   resolveEnemyTarget,
@@ -71,9 +70,6 @@ describe("pickEnemyTarget", () => {
     const ex = player.x + 60;
     const ey = player.y;
     expect(pickEnemyTarget(grid, ex, ey, player.x, player.y)).toBe("player");
-    expect(pickEnemyTarget(grid, ex, ey, player.x, player.y)).toBe(
-      pickEnemyCombatTarget(grid, ex, ey, player.x, player.y),
-    );
   });
 });
 

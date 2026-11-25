@@ -210,8 +210,8 @@ test.describe("endless mode panel layout", () => {
       )
       .toBe(true);
     const drag = plan as DragPlan | null;
-    test.skip(!drag || !drag.scrollable, "Roster fits without scrolling");
-    if (!drag || !drag.scrollable) return;
+    test.skip(!drag?.scrollable, "Roster fits without scrolling");
+    if (!drag?.scrollable) return;
 
     // Drag distance (90px) is far above the 10px tap threshold, so two
     // moves are enough; each one is a renderer round trip.

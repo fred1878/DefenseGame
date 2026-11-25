@@ -4,7 +4,10 @@
 
 | Command | What it runs |
 |---------|----------------|
-| `npm run verify` | Local inner loop: `typecheck` + Vitest (`npm run test`) |
+| `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → Vitest |
+| `npm run lint` | Biome lint, errors only (`npm run lint:all` also lists warnings) |
+| `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
+| `npm run format` | Biome formatter (not enforced in CI yet; run only on files you touch) |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
@@ -14,7 +17,7 @@ The **`e2e`** job **needs `verify`** (they run sequentially, not in parallel). E
 
 | Job | Steps |
 |-----|--------|
-| `verify` | Always: `typecheck`, `test:coverage`, then `build` (production, or E2E build when `run_e2e`) |
+| `verify` | Always: `typecheck`, `lint`, `knip`, `test:coverage`, then `build:app` (Vite build without a second `tsc`; production, or E2E build when `run_e2e`) |
 | `changes` | Path filter + (on `main` only) conflict-merge detection → `run_e2e` |
 | `e2e` | Starts after `verify`. When `run_e2e`: downloads the e2e `dist` artifact, Playwright (Chromium). Otherwise one skip step (job still green). |
 

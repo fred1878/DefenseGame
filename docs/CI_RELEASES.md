@@ -74,7 +74,7 @@ Capacitor wraps the same web `dist/`. Store builds (signed APK/IPA) are a later 
 ## Required checks for agents
 
 ```bash
-npm run typecheck && npm run test && npm run build
+npm run verify && npm run build
 ```
 
 CI uses Node **24** (`.nvmrc`) on **`ubuntu-24.04`** runners (`ci.yml` jobs).

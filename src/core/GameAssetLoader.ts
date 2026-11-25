@@ -248,9 +248,3 @@ export function ensureNightReady(
 ): Promise<void> {
   return ensureTownReachableReady(scene, store);
 }
-
-export function resetGameAssetLoaderForTests(): void {
-  defenseLoadPromise = null;
-  townFluffPromise = null;
-  townReachablePromise = null;
-}

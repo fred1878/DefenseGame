@@ -109,33 +109,6 @@ export function validateFieldDescription(
   return null;
 }
 
-export function assertSectionCoversBootKeys(
-  file: string,
-  expected: readonly string[],
-  documented: Map<string, DocumentedField>,
-): void {
-  const expectedSet = new Set(expected);
-  const documentedKeys = new Set(documented.keys());
-
-  const missing = expected.filter((k) => !documentedKeys.has(k));
-  const extra = [...documentedKeys].filter((k) => !expectedSet.has(k));
-
-  const problems: string[] = [];
-  if (missing.length > 0) {
-    problems.push(
-      `missing boot-documented fields: ${missing.map((k) => `\`${k}\``).join(", ")}`,
-    );
-  }
-  if (extra.length > 0) {
-    problems.push(
-      `stale or undocumented boot fields (remove or add to normalize*): ${extra.map((k) => `\`${k}\``).join(", ")}`,
-    );
-  }
-  if (problems.length > 0) {
-    throw new Error(`${file}: ${problems.join("; ")}`);
-  }
-}
-
 export function shippedJsonSectionFiles(): readonly string[] {
   return SHIPPED_DATA_JSON_FILES;
 }

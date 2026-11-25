@@ -72,7 +72,7 @@ test.describe("combat without cheats", () => {
       window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(0, -520),
     );
     const wallBefore = await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.flags.defenseWallHp ?? 999,
+      () => Number(window.__DEFENSEGAME_E2E__?.flags.defenseWallHp ?? 999),
     );
     await expect
       .poll(

@@ -74,11 +74,6 @@ export function blocksBaseLayerInput(scene: Phaser.Scene): boolean {
   return top !== null && top.layer === "modal";
 }
 
-/** True when any non-default owner is on the stack (modal or transient). */
-export function hasActiveInputModality(scene: Phaser.Scene): boolean {
-  return modalityStack(scene).length > 0;
-}
-
 export const INPUT_MODALITY = {
   townSpellSort: { id: "town:spell-sort", layer: "modal" as const },
   townEndless: { id: "town:endless", layer: "modal" as const },

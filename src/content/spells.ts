@@ -115,7 +115,3 @@ export function spellById(id: SpellId): SpellDefinition | undefined {
   if (!id) return undefined;
   return getSpellCatalog().find((s) => s.id === id);
 }
-
-export function spellIconPath(def: SpellDefinition): string {
-  return `assets/spells/icons/${def.iconFile}`;
-}
