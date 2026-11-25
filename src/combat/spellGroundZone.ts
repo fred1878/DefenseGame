@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { SpellDefinition } from "../content/spells";
 import { spellChannelTickMs } from "../content/spellTargeting";
 import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";

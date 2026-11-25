@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import {
   GROUND_DECOR_ASSETS,
   GROUND_DECOR_DISPLAY,

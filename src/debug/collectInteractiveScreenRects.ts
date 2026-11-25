@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { ScreenRect } from "../ui/screenLayout";
 import { interactiveObjectScreenRect } from "../ui/touchButton";
 

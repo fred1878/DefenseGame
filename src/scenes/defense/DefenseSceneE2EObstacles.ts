@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { setShowEnemyPaths } from "../../debug/DebugState";
 import { defenseWorldToScreen } from "../../world/defenseCamera";
 import {

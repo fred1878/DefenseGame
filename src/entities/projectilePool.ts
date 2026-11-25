@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 type SceneProjectilePool = Map<string, Phaser.Physics.Arcade.Sprite[]>;
 

@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import type { SaveGame } from "../core/saveTypes";
-import { DataStore } from "../core/DataStore";
+import type { DataStore } from "../core/DataStore";
 import {
   persistSave,
   prepareDefenseNight,

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { DefenseObstacleRect } from "../config";
 import type { EnemyInstance } from "../entities/Enemy";
 import type { EnemyTargetKind } from "../ai/EnemyBrain";

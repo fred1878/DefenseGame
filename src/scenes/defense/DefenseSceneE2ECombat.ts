@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { spellById } from "../../content/spells";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowHitboxes } from "../../debug/DebugState";
@@ -230,9 +230,7 @@ export function defenseSceneE2eHasLeaveEndlessButton(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
   return (
-    scene.leaveEndlessBtn !== null &&
-    scene.leaveEndlessBtn.container.visible &&
-    !scene.nightEnded
+    Boolean(scene.leaveEndlessBtn?.container.visible) && !scene.nightEnded
   );
 }
 

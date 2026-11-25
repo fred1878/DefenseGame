@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { worldUnit } from "../core/worldPixelScale";
 
 export type GroundReticleStyle = "fire" | "ice" | "default";

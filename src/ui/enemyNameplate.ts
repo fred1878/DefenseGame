@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { Damageable } from "../combat/DamageSystem";

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { scaleUiX } from "../core/displayScale";
 import { fpsDebugOverlayPosition, readSafeInsets } from "../ui/screenLayout";
 import { uiTextStyle } from "../ui/uiTextStyle";
