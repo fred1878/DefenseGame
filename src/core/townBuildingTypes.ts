@@ -13,6 +13,8 @@ export type TownBuildingDef = {
   opensEndlessMode?: boolean;
   /** When true, tap opens custom wave planner (e.g. Plague Clinic). */
   opensWavePlanner?: boolean;
+  /** When true, tap opens the manual save-slot menu (e.g. daylit Market Stall). */
+  opensSaveMenu?: boolean;
 };
 
 export type TownLayoutSlot = {

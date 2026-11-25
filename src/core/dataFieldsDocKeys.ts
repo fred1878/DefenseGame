@@ -28,6 +28,7 @@ export const TOWN_BUILDINGS_DOC_KEYS = [
   "opensSpellBar",
   "opensEndlessMode",
   "opensWavePlanner",
+  "opensSaveMenu",
 ] as const;
 
 export const TOWN_LAYOUT_DOC_KEYS = [

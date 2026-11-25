@@ -34,12 +34,13 @@ Verified against the current codebase (not a wish list):
 | Area | Detail |
 |------|--------|
 | **Scenes** | `BootScene` (load JSON + assets), `TownScene`, `DefenseScene`, `DebugMenuScene` |
-| **Save** | `GameState` persist/restore; town reset (tap twice on Town) |
+| **Save** | `GameState` persist/restore (autosave); five manual slots from the daylit Market Stall; town reset (tap twice on Town) |
 | **Enemies** | **12 types**, JSON-driven stats/behaviors (`public/data/enemies.json`) |
 | **Waves** | **12 nights** of scheduled groups + gold rewards |
 | **Town** | Layout from `town_layout.json`; upgrades for **wall** and **blacksmith** via Moon Brazier / Witchlight Beacon; spell sort panel from daylit beacon |
 | **Endless / wave planner** | Haunted Well opens endless training (pick enemies + caps); Plague Clinic opens the wave planner (build a custom night) |
-| **Unwired buildings** | Both Market Stalls — visible, labeled “Not available yet” |
+| **Save menu** | Daylit Market Stall opens five manual slots (save / load / delete). A slot whose schema version differs from the current save is deleted, not migrated. The night-side Market Stall is still unwired. |
+| **Unwired buildings** | Market Stall (Night) — visible, labeled “Not available yet” |
 | **Audio** | SFX for melee slashes, fire whoosh and coin gain/spend (`src/audio/`, `public/assets/audio/sfx/`) |
 | **Performance** | Enemy and projectile pooling in Defense |
 | **Combat** | Melee arcs, ranged shots, enemy melee/ranged/lob/arrow-rain behaviors, A* pathing, knockback, focus target |
@@ -62,6 +63,7 @@ See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 | Input | Action |
 |-------|--------|
 | Building buttons | Upgrade (where wired), open spell bar, or status text |
+| **Market Stall (Daylit)** | Open the save menu (multiple slots) |
 | **Gallows Square** | Start night |
 | **Reset save** | Tap twice — clears save and reloads |
 | **Fullscreen** | Toggle when supported (iOS shows N/A) |

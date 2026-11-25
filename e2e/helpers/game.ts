@@ -3,6 +3,9 @@ import { type Page, expect } from "@playwright/test";
 export async function gotoE2E(page: Page): Promise<void> {
   await page.addInitScript(() => {
     localStorage.removeItem("defensegame-e2e-save");
+    for (let i = 0; i < 5; i++) {
+      localStorage.removeItem(`defensegame-e2e-save-slot-${i}`);
+    }
   });
   await page.goto("/?e2e=1", { waitUntil: "networkidle" });
   await expect

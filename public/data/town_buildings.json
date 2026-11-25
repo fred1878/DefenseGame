@@ -37,7 +37,8 @@
     "label": "Market Stall (Daylit)",
     "textureKey": "town_market_stall_daylit",
     "width": 112,
-    "height": 72
+    "height": 72,
+    "opensSaveMenu": true
   },
   "town_special_witchlight_beacon": {
     "label": "Witchlight Beacon (Night)",

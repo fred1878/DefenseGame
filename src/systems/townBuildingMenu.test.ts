@@ -37,6 +37,19 @@ describe("townBuildingMenu", () => {
     expect(result.kind).toBe("openWavePlanner");
   });
 
+  it("save menu building opens panel on tap", () => {
+    const def: TownBuildingDef = {
+      label: "Market Stall (Daylit)",
+      textureKey: "town_market_stall_daylit",
+      width: 112,
+      height: 72,
+      opensSaveMenu: true,
+    };
+    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe("— Saves");
+    const { result } = handleTownBuildingTap(store, createNewSave(), def);
+    expect(result.kind).toBe("openSaveMenu");
+  });
+
   it("endless training building opens panel on tap", () => {
     const def: TownBuildingDef = {
       label: "Haunted Well",
