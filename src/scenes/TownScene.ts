@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore } from "../core/DataStore";
 import {
+  normalizeSave,
   persistSave,
   prepareDefenseNight,
   resetSaveAndReload,
@@ -90,6 +91,7 @@ export class TownScene extends Phaser.Scene {
       this.overlays.transitionToDefense(() =>
         this.beginWavePlannerDefense(groups),
       ),
+    onLoadSaveSlot: (save) => this.applyLoadedSave(save),
   });
   private readonly onInputModalityChanged = (): void =>
     this.syncTownBaseInput();
@@ -296,6 +298,14 @@ export class TownScene extends Phaser.Scene {
     setContainerInputEnabled(this.fullscreenButton.container, enabled);
   }
 
+  /** Write the slot into the live autosave and restart Town on that state. */
+  private applyLoadedSave(save: SaveGame): void {
+    const next = normalizeSave(save);
+    persistSave(next);
+    this.registry.set("save", next);
+    this.time.delayedCall(0, () => this.scene.restart());
+  }
+
   private beginDefenseNight(): void {
     this.beginDefenseRun(() => setNightDefenseRun(this.registry));
   }
@@ -373,6 +383,10 @@ export class TownScene extends Phaser.Scene {
     }
     if (result.kind === "openWavePlanner") {
       this.overlays.openWavePlannerPanel();
+      return;
+    }
+    if (result.kind === "openSaveMenu") {
+      this.overlays.openSaveMenuPanel();
       return;
     }
     if (result.kind === "upgraded") {

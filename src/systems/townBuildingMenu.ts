@@ -9,6 +9,7 @@ const START_NIGHT_SUBTITLE = "— Start night";
 const SPELL_BAR_SUBTITLE = "— Spell bar";
 const ENDLESS_MODE_SUBTITLE = "— Endless training";
 const WAVE_PLANNER_SUBTITLE = "— Wave planner";
+const SAVE_MENU_SUBTITLE = "— Saves";
 
 function upgradeEffectLabel(effect: string): string {
   if (effect === "wallHpMax") return "Wall HP";
@@ -26,6 +27,7 @@ export function townBuildingSubtitle(
   if (def.opensSpellBar) return SPELL_BAR_SUBTITLE;
   if (def.opensEndlessMode) return ENDLESS_MODE_SUBTITLE;
   if (def.opensWavePlanner) return WAVE_PLANNER_SUBTITLE;
+  if (def.opensSaveMenu) return SAVE_MENU_SUBTITLE;
 
   const upgradeId = def.upgradeId;
   if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
@@ -74,7 +76,8 @@ export type TownBuildingTapResult =
   | { kind: "startNight"; message: string }
   | { kind: "openSpellBar"; message: string }
   | { kind: "openEndlessMode"; message: string }
-  | { kind: "openWavePlanner"; message: string };
+  | { kind: "openWavePlanner"; message: string }
+  | { kind: "openSaveMenu"; message: string };
 
 /** Tap handler for a town building menu row (upgrade when wired, else status-only). */
 export function handleTownBuildingTap(
@@ -93,6 +96,9 @@ export function handleTownBuildingTap(
   }
   if (def.opensWavePlanner) {
     return { save, result: { kind: "openWavePlanner", message: "" } };
+  }
+  if (def.opensSaveMenu) {
+    return { save, result: { kind: "openSaveMenu", message: "" } };
   }
 
   const upgradeId = def.upgradeId;

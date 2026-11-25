@@ -112,6 +112,7 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `night-end.spec.ts` | Return button + manual town transition |
 | `endless-mode.spec.ts`, `endless-mode-panel-layout.spec.ts`, `endless-respawn-targeting.spec.ts` | Endless training flow, panel behavior, respawn targeting |
 | `town-touch.spec.ts` | Start night, Haunted Well / endless, drag-off (building debug overlay is `@manual`) |
+| `save-menu.spec.ts` | Daylit Market Stall opens the save menu; close and reopen |
 | `town-spell-panel-tap-toggle.spec.ts` | Town spell pool tap add/remove |
 | `defense-hud-layout.spec.ts` | Core HUD chrome + combat anchor layout (minimap / play-band projection probes are `@manual`) |
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |

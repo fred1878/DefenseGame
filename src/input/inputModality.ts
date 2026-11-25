@@ -83,6 +83,7 @@ export const INPUT_MODALITY = {
   townSpellSort: { id: "town:spell-sort", layer: "modal" as const },
   townEndless: { id: "town:endless", layer: "modal" as const },
   townWavePlanner: { id: "town:wave-planner", layer: "modal" as const },
+  townSaves: { id: "town:saves", layer: "modal" as const },
   townDefenseLoading: { id: "town:defense-loading", layer: "modal" as const },
   debugMenu: { id: "debug-menu", layer: "modal" as const },
   defenseGroundAim: { id: "defense:ground-aim", layer: "transient" as const },
