@@ -3,7 +3,10 @@ export type SpellInputTuning = {
   castInterruptStickAngleDeg: number;
   /** Raw stick magnitude above which the player counts as moving (auto-cast / queue). */
   stickMovingMagnitudeEps: number;
-  /** Ground spells that cast at auto-target on a short spell-bar tap (drag still manual aim). */
+  /**
+   * Targeted ground AoE ids (Boot overwrites from spell catalog via `deriveGroundTapAutoCastSpellIds`).
+   * JSON may list ids for documentation; runtime tap-cast uses `spellUsesManualGroundAim`.
+   */
   groundTapAutoCastSpellIds: readonly string[];
 };
 

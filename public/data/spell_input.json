@@ -1,5 +1,5 @@
 {
   "castInterruptStickAngleDeg": 20,
   "stickMovingMagnitudeEps": 0.12,
-  "groundTapAutoCastSpellIds": ["blizzard"]
+  "groundTapAutoCastSpellIds": ["blizzard", "fire_blast", "flamestrike", "meteor"]
 }

@@ -138,10 +138,22 @@ describe("DefenseSpellDirector manual targeting", () => {
     ).toBe(true);
   });
 
-  it("tap-casts blizzard without entering pending ground aim", () => {
+  it.each(["blizzard", "meteor", "flamestrike"] as const)(
+    "tap-casts %s without entering pending ground aim",
+    (spellId) => {
+      const h = makeHost();
+      const director = new DefenseSpellDirector(h);
+      director.onSpellCastRequest(spellId);
+      expect(h.pendingGroundCast).toBeNull();
+      expect(h.groundAim).not.toBeNull();
+    },
+  );
+
+  it("tap-casts fire_blast without entering pending ground aim", () => {
     const h = makeHost();
     const director = new DefenseSpellDirector(h);
-    director.onSpellCastRequest("blizzard");
+    vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    director.onSpellCastRequest("fire_blast");
     expect(h.pendingGroundCast).toBeNull();
     expect(h.groundAim).not.toBeNull();
   });

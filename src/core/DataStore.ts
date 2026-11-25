@@ -1,3 +1,4 @@
+import { deriveGroundTapAutoCastSpellIds } from "../content/spellGroundTapCast";
 import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
 import { applyDefenseMaps } from "../config/defenseMaps";
@@ -139,7 +140,11 @@ export class DataStore {
     }
     applyEnemyAi(normalizeEnemyAi(enemyAi));
     applyHitFlashConfig(normalizeHitFlash(hitFlash));
-    applySpellInputTuning(normalizeSpellInput(spellInput));
+    const spellInputTuning = normalizeSpellInput(spellInput);
+    applySpellInputTuning({
+      ...spellInputTuning,
+      groundTapAutoCastSpellIds: deriveGroundTapAutoCastSpellIds(this.spells),
+    });
     this.shadowformMechanics = shadowformMechanicsFromCatalog(this.spells);
     applyShadowformMechanics(this.shadowformMechanics);
     this.defenseMaps = normalizeDefenseMaps(defenseMaps);
