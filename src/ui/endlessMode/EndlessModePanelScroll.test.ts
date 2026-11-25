@@ -150,14 +150,22 @@ describe("EndlessModePanelScroll", () => {
     expect(onTapRow).not.toHaveBeenCalled();
   });
 
-  it("viewport scroll catcher claims row gaps across the full panel width", () => {
+  it("viewport scroll catcher claims the full roster viewport band", () => {
     const { scroll } = setup();
+    const { listLeft, rowW, listTop, listViewportH } = layout;
     expect(scroll.listViewportHitForScroll(69, 300)).toBe(false); // left of list
     expect(scroll.listViewportHitForScroll(100, 150)).toBe(false); // above list
-    expect(scroll.listViewportHitForScroll(100, 210)).toBe(false); // on row 0 name
-    expect(scroll.listViewportHitForScroll(380, 210)).toBe(false); // on row 0 cap
-    expect(scroll.listViewportHitForScroll(100, 255)).toBe(true); // gap 0/1, name side
-    expect(scroll.listViewportHitForScroll(380, 255)).toBe(true); // gap 0/1, cap side
+    expect(scroll.listViewportHitForScroll(100, 210)).toBe(true); // on row 0 name
+    expect(scroll.listViewportHitForScroll(380, 210)).toBe(true); // on row 0 cap
+    expect(scroll.listViewportHitForScroll(100, 255)).toBe(true); // gap 0/1
+    expect(scroll.listViewportHitForScroll(380, 255)).toBe(true); // gap 0/1
+    expect(scroll.listViewportHitForScroll(listLeft + 1, listTop)).toBe(true);
+    expect(
+      scroll.listViewportHitForScroll(
+        listLeft + rowW - 1,
+        listTop + listViewportH,
+      ),
+    ).toBe(true);
   });
 
   it("reports row and cap centers only while visible", () => {
@@ -174,7 +182,7 @@ describe("EndlessModePanelScroll", () => {
     expect(scroll.rowScreenCenter(rows[9]!)).not.toBeNull();
   });
 
-  it("row hit tests follow the clipped viewport", () => {
+  it("row hit tests follow the clipped viewport across the full cell", () => {
     const { scroll, rows } = setup();
     const nameHit = scroll.rowNameHitTest(rows[0]!);
     const rowHit = new Phaser.Geom.Rectangle(
@@ -189,8 +197,13 @@ describe("EndlessModePanelScroll", () => {
       layout.capColW,
       layout.rowH,
     );
-    expect(nameHit(rowHit, -50, 0, rows[0]!.bg as never)).toBe(true);
-    expect(nameHit(rowHit, 140, 0, rows[0]!.bg as never)).toBe(true);
+    const halfW = layout.nameColW / 2;
+    const halfH = layout.rowH / 2;
+    for (const lx of [-halfW, 0, halfW]) {
+      for (const ly of [-halfH, 0, halfH]) {
+        expect(nameHit(rowHit, lx, ly, rows[0]!.bg as never)).toBe(true);
+      }
+    }
     expect(nameHit(rowHit, 0, 0, rows[9]!.bg as never)).toBe(false);
     expect(scroll.rowCapHitTest(rows[0]!)(capHit, 0, 0)).toBe(true);
     expect(scroll.rowCapHitTest(rows[9]!)(capHit, 0, 0)).toBe(false);
