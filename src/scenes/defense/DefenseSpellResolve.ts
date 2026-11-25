@@ -21,7 +21,10 @@ import {
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
-import { playMeteorStrikeFx } from "../../combat/SpellMeteorStrikeFx";
+import {
+  meteorStrikeFxFlipX,
+  playMeteorStrikeFx,
+} from "../../combat/SpellMeteorStrikeFx";
 import { playShadowformCastFx } from "../../combat/ShadowformCastFx";
 import {
   DEFENSE_RENDER_DEPTH,
@@ -86,6 +89,7 @@ export function resolveDefenseSpellEffect(
           bx,
           by,
           blastRadiusPx,
+          meteorStrikeFxFlipX(px, bx),
           host.maskWorldObject,
         );
       } else {
