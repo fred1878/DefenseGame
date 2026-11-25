@@ -12,7 +12,11 @@ import {
   readSafeInsets,
 } from "./screenLayoutCore";
 import { TargetIndicator } from "./TargetIndicator";
-import { createUiRoundedRect, isUiRoundedRect, paintUiRoundedRect } from "./uiRoundedRect";
+import {
+  createUiRoundedRect,
+  isUiRoundedRect,
+  paintUiRoundedRect,
+} from "./uiRoundedRect";
 
 describe("GroundTargetReticle", () => {
   it("starts hidden and draws a ring + crosshair at the aim point when shown", () => {
@@ -57,7 +61,9 @@ describe("GroundTargetReticle", () => {
       expect(GroundTargetReticle.styleForSpellId(id)).toBe("fire");
     }
     expect(GroundTargetReticle.styleForSpellId("heal")).toBe("default");
-    expect(GroundTargetReticle.radiusForSpell(asScene(fakeScene()), 40)).toBe(40);
+    expect(GroundTargetReticle.radiusForSpell(asScene(fakeScene()), 40)).toBe(
+      40,
+    );
   });
 });
 
@@ -96,7 +102,10 @@ describe("CastBar", () => {
     expect(bg!.last("setDepth")).toEqual([DEFENSE_RENDER_DEPTH.castBarBg]);
     bar.setWorldPosition(100, 100);
     expect(bg!.last("setPosition")).toEqual([100, 100 + CAST_BAR.offsetY]);
-    expect(fill!.last("setPosition")).toEqual([100 - CAST_BAR.width / 2 + 1, 100 + CAST_BAR.offsetY]);
+    expect(fill!.last("setPosition")).toEqual([
+      100 - CAST_BAR.width / 2 + 1,
+      100 + CAST_BAR.offsetY,
+    ]);
     bar.setProgress(0.5);
     expect(fill!.width).toBeCloseTo((CAST_BAR.width - 2) * 0.5);
     bar.setProgress(3);
@@ -112,8 +121,15 @@ describe("CastBar", () => {
     bar.setPhase("windup");
     expect(fill!.callsTo("setFillStyle")).toHaveLength(0);
     bar.setPhase("channeling");
-    expect(fill!.last("setFillStyle")).toEqual([CAST_BAR.channeling.fillColor, CAST_BAR.fillAlpha]);
-    expect(bg!.last("setStrokeStyle")).toEqual([1, CAST_BAR.channeling.borderColor, 0.9]);
+    expect(fill!.last("setFillStyle")).toEqual([
+      CAST_BAR.channeling.fillColor,
+      CAST_BAR.fillAlpha,
+    ]);
+    expect(bg!.last("setStrokeStyle")).toEqual([
+      1,
+      CAST_BAR.channeling.borderColor,
+      0.9,
+    ]);
     bar.setVisible(true);
     expect([bg!.visible, fill!.visible]).toEqual([true, true]);
     bar.destroy();
@@ -131,18 +147,36 @@ describe("createCombatHudChrome", () => {
     const play = defensePlayAreaLayout(asScene(scene), safe);
     expect(top!.args).toEqual([270, topH / 2, 540, topH, 0xffffff, 0.55]);
     const bottomH = 1200 - play.bottomBandTop;
-    expect(bottom!.args).toEqual([270, play.bottomBandTop + bottomH / 2, 540, bottomH, 0xffffff, 0.55]);
+    expect(bottom!.args).toEqual([
+      270,
+      play.bottomBandTop + bottomH / 2,
+      540,
+      bottomH,
+      0xffffff,
+      0.55,
+    ]);
     expect(border!.last("setDepth")).toEqual([41]);
     expect(border!.callsTo("strokeRect")).toHaveLength(2);
     chrome.setVisible(false);
-    expect(chrome.roots.every((r) => (r as unknown as FakeGameObject).visible === false)).toBe(true);
+    expect(
+      chrome.roots.every(
+        (r) => (r as unknown as FakeGameObject).visible === false,
+      ),
+    ).toBe(true);
   });
 });
 
 describe("uiRoundedRect", () => {
   it("paints a centred rounded rect and repaints with new colours", () => {
     const scene = fakeScene();
-    const g = createUiRoundedRect(asScene(scene), 100, 40, 0x111111, 0x222222, 6);
+    const g = createUiRoundedRect(
+      asScene(scene),
+      100,
+      40,
+      0x111111,
+      0x222222,
+      6,
+    );
     const fake = g as unknown as FakeGameObject;
     expect(isUiRoundedRect(g)).toBe(true);
     expect(fake.last("fillRoundedRect")).toEqual([-50, -20, 100, 40, 6]);
@@ -150,7 +184,7 @@ describe("uiRoundedRect", () => {
     paintUiRoundedRect(g, 0x333333);
     expect(fake.last("fillStyle")).toEqual([0x333333, 1]);
     expect(g.__uiRounded.stroke).toBe(0x222222);
-    expect(isUiRoundedRect(scene.add.graphics() as never)).toBe(false);
+    expect(isUiRoundedRect(asScene(scene).add.graphics())).toBe(false);
   });
 });
 
@@ -168,8 +202,18 @@ describe("screenLayoutCore", () => {
       createElement: () => el,
       body: { appendChild: vi.fn() },
     });
-    vi.stubGlobal("getComputedStyle", () => ({ top: "44px", right: "0px", bottom: "34px", left: "" }));
-    expect(readSafeInsets()).toEqual({ top: 44, right: 0, bottom: 34, left: 0 });
+    vi.stubGlobal("getComputedStyle", () => ({
+      top: "44px",
+      right: "0px",
+      bottom: "34px",
+      left: "",
+    }));
+    expect(readSafeInsets()).toEqual({
+      top: 44,
+      right: 0,
+      bottom: 34,
+      left: 0,
+    });
     expect(el.style.cssText).toContain("env(safe-area-inset-top");
     expect(el.remove).toHaveBeenCalled();
   });
@@ -178,7 +222,9 @@ describe("screenLayoutCore", () => {
     const listeners = new Map<string, () => void>();
     const vvListeners = new Map<string, () => void>();
     const parent = { style: {} as Record<string, string> };
-    vi.stubGlobal("document", { getElementById: (id: string) => (id === "game" ? parent : null) });
+    vi.stubGlobal("document", {
+      getElementById: (id: string) => (id === "game" ? parent : null),
+    });
     vi.stubGlobal("window", {
       innerWidth: 1,
       innerHeight: 1,
@@ -199,7 +245,12 @@ describe("screenLayoutCore", () => {
     };
     const unbind = bindViewportToScale(game as never);
     expect(game.scale.setParentSize).toHaveBeenCalledWith(390, 700);
-    expect(parent.style).toMatchObject({ position: "fixed", top: "50px", width: "390px", height: "700px" });
+    expect(parent.style).toMatchObject({
+      position: "fixed",
+      top: "50px",
+      width: "390px",
+      height: "700px",
+    });
     expect([...vvListeners.keys()].sort()).toEqual(["resize", "scroll"]);
     listeners.get("resize")!();
     expect(game.scale.updateBounds).toHaveBeenCalledTimes(2);

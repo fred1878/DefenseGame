@@ -26,7 +26,15 @@ function store(ids: string[]) {
   ) as DataStore["enemies"];
   s.player = { endlessPanelDefaultConcurrent: 2 } as DataStore["player"];
   s.waves = {
-    "1": { rewardGold: 1, groups: ids.map((enemyId) => ({ atMs: 0, enemyId, count: 1, intervalMs: 0 })) },
+    "1": {
+      rewardGold: 1,
+      groups: ids.map((enemyId) => ({
+        atMs: 0,
+        enemyId,
+        count: 1,
+        intervalMs: 0,
+      })),
+    },
   } as DataStore["waves"];
   return s;
 }
@@ -39,14 +47,31 @@ type Row = {
   capMinus: FakeGameObject;
   capValue: FakeGameObject;
 };
-const ids = ["archer", "bruiser", "charger", "grunt", "lobber", "skirmisher", "ward", "zealot"];
-const pointer = (id = 1, y = 0) => ({ ...fakePointer(0, y, id), event: fakeEventData() });
+const ids = [
+  "archer",
+  "bruiser",
+  "charger",
+  "grunt",
+  "lobber",
+  "skirmisher",
+  "ward",
+  "zealot",
+];
+const pointer = (id = 1, y = 0) => ({
+  ...fakePointer(0, y, id),
+  event: fakeEventData(),
+});
 
 function open(enemyIds = ids) {
   const scene = fakeScene();
   const onStart = vi.fn();
   const onDismiss = vi.fn();
-  const panel = new EndlessModePanel(asScene(scene), store(enemyIds), onStart, onDismiss);
+  const panel = new EndlessModePanel(
+    asScene(scene),
+    store(enemyIds),
+    onStart,
+    onDismiss,
+  );
   const rows = (panel as unknown as { rows: Row[] }).rows;
   const ui = panel as unknown as {
     startBtn: { container: FakeGameObject };
@@ -80,7 +105,9 @@ describe("EndlessModePanel", () => {
     expect(row("grunt").check.last("setText")).toEqual(["☐"]);
     expect(panel.e2eEnemyConcurrentCap("grunt")).toBe(2);
     // archer CR 1 x cap 2
-    expect(ui.challengeRatingText.last("setText")).toEqual(["Challenge rating: 2"]);
+    expect(ui.challengeRatingText.last("setText")).toEqual([
+      "Challenge rating: 2",
+    ]);
     expect(panel.e2eInfiniteHpEnabled()).toBe(true);
   });
 
@@ -93,7 +120,9 @@ describe("EndlessModePanel", () => {
     const { panel, tapRow, ui, row } = open();
     tapRow("bruiser"); // CR 2 x 2
     expect(panel.e2eSelectedEnemyIds()).toEqual(["archer", "bruiser"]);
-    expect(ui.challengeRatingText.last("setText")).toEqual(["Challenge rating: 6"]);
+    expect(ui.challengeRatingText.last("setText")).toEqual([
+      "Challenge rating: 6",
+    ]);
     expect(row("bruiser").bg.last("setFillStyle")).toEqual([0x1e3a5f]);
     tapRow("archer");
     tapRow("bruiser");
@@ -120,7 +149,9 @@ describe("EndlessModePanel", () => {
     archer.capPlus.emit("pointerup", pointer());
     expect(panel.e2eEnemyConcurrentCap("archer")).toBe(3);
     expect(archer.capValue.last("setText")).toEqual(["3"]);
-    expect(ui.challengeRatingText.last("setText")).toEqual(["Challenge rating: 3"]);
+    expect(ui.challengeRatingText.last("setText")).toEqual([
+      "Challenge rating: 3",
+    ]);
     for (let i = 0; i < 5; i++) archer.capMinus.emit("pointerup", pointer());
     expect(panel.e2eEnemyConcurrentCap("archer")).toBe(1);
     panel.e2eSetEnemyCap("archer", 500);
@@ -171,7 +202,10 @@ describe("EndlessModePanel", () => {
   it("e2eStartWithEnemy starts with only that enemy at the default cap", () => {
     const { panel, onStart } = open();
     panel.e2eStartWithEnemy("ward", true);
-    expect(onStart).toHaveBeenCalledWith([{ enemyId: "ward", concurrentCap: 2 }], true);
+    expect(onStart).toHaveBeenCalledWith(
+      [{ enemyId: "ward", concurrentCap: 2 }],
+      true,
+    );
   });
 
   it("8 rows overflow 6 visible: list scrolls and clamps at the end", () => {
@@ -194,18 +228,29 @@ describe("EndlessModePanel", () => {
     const rects = panel.touchDebugScreenRects();
     for (const id of ["grunt", "skirmisher"]) {
       for (const kind of ["enemy", "cap-minus", "cap-plus"]) {
-        const key = kind === "enemy" ? `endless-enemy-${id}` : `endless-${kind}-${id}`;
+        const key =
+          kind === "enemy" ? `endless-enemy-${id}` : `endless-${kind}-${id}`;
         const t = targets[key]!;
         expect(t, key).toBeDefined();
         // Every e2e tap point lands inside a touch-debug outline.
         expect(
-          rects.some((r) => t.x >= r.x && t.x <= r.x + r.width && t.y >= r.y && t.y <= r.y + r.height),
+          rects.some(
+            (r) =>
+              t.x >= r.x &&
+              t.x <= r.x + r.width &&
+              t.y >= r.y &&
+              t.y <= r.y + r.height,
+          ),
           key,
         ).toBe(true);
       }
-      expect(targets[`endless-cap-minus-${id}`]!.x).toBeLessThan(targets[`endless-cap-plus-${id}`]!.x);
+      expect(targets[`endless-cap-minus-${id}`]!.x).toBeLessThan(
+        targets[`endless-cap-plus-${id}`]!.x,
+      );
     }
-    expect(targets["endless-infinite-hp"]!.y).toBeLessThan(targets["endless-challenge-rating"]!.y);
+    expect(targets["endless-infinite-hp"]!.y).toBeLessThan(
+      targets["endless-challenge-rating"]!.y,
+    );
     // viewport + (name, cap column, minus, plus) per visible row
     expect(rects).toHaveLength(1 + 2 * 4);
   });

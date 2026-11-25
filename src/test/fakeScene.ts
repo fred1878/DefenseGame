@@ -211,7 +211,9 @@ export function fakeScene(
   const textures = new Set(opts.textures ?? []);
   const anims = new Set(opts.anims ?? []);
   const audio = new Set(opts.audio ?? []);
-  const factory = (prefix: string) =>
+  const factory = (
+    prefix: string,
+  ): Record<string, (...args: unknown[]) => FakeGameObject> =>
     new Proxy(
       {},
       {

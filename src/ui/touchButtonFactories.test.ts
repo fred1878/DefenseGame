@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { fakeEventData, fakePointer } from "../test/fakeInput";
-import { asScene, fakeScene, type FakeGameObject, type FakeScene } from "../test/fakeScene";
+import {
+  asScene,
+  fakeScene,
+  type FakeGameObject,
+  type FakeScene,
+} from "../test/fakeScene";
 import {
   createTouchButton,
   createTouchCircleButton,
@@ -22,19 +27,30 @@ describe("createTouchButton", () => {
   it("builds a rounded vector button with padded hit area and fires on tap-release", () => {
     const scene = fakeScene();
     const onPress = vi.fn();
-    const { container, setLabel } = createTouchButton(asScene(scene), 10.4, 19.6, "Go", onPress, {
-      width: 100,
-      height: 40,
-      tapPadding: 10,
-      depth: 7,
-    });
+    const { container, setLabel } = createTouchButton(
+      asScene(scene),
+      10.4,
+      19.6,
+      "Go",
+      onPress,
+      {
+        width: 100,
+        height: 40,
+        tapPadding: 10,
+        depth: 7,
+      },
+    );
     const c = asGo(container);
     expect(c.args.slice(0, 2)).toEqual([10, 20]);
     expect(c.last("setDepth")).toEqual([7]);
     expect(c.last("setSize")).toEqual([120, 60]);
     const [bg, text] = c.list as FakeGameObject[];
     expect(isUiRoundedRect(bg as never)).toBe(true);
-    expect((bg as unknown as UiRoundedRect).__uiRounded).toMatchObject({ w: 100, h: 40, fill: 0x3b82f6 });
+    expect((bg as unknown as UiRoundedRect).__uiRounded).toMatchObject({
+      w: 100,
+      h: 40,
+      fill: 0x3b82f6,
+    });
     expect(text!.args[2]).toBe("Go");
 
     tap(scene, c);
@@ -49,7 +65,14 @@ describe("createTouchButton", () => {
   it("does not fire when released off the button or by another pointer", () => {
     const scene = fakeScene();
     const onPress = vi.fn();
-    const { container } = createTouchButton(asScene(scene), 0, 0, "X", onPress, { width: 10, height: 10 });
+    const { container } = createTouchButton(
+      asScene(scene),
+      0,
+      0,
+      "X",
+      onPress,
+      { width: 10, height: 10 },
+    );
     const c = asGo(container);
     c.emit("pointerdown", fakePointer(0, 0, 1), 0, 0, fakeEventData());
     scene.input.emit("pointerup", fakePointer(0, 0, 2)); // other finger
@@ -59,26 +82,42 @@ describe("createTouchButton", () => {
 
   it("uses the frame texture with medieval label colours when available", () => {
     const scene = fakeScene({ textures: ["frame"] });
-    const { container } = createTouchButton(asScene(scene), 0, 0, "Town", () => {}, {
-      width: 80,
-      height: 30,
-      frameTextureKey: "frame",
-      fontSize: "20px",
-    });
+    const { container } = createTouchButton(
+      asScene(scene),
+      0,
+      0,
+      "Town",
+      () => {},
+      {
+        width: 80,
+        height: 30,
+        frameTextureKey: "frame",
+        fontSize: "20px",
+      },
+    );
     const [bg, text] = asGo(container).list as FakeGameObject[];
     expect(bg!.kind).toBe("image");
     expect(bg!.last("setDisplaySize")).toEqual([80, 30]);
-    expect((text!.args[3] as { color: string }).color).toBe(MEDIEVAL_LABEL.color);
+    expect((text!.args[3] as { color: string }).color).toBe(
+      MEDIEVAL_LABEL.color,
+    );
   });
 
   it("skipPressBinding leaves the button inert", () => {
     const scene = fakeScene();
     const onPress = vi.fn();
-    const { container } = createTouchButton(asScene(scene), 0, 0, "X", onPress, {
-      width: 10,
-      height: 10,
-      skipPressBinding: true,
-    });
+    const { container } = createTouchButton(
+      asScene(scene),
+      0,
+      0,
+      "X",
+      onPress,
+      {
+        width: 10,
+        height: 10,
+        skipPressBinding: true,
+      },
+    );
     tap(scene, asGo(container));
     expect(onPress).not.toHaveBeenCalled();
   });
@@ -87,7 +126,15 @@ describe("createTouchButton", () => {
 describe("createTouchToggleButton", () => {
   it("toggles vector colours and label colour with setOn", () => {
     const scene = fakeScene();
-    const t = createTouchToggleButton(asScene(scene), 0, 0, "Auto", 60, 30, () => {});
+    const t = createTouchToggleButton(
+      asScene(scene),
+      0,
+      0,
+      "Auto",
+      60,
+      30,
+      () => {},
+    );
     const [bg, text] = asGo(t.container).list as FakeGameObject[];
     const meta = (bg as unknown as UiRoundedRect).__uiRounded;
     expect(t.getOn()).toBe(false);
@@ -103,11 +150,21 @@ describe("createTouchToggleButton", () => {
   it("textured toggles tint the frame and use custom on/off colours", () => {
     const scene = fakeScene({ textures: ["f"] });
     const onPress = vi.fn();
-    const t = createTouchToggleButton(asScene(scene), 0, 0, "A", 60, 30, onPress, 5, {
-      frameTextureKey: "f",
-      onBgTint: 0x00ff00,
-      onTextColor: "#0f0",
-    });
+    const t = createTouchToggleButton(
+      asScene(scene),
+      0,
+      0,
+      "A",
+      60,
+      30,
+      onPress,
+      5,
+      {
+        frameTextureKey: "f",
+        onBgTint: 0x00ff00,
+        onTextColor: "#0f0",
+      },
+    );
     const [bg, text] = asGo(t.container).list as FakeGameObject[];
     t.setOn(true);
     expect(bg!.last("setTint")).toEqual([0x00ff00]);
@@ -121,7 +178,15 @@ describe("createTouchToggleButton", () => {
 
   it("shrinks the font for two-line labels", () => {
     const scene = fakeScene();
-    const t = createTouchToggleButton(asScene(scene), 0, 0, "Auto\nCast", 60, 30, () => {});
+    const t = createTouchToggleButton(
+      asScene(scene),
+      0,
+      0,
+      "Auto\nCast",
+      60,
+      30,
+      () => {},
+    );
     const text = (asGo(t.container).list as FakeGameObject[])[1]!;
     expect(text.callsTo("setFontSize")).toHaveLength(1);
     t.setLabel("One");
@@ -136,7 +201,9 @@ describe("createTouchCircleButton", () => {
   it("draws an orange circle with a padded circular hit area", () => {
     const scene = fakeScene();
     const onPress = vi.fn();
-    const c = asGo(createTouchCircleButton(asScene(scene), 5, 5, "ATK", 30, onPress));
+    const c = asGo(
+      createTouchCircleButton(asScene(scene), 5, 5, "ATK", 30, onPress),
+    );
     const [bg] = c.list as FakeGameObject[];
     expect(bg!.kind).toBe("circle");
     expect(bg!.args).toEqual([0, 0, 30, 0xea580c, 1]);
@@ -148,10 +215,20 @@ describe("createTouchCircleButton", () => {
 
   it("uses the frame image sized to the diameter when loaded", () => {
     const scene = fakeScene({ textures: ["ring"] });
-    const c = asGo(createTouchCircleButton(asScene(scene), 0, 0, "", 20, () => {}, 150, "ring"));
+    const c = asGo(
+      createTouchCircleButton(
+        asScene(scene),
+        0,
+        0,
+        "",
+        20,
+        () => {},
+        150,
+        "ring",
+      ),
+    );
     const [bg] = c.list as FakeGameObject[];
     expect(bg!.kind).toBe("image");
     expect(bg!.last("setDisplaySize")).toEqual([40, 40]);
   });
 });
-
