@@ -57,7 +57,7 @@ export type DefenseGameE2EApi = {
   tapDomMirror(testId: string): void;
   simulateScreenTap(x: number, y: number): void;
   getDefenseWallHp(): number;
-  setSpawnPlanComplete(): void;
+  setSpawnPlanComplete(complete?: boolean): void;
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
   getPlayerPosition(): { x: number; y: number };

@@ -245,8 +245,9 @@ export function defenseSceneE2eKillAllEnemies(
 
 export function defenseSceneE2eSetSpawnPlanComplete(
   scene: DefenseSceneE2eDelegate,
+  complete = true,
 ): void {
-  scene.spawnPlanComplete = true;
+  scene.spawnPlanComplete = complete;
 }
 
 export function defenseSceneE2eForceWinNight(

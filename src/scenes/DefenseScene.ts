@@ -932,7 +932,9 @@ export class DefenseScene extends Phaser.Scene {
   e2eEndlessEnemyId(): string | null { return sceneE2E.defenseSceneE2eEndlessEnemyId(this.e2eDelegate()); }
   e2eEndlessEnemyIds(): string[] { return sceneE2E.defenseSceneE2eEndlessEnemyIds(this.e2eDelegate()); }
   e2eKillAllEnemies(): void { sceneE2E.defenseSceneE2eKillAllEnemies(this.e2eDelegate()); }
-  e2eSetSpawnPlanComplete(): void { sceneE2E.defenseSceneE2eSetSpawnPlanComplete(this.e2eDelegate()); }
+  e2eSetSpawnPlanComplete(complete?: boolean): void {
+    sceneE2E.defenseSceneE2eSetSpawnPlanComplete(this.e2eDelegate(), complete);
+  }
   e2eForceWinNight(): void { sceneE2E.defenseSceneE2eForceWinNight(this.e2eDelegate()); }
   e2eSetManualReturn(on: boolean): void { sceneE2E.defenseSceneE2eSetManualReturn(this.e2eDelegate(), on); }
   e2eNightEnded(): boolean { return sceneE2E.defenseSceneE2eNightEnded(this.e2eDelegate()); }

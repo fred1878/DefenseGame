@@ -381,8 +381,8 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     e2eBottomChromeTextureKey() {
       return activeDefense(game)?.e2eBottomChromeTextureKey() ?? null;
     },
-    setSpawnPlanComplete() {
-      activeDefense(game)?.e2eSetSpawnPlanComplete();
+    setSpawnPlanComplete(complete = true) {
+      activeDefense(game)?.e2eSetSpawnPlanComplete(complete);
     },
     setPlayerPosition(x: number, y: number) {
       activeDefense(game)?.e2eSetPlayerPosition(x, y);

@@ -109,7 +109,6 @@ try {
   await page.evaluate(() => {
     const api = window.__DEFENSEGAME_E2E__?.api;
     api?.setGodMode(true);
-    api?.setSpawnPlanComplete();
     api?.setManualReturnToTown(true);
     api?.setShowHitboxes(false);
     api?.setShowTouchInput(false);
@@ -123,6 +122,7 @@ try {
     await page.evaluate((id) => {
       const api = window.__DEFENSEGAME_E2E__?.api;
       api?.clearEnemyMeleeFxFlag();
+      api?.setSpawnPlanComplete(false);
       api?.killAllEnemies();
       api?.spawnTestEnemyByDef(id, 44, 0);
     }, defId);
