@@ -3,6 +3,7 @@ import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS } from "../content/assets";
 import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { ICE_FX_ASSETS } from "../content/iceFxAssets";
 import { PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
+import { MELEE_FX_ASSETS } from "../content/meleeFxAssets";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
 import { isE2EEnabled } from "./e2eMode";
@@ -77,6 +78,7 @@ export function markE2EAssetsLoaded(game: Phaser.Game): void {
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),
     ...PVFX_FX_ASSETS.map((a) => a.key),
+    ...MELEE_FX_ASSETS.map((a) => a.key),
   ];
   const ok = keys.every((k) => game.textures.exists(k));
   publishE2E({ assetsLoaded: ok, flags: { combatFxKeys: keys.join(",") } });

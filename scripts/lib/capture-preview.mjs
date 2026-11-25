@@ -1,14 +1,14 @@
 import { spawn, execSync } from "node:child_process";
 import { chromium, devices } from "@playwright/test";
 
-const VIEWPORT = { width: 540, height: 1200 };
+export const VIEWPORT = { width: 540, height: 1200 };
 const CLIP = { x: 0, y: 0, width: 540, height: 1200 };
 
-function wait(ms) {
+export function wait(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function waitForHttp(url, maxMs = 60_000) {
+export async function waitForHttp(url, maxMs = 60_000) {
   const start = Date.now();
   while (Date.now() - start < maxMs) {
     try {
@@ -57,7 +57,7 @@ export async function gotoTownReady(page, base) {
   );
 }
 
-export async function gotoDefenseReady(page) {
+export async function gotoDefenseReady(page, { spawnWarmupEnemy = true } = {}) {
   await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.startNight());
   await page.waitForFunction(
     () =>
@@ -66,8 +66,29 @@ export async function gotoDefenseReady(page) {
     null,
     { timeout: 30_000 },
   );
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(120, 0));
-  await wait(400);
+  if (spawnWarmupEnemy) {
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(120, 0),
+    );
+    await wait(400);
+  }
+}
+
+/** Boot through Town into Defense without spawning a warmup enemy (capture scripts). */
+export async function bootDefenseForCapture(page, base) {
+  await gotoTownReady(page, base);
+  await gotoDefenseReady(page, { spawnWarmupEnemy: false });
+  await page.evaluate(() => {
+    const api = window.__DEFENSEGAME_E2E__?.api;
+    api?.setGodMode(true);
+    api?.setSpawnPlanComplete();
+    api?.setManualReturnToTown(true);
+    api?.setShowHitboxes(false);
+    api?.setShowTouchInput(false);
+    api?.centerDefenseCameraOn(0, 80);
+    api?.setPlayerPosition(0, 80);
+  });
+  await wait(250);
 }
 
 export async function screenshotViewport(page, outPath) {

@@ -1,7 +1,5 @@
 import Phaser from "phaser";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
-import { playEnemyMeleeSlashSfx } from "../../audio/enemyMeleeSlashSfx";
-import { showGruntMeleeSwipe } from "../../combat/MeleeSwipeFx";
 import {
   pickEnemyCombatTarget,
   updateEnemyBrain,
@@ -278,21 +276,6 @@ export function tickDefenseEnemies(
         enemyProjectiles.push(hybridProj);
       }
       if (hybrid.meleeHit) playerHitDamage += e.damage;
-      if (
-        e.rangedHybrid.mode === "melee" &&
-        e.combat.phase === "active" &&
-        !e.combat.slashFxShown
-      ) {
-        e.combat.slashFxShown = true;
-        showGruntMeleeSwipe(
-          host.scene,
-          e.sprite.x,
-          e.sprite.y,
-          e.combat.facing,
-          e.combatTuning.melee!.activeMs,
-        );
-        playEnemyMeleeSlashSfx(host.scene);
-      }
     } else if (e.behavior === "charger") {
       const extra = e.behaviorExtra;
       const chargerTune = e.combatTuning.charger!;
@@ -309,17 +292,6 @@ export function tickDefenseEnemies(
         }
       } else if (extra.chargeActiveMs <= 0 && extra.chargeWindupMs <= 0) {
         const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
-        if (e.combat.phase === "active" && !e.combat.slashFxShown) {
-          e.combat.slashFxShown = true;
-          showGruntMeleeSwipe(
-            host.scene,
-            e.sprite.x,
-            e.sprite.y,
-            e.combat.facing,
-            e.combatTuning.melee!.activeMs,
-          );
-          playEnemyMeleeSlashSfx(host.scene);
-        }
         if (hitPlayer) playerHitDamage += e.damage;
       }
     } else if (e.behavior === "lobber" && e.lobber) {
@@ -353,17 +325,6 @@ export function tickDefenseEnemies(
       }
     } else {
       const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
-      if (e.combat.phase === "active" && !e.combat.slashFxShown) {
-        e.combat.slashFxShown = true;
-        showGruntMeleeSwipe(
-          host.scene,
-          e.sprite.x,
-          e.sprite.y,
-          e.combat.facing,
-          e.combatTuning.melee!.activeMs,
-        );
-        playEnemyMeleeSlashSfx(host.scene);
-      }
       if (hitPlayer) playerHitDamage += e.damage;
     }
 

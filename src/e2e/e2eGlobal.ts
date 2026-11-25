@@ -21,6 +21,7 @@ export type DefenseGameE2EApi = {
   /** Override live movement tuning via PLAYER_TUNING. */
   setPlayerMoveSpeedWu(moveSpeedWu: number): void;
   spawnTestEnemy(x?: number, y?: number): void;
+  spawnTestEnemyByDef(defId: string, offX?: number, offY?: number): void;
   setGodMode(on: boolean): void;
   damagePlayer(amount: number): void;
   killAllEnemies(): void;
@@ -56,7 +57,7 @@ export type DefenseGameE2EApi = {
   tapDomMirror(testId: string): void;
   simulateScreenTap(x: number, y: number): void;
   getDefenseWallHp(): number;
-  setSpawnPlanComplete(): void;
+  setSpawnPlanComplete(complete?: boolean): void;
   e2eBottomChromeTextureKey(): string | null;
   setPlayerPosition(x: number, y: number): void;
   getPlayerPosition(): { x: number; y: number };
@@ -163,6 +164,9 @@ export type DefenseGameE2EApi = {
   canFocusFirstLivingEnemy(): boolean;
   damageFirstLivingEnemy(amount: number): void;
   previewHolyFx(kind: "flash" | "channel"): void;
+  previewEnemyMeleeFx(enemyDefId: string, offX?: number): void;
+  showcaseEnemyMeleeSwipe(defId: string, offX: number): void;
+  clearEnemyMeleeFxFlag(): void;
 };
 
 declare global {

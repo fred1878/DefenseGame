@@ -5,6 +5,13 @@ export type PlayerTuning = {
   meleeWindupMs: number;
   meleeActiveMs: number;
   meleeRecoveryMs: number;
+  /** Ms after player melee windup begins until swipe VFX (required in `player.json`). */
+  meleeFxStartMs: number;
+  /**
+   * Optional target player slash fade length (ms). Omit → default fade at `meleeActiveMs`.
+   * When set: fade timeline matches `fxDurationMs` (faster/slower vs default).
+   */
+  meleeFxDurationMs?: number;
   meleeStrikeRangeWu: number;
   meleeEngageTargetRadiusWu: number;
   meleeActivationSlackWu: number;

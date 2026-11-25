@@ -932,7 +932,9 @@ export class DefenseScene extends Phaser.Scene {
   e2eEndlessEnemyId(): string | null { return sceneE2E.defenseSceneE2eEndlessEnemyId(this.e2eDelegate()); }
   e2eEndlessEnemyIds(): string[] { return sceneE2E.defenseSceneE2eEndlessEnemyIds(this.e2eDelegate()); }
   e2eKillAllEnemies(): void { sceneE2E.defenseSceneE2eKillAllEnemies(this.e2eDelegate()); }
-  e2eSetSpawnPlanComplete(): void { sceneE2E.defenseSceneE2eSetSpawnPlanComplete(this.e2eDelegate()); }
+  e2eSetSpawnPlanComplete(): void {
+    sceneE2E.defenseSceneE2eSetSpawnPlanComplete(this.e2eDelegate());
+  }
   e2eForceWinNight(): void { sceneE2E.defenseSceneE2eForceWinNight(this.e2eDelegate()); }
   e2eSetManualReturn(on: boolean): void { sceneE2E.defenseSceneE2eSetManualReturn(this.e2eDelegate(), on); }
   e2eNightEnded(): boolean { return sceneE2E.defenseSceneE2eNightEnded(this.e2eDelegate()); }
@@ -980,4 +982,24 @@ export class DefenseScene extends Phaser.Scene {
   e2eDamageFirstLivingEnemy(amount: number): void { sceneE2E.defenseSceneE2eDamageFirstLivingEnemy(this.e2eDelegate(), amount); }
   /** E2E: trigger holy heal VFX at the player for before/after capture compares. */
   e2ePreviewHolyFx(kind: "flash" | "channel"): void { sceneE2E.defenseSceneE2ePreviewHolyFx(this.e2eDelegate(), kind); }
+  e2eShowcaseEnemyMeleeSwipe(
+    defId: string,
+    offX: number,
+  ): sceneE2E.EnemyMeleeFxShowcaseResult {
+    return sceneE2E.defenseSceneE2eShowcaseEnemyMeleeSwipe(
+      this.e2eDelegate(),
+      defId,
+      offX,
+    );
+  }
+  e2ePreviewEnemyMeleeFx(
+    enemyDefId: string,
+    offX?: number,
+  ): sceneE2E.EnemyMeleeFxShowcaseResult {
+    return sceneE2E.defenseSceneE2ePreviewEnemyMeleeFx(
+      this.e2eDelegate(),
+      enemyDefId,
+      offX,
+    );
+  }
 }

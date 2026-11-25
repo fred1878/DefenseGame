@@ -189,7 +189,7 @@ export function applySpellSwing(
   const range = worldUnit(def.swingRangeWu!, scene.registry);
   const damage = (def.baseDamage ?? 16) * damageMult;
   const flavor = swingSpellDamageFlavor(def.damageFlavor);
-  showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, 160);
+  showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, 160, 160);
   for (const e of enemiesInSwingArc(
     playerX,
     playerY,

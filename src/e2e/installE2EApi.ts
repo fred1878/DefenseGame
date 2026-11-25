@@ -13,7 +13,7 @@ import {
 } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
-import { getE2EState, type DefenseGameE2EApi } from "./e2eGlobal";
+import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { positionDomMirrors } from "./installE2EDom";
 
 /** `window.__DEFENSEGAME_E2E__.api` implementation (Town + Defense hooks). */
@@ -75,6 +75,18 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     spawnTestEnemy(x = 80, y = 0) {
       activeDefense(game)?.e2eSpawnEnemy(x, y);
+    },
+    spawnTestEnemyByDef(defId: string, offX = 56, offY = 0) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const pos = defense.e2ePlayerPosition();
+      defense.spawnEnemyAt(
+        pos.x + offX,
+        pos.y + offY,
+        undefined,
+        defId,
+        999,
+      );
     },
     setGodMode(on: boolean) {
       game.registry.set("e2eGodMode", on);
@@ -411,6 +423,38 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     previewHolyFx(kind: "flash" | "channel") {
       activeDefense(game)?.e2ePreviewHolyFx(kind);
+    },
+    showcaseEnemyMeleeSwipe(defId: string, offX: number) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const result = defense.e2eShowcaseEnemyMeleeSwipe(defId, offX);
+      publishE2E({
+        flags: {
+          lastEnemyMeleeFxSide: result.side,
+        },
+      });
+    },
+    previewEnemyMeleeFx(enemyDefId: string, offX = 52) {
+      const defense = activeDefense(game);
+      if (!defense) return;
+      const result = defense.e2ePreviewEnemyMeleeFx(enemyDefId, offX);
+      publishE2E({
+        flags: {
+          lastEnemyMeleeFxSide: result.side,
+        },
+      });
+    },
+    clearEnemyMeleeFxFlag() {
+      publishE2E({
+        flags: {
+          enemyMeleeFxSpawned: 0,
+          lastEnemyMeleeFxDef: "",
+          lastEnemyMeleeFxFacing: 0,
+          lastEnemyMeleeFxRot: 0,
+          lastEnemyMeleeFxFlipX: 0,
+          lastEnemyMeleeFxSide: "",
+        },
+      });
     },
   };
 }

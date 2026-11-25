@@ -2,6 +2,11 @@ import Phaser from "phaser";
 import { spellById } from "../../content/spells";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowHitboxes } from "../../debug/DebugState";
+import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
+import {
+  enemyMeleeFxSpec,
+  enemyMeleeFxTransform,
+} from "../../content/meleeFxAssets";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
 import type { SpellBar } from "../../ui/SpellBar";
@@ -337,4 +342,74 @@ export function defenseSceneE2ePreviewHolyFx(
   scene.healChannelFx?.destroy();
   scene.healChannelFx = new SpellHealChannelFx(scene);
   scene.healChannelFx.start(px, py, (go) => scene.registerWorldDraw(go));
+}
+
+export type EnemyMeleeFxShowcaseResult = {
+  facingRad: number;
+  spriteRotation: number;
+  flipX: boolean;
+  offX: number;
+  side: "L" | "R";
+};
+
+function meleeFacingTowardPlayer(
+  ex: number,
+  ey: number,
+  px: number,
+  py: number,
+): number {
+  return Math.atan2(py - ey, px - ex);
+}
+
+/** E2E: spawn at offX, sync combat facing, play one melee swipe toward player. */
+export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
+  scene: DefenseSceneE2eDelegate,
+  enemyDefId: string,
+  offX: number,
+): EnemyMeleeFxShowcaseResult {
+  defenseSceneE2eKillAllEnemies(scene);
+  scene.spawnPlanComplete = false;
+  const px = scene.player.sprite.x;
+  const py = scene.player.sprite.y;
+  scene.cameras.main.centerOn(px, py);
+  setShowHitboxes(scene.registry, false);
+  const ex = px + offX;
+  const ey = py;
+  scene.spawnEnemyAt(ex, ey, undefined, enemyDefId, 9999);
+  const facingRad = meleeFacingTowardPlayer(ex, ey, px, py);
+  const enemy = scene.enemies.find(
+    (entry) => entry.defId === enemyDefId && entry.damageable.alive,
+  );
+  if (enemy) {
+    enemy.combat.facing = facingRad;
+    enemy.sprite.setPosition(ex, ey);
+  }
+  const spec = enemyMeleeFxSpec(enemyDefId);
+  const pose = spec
+    ? enemyMeleeFxTransform(facingRad, spec)
+    : { rotation: facingRad + Math.PI, flipX: false };
+  const spriteRotation = pose.rotation;
+  const side: "L" | "R" = offX >= 0 ? "R" : "L";
+  const label = scene.add.text(ex, ey - 48, side, {
+    fontFamily: "monospace",
+    fontSize: "28px",
+    color: "#ffee00",
+    stroke: "#000000",
+    strokeThickness: 4,
+  });
+  label.setDepth(10_000);
+  label.setOrigin(0.5, 0.5);
+  scene.time.delayedCall(2200, () => label.destroy());
+  const activeMs = enemy?.combatTuning.melee?.activeMs ?? 220;
+  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, undefined, activeMs);
+  return { facingRad, spriteRotation, flipX: pose.flipX, offX, side };
+}
+
+/** E2E: spawn one enemy and play its melee swipe FX toward the player. */
+export function defenseSceneE2ePreviewEnemyMeleeFx(
+  scene: DefenseSceneE2eDelegate,
+  enemyDefId: string,
+  offX = 52,
+): EnemyMeleeFxShowcaseResult {
+  return defenseSceneE2eShowcaseEnemyMeleeSwipe(scene, enemyDefId, offX);
 }

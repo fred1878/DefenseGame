@@ -31,6 +31,11 @@ import {
   PVFX_FX_ROOT,
   registerCombatPvfxAnimations,
 } from "../content/combatPvfxAssets";
+import {
+  MELEE_FX_ASSETS,
+  MELEE_FX_ROOT,
+  registerMeleeFxAnimations,
+} from "../content/meleeFxAssets";
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
@@ -121,12 +126,19 @@ export function queueDefenseBootAssets(
       frameHeight: entry.frameHeight,
     });
   }
+  for (const entry of MELEE_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${MELEE_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
 }
 
 function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {
   registerHolyFxAnimations(scene);
   registerIceFxAnimations(scene);
   registerCombatPvfxAnimations(scene);
+  registerMeleeFxAnimations(scene);
 }
 
 export function runQueuedLoader(

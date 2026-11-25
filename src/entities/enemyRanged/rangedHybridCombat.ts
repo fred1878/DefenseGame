@@ -6,6 +6,7 @@ import {
   type EnemyCombatState,
 } from "../EnemyCombat";
 import type { JavelinSpawnRequest, RangedHybridCombatState } from "./types";
+import { cancelEnemyMeleeFxTimer } from "../../combat/enemyMeleeFxSchedule";
 import { clearEnemyAttackCommit } from "./attackCommit";
 import { updateStationaryRangedCombat } from "./stationaryRangedCombat";
 
@@ -14,6 +15,8 @@ export function resetHybridCombatPhase(c: EnemyCombatState): void {
   c.phaseMs = 0;
   c.cooldownMs = 0;
   c.hitThisSwing = false;
+  cancelEnemyMeleeFxTimer(c);
+  c.slashFxShown = false;
   clearEnemyAttackCommit(c);
 }
 

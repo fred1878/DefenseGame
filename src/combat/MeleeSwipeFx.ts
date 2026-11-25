@@ -1,6 +1,14 @@
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
+import {
+  enemyMeleeFxSpec,
+  enemyMeleeFxTransform,
+  meleeFxAnimDurationMs,
+  meleeFxPackLoaded,
+  type EnemyMeleeFxSpec,
+} from "../content/meleeFxAssets";
+import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
@@ -22,7 +30,8 @@ export function showPlayerMeleeSwipe(
   x: number,
   y: number,
   facingRad: number,
-  activeMs: number,
+  fxDurationMs: number | undefined,
+  naturalFadeMs: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   spawnSlashFade(
@@ -33,7 +42,9 @@ export function showPlayerMeleeSwipe(
     worldUnit(PLAYER_SLASH_OFFSET, scene.registry),
     COMBAT_FX_TEXTURE.playerMelee,
     worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
-    activeMs,
+    worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
+    fxDurationMs,
+    naturalFadeMs,
     PLAYER_MELEE_FX_DEPTH,
     registerWorldDraw,
   );
@@ -43,12 +54,56 @@ export function meleeSwipeRotation(facingRad: number): number {
   return facingRad + SLASH_ARC_V2_ROT_OFFSET;
 }
 
-export function showGruntMeleeSwipe(
+export function showEnemyMeleeSwipe(
+  scene: Phaser.Scene,
+  enemyDefId: string,
+  x: number,
+  y: number,
+  facingRad: number,
+  fxDurationMs: number | undefined,
+  fallbackNaturalMs: number,
+): void {
+  const spec = enemyMeleeFxSpec(enemyDefId);
+  if (
+    spec &&
+    meleeFxPackLoaded(scene) &&
+    scene.textures.exists(spec.textureKey) &&
+    scene.anims.exists(spec.animKey)
+  ) {
+    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, fxDurationMs);
+  } else {
+    spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs, fallbackNaturalMs);
+  }
+  publishEnemyMeleeFxE2E(enemyDefId, facingRad);
+}
+
+function publishEnemyMeleeFxE2E(
+  enemyDefId: string,
+  facingRad: number,
+): void {
+  if (!isE2EEnabled()) return;
+  const spec = enemyMeleeFxSpec(enemyDefId);
+  const pose = spec
+    ? enemyMeleeFxTransform(facingRad, spec)
+    : { rotation: meleeSwipeRotation(facingRad), flipX: false };
+  publishE2E({
+    flags: {
+      enemyMeleeFxSpawned: 1,
+      lastEnemyMeleeFxDef: enemyDefId,
+      lastEnemyMeleeFxFacing: facingRad,
+      lastEnemyMeleeFxRot: pose.rotation,
+      lastEnemyMeleeFxFlipX: pose.flipX ? 1 : 0,
+    },
+  });
+}
+
+function spawnGruntMeleeFallback(
   scene: Phaser.Scene,
   x: number,
   y: number,
   facingRad: number,
-  activeMs: number,
+  fxDurationMs: number | undefined,
+  naturalFadeMs: number,
 ): void {
   spawnSlashFade(
     scene,
@@ -58,9 +113,42 @@ export function showGruntMeleeSwipe(
     worldUnit(GRUNT_SLASH_OFFSET, scene.registry),
     COMBAT_FX_TEXTURE.gruntMelee,
     worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
-    activeMs,
+    worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
+    fxDurationMs,
+    naturalFadeMs,
     DEFENSE_RENDER_DEPTH.enemyCombatFx,
   );
+}
+
+function spawnEnemyMeleeAnim(
+  scene: Phaser.Scene,
+  spec: EnemyMeleeFxSpec,
+  x: number,
+  y: number,
+  facingRad: number,
+  fxDurationMs: number | undefined,
+): void {
+  const offset = worldUnit(spec.offsetWu, scene.registry);
+  const ox = x + Math.cos(facingRad) * offset;
+  const oy = y + Math.sin(facingRad) * offset;
+  const sprite = scene.add.sprite(ox, oy, spec.textureKey);
+  const reg = scene.registry;
+  sprite.setDisplaySize(
+    worldDisplayPx(spec.displayW, reg),
+    worldDisplayPx(spec.displayH, reg),
+  );
+  sprite.setOrigin(0.5, 0.5);
+  const { rotation, flipX } = enemyMeleeFxTransform(facingRad, spec);
+  sprite.setFlipX(flipX);
+  sprite.setRotation(rotation);
+  sprite.setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx);
+  sprite.setAlpha(0.92);
+  const naturalMs = meleeFxAnimDurationMs(spec.clipId);
+  sprite.anims.timeScale = meleeFxPlaybackTimeScale(naturalMs, fxDurationMs);
+  sprite.play(spec.animKey);
+  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+    sprite.destroy();
+  });
 }
 
 function spawnSlashFade(
@@ -70,15 +158,17 @@ function spawnSlashFade(
   facingRad: number,
   offset: number,
   textureKey: string,
-  displaySize: number,
-  holdMs: number,
+  displayW: number,
+  displayH: number,
+  targetDurationMs: number | undefined,
+  naturalDurationMs: number,
   depth: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   const ox = x + Math.cos(facingRad) * offset;
   const oy = y + Math.sin(facingRad) * offset;
   const img = scene.add.image(ox, oy, textureKey);
-  img.setDisplaySize(displaySize, displaySize);
+  img.setDisplaySize(displayW, displayH);
   img.setOrigin(0.5, 0.5);
   img.setRotation(meleeSwipeRotation(facingRad));
   img.setDepth(depth);
@@ -87,12 +177,20 @@ function spawnSlashFade(
   if (isE2EEnabled() && textureKey === COMBAT_FX_TEXTURE.playerMelee) {
     publishE2E({ flags: { meleeFxSpawned: 1 } });
   }
-  const fadeMs = Math.max(80, holdMs - 40);
+  let fadeMs: number;
+  let delayMs: number;
+  if (targetDurationMs === undefined) {
+    fadeMs = Math.max(80, naturalDurationMs - 40);
+    delayMs = Math.min(40, naturalDurationMs * 0.25);
+  } else {
+    fadeMs = targetDurationMs;
+    delayMs = 0;
+  }
   scene.tweens.add({
     targets: img,
     alpha: 0,
     duration: fadeMs,
-    delay: Math.min(40, holdMs * 0.25),
+    delay: delayMs,
     ease: "Quad.easeOut",
     onComplete: () => img.destroy(),
   });
