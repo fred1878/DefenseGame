@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { spellById } from "../../content/spells";
 import type { Player } from "../../entities/Player";
 import {

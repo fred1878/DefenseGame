@@ -20,7 +20,7 @@ test.describe("real pointer / touch input", () => {
     await page.evaluate(() =>
       window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(48, 0),
     );
-  const atk = await getTapTarget(page, "combat-atk");
+    const atk = await getTapTarget(page, "combat-atk");
     await tapCanvas(page, atk.x, atk.y);
     await expect
       .poll(
@@ -34,25 +34,66 @@ test.describe("real pointer / touch input", () => {
   });
 
   test("MEL/RNG toggle then ranged ATK via canvas", async ({ page }) => {
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(80, 0));
-    const enemiesBefore = await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.api?.getEnemyCount() ?? 0,
-    );
-    expect(enemiesBefore).toBeGreaterThan(0);
-    const mode = await getTapTarget(page, "combat-mode");
-    await tapCanvas(page, mode.x, mode.y);
-    const atk = await getTapTarget(page, "combat-atk");
-    await tapCanvas(page, atk.x, atk.y);
-    // Projectiles destroy on first hit (PR #43); adjacent spawns rarely expose count > 0 on CI.
+    // Auto attack is on by default and would fire on its own (and keep the
+    // attack phase busy), so turn it off: only the ATK tap may hit.
+    await waitForTapTargets(page, ["combat-auto"]);
+    const auto = await getTapTarget(page, "combat-auto");
+    await tapCanvas(page, auto.x, auto.y);
     await expect
       .poll(
-        async () =>
+        () =>
           page.evaluate(
-            () => window.__DEFENSEGAME_E2E__?.api?.getEnemyCount() ?? enemiesBefore,
+            () => window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled(),
           ),
         { timeout: 15_000 },
       )
-      .toBeLessThan(enemiesBefore);
+      .toBe(false);
+
+    // God mode keeps the night running: if the enemy killed the player the
+    // scene would leave Defense and the HP list would read as empty.
+    await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      api?.setGodMode(true);
+      api?.spawnTestEnemy(80, 0);
+    });
+    const hpBefore = await page.evaluate(() =>
+      (window.__DEFENSEGAME_E2E__?.api?.getLivingEnemyHps() ?? []).reduce(
+        (a, b) => a + b,
+        0,
+      ),
+    );
+    expect(hpBefore).toBeGreaterThan(0);
+
+    // Wait until the toggle has landed in game state and the player is idle;
+    // on a loaded CI runner the tap is applied a few frames later, and an ATK
+    // tap before that resolves as melee.
+    const mode = await getTapTarget(page, "combat-mode");
+    await tapCanvas(page, mode.x, mode.y);
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const api = window.__DEFENSEGAME_E2E__?.api;
+            return `${api?.getAttackMode()}:${api?.getAttackPhase()}`;
+          }),
+        { timeout: 15_000 },
+      )
+      .toBe("ranged:idle");
+
+    const atk = await getTapTarget(page, "combat-atk");
+    await tapCanvas(page, atk.x, atk.y);
+    // Assert damage, not a kill: total enemy HP must drop (0 if it died).
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const s = window.__DEFENSEGAME_E2E__;
+            if (s?.scene !== "Defense") return Number.POSITIVE_INFINITY;
+            return (s.api?.getLivingEnemyHps() ?? []).reduce((a, b) => a + b, 0);
+          }),
+        { timeout: 20_000 },
+      )
+      .toBeLessThan(hpBefore);
   });
 
   test("spell slot via canvas tap fires nova", async ({ page }) => {

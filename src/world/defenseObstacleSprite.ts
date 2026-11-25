@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import {
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,

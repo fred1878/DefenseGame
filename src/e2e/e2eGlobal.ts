@@ -38,6 +38,10 @@ export type DefenseGameE2EApi = {
   sampleFps(seconds?: number): Promise<number>;
   getAttackPhase(): string;
   getProjectileCount(): number;
+  /** "melee" | "ranged" | "auto" in Defense; null outside Defense. */
+  getAttackMode(): string | null;
+  /** HP of each living enemy in the active Defense scene. */
+  getLivingEnemyHps(): number[];
   getEnemyCount(): number;
   setManualReturnToTown(on: boolean): void;
   nightEnded(): boolean;
@@ -105,7 +109,7 @@ export type DefenseGameE2EApi = {
   getDefenseHalfHeight(): number;
   getDefenseHalfWidth(): number;
   getDefenseHudLayoutProbe(): ReturnType<
-    import("../scenes/DefenseScene").DefenseScene["e2eHudLayoutProbe"]
+    import("../scenes/DefenseScene").DefenseScene["e2e"]["hudLayoutProbe"]
   >;
   worldPointToDefenseScreen(
     worldX: number,
@@ -114,7 +118,7 @@ export type DefenseGameE2EApi = {
   sampleDefenseHudBandPixelsAsync(): Promise<
     Awaited<
       ReturnType<
-        import("../scenes/DefenseScene").DefenseScene["e2eSampleHudBandPixelsAsync"]
+        import("../scenes/DefenseScene").DefenseScene["e2e"]["sampleHudBandPixelsAsync"]
       >
     >
   >;

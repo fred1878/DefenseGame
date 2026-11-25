@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { PLAYER_TUNING, SPELL_BAR } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
@@ -30,24 +30,24 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     async setStick(dx, dy, ms = 0) {
       const defense = activeDefense(game);
       if (!defense) return;
-      defense.e2eSetStick(dx, dy);
+      defense.e2e.setStick(dx, dy);
       if (ms <= 0) return;
       await waitGameMs(game, ms);
-      defense.e2eSetStick(0, 0);
+      defense.e2e.setStick(0, 0);
     },
     clearStick() {
-      activeDefense(game)?.e2eSetStick(0, 0);
+      activeDefense(game)?.e2e.setStick(0, 0);
     },
     tapMelee() {
-      activeDefense(game)?.e2eTapMelee();
+      activeDefense(game)?.e2e.tapMelee();
     },
     tapRanged() {
-      activeDefense(game)?.e2eTapRanged();
+      activeDefense(game)?.e2e.tapRanged();
     },
     async castSpell(slot: number) {
       const defense = activeDefense(game);
       if (!defense) return;
-      await defense.e2eCastSpellSlot(slot);
+      await defense.e2e.castSpellSlot(slot);
     },
     getSave() {
       const save = game.registry.get("save") as SaveGame | undefined;
@@ -74,12 +74,12 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu });
     },
     spawnTestEnemy(x = 80, y = 0) {
-      activeDefense(game)?.e2eSpawnEnemy(x, y);
+      activeDefense(game)?.e2e.spawnEnemy(x, y);
     },
     spawnTestEnemyByDef(defId: string, offX = 56, offY = 0) {
       const defense = activeDefense(game);
       if (!defense) return;
-      const pos = defense.e2ePlayerPosition();
+      const pos = defense.e2e.playerPosition();
       defense.spawnEnemyAt(
         pos.x + offX,
         pos.y + offY,
@@ -93,13 +93,13 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       getE2EState().flags.godMode = on;
     },
     damagePlayer(amount: number) {
-      activeDefense(game)?.e2eDamagePlayer(amount);
+      activeDefense(game)?.e2e.damagePlayer(amount);
     },
     killAllEnemies() {
-      activeDefense(game)?.e2eKillAllEnemies();
+      activeDefense(game)?.e2e.killAllEnemies();
     },
     forceWinNight() {
-      activeDefense(game)?.e2eForceWinNight();
+      activeDefense(game)?.e2e.forceWinNight();
     },
     textureLoaded(key: string) {
       return game.textures.exists(key);
@@ -154,51 +154,57 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       );
     },
     getAttackPhase() {
-      return activeDefense(game)?.e2eAttackPhase() ?? "idle";
+      return activeDefense(game)?.e2e.attackPhase() ?? "idle";
     },
     getProjectileCount() {
-      return activeDefense(game)?.e2eProjectileCount() ?? 0;
+      return activeDefense(game)?.e2e.projectileCount() ?? 0;
+    },
+    getAttackMode() {
+      return activeDefense(game)?.e2e.attackMode() ?? null;
+    },
+    getLivingEnemyHps() {
+      return activeDefense(game)?.e2e.livingEnemyHps() ?? [];
     },
     getEnemyCount() {
-      return activeDefense(game)?.e2eEnemyCount() ?? 0;
+      return activeDefense(game)?.e2e.enemyCount() ?? 0;
     },
     setManualReturnToTown(on: boolean) {
       game.registry.set("e2eManualReturn", on);
-      activeDefense(game)?.e2eSetManualReturn(on);
+      activeDefense(game)?.e2e.setManualReturn(on);
     },
     nightEnded() {
-      return activeDefense(game)?.e2eNightEnded() ?? false;
+      return activeDefense(game)?.e2e.nightEnded() ?? false;
     },
     hasReturnButton() {
-      return activeDefense(game)?.e2eHasReturnButton() ?? false;
+      return activeDefense(game)?.e2e.hasReturnButton() ?? false;
     },
     returnToTown() {
       activeDefense(game)?.e2eReturnToTown();
     },
     getUiTapTargets() {
       const defense = activeDefense(game);
-      if (defense) return defense.e2eGetUiTapTargets();
+      if (defense) return defense.e2e.getUiTapTargets();
       const town = game.scene.getScene("Town") as TownScene | null;
       if (town?.scene.isActive()) return town.e2eGetUiTapTargets();
       return {};
     },
     getSpellSlotHitRects() {
-      return activeDefense(game)?.e2eGetSpellSlotHitRects() ?? [];
+      return activeDefense(game)?.e2e.getSpellSlotHitRects() ?? [];
     },
     isUiButtonPressed(testId: string) {
       const defense = activeDefense(game);
-      if (defense) return defense.e2eIsTouchButtonPressed(testId);
+      if (defense) return defense.e2e.isTouchButtonPressed(testId);
       const town = game.scene.getScene("Town") as TownScene | null;
       if (town?.scene.isActive()) return town.e2eIsTouchButtonPressed(testId);
       return false;
     },
     getAutoAttackEnabled() {
-      return activeDefense(game)?.e2eAutoAttackEnabled() ?? false;
+      return activeDefense(game)?.e2e.autoAttackEnabled() ?? false;
     },
     syncDomMirrors() {
       const defense = activeDefense(game);
       if (defense) {
-        positionDomMirrors(defense.e2eGetUiTapTargets());
+        positionDomMirrors(defense.e2e.getUiTapTargets());
         return;
       }
       const town = game.scene.getScene("Town") as TownScene | null;
@@ -209,64 +215,64 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     tapDomMirror(testId: string) {
       const defense = activeDefense(game);
       if (!defense) return;
-      const targets = defense.e2eGetUiTapTargets();
+      const targets = defense.e2e.getUiTapTargets();
       const pt = targets[testId];
       if (!pt) return;
-      defense.e2eSimulateScreenTap(pt.x, pt.y);
+      defense.e2e.simulateScreenTap(pt.x, pt.y);
     },
     simulateScreenTap(x: number, y: number) {
-      activeDefense(game)?.e2eSimulateScreenTap(x, y);
+      activeDefense(game)?.e2e.simulateScreenTap(x, y);
     },
     getDefenseWallHp() {
-      return activeDefense(game)?.e2eWallHp() ?? 0;
+      return activeDefense(game)?.e2e.wallHp() ?? 0;
     },
     e2eBottomChromeTextureKey() {
-      return activeDefense(game)?.e2eBottomChromeTextureKey() ?? null;
+      return activeDefense(game)?.e2e.bottomChromeTextureKey() ?? null;
     },
     setSpawnPlanComplete() {
-      activeDefense(game)?.e2eSetSpawnPlanComplete();
+      activeDefense(game)?.e2e.setSpawnPlanComplete();
     },
     setPlayerPosition(x: number, y: number) {
-      activeDefense(game)?.e2eSetPlayerPosition(x, y);
+      activeDefense(game)?.e2e.setPlayerPosition(x, y);
     },
     getPlayerPosition() {
-      return activeDefense(game)?.e2ePlayerPosition() ?? { x: 0, y: 0 };
+      return activeDefense(game)?.e2e.playerPosition() ?? { x: 0, y: 0 };
     },
     getObstacleBlockerAabb(index: number) {
       const scene = activeDefense(game);
       if (!scene) throw new Error("DefenseScene not active");
-      return scene.e2eObstacleBlockerAabb(index);
+      return scene.e2e.obstacleBlockerAabb(index);
     },
     getObstacleArcadeBodyAabb(index: number) {
       const scene = activeDefense(game);
       if (!scene) throw new Error("DefenseScene not active");
-      return scene.e2eObstacleArcadeBodyAabb(index);
+      return scene.e2e.obstacleArcadeBodyAabb(index);
     },
     getPlayerBodyRadius() {
-      return activeDefense(game)?.e2ePlayerBodyRadius() ?? 0;
+      return activeDefense(game)?.e2e.playerBodyRadius() ?? 0;
     },
     getMaxPlayerObstacleOverlapPx(obstacleIndex?: number) {
-      return activeDefense(game)?.e2eMaxPlayerObstacleOverlapPx(obstacleIndex) ?? 0;
+      return activeDefense(game)?.e2e.maxPlayerObstacleOverlapPx(obstacleIndex) ?? 0;
     },
     centerDefenseCameraOn(worldX: number, worldY: number) {
-      activeDefense(game)?.e2eCenterCameraOn(worldX, worldY);
+      activeDefense(game)?.e2e.centerCameraOn(worldX, worldY);
     },
     getObstacleBumpProbe(obstacleIndex, approach) {
       const scene = activeDefense(game);
       if (!scene) throw new Error("DefenseScene not active");
-      return scene.e2eObstacleBumpProbe(obstacleIndex, approach);
+      return scene.e2e.obstacleBumpProbe(obstacleIndex, approach);
     },
     getFlushTangentPosition(obstacleIndex, approach, beyondPx) {
       const scene = activeDefense(game);
       if (!scene) throw new Error("DefenseScene not active");
-      return scene.e2eFlushTangentPosition(obstacleIndex, approach, beyondPx);
+      return scene.e2e.flushTangentPosition(obstacleIndex, approach, beyondPx);
     },
     resolvePlayerObstacleOverlap() {
-      activeDefense(game)?.e2eResolvePlayerObstacleOverlap();
+      activeDefense(game)?.e2e.resolvePlayerObstacleOverlap();
     },
     getDefenseCameraScroll() {
       return (
-        activeDefense(game)?.e2eGetDefenseCameraScroll() ?? { x: 0, y: 0 }
+        activeDefense(game)?.e2e.getDefenseCameraScroll() ?? { x: 0, y: 0 }
       );
     },
     getDefenseHalfHeight() {
@@ -278,11 +284,11 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getDefenseHudLayoutProbe() {
       const scene = activeDefense(game);
       if (!scene) throw new Error("DefenseScene not active");
-      return scene.e2eHudLayoutProbe();
+      return scene.e2e.hudLayoutProbe();
     },
     worldPointToDefenseScreen(worldX: number, worldY: number) {
       return (
-        activeDefense(game)?.e2eWorldPointToScreen(worldX, worldY) ?? {
+        activeDefense(game)?.e2e.worldPointToScreen(worldX, worldY) ?? {
           x: 0,
           y: 0,
         }
@@ -291,10 +297,10 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     async sampleDefenseHudBandPixelsAsync() {
       const scene = activeDefense(game);
       if (!scene) throw new Error("DefenseScene not active");
-      return scene.e2eSampleHudBandPixelsAsync();
+      return scene.e2e.sampleHudBandPixelsAsync();
     },
     setShowEnemyPaths(on: boolean) {
-      activeDefense(game)?.e2eSetShowEnemyPaths(on);
+      activeDefense(game)?.e2e.setShowEnemyPaths(on);
     },
     setShowHitboxes(on: boolean) {
       const scene = activeDefense(game);
@@ -355,11 +361,11 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         : false;
     },
     isEndlessInfiniteHp() {
-      return activeDefense(game)?.e2eIsEndlessInfiniteHp() ?? false;
+      return activeDefense(game)?.e2e.isEndlessInfiniteHp() ?? false;
     },
     getPlayerHp() {
       const defense = activeDefense(game);
-      if (defense) return defense.e2ePlayerHp();
+      if (defense) return defense.e2e.playerHp();
       const town = game.scene.getScene("Town") as TownScene | null;
       if (!town?.scene.isActive()) return 0;
       const save = game.registry.get("save") as { player?: { hp?: number } };
@@ -404,36 +410,36 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       town?.e2eSetEndlessEnemyCap(enemyId, cap);
     },
     isEndlessDefense() {
-      return activeDefense(game)?.e2eIsEndlessMode() ?? false;
+      return activeDefense(game)?.e2e.isEndlessMode() ?? false;
     },
     isWavePlannerDefense() {
       return activeDefense(game)?.isWavePlannerMode() ?? false;
     },
     getLivingEnemyDefIds() {
-      return activeDefense(game)?.e2eLivingEnemyDefIds() ?? [];
+      return activeDefense(game)?.e2e.livingEnemyDefIds() ?? [];
     },
     getEndlessEnemyId() {
-      return activeDefense(game)?.e2eEndlessEnemyId() ?? null;
+      return activeDefense(game)?.e2e.endlessEnemyId() ?? null;
     },
     getEndlessEnemyIds() {
-      return activeDefense(game)?.e2eEndlessEnemyIds() ?? [];
+      return activeDefense(game)?.e2e.endlessEnemyIds() ?? [];
     },
     hasLeaveEndlessButton() {
-      return activeDefense(game)?.e2eHasLeaveEndlessButton() ?? false;
+      return activeDefense(game)?.e2e.hasLeaveEndlessButton() ?? false;
     },
     canFocusFirstLivingEnemy() {
-      return activeDefense(game)?.e2eCanFocusFirstLivingEnemy() ?? false;
+      return activeDefense(game)?.e2e.canFocusFirstLivingEnemy() ?? false;
     },
     damageFirstLivingEnemy(amount: number) {
-      activeDefense(game)?.e2eDamageFirstLivingEnemy(amount);
+      activeDefense(game)?.e2e.damageFirstLivingEnemy(amount);
     },
     previewHolyFx(kind: "flash" | "channel") {
-      activeDefense(game)?.e2ePreviewHolyFx(kind);
+      activeDefense(game)?.e2e.previewHolyFx(kind);
     },
     showcaseEnemyMeleeSwipe(defId: string, offX: number) {
       const defense = activeDefense(game);
       if (!defense) return;
-      const result = defense.e2eShowcaseEnemyMeleeSwipe(defId, offX);
+      const result = defense.e2e.showcaseEnemyMeleeSwipe(defId, offX);
       publishE2E({
         flags: {
           lastEnemyMeleeFxSide: result.side,
@@ -443,7 +449,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     previewEnemyMeleeFx(enemyDefId: string, offX = 52) {
       const defense = activeDefense(game);
       if (!defense) return;
-      const result = defense.e2ePreviewEnemyMeleeFx(enemyDefId, offX);
+      const result = defense.e2e.previewEnemyMeleeFx(enemyDefId, offX);
       publishE2E({
         flags: {
           lastEnemyMeleeFxSide: result.side,

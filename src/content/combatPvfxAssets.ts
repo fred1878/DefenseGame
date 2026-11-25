@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** PVFX Foundry (CC0) combat sheets under `public/assets/combat/fx/pvfx/`. */
 

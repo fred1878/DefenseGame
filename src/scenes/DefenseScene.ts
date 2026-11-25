@@ -53,7 +53,11 @@ import type { CombatHudChrome } from "../ui/combatHudChrome";
 import type { DefenseMinimap, defenseMinimapLayout } from "../ui/defenseMinimap";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import * as sceneE2E from "./defense/DefenseSceneE2E";
+import {
+  createDefenseSceneE2eHost,
+  type DefenseSceneE2eHost,
+} from "./defense/DefenseSceneE2EHost";
+import type { DefenseSceneE2eDelegate } from "./defense/DefenseSceneE2ETypes";
 import { spawnDefenseEnemyAt, type DefenseEnemySpawnerHost } from "./defense/DefenseEnemySpawner";
 import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
 import {
@@ -415,7 +419,7 @@ export class DefenseScene extends Phaser.Scene {
       publishE2E({
         scene: "Defense",
         ready: true,
-        player: this.e2ePlayerPosition(),
+        player: this.e2e.playerPosition(),
       });
     }
 
@@ -569,11 +573,11 @@ export class DefenseScene extends Phaser.Scene {
       publishE2E({
         scene: "Defense",
         ready: true,
-        player: this.e2ePlayerPosition(),
+        player: this.e2e.playerPosition(),
         flags: {
-          attackPhase: this.e2eAttackPhase(),
-          projectileCount: this.e2eProjectileCount(),
-          enemyCount: this.e2eEnemyCount(),
+          attackPhase: this.e2e.attackPhase(),
+          projectileCount: this.e2e.projectileCount(),
+          enemyCount: this.e2e.enemyCount(),
         },
       });
     }
@@ -918,96 +922,11 @@ export class DefenseScene extends Phaser.Scene {
     });
   }
 
-  private e2eDelegate(): sceneE2E.DefenseSceneE2eDelegate {
-    return this as unknown as sceneE2E.DefenseSceneE2eDelegate;
-  }
-
-  e2eIsReady(): boolean { return sceneE2E.defenseSceneE2eIsReady(this.e2eDelegate()); }
-  e2eBottomChromeTextureKey(): string | null { return sceneE2E.defenseSceneE2eBottomChromeTextureKey(); }
-  e2eSetStick(dx: number, dy: number): void { sceneE2E.defenseSceneE2eSetStick(this.e2eDelegate(), dx, dy); }
-  e2ePlayerPosition() { return sceneE2E.defenseSceneE2ePlayerPosition(this.e2eDelegate()); }
-  e2eAttackPhase(): string { return sceneE2E.defenseSceneE2eAttackPhase(this.e2eDelegate()); }
-  e2eProjectileCount(): number { return sceneE2E.defenseSceneE2eProjectileCount(this.e2eDelegate()); }
-  e2eEnemyCount(): number { return sceneE2E.defenseSceneE2eEnemyCount(this.e2eDelegate()); }
-  e2eLivingEnemyDefIds(): string[] { return sceneE2E.defenseSceneE2eLivingEnemyDefIds(this.e2eDelegate()); }
-  e2eWallHp(): number { return sceneE2E.defenseSceneE2eWallHp(this.e2eDelegate()); }
-  e2eTapMelee(): void { sceneE2E.defenseSceneE2eTapMelee(this.e2eDelegate()); }
-  e2eTapRanged(): void { sceneE2E.defenseSceneE2eTapRanged(this.e2eDelegate()); }
-  e2eCastSpellSlot(slot: number): Promise<void> { return sceneE2E.defenseSceneE2eCastSpellSlot(this.e2eDelegate(), slot); }
-  e2eSpawnEnemy(offX?: number, offY?: number): void { sceneE2E.defenseSceneE2eSpawnEnemy(this.e2eDelegate(), offX, offY); }
-  e2eDamagePlayer(amount: number): void { sceneE2E.defenseSceneE2eDamagePlayer(this.e2eDelegate(), amount); }
-  e2eIsEndlessMode(): boolean { return sceneE2E.defenseSceneE2eIsEndlessMode(this.e2eDelegate()); }
-  e2eEndlessEnemyId(): string | null { return sceneE2E.defenseSceneE2eEndlessEnemyId(this.e2eDelegate()); }
-  e2eEndlessEnemyIds(): string[] { return sceneE2E.defenseSceneE2eEndlessEnemyIds(this.e2eDelegate()); }
-  e2eKillAllEnemies(): void { sceneE2E.defenseSceneE2eKillAllEnemies(this.e2eDelegate()); }
-  e2eSetSpawnPlanComplete(): void {
-    sceneE2E.defenseSceneE2eSetSpawnPlanComplete(this.e2eDelegate());
-  }
-  e2eForceWinNight(): void { sceneE2E.defenseSceneE2eForceWinNight(this.e2eDelegate()); }
-  e2eSetManualReturn(on: boolean): void { sceneE2E.defenseSceneE2eSetManualReturn(this.e2eDelegate(), on); }
-  e2eNightEnded(): boolean { return sceneE2E.defenseSceneE2eNightEnded(this.e2eDelegate()); }
-  e2eHasReturnButton(): boolean { return sceneE2E.defenseSceneE2eHasReturnButton(this.e2eDelegate()); }
-  e2eHasLeaveEndlessButton(): boolean { return sceneE2E.defenseSceneE2eHasLeaveEndlessButton(this.e2eDelegate()); }
-  e2eSimulateScreenTap(x: number, y: number): void { sceneE2E.defenseSceneE2eSimulateScreenTap(this.e2eDelegate(), x, y); }
-  e2eGetUiTapTargets() { return sceneE2E.defenseSceneE2eGetUiTapTargets(this.e2eDelegate()); }
-  e2eGetSpellSlotHitRects() { return sceneE2E.defenseSceneE2eGetSpellSlotHitRects(this.e2eDelegate()); }
-  e2eAutoAttackEnabled(): boolean { return sceneE2E.defenseSceneE2eAutoAttackEnabled(this.e2eDelegate()); }
-  e2eIsTouchButtonPressed(testId: string): boolean { return sceneE2E.defenseSceneE2eIsTouchButtonPressed(this.e2eDelegate(), testId); }
-  e2eSetPlayerPosition(x: number, y: number): void { sceneE2E.defenseSceneE2eSetPlayerPosition(this.e2eDelegate(), x, y); }
-  e2eObstacleBlockerAabb(index: number) { return sceneE2E.defenseSceneE2eObstacleBlockerAabb(this.e2eDelegate(), index); }
-  e2eObstacleArcadeBodyAabb(index: number) { return sceneE2E.defenseSceneE2eObstacleArcadeBodyAabb(this.e2eDelegate(), index); }
-  e2ePlayerBodyRadius() { return sceneE2E.defenseSceneE2ePlayerBodyRadius(this.e2eDelegate()); }
-  e2eMaxPlayerObstacleOverlapPx(obstacleIndex?: number) { return sceneE2E.defenseSceneE2eMaxPlayerObstacleOverlapPx(this.e2eDelegate(), obstacleIndex); }
-  e2eCenterCameraOn(x: number, y: number): void { sceneE2E.defenseSceneE2eCenterCameraOn(this.e2eDelegate(), x, y); }
-  e2eObstacleBumpProbe(index: number, approach: sceneE2E.DefenseObstacleBumpCardinal) {
-    return sceneE2E.defenseSceneE2eObstacleBumpProbe(this.e2eDelegate(), index, approach);
-  }
-  e2eFlushTangentPosition(
-    index: number,
-    approach: sceneE2E.DefenseObstacleBumpCardinal,
-    beyondPx: number,
-  ) {
-    return sceneE2E.defenseSceneE2eFlushTangentPosition(this.e2eDelegate(), index, approach, beyondPx);
-  }
-  e2eResolvePlayerObstacleOverlap(): void {
-    sceneE2E.defenseSceneE2eResolvePlayerObstacleOverlap(this.e2eDelegate());
-  }
-  e2eGetDefenseCameraScroll() { return sceneE2E.defenseSceneE2eGetDefenseCameraScroll(this.e2eDelegate()); }
-  e2eSetShowEnemyPaths(on: boolean): void { sceneE2E.defenseSceneE2eSetShowEnemyPaths(this.e2eDelegate(), on); }
-  e2eWorldPointToScreen(worldX: number, worldY: number) {
-    return sceneE2E.defenseSceneE2eWorldPointToScreen(this.e2eDelegate(), worldX, worldY);
-  }
-  e2eHudLayoutProbe() {
-    return sceneE2E.defenseSceneE2eHudLayoutProbe(this.e2eDelegate());
-  }
-  e2eSampleHudBandPixelsAsync() {
-    return sceneE2E.defenseSceneE2eSampleHudBandPixelsAsync(this.e2eDelegate());
-  }
-  e2eIsEndlessInfiniteHp(): boolean { return sceneE2E.defenseSceneE2eIsEndlessInfiniteHp(this.e2eDelegate()); }
-  e2ePlayerHp(): number { return sceneE2E.defenseSceneE2ePlayerHp(this.e2eDelegate()); }
-  /** Playwright: targeting must see respawned endless enemies after dead culls. */
-  e2eCanFocusFirstLivingEnemy(): boolean { return sceneE2E.defenseSceneE2eCanFocusFirstLivingEnemy(this.e2eDelegate()); }
-  e2eDamageFirstLivingEnemy(amount: number): void { sceneE2E.defenseSceneE2eDamageFirstLivingEnemy(this.e2eDelegate(), amount); }
-  /** E2E: trigger holy heal VFX at the player for before/after capture compares. */
-  e2ePreviewHolyFx(kind: "flash" | "channel"): void { sceneE2E.defenseSceneE2ePreviewHolyFx(this.e2eDelegate(), kind); }
-  e2eShowcaseEnemyMeleeSwipe(
-    defId: string,
-    offX: number,
-  ): sceneE2E.EnemyMeleeFxShowcaseResult {
-    return sceneE2E.defenseSceneE2eShowcaseEnemyMeleeSwipe(
-      this.e2eDelegate(),
-      defId,
-      offX,
-    );
-  }
-  e2ePreviewEnemyMeleeFx(
-    enemyDefId: string,
-    offX?: number,
-  ): sceneE2E.EnemyMeleeFxShowcaseResult {
-    return sceneE2E.defenseSceneE2ePreviewEnemyMeleeFx(
-      this.e2eDelegate(),
-      enemyDefId,
-      offX,
-    );
-  }
+  /**
+   * E2E hooks (`installE2E*`): every `defenseSceneE2e*` helper bound to this
+   * scene, e.g. `scene.e2e.enemyCount()`. See `DefenseSceneE2EHost.ts`.
+   */
+  readonly e2e: DefenseSceneE2eHost = createDefenseSceneE2eHost(
+    this as unknown as DefenseSceneE2eDelegate,
+  );
 }

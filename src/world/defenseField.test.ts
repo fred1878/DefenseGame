@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { describe, expect, it } from "vitest";
 import { GAME } from "../config/game";
 import {

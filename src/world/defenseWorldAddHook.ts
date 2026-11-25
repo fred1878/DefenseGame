@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { adoptDefenseWorldObject } from "./defenseWorldLayer";
 
 const INSTALLED_REGISTRY_KEY = "defenseWorldLayerHookInstalled";

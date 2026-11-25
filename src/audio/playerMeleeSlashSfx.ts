@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { COMBAT_AUDIO } from "../config/audio";
 
 export const PLAYER_MELEE_SLASH_SFX_KEYS = [

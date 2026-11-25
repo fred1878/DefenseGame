@@ -5,7 +5,7 @@
 | Command | What it runs |
 |---------|----------------|
 | `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → Vitest |
-| `npm run lint` | Biome lint, errors only (`npm run lint:all` also lists warnings) |
+| `npm run lint` | Biome lint; warnings fail too (`--error-on-warnings`) |
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
 | `npm run format` | Biome formatter (not enforced in CI yet; run only on files you touch) |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import {
   applyEndlessRunExit,
   applyNightResult,
@@ -8,7 +8,7 @@ import { clearDefenseRunMode } from "../../core/defenseRunMode";
 import type { NightResult, SaveGame } from "../../core/saveTypes";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { publishE2E } from "../../e2e/e2eGlobal";
-import { Player } from "../../entities/Player";
+import type { Player } from "../../entities/Player";
 import { createTouchButton } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 import { nightReturnButtonPosition } from "../../ui/screenLayout";

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import type { SpellDefinition } from "../content/spells";
 import { spellCastMs, spellTargetMode } from "../content/spellTargeting";

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { TOWN_SPELL_SORT_BAR } from "../../config";
 import { spellIconTextureKey } from "../../content/assets";
 import { isSpellPoolSelectable } from "../../content/spellPoolReadiness";

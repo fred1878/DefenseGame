@@ -1,11 +1,11 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
 import type { SaveGame } from "../../core/saveTypes";
 import { scaleUiX } from "../../core/displayScale";
 import { UI_TEXTURE } from "../../content/assets";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { VirtualStick } from "../../input/VirtualStick";
-import { Player } from "../../entities/Player";
+import type { Player } from "../../entities/Player";
 import { SpellCastController } from "../../combat/SpellCastController";
 import { CastBar } from "../../ui/CastBar";
 import { SpellBar } from "../../ui/SpellBar";

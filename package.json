@@ -14,8 +14,7 @@
     "build:app": "node scripts/install-phaser-defense.mjs && vite build && node scripts/assert-phaser-chunk-size.mjs && node scripts/write-version.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "lint": "biome lint --diagnostic-level=error",
-    "lint:all": "biome lint",
+    "lint": "biome lint --error-on-warnings",
     "format": "biome format --write",
     "knip": "knip",
     "test": "vitest run",
@@ -34,11 +33,11 @@
     "@biomejs/biome": "2.6.9",
     "@playwright/test": "^1.49.1",
     "@types/node": "^24.19.2",
-    "@vitest/coverage-v8": "^2.1.5",
+    "@vitest/coverage-v8": "^5.1.2",
     "knip": "6.48.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11",
-    "vitest": "^2.1.5",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.2",
     "webpack": "^5.99.9"
   }
 }

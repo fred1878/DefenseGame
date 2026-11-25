@@ -1,6 +1,6 @@
 import { GAME } from "../config";
 import { isE2EEnabled } from "./e2eMode";
-import { type DefenseGameE2EApi } from "./e2eGlobal";
+import type { DefenseGameE2EApi } from "./e2eGlobal";
 
 /** DOM mirror buttons over canvas tap targets (Playwright `getByTestId` taps). */
 const DOM_MIRROR_IDS = [

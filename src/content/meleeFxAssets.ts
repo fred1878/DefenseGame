@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /** Per-enemy melee swipe sheets under `public/assets/combat/fx/melee/`. */
 

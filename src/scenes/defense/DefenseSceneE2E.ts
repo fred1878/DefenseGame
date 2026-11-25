@@ -1,5 +1,6 @@
 /**
- * E2E implementations for DefenseScene `e2e*` wrappers (barrel).
+ * E2E implementations exposed as `DefenseScene.e2e.*` (barrel; bound by
+ * `DefenseSceneE2EHost.ts`).
  * Split by area: Combat (input, enemies, night/endless, tap targets),
  * Obstacles (placement, blockers, camera), Hud (layout + pixel probes).
  */
