@@ -40,8 +40,8 @@ export type EnemyNavState = {
   /** Whether the last A* replan reached the goal cell (false = nearest-walkable fallback only). */
   pathGoalReached: boolean;
   /** Sticky pack/hold frame while the player cell is unreachable (small knockback ignored). */
-  meleePackAnchorX?: number;
-  meleePackAnchorY?: number;
+  meleePackAnchorX?: number | undefined;
+  meleePackAnchorY?: number | undefined;
 };
 
 export type EnemyTargetResolution = {

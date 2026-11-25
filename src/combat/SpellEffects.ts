@@ -280,7 +280,9 @@ export function applySpellCone(
   status?: EnemySpellStatusMap,
   opts?: {
     showFx?: boolean;
-    registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void;
+    registerWorldDraw?:
+      | ((go: Phaser.GameObjects.GameObject) => void)
+      | undefined;
   },
 ): void {
   if (opts?.showFx !== false) {

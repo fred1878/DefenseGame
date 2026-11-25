@@ -51,7 +51,7 @@ export type EnemyCombatState = {
    * Cleared on new windup or interrupt.
    */
   slashFxShown: boolean;
-  slashFxTimer?: Phaser.Time.TimerEvent;
+  slashFxTimer?: Phaser.Time.TimerEvent | undefined;
   facing: number;
   attackTargetKind: EnemyAttackTarget["kind"] | null;
   commitAimX: number;

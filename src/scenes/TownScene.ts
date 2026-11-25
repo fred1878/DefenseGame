@@ -322,7 +322,7 @@ export class TownScene extends Phaser.Scene {
     this.scene.start("Defense");
   }
 
-  update(_time: number, delta: number): void {
+  override update(_time: number, delta: number): void {
     this.fpsOverlay.tick(this.registry, delta, this.game);
     if (!showTouchInput(this.registry)) {
       this.touchDebug.clear();

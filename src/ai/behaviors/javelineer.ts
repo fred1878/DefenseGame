@@ -126,8 +126,8 @@ function kiteArcVelocity(
     radialBlend: number;
     towardPlayer: boolean;
     speedMul: number;
-    peerAgents?: readonly NavPeerAgent[];
-    retreatGoalDistPx?: number;
+    peerAgents?: readonly NavPeerAgent[] | undefined;
+    retreatGoalDistPx?: number | undefined;
   },
 ): void {
   advanceStrafeSign(enemy, ctx.deltaMs);

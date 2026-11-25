@@ -207,7 +207,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.events.on("shutdown", () => this.touchDebug.destroy());
   }
 
-  update(_time: number, _delta: number): void {
+  override update(_time: number, _delta: number): void {
     if (!showTouchInput(this.registry)) {
       this.touchDebug.clear();
       return;

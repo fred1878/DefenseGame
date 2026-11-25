@@ -15,7 +15,7 @@ export function updateStationaryRangedCombat(
   extra: StationaryRangedCombatState,
   deltaMs: number,
   onWallHit?: () => void,
-): { spawnBolt?: JavelinSpawnRequest } {
+): { spawnBolt?: JavelinSpawnRequest | undefined } {
   const c = enemy.combat;
   const tune = enemy.combatTuning.stationaryRanged!;
   const dist = tickCooldownAndFaceTarget(enemy, target, deltaMs);

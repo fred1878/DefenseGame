@@ -27,15 +27,15 @@ export type SpellGroundZone = {
   tickEveryMs: number;
   tickDamage: number;
   /** Ticks that dealt channel damage (channeled zones only). */
-  channelTicksDone?: number;
-  channelMaxTicks?: number;
-  channelDamageRemainder?: number;
-  burstDamage?: number;
+  channelTicksDone?: number | undefined;
+  channelMaxTicks?: number | undefined;
+  channelDamageRemainder?: number | undefined;
+  burstDamage?: number | undefined;
   damageFlavor: DamageFlavor;
   onHit?: SpellDefinition["onHit"];
   /** After channel burst, dot ticks use linger def. */
-  lingerDotDps?: number;
-  lingerDotMs?: number;
+  lingerDotDps?: number | undefined;
+  lingerDotMs?: number | undefined;
   didBurst?: boolean;
 };
 
