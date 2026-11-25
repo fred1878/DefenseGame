@@ -15,9 +15,10 @@ const distAssets = path.join(repoRoot, "dist/assets");
 
 /**
  * Gzip bytes of phaser chunk (main baseline was ~304 880 with phaser-arcade-physics.js).
- * Custom DefenseGame build target (Nov 2026): 267_940 → 248_233 after dropping Tilemaps + Tilemap loaders.
+ * Custom DefenseGame build target (Nov 2026): 267_940 → 248_233 after dropping Tilemaps + Tilemap loaders
+ * (Vite 5). Re-measured under Vite 8: main 248_997 → 230_349 with the same trims.
  */
-const BASELINE_GZIP = 248_233;
+const BASELINE_GZIP = 230_349;
 const MAX_REGRESSION_RATIO = 1.05;
 
 function findPhaserChunk() {
