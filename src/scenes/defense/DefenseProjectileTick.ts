@@ -24,6 +24,10 @@ import {
   finishIceBoltProjectileHit,
   syncIceBoltProjectileFx,
 } from "../../combat/SpellIceBoltProjectileFx";
+import {
+  destroyPvfxProjectileFx,
+  syncPvfxProjectileFx,
+} from "../../combat/SpellPvfxProjectileFx";
 import type { Player } from "../../entities/Player";
 
 export type DefenseProjectileEnemyTarget = {
@@ -86,10 +90,15 @@ export function tickDefenseProjectiles(
     findEnemy: host.findEnemy,
   };
   const projectiles = host.projectiles.filter((p) => {
-  if (p.spellId === ICE_BOLT_SPELL_ID && p.iceBoltFx) {
+    if (p.spellId === ICE_BOLT_SPELL_ID && p.iceBoltFx) {
       syncIceBoltProjectileFx(p);
+    } else if (p.pvfxFlightFx) {
+      syncPvfxProjectileFx(p);
     }
     const result = updateSpellProjectile(p, spellProjCtx);
+    if (!result.alive && p.pvfxFlightFx) {
+      destroyPvfxProjectileFx(p);
+    }
     if (!result.alive && p.spellId === ICE_BOLT_SPELL_ID && p.iceBoltFx) {
       if (result.hitEnemyId) {
         finishIceBoltProjectileHit(host.scene, p, host.registerWorldDraw);
@@ -133,6 +142,9 @@ export function tickDefenseProjectiles(
 
   const playerHurtboxRadius = host.wu(playerBodyRadiusPx());
   const enemyProjectiles = host.enemyProjectiles.filter((p) => {
+    if (p.pvfxFlightFx) {
+      syncPvfxProjectileFx(p);
+    }
     const alive = updateEnemyProjectile(
       p,
       delta,
@@ -149,6 +161,9 @@ export function tickDefenseProjectiles(
     if (!alive && p.sourceEnemyId && p.blastRadiusWu !== undefined) {
       const owner = host.findEnemyInstance?.(p.sourceEnemyId);
       if (owner) clearLobberAirborneTelegraph(owner);
+    }
+    if (!alive && p.pvfxFlightFx) {
+      destroyPvfxProjectileFx(p);
     }
     const det = p.pendingDetonation;
     if (!alive && det) {

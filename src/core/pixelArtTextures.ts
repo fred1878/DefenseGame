@@ -14,6 +14,7 @@ import {
 import { TOWN_BUILDING_ASSETS } from "../content/townBuildingAssets";
 import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { ICE_FX_ASSETS } from "../content/iceFxAssets";
+import { PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
 
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
@@ -35,6 +36,7 @@ export function configurePixelArtTextures(scene: Phaser.Scene): void {
     ...TOWN_BUILDING_ASSETS.map((a) => a.key),
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),
+    ...PVFX_FX_ASSETS.map((a) => a.key),
   ];
   for (const key of keys) {
     if (!scene.textures.exists(key)) continue;

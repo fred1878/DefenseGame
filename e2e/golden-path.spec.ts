@@ -82,7 +82,10 @@ test.describe("golden paths — combat", () => {
         timeout: 20_000,
       })
       .toBeGreaterThan(0);
-    const fireOk = await apiEval(page, "api.textureLoaded('fx_fire_bolt')");
+    const fireOk = await apiEval(
+      page,
+      "api.textureLoaded('fx_pvfx_fireball_flight') || api.textureLoaded('fx_spell_fire_bolt')",
+    );
     expect(fireOk).toBe(true);
   });
 });

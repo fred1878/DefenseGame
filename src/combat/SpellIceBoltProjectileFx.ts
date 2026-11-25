@@ -12,6 +12,11 @@ import type { PlayerProjectile } from "../entities/Projectile";
 
 const DEPTH = DEFENSE_RENDER_DEPTH.projectile;
 
+function travelAngleRad(projectile: PlayerProjectile): number {
+  const body = projectile.sprite.body as Phaser.Physics.Arcade.Body;
+  return Math.atan2(body.velocity.y, body.velocity.x);
+}
+
 export type IceBoltProjectileFxState = {
   sprite: Phaser.GameObjects.Sprite;
   phase: "start" | "travel";
@@ -39,7 +44,7 @@ export function attachIceBoltProjectileFx(
     .setBlendMode(Phaser.BlendModes.ADD)
     .setAlpha(ICE_FX_BOLT_ALPHA)
     .setDisplaySize(ICE_FX_BOLT_DISPLAY_W_PX, ICE_FX_BOLT_DISPLAY_H_PX)
-    .setRotation(body.rotation);
+    .setRotation(travelAngleRad(projectile));
   registerWorldDraw?.(overlay);
   const state: IceBoltProjectileFxState = { sprite: overlay, phase: "start" };
   projectile.iceBoltFx = state;
@@ -56,7 +61,7 @@ export function syncIceBoltProjectileFx(projectile: PlayerProjectile): void {
   const fx = projectile.iceBoltFx;
   if (!fx?.sprite.active || !projectile.sprite.active) return;
   fx.sprite.setPosition(projectile.sprite.x, projectile.sprite.y);
-  fx.sprite.setRotation(projectile.sprite.rotation);
+  fx.sprite.setRotation(travelAngleRad(projectile));
 }
 
 export function destroyIceBoltProjectileFx(projectile: PlayerProjectile): void {
@@ -98,8 +103,7 @@ export function finishIceBoltProjectileHit(
 ): void {
   const x = projectile.iceBoltFx?.sprite.x ?? projectile.sprite.x;
   const y = projectile.iceBoltFx?.sprite.y ?? projectile.sprite.y;
-  const rotation =
-    projectile.iceBoltFx?.sprite.rotation ?? projectile.sprite.rotation;
+  const rotation = travelAngleRad(projectile);
   destroyIceBoltProjectileFx(projectile);
   playIceBoltHitFx(scene, x, y, rotation, registerWorldDraw);
 }

@@ -35,6 +35,8 @@ import { showSpellConeFx } from "./SpellConeFx";
 import { showChainLightningFx } from "./ChainLightningFx";
 import { ICE_BOLT_SPELL_ID } from "../content/iceFxSpells";
 import { attachIceBoltProjectileFx } from "./SpellIceBoltProjectileFx";
+import { attachPvfxProjectileFx } from "./SpellPvfxProjectileFx";
+import { PVFX_TEXTURE, spellProjectileTextureKey } from "../content/combatPvfxAssets";
 
 export function applyNova(
   scene: Phaser.Scene,
@@ -88,10 +90,11 @@ export function spawnSpellProjectile(
     pierce?: boolean;
   },
 ): PlayerProjectile {
-  const textureKey = def.projectileTextureKey;
-  if (!textureKey) {
+  const fallbackKey = def.projectileTextureKey;
+  if (!fallbackKey) {
     throw new Error(`spell ${def.id} has no MobileRPG projectileTextureKey`);
   }
+  const textureKey = spellProjectileTextureKey(scene, def.id, fallbackKey);
   const speedWu =
     def.projectileSpeedWu ?? PLAYER_TUNING.projectileSpeedWu * 1.05;
   const speed = worldUnit(speedWu, scene.registry);
@@ -134,6 +137,11 @@ export function spawnSpellProjectile(
   projectile.spellId = def.id;
   if (def.id === ICE_BOLT_SPELL_ID) {
     attachIceBoltProjectileFx(scene, projectile);
+  } else if (
+    textureKey === PVFX_TEXTURE.fireballFlight ||
+    textureKey === PVFX_TEXTURE.lightningFlight
+  ) {
+    attachPvfxProjectileFx(scene, projectile, textureKey);
   }
   return projectile;
 }
