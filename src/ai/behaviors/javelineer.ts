@@ -279,7 +279,7 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
       });
     }
   } else if (javelineer) {
-    const wallY = northWallAttackY();
+    const wallY = northWallAttackY(reg);
     const distToWall = ey - wallY;
     const minRange = worldUnit(javelineer.minRangeWu, reg);
     const maxRange = worldUnit(javelineer.maxRangeWu, reg);

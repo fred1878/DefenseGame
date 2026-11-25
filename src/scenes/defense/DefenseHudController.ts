@@ -334,3 +334,46 @@ function buildDefenseHudController(
     setHudChromeVisible,
   };
 }
+
+export type DefenseHudTextInput = {
+  header: string;
+  wallHp: number;
+  playerHp: number;
+  playerHpMax: number;
+  infiniteHp: boolean;
+  invulnerable: boolean;
+  livingEnemies: number;
+  hasFocus: boolean;
+  mode: AttackMode;
+  autoAttackEnabled: boolean;
+  castPhase: "windup" | "channeling" | null;
+  castPct: number;
+  attackPhase: string;
+};
+
+/** Four-line night HUD text (header/wall, HP, enemies/mode, cast or hint line). */
+export function formatDefenseHudText(input: DefenseHudTextInput): string {
+  const focus = input.hasFocus ? " (focus)" : "";
+  const mode =
+    input.mode === "melee"
+      ? "Melee"
+      : input.mode === "ranged"
+        ? "Ranged"
+        : "Auto combat";
+  const auto = input.autoAttackEnabled ? "ON" : "OFF";
+  const castLine = (() => {
+    if (!input.castPhase) {
+      return input.attackPhase !== "idle"
+        ? `ATK: ${input.attackPhase}`
+        : "Spells · tap enemy to focus · drag to move";
+    }
+    const verb = input.castPhase === "windup" ? "Casting" : "Channeling";
+    return `${verb}… ${input.castPct}%`;
+  })();
+  return [
+    `${input.header} · Wall ${Math.max(0, Math.floor(input.wallHp))}`,
+    `HP ${Math.floor(input.playerHp)}/${input.playerHpMax}${input.infiniteHp ? " · ∞" : ""}${input.invulnerable ? " (i-frames)" : ""}`,
+    `Enemies ${input.livingEnemies}${focus} · ${mode} · Auto ${auto}`,
+    castLine,
+  ].join("\n");
+}

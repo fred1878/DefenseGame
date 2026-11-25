@@ -14,13 +14,13 @@ import {
 } from "../../config/shadowformRuntime";
 import { PLAYER_AGGRO_RADIUS } from "../../config";
 import type { NavGrid } from "../../pathfinding/grid";
-import type { EnemyInstance } from "../../entities/Enemy";
+import { updateEnemySpriteFacing, type EnemyInstance } from "../../entities/Enemy";
 import {
   enemyCollisionBodyRadius,
   enemyPathClearancePx,
   enforceEnemyDefenseBounds,
 } from "../../entities/entityPhysics";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../../core/worldPixelScale";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
   updateArrowRainCombat,
@@ -38,6 +38,10 @@ import {
 import type { Damageable } from "../../combat/DamageSystem";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { decayEnemyKnockback, setEnemyChaseVelocity } from "../../combat/enemyKnockback";
+import { updateEnemyNameplate } from "../../ui/enemyNameplate";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../../content/assets";
+import { enemyProjectileTextureKey, PVFX_TEXTURE } from "../../content/combatPvfxAssets";
+import { attachPvfxProjectileFx } from "../../combat/SpellPvfxProjectileFx";
 
 export type DefenseEnemyTickHost = {
   scene: Phaser.Scene;
@@ -159,7 +163,7 @@ export function tickDefenseEnemies(
           }
         : {
             kind: "wall" as const,
-            ...wallCombatPoint(e.sprite.x),
+            ...wallCombatPoint(e.sprite.x, host.scene.registry),
           };
 
     let playerHitDamage = 0;
@@ -217,6 +221,11 @@ export function tickDefenseEnemies(
         const req = bolt.spawnBolt;
         const tune = e.combatTuning.stationaryRanged!;
         const id = host.nextProjectileId("es_");
+        const boltTexture = enemyProjectileTextureKey(
+          host.scene,
+          e.defId,
+          COMBAT_FX_TEXTURE.stoneThrow,
+        );
         const boltProj = spawnEnemyProjectile(
           host.scene,
           req.fromX,
@@ -227,7 +236,16 @@ export function tickDefenseEnemies(
           req.damage,
           worldUnit(tune.projectileMaxTravelWu, host.scene.registry),
           id,
+          boltTexture,
         );
+        if (boltTexture === PVFX_TEXTURE.arrowFlight) {
+          attachPvfxProjectileFx(
+            host.scene,
+            boltProj,
+            boltTexture,
+            host.maskWorldObject,
+          );
+        }
         boltProj.sourceEnemyId = e.id;
         host.maskWorldObject?.(boltProj.sprite);
         enemyProjectiles.push(boltProj);
@@ -373,4 +391,23 @@ export function tickDefenseEnemies(
   }
 
   return { wallHp, playerInvulnMs, enemyProjectiles };
+}
+
+/** Face living enemies toward their motion and move their nameplates/HP bars. */
+export function syncDefenseEnemyNameplates(
+  enemies: readonly EnemyInstance[],
+  registry: Phaser.Data.DataManager,
+): void {
+  const enemySpriteSide = worldDisplayPx(SPRITE_DISPLAY.enemy, registry);
+  for (const e of enemies) {
+    if (!e.damageable.alive || e.nameplate.dying) continue;
+    updateEnemySpriteFacing(e);
+    updateEnemyNameplate(
+      e.nameplate,
+      e.sprite.x,
+      e.sprite.y,
+      enemySpriteSide,
+      e.damageable,
+    );
+  }
 }

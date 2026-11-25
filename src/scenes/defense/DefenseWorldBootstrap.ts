@@ -1,4 +1,4 @@
-import type Phaser from "phaser";
+import Phaser from "phaser";
 import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
@@ -12,6 +12,7 @@ import { flashSpriteTint } from "../../combat/HitFlash";
 import { Player } from "../../entities/Player";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
+  correctPlayerObstacleBlockerOverlap,
   createDefenseObstacleCollider,
   defenseObstacleBlockerRects,
 } from "../../world/defenseObstacleBlocker";
@@ -54,8 +55,9 @@ export function bootstrapDefenseWorld(
   input: DefenseWorldBootstrapInput,
 ): DefenseWorldBootstrapResult {
   const { scene, night, playerHpMax, endless } = input;
-  const halfW = defenseHalfWidth();
-  const halfH = defenseHalfHeight();
+  const reg = scene.registry;
+  const halfW = defenseHalfWidth(reg);
+  const halfH = defenseHalfHeight(reg);
   scene.registry.remove(DEFENSE_WORLD_LAYER_REGISTRY_KEY);
   scene.physics.world.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
   const groundLayer = buildGroundLayer(scene, halfW, halfH);
@@ -92,10 +94,10 @@ export function bootstrapDefenseWorld(
   for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
     const blocker = obstacleBlockers[i]!;
-    const displayPos = defenseObstacleSpriteDisplayPosition(placement);
+    const displayPos = defenseObstacleSpriteDisplayPosition(placement, reg);
     const art = scene.add.image(displayPos.x, displayPos.y, placement.textureKey);
     art.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
-    configureDefenseObstacleArt(art, placement.textureKey);
+    configureDefenseObstacleArt(art, placement.textureKey, reg);
     registerWorld(art);
 
     const collider = createDefenseObstacleCollider(
@@ -128,4 +130,28 @@ export function bootstrapDefenseWorld(
     registerWorldDraw: registerWorld,
     registerUiDraw: registerUi,
   };
+}
+
+/** Push the player out of obstacle blockers after every Arcade world step (unbound on shutdown). */
+export function bindPlayerObstacleCorrection(
+  scene: Phaser.Scene,
+  getPlayer: () => Player,
+  getObstacleBlockers: () => DefenseObstacleRect[],
+): void {
+  const onObstacleWorldStep = (): void => {
+    correctPlayerObstacleBlockerOverlap(
+      getPlayer().sprite,
+      getObstacleBlockers(),
+    );
+  };
+  scene.physics.world.on(
+    Phaser.Physics.Arcade.Events.WORLD_STEP,
+    onObstacleWorldStep,
+  );
+  scene.events.once("shutdown", () => {
+    scene.physics.world?.off(
+      Phaser.Physics.Arcade.Events.WORLD_STEP,
+      onObstacleWorldStep,
+    );
+  });
 }

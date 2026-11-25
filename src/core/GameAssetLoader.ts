@@ -21,6 +21,16 @@ import {
   HOLY_FX_ROOT,
   registerHolyFxAnimations,
 } from "../content/holyFxAssets";
+import {
+  ICE_FX_ASSETS,
+  ICE_FX_ROOT,
+  registerIceFxAnimations,
+} from "../content/iceFxAssets";
+import {
+  PVFX_FX_ASSETS,
+  PVFX_FX_ROOT,
+  registerCombatPvfxAnimations,
+} from "../content/combatPvfxAssets";
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
@@ -99,10 +109,24 @@ export function queueDefenseBootAssets(
       frameHeight: entry.frameHeight,
     });
   }
+  for (const entry of ICE_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${ICE_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+  for (const entry of PVFX_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${PVFX_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
 }
 
 function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {
   registerHolyFxAnimations(scene);
+  registerIceFxAnimations(scene);
+  registerCombatPvfxAnimations(scene);
 }
 
 export function runQueuedLoader(

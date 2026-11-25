@@ -15,6 +15,7 @@ import { nightReturnButtonPosition } from "../../ui/screenLayout";
 import { scaleUiX } from "../../core/displayScale";
 import type { SafeInsets } from "../../ui/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
+import { evaluateEndlessEnd, evaluateNightEnd } from "../defenseNightLogic";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -257,4 +258,37 @@ export function runDefenseCampaignNightEnd(
       flags: { nightEnded: true, hasReturnButton: true },
     });
   }
+}
+
+export type DefenseRunEndCheck = {
+  endless: boolean;
+  nightEnded: boolean;
+  wallHp: number;
+  playerHp: number;
+  infiniteHp: boolean;
+  spawnPlanComplete: boolean;
+  livingEnemies: number;
+  onEndlessEnd: (reason: "player") => void;
+  onNightEnd: (won: boolean) => void;
+};
+
+/** Per-frame end check: endless runs end on player death, campaign nights on win/loss. */
+export function checkDefenseRunEnd(input: DefenseRunEndCheck): void {
+  if (input.endless) {
+    const endlessEnd = evaluateEndlessEnd({
+      nightEnded: input.nightEnded,
+      playerHp: input.playerHp,
+      infiniteHp: input.infiniteHp,
+    });
+    if (endlessEnd) input.onEndlessEnd(endlessEnd.reason);
+    return;
+  }
+  const nightEnd = evaluateNightEnd({
+    nightEnded: input.nightEnded,
+    wallHp: input.wallHp,
+    playerHp: input.playerHp,
+    spawnPlanComplete: input.spawnPlanComplete,
+    livingEnemies: input.livingEnemies,
+  });
+  if (nightEnd) input.onNightEnd(nightEnd.won);
 }
