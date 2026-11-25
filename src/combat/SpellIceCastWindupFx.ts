@@ -5,7 +5,7 @@ import {
   ICE_FX_CAST_START_ALPHA,
   ICE_FX_CAST_START_DISPLAY_PX,
   ICE_FX_TEXTURE,
-  iceFxPackLoaded,
+  assertIceCombatFxReady,
 } from "../content/iceFxAssets";
 
 const DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
@@ -23,12 +23,7 @@ export class SpellIceCastWindupFx {
     registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ): void {
     this.stop();
-    if (
-      !iceFxPackLoaded(this.scene) ||
-      !(this.scene.anims?.exists(ICE_FX_ANIM.castStart) ?? false)
-    ) {
-      return;
-    }
+    assertIceCombatFxReady(this.scene, "frost cast windup");
     const sprite = this.scene.add
       .sprite(centerX, centerY, ICE_FX_TEXTURE.castStart)
       .setDepth(DEPTH)

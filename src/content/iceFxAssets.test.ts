@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ICE_FX_ANIM,
   ICE_FX_ASSETS,
+  assertIceCombatFxReady,
   registerIceFxAnimations,
 } from "./iceFxAssets";
 
@@ -36,5 +37,17 @@ describe("registerIceFxAnimations", () => {
       ]),
     );
     expect(created).toHaveLength(6);
+  });
+});
+
+describe("assertIceCombatFxReady", () => {
+  it("throws with missing texture and anim ids", () => {
+    const scene = {
+      textures: { exists: () => false },
+      anims: { exists: () => false },
+    } as unknown as Phaser.Scene;
+    expect(() => assertIceCombatFxReady(scene, "test")).toThrow(
+      /Ice combat FX not ready \(test\)/,
+    );
   });
 });

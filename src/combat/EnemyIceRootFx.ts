@@ -5,7 +5,7 @@ import {
   ICE_FX_ROOT_ALPHA,
   ICE_FX_ROOT_DISPLAY_PX,
   ICE_FX_TEXTURE,
-  iceFxPackLoaded,
+  assertIceCombatFxReady,
 } from "../content/iceFxAssets";
 import type { EnemySpellStatusMap } from "./enemySpellStatus";
 
@@ -39,16 +39,16 @@ export class EnemyIceRootFxController {
     status: EnemySpellStatusMap,
     registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ): void {
-    if (!iceFxPackLoaded(this.scene)) {
-      this.reset();
-      return;
-    }
     const rootedNow = new Set<string>();
     const posById = new Map<string, { x: number; y: number }>();
     for (const e of enemies) {
       if (!e.sprite.active) continue;
       posById.set(e.id, { x: e.sprite.x, y: e.sprite.y });
       if (status.isRooted(e.id)) rootedNow.add(e.id);
+    }
+
+    if (rootedNow.size > 0) {
+      assertIceCombatFxReady(this.scene, "enemy ice root FX");
     }
 
     for (const id of rootedNow) {
@@ -80,7 +80,6 @@ export class EnemyIceRootFxController {
     pos: { x: number; y: number },
     registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ): void {
-    if (!(this.scene.anims?.exists(ICE_FX_ANIM.rootActive) ?? false)) return;
     const sprite = this.scene.add
       .sprite(pos.x, pos.y, ICE_FX_TEXTURE.rootActive)
       .setDepth(DEPTH)
@@ -106,10 +105,6 @@ export class EnemyIceRootFxController {
     if (!entry) return;
     const { x, y } = pos ?? { x: entry.sprite.x, y: entry.sprite.y };
     entry.sprite.destroy();
-    if (!(this.scene.anims?.exists(ICE_FX_ANIM.rootEnding) ?? false)) {
-      this.entries.delete(enemyId);
-      return;
-    }
     const sprite = this.scene.add
       .sprite(x, y, ICE_FX_TEXTURE.rootEnding)
       .setDepth(DEPTH)
