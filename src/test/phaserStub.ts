@@ -23,6 +23,9 @@ const MathNS = {
   DegToRad: (deg: number) => (deg * Math.PI) / 180,
   Clamp: (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, v)),
+  FloatBetween: (min: number, max: number) => min + Math.random() * (max - min),
+  Between: (min: number, max: number) =>
+    Math.floor(min + Math.random() * (max - min + 1)),
 };
 
 const Phaser = {

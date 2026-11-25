@@ -29,6 +29,11 @@ export type FakeGameObject = {
   callsTo(method: string): unknown[][];
   /** Arguments of the latest call to `method`, or undefined. */
   last(method: string): unknown[] | undefined;
+  setPosition(x: number, y?: number): FakeGameObject;
+  setVelocity(vx: number, vy?: number): FakeGameObject;
+  setAlpha(alpha: number): FakeGameObject;
+  setVisible(visible: boolean): FakeGameObject;
+  destroy(): void;
   [key: string]: unknown;
 };
 
@@ -68,6 +73,22 @@ export function fakeGameObject(
     alpha: 1,
     active: true,
     list: [] as unknown[],
+    anims: { timeScale: 1 },
+    texture: { key: typeof args[2] === "string" ? args[2] : "" },
+    body: {
+      velocity: { x: 0, y: 0 },
+      enable: true,
+      stop: () => undefined,
+      reset: () => undefined,
+      setVelocity(
+        this: { velocity: { x: number; y: number } },
+        vx: number,
+        vy: number,
+      ) {
+        this.velocity.x = vx;
+        this.velocity.y = vy;
+      },
+    },
   });
   let proxy: FakeGameObject;
   const own: Record<string, Fn> = {
@@ -120,6 +141,13 @@ export function fakeGameObject(
       if (y !== undefined) target.y = y as number;
       return proxy;
     },
+    setVelocity: (vx, vy) => {
+      calls.push(["setVelocity", [vx, vy]]);
+      const body = target.body as { velocity: { x: number; y: number } };
+      body.velocity.x = vx as number;
+      body.velocity.y = (vy ?? vx) as number;
+      return proxy;
+    },
     add: (child) => {
       calls.push(["add", [child]]);
       const list = target.list as unknown[];
@@ -163,27 +191,39 @@ export type FakeScene = ReturnType<typeof fakeScene>;
 
 /** A scene with recording `add`, `tweens`, `time`, `textures` and `anims`. */
 export function fakeScene(
-  opts: { textures?: string[]; anims?: string[] } = {},
+  opts: { textures?: string[]; anims?: string[]; audio?: string[] } = {},
 ) {
   const created: FakeGameObject[] = [];
   const tweenConfigs: TweenConfig[] = [];
   const delayed: Array<{ delay: number; fn: Fn; args: unknown[] }> = [];
   const textures = new Set(opts.textures ?? []);
   const anims = new Set(opts.anims ?? []);
-  const add = new Proxy(
-    {},
-    {
-      get(_t, kind: string) {
-        return (...args: unknown[]) => {
-          const go = fakeGameObject(kind, args);
-          created.push(go);
-          return go;
-        };
+  const audio = new Set(opts.audio ?? []);
+  const factory = (prefix: string) =>
+    new Proxy(
+      {},
+      {
+        get(_t, kind: string) {
+          return (...args: unknown[]) => {
+            const go = fakeGameObject(`${prefix}${kind}`, args);
+            created.push(go);
+            return go;
+          };
+        },
       },
-    },
-  );
+    );
+  const add = factory("");
+  const registryData = new Map<string, unknown>();
   const scene = {
     add,
+    /** `physics.add.sprite` creates kind `physics.sprite`. */
+    physics: { add: factory("physics.") },
+    registry: {
+      get: (key: string) => registryData.get(key),
+      set: (key: string, value: unknown) => {
+        registryData.set(key, value);
+      },
+    },
     created,
     tweenConfigs,
     delayed,
@@ -209,6 +249,7 @@ export function fakeScene(
     },
     anims: {
       exists: (key: string) => anims.has(key),
+      get: (key: string) => (anims.has(key) ? { key, duration: 0 } : undefined),
       create: vi.fn((cfg: { key: string }) => {
         anims.add(cfg.key);
         return cfg;
@@ -222,6 +263,8 @@ export function fakeScene(
         },
       ),
     },
+    cache: { audio: { exists: (key: string) => audio.has(key) } },
+    sound: { play: vi.fn() },
     sys: { isActive: () => true },
   };
   return scene;
