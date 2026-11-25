@@ -12,6 +12,8 @@ import {
 import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
 import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
+import type { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
+import type { EnemyIceRootFxController } from "../../combat/EnemyIceRootFx";
 import {
   spellNeedsGroundAoeTelegraph,
   type SpellGroundAoeTelegraph,
@@ -83,6 +85,8 @@ export type DefenseSpellDirectorHost = {
   lingerAoeTelegraph: SpellGroundAoeTelegraph | null;
   blizzardChannelFx: SpellBlizzardChannelFx | null;
   healChannelFx: SpellHealChannelFx | null;
+  iceCastWindupFx: SpellIceCastWindupFx | null;
+  enemyIceRootFx: EnemyIceRootFxController;
   channelAreaStarted: boolean;
   shadowformEndsAt: number;
   iceWallExpires: Array<{ sprite: Phaser.Physics.Arcade.Image; expiresAt: number }>;

@@ -18,6 +18,12 @@ import {
 } from "../../entities/Projectile";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { clearLobberAirborneTelegraph } from "../../entities/enemyRanged/lobberCombat";
+import { ICE_BOLT_SPELL_ID } from "../../content/iceFxSpells";
+import {
+  destroyIceBoltProjectileFx,
+  finishIceBoltProjectileHit,
+  syncIceBoltProjectileFx,
+} from "../../combat/SpellIceBoltProjectileFx";
 import type { Player } from "../../entities/Player";
 
 export type DefenseProjectileEnemyTarget = {
@@ -50,6 +56,7 @@ export type DefenseProjectileTickHost = {
   ) => void;
   endlessInfiniteHp?: boolean;
   findEnemyInstance?: (id: string) => EnemyInstance | undefined;
+  registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void;
 };
 
 export type DefenseProjectileTickResult = {
@@ -79,7 +86,17 @@ export function tickDefenseProjectiles(
     findEnemy: host.findEnemy,
   };
   const projectiles = host.projectiles.filter((p) => {
+  if (p.spellId === ICE_BOLT_SPELL_ID && p.iceBoltFx) {
+      syncIceBoltProjectileFx(p);
+    }
     const result = updateSpellProjectile(p, spellProjCtx);
+    if (!result.alive && p.spellId === ICE_BOLT_SPELL_ID && p.iceBoltFx) {
+      if (result.hitEnemyId) {
+        finishIceBoltProjectileHit(host.scene, p, host.registerWorldDraw);
+      } else {
+        destroyIceBoltProjectileFx(p);
+      }
+    }
     if (result.hitEnemyId && p.spellId) {
       const def = spellById(p.spellId);
       if (def?.onHit) {
