@@ -288,8 +288,8 @@
         "cooldownMs": 480,
         "fxStartMs": 330,
         "fxDurationMs": 420,
-        "vfxDisplayW": 120
-        "vfxDisplayH": 72
+        "vfxDisplayW": 120,
+        "vfxDisplayH": 72,
         "vfxOffsetWu": 40
       },
       "charger": {
