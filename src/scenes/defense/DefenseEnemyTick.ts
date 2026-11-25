@@ -14,13 +14,13 @@ import {
 } from "../../config/shadowformRuntime";
 import { PLAYER_AGGRO_RADIUS } from "../../config";
 import type { NavGrid } from "../../pathfinding/grid";
-import type { EnemyInstance } from "../../entities/Enemy";
+import { updateEnemySpriteFacing, type EnemyInstance } from "../../entities/Enemy";
 import {
   enemyCollisionBodyRadius,
   enemyPathClearancePx,
   enforceEnemyDefenseBounds,
 } from "../../entities/entityPhysics";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../../core/worldPixelScale";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
   updateArrowRainCombat,
@@ -38,6 +38,8 @@ import {
 import type { Damageable } from "../../combat/DamageSystem";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { decayEnemyKnockback, setEnemyChaseVelocity } from "../../combat/enemyKnockback";
+import { updateEnemyNameplate } from "../../ui/enemyNameplate";
+import { SPRITE_DISPLAY } from "../../content/assets";
 
 export type DefenseEnemyTickHost = {
   scene: Phaser.Scene;
@@ -373,4 +375,23 @@ export function tickDefenseEnemies(
   }
 
   return { wallHp, playerInvulnMs, enemyProjectiles };
+}
+
+/** Face living enemies toward their motion and move their nameplates/HP bars. */
+export function syncDefenseEnemyNameplates(
+  enemies: readonly EnemyInstance[],
+  registry: Phaser.Data.DataManager,
+): void {
+  const enemySpriteSide = worldDisplayPx(SPRITE_DISPLAY.enemy, registry);
+  for (const e of enemies) {
+    if (!e.damageable.alive || e.nameplate.dying) continue;
+    updateEnemySpriteFacing(e);
+    updateEnemyNameplate(
+      e.nameplate,
+      e.sprite.x,
+      e.sprite.y,
+      enemySpriteSide,
+      e.damageable,
+    );
+  }
 }
