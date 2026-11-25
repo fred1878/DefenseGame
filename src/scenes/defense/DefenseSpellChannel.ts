@@ -102,6 +102,7 @@ export class DefenseSpellChannelTicks {
       if (isFirstTick) {
         applySpellCone(host.scene, px, py, angle, def, targets, mult, host.enemySpellStatus, {
           showFx: true,
+          registerWorldDraw: host.maskWorldObject,
         });
         if (spellPlaysFireWhooshOnChanneledConeTick(def, true)) {
           playFireWhooshSfx(host.scene);

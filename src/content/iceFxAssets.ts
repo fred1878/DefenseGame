@@ -59,6 +59,8 @@ export const ICE_FX_ANIM = {
   castStart: "ice_vfx2_cast_start",
   rootActive: "ice_vfx2_root_active",
   rootEnding: "ice_vfx2_root_ending",
+  /** Ice wall segment despawn — skips first 5 frames of the 18f ending strip. */
+  wallEnding: "ice_vfx2_wall_ending",
 } as const;
 
 export const ICE_FX_BOLT_DISPLAY_W_PX = 48;
@@ -75,6 +77,8 @@ const BOLT_HIT_FRAMES = 8;
 const CAST_START_FRAMES = 9;
 const ROOT_ACTIVE_FRAMES = 8;
 const ROOT_ENDING_FRAMES = 18;
+/** Peter pick: wall timeout starts at frame index 5. */
+const WALL_ENDING_FIRST_FRAME = 5;
 
 export function iceFxPackLoaded(scene: Phaser.Scene): boolean {
   return ICE_FX_ASSETS.every((a) => scene.textures.exists(a.key));
@@ -165,6 +169,14 @@ export function registerIceFxAnimations(scene: Phaser.Scene): void {
     ICE_FX_ANIM.rootEnding,
     ICE_FX_TEXTURE.rootEnding,
     0,
+    ROOT_ENDING_FRAMES - 1,
+    12,
+    0,
+  );
+  createOnce(
+    ICE_FX_ANIM.wallEnding,
+    ICE_FX_TEXTURE.rootEnding,
+    WALL_ENDING_FIRST_FRAME,
     ROOT_ENDING_FRAMES - 1,
     12,
     0,

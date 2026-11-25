@@ -34,9 +34,10 @@ describe("registerIceFxAnimations", () => {
         ICE_FX_ANIM.castStart,
         ICE_FX_ANIM.rootActive,
         ICE_FX_ANIM.rootEnding,
+        ICE_FX_ANIM.wallEnding,
       ]),
     );
-    expect(created).toHaveLength(6);
+    expect(created).toHaveLength(7);
   });
 });
 

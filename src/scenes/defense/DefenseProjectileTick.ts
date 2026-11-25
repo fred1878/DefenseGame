@@ -18,6 +18,7 @@ import {
 } from "../../entities/Projectile";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { clearLobberAirborneTelegraph } from "../../entities/enemyRanged/lobberCombat";
+import { spawnLobberGroundImpactSmokeFx } from "../../combat/LobberImpactSmokeFx";
 import { ICE_BOLT_SPELL_ID } from "../../content/iceFxSpells";
 import {
   destroyIceBoltProjectileFx,
@@ -186,6 +187,17 @@ export function tickDefenseProjectiles(
           det.flavor ?? MELEE_HIT_FLAVOR,
         );
         playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
+      }
+      const source = p.sourceEnemyId
+        ? host.findEnemyInstance?.(p.sourceEnemyId)
+        : undefined;
+      if (source?.behavior === "lobber") {
+        spawnLobberGroundImpactSmokeFx(
+          host.scene,
+          det.x,
+          det.y,
+          host.registerWorldDraw,
+        );
       }
       host.flashNova(det.x, det.y, blastR, {
         blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave,

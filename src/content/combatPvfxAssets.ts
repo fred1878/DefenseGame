@@ -48,6 +48,30 @@ export const PVFX_FX_ASSETS = [
     frameCount: 10,
     frameRate: 1000 / 60,
   },
+  {
+    key: "fx_pvfx_crit_hit",
+    file: "impacts-crit-hit.png",
+    frameWidth: 96,
+    frameHeight: 80,
+    frameCount: 10,
+    frameRate: 1000 / 70,
+  },
+  {
+    key: "fx_pvfx_holy_cast",
+    file: "holy-holy-cast.png",
+    frameWidth: 64,
+    frameHeight: 64,
+    frameCount: 15,
+    frameRate: 1000 / 60,
+  },
+  {
+    key: "fx_pvfx_shadow_cast",
+    file: "shadow-shadow-cast.png",
+    frameWidth: 64,
+    frameHeight: 64,
+    frameCount: 12,
+    frameRate: 1000 / 70,
+  },
 ] as const;
 
 export const PVFX_TEXTURE = {
@@ -56,6 +80,9 @@ export const PVFX_TEXTURE = {
   arrowFlight: "fx_pvfx_arrow_flight",
   fireballFlight: "fx_pvfx_fireball_flight",
   lightningFlight: "fx_pvfx_lightning_flight",
+  critHit: "fx_pvfx_crit_hit",
+  holyCast: "fx_pvfx_holy_cast",
+  shadowCast: "fx_pvfx_shadow_cast",
 } as const;
 
 export const PVFX_ANIM = {
@@ -65,6 +92,9 @@ export const PVFX_ANIM = {
   arrowFlight: "pvfx_arrow_flight",
   fireballFlight: "pvfx_fireball_flight",
   lightningFlight: "pvfx_lightning_flight",
+  critHit: "pvfx_crit_hit",
+  holyCast: "pvfx_holy_cast",
+  shadowCast: "pvfx_shadow_cast",
 } as const;
 
 export const PVFX_ICE_SHATTER_STUN_LOOP_FRAMES = 3;
@@ -87,6 +117,22 @@ const ENEMY_PVFX_PROJECTILE_TEXTURE: Partial<Record<string, string>> = {
 
 export function pvfxPackLoaded(scene: Phaser.Scene): boolean {
   return PVFX_FX_ASSETS.every((a) => scene.textures.exists(a.key));
+}
+
+/** Require texture + registered anim — no MobileRPG fallback. */
+export function assertPvfxClipReady(
+  scene: Phaser.Scene,
+  textureKey: string,
+  animKey: string,
+  context: string,
+): void {
+  if (!scene.textures.exists(textureKey)) {
+    throw new Error(`PVFX texture missing (${context}): ${textureKey}`);
+  }
+  registerCombatPvfxAnimations(scene);
+  if (!(scene.anims?.exists(animKey) ?? false)) {
+    throw new Error(`PVFX animation missing (${context}): ${animKey}`);
+  }
 }
 
 export function projectileTextureRotationOffset(textureKey: string): number | undefined {
@@ -175,5 +221,33 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
           ? PVFX_ANIM.fireballFlight
           : PVFX_ANIM.lightningFlight;
     createOnce(animKey, flightKey, 0, entry.frameCount - 1, entry.frameRate, -1);
+  }
+
+  for (const oneShot of [
+    {
+      anim: PVFX_ANIM.critHit,
+      texture: PVFX_TEXTURE.critHit,
+      key: PVFX_TEXTURE.critHit,
+    },
+    {
+      anim: PVFX_ANIM.holyCast,
+      texture: PVFX_TEXTURE.holyCast,
+      key: PVFX_TEXTURE.holyCast,
+    },
+    {
+      anim: PVFX_ANIM.shadowCast,
+      texture: PVFX_TEXTURE.shadowCast,
+      key: PVFX_TEXTURE.shadowCast,
+    },
+  ] as const) {
+    const entry = PVFX_FX_ASSETS.find((a) => a.key === oneShot.key)!;
+    createOnce(
+      oneShot.anim,
+      oneShot.texture,
+      0,
+      entry.frameCount - 1,
+      entry.frameRate,
+      0,
+    );
   }
 }
