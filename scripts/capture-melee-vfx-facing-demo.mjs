@@ -144,13 +144,15 @@ try {
       pairDeltas,
     }),
   );
-  const flipMismatch = rotReport.filter(
-    (r) =>
-      (r.side === "R" && r.flipX === 0) || (r.side === "L" && r.flipX !== 0),
-  );
+  const flipMismatch = rotReport.filter((r) => {
+    if (r.defId === "grunt") return r.flipX !== 0;
+    return (
+      (r.side === "R" && r.flipX === 0) || (r.side === "L" && r.flipX !== 0)
+    );
+  });
   if (flipMismatch.length > 0) {
     console.error(
-      "flipX should be 1 for R spawns (attack west) and 0 for L (attack east):",
+      "grunt: flipX must stay 0; other melee: flipX 1 for R (attack west), 0 for L:",
       flipMismatch,
     );
     process.exitCode = 1;
