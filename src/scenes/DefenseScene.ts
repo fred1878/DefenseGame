@@ -980,4 +980,5 @@ export class DefenseScene extends Phaser.Scene {
   e2eDamageFirstLivingEnemy(amount: number): void { sceneE2E.defenseSceneE2eDamageFirstLivingEnemy(this.e2eDelegate(), amount); }
   /** E2E: trigger holy heal VFX at the player for before/after capture compares. */
   e2ePreviewHolyFx(kind: "flash" | "channel"): void { sceneE2E.defenseSceneE2ePreviewHolyFx(this.e2eDelegate(), kind); }
+  e2ePreviewEnemyMeleeFx(enemyDefId: string): void { sceneE2E.defenseSceneE2ePreviewEnemyMeleeFx(this.e2eDelegate(), enemyDefId); }
 }

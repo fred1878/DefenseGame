@@ -5,6 +5,7 @@ import type { EnemyDef } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowEnemyPaths, setShowHitboxes } from "../../debug/DebugState";
+import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
 import type { DefenseTargeting } from "./DefenseTargeting";
@@ -719,4 +720,30 @@ export function defenseSceneE2ePreviewHolyFx(
   scene.healChannelFx?.destroy();
   scene.healChannelFx = new SpellHealChannelFx(scene);
   scene.healChannelFx.start(px, py, (go) => scene.registerWorldDraw(go));
+}
+
+/** E2E: spawn one enemy and play its melee swipe FX toward the player. */
+export function defenseSceneE2ePreviewEnemyMeleeFx(
+  scene: DefenseSceneE2eDelegate,
+  enemyDefId: string,
+): void {
+  defenseSceneE2eKillAllEnemies(scene);
+  const px = scene.player.sprite.x;
+  const py = scene.player.sprite.y;
+  scene.cameras.main.centerOn(px, py);
+  setShowHitboxes(scene.registry, false);
+  const offsetX = 52;
+  const ex = px + offsetX;
+  const ey = py;
+  scene.spawnEnemyAt(ex, ey, undefined, enemyDefId, 999);
+  const enemy = scene.enemies.find(
+    (entry) => entry.defId === enemyDefId && entry.damageable.alive,
+  );
+  const facing = Math.atan2(py - ey, px - ex);
+  if (enemy) {
+    enemy.combat.facing = facing;
+    enemy.sprite.setPosition(ex, ey);
+  }
+  const activeMs = enemy?.combatTuning.melee?.activeMs ?? 220;
+  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facing, activeMs);
 }

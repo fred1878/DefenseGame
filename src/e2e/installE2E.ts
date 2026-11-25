@@ -582,6 +582,20 @@ function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     previewHolyFx(kind: "flash" | "channel") {
       activeDefense(game)?.e2ePreviewHolyFx(kind);
     },
+    previewEnemyMeleeFx(enemyDefId: string) {
+      activeDefense(game)?.e2ePreviewEnemyMeleeFx(enemyDefId);
+      publishE2E({
+        flags: {
+          enemyMeleeFxSpawned: 1,
+          lastEnemyMeleeFxDef: enemyDefId,
+        },
+      });
+    },
+    clearEnemyMeleeFxFlag() {
+      publishE2E({
+        flags: { enemyMeleeFxSpawned: 0, lastEnemyMeleeFxDef: "" },
+      });
+    },
   };
 }
 

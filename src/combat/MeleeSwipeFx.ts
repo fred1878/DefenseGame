@@ -64,10 +64,21 @@ export function showEnemyMeleeSwipe(
     scene.textures.exists(spec.textureKey) &&
     scene.anims.exists(spec.animKey)
   ) {
-    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, activeMs);
+    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, activeMs, enemyDefId);
     return;
   }
   spawnGruntMeleeFallback(scene, x, y, facingRad, activeMs);
+  publishEnemyMeleeFxE2E(enemyDefId);
+}
+
+function publishEnemyMeleeFxE2E(enemyDefId: string): void {
+  if (!isE2EEnabled()) return;
+  publishE2E({
+    flags: {
+      enemyMeleeFxSpawned: 1,
+      lastEnemyMeleeFxDef: enemyDefId,
+    },
+  });
 }
 
 function spawnGruntMeleeFallback(
@@ -98,6 +109,7 @@ function spawnEnemyMeleeAnim(
   y: number,
   facingRad: number,
   _activeMs: number,
+  enemyDefId: string,
 ): void {
   const offset = worldUnit(spec.offsetWu, scene.registry);
   const ox = x + Math.cos(facingRad) * offset;
@@ -113,6 +125,14 @@ function spawnEnemyMeleeAnim(
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx);
   sprite.setAlpha(0.92);
   sprite.play(spec.animKey);
+  if (isE2EEnabled()) {
+    publishE2E({
+      flags: {
+        enemyMeleeFxSpawned: 1,
+        lastEnemyMeleeFxDef: enemyDefId,
+      },
+    });
+  }
   sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
     sprite.destroy();
   });
