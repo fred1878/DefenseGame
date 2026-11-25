@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Damageable } from "../combat/DamageSystem";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
-import { asScene, fakeGameObject, fakeScene, type FakeScene } from "../test/fakeScene";
+import {
+  asScene,
+  fakeGameObject,
+  fakeScene,
+  type FakeScene,
+} from "../test/fakeScene";
 import { mockEnemyInstance } from "./testEnemyInstance";
 import {
   projectileArcadeRadiusPx,
@@ -16,8 +21,24 @@ import {
 
 type Sprite = ReturnType<typeof fakeGameObject>;
 
-function spawn(scene: FakeScene, angle = 0, speed = 100, texture = "fx_stone_throw") {
-  const p = spawnPlayerProjectile(asScene(scene), 0, 0, angle, speed, 10, 100, "p", texture, "physical");
+function spawn(
+  scene: FakeScene,
+  angle = 0,
+  speed = 100,
+  texture = "fx_stone_throw",
+) {
+  const p = spawnPlayerProjectile(
+    asScene(scene),
+    0,
+    0,
+    angle,
+    speed,
+    10,
+    100,
+    "p",
+    texture,
+    "physical",
+  );
   (p.sprite as unknown as Sprite).scene = scene;
   return p;
 }
@@ -29,8 +50,18 @@ function moveTo(p: PlayerProjectile, x: number, y: number) {
 }
 
 function enemyAt(id: string, x: number, y: number) {
-  const enemy = mockEnemyInstance({ behavior: "meleeChaser", id, sprite: { x, y } as never });
-  const damageable: Damageable = { id, hp: 50, maxHp: 50, alive: true, team: "enemy" };
+  const enemy = mockEnemyInstance({
+    behavior: "meleeChaser",
+    id,
+    sprite: { x, y } as never,
+  });
+  const damageable: Damageable = {
+    id,
+    hp: 50,
+    maxHp: 50,
+    alive: true,
+    team: "enemy",
+  };
   return { id, x, y, radius: 8, damageable, sprite: enemy.sprite, enemy };
 }
 
@@ -39,30 +70,75 @@ describe("spawnPlayerProjectile", () => {
     const scene = fakeScene();
     const stone = spawn(scene, Math.PI, 200);
     const s = scene.made("physics.sprite")[0]!;
-    expect(s.last("setDisplaySize")).toEqual([SPRITE_DISPLAY.stoneThrow, SPRITE_DISPLAY.stoneThrow]);
-    expect(s.last("setCircle")).toEqual([projectileArcadeRadiusPx(asScene(scene).registry)]);
+    expect(s.last("setDisplaySize")).toEqual([
+      SPRITE_DISPLAY.stoneThrow,
+      SPRITE_DISPLAY.stoneThrow,
+    ]);
+    expect(s.last("setCircle")).toEqual([
+      projectileArcadeRadiusPx(asScene(scene).registry),
+    ]);
     expect(s.last("setVelocity")![0]).toBeCloseTo(-200);
-    expect(stone).toMatchObject({ traveled: 0, prevX: 0, prevY: 0, spellBehavior: "default" });
+    expect(stone).toMatchObject({
+      traveled: 0,
+      prevX: 0,
+      prevY: 0,
+      spellBehavior: "default",
+    });
 
     spawn(scene, 0, 1, COMBAT_FX_TEXTURE.spellFireBolt);
     const bolt = scene.made("physics.sprite")[1]!;
-    expect(bolt.last("setDisplaySize")).toEqual([SPRITE_DISPLAY.fireBolt, SPRITE_DISPLAY.fireBolt]);
+    expect(bolt.last("setDisplaySize")).toEqual([
+      SPRITE_DISPLAY.fireBolt,
+      SPRITE_DISPLAY.fireBolt,
+    ]);
     // MobileRPG bolt art faces upper-right -> +45deg offset.
     expect(bolt.last("setRotation")![0]).toBeCloseTo(Math.PI / 4);
   });
 
   it("enemy shots aim at the target; lobs become ground AoE with a committed landing", () => {
     const scene = fakeScene();
-    const shot = spawnEnemyProjectile(asScene(scene), 0, 0, 0, 50, 100, 5, 300, "e1");
-    expect((shot.sprite.body as unknown as { velocity: { y: number } }).velocity.y).toBeCloseTo(100);
+    const shot = spawnEnemyProjectile(
+      asScene(scene),
+      0,
+      0,
+      0,
+      50,
+      100,
+      5,
+      300,
+      "e1",
+    );
+    expect(
+      (shot.sprite.body as unknown as { velocity: { y: number } }).velocity.y,
+    ).toBeCloseTo(100);
     expect(shot.damageFlavor).toBe("physical");
 
-    const lob = spawnEnemyLobProjectile(asScene(scene), 0, 0, 30, 40, 100, 5, 25, "lob");
+    const lob = spawnEnemyLobProjectile(
+      asScene(scene),
+      0,
+      0,
+      30,
+      40,
+      100,
+      5,
+      25,
+      "lob",
+    );
     expect(lob.spellBehavior).toBe("aoe_on_hit");
     expect(lob.blastRadiusWu).toBe(25);
     expect([lob.lobAimX, lob.lobAimY]).toEqual([30, 40]);
     expect(lob.maxTravel).toBe(80); // max(50 + 12, 80)
-    const far = spawnEnemyLobProjectile(asScene(scene), 0, 0, 300, 0, 100, 5, 25, "lob2");
+    const far = spawnEnemyLobProjectile(
+      asScene(scene),
+      0,
+      0,
+      300,
+      0,
+      100,
+      5,
+      25,
+      "lob2",
+    );
     expect(far.maxTravel).toBe(312);
   });
 });
@@ -97,7 +173,12 @@ describe("updateProjectile", () => {
       findEnemy: () => undefined,
     });
     expect(res.alive).toBe(false);
-    expect(res.detonation).toMatchObject({ x: 120, y: 0, radiusWu: 30, damage: 10 });
+    expect(res.detonation).toMatchObject({
+      x: 120,
+      y: 0,
+      radiusWu: 30,
+      damage: 10,
+    });
   });
 
   it("hits the first enemy along the path and knocks it back", () => {
@@ -119,11 +200,17 @@ describe("updateProjectile", () => {
     const a = enemyAt("a", 20, 0);
     const b = enemyAt("b", 60, 0);
     moveTo(p, 30, 0);
-    expect(updateProjectile(p, 16, [a, b], 0)).toEqual({ alive: true, hitEnemyId: "a" });
+    expect(updateProjectile(p, 16, [a, b], 0)).toEqual({
+      alive: true,
+      hitEnemyId: "a",
+    });
     expect(p.pierceRemaining).toBe(0);
     moveTo(p, 70, 0);
     // a is skipped now; b is hit but pierce is spent.
-    expect(updateProjectile(p, 16, [a, b], 0)).toEqual({ alive: false, hitEnemyId: "b" });
+    expect(updateProjectile(p, 16, [a, b], 0)).toEqual({
+      alive: false,
+      hitEnemyId: "b",
+    });
     expect(a.damageable.hp).toBe(40);
     expect(b.damageable.hp).toBe(40);
   });
@@ -147,7 +234,11 @@ describe("updateProjectile", () => {
       knockbackFor: () => 500,
       findEnemy: () => undefined,
     });
-    expect(res).toMatchObject({ alive: false, hitEnemyId: "e", detonation: { x: 25, radiusWu: 40 } });
+    expect(res).toMatchObject({
+      alive: false,
+      hitEnemyId: "e",
+      detonation: { x: 25, radiusWu: 40 },
+    });
     expect(e.enemy.knockbackVx).toBe(0);
   });
 
@@ -163,7 +254,9 @@ describe("updateProjectile", () => {
       knockbackFor: () => 0,
       findEnemy: () => t,
     });
-    const v = (p.sprite.body as unknown as { velocity: { x: number; y: number } }).velocity;
+    const v = (
+      p.sprite.body as unknown as { velocity: { x: number; y: number } }
+    ).velocity;
     expect(v.x).toBeCloseTo(0);
     expect(v.y).toBeCloseTo(300);
   });
@@ -172,7 +265,13 @@ describe("updateProjectile", () => {
 describe("updateEnemyProjectile", () => {
   function player(x: number) {
     const sprite = fakeGameObject("physics.sprite", [x, 0]);
-    const damageable: Damageable = { id: "player", hp: 100, maxHp: 100, alive: true, team: "player" };
+    const damageable: Damageable = {
+      id: "player",
+      hp: 100,
+      maxHp: 100,
+      alive: true,
+      team: "player",
+    };
     return { x, y: 0, radius: 10, damageable, sprite: sprite as never };
   }
 
@@ -182,8 +281,12 @@ describe("updateEnemyProjectile", () => {
     moveTo(p, 25, 0);
     expect(updateEnemyProjectile(p, 16, pl, 100, 1.5)).toBe(false);
     expect(pl.damageable.hp).toBe(85);
-    expect((pl.sprite as Sprite).body).toMatchObject({ velocity: { x: expect.any(Number) } });
-    expect(((pl.sprite as Sprite).body as { velocity: { x: number } }).velocity.x).toBeGreaterThan(0);
+    expect((pl.sprite as Sprite).body).toMatchObject({
+      velocity: { x: expect.any(Number) },
+    });
+    expect(
+      ((pl.sprite as Sprite).body as { velocity: { x: number } }).velocity.x,
+    ).toBeGreaterThan(0);
   });
 
   it("lobs detonate instead of hitting directly", () => {

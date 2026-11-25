@@ -45,13 +45,12 @@ describe("spellMechanics", () => {
   });
 
   it("blink clamps to bounds", () => {
-    const dst = blinkDestination(
-      0,
-      0,
-      0,
-      500,
-      { minX: -50, maxX: 50, minY: -50, maxY: 50 },
-    );
+    const dst = blinkDestination(0, 0, 0, 500, {
+      minX: -50,
+      maxX: 50,
+      minY: -50,
+      maxY: 50,
+    });
     expect(dst.x).toBe(50);
     expect(dst.y).toBe(0);
   });
@@ -72,9 +71,9 @@ describe("spellMechanics", () => {
     );
     expect(landing.moved).toBe(true);
     expect(landing.x).toBeLessThan(70 - 16);
-    expect(isBlinkLandingBlocked(landing.x, landing.y, 16, [obstacle], [])).toBe(
-      false,
-    );
+    expect(
+      isBlinkLandingBlocked(landing.x, landing.y, 16, [obstacle], []),
+    ).toBe(false);
   });
 
   it("resolveBlinkLanding slides back from an enemy at the endpoint", () => {
@@ -116,6 +115,8 @@ describe("spellMechanics", () => {
     );
     expect(landing.moved).toBe(true);
     expect(landing.x).toBeLessThan(40 - 16 + 1);
-    expect(isBlinkLandingBlocked(landing.x, landing.y, 16, [wall], [])).toBe(false);
+    expect(isBlinkLandingBlocked(landing.x, landing.y, 16, [wall], [])).toBe(
+      false,
+    );
   });
 });

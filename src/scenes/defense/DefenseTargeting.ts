@@ -38,12 +38,20 @@ export class DefenseTargeting {
     return this.host.getEnemies().find((e) => e.id === id);
   }
 
-  findEnemyNearWorldPoint(worldX: number, worldY: number): EnemyInstance | null {
+  findEnemyNearWorldPoint(
+    worldX: number,
+    worldY: number,
+  ): EnemyInstance | null {
     const r = this.host.wu(PLAYER_TUNING.targetTapRadiusWu);
     let best: { e: EnemyInstance; d: number } | null = null;
     for (const e of this.host.getEnemies()) {
       if (!e.damageable.alive) continue;
-      const d = Phaser.Math.Distance.Between(worldX, worldY, e.sprite.x, e.sprite.y);
+      const d = Phaser.Math.Distance.Between(
+        worldX,
+        worldY,
+        e.sprite.x,
+        e.sprite.y,
+      );
       if (d > r) continue;
       if (!best || d < best.d) best = { e, d };
     }
@@ -115,7 +123,9 @@ export class DefenseTargeting {
     return { x: e.sprite.x, y: e.sprite.y };
   }
 
-  nearestEnemyForMode(mode: "melee" | "ranged"): { x: number; y: number } | null {
+  nearestEnemyForMode(
+    mode: "melee" | "ranged",
+  ): { x: number; y: number } | null {
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
     const maxR =
@@ -148,7 +158,8 @@ export class DefenseTargeting {
     }
     const hits = this.host.input.hitTestPointer(pointer);
     for (const hit of hits) {
-      if (this.host.uiBlockers.some((b) => this.isSameOrChild(hit, b))) return true;
+      if (this.host.uiBlockers.some((b) => this.isSameOrChild(hit, b)))
+        return true;
     }
     return false;
   }
@@ -165,8 +176,11 @@ export class DefenseTargeting {
     while (node) {
       if (node === blocker) return true;
       const parent: Phaser.GameObjects.Container | null =
-        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-          .parentContainer ?? null;
+        (
+          node as Phaser.GameObjects.GameObject & {
+            parentContainer?: Phaser.GameObjects.Container;
+          }
+        ).parentContainer ?? null;
       node = parent;
     }
     return false;

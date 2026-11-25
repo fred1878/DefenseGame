@@ -129,7 +129,9 @@ export class TownOverlays {
       })
       .catch((err) => {
         console.error("Endless panel readiness failed", err);
-        this.endlessPanelLoading?.showError("Could not load endless roster. Try again.");
+        this.endlessPanelLoading?.showError(
+          "Could not load endless roster. Try again.",
+        );
         this.scene.time.delayedCall(2800, () => {
           this.endlessPanelLoading?.destroy();
           this.endlessPanelLoading = null;

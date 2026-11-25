@@ -7,6 +7,7 @@ import {
   meleeFxAnimDurationMs,
   type EnemyMeleeFxSpec,
 } from "../content/meleeFxAssets";
+import type { EnemyMeleeCombat } from "../core/enemyTuning";
 import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -53,6 +54,11 @@ export function meleeSwipeRotation(facingRad: number): number {
   return facingRad + SLASH_ARC_V2_ROT_OFFSET;
 }
 
+export type EnemyMeleeVfxSizing = Pick<
+  EnemyMeleeCombat,
+  "vfxDisplayW" | "vfxDisplayH" | "vfxOffsetWu"
+>;
+
 export function showEnemyMeleeSwipe(
   scene: Phaser.Scene,
   enemyDefId: string,
@@ -61,6 +67,7 @@ export function showEnemyMeleeSwipe(
   facingRad: number,
   fxDurationMs: number | undefined,
   fallbackNaturalMs: number,
+  vfxSize: EnemyMeleeVfxSizing,
 ): void {
   const spec = enemyMeleeFxSpec(enemyDefId);
   if (spec) {
@@ -74,17 +81,21 @@ export function showEnemyMeleeSwipe(
         `Missing melee FX animation ${spec.animKey} (${enemyDefId})`,
       );
     }
-    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, fxDurationMs);
+    spawnEnemyMeleeAnim(scene, spec, vfxSize, x, y, facingRad, fxDurationMs);
   } else {
-    spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs, fallbackNaturalMs);
+    spawnGruntMeleeFallback(
+      scene,
+      x,
+      y,
+      facingRad,
+      fxDurationMs,
+      fallbackNaturalMs,
+    );
   }
   publishEnemyMeleeFxE2E(enemyDefId, facingRad);
 }
 
-function publishEnemyMeleeFxE2E(
-  enemyDefId: string,
-  facingRad: number,
-): void {
+function publishEnemyMeleeFxE2E(enemyDefId: string, facingRad: number): void {
   if (!isE2EEnabled()) return;
   const spec = enemyMeleeFxSpec(enemyDefId);
   const pose = spec
@@ -127,19 +138,20 @@ function spawnGruntMeleeFallback(
 function spawnEnemyMeleeAnim(
   scene: Phaser.Scene,
   spec: EnemyMeleeFxSpec,
+  vfxSize: EnemyMeleeVfxSizing,
   x: number,
   y: number,
   facingRad: number,
   fxDurationMs: number | undefined,
 ): void {
-  const offset = worldUnit(spec.offsetWu, scene.registry);
+  const offset = worldUnit(vfxSize.vfxOffsetWu, scene.registry);
   const ox = x + Math.cos(facingRad) * offset;
   const oy = y + Math.sin(facingRad) * offset;
   const sprite = scene.add.sprite(ox, oy, spec.textureKey);
   const reg = scene.registry;
   sprite.setDisplaySize(
-    worldDisplayPx(spec.displayW, reg),
-    worldDisplayPx(spec.displayH, reg),
+    worldDisplayPx(vfxSize.vfxDisplayW, reg),
+    worldDisplayPx(vfxSize.vfxDisplayH, reg),
   );
   sprite.setOrigin(0.5, 0.5);
   const { rotation, flipX } = enemyMeleeFxTransform(facingRad, spec);

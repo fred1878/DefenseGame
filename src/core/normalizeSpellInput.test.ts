@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { ConfigLoadError } from "./configValidation";
-import { normalizeSpellInput, type SpellInputConfigInput } from "./normalizeSpellInput";
+import {
+  normalizeSpellInput,
+  type SpellInputConfigInput,
+} from "./normalizeSpellInput";
 
 describe("normalizeSpellInput", () => {
   it("requires both stick epsilon fields", () => {

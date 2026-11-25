@@ -1,7 +1,4 @@
-import {
-  requireFiniteNumber,
-  requireRecord,
-} from "./configValidation";
+import { requireFiniteNumber, requireRecord } from "./configValidation";
 
 export type EntityPhysicsInput = {
   enemyPathClearanceMarginWu?: number;

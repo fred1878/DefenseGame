@@ -7,7 +7,9 @@ import {
 
 describe("cardinalFromVelocity", () => {
   it("returns null inside the velocity dead zone", () => {
-    expect(cardinalFromVelocity(3, -4, ENEMY_FACING_VELOCITY_DEADZONE)).toBeNull();
+    expect(
+      cardinalFromVelocity(3, -4, ENEMY_FACING_VELOCITY_DEADZONE),
+    ).toBeNull();
     expect(cardinalFromVelocity(0, 0)).toBeNull();
   });
 

@@ -134,7 +134,8 @@ export function buildWavePlannerPanelUi(
   const gap = scaleUiY(8);
   const rowStride = rowH + gap;
 
-  const footerBlockH = scaleUiY(22) + scaleUiY(48) + scaleUiY(56) + scaleUiY(36);
+  const footerBlockH =
+    scaleUiY(22) + scaleUiY(48) + scaleUiY(56) + scaleUiY(36);
   const listTop = scaleUiY(156);
   const listBottom = GAME.height - footerBlockH;
   const listBudget = Math.max(scaleUiY(100), listBottom - listTop);
@@ -184,10 +185,15 @@ export function buildWavePlannerPanelUi(
       )
       .setOrigin(0.5);
     const text = scene.add
-      .text(nameCx + scaleUiX(6), cy, label, uiTextStyle(scene, {
-        fontSize: `${scaleUiX(13)}px`,
-        color: "#fafafa",
-      }))
+      .text(
+        nameCx + scaleUiX(6),
+        cy,
+        label,
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(13)}px`,
+          color: "#fafafa",
+        }),
+      )
       .setOrigin(0.5);
 
     counts.set(enemyId, seedCount);
@@ -199,7 +205,11 @@ export function buildWavePlannerPanelUi(
       atMs: null!,
       intervalMs: null!,
     };
-    const plus: PlannerRow["plus"] = { count: null!, atMs: null!, intervalMs: null! };
+    const plus: PlannerRow["plus"] = {
+      count: null!,
+      atMs: null!,
+      intervalMs: null!,
+    };
     const values: PlannerRow["values"] = {
       count: null!,
       atMs: null!,
@@ -216,17 +226,15 @@ export function buildWavePlannerPanelUi(
       const btnW = scaleUiX(22);
       const btnH = scaleUiY(26);
       const m = createUiRoundedRect(scene, btnW, btnH, 0x3f3f46, 0x71717a);
-      m.setPosition(cx - scaleUiX(22), cy)
-        .setInteractive(
-          new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
-          Phaser.Geom.Rectangle.Contains,
-        );
+      m.setPosition(cx - scaleUiX(22), cy).setInteractive(
+        new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
+        Phaser.Geom.Rectangle.Contains,
+      );
       const p = createUiRoundedRect(scene, btnW, btnH, 0x3f3f46, 0x71717a);
-      p.setPosition(cx + scaleUiX(22), cy)
-        .setInteractive(
-          new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
-          Phaser.Geom.Rectangle.Contains,
-        );
+      p.setPosition(cx + scaleUiX(22), cy).setInteractive(
+        new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
+        Phaser.Geom.Rectangle.Contains,
+      );
       m.on("pointerup", (pointer: Phaser.Input.Pointer) => {
         pointer.event.stopPropagation();
         handlers.onBumpField(enemyId, key, -1);
@@ -244,10 +252,15 @@ export function buildWavePlannerPanelUi(
             ? String(atMs.get(enemyId))
             : String(intervalMs.get(enemyId));
       values[key] = scene.add
-        .text(cx, cy, initial ?? "0", uiTextStyle(scene, {
-          fontSize: `${scaleUiX(12)}px`,
-          color: "#e4e4e7",
-        }))
+        .text(
+          cx,
+          cy,
+          initial ?? "0",
+          uiTextStyle(scene, {
+            fontSize: `${scaleUiX(12)}px`,
+            color: "#e4e4e7",
+          }),
+        )
         .setOrigin(0.5);
     }
 

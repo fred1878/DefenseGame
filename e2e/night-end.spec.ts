@@ -67,9 +67,9 @@ test.describe("night end UX", () => {
       )
       .toBe(true);
 
-    expect(
-      await page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene),
-    ).toBe("Defense");
+    expect(await page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene)).toBe(
+      "Defense",
+    );
 
     await waitForTapTargets(page, ["defense-return-to-town"]);
     const ret = await getTapTarget(page, "defense-return-to-town");

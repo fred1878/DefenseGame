@@ -1,5 +1,8 @@
 import { GAME } from "../../config";
-import { interactiveObjectScreenRect, type createTouchButton } from "../touchButton";
+import {
+  interactiveObjectScreenRect,
+  type createTouchButton,
+} from "../touchButton";
 import {
   MAX_VISIBLE_ROWS,
   type EndlessListLayout,

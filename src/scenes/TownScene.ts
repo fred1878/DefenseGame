@@ -91,7 +91,8 @@ export class TownScene extends Phaser.Scene {
         this.beginWavePlannerDefense(groups),
       ),
   });
-  private readonly onInputModalityChanged = (): void => this.syncTownBaseInput();
+  private readonly onInputModalityChanged = (): void =>
+    this.syncTownBaseInput();
   private readonly onDebugMenuClose = (): void => {
     popInputModality(this, INPUT_MODALITY.debugMenu.id);
     resumeFromDebugMenu(this);
@@ -122,7 +123,8 @@ export class TownScene extends Phaser.Scene {
             def,
             townBuildingSubtitle(store, this.save, def),
           ),
-        onTap: (buildingId, def) => this.onTownBuildingTap(store, buildingId, def),
+        onTap: (buildingId, def) =>
+          this.onTownBuildingTap(store, buildingId, def),
       },
     );
     for (const c of controls) {
@@ -185,7 +187,9 @@ export class TownScene extends Phaser.Scene {
     return collectTownUiTapTargets(store, this.buildingControls, this.overlays);
   }
 
-  e2eGetSpellSortSlotHitRects(): ReturnType<SpellBarSortPanel["e2eSlotHitRects"]> {
+  e2eGetSpellSortSlotHitRects(): ReturnType<
+    SpellBarSortPanel["e2eSlotHitRects"]
+  > {
     return this.overlays.spellSortPanel?.e2eSlotHitRects() ?? [];
   }
 
@@ -229,10 +233,10 @@ export class TownScene extends Phaser.Scene {
 
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
     const store = this.registry.get("dataStore") as DataStore;
-    const cap = clampEndlessConcurrent(store.player.endlessPanelDefaultConcurrent);
-    const selections: EndlessRunSelection[] = [
-      { enemyId, concurrentCap: cap },
-    ];
+    const cap = clampEndlessConcurrent(
+      store.player.endlessPanelDefaultConcurrent,
+    );
+    const selections: EndlessRunSelection[] = [{ enemyId, concurrentCap: cap }];
     this.overlays.dismissEndlessPanel();
     this.overlays.transitionToDefense(() =>
       this.beginEndlessDefense(selections, infiniteHp),
@@ -318,7 +322,7 @@ export class TownScene extends Phaser.Scene {
     this.scene.start("Defense");
   }
 
-  update(_time: number, delta: number): void {
+  override update(_time: number, delta: number): void {
     this.fpsOverlay.tick(this.registry, delta, this.game);
     if (!showTouchInput(this.registry)) {
       this.touchDebug.clear();

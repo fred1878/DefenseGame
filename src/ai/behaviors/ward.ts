@@ -95,10 +95,10 @@ export function wardScreenPoint(
 export function wardPostHoldBroken(
   extra: Pick<
     EnemyBehaviorExtra,
-  | "wardPostSnapPlayerX"
-  | "wardPostSnapPlayerY"
-  | "wardPostSnapAllyX"
-  | "wardPostSnapAllyY"
+    | "wardPostSnapPlayerX"
+    | "wardPostSnapPlayerY"
+    | "wardPostSnapAllyX"
+    | "wardPostSnapAllyY"
   >,
   playerX: number,
   playerY: number,
@@ -209,8 +209,16 @@ export function evaluateWardPostHold(
 }
 
 export const wardBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
-    ctx;
+  const {
+    enemy,
+    nav,
+    grid,
+    playerX,
+    playerY,
+    deltaMs,
+    peerAgents,
+    peerAllies,
+  } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;

@@ -55,7 +55,12 @@ describe("normalizeHitFlash", () => {
         ...completeFixture,
         flavors: {
           ...completeFixture.flavors,
-          fire: { tint: 1.5, mode: "multiply", peakAlpha: 1, ...flavorDefaults },
+          fire: {
+            tint: 1.5,
+            mode: "multiply",
+            peakAlpha: 1,
+            ...flavorDefaults,
+          },
         },
       }),
     ).toThrow(ConfigLoadError);

@@ -80,13 +80,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       const defense = activeDefense(game);
       if (!defense) return;
       const pos = defense.e2e.playerPosition();
-      defense.spawnEnemyAt(
-        pos.x + offX,
-        pos.y + offY,
-        undefined,
-        defId,
-        999,
-      );
+      defense.spawnEnemyAt(pos.x + offX, pos.y + offY, undefined, defId, 999);
     },
     setGodMode(on: boolean) {
       game.registry.set("e2eGodMode", on);
@@ -149,9 +143,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         await new Promise((r) => setTimeout(r, interval));
       }
       if (samples.length === 0) return game.loop.actualFps;
-      return (
-        samples.reduce((a, b) => a + b, 0) / samples.length
-      );
+      return samples.reduce((a, b) => a + b, 0) / samples.length;
     },
     getAttackPhase() {
       return activeDefense(game)?.e2e.attackPhase() ?? "idle";
@@ -252,7 +244,9 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       return activeDefense(game)?.e2e.playerBodyRadius() ?? 0;
     },
     getMaxPlayerObstacleOverlapPx(obstacleIndex?: number) {
-      return activeDefense(game)?.e2e.maxPlayerObstacleOverlapPx(obstacleIndex) ?? 0;
+      return (
+        activeDefense(game)?.e2e.maxPlayerObstacleOverlapPx(obstacleIndex) ?? 0
+      );
     },
     centerDefenseCameraOn(worldX: number, worldY: number) {
       activeDefense(game)?.e2e.centerCameraOn(worldX, worldY);
@@ -383,9 +377,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getEndlessSelectedEnemyId() {
       const town = game.scene.getScene("Town") as TownScene | null;
-      return town?.scene.isActive()
-        ? town.e2eEndlessSelectedEnemyId()
-        : null;
+      return town?.scene.isActive() ? town.e2eEndlessSelectedEnemyId() : null;
     },
     getEndlessSelectedEnemyIds() {
       const town = game.scene.getScene("Town") as TownScene | null;

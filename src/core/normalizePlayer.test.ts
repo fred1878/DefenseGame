@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { ConfigLoadError } from "./configValidation";
-import { normalizePlayerConfig, type PlayerConfigInput } from "./normalizePlayer";
+import {
+  normalizePlayerConfig,
+  type PlayerConfigInput,
+} from "./normalizePlayer";
 
 function shippedPlayer(): unknown {
   return JSON.parse(

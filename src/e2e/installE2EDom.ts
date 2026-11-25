@@ -25,9 +25,7 @@ function ensureDomMirrorButton(
   testId: string,
   onClick: () => void,
 ): HTMLButtonElement {
-  let btn = host.querySelector<HTMLButtonElement>(
-    `[data-testid="${testId}"]`,
-  );
+  let btn = host.querySelector<HTMLButtonElement>(`[data-testid="${testId}"]`);
   if (!btn) {
     btn = document.createElement("button");
     btn.type = "button";
@@ -48,7 +46,8 @@ export function ensureDomTestActions(api: DefenseGameE2EApi): void {
     host = document.createElement("div");
     host.id = "defensegame-e2e-dom";
     host.setAttribute("data-testid", "e2e-dom-root");
-    host.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:99998";
+    host.style.cssText =
+      "position:fixed;inset:0;pointer-events:none;z-index:99998";
     document.body.appendChild(host);
   }
   ensureDomMirrorButton(host, "start-night", () => api.startNight());
@@ -92,9 +91,7 @@ export function positionDomMirrors(
   }
   for (const id of DOM_MIRROR_IDS) {
     if (targets[id]) continue;
-    const btn = host.querySelector<HTMLButtonElement>(
-      `[data-testid="${id}"]`,
-    );
+    const btn = host.querySelector<HTMLButtonElement>(`[data-testid="${id}"]`);
     if (btn && id !== "start-night") btn.style.display = "none";
   }
 }

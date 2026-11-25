@@ -5,8 +5,9 @@ import { EnemySpellStatusMap } from "./enemySpellStatus";
 import { ICE_FX_ANIM, ICE_FX_ASSETS } from "../content/iceFxAssets";
 
 (Phaser as { BlendModes?: { ADD: number } }).BlendModes = { ADD: 1 };
-(Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 
 function mockScene() {
   const sprites: Array<{
@@ -20,11 +21,11 @@ function mockScene() {
   }> = [];
   const scene = {
     textures: {
-      exists: (key: string) =>
-        ICE_FX_ASSETS.some((entry) => entry.key === key),
+      exists: (key: string) => ICE_FX_ASSETS.some((entry) => entry.key === key),
     },
     anims: {
-      exists: (key: string) => Object.values(ICE_FX_ANIM).includes(key as never),
+      exists: (key: string) =>
+        Object.values(ICE_FX_ANIM).includes(key as never),
     },
     add: {
       sprite: vi.fn(() => {

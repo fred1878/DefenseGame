@@ -9,7 +9,10 @@ import {
 
 function shippedDefenseMaps(): unknown {
   return JSON.parse(
-    readFileSync(path.join(process.cwd(), "public/data/defense-maps.json"), "utf8"),
+    readFileSync(
+      path.join(process.cwd(), "public/data/defense-maps.json"),
+      "utf8",
+    ),
   );
 }
 
@@ -34,16 +37,12 @@ describe("normalizeDefenseMaps", () => {
         {
           id: "a",
           field: { cols: 10, rows: 12 },
-          obstacles: [
-            { tileX: 1, tileY: 2, textureKey: "obstacle_wide_slab" },
-          ],
+          obstacles: [{ tileX: 1, tileY: 2, textureKey: "obstacle_wide_slab" }],
         },
         {
           id: "b",
           field: { cols: 11, rows: 13 },
-          obstacles: [
-            { tileX: 3, tileY: 4, textureKey: "obstacle_tall_rock" },
-          ],
+          obstacles: [{ tileX: 3, tileY: 4, textureKey: "obstacle_tall_rock" }],
         },
       ],
     });

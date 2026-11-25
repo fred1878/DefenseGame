@@ -84,10 +84,7 @@ export class DefenseMinimap {
     registerUiDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ) {
     this.registry = scene.registry;
-    this.g = scene.add
-      .graphics()
-      .setScrollFactor(0)
-      .setDepth(MINIMAP_DEPTH);
+    this.g = scene.add.graphics().setScrollFactor(0).setDepth(MINIMAP_DEPTH);
     registerUiDraw?.(this.g);
   }
 
@@ -123,7 +120,12 @@ export class DefenseMinimap {
     this.g.fillStyle(ENEMY_DOT, 1);
     for (const e of enemies) {
       if (!e.damageable.alive) continue;
-      const pt = worldToMinimapPoint(e.sprite.x, e.sprite.y, layout, this.registry);
+      const pt = worldToMinimapPoint(
+        e.sprite.x,
+        e.sprite.y,
+        layout,
+        this.registry,
+      );
       this.g.fillCircle(pt.x, pt.y, enemyDotR);
     }
   }

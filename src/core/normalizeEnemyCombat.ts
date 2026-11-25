@@ -28,7 +28,11 @@ const MELEE_CHASE_STANDOFF_BEHAVIORS = new Set([
   "rangedHybrid",
 ]);
 
-export const ENEMY_COMBAT_WALL_KEYS = ["damage", "triggerRangeWu", "hitRangeWu"] as const;
+export const ENEMY_COMBAT_WALL_KEYS = [
+  "damage",
+  "triggerRangeWu",
+  "hitRangeWu",
+] as const;
 export const ENEMY_COMBAT_MELEE_KEYS = [
   "triggerRangeWu",
   "rangeWu",
@@ -38,9 +42,13 @@ export const ENEMY_COMBAT_MELEE_KEYS = [
   "recoveryMs",
   "cooldownMs",
   "fxStartMs",
+  "vfxDisplayW",
+  "vfxDisplayH",
+  "vfxOffsetWu",
 ] as const;
 export const ENEMY_COMBAT_MELEE_OPTIONAL_KEYS = ["fxDurationMs"] as const;
-export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY = "meleeChaseStandoffWu" as const;
+export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY =
+  "meleeChaseStandoffWu" as const;
 export const ENEMY_COMBAT_ARROW_RAIN_KEYS = [
   "damage",
   "preferredRangeWu",
@@ -104,6 +112,7 @@ export const ENEMY_COMBAT_LOBBER_KEYS = [
   "projectileSpeedWu",
   "blastRadiusWu",
   "blastDamageScale",
+  "impactVfxBlastMul",
 ] as const;
 export const ENEMY_COMBAT_WARD_KEYS = [
   "protectRadiusWu",
@@ -180,13 +189,13 @@ export function requireEnemyMeleeCombat(
     cooldownMs: base.cooldownMs!,
     fxStartMs: base.fxStartMs!,
     fxDurationMs,
+    vfxDisplayW: base.vfxDisplayW!,
+    vfxDisplayH: base.vfxDisplayH!,
+    vfxOffsetWu: base.vfxOffsetWu!,
   };
   if (MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {
-    const standoff = requireNumberFields(
-      block,
-      ["meleeChaseStandoffWu"],
-      path,
-    ).meleeChaseStandoffWu!;
+    const standoff = requireNumberFields(block, ["meleeChaseStandoffWu"], path)
+      .meleeChaseStandoffWu!;
     preFx.meleeChaseStandoffWu = standoff;
   }
   return finalizeEnemyMeleeFxTiming(enemyId, preFx);
@@ -203,14 +212,22 @@ export function requireEnemyJavelineerCombat(
   raw: unknown,
   path: string,
 ): EnemyJavelineerCombat {
-  return section<EnemyJavelineerCombat>(raw, path, ENEMY_COMBAT_JAVELINEER_KEYS);
+  return section<EnemyJavelineerCombat>(
+    raw,
+    path,
+    ENEMY_COMBAT_JAVELINEER_KEYS,
+  );
 }
 
 export function requireEnemyStationaryRangedCombat(
   raw: unknown,
   path: string,
 ): EnemyStationaryRangedCombat {
-  return section<EnemyStationaryRangedCombat>(raw, path, ENEMY_COMBAT_STATIONARY_RANGED_KEYS);
+  return section<EnemyStationaryRangedCombat>(
+    raw,
+    path,
+    ENEMY_COMBAT_STATIONARY_RANGED_KEYS,
+  );
 }
 
 export function requireEnemyWallSiegeCombat(
@@ -234,7 +251,10 @@ export function requireEnemyLobberCombat(
   return section<EnemyLobberCombat>(raw, path, ENEMY_COMBAT_LOBBER_KEYS);
 }
 
-export function requireEnemyWardCombat(raw: unknown, path: string): EnemyWardCombat {
+export function requireEnemyWardCombat(
+  raw: unknown,
+  path: string,
+): EnemyWardCombat {
   return section<EnemyWardCombat>(raw, path, ENEMY_COMBAT_WARD_KEYS);
 }
 

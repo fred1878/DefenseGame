@@ -30,7 +30,7 @@ export type DefensePlayerCombatHost = {
 };
 
 export type SpellBlastFxDef = {
-  blastTextureKey?: string;
+  blastTextureKey?: string | undefined;
   durationMs?: number;
   startAlpha?: number;
   scaleEnd?: number;
@@ -40,7 +40,7 @@ export type SpellBlastFxDef = {
 export class DefensePlayerCombat {
   private prevPlayerAttackPhase: AttackPhase = "idle";
   private playerMeleeFxScheduled = false;
-  private playerMeleeFxTimer?: Phaser.Time.TimerEvent;
+  private playerMeleeFxTimer?: Phaser.Time.TimerEvent | undefined;
 
   constructor(private readonly host: DefensePlayerCombatHost) {}
 
@@ -161,7 +161,10 @@ export class DefensePlayerCombat {
         PLAYER_TUNING.meleeFxStartMs,
         () => {
           this.playerMeleeFxTimer = undefined;
-          if (player.attackPhaseNow === "idle" || player.strikeMode() !== "melee") {
+          if (
+            player.attackPhaseNow === "idle" ||
+            player.strikeMode() !== "melee"
+          ) {
             return;
           }
           showPlayerMeleeSwipe(

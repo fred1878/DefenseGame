@@ -15,7 +15,10 @@ export function buildChainLightningSegments(
   primary: ChainLightningPoint,
   hops: readonly ChainLightningPoint[],
 ): Array<{ from: ChainLightningPoint; to: ChainLightningPoint }> {
-  const segments: Array<{ from: ChainLightningPoint; to: ChainLightningPoint }> = [];
+  const segments: Array<{
+    from: ChainLightningPoint;
+    to: ChainLightningPoint;
+  }> = [];
   let from = primary;
   for (const hop of hops) {
     segments.push({ from, to: hop });

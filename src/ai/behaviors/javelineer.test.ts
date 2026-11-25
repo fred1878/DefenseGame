@@ -56,7 +56,11 @@ describe("javelineerBehavior", () => {
     height: 1,
     cellSize: 40,
   } as unknown as import("../../pathfinding/grid").NavGrid;
-  const navGrid = buildNavGrid([], DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
+  const navGrid = buildNavGrid(
+    [],
+    DEFENSE_MAP.cellSize,
+    DEFENSE_MAP.pathClearancePx,
+  );
 
   it("retreats and arcs when player is inside min range", () => {
     const enemy = mockJavelineer(0, 0);
@@ -79,8 +83,7 @@ describe("javelineerBehavior", () => {
   it("strafes tangentially when at ideal kite distance", () => {
     const enemy = mockJavelineer(0, 0);
     const band =
-      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
-      2;
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
     javelineerBehavior({
       enemy,
       nav: enemy.nav,
@@ -116,8 +119,7 @@ describe("javelineerBehavior", () => {
     const enemy = mockJavelineer(0, 0);
     enemy.behaviorExtra.strafeFlipMs = 8;
     const band =
-      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
-      2;
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
     javelineerBehavior({
       enemy,
       nav: enemy.nav,

@@ -7,7 +7,8 @@ import {
 } from "./normalizeSpells";
 
 function spellRow(
-  partial: Partial<SpellDefinition> & Pick<SpellDefinition, "id" | "mechanicType">,
+  partial: Partial<SpellDefinition> &
+    Pick<SpellDefinition, "id" | "mechanicType">,
 ): SpellDefinition {
   return {
     name: partial.id,
@@ -70,7 +71,9 @@ const KNOCKBACK_FIXTURE_CATALOG = {
 
 describe("normalizeSpellCatalog", () => {
   it("rejects empty catalog", () => {
-    expect(() => normalizeSpellCatalog({ spells: [] })).toThrow(ConfigLoadError);
+    expect(() => normalizeSpellCatalog({ spells: [] })).toThrow(
+      ConfigLoadError,
+    );
   });
 
   it("requires knockback on projectile spells", () => {

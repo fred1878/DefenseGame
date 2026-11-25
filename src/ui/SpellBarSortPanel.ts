@@ -5,7 +5,10 @@ import {
   pruneAutoCastSpellIdsForSlots,
   toggleAutoCastSpellId,
 } from "../content/spellBarAutoCast";
-import { poolSpellIconAlpha, isSpellPoolSelectable } from "../content/spellPoolReadiness";
+import {
+  poolSpellIconAlpha,
+  isSpellPoolSelectable,
+} from "../content/spellPoolReadiness";
 import {
   clearAllDefenseBarSlots,
   toggleSpellOnDefenseBar,
@@ -66,8 +69,14 @@ export class SpellBarSortPanel {
 
     this.root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
 
-    const dim = scene.add
-      .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x000000, 0.72);
+    const dim = scene.add.rectangle(
+      GAME.width / 2,
+      GAME.height / 2,
+      GAME.width,
+      GAME.height,
+      0x000000,
+      0.72,
+    );
     bindModalDimBackdrop(dim);
     this.root.add(dim);
     this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townSpellSort);
@@ -117,9 +126,14 @@ export class SpellBarSortPanel {
         const def = spellById(id);
         const key = spellIconTextureKey(id);
         if (this.scene.textures.exists(key)) {
-          view.icon.setTexture(key).setDisplaySize(iconSize, iconSize).setVisible(true);
+          view.icon
+            .setTexture(key)
+            .setDisplaySize(iconSize, iconSize)
+            .setVisible(true);
           view.icon.setAlpha(1);
-          this.scene.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+          this.scene.textures
+            .get(key)
+            .setFilter(Phaser.Textures.FilterMode.NEAREST);
         } else {
           view.icon.setVisible(false);
         }
@@ -228,7 +242,11 @@ export class SpellBarSortPanel {
 
   /** E2E: slot centers in game coords (540×1200). */
   e2eTapTargets(): Record<string, { x: number; y: number }> {
-    return spellBarSortE2eTapTargets(this.slotViews, this.poolChips, this.clearAllBtn);
+    return spellBarSortE2eTapTargets(
+      this.slotViews,
+      this.poolChips,
+      this.clearAllBtn,
+    );
   }
 
   e2eSlotHitRects(): SpellSortSlotHitRect[] {

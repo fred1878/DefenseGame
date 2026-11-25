@@ -132,42 +132,17 @@ export const MELEE_FX_ANIM = {
   reaver: "melee_fx_reaver",
 } as const;
 
-/** On-screen display size (art px) before world display scaling. */
-export const MELEE_FX_DISPLAY = {
-  grunt: { w: 112, h: 112 },
-  skirmisher: { w: 54, h: 24 },
-  bruiser: { w: 72, h: 58 },
-  slow_siege: { w: 50, h: 34 },
-  charger: { w: 60, h: 36 },
-  ward: { w: 44, h: 32 },
-  fast_sapper: { w: 48, h: 48 },
-  reaver: { w: 52, h: 50 },
-} as const;
-
-/** World-unit offset from attacker center toward facing (matches legacy 32px grunt arc). */
-export const MELEE_FX_OFFSET_WU = {
-  grunt: 21,
-  skirmisher: 14,
-  bruiser: 27,
-  slow_siege: 16,
-  charger: 19,
-  ward: 16,
-  fast_sapper: 18,
-  reaver: 17,
-} as const;
-
-const ENEMY_MELEE_FX_CLIP: Partial<
-  Record<string, keyof typeof MELEE_FX_ANIM>
-> = {
-  grunt: "grunt",
-  skirmisher: "skirmisher",
-  bruiser: "bruiser",
-  slow_siege: "slow_siege",
-  charger: "charger",
-  ward: "ward",
-  fast_sapper: "fast_sapper",
-  reaver: "reaver",
-};
+const ENEMY_MELEE_FX_CLIP: Partial<Record<string, keyof typeof MELEE_FX_ANIM>> =
+  {
+    grunt: "grunt",
+    skirmisher: "skirmisher",
+    bruiser: "bruiser",
+    slow_siege: "slow_siege",
+    charger: "charger",
+    ward: "ward",
+    fast_sapper: "fast_sapper",
+    reaver: "reaver",
+  };
 
 export type MeleeFxClipId = keyof typeof MELEE_FX_ANIM;
 
@@ -175,9 +150,6 @@ export type EnemyMeleeFxSpec = {
   clipId: MeleeFxClipId;
   textureKey: string;
   animKey: string;
-  displayW: number;
-  displayH: number;
-  offsetWu: number;
   animFacing: MeleeAnimFacing;
   rotationOffsetRad: number;
 };
@@ -193,19 +165,13 @@ export function enemyMeleeFxSpec(
 ): EnemyMeleeFxSpec | undefined {
   const clipId = enemyMeleeFxClipId(enemyDefId);
   if (!clipId) return undefined;
-  const asset = MELEE_FX_ASSETS.find(
-    (a) => a.key === `fx_melee_${clipId}`,
-  );
+  const asset = MELEE_FX_ASSETS.find((a) => a.key === `fx_melee_${clipId}`);
   if (!asset) return undefined;
-  const display = MELEE_FX_DISPLAY[clipId];
   const animFacing = MELEE_FX_ANIM_FACING[clipId];
   return {
     clipId,
     textureKey: asset.key,
     animKey: MELEE_FX_ANIM[clipId],
-    displayW: display.w,
-    displayH: display.h,
-    offsetWu: MELEE_FX_OFFSET_WU[clipId],
     animFacing,
     rotationOffsetRad: rotationOffsetRadForAnimFacing(animFacing),
   };

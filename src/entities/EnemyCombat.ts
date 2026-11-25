@@ -51,7 +51,7 @@ export type EnemyCombatState = {
    * Cleared on new windup or interrupt.
    */
   slashFxShown: boolean;
-  slashFxTimer?: Phaser.Time.TimerEvent;
+  slashFxTimer?: Phaser.Time.TimerEvent | undefined;
   facing: number;
   attackTargetKind: EnemyAttackTarget["kind"] | null;
   commitAimX: number;
@@ -126,14 +126,7 @@ export function updateEnemyCombat(
     scheduleEnemyMeleeFx(enemy);
     const aimX = target.kind === "player" ? target.x : target.x;
     const aimY = target.kind === "player" ? target.y : target.y;
-    commitEnemyAttack(
-      c,
-      enemy.sprite.x,
-      enemy.sprite.y,
-      target,
-      aimX,
-      aimY,
-    );
+    commitEnemyAttack(c, enemy.sprite.x, enemy.sprite.y, target, aimX, aimY);
   }
 
   if (c.phase === "idle") return false;
@@ -190,8 +183,7 @@ export function updateEnemyCombat(
   const inWallTrigger = target.kind === "wall" && dist <= triggerRangePx;
   const inWallHit = target.kind === "wall" && dist <= hitRangePx;
   const holdPosition =
-    inWallTrigger &&
-    (enemyIsAttacking(c) || (c.phase === "idle" && inWallHit));
+    inWallTrigger && (enemyIsAttacking(c) || (c.phase === "idle" && inWallHit));
   if (holdPosition) {
     setEnemyChaseVelocity(enemy, 0, 0);
   }

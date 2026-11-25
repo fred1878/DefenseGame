@@ -17,7 +17,9 @@ describe("resolveEnemyCombat explicit authoring", () => {
       "grunt",
     );
     expect(tuned.wall.damage).toBe(6);
-    expect(tuned.melee!.triggerRangeWu).toBeGreaterThanOrEqual(tuned.melee!.rangeWu);
+    expect(tuned.melee!.triggerRangeWu).toBeGreaterThanOrEqual(
+      tuned.melee!.rangeWu,
+    );
     expect(tuned.melee!.meleeChaseStandoffWu).toBe(4);
     expect(tuned.arrowRain).toBeUndefined();
   });
@@ -30,6 +32,27 @@ describe("resolveEnemyCombat explicit authoring", () => {
     );
     expect(lobber.melee).toBeUndefined();
     expect(lobber.lobber!.damage).toBeGreaterThan(0);
+  });
+
+  it("requires melee vfx display fields", () => {
+    const combat = shippedEnemyCombat("grunt");
+    const {
+      vfxDisplayW: _w,
+      vfxDisplayH: _h,
+      vfxOffsetWu: _o,
+      ...melee
+    } = combat.melee!;
+    expect(() =>
+      resolveEnemyCombat("meleeChaser", { ...combat, melee }, "grunt"),
+    ).toThrow(ConfigLoadError);
+  });
+
+  it("requires lobber impactVfxBlastMul", () => {
+    const combat = shippedEnemyCombat("lobber");
+    const { impactVfxBlastMul: _m, ...lobber } = combat.lobber!;
+    expect(() =>
+      resolveEnemyCombat("lobber", { ...combat, lobber }, "lobber"),
+    ).toThrow(ConfigLoadError);
   });
 
   it("requires behavior-specific kit sections", () => {

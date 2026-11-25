@@ -35,9 +35,7 @@ export function shippedEnemyCombatForBehavior(
   defId?: string,
 ): EnemyCombatPartial {
   const byDef =
-    defId && enemies[defId]?.behavior === behavior
-      ? defId
-      : undefined;
+    defId && enemies[defId]?.behavior === behavior ? defId : undefined;
   const id = byDef ?? SHIPPED_ID_BY_BEHAVIOR[behavior] ?? defId ?? "grunt";
   return shippedEnemyCombat(id);
 }

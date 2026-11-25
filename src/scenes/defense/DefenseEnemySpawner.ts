@@ -123,16 +123,7 @@ export function spawnDefenseEnemyAt(
       onTap,
     );
   } else {
-    enemy = spawnEnemy(
-      host.scene,
-      id,
-      x,
-      y,
-      spawnDef,
-      defId,
-      onDeath,
-      onTap,
-    );
+    enemy = spawnEnemy(host.scene, id, x, y, spawnDef, defId, onDeath, onTap);
   }
 
   enemy.damageable.onDamaged = (_amount, flavor) => {

@@ -45,7 +45,10 @@ export function buildGroundDecorLayer(
         ty * tileSize +
         tileSize / 2 +
         groundDecorJitter(ty, tx, seed ^ 0x85ebca6b, jitter);
-      const disp = worldDisplayPx(GROUND_DECOR_DISPLAY[key] ?? 24, scene.registry);
+      const disp = worldDisplayPx(
+        GROUND_DECOR_DISPLAY[key] ?? 24,
+        scene.registry,
+      );
       const spr = scene.add.image(x, y, key).setOrigin(0.5);
       spr.setDisplaySize(disp, disp);
       layer.add(spr);

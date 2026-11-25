@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { layoutRosterScrollbar } from "../rosterPanelShared";
-import type { PlannerRow, WavePlannerListLayout } from "./WavePlannerPanelBuild";
+import type {
+  PlannerRow,
+  WavePlannerListLayout,
+} from "./WavePlannerPanelBuild";
 
 const TAP_DRAG_THRESHOLD_PX = 10;
 
@@ -74,10 +77,16 @@ export class WavePlannerPanelScroll {
     });
   }
 
-  private pickVisibleRowAtScreen(screenX: number, screenY: number): string | null {
+  private pickVisibleRowAtScreen(
+    screenX: number,
+    screenY: number,
+  ): string | null {
     const { layout, listContent, rows } = this.view;
     if (screenX >= layout.numericColLeft) return null;
-    if (screenY < layout.listTop || screenY > layout.listTop + layout.listViewportH) {
+    if (
+      screenY < layout.listTop ||
+      screenY > layout.listTop + layout.listViewportH
+    ) {
       return null;
     }
     const contentY = screenY - listContent.y;

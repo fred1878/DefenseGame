@@ -40,6 +40,12 @@ export type EnemyCombatPartial = {
     fxStartMs?: number;
     /** Target on-screen VFX length in ms; default sheet natural duration. */
     fxDurationMs?: number;
+    /** Art px display width before world display scaling (melee swipe PVFX). */
+    vfxDisplayW?: number;
+    /** Art px display height before world display scaling. */
+    vfxDisplayH?: number;
+    /** Spawn offset along attack facing from attacker center (WU). */
+    vfxOffsetWu?: number;
   };
   /** Floor AoE (`arrowRainArcher` behavior). */
   arrowRain?: {
@@ -112,6 +118,8 @@ export type EnemyCombatPartial = {
     projectileSpeedWu?: number;
     blastRadiusWu?: number;
     blastDamageScale?: number;
+    /** Smoke / blast VFX diameter multiplier on `blastRadiusWu` at impact (dimensionless). */
+    impactVfxBlastMul?: number;
   };
   /** Bodyguard screening (`ward` behavior). */
   ward?: {
@@ -151,7 +159,10 @@ export type EnemyMeleeCombat = {
    * Optional target on-screen swipe length (ms). Omit → sheet plays at natural speed.
    * When set: `timeScale = natural / fxDurationMs` (faster or slower, not clipped early).
    */
-  fxDurationMs?: number;
+  fxDurationMs?: number | undefined;
+  vfxDisplayW: number;
+  vfxDisplayH: number;
+  vfxOffsetWu: number;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
 };
@@ -248,6 +259,7 @@ export type EnemyLobberCombat = {
   projectileSpeedWu: number;
   blastRadiusWu: number;
   blastDamageScale: number;
+  impactVfxBlastMul: number;
 };
 
 export type EnemyWardCombat = {

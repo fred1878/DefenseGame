@@ -52,17 +52,29 @@ describe("spellTargeting", () => {
   it("flags enemy, cone, and swing spells for auto-cast enemy aim", () => {
     expect(
       spellAutoCastNeedsEnemyTarget(
-        def({ id: "combustion", mechanicType: "instant_targeted", targetMode: "enemy" }),
+        def({
+          id: "combustion",
+          mechanicType: "instant_targeted",
+          targetMode: "enemy",
+        }),
       ),
     ).toBe(true);
-    expect(spellAutoCastNeedsEnemyTarget(def({ id: "cone_of_cold", mechanicType: "cone" }))).toBe(
-      true,
-    );
     expect(
-      spellAutoCastNeedsEnemyTarget(def({ id: "cone_of_fire", mechanicType: "channeled_cone" })),
+      spellAutoCastNeedsEnemyTarget(
+        def({ id: "cone_of_cold", mechanicType: "cone" }),
+      ),
     ).toBe(true);
-    expect(spellAutoCastNeedsEnemyTarget(def({ id: "rend", mechanicType: "swing" }))).toBe(true);
-    expect(spellAutoCastNeedsEnemyTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
+    expect(
+      spellAutoCastNeedsEnemyTarget(
+        def({ id: "cone_of_fire", mechanicType: "channeled_cone" }),
+      ),
+    ).toBe(true);
+    expect(
+      spellAutoCastNeedsEnemyTarget(def({ id: "rend", mechanicType: "swing" })),
+    ).toBe(true);
+    expect(
+      spellAutoCastNeedsEnemyTarget(def({ id: "heal", mechanicType: "heal" })),
+    ).toBe(false);
     expect(
       spellAutoCastNeedsEnemyTarget(
         def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
@@ -71,19 +83,31 @@ describe("spellTargeting", () => {
   });
 
   it("uses ranged enemy pick for bolt projectiles", () => {
-    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "water_bolt" }))).toBe(true);
-    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "arc_bomb", mechanicType: "projectile_aoe" }))).toBe(
+    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "water_bolt" }))).toBe(
       true,
     );
-    expect(spellAutoCastUsesRangedEnemyPick(def({ id: "cone_of_cold", mechanicType: "cone" }))).toBe(false);
+    expect(
+      spellAutoCastUsesRangedEnemyPick(
+        def({ id: "arc_bomb", mechanicType: "projectile_aoe" }),
+      ),
+    ).toBe(true);
+    expect(
+      spellAutoCastUsesRangedEnemyPick(
+        def({ id: "cone_of_cold", mechanicType: "cone" }),
+      ),
+    ).toBe(false);
   });
 
   it("flags directed spells that need enemy aim on cast", () => {
     expect(spellCastUsesEnemyAim(def({ id: "water_bolt" }))).toBe(true);
-    expect(spellCastUsesEnemyAim(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
-    expect(spellCastUsesEnemyAim(def({ id: "cone_of_fire", mechanicType: "channeled_cone" }))).toBe(
-      true,
-    );
+    expect(
+      spellCastUsesEnemyAim(def({ id: "heal", mechanicType: "heal" })),
+    ).toBe(false);
+    expect(
+      spellCastUsesEnemyAim(
+        def({ id: "cone_of_fire", mechanicType: "channeled_cone" }),
+      ),
+    ).toBe(true);
   });
 
   it("requires a combat target for auto-cast ground, enemy, and directional spells", () => {
@@ -94,17 +118,31 @@ describe("spellTargeting", () => {
     ).toBe(true);
     expect(
       spellAutoCastRequiresCombatTarget(
-        def({ id: "combustion", mechanicType: "instant_targeted", targetMode: "enemy" }),
+        def({
+          id: "combustion",
+          mechanicType: "instant_targeted",
+          targetMode: "enemy",
+        }),
       ),
     ).toBe(true);
-    expect(spellAutoCastRequiresCombatTarget(def({ id: "fireball", mechanicType: "projectile" }))).toBe(
-      true,
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "fireball", mechanicType: "projectile" }),
+      ),
+    ).toBe(true);
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "heal", mechanicType: "heal" }),
+      ),
+    ).toBe(false);
+    expect(spellTargetMode(def({ id: "blink", mechanicType: "blink" }))).toBe(
+      "self",
     );
-    expect(spellAutoCastRequiresCombatTarget(def({ id: "heal", mechanicType: "heal" }))).toBe(false);
-    expect(spellTargetMode(def({ id: "blink", mechanicType: "blink" }))).toBe("self");
-    expect(spellAutoCastRequiresCombatTarget(def({ id: "blink", mechanicType: "blink" }))).toBe(
-      false,
-    );
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "blink", mechanicType: "blink" }),
+      ),
+    ).toBe(false);
     expect(
       spellAutoCastRequiresCombatTarget(
         def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),

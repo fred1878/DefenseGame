@@ -26,19 +26,20 @@ const pvfxTextures = PVFX_FX_ASSETS.map((a) => a.key);
 describe("playMeteorStrikeFx", () => {
   it("is a no-op without the PVFX meteor texture", () => {
     const scene = fakeScene();
-    playMeteorStrikeFx(asScene(scene), 0, 0, 50);
+    playMeteorStrikeFx(asScene(scene), 0, 0, 50, false);
     expect(scene.created).toHaveLength(0);
   });
 
   it("scales to the blast (2.4x radius, min 96px) and self-destroys", () => {
     const scene = fakeScene({ textures: pvfxTextures });
     const register = vi.fn();
-    playMeteorStrikeFx(asScene(scene), 3, 4, 100, register);
-    playMeteorStrikeFx(asScene(scene), 3, 4, 10);
+    playMeteorStrikeFx(asScene(scene), 3, 4, 100, true, register);
+    playMeteorStrikeFx(asScene(scene), 3, 4, 10, false);
     const [big, small] = scene.made("sprite");
     expect(big!.args).toEqual([3, 4, PVFX_TEXTURE.meteorStrike]);
     expect(big!.last("setDisplaySize")).toEqual([240, 240]);
     expect(small!.last("setDisplaySize")).toEqual([96, 96]);
+    expect(big!.last("setFlipX")).toEqual([true]);
     expect(big!.last("play")).toEqual([PVFX_ANIM.meteorStrike]);
     expect(register).toHaveBeenCalledWith(big);
     big!.emit("animationcomplete");
@@ -80,7 +81,9 @@ describe("playIceWallSegmentEndFx", () => {
     playIceWallSegmentEndFx(asScene(scene), 1, 2, register);
     const [s] = scene.made("sprite");
     expect(s!.args).toEqual([1, 2, ICE_FX_TEXTURE.rootEnding]);
-    expect(s!.last("setDepth")).toEqual([DEFENSE_RENDER_DEPTH.obstacleBlock + 0.5]);
+    expect(s!.last("setDepth")).toEqual([
+      DEFENSE_RENDER_DEPTH.obstacleBlock + 0.5,
+    ]);
     expect(s!.last("setDisplaySize")).toEqual([
       ICE_FX_ROOT_DISPLAY_PX,
       ICE_FX_ROOT_DISPLAY_PX,
@@ -94,9 +97,9 @@ describe("playIceWallSegmentEndFx", () => {
 
 describe("SpellIceCastWindupFx", () => {
   it("requires the ice pack", () => {
-    expect(() => new SpellIceCastWindupFx(asScene(fakeScene())).start(0, 0, 500)).toThrow(
-      /frost cast windup/,
-    );
+    expect(() =>
+      new SpellIceCastWindupFx(asScene(fakeScene())).start(0, 0, 500),
+    ).toThrow(/frost cast windup/);
   });
 
   it("plays the cast start, retimes it to the cast, follows and stops", () => {
@@ -133,9 +136,9 @@ describe("SpellIceCastWindupFx", () => {
 
 describe("playBruiserMeleeCritHitOnPlayerFx", () => {
   it("requires the crit clip, then plays it once on the player", () => {
-    expect(() => playBruiserMeleeCritHitOnPlayerFx(asScene(fakeScene()), 0, 0)).toThrow(
-      /bruiser melee crit on player/,
-    );
+    expect(() =>
+      playBruiserMeleeCritHitOnPlayerFx(asScene(fakeScene()), 0, 0),
+    ).toThrow(/bruiser melee crit on player/);
     const scene = fakeScene({ textures: pvfxTextures });
     const register = vi.fn();
     playBruiserMeleeCritHitOnPlayerFx(asScene(scene), 4, 5, register);

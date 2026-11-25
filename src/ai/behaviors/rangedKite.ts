@@ -58,7 +58,11 @@ export function beginBehaviorFrame(ctx: EnemyBehaviorContext): BehaviorFrame {
 
 /** Behaviour result for this frame: always reports the resolved goal. */
 export function frameResult(frame: BehaviorFrame): BehaviorMoveResult {
-  return { targetX: frame.goal.x, targetY: frame.goal.y, targetKind: frame.desired };
+  return {
+    targetX: frame.goal.x,
+    targetY: frame.goal.y,
+    targetKind: frame.desired,
+  };
 }
 
 /** True when the replan timer expired or there is no path to follow. */

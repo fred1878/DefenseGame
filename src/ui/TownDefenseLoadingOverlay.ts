@@ -20,11 +20,20 @@ export class TownDefenseLoadingOverlay {
   private readonly statusText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
-    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townDefenseLoading);
+    this.modalLease = acquireModalInput(
+      scene,
+      INPUT_MODALITY.townDefenseLoading,
+    );
     this.root = scene.add.container(0, 0).setDepth(900).setScrollFactor(0);
 
-    const bg = scene.add
-      .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, BOOT_BG, 1);
+    const bg = scene.add.rectangle(
+      GAME.width / 2,
+      GAME.height / 2,
+      GAME.width,
+      GAME.height,
+      BOOT_BG,
+      1,
+    );
     bindModalDimBackdrop(bg);
     this.root.add(bg);
 

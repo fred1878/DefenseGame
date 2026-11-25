@@ -23,8 +23,6 @@ describe("townBuildIdLine", () => {
   });
 
   it("marks mismatch when b differs from embedded", () => {
-    expect(townBuildIdLine("newsha", "oldsha")).toBe(
-      "Build newsha · mismatch",
-    );
+    expect(townBuildIdLine("newsha", "oldsha")).toBe("Build newsha · mismatch");
   });
 });

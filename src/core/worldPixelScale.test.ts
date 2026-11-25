@@ -14,7 +14,9 @@ import {
   WORLD_PIXEL_SCALE_REGISTRY_KEY,
 } from "./worldPixelScale";
 
-function fakeRegistry(store: Record<string, unknown> = {}): Phaser.Data.DataManager {
+function fakeRegistry(
+  store: Record<string, unknown> = {},
+): Phaser.Data.DataManager {
   return {
     get: (key: string) => store[key],
     set: (key: string, value: unknown) => {
@@ -33,9 +35,9 @@ describe("worldPixelScale", () => {
   it("scales display sizes vs 2× baseline", () => {
     const reg = fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 1 });
     expect(worldDisplayPx(64, reg)).toBe(32);
-    expect(worldDisplayPx(64, fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 3 }))).toBe(
-      96,
-    );
+    expect(
+      worldDisplayPx(64, fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 3 })),
+    ).toBe(96);
     expect(worldUnit(42, reg)).toBe(21);
   });
 
@@ -45,8 +47,12 @@ describe("worldPixelScale", () => {
   });
 
   it("scales obstacle colliders for nav", () => {
-    const at1 = scaledDefenseObstacles(fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 1 }));
-    const at2 = scaledDefenseObstacles(fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 2 }));
+    const at1 = scaledDefenseObstacles(
+      fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 1 }),
+    );
+    const at2 = scaledDefenseObstacles(
+      fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 2 }),
+    );
     expect(at1[0]!.w).toBeCloseTo(at2[0]!.w * 0.5, 5);
     expect(at1[0]!.h).toBeCloseTo(at2[0]!.h * 0.5, 5);
   });
@@ -78,7 +84,11 @@ describe("worldPixelScale", () => {
     const game = {
       registry: fakeRegistry(store),
       events: { emit: vi.fn() },
-      scene: { getScene: () => ({ scene: { isActive: () => false, restart: vi.fn() } }) },
+      scene: {
+        getScene: () => ({
+          scene: { isActive: () => false, restart: vi.fn() },
+        }),
+      },
     } as unknown as Phaser.Game;
     expect(cycleDebugWorldPixelScale(game)).toBe(1);
   });

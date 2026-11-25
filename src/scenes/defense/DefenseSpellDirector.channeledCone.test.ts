@@ -46,7 +46,9 @@ function makeHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
     } as unknown as DefenseSpellDirectorHost["player"],
     enemies: [],
     projectiles: [],
-    targeting: { facingTarget: vi.fn() } as unknown as DefenseSpellDirectorHost["targeting"],
+    targeting: {
+      facingTarget: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["targeting"],
     spellCaster,
     spellInputQueue: {} as DefenseSpellDirectorHost["spellInputQueue"],
     enemySpellStatus: {
@@ -118,7 +120,9 @@ describe("DefenseSpellDirector channeled cone", () => {
     director.updateChanneling(250, { x: 0, y: 0 }, () => false);
 
     expect(coneSpy).toHaveBeenCalledTimes(1);
-    expect(strikeSpy.mock.calls.length + coneSpy.mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(
+      strikeSpy.mock.calls.length + coneSpy.mock.calls.length,
+    ).toBeGreaterThanOrEqual(3);
     expect(onHitSpy).toHaveBeenCalledTimes(3);
     const def = coneOfFire();
     expect(onHitSpy.mock.calls[0]?.[2]).toEqual(def.onHit);

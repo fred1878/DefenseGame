@@ -6,9 +6,7 @@ describe("pickAutoCastSpell", () => {
   const none: string[] = [];
 
   it("returns null when nothing is auto-enabled", () => {
-    expect(
-      pickAutoCastSpell(slots, none, false, () => 0, false),
-    ).toBeNull();
+    expect(pickAutoCastSpell(slots, none, false, () => 0, false)).toBeNull();
   });
 
   it("follows slot index priority among auto spell ids", () => {

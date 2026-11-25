@@ -66,7 +66,9 @@ export function drawDefenseTouchDebug(
   touchDebug.draw({
     stick: input.stick,
     excludeZones: input.stick.getDebugLayout().excludeZones,
-    uiScreenRects: collectInteractiveScreenRects(input.scene, { skip: skipDebug }),
+    uiScreenRects: collectInteractiveScreenRects(input.scene, {
+      skip: skipDebug,
+    }),
     pointerUiBlocked: input.pointerUiBlocked,
     focusFlash: focusTapFlash,
   });

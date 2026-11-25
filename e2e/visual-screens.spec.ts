@@ -2,7 +2,11 @@ import { fileURLToPath } from "node:url";
 import { expect, type Page, test } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
 import { getTapTarget, tapCanvas, waitForTapTargets } from "./helpers/touch";
-import { freezeGameLoop, installVisualDeterminism, waitFrames } from "./helpers/visual";
+import {
+  freezeGameLoop,
+  installVisualDeterminism,
+  waitFrames,
+} from "./helpers/visual";
 
 /**
  * Screenshot checks for the four main screens (Town, Endless panel with a
@@ -38,13 +42,18 @@ test.use({
   launchOptions: {
     env: {
       ...process.env,
-      FONTCONFIG_FILE: fileURLToPath(new URL("./fonts/fonts.conf", import.meta.url)),
+      FONTCONFIG_FILE: fileURLToPath(
+        new URL("./fonts/fonts.conf", import.meta.url),
+      ),
     },
   },
 });
 
 test.beforeEach(async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "chromium", "Baselines are Chromium desktop (540×1200) only");
+  test.skip(
+    testInfo.project.name !== "chromium",
+    "Baselines are Chromium desktop (540×1200) only",
+  );
   await installVisualDeterminism(page);
   await gotoE2E(page);
 });
@@ -62,7 +71,9 @@ test("visual: town", async ({ page }) => {
 });
 
 test("visual: endless panel with scrolled roster", async ({ page }) => {
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+  await page.evaluate(() =>
+    window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+  );
   await waitForTapTargets(page, ["endless-close", "endless-start"]);
   const state = await page.evaluate((dy) => {
     const api = window.__DEFENSEGAME_E2E__?.api;

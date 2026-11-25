@@ -27,6 +27,7 @@ export function evaluateNightEnd(input: {
   if (input.nightEnded) return false;
   if (input.wallHp <= 0) return { won: false };
   if (input.playerHp <= 0) return { won: false };
-  if (input.spawnPlanComplete && input.livingEnemies === 0) return { won: true };
+  if (input.spawnPlanComplete && input.livingEnemies === 0)
+    return { won: true };
   return false;
 }

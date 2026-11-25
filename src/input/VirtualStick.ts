@@ -1,7 +1,12 @@
 import Phaser from "phaser";
 import { STICK_POST_DRAG_TAP_SUPPRESS_MS } from "./inputTuning";
 
-export type ScreenRect = { x: number; y: number; width: number; height: number };
+export type ScreenRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export function pointInScreenRects(
   x: number,
@@ -9,11 +14,7 @@ export function pointInScreenRects(
   rects: ScreenRect[],
 ): boolean {
   return rects.some(
-    (z) =>
-      x >= z.x &&
-      x <= z.x + z.width &&
-      y >= z.y &&
-      y <= z.y + z.height,
+    (z) => x >= z.x && x <= z.x + z.width && y >= z.y && y <= z.y + z.height,
   );
 }
 
@@ -110,10 +111,12 @@ export class VirtualStick {
    */
   tryConsumeTap(
     pointer: Phaser.Input.Pointer,
-  ): { kind: "tap"; x: number; y: number } | { kind: "drag" } | { kind: "none" } {
+  ):
+    | { kind: "tap"; x: number; y: number }
+    | { kind: "drag" }
+    | { kind: "none" } {
     if (this.dragEndPointerId === pointer.id) {
-      const suppressing =
-        performance.now() < this.dragSuppressUntilMs;
+      const suppressing = performance.now() < this.dragSuppressUntilMs;
       this.dragEndPointerId = null;
       this.dragSuppressUntilMs = 0;
       if (suppressing) return { kind: "drag" };
@@ -277,7 +280,8 @@ export class VirtualStick {
     const hits = this.scene.input.hitTestPointer(pointer);
     for (const hit of hits) {
       if (hit === this.base || hit === this.knob) continue;
-      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject)) return true;
+      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject))
+        return true;
     }
     return false;
   }
@@ -288,8 +292,11 @@ export class VirtualStick {
       if (this.blockers.includes(node)) return true;
       if (node.input?.enabled) return true;
       const parent: Phaser.GameObjects.Container | null =
-        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-          .parentContainer ?? null;
+        (
+          node as Phaser.GameObjects.GameObject & {
+            parentContainer?: Phaser.GameObjects.Container;
+          }
+        ).parentContainer ?? null;
       node = parent;
     }
     return false;

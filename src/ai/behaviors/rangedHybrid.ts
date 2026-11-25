@@ -16,8 +16,16 @@ import {
 import { applyRetreatPathing } from "./retreatPathing";
 
 export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents, peerAllies } =
-    ctx;
+  const {
+    enemy,
+    nav,
+    grid,
+    playerX,
+    playerY,
+    deltaMs,
+    peerAgents,
+    peerAllies,
+  } = ctx;
   const hybrid = enemy.combatTuning.hybrid;
   const ranged = enemy.combatTuning.stationaryRanged;
   const extra = enemy.rangedHybrid;

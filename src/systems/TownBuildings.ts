@@ -45,12 +45,7 @@ export function townBuildingFootprintHitArea(
 ): Phaser.Geom.Rectangle {
   const width = townBuildingDisplayWidth(def, buildingDisplayScale);
   const height = townBuildingDisplayHeight(def, buildingDisplayScale);
-  return new Phaser.Geom.Rectangle(
-    -width / 2,
-    -height,
-    width,
-    height,
-  );
+  return new Phaser.Geom.Rectangle(-width / 2, -height, width, height);
 }
 
 function townBuildingOverlayLabelStyle(
@@ -83,7 +78,9 @@ export function spawnTownBuildingControls(
   for (const slot of layout.slots) {
     const def = defs[slot.buildingId];
     if (!def) {
-      console.warn(`Town layout references unknown building: ${slot.buildingId}`);
+      console.warn(
+        `Town layout references unknown building: ${slot.buildingId}`,
+      );
       continue;
     }
     if (!scene.textures.exists(def.textureKey)) {
@@ -94,9 +91,7 @@ export function spawnTownBuildingControls(
     const footX = slot.x;
     const footY = slot.y;
 
-    const container = scene.add
-      .container(footX, footY)
-      .setDepth(depth);
+    const container = scene.add.container(footX, footY).setDepth(depth);
 
     const sprite = scene.add
       .image(0, 0, def.textureKey)

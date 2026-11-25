@@ -17,14 +17,20 @@ describe("playCoinDeltaSfx", () => {
     const play = vi.fn();
     const scene = mockScene(play);
     playCoinDeltaSfx(scene, 100, 50);
-    expect(play).toHaveBeenCalledWith(COIN_SPEND_SFX_KEY, expect.objectContaining({ volume: expect.any(Number) }));
+    expect(play).toHaveBeenCalledWith(
+      COIN_SPEND_SFX_KEY,
+      expect.objectContaining({ volume: expect.any(Number) }),
+    );
   });
 
   it("plays gain when gold increases", () => {
     const play = vi.fn();
     const scene = mockScene(play);
     playCoinDeltaSfx(scene, 0, 40);
-    expect(play).toHaveBeenCalledWith(COIN_GAIN_SFX_KEY, expect.objectContaining({ volume: expect.any(Number) }));
+    expect(play).toHaveBeenCalledWith(
+      COIN_GAIN_SFX_KEY,
+      expect.objectContaining({ volume: expect.any(Number) }),
+    );
   });
 
   it("is silent when gold is unchanged", () => {

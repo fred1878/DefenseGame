@@ -115,14 +115,13 @@ export function findPath(
       const neighbor = nr * grid.cols + nc;
       // biome-ignore lint/suspicious/noApproximativeNumericConstant: keep the historical diagonal cost; Math.SQRT2 would change tie-breaks and enemy paths
       const stepCost = dc !== 0 && dr !== 0 ? 1.414 : 1;
-        const gCur = gScore[current] ?? Infinity;
-        const tentative = gCur + stepCost;
-        const gNei = gScore[neighbor] ?? Infinity;
-        if (tentative < gNei) {
-          cameFrom[neighbor] = current;
-          gScore[neighbor] = tentative;
-        fScore[neighbor] =
-          tentative + heuristic(nc, nr, goal.col, goal.row);
+      const gCur = gScore[current] ?? Infinity;
+      const tentative = gCur + stepCost;
+      const gNei = gScore[neighbor] ?? Infinity;
+      if (tentative < gNei) {
+        cameFrom[neighbor] = current;
+        gScore[neighbor] = tentative;
+        fScore[neighbor] = tentative + heuristic(nc, nr, goal.col, goal.row);
         if (!open.includes(neighbor)) open.push(neighbor);
       }
     }

@@ -26,7 +26,9 @@ export function spellTargetMode(def: SpellDefinition): SpellTargetMode {
 
 export function spellRequiresManualTarget(def: SpellDefinition): boolean {
   const mode = spellTargetMode(def);
-  return mode === "ground" || (mode === "enemy" && def.requireEnemyTarget === true);
+  return (
+    mode === "ground" || (mode === "enemy" && def.requireEnemyTarget === true)
+  );
 }
 
 export function spellUsesManualGroundAim(def: SpellDefinition): boolean {
@@ -64,16 +66,24 @@ export function spellAutoCastNeedsEnemyTarget(def: SpellDefinition): boolean {
  * Auto-cast waits for a living combat target before firing (manual cast unchanged).
  * Self-centered buffs/heals and caster-centered novas may still auto-cast with no enemies.
  */
-export function spellAutoCastRequiresCombatTarget(def: SpellDefinition): boolean {
+export function spellAutoCastRequiresCombatTarget(
+  def: SpellDefinition,
+): boolean {
   const mode = spellTargetMode(def);
   if (mode === "ground" || mode === "enemy") return true;
   if (spellAutoCastNeedsEnemyTarget(def)) return true;
-  return def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe";
+  return (
+    def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe"
+  );
 }
 
 /** Bolt-style projectiles always pick/auto-aim using ranged reach, not melee strike band. */
-export function spellAutoCastUsesRangedEnemyPick(def: SpellDefinition): boolean {
-  return def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe";
+export function spellAutoCastUsesRangedEnemyPick(
+  def: SpellDefinition,
+): boolean {
+  return (
+    def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe"
+  );
 }
 
 /** Spells that fire in the player's facing direction toward a combat target. */

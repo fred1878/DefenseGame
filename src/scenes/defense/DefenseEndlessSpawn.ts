@@ -15,7 +15,8 @@ export function endlessHudHeader(
 ): string {
   const sels = selections ?? [];
   if (sels.length === 0) return "Endless";
-  const first = store.enemies[sels[0]!.enemyId]?.displayName ?? sels[0]!.enemyId;
+  const first =
+    store.enemies[sels[0]!.enemyId]?.displayName ?? sels[0]!.enemyId;
   if (sels.length === 1) return `Endless · ${first}`;
   return `Endless · ${first} +${sels.length - 1}`;
 }

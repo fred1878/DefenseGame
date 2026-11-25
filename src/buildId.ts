@@ -8,10 +8,7 @@ export function shortBuildIdLabel(id: string): string {
 }
 
 /** Town HUD line: short build id, with match/mismatch when `?b=` is set. */
-export function townBuildIdLine(
-  embedded: string,
-  urlB: string | null,
-): string {
+export function townBuildIdLine(embedded: string, urlB: string | null): string {
   const base = `Build ${shortBuildIdLabel(embedded)}`;
   if (!urlB) return base;
   const ok = urlB === embedded;

@@ -12,10 +12,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
 import { chromium, devices } from "@playwright/test";
-import {
-  gotoDefenseReady,
-  gotoTownReady,
-} from "./lib/capture-preview.mjs";
+import { gotoDefenseReady, gotoTownReady } from "./lib/capture-preview.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const DATE_TAG = "2026-11-23";
@@ -55,8 +52,7 @@ async function waitForHttp(url, maxMs = 60_000) {
 }
 
 const defaultOutDir =
-  process.env.DEFENSE_HOLY_COMPARE_OUT_DIR ??
-  "/cursor/stores/self/media";
+  process.env.DEFENSE_HOLY_COMPARE_OUT_DIR ?? "/cursor/stores/self/media";
 
 function outWebm(kind) {
   mkdirSync(defaultOutDir, { recursive: true });

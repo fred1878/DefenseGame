@@ -13,7 +13,10 @@ function poolMap(scene: Phaser.Scene): SceneProjectilePool {
   return map;
 }
 
-function stashSprite(scene: Phaser.Scene, sprite: Phaser.Physics.Arcade.Sprite): void {
+function stashSprite(
+  scene: Phaser.Scene,
+  sprite: Phaser.Physics.Arcade.Sprite,
+): void {
   const key = sprite.texture.key;
   const stack = poolMap(scene).get(key) ?? [];
   stack.push(sprite);

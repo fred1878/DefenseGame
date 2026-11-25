@@ -5,11 +5,9 @@ export const DATA_FIELDS_MIN_DESCRIPTION_CHARS = 15;
 
 const PLACEHOLDER = /\b(TBD|TODO|FIXME|XXX)\b/i;
 
-const TABLE_FIELD_ROW =
-  /^\|\s*`([a-zA-Z][a-zA-Z0-9_]*)`\s*\|(.+)$/;
+const TABLE_FIELD_ROW = /^\|\s*`([a-zA-Z][a-zA-Z0-9_]*)`\s*\|(.+)$/;
 
-const BULLET_FIELD =
-  /^-\s*`([a-zA-Z][a-zA-Z0-9_]*)`(?:\s*[-—:]\s*(.+))?$/;
+const BULLET_FIELD = /^-\s*`([a-zA-Z][a-zA-Z0-9_]*)`(?:\s*[-—:]\s*(.+))?$/;
 
 export type DocumentedField = {
   key: string;
@@ -80,7 +78,12 @@ export function parseDocumentedFields(
       let description = bulletMatch[2]?.trim() ?? "";
       if (!description && i + 1 < lines.length) {
         const next = lines[i + 1]!.trim();
-        if (next && !next.startsWith("-") && !next.startsWith("|") && !next.startsWith("#")) {
+        if (
+          next &&
+          !next.startsWith("-") &&
+          !next.startsWith("|") &&
+          !next.startsWith("#")
+        ) {
           description = next;
           i += 1;
         }

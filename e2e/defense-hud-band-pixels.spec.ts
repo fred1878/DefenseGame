@@ -13,10 +13,9 @@ function assertBandBrighterThanPlay(
   play: PixelSample,
   label: string,
 ): void {
-  expect(
-    band.luminance,
-    `${label} luminance vs play area`,
-  ).toBeGreaterThan(play.luminance + HUD_BAND_MIN_LUMINANCE_LIFT);
+  expect(band.luminance, `${label} luminance vs play area`).toBeGreaterThan(
+    play.luminance + HUD_BAND_MIN_LUMINANCE_LIFT,
+  );
   expect(band.luminance, `${label} absolute luminance`).toBeGreaterThan(
     HUD_BAND_MIN_LUMINANCE,
   );
@@ -24,20 +23,22 @@ function assertBandBrighterThanPlay(
 }
 
 test.describe("@manual defense HUD band pixels", () => {
-  test("top and bottom bands are lighter than the play area", async ({ page }) => {
+  test("top and bottom bands are lighter than the play area", async ({
+    page,
+  }) => {
     await gotoE2E(page);
     await startDefense(page);
     await page.evaluate(async () => {
       await window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(120, 0);
     });
 
-  type HudBandSamples = Awaited<
-    ReturnType<
-      NonNullable<
-        NonNullable<typeof window.__DEFENSEGAME_E2E__>["api"]
-      >["sampleDefenseHudBandPixelsAsync"]
-    >
-  >;
+    type HudBandSamples = Awaited<
+      ReturnType<
+        NonNullable<
+          NonNullable<typeof window.__DEFENSEGAME_E2E__>["api"]
+        >["sampleDefenseHudBandPixelsAsync"]
+      >
+    >;
 
     let samples: HudBandSamples | null = null;
 

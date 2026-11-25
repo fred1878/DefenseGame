@@ -77,7 +77,9 @@ function remapSpellBarIds(spellBar: SaveSpellBar): SaveSpellBar {
   };
 }
 
-export type LegacySavePlayer = Partial<SaveGame["player"]> & { moveSpeed?: number };
+export type LegacySavePlayer = Partial<SaveGame["player"]> & {
+  moveSpeed?: number;
+};
 
 export function mergePlayerWithoutLegacyMoveSpeed(
   base: SaveGame["player"],
@@ -165,7 +167,10 @@ export function applyEndlessRunExit(
   };
 }
 
-export function applyNightResult(save: SaveGame, result: NightResult): SaveGame {
+export function applyNightResult(
+  save: SaveGame,
+  result: NightResult,
+): SaveGame {
   const next = { ...save, night: save.night + (result.won ? 1 : 0) };
   next.gold = save.gold + result.goldEarned;
   next.townWallHp = Math.max(0, save.townWallHp - result.wallDamage);
@@ -178,7 +183,9 @@ export function applyNightResult(save: SaveGame, result: NightResult): SaveGame 
   return next;
 }
 
-export function wallHpBonusFromBuildings(buildings: Record<string, number>): number {
+export function wallHpBonusFromBuildings(
+  buildings: Record<string, number>,
+): number {
   const wallLevel = buildings.wall ?? 0;
   return wallLevel * 50;
 }

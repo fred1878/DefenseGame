@@ -6,7 +6,9 @@ import {
   transitionDefenseToTown,
 } from "./DefenseNightEnd";
 
-function mockScene(opts: { defenseActive?: boolean; defensePaused?: boolean } = {}) {
+function mockScene(
+  opts: { defenseActive?: boolean; defensePaused?: boolean } = {},
+) {
   const defenseActive = opts.defenseActive ?? true;
   const defensePaused = opts.defensePaused ?? false;
   const delayedCalls: Array<() => void> = [];
@@ -15,9 +17,7 @@ function mockScene(opts: { defenseActive?: boolean; defensePaused?: boolean } = 
   const stop = vi.fn();
   const start = vi.fn();
   const get = vi.fn((key: string) =>
-    key === "DebugMenu"
-      ? { scene: { isActive: () => false } }
-      : null,
+    key === "DebugMenu" ? { scene: { isActive: () => false } } : null,
   );
   const registry = {
     data: new Map<string, unknown>(),
@@ -37,7 +37,8 @@ function mockScene(opts: { defenseActive?: boolean; defensePaused?: boolean } = 
     registry,
     scene: {
       get,
-      isActive: (key?: string) => (key === "Defense" ? defenseActive : defenseActive),
+      isActive: (key?: string) =>
+        key === "Defense" ? defenseActive : defenseActive,
       isPaused: (key: string) => (key === "Defense" ? defensePaused : false),
       start,
       stop,
@@ -61,7 +62,15 @@ function mockScene(opts: { defenseActive?: boolean; defensePaused?: boolean } = 
     },
   } as unknown as Phaser.Scene;
 
-  return { scene, start, stop, scheduled, delayedCalls, postStepHandlers, registry };
+  return {
+    scene,
+    start,
+    stop,
+    scheduled,
+    delayedCalls,
+    postStepHandlers,
+    registry,
+  };
 }
 
 describe("scheduleAfterPointerHandler", () => {

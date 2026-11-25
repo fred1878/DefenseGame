@@ -13,7 +13,11 @@ test.describe("real pointer / touch input", () => {
   test.beforeEach(async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);
-    await waitForTapTargets(page, ["combat-atk", "combat-mode", "spell-slot-0"]);
+    await waitForTapTargets(page, [
+      "combat-atk",
+      "combat-mode",
+      "spell-slot-0",
+    ]);
   });
 
   test("canvas tap on ATK starts melee swing", async ({ page }) => {
@@ -42,8 +46,8 @@ test.describe("real pointer / touch input", () => {
     await expect
       .poll(
         () =>
-          page.evaluate(
-            () => window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled(),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled(),
           ),
         { timeout: 15_000 },
       )
@@ -89,7 +93,10 @@ test.describe("real pointer / touch input", () => {
           page.evaluate(() => {
             const s = window.__DEFENSEGAME_E2E__;
             if (s?.scene !== "Defense") return Number.POSITIVE_INFINITY;
-            return (s.api?.getLivingEnemyHps() ?? []).reduce((a, b) => a + b, 0);
+            return (s.api?.getLivingEnemyHps() ?? []).reduce(
+              (a, b) => a + b,
+              0,
+            );
           }),
         { timeout: 20_000 },
       )
@@ -115,7 +122,9 @@ test.describe("real pointer / touch input", () => {
 
   test("stick does not start inside ATK cluster", async ({ page }) => {
     const atk = await getTapTarget(page, "combat-atk");
-    const before = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
+    const before = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.player,
+    );
     await tapCanvas(page, atk.x, atk.y);
     const after = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
     expect(Math.hypot(after!.x - before!.x, after!.y - before!.y)).toBeLessThan(
@@ -131,9 +140,8 @@ test.describe("real pointer / touch input", () => {
     await expect
       .poll(
         async () =>
-          page.evaluate(
-            () =>
-              window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-atk"),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-atk"),
           ),
         { timeout: 5_000 },
       )
@@ -159,24 +167,25 @@ test.describe("real pointer / touch input", () => {
     await expect
       .poll(
         async () =>
-          page.evaluate(
-            () => window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled(),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.getAutoAttackEnabled(),
           ),
         { timeout: 5_000 },
       )
       .toBe(!before);
   });
 
-  test("@manual pointer down shows pressed visual on combat-auto", async ({ page }) => {
+  test("@manual pointer down shows pressed visual on combat-auto", async ({
+    page,
+  }) => {
     await waitForTapTargets(page, ["combat-auto"]);
     const auto = await getTapTarget(page, "combat-auto");
     await holdCanvas(page, auto.x, auto.y);
     await expect
       .poll(
         async () =>
-          page.evaluate(
-            () =>
-              window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-auto"),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-auto"),
           ),
         { timeout: 3_000 },
       )
@@ -185,9 +194,8 @@ test.describe("real pointer / touch input", () => {
     await expect
       .poll(
         async () =>
-          page.evaluate(
-            () =>
-              window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-auto"),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("combat-auto"),
           ),
         { timeout: 3_000 },
       )
@@ -195,7 +203,9 @@ test.describe("real pointer / touch input", () => {
   });
 
   test("@manual DOM mirror ATK button", async ({ page }) => {
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors(),
+    );
     await page.locator('[data-testid="combat-atk"]').click({ force: true });
     await expect
       .poll(
