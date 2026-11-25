@@ -13,6 +13,7 @@ import {
 import {
   ENEMY_COMBAT_KIT_KEY_LISTS,
   ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY,
+  ENEMY_COMBAT_MELEE_OPTIONAL_KEYS,
 } from "./normalizeEnemyCombat";
 import {
   ENEMY_ROW_BOOT_KEYS,
@@ -41,6 +42,7 @@ function uniqueSorted(keys: readonly string[]): string[] {
 const ENEMY_COMBAT_SCALAR_KEYS = uniqueSorted([
   ...Object.values(ENEMY_COMBAT_KIT_KEY_LISTS).flat(),
   ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY,
+  ...ENEMY_COMBAT_MELEE_OPTIONAL_KEYS,
 ]);
 
 /** Boot- or schema-documented scalars per `public/data/*.json` file (CI parity set). */

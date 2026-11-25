@@ -36,6 +36,10 @@ export type EnemyCombatPartial = {
     activeMs?: number;
     recoveryMs?: number;
     cooldownMs?: number;
+    /** Ms after windup begins before melee swipe VFX spawns; default `windupMs`. */
+    fxStartMs?: number;
+    /** Target on-screen VFX length in ms; default sheet natural duration. */
+    fxDurationMs?: number;
   };
   /** Floor AoE (`arrowRainArcher` behavior). */
   arrowRain?: {
@@ -138,6 +142,13 @@ export type EnemyMeleeCombat = {
   activeMs: number;
   recoveryMs: number;
   cooldownMs: number;
+  /**
+   * Delay from swing windup start (idle→windup) until swipe VFX spawns.
+   * `0` = first windup frame; `windupMs` = active phase start (legacy default).
+   */
+  fxStartMs: number;
+  /** Target on-screen swipe VFX duration (ms); anim uses timeScale to match. */
+  fxDurationMs: number;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
 };
@@ -316,6 +327,7 @@ export function resolveEnemyCombat(
       behavior,
       combat.melee,
       `${root}.melee`,
+      enemyId,
     );
   }
   for (const section of behaviorCombatKitSections(behavior)) {

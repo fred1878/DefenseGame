@@ -20,7 +20,9 @@
         "windupMs": 100,
         "activeMs": 110,
         "recoveryMs": 300,
-        "cooldownMs": 350
+        "cooldownMs": 350,
+        "fxStartMs": 100,
+        "fxDurationMs": 750
       }
     },
     "weight": 100,
@@ -48,7 +50,9 @@
         "windupMs": 480,
         "activeMs": 130,
         "recoveryMs": 600,
-        "cooldownMs": 520
+        "cooldownMs": 520,
+        "fxStartMs": 480,
+        "fxDurationMs": 720
       }
     },
     "weight": 170,
@@ -108,7 +112,9 @@
         "windupMs": 150,
         "activeMs": 80,
         "recoveryMs": 120,
-        "cooldownMs": 180
+        "cooldownMs": 180,
+        "fxStartMs": 150,
+        "fxDurationMs": 600
       }
     },
     "weight": 70,
@@ -198,7 +204,9 @@
         "windupMs": 520,
         "activeMs": 140,
         "recoveryMs": 620,
-        "cooldownMs": 480
+        "cooldownMs": 480,
+        "fxStartMs": 520,
+        "fxDurationMs": 900
       },
       "wallSiege": {
         "playerAggroRadiusWu": 90
@@ -229,7 +237,9 @@
         "windupMs": 260,
         "activeMs": 80,
         "recoveryMs": 340,
-        "cooldownMs": 260
+        "cooldownMs": 260,
+        "fxStartMs": 260,
+        "fxDurationMs": 417
       },
       "wallSiege": {
         "playerAggroRadiusWu": 90
@@ -260,7 +270,9 @@
         "windupMs": 360,
         "activeMs": 110,
         "recoveryMs": 450,
-        "cooldownMs": 480
+        "cooldownMs": 480,
+        "fxStartMs": 360,
+        "fxDurationMs": 840
       },
       "charger": {
         "chargeDamage": 22,
@@ -329,7 +341,9 @@
         "windupMs": 100,
         "activeMs": 100,
         "recoveryMs": 50,
-        "cooldownMs": 200
+        "cooldownMs": 200,
+        "fxStartMs": 100,
+        "fxDurationMs": 1120
       },
       "stationaryRanged": {
         "damage": 10,
@@ -375,7 +389,9 @@
         "windupMs": 400,
         "activeMs": 110,
         "recoveryMs": 500,
-        "cooldownMs": 360
+        "cooldownMs": 360,
+        "fxStartMs": 400,
+        "fxDurationMs": 960
       },
       "ward": {
         "protectRadiusWu": 230,

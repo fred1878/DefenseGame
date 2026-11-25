@@ -1,4 +1,5 @@
 import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
+import { cancelEnemyMeleeFxTimer } from "../../combat/enemyMeleeFxSchedule";
 import type { EnemyInstance } from "../Enemy";
 import { clearEnemyAttackCommit } from "./attackCommit";
 
@@ -23,6 +24,7 @@ export function interruptEnemyAttack(enemy: EnemyInstance): void {
   c.phase = "idle";
   c.phaseMs = 0;
   c.hitThisSwing = false;
+  cancelEnemyMeleeFxTimer(c);
   c.slashFxShown = false;
   clearEnemyAttackCommit(c);
 }

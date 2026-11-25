@@ -3,6 +3,8 @@
   "maxHp": 100,
   "meleeWindupMs": 120,
   "meleeActiveMs": 120,
+  "meleeFxStartMs": 120,
+  "meleeFxDurationMs": 120,
   "meleeRecoveryMs": 260,
   "meleeStrikeRangeWu": 93,
   "meleeEngageTargetRadiusWu": 14,

@@ -1,4 +1,9 @@
-import { requireNumberFields, requireRecord } from "./configValidation";
+import { finalizeEnemyMeleeFxTiming } from "../combat/meleeFxTiming";
+import {
+  optionalFiniteNumber,
+  requireNumberFields,
+  requireRecord,
+} from "./configValidation";
 import type {
   EnemyArrowRainCombat,
   EnemyChargerCombat,
@@ -32,6 +37,10 @@ export const ENEMY_COMBAT_MELEE_KEYS = [
   "activeMs",
   "recoveryMs",
   "cooldownMs",
+] as const;
+export const ENEMY_COMBAT_MELEE_OPTIONAL_KEYS = [
+  "fxStartMs",
+  "fxDurationMs",
 ] as const;
 export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY = "meleeChaseStandoffWu" as const;
 export const ENEMY_COMBAT_ARROW_RAIN_KEYS = [
@@ -155,18 +164,38 @@ export function requireEnemyMeleeCombat(
   behavior: string,
   raw: unknown,
   path: string,
+  enemyId: string,
 ): EnemyMeleeCombat {
   const block = requireRecord(raw, path);
-  const base = requireNumberFields(block, ENEMY_COMBAT_MELEE_KEYS, path) as EnemyMeleeCombat;
-  if (!MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {
-    return base;
+  const base = requireNumberFields(block, ENEMY_COMBAT_MELEE_KEYS, path);
+  const fxStartMs = optionalFiniteNumber(
+    block.fxStartMs,
+    `${path}.fxStartMs`,
+  );
+  const fxDurationMs = optionalFiniteNumber(
+    block.fxDurationMs,
+    `${path}.fxDurationMs`,
+  );
+  const preFx: Parameters<typeof finalizeEnemyMeleeFxTiming>[1] = {
+    triggerRangeWu: base.triggerRangeWu!,
+    rangeWu: base.rangeWu!,
+    arcDeg: base.arcDeg!,
+    windupMs: base.windupMs!,
+    activeMs: base.activeMs!,
+    recoveryMs: base.recoveryMs!,
+    cooldownMs: base.cooldownMs!,
+    fxStartMs,
+    fxDurationMs,
+  };
+  if (MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {
+    const standoff = requireNumberFields(
+      block,
+      ["meleeChaseStandoffWu"],
+      path,
+    ).meleeChaseStandoffWu!;
+    preFx.meleeChaseStandoffWu = standoff;
   }
-  const standoff = requireNumberFields(
-    block,
-    ["meleeChaseStandoffWu"],
-    path,
-  ).meleeChaseStandoffWu!;
-  return { ...base, meleeChaseStandoffWu: standoff };
+  return finalizeEnemyMeleeFxTiming(enemyId, preFx);
 }
 
 export function requireEnemyArrowRainCombat(

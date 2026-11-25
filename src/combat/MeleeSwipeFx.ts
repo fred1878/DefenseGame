@@ -4,9 +4,11 @@ import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import {
   enemyMeleeFxSpec,
   enemyMeleeFxTransform,
+  meleeFxAnimDurationMs,
   meleeFxPackLoaded,
   type EnemyMeleeFxSpec,
 } from "../content/meleeFxAssets";
+import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
@@ -28,7 +30,7 @@ export function showPlayerMeleeSwipe(
   x: number,
   y: number,
   facingRad: number,
-  activeMs: number,
+  fxDurationMs: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   spawnSlashFade(
@@ -40,7 +42,7 @@ export function showPlayerMeleeSwipe(
     COMBAT_FX_TEXTURE.playerMelee,
     worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
     worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
-    activeMs,
+    fxDurationMs,
     PLAYER_MELEE_FX_DEPTH,
     registerWorldDraw,
   );
@@ -56,7 +58,7 @@ export function showEnemyMeleeSwipe(
   x: number,
   y: number,
   facingRad: number,
-  activeMs: number,
+  fxDurationMs: number,
 ): void {
   const spec = enemyMeleeFxSpec(enemyDefId);
   if (
@@ -65,9 +67,9 @@ export function showEnemyMeleeSwipe(
     scene.textures.exists(spec.textureKey) &&
     scene.anims.exists(spec.animKey)
   ) {
-    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, activeMs);
+    spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, fxDurationMs);
   } else {
-    spawnGruntMeleeFallback(scene, x, y, facingRad, activeMs);
+    spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs);
   }
   publishEnemyMeleeFxE2E(enemyDefId, facingRad);
 }
@@ -97,7 +99,7 @@ function spawnGruntMeleeFallback(
   x: number,
   y: number,
   facingRad: number,
-  activeMs: number,
+  fxDurationMs: number,
 ): void {
   spawnSlashFade(
     scene,
@@ -108,7 +110,7 @@ function spawnGruntMeleeFallback(
     COMBAT_FX_TEXTURE.gruntMelee,
     worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
     worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
-    activeMs,
+    fxDurationMs,
     DEFENSE_RENDER_DEPTH.enemyCombatFx,
   );
 }
@@ -119,7 +121,7 @@ function spawnEnemyMeleeAnim(
   x: number,
   y: number,
   facingRad: number,
-  _activeMs: number,
+  fxDurationMs: number,
 ): void {
   const offset = worldUnit(spec.offsetWu, scene.registry);
   const ox = x + Math.cos(facingRad) * offset;
@@ -136,6 +138,8 @@ function spawnEnemyMeleeAnim(
   sprite.setRotation(rotation);
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemyCombatFx);
   sprite.setAlpha(0.92);
+  const naturalMs = meleeFxAnimDurationMs(spec.clipId);
+  sprite.anims.timeScale = meleeFxPlaybackTimeScale(naturalMs, fxDurationMs);
   sprite.play(spec.animKey);
   sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
     sprite.destroy();

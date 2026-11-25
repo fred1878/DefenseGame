@@ -39,11 +39,20 @@ export type SpellBlastFxDef = {
 /** Player melee/ranged attacks, auto-attack, swipe FX and spell blast flashes. */
 export class DefensePlayerCombat {
   private prevPlayerAttackPhase: AttackPhase = "idle";
+  private playerMeleeFxScheduled = false;
+  private playerMeleeFxTimer?: Phaser.Time.TimerEvent;
 
   constructor(private readonly host: DefensePlayerCombatHost) {}
 
   resetForNewRun(): void {
+    this.cancelPlayerMeleeFxTimer();
     this.prevPlayerAttackPhase = "idle";
+    this.playerMeleeFxScheduled = false;
+  }
+
+  private cancelPlayerMeleeFxTimer(): void {
+    this.playerMeleeFxTimer?.remove(false);
+    this.playerMeleeFxTimer = undefined;
   }
 
   flashNova(x: number, y: number, radius: number, def?: SpellBlastFxDef): void {
@@ -134,20 +143,38 @@ export class DefensePlayerCombat {
   syncMeleeSwipeFx(): void {
     const { player } = this.host;
     const phase = player.attackPhaseNow;
-    if (
-      phase === "active" &&
-      this.prevPlayerAttackPhase !== "active" &&
-      player.strikeMode() === "melee"
+    const melee = player.strikeMode() === "melee";
+
+    if (phase === "idle") {
+      this.cancelPlayerMeleeFxTimer();
+      this.playerMeleeFxScheduled = false;
+    } else if (
+      melee &&
+      phase === "windup" &&
+      this.prevPlayerAttackPhase !== "windup" &&
+      !this.playerMeleeFxScheduled
     ) {
-      showPlayerMeleeSwipe(
-        this.host.scene,
-        player.sprite.x,
-        player.sprite.y,
-        player.meleeHitboxFacingRad(),
-        PLAYER_TUNING.meleeActiveMs,
-        this.host.registerWorldDraw,
+      this.playerMeleeFxScheduled = true;
+      this.cancelPlayerMeleeFxTimer();
+      const scene = this.host.scene;
+      this.playerMeleeFxTimer = scene.time.delayedCall(
+        PLAYER_TUNING.meleeFxStartMs,
+        () => {
+          this.playerMeleeFxTimer = undefined;
+          if (player.attackPhaseNow === "idle" || player.strikeMode() !== "melee") {
+            return;
+          }
+          showPlayerMeleeSwipe(
+            scene,
+            player.sprite.x,
+            player.sprite.y,
+            player.meleeHitboxFacingRad(),
+            PLAYER_TUNING.meleeFxDurationMs,
+            this.host.registerWorldDraw,
+          );
+          playPlayerMeleeSlashSfx(scene);
+        },
       );
-      playPlayerMeleeSlashSfx(this.host.scene);
     }
     this.prevPlayerAttackPhase = phase;
   }

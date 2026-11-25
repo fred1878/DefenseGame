@@ -1,4 +1,8 @@
 import Phaser from "phaser";
+import {
+  cancelEnemyMeleeFxTimer,
+  scheduleEnemyMeleeFx,
+} from "../combat/enemyMeleeFxSchedule";
 import { setEnemyChaseVelocity } from "../combat/enemyKnockback";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import { worldUnit } from "../core/worldPixelScale";
@@ -42,8 +46,12 @@ export type EnemyCombatState = {
   phaseMs: number;
   cooldownMs: number;
   hitThisSwing: boolean;
-  /** Set when DefenseScene spawns melee swipe FX for this swing. */
+  /**
+   * Set when swipe FX is scheduled for this swing (`delayedCall` from windup).
+   * Cleared on new windup or interrupt.
+   */
   slashFxShown: boolean;
+  slashFxTimer?: Phaser.Time.TimerEvent;
   facing: number;
   attackTargetKind: EnemyAttackTarget["kind"] | null;
   commitAimX: number;
@@ -113,7 +121,9 @@ export function updateEnemyCombat(
     c.phase = "windup";
     c.phaseMs = 0;
     c.hitThisSwing = false;
+    cancelEnemyMeleeFxTimer(c);
     c.slashFxShown = false;
+    scheduleEnemyMeleeFx(enemy);
     const aimX = target.kind === "player" ? target.x : target.x;
     const aimY = target.kind === "player" ? target.y : target.y;
     commitEnemyAttack(

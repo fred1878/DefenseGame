@@ -36,3 +36,12 @@ export function requireNumberFields(
   }
   return out;
 }
+
+/** Optional numeric field; throws when present but not a finite number. */
+export function optionalFiniteNumber(
+  value: unknown,
+  path: string,
+): number | undefined {
+  if (value === undefined) return undefined;
+  return requireFiniteNumber(value, path);
+}
