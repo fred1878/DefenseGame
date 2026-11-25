@@ -8,7 +8,10 @@ import {
   type EnemyInstance,
 } from "../../entities/Enemy";
 import { cancelEnemyMeleeFxTimer } from "../../combat/enemyMeleeFxSchedule";
-import { destroyEnemyNameplate } from "../../ui/enemyNameplate";
+import {
+  destroyEnemyNameplate,
+  stashEnemyNameplateForPool,
+} from "../../ui/enemyNameplate";
 
 export type DefenseEnemySpawnerHooks = {
   onRemovedFromPlay: () => void;
@@ -61,6 +64,7 @@ function releaseDefenseEnemyToPool(
   if (body) body.enable = false;
   enemy.sprite.setActive(false).setVisible(false);
   host.enemyGroup.remove(enemy.sprite);
+  stashEnemyNameplateForPool(enemy.nameplate, host.scene);
 
   enemyPoolFor(host.scene).inactive.push(enemy);
   host.hooks.onRemovedFromPlay();

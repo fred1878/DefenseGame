@@ -101,7 +101,7 @@ export function updateEnemyNameplate(
   drawHpBar(plate, hp / maxHp);
 }
 
-/** Fade nameplate on death, then reset for reuse (enemy pooling). */
+/** Fade nameplate on death, then stash hidden for the inactive pool (PR12). */
 export function recycleEnemyNameplateAfterDeath(
   plate: EnemyNameplate | undefined,
   scene: Phaser.Scene,
@@ -119,11 +119,31 @@ export function recycleEnemyNameplateAfterDeath(
     duration: 160,
     ease: "Quad.Out",
     onComplete: () => {
-      plate.dying = false;
-      plate.container.setAlpha(1);
+      stashEnemyNameplateForPool(plate, scene);
       onComplete();
     },
   });
+}
+
+/** Kill death tweens and hide until the shell respawns from the pool. */
+export function stashEnemyNameplateForPool(
+  plate: EnemyNameplate,
+  scene: Phaser.Scene,
+): void {
+  scene.tweens.killTweensOf(plate.container);
+  plate.dying = false;
+  plate.container.setAlpha(0);
+  plate.container.setVisible(false);
+}
+
+/** Call when reconfiguring a pooled enemy so nameplate sync cannot be skipped. */
+export function prepareEnemyNameplateForRespawn(
+  plate: EnemyNameplate,
+  scene: Phaser.Scene,
+): void {
+  stashEnemyNameplateForPool(plate, scene);
+  plate.container.setVisible(true);
+  plate.container.setAlpha(1);
 }
 
 export function destroyEnemyNameplate(plate: EnemyNameplate | undefined): void {
