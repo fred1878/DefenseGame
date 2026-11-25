@@ -1,4 +1,4 @@
-import { describe, expect, it, type vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid, cellToWorldCenter } from "../../pathfinding/grid";
 import { hasLineOfSight } from "../../pathfinding/los";
@@ -328,4 +328,32 @@ describe("meleeChaserBehavior", () => {
       ),
     ).toBeLessThan(0.2);
   });
+});
+
+it("holds at the wall when the player is far away", () => {
+  const navGrid = buildNavGrid(
+    [],
+    DEFENSE_MAP.cellSize,
+    DEFENSE_MAP.pathClearancePx,
+  );
+  const enemy = mockEnemyInstance({
+    behavior: "meleeChaser",
+    defId: "grunt",
+    sprite: {
+      x: 0,
+      y: -400,
+      setVelocity: vi.fn(),
+      scene: { registry: { get: () => undefined } },
+    } as never,
+  });
+  const result = meleeChaserBehavior({
+    enemy,
+    nav: { ...createEnemyNav(), replanMs: 0 },
+    grid: navGrid,
+    playerX: 10_000,
+    playerY: 10_000,
+    deltaMs: 16,
+  });
+  expect(result.targetKind).toBe("wall");
+  expect(enemy.sprite.setVelocity).toHaveBeenCalled();
 });

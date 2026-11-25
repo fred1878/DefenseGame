@@ -235,3 +235,31 @@ describe("GameState save persistence", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("GameState bar length", () => {
+  it("trims a spell bar that has more slots than the current bar allows", () => {
+    const key = saveStorageKey();
+    const items = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => items.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        items.set(k, v);
+      },
+      removeItem: (k: string) => {
+        items.delete(k);
+      },
+    });
+    const save = createNewSave();
+    const oversized = {
+      ...save,
+      spellBar: {
+        ...save.spellBar,
+        slots: [...save.spellBar.slots, "fire_bolt", "heal", "meteor"],
+      },
+    };
+    items.set(key, JSON.stringify({ version: SAVE_VERSION, save: oversized }));
+    const loaded = loadSave();
+    expect(loaded.spellBar.slots).toHaveLength(SPELL_BAR.slotCount);
+    vi.unstubAllGlobals();
+  });
+});

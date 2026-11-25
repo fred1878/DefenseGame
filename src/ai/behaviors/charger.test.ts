@@ -165,4 +165,76 @@ describe("chargerBehavior", () => {
     expect(vx).toBeGreaterThan(0);
     expect(Math.abs(vy)).toBeLessThan(0.01);
   });
+
+  it("dashes east when windup ends on top of the aim point", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      sprite: {
+        x: 5,
+        y: 7,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    enemy.combatTuning.charger = testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeWindupMs = 8;
+    enemy.behaviorExtra.chargeAimX = 5;
+    enemy.behaviorExtra.chargeAimY = 7;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 5,
+      playerY: 7,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.chargeDashDirX).toBe(1);
+    expect(enemy.behaviorExtra.chargeDashDirY).toBe(0);
+    expect(enemy.behaviorExtra.chargeActiveMs).toBe(
+      testChargerCombat.dashDurationMs,
+    );
+  });
+
+  it("uses the default dash speed when the tune omits it, and ticks cooldown", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      speedWu: 80,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    const { dashSpeedMul: _omit, ...rest } = testChargerCombat;
+    void _omit;
+    enemy.combatTuning.charger = rest as typeof testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeActiveMs = 40;
+    enemy.behaviorExtra.chargeDashDirX = 1;
+    enemy.behaviorExtra.chargeDashDirY = 0;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 80,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+
+    enemy.behaviorExtra.chargeActiveMs = 0;
+    enemy.behaviorExtra.chargeWindupMs = 0;
+    enemy.behaviorExtra.chargeCooldownMs = 50;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 80,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.chargeCooldownMs).toBe(34);
+  });
 });

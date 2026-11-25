@@ -3,7 +3,10 @@ import type { ArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { createLobberCombatState } from "./types";
-import { updateLobberCombat } from "./lobberCombat";
+import {
+  clearLobberAirborneTelegraph,
+  updateLobberCombat,
+} from "./lobberCombat";
 import { mockEnemyInstance } from "../testEnemyInstance";
 
 describe("updateLobberCombat attack commit", () => {
@@ -138,5 +141,69 @@ describe("updateLobberCombat attack commit", () => {
 
     expect(gfx.destroy).not.toHaveBeenCalled();
     expect(enemy.lobber!.telegraph).toBe(telegraph);
+  });
+
+  it("starts a windup when idle and the target is in the volley band", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "lobber",
+      combatTuning,
+      damage: 12,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: {
+          add: {
+            graphics: vi.fn(() => {
+              const gfx = {
+                destroy: vi.fn(),
+                clear: vi.fn(),
+                fillStyle: vi.fn(),
+                fillCircle: vi.fn(),
+                lineStyle: vi.fn(),
+                strokeCircle: vi.fn(),
+                setDepth: vi.fn(),
+              };
+              gfx.setDepth.mockReturnValue(gfx);
+              return gfx;
+            }),
+          },
+          registry: { get: () => undefined },
+        },
+      } as never,
+    });
+    enemy.lobber = createLobberCombatState();
+    enemy.combat.phase = "idle";
+    enemy.combat.cooldownMs = 0;
+    updateLobberCombat(
+      enemy,
+      {
+        kind: "player",
+        x: 100,
+        y: 0,
+        radius: 12,
+        damageable: { id: "p", hp: 10, maxHp: 10, alive: true, team: "player" },
+      },
+      enemy.lobber,
+      16,
+    );
+    expect(enemy.combat.phase).toBe("windup");
+    expect(enemy.lobber.telegraph).toBeDefined();
+  });
+
+  it("clears an airborne telegraph once the lob lands", () => {
+    const enemy = mockEnemyInstance({ behavior: "lobber", combatTuning });
+    const gfx = { destroy: vi.fn() };
+    enemy.lobber = {
+      ...createLobberCombatState(),
+      lobAirborne: true,
+      telegraph: { gfx } as unknown as ArrowRainTelegraph,
+    };
+    clearLobberAirborneTelegraph(enemy);
+    expect(enemy.lobber.lobAirborne).toBe(false);
+    expect(enemy.lobber.telegraph).toBeUndefined();
+    expect(gfx.destroy).toHaveBeenCalled();
+    clearLobberAirborneTelegraph(enemy);
+    expect(gfx.destroy).toHaveBeenCalledOnce();
   });
 });
