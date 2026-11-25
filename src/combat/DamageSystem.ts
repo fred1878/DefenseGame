@@ -1,4 +1,10 @@
-export const DAMAGE_FLAVORS = ["fire", "frost", "physical", "water"] as const;
+export const DAMAGE_FLAVORS = [
+  "fire",
+  "frost",
+  "physical",
+  "water",
+  "lightning",
+] as const;
 
 export type DamageFlavor = (typeof DAMAGE_FLAVORS)[number];
 
@@ -19,6 +25,7 @@ export type Damageable = {
   team: "player" | "enemy";
   onDeath?: () => void;
   onDamaged?: (amount: number, flavor: DamageFlavor) => void;
+  onHealed?: (amount: number) => void;
 };
 
 export function applyDamage(

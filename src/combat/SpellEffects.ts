@@ -471,8 +471,11 @@ export function spawnChanneledFireball(
 
 export function applyHealAmount(damageable: Damageable, amount: number): void {
   if (amount <= 0) return;
+  const before = damageable.hp;
   damageable.hp = Math.min(damageable.maxHp, damageable.hp + amount);
   damageable.alive = damageable.hp > 0;
+  const applied = damageable.hp - before;
+  if (applied > 0) damageable.onHealed?.(applied);
 }
 
 export function applyChanneledHeal(

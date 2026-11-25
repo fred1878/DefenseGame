@@ -50,6 +50,7 @@ describe("HitFlash", () => {
     expect(hitFlashTintFor("physical")).toBe(16777215);
     expect(hitFlashTintFor("frost")).toBe(10075895);
     expect(hitFlashTintFor("water")).toBe(7254992);
+    expect(hitFlashTintFor("lightning")).toBe(16761446);
     expect(hitFlashTintFor("water")).toBeLessThan(hitFlashTintFor("frost"));
   });
 

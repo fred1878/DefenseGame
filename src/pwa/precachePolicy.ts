@@ -7,10 +7,10 @@ export const PWA_BACKGROUND_COLOR = "#0f1014";
 /**
  * Built-file globs for the service-worker precache.
  * Covers hashed JS chunks (including the custom Phaser vendor chunk and
- * lazy-loaded scene chunks), CSS, HTML, icons, JSON data, and audio.
+ * lazy-loaded scene chunks), CSS, HTML, icons, JSON data, audio, and fonts.
  */
 export const PWA_PRECACHE_GLOB_PATTERNS = [
-  "**/*.{js,css,html,ico,png,svg,webmanifest,json,mp3,woff,woff2}",
+  "**/*.{js,css,html,ico,png,svg,webmanifest,json,mp3,woff,woff2,ttf}",
 ];
 
 /**

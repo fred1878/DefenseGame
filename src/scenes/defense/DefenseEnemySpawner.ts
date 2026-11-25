@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
 import { flashSpriteTint } from "../../combat/HitFlash";
+import type { DamageFlavor } from "../../combat/DamageSystem";
 import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
 import type { DataStore, EnemyDef } from "../../core/DataStore";
 import {
@@ -25,6 +26,11 @@ export type DefenseEnemySpawnerHost = {
   enemyGroup: Phaser.Physics.Arcade.Group;
   hooks: DefenseEnemySpawnerHooks;
   maskWorldObject?: (go: Phaser.GameObjects.GameObject) => void;
+  notifyDamaged?: (
+    enemy: EnemyInstance,
+    amount: number,
+    flavor: DamageFlavor,
+  ) => void;
 };
 
 type SceneEnemyPool = {
@@ -126,8 +132,9 @@ export function spawnDefenseEnemyAt(
     enemy = spawnEnemy(host.scene, id, x, y, spawnDef, defId, onDeath, onTap);
   }
 
-  enemy.damageable.onDamaged = (_amount, flavor) => {
+  enemy.damageable.onDamaged = (amount, flavor) => {
     flashSpriteTint(host.scene, enemy.sprite, flavor);
+    host.notifyDamaged?.(enemy, amount, flavor);
   };
   host.enemyGroup.add(enemy.sprite);
   host.maskWorldObject?.(enemy.sprite);

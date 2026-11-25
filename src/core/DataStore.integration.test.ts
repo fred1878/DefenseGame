@@ -311,7 +311,7 @@ describe("public data fixtures", () => {
       >;
     };
     expectFiniteNumber(hitFlash.durationMs, "hit-flash.durationMs");
-    for (const flavor of ["physical", "fire", "frost", "water"]) {
+    for (const flavor of ["physical", "fire", "frost", "water", "lightning"]) {
       const entry = hitFlash.flavors[flavor];
       expect(entry, `hit-flash.flavors.${flavor}`).toBeDefined();
       expectFiniteNumber(entry!.tint, `hit-flash.flavors.${flavor}.tint`);
