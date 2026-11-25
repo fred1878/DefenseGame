@@ -7,6 +7,8 @@ export async function canvasLocator(page: Page) {
   return page.locator("#game canvas");
 }
 
+export type CanvasBox = { x: number; y: number; width: number; height: number };
+
 /** Map Phaser pointer coords (540×1200) to an offset within the canvas element. */
 export async function gameToCanvasPosition(
   page: Page,
@@ -21,26 +23,36 @@ export async function gameToCanvasPosition(
   };
 }
 
-/** Press at game coords, drag to another point, release (Phaser pointer events). */
+/**
+ * Press at game coords, drag to another point, release (Phaser pointer events).
+ *
+ * Reads the canvas box once: each extra protocol round trip waits on the
+ * renderer, which is slow under CI's software WebGL when a modal panel is open.
+ */
 export async function dragCanvas(
   page: Page,
   fromGameX: number,
   fromGameY: number,
   toGameX: number,
   toGameY: number,
+  {
+    steps = 8,
+    canvasBox,
+  }: {
+    steps?: number;
+    /** Canvas page rect already read in-page (skips a `boundingBox()` round trip). */
+    canvasBox?: CanvasBox;
+  } = {},
 ): Promise<void> {
-  const canvas = await canvasLocator(page);
-  const box = await canvas.boundingBox();
+  const box = canvasBox ?? (await (await canvasLocator(page)).boundingBox());
   if (!box) throw new Error("Canvas bounding box missing");
-  const from = await gameToCanvasPosition(page, fromGameX, fromGameY);
-  const to = await gameToCanvasPosition(page, toGameX, toGameY);
-  const startX = box.x + from.x;
-  const startY = box.y + from.y;
-  const endX = box.x + to.x;
-  const endY = box.y + to.y;
+  const startX = box.x + (fromGameX / GAME_W) * box.width;
+  const startY = box.y + (fromGameY / GAME_H) * box.height;
+  const endX = box.x + (toGameX / GAME_W) * box.width;
+  const endY = box.y + (toGameY / GAME_H) * box.height;
   await page.mouse.move(startX, startY);
   await page.mouse.down();
-  await page.mouse.move(endX, endY, { steps: 8 });
+  await page.mouse.move(endX, endY, { steps });
   await page.mouse.up();
 }
 
