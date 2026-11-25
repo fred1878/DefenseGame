@@ -30,7 +30,8 @@ export function showPlayerMeleeSwipe(
   x: number,
   y: number,
   facingRad: number,
-  fxDurationMs: number,
+  fxDurationMs: number | undefined,
+  naturalFadeMs: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   spawnSlashFade(
@@ -43,6 +44,7 @@ export function showPlayerMeleeSwipe(
     worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
     worldDisplayPx(SPRITE_DISPLAY.playerMeleeSlash, scene.registry),
     fxDurationMs,
+    naturalFadeMs,
     PLAYER_MELEE_FX_DEPTH,
     registerWorldDraw,
   );
@@ -58,7 +60,8 @@ export function showEnemyMeleeSwipe(
   x: number,
   y: number,
   facingRad: number,
-  fxDurationMs: number,
+  fxDurationMs: number | undefined,
+  fallbackNaturalMs: number,
 ): void {
   const spec = enemyMeleeFxSpec(enemyDefId);
   if (
@@ -69,7 +72,7 @@ export function showEnemyMeleeSwipe(
   ) {
     spawnEnemyMeleeAnim(scene, spec, x, y, facingRad, fxDurationMs);
   } else {
-    spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs);
+    spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs, fallbackNaturalMs);
   }
   publishEnemyMeleeFxE2E(enemyDefId, facingRad);
 }
@@ -99,7 +102,8 @@ function spawnGruntMeleeFallback(
   x: number,
   y: number,
   facingRad: number,
-  fxDurationMs: number,
+  fxDurationMs: number | undefined,
+  naturalFadeMs: number,
 ): void {
   spawnSlashFade(
     scene,
@@ -111,6 +115,7 @@ function spawnGruntMeleeFallback(
     worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
     worldDisplayPx(SPRITE_DISPLAY.gruntMeleeSlash, scene.registry),
     fxDurationMs,
+    naturalFadeMs,
     DEFENSE_RENDER_DEPTH.enemyCombatFx,
   );
 }
@@ -121,7 +126,7 @@ function spawnEnemyMeleeAnim(
   x: number,
   y: number,
   facingRad: number,
-  fxDurationMs: number,
+  fxDurationMs: number | undefined,
 ): void {
   const offset = worldUnit(spec.offsetWu, scene.registry);
   const ox = x + Math.cos(facingRad) * offset;
@@ -155,7 +160,8 @@ function spawnSlashFade(
   textureKey: string,
   displayW: number,
   displayH: number,
-  holdMs: number,
+  targetDurationMs: number | undefined,
+  naturalDurationMs: number,
   depth: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
@@ -171,12 +177,20 @@ function spawnSlashFade(
   if (isE2EEnabled() && textureKey === COMBAT_FX_TEXTURE.playerMelee) {
     publishE2E({ flags: { meleeFxSpawned: 1 } });
   }
-  const fadeMs = Math.max(80, holdMs - 40);
+  let fadeMs: number;
+  let delayMs: number;
+  if (targetDurationMs === undefined) {
+    fadeMs = Math.max(80, naturalDurationMs - 40);
+    delayMs = Math.min(40, naturalDurationMs * 0.25);
+  } else {
+    fadeMs = targetDurationMs;
+    delayMs = 0;
+  }
   scene.tweens.add({
     targets: img,
     alpha: 0,
     duration: fadeMs,
-    delay: Math.min(40, holdMs * 0.25),
+    delay: delayMs,
     ease: "Quad.easeOut",
     onComplete: () => img.destroy(),
   });

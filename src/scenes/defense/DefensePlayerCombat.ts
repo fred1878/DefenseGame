@@ -170,6 +170,7 @@ export class DefensePlayerCombat {
             player.sprite.y,
             player.meleeHitboxFacingRad(),
             PLAYER_TUNING.meleeFxDurationMs,
+            PLAYER_TUNING.meleeActiveMs,
             this.host.registerWorldDraw,
           );
           playPlayerMeleeSlashSfx(scene);

@@ -784,7 +784,7 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
   label.setOrigin(0.5, 0.5);
   scene.time.delayedCall(2200, () => label.destroy());
   const activeMs = enemy?.combatTuning.melee?.activeMs ?? 220;
-  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, activeMs);
+  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, undefined, activeMs);
   return { facingRad, spriteRotation, flipX: pose.flipX, offX, side };
 }
 

@@ -147,8 +147,11 @@ export type EnemyMeleeCombat = {
    * `0` = first windup frame; required in JSON (boot).
    */
   fxStartMs: number;
-  /** Target on-screen swipe VFX duration (ms); anim uses timeScale to match. */
-  fxDurationMs: number;
+  /**
+   * Optional target on-screen swipe length (ms). Omit → sheet plays at natural speed.
+   * When set: `timeScale = natural / fxDurationMs` (faster or slower, not clipped early).
+   */
+  fxDurationMs?: number;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
 };

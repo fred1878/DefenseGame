@@ -1,42 +1,30 @@
-import {
-  enemyMeleeFxClipId,
-  meleeFxAnimDurationMs,
-} from "../content/meleeFxAssets";
 import type { EnemyMeleeCombat } from "../core/enemyTuning";
 
 /**
  * `fxStartMs` in data is delay from swing windup start (idle→windup), not from active.
  * Required in JSON — no runtime default.
  */
-export function defaultEnemyMeleeFxDurationMs(
-  enemyDefId: string,
-  activeMs: number,
-): number {
-  const clipId = enemyMeleeFxClipId(enemyDefId);
-  if (!clipId) return activeMs;
-  const natural = meleeFxAnimDurationMs(clipId);
-  return natural > 0 ? natural : activeMs;
-}
-
 export function finalizeEnemyMeleeFxTiming(
-  enemyDefId: string,
-  melee: Omit<EnemyMeleeCombat, "fxDurationMs"> & {
-    fxDurationMs?: number;
-  },
+  _enemyDefId: string,
+  melee: EnemyMeleeCombat,
 ): EnemyMeleeCombat {
-  return {
-    ...melee,
-    fxDurationMs:
-      melee.fxDurationMs ??
-      defaultEnemyMeleeFxDurationMs(enemyDefId, melee.activeMs),
-  };
+  return melee;
 }
 
-/** Phaser `anims.timeScale` so sheet playback lasts `fxDurationMs` on screen. */
+/**
+ * Phaser `anims.timeScale` for enemy sheets.
+ * Omit target → 1 (natural speed). Shorter target → speed up; longer → slow/stretch.
+ */
 export function meleeFxPlaybackTimeScale(
   naturalDurationMs: number,
-  fxDurationMs: number,
+  targetDurationMs: number | undefined,
 ): number {
-  if (fxDurationMs <= 0 || naturalDurationMs <= 0) return 1;
-  return naturalDurationMs / fxDurationMs;
+  if (
+    targetDurationMs === undefined ||
+    targetDurationMs <= 0 ||
+    naturalDurationMs <= 0
+  ) {
+    return 1;
+  }
+  return naturalDurationMs / targetDurationMs;
 }

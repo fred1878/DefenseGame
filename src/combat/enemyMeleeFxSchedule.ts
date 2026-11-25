@@ -56,6 +56,7 @@ export function scheduleEnemyMeleeFx(enemy: EnemyInstance): void {
       enemy.sprite.y,
       c.facing,
       melee.fxDurationMs,
+      melee.activeMs,
     );
     playEnemyMeleeSlashSfx(scene);
   });

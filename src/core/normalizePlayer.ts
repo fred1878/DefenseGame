@@ -60,12 +60,13 @@ export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined)
   const meleeStrikeRangeWu = tuning.meleeStrikeRangeWu!;
   const meleeEngageTargetRadiusWu = tuning.meleeEngageTargetRadiusWu!;
   const meleeActivationSlackWu = tuning.meleeActivationSlackWu!;
-  const meleeFxDurationMs =
-    optionalFiniteNumber(root.meleeFxDurationMs, "player.meleeFxDurationMs") ??
-    tuning.meleeActiveMs!;
+  const meleeFxDurationMs = optionalFiniteNumber(
+    root.meleeFxDurationMs,
+    "player.meleeFxDurationMs",
+  );
   const playerTuning: PlayerTuning = {
     ...(tuning as PlayerTuning),
-    meleeFxDurationMs,
+    ...(meleeFxDurationMs !== undefined ? { meleeFxDurationMs } : {}),
     autoAttackMeleeRange: computeAutoAttackMeleeRange(
       meleeStrikeRangeWu,
       meleeEngageTargetRadiusWu,
