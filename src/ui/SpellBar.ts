@@ -37,7 +37,10 @@ export class SpellBar {
   private readonly cooldownVisuals: CooldownVisual[] = [];
   private readonly onCastRequest: (spellId: SpellId, slotIndex: number) => void;
   private readonly onAutoCastToggle: (slotIndex: number) => void;
-  private readonly onGroundCastArm: (spellId: SpellId, pointer: Phaser.Input.Pointer) => void;
+  private readonly onGroundCastArm: (
+    spellId: SpellId,
+    pointer: Phaser.Input.Pointer,
+  ) => void;
   private readonly onGroundCastCancel: () => void;
 
   constructor(
@@ -90,7 +93,9 @@ export class SpellBar {
           .setDisplaySize(iconSize, iconSize);
         btn.container.add(icon);
         btn.container.bringToTop(icon);
-        scene.textures.get(iconKey!).setFilter(Phaser.Textures.FilterMode.NEAREST);
+        scene.textures
+          .get(iconKey!)
+          .setFilter(Phaser.Textures.FilterMode.NEAREST);
         const textObj = btn.container.list.find(
           (o) => o instanceof Phaser.GameObjects.Text,
         ) as Phaser.GameObjects.Text | undefined;
@@ -106,7 +111,11 @@ export class SpellBar {
             const id = this.slots[slotIndex] ?? "";
             if (!id) return;
             const def = spellById(id);
-            if (def && spellUsesManualGroundAim(def) && !spellGroundTapAutoCasts(def.id)) {
+            if (
+              def &&
+              spellUsesManualGroundAim(def) &&
+              !spellGroundTapAutoCasts(def.id)
+            ) {
               return;
             }
             this.onCastRequest(id, slotIndex);
@@ -133,7 +142,12 @@ export class SpellBar {
       );
 
       const autoBorder = scene.add
-        .rectangle(x, y, DEFENSE_SPELL_BAR.slotSizePx, DEFENSE_SPELL_BAR.slotSizePx)
+        .rectangle(
+          x,
+          y,
+          DEFENSE_SPELL_BAR.slotSizePx,
+          DEFENSE_SPELL_BAR.slotSizePx,
+        )
         .setStrokeStyle(
           DEFENSE_SPELL_BAR.autoCastBorderWidthPx,
           DEFENSE_SPELL_BAR.autoCastBorderColor,
@@ -206,7 +220,9 @@ export class SpellBar {
   e2eSlotTapCenters(): { index: number; x: number; y: number }[] {
     const centers: { index: number; x: number; y: number }[] = [];
     for (let i = 0; i < this.slotChrome.length; i++) {
-      const r = interactiveObjectScreenRect(this.slotChrome[i]!.button.container);
+      const r = interactiveObjectScreenRect(
+        this.slotChrome[i]!.button.container,
+      );
       if (!r) continue;
       centers.push({
         index: i,
@@ -232,7 +248,9 @@ export class SpellBar {
       height: number;
     }> = [];
     for (let i = 0; i < this.slotChrome.length; i++) {
-      const r = interactiveObjectScreenRect(this.slotChrome[i]!.button.container);
+      const r = interactiveObjectScreenRect(
+        this.slotChrome[i]!.button.container,
+      );
       if (!r) continue;
       rects.push({ index: i, ...r });
     }

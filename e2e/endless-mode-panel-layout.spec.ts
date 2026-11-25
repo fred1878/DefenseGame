@@ -9,7 +9,9 @@ const VIEWPORT_MARGIN = 8;
 test.describe("endless mode panel layout", () => {
   test("infinite HP defaults on when panel opens", async ({ page }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -27,9 +29,13 @@ test.describe("endless mode panel layout", () => {
     ).toBe(true);
   });
 
-  test("challenge rating sits between infinite HP and start", async ({ page }) => {
+  test("challenge rating sits between infinite HP and start", async ({
+    page,
+  }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -51,13 +57,19 @@ test.describe("endless mode panel layout", () => {
     expect(layout.infiniteHp).toBeTruthy();
     expect(layout.challengeRating).toBeTruthy();
     expect(layout.start).toBeTruthy();
-    expect(layout.challengeRating!.y).toBeGreaterThan(layout.infiniteHp!.y + 20);
+    expect(layout.challengeRating!.y).toBeGreaterThan(
+      layout.infiniteHp!.y + 20,
+    );
     expect(layout.start!.y).toBeGreaterThan(layout.challengeRating!.y + 12);
   });
 
-  test("footer actions stay in viewport and roster scrolls", async ({ page }) => {
+  test("footer actions stay in viewport and roster scrolls", async ({
+    page,
+  }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -71,7 +83,11 @@ test.describe("endless mode panel layout", () => {
     const targets = await page.evaluate(
       () => window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {},
     );
-    for (const key of ["endless-infinite-hp", "endless-start", "endless-close"]) {
+    for (const key of [
+      "endless-infinite-hp",
+      "endless-start",
+      "endless-close",
+    ]) {
       const pt = targets[key];
       expect(pt, `missing ${key}`).toBeTruthy();
       expect(pt!.x).toBeGreaterThanOrEqual(VIEWPORT_MARGIN);
@@ -88,7 +104,12 @@ test.describe("endless mode panel layout", () => {
       );
       const roster = api?.getEndlessRosterEnemyIds() ?? [];
       const lastEnemyId = roster.at(-1) ?? null;
-      return { state, lastEnemyId, enemyCount: enemyKeys.length, rosterLen: roster.length };
+      return {
+        state,
+        lastEnemyId,
+        enemyCount: enemyKeys.length,
+        rosterLen: roster.length,
+      };
     });
 
     expect(scrollState.rosterLen).toBeGreaterThan(0);
@@ -113,7 +134,8 @@ test.describe("endless mode panel layout", () => {
       });
 
       const lastInView = await page.evaluate((enemyId) => {
-        const targets = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
+        const targets =
+          window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
         return {
           row: targets[`endless-enemy-${enemyId}`] ?? null,
           minus: targets[`endless-cap-minus-${enemyId}`] ?? null,
@@ -160,7 +182,9 @@ test.describe("endless mode panel layout", () => {
 
   test("roster drag scroll shifts list offset", async ({ page }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
 
     // One poll for "panel open + roster laid out": while the modal is up every
     // page round trip waits on a (software-rendered) frame on CI, so keep them few.
@@ -235,7 +259,9 @@ test.describe("endless mode panel layout", () => {
 
   test("start is blocked when no enemies are selected", async ({ page }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -261,8 +287,7 @@ test.describe("endless mode panel layout", () => {
     expect(noneSelected).toEqual([]);
 
     const start = await page.evaluate(
-      () =>
-        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-start"],
+      () => window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-start"],
     );
     expect(start).toBeTruthy();
     await tapCanvas(page, start!.x, start!.y);
@@ -280,7 +305,9 @@ test.describe("endless mode panel layout", () => {
 
   test("enemy name row tap toggles selection", async ({ page }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -314,7 +341,9 @@ test.describe("endless mode panel layout", () => {
     page,
   }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -362,7 +391,9 @@ test.describe("endless mode panel layout", () => {
     page,
   }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -380,7 +411,9 @@ test.describe("endless mode panel layout", () => {
 
     const infiniteHp = await page.evaluate(
       () =>
-        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()["endless-infinite-hp"],
+        window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()[
+          "endless-infinite-hp"
+        ],
     );
     expect(infiniteHp).toBeTruthy();
     await tapCanvas(page, infiniteHp!.x, infiniteHp!.y);
@@ -404,7 +437,9 @@ test.describe("endless mode panel layout", () => {
     page,
   }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+    );
     await expect
       .poll(
         () =>
@@ -433,8 +468,14 @@ test.describe("endless mode panel layout", () => {
 
     await page.evaluate(
       ({ primary, secondary, primaryCap, secondaryCap }) => {
-        window.__DEFENSEGAME_E2E__?.api?.setEndlessEnemyCap(primary, primaryCap);
-        window.__DEFENSEGAME_E2E__?.api?.setEndlessEnemyCap(secondary, secondaryCap);
+        window.__DEFENSEGAME_E2E__?.api?.setEndlessEnemyCap(
+          primary,
+          primaryCap,
+        );
+        window.__DEFENSEGAME_E2E__?.api?.setEndlessEnemyCap(
+          secondary,
+          secondaryCap,
+        );
       },
       {
         primary: pair.primary,

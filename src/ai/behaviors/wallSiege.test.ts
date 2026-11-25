@@ -18,7 +18,6 @@ describe("wallSiegeBehavior", () => {
   it("ignores player beyond tight siege aggro", () => {
     const enemy = mockEnemyInstance({
       behavior: "wallSiege",
-      combatTuning: undefined,
       sprite: {
         x: 0,
         y: 0,

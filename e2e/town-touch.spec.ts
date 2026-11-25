@@ -12,9 +12,8 @@ test("drag-off Start night clears pressed visual and stays in Town", async ({
   await expect
     .poll(
       async () =>
-        page.evaluate(
-          () =>
-            window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("start-night"),
+        page.evaluate(() =>
+          window.__DEFENSEGAME_E2E__?.api?.isUiButtonPressed("start-night"),
         ),
       { timeout: 5_000 },
     )
@@ -32,7 +31,9 @@ test("Haunted Well opens endless after campaign night when panel was left open",
   page,
 }) => {
   await gotoE2E(page);
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+  await page.evaluate(() =>
+    window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+  );
   await expect
     .poll(
       async () =>
@@ -73,14 +74,17 @@ test("Haunted Well reopens endless panel after close and campaign night", async 
   page,
 }) => {
   await gotoE2E(page);
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+  await page.evaluate(() =>
+    window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+  );
   const close = await getTapTarget(page, "endless-close");
   await tapCanvas(page, close.x, close.y);
   await expect
     .poll(
       async () =>
         page.evaluate(
-          () => !(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? true),
+          () =>
+            !(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen() ?? true),
         ),
       { timeout: 5_000 },
     )
@@ -132,7 +136,9 @@ test("Haunted Well opens endless panel without leaving Town", async ({
     .toBe(true);
 });
 
-test("@manual touch debug overlays town interactive hit rects", async ({ page }) => {
+test("@manual touch debug overlays town interactive hit rects", async ({
+  page,
+}) => {
   await gotoE2E(page);
   await page.evaluate(() => {
     window.__DEFENSEGAME_E2E__?.api?.setShowTouchInput(true);

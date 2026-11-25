@@ -39,12 +39,12 @@ test.describe("town spell panel tap toggle", () => {
     await expect
       .poll(
         () =>
-          page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots()),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots(),
+          ),
         { timeout: 5_000 },
       )
-      .toEqual(
-        expect.arrayContaining(["heal", "", "", "", "", "", "", ""]),
-      );
+      .toEqual(expect.arrayContaining(["heal", "", "", "", "", "", "", ""]));
 
     const slotsAfterAdd = await page.evaluate(() =>
       window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots(),
@@ -56,7 +56,9 @@ test.describe("town spell panel tap toggle", () => {
     await expect
       .poll(
         () =>
-          page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots()),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots(),
+          ),
         { timeout: 5_000 },
       )
       .toEqual(["", "", "", "", "", "", "", ""]);
@@ -95,7 +97,9 @@ test.describe("town spell panel tap toggle", () => {
     await expect
       .poll(
         () =>
-          page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots()),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots(),
+          ),
         { timeout: 5_000 },
       )
       .toEqual(

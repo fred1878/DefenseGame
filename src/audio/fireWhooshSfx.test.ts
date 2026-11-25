@@ -17,7 +17,12 @@ function fireSpell(id: SpellDefinition["id"]): SpellDefinition {
 
 describe("fire whoosh spell hooks", () => {
   it("resolves fire nova, meteor, and combustion", () => {
-    for (const id of ["fire_nova", "meteor", "combustion", "fire_bolt"] as const) {
+    for (const id of [
+      "fire_nova",
+      "meteor",
+      "combustion",
+      "fire_bolt",
+    ] as const) {
       expect(spellPlaysFireWhooshOnResolve(fireSpell(id)), id).toBe(true);
     }
   });
@@ -50,7 +55,10 @@ describe("playFireWhooshSfx", () => {
       sound: { play },
     } as unknown as import("phaser").Scene;
     playFireWhooshSfx(scene);
-    expect(play).toHaveBeenCalledWith(FIRE_WHOOSH_SFX_KEY, expect.objectContaining({ volume: expect.any(Number) }));
+    expect(play).toHaveBeenCalledWith(
+      FIRE_WHOOSH_SFX_KEY,
+      expect.objectContaining({ volume: expect.any(Number) }),
+    );
   });
 
   it("no-ops when missing from cache", () => {

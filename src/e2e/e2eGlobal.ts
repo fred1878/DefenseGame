@@ -215,11 +215,12 @@ export function publishE2E(
     ...cur,
     ...patch,
     flags: patch.flags ? { ...cur.flags, ...patch.flags } : cur.flags,
-    api: patch.api === undefined
-      ? cur.api
-      : patch.api === null
-        ? null
-        : { ...(cur.api ?? ({} as DefenseGameE2EApi)), ...patch.api },
+    api:
+      patch.api === undefined
+        ? cur.api
+        : patch.api === null
+          ? null
+          : { ...(cur.api ?? ({} as DefenseGameE2EApi)), ...patch.api },
   };
   window.__DEFENSEGAME_E2E__ = next;
 }

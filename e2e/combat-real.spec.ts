@@ -46,7 +46,9 @@ test.describe("combat without cheats", () => {
   test("ranged projectile reduces enemy count", async () => {
     const page = boot.page;
     await waitCombatAttackIdle(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(80, 0));
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(80, 0),
+    );
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.tapRanged());
     await expect
       .poll(
@@ -71,8 +73,8 @@ test.describe("combat without cheats", () => {
     await page.evaluate(() =>
       window.__DEFENSEGAME_E2E__?.api?.spawnTestEnemy(0, -520),
     );
-    const wallBefore = await page.evaluate(
-      () => Number(window.__DEFENSEGAME_E2E__?.flags.defenseWallHp ?? 999),
+    const wallBefore = await page.evaluate(() =>
+      Number(window.__DEFENSEGAME_E2E__?.flags.defenseWallHp ?? 999),
     );
     await expect
       .poll(

@@ -1,7 +1,11 @@
 import type Phaser from "phaser";
 import type { SpellDefinition } from "../content/spells";
 import { spellChannelTickMs } from "../content/spellTargeting";
-import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";
+import {
+  applyDamage,
+  type Damageable,
+  type DamageFlavor,
+} from "./DamageSystem";
 import { enemiesInDisk, type EnemyHitTarget } from "./spellMechanics";
 import type { EnemySpellStatusMap } from "./enemySpellStatus";
 import { applySpellOnHitEffects } from "./spellOnHitEffects";
@@ -23,15 +27,15 @@ export type SpellGroundZone = {
   tickEveryMs: number;
   tickDamage: number;
   /** Ticks that dealt channel damage (channeled zones only). */
-  channelTicksDone?: number;
-  channelMaxTicks?: number;
-  channelDamageRemainder?: number;
-  burstDamage?: number;
+  channelTicksDone?: number | undefined;
+  channelMaxTicks?: number | undefined;
+  channelDamageRemainder?: number | undefined;
+  burstDamage?: number | undefined;
   damageFlavor: DamageFlavor;
   onHit?: SpellDefinition["onHit"];
   /** After channel burst, dot ticks use linger def. */
-  lingerDotDps?: number;
-  lingerDotMs?: number;
+  lingerDotDps?: number | undefined;
+  lingerDotMs?: number | undefined;
   didBurst?: boolean;
 };
 
@@ -56,7 +60,9 @@ export function spawnGroundZone(
   const tickDamage = lingerDot
     ? 0
     : channeledGroundZonePerTickDamage(def, damageMult);
-  const channelMaxTicks = lingerDot ? undefined : channeledGroundZoneMaxTicks(def);
+  const channelMaxTicks = lingerDot
+    ? undefined
+    : channeledGroundZoneMaxTicks(def);
   const channelDamageRemainder = lingerDot
     ? undefined
     : channeledGroundZoneCompletionRemainder(def, damageMult);
@@ -68,7 +74,9 @@ export function spawnGroundZone(
     radiusWu: r,
     expiresAt: now + (opts?.durationMs ?? def.channelMs ?? 2500),
     tickAccumMs: 0,
-    tickEveryMs: lingerDot ? def.lingerTickMs ?? 250 : spellChannelTickMs(def),
+    tickEveryMs: lingerDot
+      ? (def.lingerTickMs ?? 250)
+      : spellChannelTickMs(def),
     tickDamage,
     channelTicksDone: lingerDot ? undefined : 0,
     channelMaxTicks,
@@ -103,7 +111,8 @@ export function tickSpellGroundZones(
         const full = enemies.find((x) => x.id === e.id);
         if (!full?.damageable.alive) continue;
         applyDamage(full.damageable, z.burstDamage, z.damageFlavor);
-        if (z.onHit) applySpellOnHitEffects(status, full.id, z.onHit, z.damageFlavor);
+        if (z.onHit)
+          applySpellOnHitEffects(status, full.id, z.onHit, z.damageFlavor);
       }
     }
     while (z.tickAccumMs >= z.tickEveryMs) {

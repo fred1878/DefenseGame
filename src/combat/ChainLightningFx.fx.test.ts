@@ -43,7 +43,9 @@ describe("showChainLightningFx", () => {
   });
 
   it("adds a bolt flash on every hop when the texture is loaded and fades them together", () => {
-    const scene = fakeScene({ textures: [COMBAT_FX_TEXTURE.spellLightningBolt] });
+    const scene = fakeScene({
+      textures: [COMBAT_FX_TEXTURE.spellLightningBolt],
+    });
     showChainLightningFx(asScene(scene), { x: 0, y: 0 }, [
       { x: 10, y: 0 },
       { x: 20, y: 0 },

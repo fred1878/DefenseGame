@@ -2,7 +2,7 @@ import type { ArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
 import type { EnemyAttackPhase } from "../EnemyCombat";
 
 export type ArrowRainCombatState = {
-  telegraph?: ArrowRainTelegraph;
+  telegraph?: ArrowRainTelegraph | undefined;
   zoneX: number;
   zoneY: number;
   tickAccumulatorMs: number;
@@ -19,7 +19,7 @@ export type LobberCombatState = {
   lobAirborne: boolean;
   aimX: number;
   aimY: number;
-  telegraph?: ArrowRainTelegraph;
+  telegraph?: ArrowRainTelegraph | undefined;
 };
 
 export type RangedHybridMode = "ranged" | "melee" | "retreat";

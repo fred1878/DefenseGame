@@ -12,7 +12,14 @@ export class CastBar {
     const halfW = CAST_BAR.width / 2;
     this.maxFillWidth = CAST_BAR.width - 2;
     this.bg = scene.add
-      .rectangle(0, 0, CAST_BAR.width, CAST_BAR.height, CAST_BAR.bgColor, CAST_BAR.bgAlpha)
+      .rectangle(
+        0,
+        0,
+        CAST_BAR.width,
+        CAST_BAR.height,
+        CAST_BAR.bgColor,
+        CAST_BAR.bgAlpha,
+      )
       .setOrigin(0.5)
       .setStrokeStyle(1, CAST_BAR.windup.borderColor, 0.9)
       .setDepth(DEFENSE_RENDER_DEPTH.castBarBg)

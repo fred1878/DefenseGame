@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { PLAYER_TUNING } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import { PVFX_FX_ASSETS, PVFX_TEXTURE } from "../content/combatPvfxAssets";
-import { ICE_FX_ANIM, ICE_FX_ASSETS, ICE_FX_TEXTURE } from "../content/iceFxAssets";
+import {
+  ICE_FX_ANIM,
+  ICE_FX_ASSETS,
+  ICE_FX_TEXTURE,
+} from "../content/iceFxAssets";
 import type { SpellDefinition } from "../content/spells";
 import { mockEnemyInstance } from "../entities/testEnemyInstance";
 import { asScene, fakeScene } from "../test/fakeScene";
@@ -70,9 +74,9 @@ const hp = (t: SpellEnemyTarget) => t.damageable.hp;
 
 describe("applyNova", () => {
   it("requires a blast radius", () => {
-    expect(() =>
-      applyNova(asScene(fakeScene()), 0, 0, def({ blastRadiusWu: undefined }), [], 1),
-    ).toThrow(/missing blastRadiusWu/);
+    expect(() => applyNova(asScene(fakeScene()), 0, 0, def({}), [], 1)).toThrow(
+      /missing blastRadiusWu/,
+    );
   });
 
   it("hits living enemies whose edge is inside the radius, scaled by the multiplier", () => {
@@ -95,12 +99,20 @@ describe("applyNova", () => {
     expect(hp(edge)).toBe(80);
     expect(hp(far)).toBe(100);
     expect(hp(dead)).toBe(100);
-    expect(status.applyStun.mock.calls.map((c) => c[0])).toEqual(["near", "edge"]);
+    expect(status.applyStun.mock.calls.map((c) => c[0])).toEqual([
+      "near",
+      "edge",
+    ]);
   });
 });
 
 describe("applySpellSwing / applySpellCone", () => {
-  const swingDef = def({ swingRangeWu: 100, swingArcDeg: 90, baseDamage: 12, knockbackWu: 50 });
+  const swingDef = def({
+    swingRangeWu: 100,
+    swingArcDeg: 90,
+    baseDamage: 12,
+    knockbackWu: 50,
+  });
 
   it("swing shows the player slash and damages + knocks back only enemies in the arc", () => {
     const scene = fakeScene();
@@ -120,9 +132,19 @@ describe("applySpellSwing / applySpellCone", () => {
     const inCone = target("in", 50, 5);
     const outside = target("out", 0, 50);
     const status = fakeStatus();
-    applySpellCone(asScene(scene), 0, 0, 0, { ...coneDef, onHit: { stunMs: 1 } }, [inCone, outside], 1, status, {
-      showFx: false,
-    });
+    applySpellCone(
+      asScene(scene),
+      0,
+      0,
+      0,
+      { ...coneDef, onHit: { stunMs: 1 } },
+      [inCone, outside],
+      1,
+      status,
+      {
+        showFx: false,
+      },
+    );
     expect(scene.created).toHaveLength(0);
     expect(hp(inCone)).toBe(95);
     expect(hp(outside)).toBe(100);
@@ -139,7 +161,11 @@ describe("applySpellSwing / applySpellCone", () => {
       0,
       0,
       0,
-      def({ id: "cone_of_cold" as SpellDefinition["id"], coneRangeWu: 100, coneArcDeg: 60 }),
+      def({
+        id: "cone_of_cold" as SpellDefinition["id"],
+        coneRangeWu: 100,
+        coneArcDeg: 60,
+      }),
       [],
       1,
     );
@@ -227,7 +253,12 @@ describe("applyInstantTargeted", () => {
     const status = fakeStatus();
     applyInstantTargeted(
       asScene(fakeScene()),
-      def({ groundTargetMaxRangeWu: 200, baseDamage: 20, blastRadiusWu: 40, onHit: { stunMs: 9 } }),
+      def({
+        groundTargetMaxRangeWu: 200,
+        baseDamage: 20,
+        blastRadiusWu: 40,
+        onHit: { stunMs: 9 },
+      }),
       [primary, neighbour],
       null,
       0,
@@ -244,7 +275,13 @@ describe("applyInstantTargeted", () => {
     const primary = target("p", 50, 0);
     applyInstantTargeted(
       asScene(fakeScene()),
-      def({ groundTargetMaxRangeWu: 200, baseDamage: 0, burstDamage: 10, blastRadiusWu: 40, blastKnockbackWu: 40 }),
+      def({
+        groundTargetMaxRangeWu: 200,
+        baseDamage: 0,
+        burstDamage: 10,
+        blastRadiusWu: 40,
+        blastKnockbackWu: 40,
+      }),
       [primary],
       null,
       0,
@@ -311,7 +348,13 @@ describe("applyChainLightning", () => {
 
 describe("heals", () => {
   it("clamps to max HP and ignores non-positive amounts", () => {
-    const d = { id: "p", hp: 50, maxHp: 60, alive: true, team: "player" as const };
+    const d = {
+      id: "p",
+      hp: 50,
+      maxHp: 60,
+      alive: true,
+      team: "player" as const,
+    };
     applyHealAmount(d, 0);
     expect(d.hp).toBe(50);
     applyHealAmount(d, 25);
@@ -319,7 +362,13 @@ describe("heals", () => {
   });
 
   it("revives the alive flag when a downed target is healed above zero", () => {
-    const d = { id: "p", hp: 0, maxHp: 60, alive: false, team: "player" as const };
+    const d = {
+      id: "p",
+      hp: 0,
+      maxHp: 60,
+      alive: false,
+      team: "player" as const,
+    };
     applyChanneledHeal(d, def({}));
     expect(d.hp).toBe(20);
     expect(d.alive).toBe(true);
@@ -330,7 +379,12 @@ describe("heals", () => {
 
 describe("spawnSpellProjectile", () => {
   const bolt = (partial: Partial<SpellDefinition>) =>
-    def({ mechanicType: "projectile", projectileTextureKey: "fx_stone_throw", baseDamage: 8, ...partial });
+    def({
+      mechanicType: "projectile",
+      projectileTextureKey: "fx_stone_throw",
+      baseDamage: 8,
+      ...partial,
+    });
 
   it("requires a projectile texture", () => {
     expect(() =>
@@ -340,12 +394,22 @@ describe("spawnSpellProjectile", () => {
 
   it("fires along the angle with the spell's damage and default behaviour", () => {
     const scene = fakeScene();
-    const p = spawnSpellProjectile(asScene(scene), 5, 6, Math.PI / 2, bolt({ projectileSpeedWu: 200 }), 1.5, "p1");
+    const p = spawnSpellProjectile(
+      asScene(scene),
+      5,
+      6,
+      Math.PI / 2,
+      bolt({ projectileSpeedWu: 200 }),
+      1.5,
+      "p1",
+    );
     expect(p.id).toBe("p1");
     expect(p.damage).toBe(12);
     expect(p.spellBehavior).toBe("default");
     expect(p.spellId).toBe("test_spell");
-    const v = (p.sprite.body as unknown as { velocity: { x: number; y: number } }).velocity;
+    const v = (
+      p.sprite.body as unknown as { velocity: { x: number; y: number } }
+    ).velocity;
     expect(v.x).toBeCloseTo(0);
     expect(v.y).toBeCloseTo(200);
     expect(p.maxTravel).toBe(PLAYER_TUNING.rangedMaxRangeWu);
@@ -354,7 +418,15 @@ describe("spawnSpellProjectile", () => {
   it("maps mechanics to projectile behaviours", () => {
     const scene = asScene(fakeScene());
     expect(() =>
-      spawnSpellProjectile(scene, 0, 0, 0, bolt({ mechanicType: "projectile_aoe" }), 1, "a"),
+      spawnSpellProjectile(
+        scene,
+        0,
+        0,
+        0,
+        bolt({ mechanicType: "projectile_aoe" }),
+        1,
+        "a",
+      ),
     ).toThrow(/missing blastRadiusWu/);
     const aoe = spawnSpellProjectile(
       scene,
@@ -368,7 +440,15 @@ describe("spawnSpellProjectile", () => {
     expect(aoe.spellBehavior).toBe("aoe_on_hit");
     expect(aoe.blastRadiusWu).toBe(30);
 
-    const water = spawnSpellProjectile(scene, 0, 0, 0, bolt({ id: "water_bolt" as SpellDefinition["id"] }), 1, "w");
+    const water = spawnSpellProjectile(
+      scene,
+      0,
+      0,
+      0,
+      bolt({ id: "water_bolt" as SpellDefinition["id"] }),
+      1,
+      "w",
+    );
     expect(water.spellBehavior).toBe("pierce");
 
     const tracking = spawnSpellProjectile(
@@ -386,7 +466,9 @@ describe("spawnSpellProjectile", () => {
 
     const forced = spawnChanneledFireball(scene, 0, 0, 0, bolt({}), 1, "f");
     expect(forced.spellBehavior).toBe("default");
-    const pierced = spawnSpellProjectile(scene, 0, 0, 0, bolt({}), 1, "x", { pierce: true });
+    const pierced = spawnSpellProjectile(scene, 0, 0, 0, bolt({}), 1, "x", {
+      pierce: true,
+    });
     expect(pierced.spellBehavior).toBe("pierce");
   });
 
@@ -395,16 +477,36 @@ describe("spawnSpellProjectile", () => {
       textures: ICE_FX_ASSETS.map((a) => a.key),
       anims: Object.values(ICE_FX_ANIM),
     });
-    const p = spawnSpellProjectile(asScene(scene), 0, 0, 0, bolt({ id: "ice_bolt" as SpellDefinition["id"] }), 1, "i");
-    expect(scene.made("physics.sprite")[0]!.args[2]).toBe(ICE_FX_TEXTURE.boltRepeat);
+    const p = spawnSpellProjectile(
+      asScene(scene),
+      0,
+      0,
+      0,
+      bolt({ id: "ice_bolt" as SpellDefinition["id"] }),
+      1,
+      "i",
+    );
+    expect(scene.made("physics.sprite")[0]!.args[2]).toBe(
+      ICE_FX_TEXTURE.boltRepeat,
+    );
     expect(p.iceBoltFx?.phase).toBe("start");
     expect((p.sprite as unknown as { alpha: number }).alpha).toBe(0);
   });
 
   it("fire bolt switches to the PVFX fireball loop when the pack is loaded", () => {
     const scene = fakeScene({ textures: PVFX_FX_ASSETS.map((a) => a.key) });
-    const p = spawnSpellProjectile(asScene(scene), 0, 0, 0, bolt({ id: "fire_bolt" as SpellDefinition["id"] }), 1, "f");
-    expect(scene.made("physics.sprite")[0]!.args[2]).toBe(PVFX_TEXTURE.fireballFlight);
+    const p = spawnSpellProjectile(
+      asScene(scene),
+      0,
+      0,
+      0,
+      bolt({ id: "fire_bolt" as SpellDefinition["id"] }),
+      1,
+      "f",
+    );
+    expect(scene.made("physics.sprite")[0]!.args[2]).toBe(
+      PVFX_TEXTURE.fireballFlight,
+    );
     expect(p.pvfxFlightFx).toBeDefined();
   });
 });

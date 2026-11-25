@@ -88,7 +88,8 @@ export class EnemyIceStunFxController {
     pos: { x: number; y: number },
     registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ): void {
-    if (!(this.scene.anims?.exists(PVFX_ANIM.iceShatterStunLoop) ?? false)) return;
+    if (!(this.scene.anims?.exists(PVFX_ANIM.iceShatterStunLoop) ?? false))
+      return;
     const sprite = this.scene.add
       .sprite(pos.x, pos.y, PVFX_TEXTURE.iceShatter)
       .setDepth(DEPTH)

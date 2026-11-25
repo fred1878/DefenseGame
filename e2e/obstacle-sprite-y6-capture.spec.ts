@@ -4,8 +4,7 @@ import { test } from "@playwright/test";
 import { gotoE2E, startDefense, e2eApi } from "./helpers/game";
 
 const MEDIA_DIR =
-  process.env.OBSTACLE_CAPTURE_DIR ??
-  "/cursor/stores/self/media";
+  process.env.OBSTACLE_CAPTURE_DIR ?? "/cursor/stores/self/media";
 
 /**
  * One-off Peter proof — run locally after obstacle cosmetic Y change.
@@ -36,7 +35,11 @@ test.describe("@manual obstacle sprite y+6 capture", () => {
         `obstacle-sprite-y6-${name}-2026-11-18.png`,
       );
       fs.mkdirSync(path.dirname(out), { recursive: true });
-      await page.screenshot({ path: out, fullPage: false, animations: "disabled" });
+      await page.screenshot({
+        path: out,
+        fullPage: false,
+        animations: "disabled",
+      });
     });
   }
 });

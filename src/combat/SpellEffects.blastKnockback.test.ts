@@ -37,12 +37,14 @@ describe("applySpellBlastAt knockback", () => {
       behavior: "meleeChaser",
       sprite: { x: 100, y: 100 } as never,
     });
+    const def = blastDef();
+    delete def.blastKnockbackWu;
     expect(() =>
       applySpellBlastAt(
         scene,
         100,
         100,
-        blastDef({ blastKnockbackWu: undefined }),
+        def,
         [
           {
             id: enemy.id,
@@ -74,25 +76,25 @@ describe("applySpellBlastAt knockback", () => {
     const blastX = 100;
     const blastY = 100;
     const targets = [
-    {
-      id: east.id,
-      x: east.sprite.x,
-      y: east.sprite.y,
-      radius: 20,
-      enemy: east,
-      sprite: east.sprite,
-      damageable: east.damageable,
-    },
-    {
-      id: west.id,
-      x: west.sprite.x,
-      y: west.sprite.y,
-      radius: 20,
-      enemy: west,
-      sprite: west.sprite,
-      damageable: west.damageable,
-    },
-  ];
+      {
+        id: east.id,
+        x: east.sprite.x,
+        y: east.sprite.y,
+        radius: 20,
+        enemy: east,
+        sprite: east.sprite,
+        damageable: east.damageable,
+      },
+      {
+        id: west.id,
+        x: west.sprite.x,
+        y: west.sprite.y,
+        radius: 20,
+        enemy: west,
+        sprite: west.sprite,
+        damageable: west.damageable,
+      },
+    ];
 
     applySpellBlastAt(scene, blastX, blastY, blastDef(), targets, 1);
 
@@ -122,6 +124,8 @@ describe("applySpellBlastAt knockback", () => {
 
     applySpellBlastAt(scene, 200, 200, blastDef(), targets, 1);
 
-    expect(Math.hypot(onCenter.knockbackVx, onCenter.knockbackVy)).toBeGreaterThan(0);
+    expect(
+      Math.hypot(onCenter.knockbackVx, onCenter.knockbackVy),
+    ).toBeGreaterThan(0);
   });
 });

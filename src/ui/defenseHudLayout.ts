@@ -143,10 +143,7 @@ export function bottomHudStripLayout(
 ): BottomHudStrip {
   const stripH = defenseBottomHudStripHeight();
   const stripCenterY =
-    scene.scale.height -
-    safe.bottom -
-    stripH / 2 +
-    DEFENSE_BOTTOM_HUD_SHIFT_PX;
+    scene.scale.height - safe.bottom - stripH / 2 + DEFENSE_BOTTOM_HUD_SHIFT_PX;
   return {
     stripH,
     stripCenterY,
@@ -206,8 +203,7 @@ export function spellBarSlotOrigin(
   const rowWidth = cols * slotSizePx + (cols - 1) * slotGapPx;
   const rowEndMax = chrome.combatClusterLeft - scaleUiX(4);
   const viewportMargin = SPELL_BAR_VIEWPORT_MARGIN_PX;
-  const minFirstCenter =
-    safe.left + viewportMargin + tapPad + slotSizePx / 2;
+  const minFirstCenter = safe.left + viewportMargin + tapPad + slotSizePx / 2;
   const packedFirst = leftPad + tapPad + slotSizePx / 2;
   const melLimitedFirst = rowEndMax - rowWidth + slotSizePx / 2;
   const firstSlotCenterX = Math.max(

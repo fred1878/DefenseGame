@@ -1,6 +1,14 @@
 import Phaser from "phaser";
-import { DEFENSE_RENDER_DEPTH, PLAYER_TUNING, type AttackMode } from "../config";
-import { PLAYER_TEXTURE, SPRITE_DISPLAY, type PlayerCardinal } from "../content/assets";
+import {
+  DEFENSE_RENDER_DEPTH,
+  PLAYER_TUNING,
+  type AttackMode,
+} from "../config";
+import {
+  PLAYER_TEXTURE,
+  SPRITE_DISPLAY,
+  type PlayerCardinal,
+} from "../content/assets";
 import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
@@ -181,9 +189,15 @@ export class Player {
     this.phaseElapsed += deltaMs;
 
     const isRanged = this.strikeMode() === "ranged";
-    const windup = isRanged ? PLAYER_TUNING.rangedWindupMs : PLAYER_TUNING.meleeWindupMs;
-    const active = isRanged ? PLAYER_TUNING.rangedActiveMs : PLAYER_TUNING.meleeActiveMs;
-    const recovery = isRanged ? PLAYER_TUNING.rangedRecoveryMs : PLAYER_TUNING.meleeRecoveryMs;
+    const windup = isRanged
+      ? PLAYER_TUNING.rangedWindupMs
+      : PLAYER_TUNING.meleeWindupMs;
+    const active = isRanged
+      ? PLAYER_TUNING.rangedActiveMs
+      : PLAYER_TUNING.meleeActiveMs;
+    const recovery = isRanged
+      ? PLAYER_TUNING.rangedRecoveryMs
+      : PLAYER_TUNING.meleeRecoveryMs;
 
     if (this.attackPhase === "windup" && this.phaseElapsed >= windup) {
       this.attackPhase = "active";
@@ -192,7 +206,10 @@ export class Player {
     } else if (this.attackPhase === "active" && this.phaseElapsed >= active) {
       this.attackPhase = "recovery";
       this.phaseElapsed = 0;
-    } else if (this.attackPhase === "recovery" && this.phaseElapsed >= recovery) {
+    } else if (
+      this.attackPhase === "recovery" &&
+      this.phaseElapsed >= recovery
+    ) {
       this.attackPhase = "idle";
       this.phaseElapsed = 0;
       this.strikeModeOverride = null;
@@ -216,7 +233,10 @@ export class Player {
         arcHalf,
         e.sprite.x,
         e.sprite.y,
-        worldUnit(enemyCollisionBodyRadius(e.defId), this.sprite.scene.registry),
+        worldUnit(
+          enemyCollisionBodyRadius(e.defId),
+          this.sprite.scene.registry,
+        ),
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);

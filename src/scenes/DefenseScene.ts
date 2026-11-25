@@ -8,7 +8,10 @@ import type { DataStore, EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { playerDamageMult } from "../core/GameState";
 import { worldUnit } from "../core/worldPixelScale";
-import { shadowformActive, shadowformMoveSpeedMultiplier } from "../combat/shadowform";
+import {
+  shadowformActive,
+  shadowformMoveSpeedMultiplier,
+} from "../combat/shadowform";
 import { SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
@@ -30,7 +33,10 @@ import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
 import type { CombatRangeDebugDraw } from "../debug/CombatRangeDebugDraw";
 import type { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import type { PathDebugDraw } from "../debug/PathDebugDraw";
-import type { FocusTapFlash, TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
+import type {
+  FocusTapFlash,
+  TouchInputDebugDraw,
+} from "../debug/TouchInputDebugDraw";
 import {
   blocksBaseLayerInput,
   clearInputModalities,
@@ -40,18 +46,27 @@ import {
 } from "../input/inputModality";
 import { configureSceneInput } from "../input/inputTuning";
 import type { VirtualStick } from "../input/VirtualStick";
-import { enemyCollisionBodyRadius, playerBodyRadiusPx } from "../entities/entityPhysics";
+import {
+  enemyCollisionBodyRadius,
+  playerBodyRadiusPx,
+} from "../entities/entityPhysics";
 import type { EnemyInstance } from "../entities/Enemy";
 import type { EnemyProjectile, PlayerProjectile } from "../entities/Projectile";
 import type { Player } from "../entities/Player";
-import type { createTouchToggleButton, TouchButtonHandle } from "../ui/touchButton";
+import type {
+  createTouchToggleButton,
+  TouchButtonHandle,
+} from "../ui/touchButton";
 import type { CastBar } from "../ui/CastBar";
 import type { SpellBar } from "../ui/SpellBar";
 import { TargetIndicator } from "../ui/TargetIndicator";
 import { GroundTargetReticle } from "../ui/GroundTargetReticle";
 import { cameraWorldPoint, type SafeInsets } from "../ui/screenLayout";
 import type { CombatHudChrome } from "../ui/combatHudChrome";
-import type { DefenseMinimap, defenseMinimapLayout } from "../ui/defenseMinimap";
+import type {
+  DefenseMinimap,
+  defenseMinimapLayout,
+} from "../ui/defenseMinimap";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import {
@@ -59,7 +74,10 @@ import {
   type DefenseSceneE2eHost,
 } from "./defense/DefenseSceneE2EHost";
 import type { DefenseSceneE2eDelegate } from "./defense/DefenseSceneE2ETypes";
-import { spawnDefenseEnemyAt, type DefenseEnemySpawnerHost } from "./defense/DefenseEnemySpawner";
+import {
+  spawnDefenseEnemyAt,
+  type DefenseEnemySpawnerHost,
+} from "./defense/DefenseEnemySpawner";
 import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
 import {
   checkDefenseRunEnd,
@@ -69,11 +87,23 @@ import {
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
-import { createDefenseHudController, formatDefenseHudText } from "./defense/DefenseHudController";
-import { bindPlayerObstacleCorrection, bootstrapDefenseWorld } from "./defense/DefenseWorldBootstrap";
+import {
+  createDefenseHudController,
+  formatDefenseHudText,
+} from "./defense/DefenseHudController";
+import {
+  bindPlayerObstacleCorrection,
+  bootstrapDefenseWorld,
+} from "./defense/DefenseWorldBootstrap";
 import { tickDefenseProjectiles } from "./defense/DefenseProjectileTick";
-import { syncDefenseEnemyNameplates, tickDefenseEnemies } from "./defense/DefenseEnemyTick";
-import { DefenseSpellDirector, type DefenseSpellDirectorHost } from "./defense/DefenseSpellDirector";
+import {
+  syncDefenseEnemyNameplates,
+  tickDefenseEnemies,
+} from "./defense/DefenseEnemyTick";
+import {
+  DefenseSpellDirector,
+  type DefenseSpellDirectorHost,
+} from "./defense/DefenseSpellDirector";
 import { tickDefenseSpellWorld } from "./defense/DefenseSpellWorldTick";
 import {
   createDefenseDebugDrawers,
@@ -81,14 +111,23 @@ import {
   drawDefenseEnemyPaths,
   drawDefenseTouchDebug,
 } from "./defense/DefenseDebugDraw";
-import { DefensePlayerCombat, type DefensePlayerCombatHost } from "./defense/DefensePlayerCombat";
+import {
+  DefensePlayerCombat,
+  type DefensePlayerCombatHost,
+} from "./defense/DefensePlayerCombat";
 import {
   DefenseGroundAim,
   syncDefenseGroundAimModality,
   type DefenseGroundAimHost,
 } from "./defense/DefenseGroundAim";
-import { endlessHudHeader, ensureEndlessSpawnCap } from "./defense/DefenseEndlessSpawn";
-import { ensureDefenseSaveSpellBar, resolveDefenseRunSetup } from "./defense/DefenseRunSetup";
+import {
+  endlessHudHeader,
+  ensureEndlessSpawnCap,
+} from "./defense/DefenseEndlessSpawn";
+import {
+  ensureDefenseSaveSpellBar,
+  resolveDefenseRunSetup,
+} from "./defense/DefenseRunSetup";
 import {
   destroyDefenseSceneObjects,
   syncShadowformPlayerFx,
@@ -389,7 +428,11 @@ export class DefenseScene extends Phaser.Scene {
       rangeDebug: this.rangeDebug,
       pathDebug: this.pathDebug,
       touchDebug: this.touchDebug,
-    } = createDefenseDebugDrawers(this, this.registerWorldDraw, this.registerUiDraw));
+    } = createDefenseDebugDrawers(
+      this,
+      this.registerWorldDraw,
+      this.registerUiDraw,
+    ));
     this.fpsOverlay = new FpsDebugOverlay(this, this.registerUiDraw);
     for (const go of this.castBar.worldRoots()) {
       this.registerWorldDraw(go);
@@ -407,12 +450,18 @@ export class DefenseScene extends Phaser.Scene {
     } else if (wave && (!isE2EEnabled() || wavePlanner)) {
       // E2E skips campaign waves (tests spawn their own enemies), but a wave
       // planner run is an explicit player-built plan, so it always runs.
-      scheduleDefenseWave(this, store, wave, {
-        spawnEnemy: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
-        markSpawnPlanComplete: () => {
-          this.spawnPlanComplete = true;
+      scheduleDefenseWave(
+        this,
+        store,
+        wave,
+        {
+          spawnEnemy: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
+          markSpawnPlanComplete: () => {
+            this.spawnPlanComplete = true;
+          },
         },
-      }, isE2EEnabled());
+        isE2EEnabled(),
+      );
     } else if (isE2EEnabled()) {
       this.spawnPlanComplete = false;
     } else {
@@ -431,7 +480,7 @@ export class DefenseScene extends Phaser.Scene {
     this.events.once("shutdown", this.onDefenseShutdown);
   }
 
-  update(_time: number, delta: number): void {
+  override update(_time: number, delta: number): void {
     this.spellCaster.tickCooldowns(delta);
     syncShadowformRuntime(this.player, this.shadowformEndsAt, this.time.now);
     const dir = this.stick.getDirection();
@@ -519,7 +568,10 @@ export class DefenseScene extends Phaser.Scene {
       radius: this.wu(playerBodyRadiusPx()),
       damageable: this.player.damageable,
     };
-    this.targeting.focusSelectLockMs = Math.max(0, this.targeting.focusSelectLockMs - delta);
+    this.targeting.focusSelectLockMs = Math.max(
+      0,
+      this.targeting.focusSelectLockMs - delta,
+    );
     tickDefenseSpellWorld(this.sceneHost, this.spellDirector, delta);
 
     const enemyTick = tickDefenseEnemies(
@@ -658,51 +710,133 @@ export class DefenseScene extends Phaser.Scene {
     const scene = this;
     return {
       scene,
-      get stick() { return scene.stick; },
-      get safe() { return scene.safe; },
-      get autoAttackEnabled() { return scene.autoAttackEnabled; },
-      get save() { return scene.save; },
-      get player() { return scene.player; },
-      get enemies() { return scene.enemies; },
-      get projectiles() { return scene.projectiles; },
-      get targeting() { return scene.targeting; },
-      get spellCaster() { return scene.spellCaster; },
-      get spellInputQueue() { return scene.spellInputQueue; },
-      get enemySpellStatus() { return scene.enemySpellStatus; },
-      get spellBar() { return scene.spellBar; },
-      get castBar() { return scene.castBar; },
-      get groundReticle() { return scene.groundReticle; },
-      get obstacleGroup() { return scene.obstacleGroup; },
-      get obstacleBlockers() { return scene.obstacleBlockers; },
-      get spellChannelArea() { return scene.spellChannelArea; },
-      set spellChannelArea(v) { scene.spellChannelArea = v; },
-      get spellGroundZones() { return scene.spellGroundZones; },
-      set spellGroundZones(v) { scene.spellGroundZones = v; },
-      get pendingGroundCast() { return scene.pendingGroundCast; },
+      get stick() {
+        return scene.stick;
+      },
+      get safe() {
+        return scene.safe;
+      },
+      get autoAttackEnabled() {
+        return scene.autoAttackEnabled;
+      },
+      get save() {
+        return scene.save;
+      },
+      get player() {
+        return scene.player;
+      },
+      get enemies() {
+        return scene.enemies;
+      },
+      get projectiles() {
+        return scene.projectiles;
+      },
+      get targeting() {
+        return scene.targeting;
+      },
+      get spellCaster() {
+        return scene.spellCaster;
+      },
+      get spellInputQueue() {
+        return scene.spellInputQueue;
+      },
+      get enemySpellStatus() {
+        return scene.enemySpellStatus;
+      },
+      get spellBar() {
+        return scene.spellBar;
+      },
+      get castBar() {
+        return scene.castBar;
+      },
+      get groundReticle() {
+        return scene.groundReticle;
+      },
+      get obstacleGroup() {
+        return scene.obstacleGroup;
+      },
+      get obstacleBlockers() {
+        return scene.obstacleBlockers;
+      },
+      get spellChannelArea() {
+        return scene.spellChannelArea;
+      },
+      set spellChannelArea(v) {
+        scene.spellChannelArea = v;
+      },
+      get spellGroundZones() {
+        return scene.spellGroundZones;
+      },
+      set spellGroundZones(v) {
+        scene.spellGroundZones = v;
+      },
+      get pendingGroundCast() {
+        return scene.pendingGroundCast;
+      },
       set pendingGroundCast(v) {
         scene.pendingGroundCast = v;
         syncDefenseGroundAimModality(scene, v);
       },
-      get groundAim() { return scene.groundAim; },
-      set groundAim(v) { scene.groundAim = v; },
-      get groundAoeTelegraph() { return scene.groundAoeTelegraph; },
-      set groundAoeTelegraph(v) { scene.groundAoeTelegraph = v; },
-      get lingerAoeTelegraph() { return scene.lingerAoeTelegraph; },
-      set lingerAoeTelegraph(v) { scene.lingerAoeTelegraph = v; },
-      get blizzardChannelFx() { return scene.blizzardChannelFx; },
-      set blizzardChannelFx(v) { scene.blizzardChannelFx = v; },
-      get healChannelFx() { return scene.healChannelFx; },
-      set healChannelFx(v) { scene.healChannelFx = v; },
-      get iceCastWindupFx() { return scene.iceCastWindupFx; },
-      set iceCastWindupFx(v) { scene.iceCastWindupFx = v; },
-      get enemyIceRootFx() { return scene.enemyIceRootFx; },
-      get enemyIceStunFx() { return scene.enemyIceStunFx; },
-      get channelAreaStarted() { return scene.channelAreaStarted; },
-      set channelAreaStarted(v) { scene.channelAreaStarted = v; },
-      get shadowformEndsAt() { return scene.shadowformEndsAt; },
-      set shadowformEndsAt(v) { scene.shadowformEndsAt = v; },
-      get iceWallExpires() { return scene.iceWallExpires; },
-      set iceWallExpires(v) { scene.iceWallExpires = v; },
+      get groundAim() {
+        return scene.groundAim;
+      },
+      set groundAim(v) {
+        scene.groundAim = v;
+      },
+      get groundAoeTelegraph() {
+        return scene.groundAoeTelegraph;
+      },
+      set groundAoeTelegraph(v) {
+        scene.groundAoeTelegraph = v;
+      },
+      get lingerAoeTelegraph() {
+        return scene.lingerAoeTelegraph;
+      },
+      set lingerAoeTelegraph(v) {
+        scene.lingerAoeTelegraph = v;
+      },
+      get blizzardChannelFx() {
+        return scene.blizzardChannelFx;
+      },
+      set blizzardChannelFx(v) {
+        scene.blizzardChannelFx = v;
+      },
+      get healChannelFx() {
+        return scene.healChannelFx;
+      },
+      set healChannelFx(v) {
+        scene.healChannelFx = v;
+      },
+      get iceCastWindupFx() {
+        return scene.iceCastWindupFx;
+      },
+      set iceCastWindupFx(v) {
+        scene.iceCastWindupFx = v;
+      },
+      get enemyIceRootFx() {
+        return scene.enemyIceRootFx;
+      },
+      get enemyIceStunFx() {
+        return scene.enemyIceStunFx;
+      },
+      get channelAreaStarted() {
+        return scene.channelAreaStarted;
+      },
+      set channelAreaStarted(v) {
+        scene.channelAreaStarted = v;
+      },
+      get shadowformEndsAt() {
+        return scene.shadowformEndsAt;
+      },
+      set shadowformEndsAt(v) {
+        scene.shadowformEndsAt = v;
+      },
+      get iceWallExpires() {
+        return scene.iceWallExpires;
+      },
+      set iceWallExpires(v) {
+        scene.iceWallExpires = v;
+      },
       wu: (n) => scene.wu(n),
       enemyTargets: () => scene.enemyTargets(),
       resolveStrikeMode: (auto) => scene.combat.resolveStrikeMode(auto),
@@ -741,7 +875,11 @@ export class DefenseScene extends Phaser.Scene {
     this.groundReticle?.hide();
   }
 
-  private beginSpellCast(spellId: string, stickX?: number, stickY?: number): void {
+  private beginSpellCast(
+    spellId: string,
+    stickX?: number,
+    stickY?: number,
+  ): void {
     const dir = this.stick.getDirection();
     this.spellDirector.beginSpellCast(
       spellId,

@@ -5,9 +5,9 @@
 | Command | What it runs |
 |---------|----------------|
 | `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → Vitest |
-| `npm run lint` | Biome lint; warnings fail too (`--error-on-warnings`) |
+| `npm run lint` | `biome check`: lint + formatting; warnings fail too (`--error-on-warnings`) |
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
-| `npm run format` | Biome formatter (not enforced in CI yet; run only on files you touch) |
+| `npm run format` | Biome formatter; run it when `lint` reports formatting |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |

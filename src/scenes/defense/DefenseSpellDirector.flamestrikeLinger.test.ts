@@ -7,7 +7,9 @@ import {
 import { spellById } from "../../content/spells";
 import { spellCastMs } from "../../content/spellTargeting";
 
-function flamestrikeHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
+function flamestrikeHost(
+  spellCaster: SpellCastController,
+): DefenseSpellDirectorHost {
   const castBar = {
     setVisible: vi.fn(),
     setPhase: vi.fn(),
@@ -41,13 +43,18 @@ function flamestrikeHost(spellCaster: SpellCastController): DefenseSpellDirector
     player: player as unknown as DefenseSpellDirectorHost["player"],
     enemies: [],
     projectiles: [],
-    targeting: { facingTarget: vi.fn() } as unknown as DefenseSpellDirectorHost["targeting"],
+    targeting: {
+      facingTarget: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["targeting"],
     spellCaster,
     spellInputQueue: {} as DefenseSpellDirectorHost["spellInputQueue"],
     enemySpellStatus: {} as DefenseSpellDirectorHost["enemySpellStatus"],
     spellBar: {} as DefenseSpellDirectorHost["spellBar"],
     castBar: castBar as unknown as DefenseSpellDirectorHost["castBar"],
-    groundReticle: { hide: vi.fn(), showAt: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
+    groundReticle: {
+      hide: vi.fn(),
+      showAt: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["groundReticle"],
     obstacleGroup: {} as Phaser.Physics.Arcade.StaticGroup,
     spellChannelArea: { x: 120, y: 140 },
     spellGroundZones: [],
@@ -94,7 +101,10 @@ describe("DefenseSpellDirector flamestrike", () => {
   });
 });
 
-function directorFinishCast(host: DefenseSpellDirectorHost, windupMs: number): void {
+function directorFinishCast(
+  host: DefenseSpellDirectorHost,
+  windupMs: number,
+): void {
   const director = new DefenseSpellDirector(host);
   director.updateChanneling(windupMs, { x: 0, y: 0 }, () => false);
 }

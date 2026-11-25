@@ -86,7 +86,11 @@ export function fakeGameObject(
       enable: true,
       stop: () => undefined,
       reset: () => undefined,
-      setVelocity(this: { velocity: { x: number; y: number } }, vx: number, vy: number) {
+      setVelocity(
+        this: { velocity: { x: number; y: number } },
+        vx: number,
+        vy: number,
+      ) {
         this.velocity.x = vx;
         this.velocity.y = vy;
       },
@@ -122,8 +126,7 @@ export function fakeGameObject(
       calls.push(["destroy", []]);
       target.destroyed = true;
     },
-    callsTo: (method) =>
-      calls.filter(([m]) => m === method).map(([, a]) => a),
+    callsTo: (method) => calls.filter(([m]) => m === method).map(([, a]) => a),
     last: (method) => {
       const all = calls.filter(([m]) => m === method);
       return all.at(-1)?.[1];
@@ -268,7 +271,8 @@ export function fakeScene(
       generateFrameNumbers: vi.fn(
         (key: string, range: { start: number; end: number }) => {
           const out: Array<{ key: string; frame: number }> = [];
-          for (let f = range.start; f <= range.end; f++) out.push({ key, frame: f });
+          for (let f = range.start; f <= range.end; f++)
+            out.push({ key, frame: f });
           return out;
         },
       ),

@@ -180,7 +180,8 @@ export function tickDefenseProjectiles(
         host.player.damageable.alive
       ) {
         const scale =
-          (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ?? 1;
+          (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ??
+          1;
         applyDamage(
           host.player.damageable,
           det.damage * scale * playerIncomingDamageMult(),
@@ -192,10 +193,18 @@ export function tickDefenseProjectiles(
         ? host.findEnemyInstance?.(p.sourceEnemyId)
         : undefined;
       if (source?.behavior === "lobber") {
+        const lobTune = source.combatTuning.lobber;
+        if (!lobTune) {
+          throw new Error(
+            `Lobber detonation missing combatTuning.lobber for ${source.defId}`,
+          );
+        }
         spawnLobberGroundImpactSmokeFx(
           host.scene,
           det.x,
           det.y,
+          lobTune.blastRadiusWu,
+          lobTune.impactVfxBlastMul,
           host.registerWorldDraw,
         );
       }

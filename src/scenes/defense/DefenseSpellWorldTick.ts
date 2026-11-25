@@ -22,8 +22,16 @@ export function tickDefenseSpellWorld(
   for (const e of host.enemies) {
     e.statusSpeedMul = host.enemySpellStatus.moveSpeedMultiplier(e.id);
   }
-  host.enemyIceRootFx.tick(host.enemies, host.enemySpellStatus, host.maskWorldObject);
-  host.enemyIceStunFx.tick(host.enemies, host.enemySpellStatus, host.maskWorldObject);
+  host.enemyIceRootFx.tick(
+    host.enemies,
+    host.enemySpellStatus,
+    host.maskWorldObject,
+  );
+  host.enemyIceStunFx.tick(
+    host.enemies,
+    host.enemySpellStatus,
+    host.maskWorldObject,
+  );
   host.spellGroundZones = tickSpellGroundZones(
     host.scene,
     host.spellGroundZones,

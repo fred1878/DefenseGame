@@ -32,7 +32,8 @@ function isoSlug() {
 }
 
 function hudBandPixelProbesPass(samples) {
-  if (!samples?.playArea || !samples?.topBand || !samples?.bottomBand) return false;
+  if (!samples?.playArea || !samples?.topBand || !samples?.bottomBand)
+    return false;
   const play = samples.playArea.luminance;
   return (
     samples.topBand.luminance > play + HUD_BAND_MIN_LUMINANCE_LIFT &&

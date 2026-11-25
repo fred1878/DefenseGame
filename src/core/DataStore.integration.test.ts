@@ -37,9 +37,10 @@ describe("public data fixtures", () => {
       expectFiniteNumber(row.weight, `enemies.${id}.weight`);
       expect((row.weight as number) > 0, `enemies.${id}.weight > 0`).toBe(true);
       expectFiniteNumber(row.challengeRating, `enemies.${id}.challengeRating`);
-      expect((row.challengeRating as number) >= 0, `enemies.${id}.challengeRating >= 0`).toBe(
-        true,
-      );
+      expect(
+        (row.challengeRating as number) >= 0,
+        `enemies.${id}.challengeRating >= 0`,
+      ).toBe(true);
     }
   });
 
@@ -70,7 +71,10 @@ describe("public data fixtures", () => {
     expect(bruiser!.behavior).toBe("bruiser");
     expect(bruiser!.textureKey).toBe("enemy_bruiser");
     if (bruiser!.combat?.melee?.rangeWu != null) {
-      expectFiniteNumber(bruiser!.combat.melee.rangeWu, "bruiser.combat.melee.rangeWu");
+      expectFiniteNumber(
+        bruiser!.combat.melee.rangeWu,
+        "bruiser.combat.melee.rangeWu",
+      );
     }
   });
 
@@ -269,7 +273,10 @@ describe("public data fixtures", () => {
         expect(row.combat.melee, `${id}.combat.melee`).toBeUndefined();
         continue;
       }
-      expectFiniteNumber(row.combat.melee!.rangeWu, `${id}.combat.melee.rangeWu`);
+      expectFiniteNumber(
+        row.combat.melee!.rangeWu,
+        `${id}.combat.melee.rangeWu`,
+      );
       expectFiniteNumber(
         row.combat.melee!.triggerRangeWu,
         `${id}.combat.melee.triggerRangeWu`,

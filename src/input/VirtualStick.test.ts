@@ -1,6 +1,10 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import type Phaser from "phaser";
-import { pointInScreenRects, VirtualStick, type VirtualStickOptions } from "./VirtualStick";
+import {
+  pointInScreenRects,
+  VirtualStick,
+  type VirtualStickOptions,
+} from "./VirtualStick";
 import { STICK_POST_DRAG_TAP_SUPPRESS_MS } from "./inputTuning";
 
 describe("pointInScreenRects", () => {
@@ -50,20 +54,13 @@ function makeMockArc() {
 }
 
 function makeStickHarness(options?: Partial<VirtualStickOptions>) {
-  const handlers: Record<
-    string,
-    ((p: HarnessPointer) => void)[]
-  > = {};
+  const handlers: Record<string, ((p: HarnessPointer) => void)[]> = {};
   const scene = {
     add: {
       circle: () => makeMockArc(),
     },
     input: {
-      on(
-        event: string,
-        fn: (p: HarnessPointer) => void,
-        context?: unknown,
-      ) {
+      on(event: string, fn: (p: HarnessPointer) => void, context?: unknown) {
         const call = (p: HarnessPointer) => {
           if (context !== undefined) fn.call(context, p);
           else fn(p);

@@ -10,7 +10,10 @@ export const SPELLS_FILE_BOOT_KEYS = ["spells"] as const;
 export const SPELL_ROW_BOOT_STRING_FIELDS = ["id", "mechanicType"] as const;
 
 /** Per-`mechanicType` numeric fields required at boot (before knockback rules). */
-export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<string, readonly string[]> = {
+export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<
+  string,
+  readonly string[]
+> = {
   swing: ["swingRangeWu", "swingArcDeg"],
   tracking_swing: ["swingRangeWu", "swingArcDeg"],
   cone: ["coneRangeWu", "coneArcDeg"],
@@ -77,10 +80,7 @@ function requireBlastRadiusWu(def: SpellDefinition, path: string): number {
   return requireFiniteNumber(def.blastRadiusWu, `${path}.blastRadiusWu`);
 }
 
-function validateSpellMechanicFields(
-  def: SpellDefinition,
-  path: string,
-): void {
+function validateSpellMechanicFields(def: SpellDefinition, path: string): void {
   switch (def.mechanicType) {
     case "swing":
     case "tracking_swing":
@@ -111,7 +111,10 @@ function validateSpellMechanicFields(
       requireFiniteNumber(def.iceWallDurationMs, `${path}.iceWallDurationMs`);
       return;
     case "buff":
-      requireFiniteNumber(def.shadowformDurationMs, `${path}.shadowformDurationMs`);
+      requireFiniteNumber(
+        def.shadowformDurationMs,
+        `${path}.shadowformDurationMs`,
+      );
       if (def.id === "shadowform") {
         const moveSpeedMult = requireFiniteNumber(
           def.shadowformMoveSpeedMult,
@@ -239,9 +242,13 @@ export function shadowformMechanicsFromCatalog(
   return { moveSpeedMult, damageTakenMult, aggroRadiusMult };
 }
 
-export function normalizeSpellCatalog(raw: SpellsFileInput | null | undefined): SpellDefinition[] {
+export function normalizeSpellCatalog(
+  raw: SpellsFileInput | null | undefined,
+): SpellDefinition[] {
   if (!raw || !Array.isArray(raw.spells) || raw.spells.length === 0) {
-    throw new ConfigLoadError("spells.json must include a non-empty spells array");
+    throw new ConfigLoadError(
+      "spells.json must include a non-empty spells array",
+    );
   }
   return raw.spells.map((row, index) => {
     const path = spellPath(row.id ?? "?", index);

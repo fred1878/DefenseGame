@@ -31,7 +31,9 @@ test.describe("golden paths — combat", () => {
 
   test("defense-movement", async () => {
     const page = boot.page;
-    const before = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
+    const before = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.player,
+    );
     expect(before).toBeTruthy();
     const beforeX = before!.x;
     await apiEval(page, "api.setStick(1, 0)");
@@ -66,10 +68,7 @@ test.describe("golden paths — combat", () => {
         timeout: 15_000,
       })
       .toBeGreaterThan(0);
-    const stoneOk = await apiEval(
-      page,
-      "api.textureLoaded('fx_stone_throw')",
-    );
+    const stoneOk = await apiEval(page, "api.textureLoaded('fx_stone_throw')");
     expect(stoneOk).toBe(true);
   });
 });

@@ -1,7 +1,10 @@
 import type { EnemyInstance } from "../../entities/Enemy";
 import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
-import { requireMeleeChaseStandoffWu, wallMeleeApproachStandoffWu } from "../../core/enemyTuning";
+import {
+  requireMeleeChaseStandoffWu,
+  wallMeleeApproachStandoffWu,
+} from "../../core/enemyTuning";
 import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
@@ -24,14 +27,14 @@ export type MeleeChasePeer = {
 };
 
 export type ChaseVelocityOptions = {
-  nav?: EnemyNavState;
-  deltaMs?: number;
-  targetKind?: EnemyTargetKind;
+  nav?: EnemyNavState | undefined;
+  deltaMs?: number | undefined;
+  targetKind?: EnemyTargetKind | undefined;
   /** Live player position — used for melee standoff while chasing the player. */
-  playerX?: number;
-  playerY?: number;
+  playerX?: number | undefined;
+  playerY?: number | undefined;
   /** Live ally positions for peer chord blocking on direct player closes. */
-  meleeChasePeers?: readonly MeleeChasePeer[];
+  meleeChasePeers?: readonly MeleeChasePeer[] | undefined;
 };
 
 export function meleeChasePeersFromAllies(
@@ -47,12 +50,12 @@ export function meleeChasePeersFromAllies(
 export function playerChaseVelocityOpts(
   enemy: EnemyInstance,
   params: {
-    nav?: EnemyNavState;
+    nav?: EnemyNavState | undefined;
     deltaMs?: number;
     targetKind: EnemyTargetKind;
     playerX: number;
     playerY: number;
-    peerAllies?: readonly EnemyPeerAlly[];
+    peerAllies?: readonly EnemyPeerAlly[] | undefined;
   },
 ): ChaseVelocityOptions {
   return {
@@ -76,11 +79,7 @@ export function playerMeleeChaseStandoffCenterDist(
       `playerMeleeChaseStandoffCenterDist requires combat.melee for ${enemy.behavior}`,
     );
   }
-  const gapWu = requireMeleeChaseStandoffWu(
-    melee,
-    enemy.behavior,
-    enemy.defId,
-  );
+  const gapWu = requireMeleeChaseStandoffWu(melee, enemy.behavior, enemy.defId);
   return (
     worldUnit(playerBodyRadiusPx(), reg) +
     worldUnit(enemyCollisionBodyRadius(enemy.defId), reg) +
@@ -96,10 +95,7 @@ export function shouldHoldAtPlayerMelee(
 ): boolean {
   if (targetKind !== "player") return false;
   if (!isMeleeBodyCollisionBehavior(enemy.behavior)) return false;
-  const dist = Math.hypot(
-    playerX - enemy.sprite.x,
-    playerY - enemy.sprite.y,
-  );
+  const dist = Math.hypot(playerX - enemy.sprite.x, playerY - enemy.sprite.y);
   return dist <= playerMeleeChaseStandoffCenterDist(enemy);
 }
 
@@ -230,7 +226,10 @@ export function meleePackPlayerAnchor(
     nav.meleePackAnchorY = undefined;
     return { x: playerX, y: playerY };
   }
-  if (nav.meleePackAnchorX === undefined || nav.meleePackAnchorY === undefined) {
+  if (
+    nav.meleePackAnchorX === undefined ||
+    nav.meleePackAnchorY === undefined
+  ) {
     nav.meleePackAnchorX = playerX;
     nav.meleePackAnchorY = playerY;
     return { x: playerX, y: playerY };
@@ -344,10 +343,7 @@ export function applyChaseVelocity(
   speedMul = 1,
   opts?: ChaseVelocityOptions,
 ): void {
-  if (
-    opts?.targetKind &&
-    shouldHoldAtWallMelee(enemy, opts.targetKind)
-  ) {
+  if (opts?.targetKind && shouldHoldAtWallMelee(enemy, opts.targetKind)) {
     applyWallMeleeHold(enemy);
     return;
   }
@@ -428,9 +424,5 @@ export function applyDirectVelocity(
   const reg = enemy.sprite.scene.registry;
   const speed =
     worldUnit(enemy.speedWu, reg) * speedMul * chaseScale * statusMul;
-  setEnemyChaseVelocity(
-    enemy,
-    (dirX / len) * speed,
-    (dirY / len) * speed,
-  );
+  setEnemyChaseVelocity(enemy, (dirX / len) * speed, (dirY / len) * speed);
 }

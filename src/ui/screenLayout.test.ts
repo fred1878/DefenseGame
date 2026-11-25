@@ -47,13 +47,13 @@ describe("screenLayout", () => {
     const play = defensePlayAreaLayout(scene, safe);
     const chrome = combatChromeLayout(scene, safe);
     expect(play.y).toBe(play.topBandBottom);
-    expect(play.topBandBottom).toBe(chrome.hudBand - DEFENSE_TOP_CHROME_TRIM_PX);
+    expect(play.topBandBottom).toBe(
+      chrome.hudBand - DEFENSE_TOP_CHROME_TRIM_PX,
+    );
     expect(play.y).toBeLessThan(chrome.hudBand);
     expect(play.y + play.height).toBe(chrome.bottomStrip.stripTop);
     expect(play.bottomBandTop).toBe(chrome.bottomStrip.stripTop);
-    expect(play.height).toBe(
-      chrome.bottomStrip.stripTop - play.topBandBottom,
-    );
+    expect(play.height).toBe(chrome.bottomStrip.stripTop - play.topBandBottom);
     expect(chrome.bottomStrip.stripBottom).toBe(
       GAME.height + DEFENSE_BOTTOM_HUD_SHIFT_PX,
     );
@@ -75,7 +75,12 @@ describe("screenLayout", () => {
     } as Parameters<typeof fpsDebugOverlayPosition>[0];
     const townPos = fpsDebugOverlayPosition(town, safe);
     expect(townPos.y).toBeGreaterThanOrEqual(safe.top + scaleUiX(36));
-    const reset = townResetSaveButtonPosition(town, safe, scaleUiX(118), scaleUiX(36));
+    const reset = townResetSaveButtonPosition(
+      town,
+      safe,
+      scaleUiX(118),
+      scaleUiX(36),
+    );
     const resetBottom = reset.y + scaleUiX(36) / 2;
     expect(townPos.y).toBeGreaterThan(resetBottom);
   });
@@ -120,8 +125,7 @@ describe("screenLayout", () => {
       centerY +
       (DEFENSE_SPELL_BAR.rowCount - 1) *
         (DEFENSE_SPELL_BAR.slotSizePx + DEFENSE_SPELL_BAR.rowGapPx);
-    const gridBottom =
-      lastRowCenterY + DEFENSE_SPELL_BAR.slotSizePx / 2;
+    const gridBottom = lastRowCenterY + DEFENSE_SPELL_BAR.slotSizePx / 2;
     expect(gridBottom).toBeGreaterThan(GAME.height * 0.84);
     expect(gridBottom).toBeLessThanOrEqual(chrome.bottomStrip.stripBottom + 2);
     const lastCenterX =
@@ -199,8 +203,7 @@ describe("screenLayout", () => {
     expect(townBuildingGridColumnX(0)).toBeLessThan(GAME.width / 2);
     expect(townBuildingGridColumnX(1)).toBeGreaterThan(GAME.width / 2);
     expect(townBuildingGridClearsStatus(3, 112)).toBe(true);
-    const mid =
-      (townBuildingGridFootY(0) + townBuildingGridFootY(3)) / 2;
+    const mid = (townBuildingGridFootY(0) + townBuildingGridFootY(3)) / 2;
     expect(mid).toBeGreaterThan(GAME.height * 0.45);
   });
 });

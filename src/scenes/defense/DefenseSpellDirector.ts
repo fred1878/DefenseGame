@@ -5,7 +5,10 @@ import { spellById, type SpellDefinition } from "../../content/spells";
 import type { SaveGame } from "../../core/saveTypes";
 import { persistSave, playerDamageMult } from "../../core/GameState";
 import { pickAutoCastSpell } from "../../combat/spellAutoCast";
-import { isStickMoving, type SpellInputQueue } from "../../combat/spellInputQueue";
+import {
+  isStickMoving,
+  type SpellInputQueue,
+} from "../../combat/spellInputQueue";
 import type {
   SpellCastController,
   SpellCastInputMode,
@@ -92,7 +95,10 @@ export type DefenseSpellDirectorHost = {
   enemyIceStunFx: EnemyIceStunFxController;
   channelAreaStarted: boolean;
   shadowformEndsAt: number;
-  iceWallExpires: Array<{ sprite: Phaser.Physics.Arcade.Image; expiresAt: number }>;
+  iceWallExpires: Array<{
+    sprite: Phaser.Physics.Arcade.Image;
+    expiresAt: number;
+  }>;
   wu: (n: number) => number;
   enemyTargets: () => import("../../combat/SpellEffects").SpellEnemyTarget[];
   resolveStrikeMode: (auto: boolean) => "melee" | "ranged";
@@ -101,7 +107,7 @@ export type DefenseSpellDirectorHost = {
     y: number,
     radius: number,
     def?: {
-      blastTextureKey?: string;
+      blastTextureKey?: string | undefined;
       durationMs?: number;
       startAlpha?: number;
       scaleEnd?: number;
@@ -114,12 +120,13 @@ export type DefenseSpellDirectorHost = {
   maskWorldObject?: (go: Phaser.GameObjects.GameObject) => void;
 };
 
-
 export class DefenseSpellDirector {
   readonly channelTicks: DefenseSpellChannelTicks;
 
   constructor(private readonly host: DefenseSpellDirectorHost) {
-    this.channelTicks = new DefenseSpellChannelTicks(host, () => this.spellDamageMult());
+    this.channelTicks = new DefenseSpellChannelTicks(host, () =>
+      this.spellDamageMult(),
+    );
   }
 
   updateChanneling(
@@ -127,7 +134,13 @@ export class DefenseSpellDirector {
     dir: { x: number; y: number },
     shouldLockMeleeAimFacing: () => boolean,
   ): void {
-    updateDefenseSpellChanneling(this.host, this, delta, dir, shouldLockMeleeAimFacing);
+    updateDefenseSpellChanneling(
+      this.host,
+      this,
+      delta,
+      dir,
+      shouldLockMeleeAimFacing,
+    );
   }
 
   /** @internal Re-apply stick movement after a cast ends (tests call this directly). */
@@ -285,15 +298,19 @@ export class DefenseSpellDirector {
     if (!def || this.host.spellCaster.isChanneling()) return;
     if (spellTargetMode(def) === "ground") {
       this.host.spellChannelArea =
-        this.host.groundAim ??
-        this.defaultGroundTarget(def);
+        this.host.groundAim ?? this.defaultGroundTarget(def);
     } else if (def.mechanicType === "channeled_area") {
       const target = this.host.targeting.facingTarget("ranged", true);
       this.host.spellChannelArea = target
         ? { x: target.x, y: target.y }
         : { x: this.host.player.sprite.x, y: this.host.player.sprite.y };
     }
-    const begun = this.host.spellCaster.tryBeginCast(spellId, inputMode, stickX, stickY);
+    const begun = this.host.spellCaster.tryBeginCast(
+      spellId,
+      inputMode,
+      stickX,
+      stickY,
+    );
     if (begun === false) return;
     this.host.channelAreaStarted = false;
     this.channelTicks.reset();
@@ -334,7 +351,9 @@ export class DefenseSpellDirector {
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
     const maxR = this.host.wu(def.groundTargetMaxRangeWu ?? 240);
-    const strike = this.host.resolveStrikeMode(this.host.player.mode === "auto");
+    const strike = this.host.resolveStrikeMode(
+      this.host.player.mode === "auto",
+    );
     return resolveAutoCastGroundAim(
       px,
       py,
@@ -380,8 +399,7 @@ export class DefenseSpellDirector {
         this.host.wu(PLAYER_TUNING.autoAttackMeleeRange),
         this.host.wu(PLAYER_TUNING.autoAttackRangedRange),
         searchR,
-      ) ??
-      null
+      ) ?? null
     );
   }
 
@@ -425,8 +443,13 @@ export class DefenseSpellDirector {
     progress: number,
     deltaMs: number,
   ): void {
-    syncDefenseGroundCastTelegraphs(this.host, def, phase, progress, deltaMs, (d) =>
-      this.defaultGroundTarget(d),
+    syncDefenseGroundCastTelegraphs(
+      this.host,
+      def,
+      phase,
+      progress,
+      deltaMs,
+      (d) => this.defaultGroundTarget(d),
     );
   }
 
@@ -472,5 +495,4 @@ export class DefenseSpellDirector {
   tickIceWalls(): void {
     tickDefenseIceWalls(this.host);
   }
-
 }

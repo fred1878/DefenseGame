@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ENEMY_MELEE_SLASH_SFX_KEYS } from "../audio/enemyMeleeSlashSfx";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import type { EnemyInstance } from "../entities/Enemy";
+import { createRangedHybridCombatState } from "../entities/enemyRanged/types";
 import { mockEnemyInstance } from "../entities/testEnemyInstance";
 import { fakeScene } from "../test/fakeScene";
 import {
@@ -23,17 +24,28 @@ function meleeEnemy(partial: Partial<EnemyInstance> = {}) {
 
 describe("enemyShouldShowMeleeSwipeFx", () => {
   it("is off for ranged-only behaviours and lobbers", () => {
-    for (const behavior of ["javelineer", "lobber", "stationaryRanged"] as const) {
-      expect(enemyShouldShowMeleeSwipeFx(mockEnemyInstance({ behavior }))).toBe(false);
+    for (const behavior of [
+      "javelineer",
+      "lobber",
+      "stationaryRanged",
+    ] as const) {
+      expect(enemyShouldShowMeleeSwipeFx(mockEnemyInstance({ behavior }))).toBe(
+        false,
+      );
     }
-    expect(enemyShouldShowMeleeSwipeFx(mockEnemyInstance({ behavior: "meleeChaser" }))).toBe(true);
+    expect(
+      enemyShouldShowMeleeSwipeFx(
+        mockEnemyInstance({ behavior: "meleeChaser" }),
+      ),
+    ).toBe(true);
   });
 
   it("hybrids only swipe in melee mode; chargers not while charging", () => {
     const hybrid = mockEnemyInstance({ behavior: "rangedHybrid" });
-    hybrid.rangedHybrid = { mode: "ranged" } as EnemyInstance["rangedHybrid"];
+    const state = createRangedHybridCombatState();
+    hybrid.rangedHybrid = state;
     expect(enemyShouldShowMeleeSwipeFx(hybrid)).toBe(false);
-    hybrid.rangedHybrid = { mode: "melee" } as EnemyInstance["rangedHybrid"];
+    state.mode = "melee";
     expect(enemyShouldShowMeleeSwipeFx(hybrid)).toBe(true);
 
     const charger = mockEnemyInstance({ behavior: "charger" });

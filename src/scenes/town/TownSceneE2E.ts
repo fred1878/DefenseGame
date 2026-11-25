@@ -28,9 +28,7 @@ export function isTownTouchButtonPressed(
 ): boolean {
   if (testId === "start-night") {
     const btn = buildingControls.get("town_special_gallows_square");
-    return btn
-      ? isTouchButtonVisuallyPressed(btn.container)
-      : false;
+    return btn ? isTouchButtonVisuallyPressed(btn.container) : false;
   }
   return false;
 }

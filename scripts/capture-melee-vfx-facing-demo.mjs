@@ -69,7 +69,10 @@ try {
   await page.goto(`${base}/?e2e=1`, { waitUntil: "networkidle" });
   await gotoTownReady(page, base);
   await gotoDefenseReady(page, { spawnWarmupEnemy: false });
-  const defenseTrimSec = Math.max(0, (Date.now() - recordStartMs) / 1000 - 0.15);
+  const defenseTrimSec = Math.max(
+    0,
+    (Date.now() - recordStartMs) / 1000 - 0.15,
+  );
 
   await page.evaluate(() => {
     const api = window.__DEFENSEGAME_E2E__?.api;
@@ -95,7 +98,9 @@ try {
       await wait(300);
       const flags = await page.evaluate(() => ({
         rot: Number(window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxRot),
-        facing: Number(window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxFacing),
+        facing: Number(
+          window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxFacing,
+        ),
         flipX: Number(window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxFlipX),
         spawned: window.__DEFENSEGAME_E2E__?.flags.enemyMeleeFxSpawned,
         side: window.__DEFENSEGAME_E2E__?.flags.lastEnemyMeleeFxSide,

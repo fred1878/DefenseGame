@@ -8,15 +8,17 @@ import {
   SMOKE_FX_TEXTURE,
   smokeFxPackLoaded,
 } from "../content/smokeFxAssets";
-import { worldDisplayPx } from "../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
 
 const DEPTH = DEFENSE_RENDER_DEPTH.enemyCombatFx;
 
-/** One-shot Smoke B at lobber payload ground impact (fixed world position). */
+/** One-shot Smoke B at lobber payload ground impact; sized to authored blast radius. */
 export function spawnLobberGroundImpactSmokeFx(
   scene: Phaser.Scene,
   worldX: number,
   worldY: number,
+  blastRadiusWu: number,
+  impactVfxBlastMul: number,
   registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
 ): void {
   if (!smokeFxPackLoaded(scene)) {
@@ -32,7 +34,11 @@ export function spawnLobberGroundImpactSmokeFx(
   }
 
   const reg = scene.registry;
-  const display = worldDisplayPx(SMOKE_FX_B_DISPLAY_PX, reg);
+  const blastRadiusPx = worldUnit(blastRadiusWu, reg);
+  const display = Math.max(
+    blastRadiusPx * impactVfxBlastMul,
+    worldDisplayPx(SMOKE_FX_B_DISPLAY_PX, reg),
+  );
   const sprite = scene.add
     .sprite(worldX, worldY, SMOKE_FX_TEXTURE.smokeB)
     .setDepth(DEPTH)

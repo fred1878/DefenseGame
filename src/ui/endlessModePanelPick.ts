@@ -2,7 +2,7 @@ export type EndlessRowPickInput = {
   screenX: number;
   screenY: number;
   /** When set, taps in the cap column (screenX >= this) do not map to a row. */
-  capColLeft?: number;
+  capColLeft?: number | undefined;
   listTop: number;
   listViewportH: number;
   listContentY: number;

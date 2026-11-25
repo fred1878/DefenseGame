@@ -28,7 +28,9 @@ test.describe("defense vertical camera scroll", () => {
       )
       .not.toBe(before.y);
 
-    const afterNorthY = await api.eval<number>("api.getDefenseCameraScroll().y");
+    const afterNorthY = await api.eval<number>(
+      "api.getDefenseCameraScroll().y",
+    );
 
     // South band far from center spawn (y = 0) so scroll must differ from north.
     const southY = halfH - 96;

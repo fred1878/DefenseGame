@@ -12,7 +12,10 @@ import {
 } from "../../config/shadowformRuntime";
 import { PLAYER_AGGRO_RADIUS } from "../../config";
 import type { NavGrid } from "../../pathfinding/grid";
-import { updateEnemySpriteFacing, type EnemyInstance } from "../../entities/Enemy";
+import {
+  updateEnemySpriteFacing,
+  type EnemyInstance,
+} from "../../entities/Enemy";
 import {
   enemyCollisionBodyRadius,
   enemyPathClearancePx,
@@ -35,10 +38,16 @@ import {
 } from "../../entities/Projectile";
 import type { Damageable } from "../../combat/DamageSystem";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import { decayEnemyKnockback, setEnemyChaseVelocity } from "../../combat/enemyKnockback";
+import {
+  decayEnemyKnockback,
+  setEnemyChaseVelocity,
+} from "../../combat/enemyKnockback";
 import { updateEnemyNameplate } from "../../ui/enemyNameplate";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../../content/assets";
-import { enemyProjectileTextureKey, PVFX_TEXTURE } from "../../content/combatPvfxAssets";
+import {
+  enemyProjectileTextureKey,
+  PVFX_TEXTURE,
+} from "../../content/combatPvfxAssets";
 import { attachPvfxProjectileFx } from "../../combat/SpellPvfxProjectileFx";
 import { playBruiserMeleeCritHitOnPlayerFx } from "../../combat/BruiserPlayerCritHitFx";
 
@@ -80,8 +89,12 @@ export function tickDefenseEnemies(
   let wallHp = host.wallHp;
   let playerInvulnMs = host.playerInvulnMs;
   const enemyProjectiles = [...host.enemyProjectiles];
-  const { x: px, y: py, radius: playerRadius, damageable: playerDamageable } =
-    host.playerHurtbox;
+  const {
+    x: px,
+    y: py,
+    radius: playerRadius,
+    damageable: playerDamageable,
+  } = host.playerHurtbox;
 
   host.enemyPathGoals.clear();
   const liveEnemies = host.enemies.filter((e) => e.damageable.alive);
@@ -105,10 +118,7 @@ export function tickDefenseEnemies(
       .map((o) => ({
         x: o.sprite.x,
         y: o.sprite.y,
-        clearancePx: worldUnit(
-          enemyPathClearancePx(o.defId),
-          host.registry,
-        ),
+        clearancePx: worldUnit(enemyPathClearancePx(o.defId), host.registry),
       }));
     const peerAllies = liveEnemies
       .filter((o) => o.id !== e.id)
@@ -286,7 +296,8 @@ export function tickDefenseEnemies(
         !extra.chargeHitThisDash
       ) {
         const bodyR = enemyCollisionBodyRadius(e.defId);
-        const touch = Math.hypot(px - e.sprite.x, py - e.sprite.y) <= bodyR + playerRadius;
+        const touch =
+          Math.hypot(px - e.sprite.x, py - e.sprite.y) <= bodyR + playerRadius;
         if (touch) {
           extra.chargeHitThisDash = true;
           playerHitDamage += chargerTune.chargeDamage;

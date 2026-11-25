@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import { spawnLobberGroundImpactSmokeFx } from "./LobberImpactSmokeFx";
 import { SMOKE_FX_ANIM, SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 
-(Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 
 function mockScene() {
   const created: string[] = [];
@@ -31,11 +32,13 @@ function mockScene() {
             return this;
           }),
           once: vi.fn(),
+          setDisplaySize: vi.fn(function (this: typeof sprite) {
+            return this;
+          }),
         };
         const chain = (): typeof sprite => sprite;
         sprite.setDepth = chain;
         sprite.setAlpha = chain;
-        sprite.setDisplaySize = chain;
         return sprite;
       }),
     },
@@ -49,16 +52,23 @@ describe("spawnLobberGroundImpactSmokeFx", () => {
       textures: { exists: () => false },
       anims: { exists: () => false },
     } as unknown as Phaser.Scene;
-    expect(() => spawnLobberGroundImpactSmokeFx(scene, 0, 0)).toThrow(
+    expect(() => spawnLobberGroundImpactSmokeFx(scene, 0, 0, 100, 2.4)).toThrow(
       /Smoke B texture missing/,
     );
   });
 
   it("plays lob impact animation when pack is loaded", () => {
     const { scene } = mockScene();
-    spawnLobberGroundImpactSmokeFx(scene, 12, 34);
+    spawnLobberGroundImpactSmokeFx(scene, 12, 34, 100, 2.4);
     const sprite = (scene.add.sprite as ReturnType<typeof vi.fn>).mock
-      .results[0]!.value as { play: ReturnType<typeof vi.fn> };
+      .results[0]!.value as {
+      play: ReturnType<typeof vi.fn>;
+      setDisplaySize: ReturnType<typeof vi.fn>;
+    };
     expect(sprite.play).toHaveBeenCalledWith(SMOKE_FX_ANIM.lobImpact);
+    expect(sprite.setDisplaySize).toHaveBeenCalled();
+    const [w, h] = sprite.setDisplaySize.mock.calls[0] as [number, number];
+    expect(w).toBe(h);
+    expect(w).toBeGreaterThan(0);
   });
 });

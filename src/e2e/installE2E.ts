@@ -31,9 +31,7 @@ export function attachE2EGame(game: Phaser.Game): void {
   ensureDomTestActions(api);
 
   const publishScene = (): void => {
-    const active = game.scene
-      .getScenes(true)
-      .find((s) => s.scene.isActive());
+    const active = game.scene.getScenes(true).find((s) => s.scene.isActive());
     const key = active?.scene.key ?? "unknown";
     const ready = key === "Town" || key === "Defense";
     const patch: Parameters<typeof publishE2E>[0] = {

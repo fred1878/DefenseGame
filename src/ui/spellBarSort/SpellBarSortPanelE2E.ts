@@ -1,4 +1,7 @@
-import { interactiveObjectScreenRect, type createTouchButton } from "../touchButton";
+import {
+  interactiveObjectScreenRect,
+  type createTouchButton,
+} from "../touchButton";
 import type { PoolChip, SlotView } from "./SpellBarSortPanelBuild";
 
 export type SpellSortSlotHitRect = {

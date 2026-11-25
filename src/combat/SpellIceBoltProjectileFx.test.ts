@@ -45,7 +45,9 @@ describe("SpellIceBoltProjectileFx", () => {
 
     const [overlay] = scene.made("sprite");
     expect(overlay!.args).toEqual([10, 20, ICE_FX_TEXTURE.boltStart]);
-    expect(overlay!.last("setDepth")).toEqual([DEFENSE_RENDER_DEPTH.projectile + 0.2]);
+    expect(overlay!.last("setDepth")).toEqual([
+      DEFENSE_RENDER_DEPTH.projectile + 0.2,
+    ]);
     expect(overlay!.last("setDisplaySize")).toEqual([
       ICE_FX_BOLT_DISPLAY_W_PX,
       ICE_FX_BOLT_DISPLAY_H_PX,
@@ -129,6 +131,10 @@ describe("SpellIceBoltProjectileFx", () => {
     const scene = iceScene();
     const projectile = projectileMovingEast(3, 4);
     finishIceBoltProjectileHit(asScene(scene), projectile);
-    expect(scene.made("sprite")[0]!.args).toEqual([3, 4, ICE_FX_TEXTURE.boltHit]);
+    expect(scene.made("sprite")[0]!.args).toEqual([
+      3,
+      4,
+      ICE_FX_TEXTURE.boltHit,
+    ]);
   });
 });

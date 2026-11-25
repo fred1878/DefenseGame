@@ -43,7 +43,9 @@ export const PLAYER_BOOT_KEYS = [
   "endlessPanelDefaultConcurrent",
 ] as const;
 
-export type PlayerConfigInput = Partial<Record<(typeof PLAYER_TUNING_BOOT_KEYS)[number], number>> & {
+export type PlayerConfigInput = Partial<
+  Record<(typeof PLAYER_TUNING_BOOT_KEYS)[number], number>
+> & {
   endlessPanelDefaultConcurrent?: number;
 };
 
@@ -51,7 +53,9 @@ export type PlayerConfig = PlayerTuning & {
   endlessPanelDefaultConcurrent: number;
 };
 
-export function normalizePlayerConfig(raw: PlayerConfigInput | null | undefined): PlayerConfig {
+export function normalizePlayerConfig(
+  raw: PlayerConfigInput | null | undefined,
+): PlayerConfig {
   const root = requireRecord(raw, "player");
   const tuning = {} as Record<string, number>;
   for (const key of PLAYER_TUNING_BOOT_KEYS) {
@@ -88,5 +92,7 @@ function computeAutoAttackMeleeRange(
   meleeEngageTargetRadiusWu: number,
   meleeActivationSlackWu: number,
 ): number {
-  return meleeStrikeRangeWu + meleeEngageTargetRadiusWu - meleeActivationSlackWu;
+  return (
+    meleeStrikeRangeWu + meleeEngageTargetRadiusWu - meleeActivationSlackWu
+  );
 }

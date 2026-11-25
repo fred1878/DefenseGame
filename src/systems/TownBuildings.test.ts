@@ -48,7 +48,9 @@ describe("town building footprints", () => {
       height: 112,
     };
     expect(townBuildingLabelWrapWidth(narrow)).toBeGreaterThanOrEqual(80);
-    expect(townBuildingLabelWrapWidth(narrow)).toBeGreaterThanOrEqual(scaleUiX(136));
+    expect(townBuildingLabelWrapWidth(narrow)).toBeGreaterThanOrEqual(
+      scaleUiX(136),
+    );
   });
 
   it("keeps separate ids for daylit variants", () => {

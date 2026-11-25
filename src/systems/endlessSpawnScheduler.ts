@@ -24,9 +24,8 @@ export function countLivingWithDefId(
   }>,
   enemyId: string,
 ): number {
-  return entries.filter(
-    (e) => e.damageable.alive && e.defId === enemyId,
-  ).length;
+  return entries.filter((e) => e.damageable.alive && e.defId === enemyId)
+    .length;
 }
 
 export type EndlessSpawnPlanEntry = {

@@ -1,4 +1,9 @@
-export type ScreenBounds = { x: number; y: number; width: number; height: number };
+export type ScreenBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 /** Release counts as the same button when the finger ends inside expanded bounds. */
 export function pressDragExceedsThreshold(

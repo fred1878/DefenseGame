@@ -11,9 +11,7 @@ import {
 const repoRoot = join(import.meta.dirname, "../..");
 
 function loadJson<T>(rel: string): T {
-  return JSON.parse(
-    readFileSync(join(repoRoot, rel), "utf8"),
-  ) as T;
+  return JSON.parse(readFileSync(join(repoRoot, rel), "utf8")) as T;
 }
 
 describe("town building v02 keep list", () => {
@@ -65,8 +63,12 @@ describe("town building v02 keep list", () => {
   });
 
   it("wires daylit witchlight beacon to spell bar", () => {
-    expect(defs.town_special_witchlight_beacon_daylit?.opensSpellBar).toBe(true);
-    expect(defs.town_special_witchlight_beacon_daylit?.upgradeId).toBeUndefined();
+    expect(defs.town_special_witchlight_beacon_daylit?.opensSpellBar).toBe(
+      true,
+    );
+    expect(
+      defs.town_special_witchlight_beacon_daylit?.upgradeId,
+    ).toBeUndefined();
     expect(defs.town_special_witchlight_beacon?.upgradeId).toBe("wall");
   });
 

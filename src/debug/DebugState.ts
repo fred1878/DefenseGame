@@ -9,7 +9,9 @@ export type DebugFlags = {
 const REGISTRY_KEY = "debugFlags";
 
 export function getDebugFlags(registry: Phaser.Data.DataManager): DebugFlags {
-  const existing = registry.get(REGISTRY_KEY) as Partial<DebugFlags> | undefined;
+  const existing = registry.get(REGISTRY_KEY) as
+    | Partial<DebugFlags>
+    | undefined;
   if (existing) {
     return {
       showHitboxes: existing.showHitboxes ?? false,

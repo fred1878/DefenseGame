@@ -30,13 +30,17 @@ describe("SpellBlizzardChannelFx", () => {
     expect(flakes).toHaveLength(count);
     for (const f of flakes) {
       const [x, y] = f.args as [number, number];
-      expect(Math.hypot(x - 100, y - 100)).toBeLessThanOrEqual(radius * 0.92 + 1e-9);
+      expect(Math.hypot(x - 100, y - 100)).toBeLessThanOrEqual(
+        radius * 0.92 + 1e-9,
+      );
       const [w] = f.last("setDisplaySize") as [number];
       expect(w).toBeGreaterThanOrEqual(44);
       expect(w).toBeLessThanOrEqual(72);
     }
     expect(scene.tweenConfigs).toHaveLength(count);
-    expect(scene.tweenConfigs.every((t) => t.repeat === -1 && t.yoyo)).toBe(true);
+    expect(scene.tweenConfigs.every((t) => t.repeat === -1 && t.yoyo)).toBe(
+      true,
+    );
   });
 
   it("restarting or stopping removes the previous flakes and tweens", () => {

@@ -36,7 +36,11 @@ export class FpsDebugOverlay {
     this.text.setVisible(false);
   }
 
-  tick(registry: Phaser.Data.DataManager, delta: number, game: Phaser.Game): void {
+  tick(
+    registry: Phaser.Data.DataManager,
+    delta: number,
+    game: Phaser.Game,
+  ): void {
     if (!showFpsCounter(registry)) {
       this.text.setVisible(false);
       return;
@@ -44,9 +48,14 @@ export class FpsDebugOverlay {
     const loopFps = game.loop.actualFps;
     const instantFps = delta > 0 ? 1000 / delta : loopFps;
     const fps = Number.isFinite(instantFps) ? instantFps : loopFps;
-    this.smoothFps = this.smoothFps === 0 ? fps : this.smoothFps + (fps - this.smoothFps) * SMOOTH;
+    this.smoothFps =
+      this.smoothFps === 0
+        ? fps
+        : this.smoothFps + (fps - this.smoothFps) * SMOOTH;
     this.smoothMs =
-      this.smoothMs === 0 ? delta : this.smoothMs + (delta - this.smoothMs) * SMOOTH;
+      this.smoothMs === 0
+        ? delta
+        : this.smoothMs + (delta - this.smoothMs) * SMOOTH;
     this.text.setVisible(true);
     this.text.setText(
       `${this.smoothFps.toFixed(1)} FPS\n${this.smoothMs.toFixed(1)} ms`,

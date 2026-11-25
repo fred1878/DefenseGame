@@ -117,8 +117,7 @@ describe("updateJavelineerCombat wall target", () => {
     const wy = northWallAttackY();
     const enemy = baseEnemy("javelineer");
     const band =
-      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
-      2;
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
     enemy.sprite.y = wy + band;
     enemy.javelineer = createJavelineerCombatState();
     enemy.combat.phase = "active";
@@ -148,8 +147,7 @@ describe("updateJavelineerCombat", () => {
     enemy.combat.phase = "active";
     enemy.combat.phaseMs = 0;
     const mid =
-      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) /
-      2;
+      (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
     enemy.combat.attackTargetKind = "player";
     enemy.combat.commitAimX = mid;
     enemy.combat.commitAimY = 0;

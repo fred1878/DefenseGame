@@ -1,6 +1,10 @@
 import type { SpellDefinition } from "../../content/spells";
 import { isStickMoving } from "../../combat/spellInputQueue";
-import { applyHealAmount, applySpellCone, strikeSpellCone } from "../../combat/SpellEffects";
+import {
+  applyHealAmount,
+  applySpellCone,
+  strikeSpellCone,
+} from "../../combat/SpellEffects";
 import {
   advanceChanneledConeTicks,
   CHANNELED_CONE_MAX_TICKS,
@@ -56,7 +60,11 @@ export class DefenseSpellChannelTicks {
 
   flushCone(def: SpellDefinition): void {
     while (this.cone.ticksDone < CHANNELED_CONE_MAX_TICKS) {
-      const fired = advanceChanneledConeTicks(this.cone, def, spellChannelTickMs(def));
+      const fired = advanceChanneledConeTicks(
+        this.cone,
+        def,
+        spellChannelTickMs(def),
+      );
       if (fired <= 0) break;
       this.fireCone(def, fired);
     }
@@ -70,7 +78,11 @@ export class DefenseSpellChannelTicks {
 
   flushHeal(def: SpellDefinition): void {
     while (this.heal.ticksDone < channeledHealMaxTicks(def)) {
-      const fired = advanceChanneledHealTicks(this.heal, def, spellChannelTickMs(def));
+      const fired = advanceChanneledHealTicks(
+        this.heal,
+        def,
+        spellChannelTickMs(def),
+      );
       if (fired <= 0) break;
       this.fireHeal(def, fired);
     }
@@ -100,15 +112,34 @@ export class DefenseSpellChannelTicks {
       const tickIndex = firstTickIndex + i;
       const isFirstTick = tickIndex === 0;
       if (isFirstTick) {
-        applySpellCone(host.scene, px, py, angle, def, targets, mult, host.enemySpellStatus, {
-          showFx: true,
-          registerWorldDraw: host.maskWorldObject,
-        });
+        applySpellCone(
+          host.scene,
+          px,
+          py,
+          angle,
+          def,
+          targets,
+          mult,
+          host.enemySpellStatus,
+          {
+            showFx: true,
+            registerWorldDraw: host.maskWorldObject,
+          },
+        );
         if (spellPlaysFireWhooshOnChanneledConeTick(def, true)) {
           playFireWhooshSfx(host.scene);
         }
       } else {
-        strikeSpellCone(host.scene, px, py, angle, def, targets, mult, host.enemySpellStatus);
+        strikeSpellCone(
+          host.scene,
+          px,
+          py,
+          angle,
+          def,
+          targets,
+          mult,
+          host.enemySpellStatus,
+        );
       }
     }
     host.filterDeadEnemies();
@@ -191,7 +222,12 @@ export function updateDefenseSpellChanneling(
     host.castBar.setProgress(channel.progress);
     const chDef = spellById(channel.spellId);
     if (chDef) {
-      director.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
+      director.syncGroundCastTelegraphs(
+        chDef,
+        channel.type,
+        channel.progress,
+        delta,
+      );
       syncDefenseHealChannelFx(host, chDef, channel.type, px, py);
       syncDefenseIceCastWindupFx(host, chDef, channel.type, px, py);
     }
@@ -217,7 +253,11 @@ export function updateDefenseSpellChanneling(
     director.resolveSpellEffect(channel.def);
     director.spawnPostChannelLinger(channel.def);
     if (impactCenter && spellNeedsGroundAoeTelegraph(channel.def)) {
-      director.pulseImpactAoeTelegraph(channel.def, impactCenter.x, impactCenter.y);
+      director.pulseImpactAoeTelegraph(
+        channel.def,
+        impactCenter.x,
+        impactCenter.y,
+      );
     }
     director.clearGroundCastTelegraphs();
     director.clearSpellChannelState();
@@ -237,12 +277,23 @@ export function startDefenseChanneledGroundZone(
   const px = host.player.sprite.x;
   const py = host.player.sprite.y;
   const center = host.spellChannelArea ?? { x: px, y: py };
-  if (def.mechanicType === "channeled_area" || def.mechanicType === "channeled") {
+  if (
+    def.mechanicType === "channeled_area" ||
+    def.mechanicType === "channeled"
+  ) {
     host.spellGroundZones.push(
-      spawnGroundZone(host.scene, def, center.x, center.y, mult, host.timeNow(), {
-        durationMs: def.channelMs,
-        includeBurst: Boolean(def.burstDamage),
-      }),
+      spawnGroundZone(
+        host.scene,
+        def,
+        center.x,
+        center.y,
+        mult,
+        host.timeNow(),
+        {
+          durationMs: def.channelMs,
+          includeBurst: Boolean(def.burstDamage),
+        },
+      ),
     );
     host.channelAreaStarted = true;
     if (def.mechanicType === "channeled_area") {
@@ -285,7 +336,10 @@ export function spawnDefensePostChannelLinger(
     1,
     "channel",
   );
-  registerSpellGroundAoeTelegraphWorld(host.lingerAoeTelegraph, host.maskWorldObject);
+  registerSpellGroundAoeTelegraphWorld(
+    host.lingerAoeTelegraph,
+    host.maskWorldObject,
+  );
   updateSpellGroundAoeTelegraph(host.lingerAoeTelegraph, 0, "channel", 1);
   host.flashNova(center.x, center.y, radiusWu, {
     blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,

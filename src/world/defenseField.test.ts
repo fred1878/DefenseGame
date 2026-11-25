@@ -13,7 +13,9 @@ import {
   worldDisplayPx,
 } from "../core/worldPixelScale";
 
-function fakeRegistry(store: Record<string, unknown> = {}): Phaser.Data.DataManager {
+function fakeRegistry(
+  store: Record<string, unknown> = {},
+): Phaser.Data.DataManager {
   return {
     get: (key: string) => store[key],
     set: (key: string, value: unknown) => {
@@ -54,7 +56,10 @@ describe("defense field tiles", () => {
     const reg3 = fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 3 });
     const at1 = defenseFieldPx(reg1);
     const at3 = defenseFieldPx(reg3);
-    const step2 = worldDisplayPx(GROUND_TILE_SIZE, fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 2 }));
+    const step2 = worldDisplayPx(
+      GROUND_TILE_SIZE,
+      fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 2 }),
+    );
     expect(baseline.width).toBe(DEFENSE_FIELD_TILES.cols * step2);
     expect(at1.width).toBeCloseTo(baseline.width * 0.5, 5);
     expect(at3.width).toBeCloseTo(baseline.width * 1.5, 5);

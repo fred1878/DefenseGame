@@ -6,7 +6,10 @@ import {
 } from "../config/defense";
 import type { DefensePlayArea } from "../ui/screenLayout";
 import { snapCameraLikePhaser3 } from "../core/phaser3PixelParity";
-import { adoptDefenseWorldObject, isInDefenseWorldLayer } from "./defenseWorldLayer";
+import {
+  adoptDefenseWorldObject,
+  isInDefenseWorldLayer,
+} from "./defenseWorldLayer";
 
 export const DEFENSE_UI_CAMERA_NAME = "defenseUi";
 

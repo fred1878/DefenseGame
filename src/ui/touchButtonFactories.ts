@@ -56,9 +56,7 @@ function createButtonBackground(
   frameTextureKey?: string,
 ): BgVisual {
   if (frameTextureKey && scene.textures.exists(frameTextureKey)) {
-    return scene.add
-      .image(0, 0, frameTextureKey)
-      .setDisplaySize(width, height);
+    return scene.add.image(0, 0, frameTextureKey).setDisplaySize(width, height);
   }
   return createUiRoundedRect(scene, width, height, fill, stroke);
 }
@@ -127,7 +125,13 @@ export function createTouchButton(
     ? { rest: 0xffffff, pressed: darkenTint(0xffffff, 0.68) }
     : { rest: fill, pressed: darkenColor(fill, 0.72) };
   if (!options.skipPressBinding) {
-    bindPress(scene, container, onPress, { bg, colors, pressScale: 0.88, textured }, activateOn);
+    bindPress(
+      scene,
+      container,
+      onPress,
+      { bg, colors, pressScale: 0.88, textured },
+      activateOn,
+    );
   }
 
   return {
@@ -162,7 +166,14 @@ export function createTouchToggleButton(
     .container(Math.round(x), Math.round(y))
     .setDepth(depth)
     .setScrollFactor(0);
-  const bg = createButtonBackground(scene, width, height, 0x3f3f46, 0x71717a, frameKey);
+  const bg = createButtonBackground(
+    scene,
+    width,
+    height,
+    0x3f3f46,
+    0x71717a,
+    frameKey,
+  );
   const labelPx = textured ? scaleUiX(15) : scaleUiX(14);
   const text = scene.add
     .text(0, 0, initialLabel, {
@@ -189,7 +200,12 @@ export function createTouchToggleButton(
   const colors = textured
     ? { rest: offBgTint, pressed: darkenTint(offBgTint) }
     : { rest: 0x3f3f46, pressed: 0x27272a };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9, textured });
+  bindPress(scene, container, onPress, {
+    bg,
+    colors,
+    pressScale: 0.9,
+    textured,
+  });
 
   let onState = false;
 
@@ -250,9 +266,13 @@ export function createTouchCircleButton(
 
   let bg: BgVisual;
   if (frameTextureKey && scene.textures.exists(frameTextureKey)) {
-    bg = scene.add.image(0, 0, frameTextureKey).setDisplaySize(diameter, diameter);
+    bg = scene.add
+      .image(0, 0, frameTextureKey)
+      .setDisplaySize(diameter, diameter);
   } else {
-    bg = scene.add.circle(0, 0, radius, 0xea580c, 1).setStrokeStyle(STROKE_PX, 0xfdba74);
+    bg = scene.add
+      .circle(0, 0, radius, 0xea580c, 1)
+      .setStrokeStyle(STROKE_PX, 0xfdba74);
   }
   const text = scene.add
     .text(0, 0, label, {
@@ -269,6 +289,11 @@ export function createTouchCircleButton(
   const colors = textured
     ? { rest: 0xffffff, pressed: darkenTint(0xffffff, 0.65) }
     : { rest: 0xea580c, pressed: 0xc2410c };
-  bindPress(scene, container, onPress, { bg, colors, pressScale: 0.9, textured });
+  bindPress(scene, container, onPress, {
+    bg,
+    colors,
+    pressScale: 0.9,
+    textured,
+  });
   return container;
 }

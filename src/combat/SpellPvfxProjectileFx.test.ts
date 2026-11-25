@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { PVFX_ANIM, PVFX_FX_ASSETS, PVFX_TEXTURE } from "../content/combatPvfxAssets";
+import {
+  PVFX_ANIM,
+  PVFX_FX_ASSETS,
+  PVFX_TEXTURE,
+} from "../content/combatPvfxAssets";
 import type { PlayerProjectile } from "../entities/Projectile";
 import { asScene, fakeGameObject, fakeScene } from "../test/fakeScene";
 import {
@@ -37,7 +41,12 @@ describe("SpellPvfxProjectileFx", () => {
     const scene = pvfxScene();
     const p = projectile(0, -100);
     const register = vi.fn();
-    attachPvfxProjectileFx(asScene(scene), p, PVFX_TEXTURE.fireballFlight, register);
+    attachPvfxProjectileFx(
+      asScene(scene),
+      p,
+      PVFX_TEXTURE.fireballFlight,
+      register,
+    );
     const [overlay] = scene.made("sprite");
     expect(overlay!.args).toEqual([5, 6, PVFX_TEXTURE.fireballFlight]);
     expect(overlay!.last("setDisplaySize")).toEqual([72 * 1.85, 32 * 1.85]);
@@ -50,8 +59,15 @@ describe("SpellPvfxProjectileFx", () => {
 
   it("scales the arrow flight a bit larger (2.1x)", () => {
     const scene = pvfxScene();
-    attachPvfxProjectileFx(asScene(scene), projectile(1, 0), PVFX_TEXTURE.arrowFlight);
-    expect(scene.made("sprite")[0]!.last("setDisplaySize")).toEqual([51 * 2.1, 15 * 2.1]);
+    attachPvfxProjectileFx(
+      asScene(scene),
+      projectile(1, 0),
+      PVFX_TEXTURE.arrowFlight,
+    );
+    expect(scene.made("sprite")[0]!.last("setDisplaySize")).toEqual([
+      51 * 2.1,
+      15 * 2.1,
+    ]);
   });
 
   it("sync tracks position/heading while active; destroy clears it once", () => {
@@ -59,7 +75,11 @@ describe("SpellPvfxProjectileFx", () => {
     const p = projectile(1, 0);
     attachPvfxProjectileFx(asScene(scene), p, PVFX_TEXTURE.lightningFlight);
     const overlay = scene.made("sprite")[0]!;
-    const body = p.sprite as unknown as { x: number; y: number; setVelocity(x: number, y: number): void };
+    const body = p.sprite as unknown as {
+      x: number;
+      y: number;
+      setVelocity(x: number, y: number): void;
+    };
     body.x = 40;
     body.y = 41;
     body.setVelocity(-10, 0);

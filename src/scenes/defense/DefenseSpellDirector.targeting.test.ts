@@ -57,7 +57,10 @@ function makeHost(
       setProgress: vi.fn(),
       setWorldPosition: vi.fn(),
     } as unknown as DefenseSpellDirectorHost["castBar"],
-    groundReticle: { showAt: vi.fn(), hide: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
+    groundReticle: {
+      showAt: vi.fn(),
+      hide: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["groundReticle"],
     obstacleGroup: {} as Phaser.Physics.Arcade.StaticGroup,
     obstacleBlockers: [],
     spellChannelArea: null,
@@ -80,9 +83,7 @@ function makeHost(
         damageable: { alive: true },
       },
     ] as unknown as DefenseSpellDirectorHost["enemies"],
-    enemyTargets: () => [
-      { id: "e1", x: 80, y: 0, radius: 12, alive: true },
-    ],
+    enemyTargets: () => [{ id: "e1", x: 80, y: 0, radius: 12, alive: true }],
     resolveStrikeMode: () => "ranged" as const,
     flashNova: vi.fn(),
     nextProjectileId: () => "0",
@@ -106,7 +107,10 @@ describe("DefenseSpellDirector manual targeting", () => {
       facingTarget: vi.fn(),
     };
     const director = new DefenseSpellDirector(
-      makeHost({ targeting: targeting as unknown as DefenseSpellDirectorHost["targeting"] }),
+      makeHost({
+        targeting:
+          targeting as unknown as DefenseSpellDirectorHost["targeting"],
+      }),
     );
     expect(director.prepareManualCastTargeting(deepFreezeDef)).toBe(true);
     expect(targeting.setFocusEnemy).toHaveBeenCalledWith("e1");

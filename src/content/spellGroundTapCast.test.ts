@@ -17,10 +17,19 @@ describe("spellGroundTapAutoCasts", () => {
 
   it("matches every targeted ground AoE in the shipped catalog", () => {
     const derived = deriveGroundTapAutoCastSpellIds(catalog);
-    expect(derived).toEqual(["blizzard", "fire_blast", "flamestrike", "meteor"]);
+    expect(derived).toEqual([
+      "blizzard",
+      "fire_blast",
+      "flamestrike",
+      "meteor",
+    ]);
     for (const def of catalog) {
-      expect(spellGroundTapAutoCastsForDef(def)).toBe(spellUsesManualGroundAim(def));
-      expect(spellGroundTapAutoCasts(def.id)).toBe(spellUsesManualGroundAim(def));
+      expect(spellGroundTapAutoCastsForDef(def)).toBe(
+        spellUsesManualGroundAim(def),
+      );
+      expect(spellGroundTapAutoCasts(def.id)).toBe(
+        spellUsesManualGroundAim(def),
+      );
     }
   });
 

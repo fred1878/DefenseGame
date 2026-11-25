@@ -183,10 +183,10 @@ export type ApplyRetreatPathingOpts = {
   threatY: number;
   deltaMs: number;
   waypointRadius: number;
-  peerAgents?: readonly NavPeerAgent[];
+  peerAgents?: readonly NavPeerAgent[] | undefined;
   speedMul?: number;
   chaseOpts?: ChaseVelocityOptions;
-  retreatGoalDistPx?: number;
+  retreatGoalDistPx?: number | undefined;
   /** Blend strafe tangent into the path waypoint target (javelineer kite). */
   blendMove?: { x: number; y: number; weight: number };
 };

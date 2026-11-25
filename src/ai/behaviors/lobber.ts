@@ -2,7 +2,11 @@ import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import { pathingPeerAgents, wallPathingPlayerClearancePx } from "../EnemyBrain";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, applyDirectVelocity, setEnemyChaseVelocity } from "./movement";
+import {
+  applyChaseVelocity,
+  applyDirectVelocity,
+  setEnemyChaseVelocity,
+} from "./movement";
 import {
   beginBehaviorFrame,
   followPlannedPath,

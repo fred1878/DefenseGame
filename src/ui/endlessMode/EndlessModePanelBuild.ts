@@ -107,8 +107,14 @@ export function buildEndlessModePanelUi(
 ): EndlessModePanelUi {
   const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
 
-  const dim = scene.add
-    .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x000000, 0.72);
+  const dim = scene.add.rectangle(
+    GAME.width / 2,
+    GAME.height / 2,
+    GAME.width,
+    GAME.height,
+    0x000000,
+    0.72,
+  );
   bindModalDimBackdrop(dim);
   root.add(dim);
   const modalLease = acquireModalInput(scene, INPUT_MODALITY.townEndless);
@@ -169,20 +175,18 @@ export function buildEndlessModePanelUi(
   const listTop = scaleUiY(148);
   const listBottom = GAME.height - footerBlockH;
   const listBudget = Math.max(scaleUiY(120), listBottom - listTop);
-  const cappedByRows =
-    MAX_VISIBLE_ROWS * rowStride - gap;
+  const cappedByRows = MAX_VISIBLE_ROWS * rowStride - gap;
   const listViewportH = Math.min(listBudget, cappedByRows);
 
   const listHitTopSlop = scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX);
-  const listViewport = scene.add
-    .rectangle(
-      GAME.width / 2,
-      listTop + listViewportH / 2,
-      rowW,
-      listViewportH,
-      0x000000,
-      0,
-    );
+  const listViewport = scene.add.rectangle(
+    GAME.width / 2,
+    listTop + listViewportH / 2,
+    rowW,
+    listViewportH,
+    0x000000,
+    0,
+  );
   const listHitW = rowW;
   const listHitH = listViewportH + listHitTopSlop;
   const listViewportHit = new Phaser.Geom.Rectangle(
@@ -191,20 +195,17 @@ export function buildEndlessModePanelUi(
     listHitW,
     listHitH,
   );
-  listViewport.setInteractive(
-    listViewportHit,
-    (hitArea, x, y, gameObject) => {
-      if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
-      const viewport = gameObject as Phaser.GameObjects.Rectangle;
-      const mapped = h.listViewportPointerToScreen(viewport, x, y);
-      const pt =
-        mapped != null
-          ? { x: mapped.screenX, y: mapped.screenY }
-          : hitAreaLocalPointToScreen(viewport, x, y);
-      if (!pt) return false;
-      return h.listViewportHitForScroll(pt.x, pt.y);
-    },
-  );
+  listViewport.setInteractive(listViewportHit, (hitArea, x, y, gameObject) => {
+    if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
+    const viewport = gameObject as Phaser.GameObjects.Rectangle;
+    const mapped = h.listViewportPointerToScreen(viewport, x, y);
+    const pt =
+      mapped != null
+        ? { x: mapped.screenX, y: mapped.screenY }
+        : hitAreaLocalPointToScreen(viewport, x, y);
+    if (!pt) return false;
+    return h.listViewportHitForScroll(pt.x, pt.y);
+  });
   root.add(listViewport);
 
   const listContent = scene.add.container(0, listTop);
@@ -234,10 +235,15 @@ export function buildEndlessModePanelUi(
       )
       .setOrigin(0.5);
     const text = scene.add
-      .text(nameCx + scaleUiX(8), cy, label, uiTextStyle(scene, {
-        fontSize: `${scaleUiX(15)}px`,
-        color: "#fafafa",
-      }))
+      .text(
+        nameCx + scaleUiX(8),
+        cy,
+        label,
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(15)}px`,
+          color: "#fafafa",
+        }),
+      )
       .setOrigin(0.5);
 
     const capBg = scene.add
@@ -268,10 +274,15 @@ export function buildEndlessModePanelUi(
     const capDefault = store.player.endlessPanelDefaultConcurrent;
     caps.set(enemyId, capDefault);
     const capValue = scene.add
-      .text(capCx, cy, `${capDefault}`, uiTextStyle(scene, {
-        fontSize: `${scaleUiX(15)}px`,
-        color: "#e4e4e7",
-      }))
+      .text(
+        capCx,
+        cy,
+        `${capDefault}`,
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(15)}px`,
+          color: "#e4e4e7",
+        }),
+      )
       .setOrigin(0.5);
 
     capMinus.on("pointerup", (pointer: Phaser.Input.Pointer) => {
@@ -321,15 +332,7 @@ export function buildEndlessModePanelUi(
     capMinus.setInteractive(capBtnHit, h.rowCapHitTest(row));
     capPlus.setInteractive(capBtnHit, h.rowCapHitTest(row));
     rows.push(row);
-    listContent.add([
-      bg,
-      check,
-      text,
-      capBg,
-      capMinus,
-      capValue,
-      capPlus,
-    ]);
+    listContent.add([bg, check, text, capBg, capMinus, capValue, capPlus]);
     localY += rowStride;
   }
 
@@ -393,18 +396,10 @@ export function buildEndlessModePanelUi(
     )
     .setOrigin(0, 0.5)
     .setDepth(footerDepth + 1);
-  root.add([
-    infiniteHpBg,
-    infiniteHpCheck,
-    infiniteLabel,
-  ]);
+  root.add([infiniteHpBg, infiniteHpCheck, infiniteLabel]);
 
   const crY =
-    listBottom +
-    scaleUiY(12) +
-    infiniteRowH +
-    gapAfterInfinite +
-    crLineHalf;
+    listBottom + scaleUiY(12) + infiniteRowH + gapAfterInfinite + crLineHalf;
   const challengeRatingText = scene.add
     .text(
       GAME.width / 2,

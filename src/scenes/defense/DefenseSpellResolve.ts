@@ -21,7 +21,10 @@ import {
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
-import { playMeteorStrikeFx } from "../../combat/SpellMeteorStrikeFx";
+import {
+  meteorStrikeFxFlipX,
+  playMeteorStrikeFx,
+} from "../../combat/SpellMeteorStrikeFx";
 import { playShadowformCastFx } from "../../combat/ShadowformCastFx";
 import {
   DEFENSE_RENDER_DEPTH,
@@ -63,7 +66,15 @@ export function resolveDefenseSpellEffect(
           : null;
       const bx = remote?.x ?? px;
       const by = remote?.y ?? py;
-      applySpellBlastAt(host.scene, bx, by, def, targets, mult, host.enemySpellStatus);
+      applySpellBlastAt(
+        host.scene,
+        bx,
+        by,
+        def,
+        targets,
+        mult,
+        host.enemySpellStatus,
+      );
       const blastRadiusPx = host.wu(def.blastRadiusWu!);
       if (def.id === "fire_nova") {
         showFireNovaRingFx(
@@ -86,6 +97,7 @@ export function resolveDefenseSpellEffect(
           bx,
           by,
           blastRadiusPx,
+          meteorStrikeFxFlipX(px, bx),
           host.maskWorldObject,
         );
       } else {
@@ -101,7 +113,15 @@ export function resolveDefenseSpellEffect(
     case "projectile":
     case "projectile_aoe": {
       const id = `spell_proj_${host.nextProjectileId()}`;
-      const projSpell = spawnSpellProjectile(host.scene, px, py, angle, def, mult, id);
+      const projSpell = spawnSpellProjectile(
+        host.scene,
+        px,
+        py,
+        angle,
+        def,
+        mult,
+        id,
+      );
       host.maskWorldObject?.(projSpell.sprite);
       host.projectiles.push(projSpell);
       break;
@@ -157,9 +177,19 @@ export function resolveDefenseSpellEffect(
       break;
     }
     case "cone":
-      applySpellCone(host.scene, px, py, angle, def, targets, mult, host.enemySpellStatus, {
-        registerWorldDraw: host.maskWorldObject,
-      });
+      applySpellCone(
+        host.scene,
+        px,
+        py,
+        angle,
+        def,
+        targets,
+        mult,
+        host.enemySpellStatus,
+        {
+          registerWorldDraw: host.maskWorldObject,
+        },
+      );
       break;
     case "channeled_cone":
     case "channeled":
@@ -182,7 +212,15 @@ export function resolveDefenseSpellEffect(
         const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
         const aim = Math.atan2(ty - py, tx - px);
         const id = `spell_proj_${host.nextProjectileId()}`;
-        const aimedProj = spawnSpellProjectile(host.scene, px, py, aim, def, mult, id);
+        const aimedProj = spawnSpellProjectile(
+          host.scene,
+          px,
+          py,
+          aim,
+          def,
+          mult,
+          id,
+        );
         host.maskWorldObject?.(aimedProj.sprite);
         host.projectiles.push(aimedProj);
       }
@@ -295,7 +333,10 @@ export function castDefenseBlink(
   const body = host.player.sprite.body as Phaser.Physics.Arcade.Body;
   body?.reset(landing.x, landing.y);
   body?.updateCenter();
-  correctPlayerObstacleBlockerOverlap(host.player.sprite, host.obstacleBlockers);
+  correctPlayerObstacleBlockerOverlap(
+    host.player.sprite,
+    host.obstacleBlockers,
+  );
   if (landing.moved) {
     host.flashNova(landing.x, landing.y, blinkFxR, {
       blastTextureKey: COMBAT_FX_TEXTURE.spellShockwave,

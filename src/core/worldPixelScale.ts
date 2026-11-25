@@ -17,7 +17,9 @@ export function clampWorldPixelScale(
 }
 
 export function getWorldPixelScale(registry: Phaser.Data.DataManager): number {
-  const stored = registry.get(WORLD_PIXEL_SCALE_REGISTRY_KEY) as number | undefined;
+  const stored = registry.get(WORLD_PIXEL_SCALE_REGISTRY_KEY) as
+    | number
+    | undefined;
   if (stored !== undefined) return clampWorldPixelScale(stored);
   return DEFAULT_WORLD_PIXEL_SCALE;
 }

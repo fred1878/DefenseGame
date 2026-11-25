@@ -24,7 +24,12 @@ const PATCH = {
   water_bolt: { castMs: 0, cooldownMs: 350 },
   arc_bomb: { castMs: 300, cooldownMs: 4000, blastRadius: 56 },
   swing: { cooldownMs: 300, targetMode: "enemy" },
-  rend: { castMs: 200, channelMs: 0, cooldownMs: 600, onHit: { dotDps: 8, dotMs: 3000 } },
+  rend: {
+    castMs: 200,
+    channelMs: 0,
+    cooldownMs: 600,
+    onHit: { dotDps: 8, dotMs: 3000 },
+  },
   cone_of_cold: {
     cooldownMs: 7000,
     coneRangeWu: 130,

@@ -12,7 +12,11 @@ export const WAVES_DOC_KEYS = [
   "intervalMs",
 ] as const;
 
-export const BUILDINGS_DOC_KEYS = ["maxLevel", "costByLevel", "effect"] as const;
+export const BUILDINGS_DOC_KEYS = [
+  "maxLevel",
+  "costByLevel",
+  "effect",
+] as const;
 
 export const TOWN_BUILDINGS_DOC_KEYS = [
   "label",

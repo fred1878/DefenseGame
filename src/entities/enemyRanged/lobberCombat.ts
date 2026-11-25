@@ -30,7 +30,7 @@ export function updateLobberCombat(
   extra: LobberCombatState,
   deltaMs: number,
   onWallHit?: () => void,
-): { spawnLob?: LobSpawnRequest } {
+): { spawnLob?: LobSpawnRequest | undefined } {
   const c = enemy.combat;
   const tune = enemy.combatTuning.lobber!;
   const dist = tickCooldownAndFaceTarget(enemy, target, deltaMs);
@@ -87,10 +87,7 @@ export function updateLobberCombat(
   const zonePx = worldUnit(tune.blastRadiusWu, enemy.sprite.scene.registry);
   let spawnLob: LobSpawnRequest | undefined;
 
-  if (
-    (c.phase === "active" || extra.lobAirborne) &&
-    extra.telegraph
-  ) {
+  if ((c.phase === "active" || extra.lobAirborne) && extra.telegraph) {
     const raining = c.phase === "active" || extra.lobAirborne;
     updateArrowRainTelegraph(extra.telegraph, deltaMs, raining, zonePx);
   }

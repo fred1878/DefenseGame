@@ -36,16 +36,7 @@ describe("toggleSpellOnDefenseBar", () => {
   });
 
   it("does not add when the bar is full", () => {
-    const full = [
-      "a",
-      "b",
-      "c",
-      "d",
-      "e",
-      "f",
-      "g",
-      "h",
-    ] as const;
+    const full = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
     expect(toggleSpellOnDefenseBar(full, "heal")).toEqual([...full]);
   });
 
@@ -58,16 +49,7 @@ describe("toggleSpellOnDefenseBar", () => {
 
 describe("clearAllDefenseBarSlots", () => {
   it("returns eight empty slots by default", () => {
-    expect(clearAllDefenseBarSlots()).toEqual([
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-    ]);
+    expect(clearAllDefenseBarSlots()).toEqual(["", "", "", "", "", "", "", ""]);
   });
 });
 

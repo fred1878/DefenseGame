@@ -43,9 +43,13 @@ function setup(mode: "ranged" | "melee" | "retreat" | null, x = 0, y = 0) {
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = mode;
   } else {
-    enemy.rangedHybrid = undefined;
+    delete enemy.rangedHybrid;
   }
-  const tick = (playerX: number, playerY = 0, objective: "huntPlayer" | "defendWall" = "huntPlayer") =>
+  const tick = (
+    playerX: number,
+    playerY = 0,
+    objective: "huntPlayer" | "defendWall" = "huntPlayer",
+  ) =>
     rangedHybridBehavior({
       enemy,
       nav: enemy.nav,

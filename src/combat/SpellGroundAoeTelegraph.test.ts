@@ -26,7 +26,12 @@ describe("spellNeedsGroundAoeTelegraph", () => {
   it("includes ground-target meteor, blizzard, and flamestrike", () => {
     expect(
       spellNeedsGroundAoeTelegraph(
-        def({ id: "meteor", targetMode: "ground", blastRadiusWu: 44, castMs: 1100 }),
+        def({
+          id: "meteor",
+          targetMode: "ground",
+          blastRadiusWu: 44,
+          castMs: 1100,
+        }),
       ),
     ).toBe(true);
     expect(
@@ -63,7 +68,14 @@ describe("spellNeedsGroundAoeTelegraph", () => {
       stroke: 0xffcc66,
       inner: 0xffffff,
     };
-    const telegraph = spawnSpellGroundAoeTelegraph(scene, 10, 20, 40, palette, 500);
+    const telegraph = spawnSpellGroundAoeTelegraph(
+      scene,
+      10,
+      20,
+      40,
+      palette,
+      500,
+    );
     const registerWorld = vi.fn();
     registerSpellGroundAoeTelegraphWorld(telegraph, registerWorld);
     expect(registerWorld).toHaveBeenCalledWith(gfx);
@@ -71,11 +83,18 @@ describe("spellNeedsGroundAoeTelegraph", () => {
 
   it("skips non-ground and radius-less spells", () => {
     expect(
-      spellNeedsGroundAoeTelegraph(def({ id: "fire_nova", centerOnCaster: true })),
+      spellNeedsGroundAoeTelegraph(
+        def({ id: "fire_nova", centerOnCaster: true }),
+      ),
     ).toBe(false);
     expect(
       spellNeedsGroundAoeTelegraph(
-        def({ id: "meteor", targetMode: "ground", blastRadiusWu: 0, castMs: 500 }),
+        def({
+          id: "meteor",
+          targetMode: "ground",
+          blastRadiusWu: 0,
+          castMs: 500,
+        }),
       ),
     ).toBe(false);
   });

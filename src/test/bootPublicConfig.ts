@@ -28,9 +28,8 @@ function readPublicJson<T>(name: string): T {
 /** Mirror BootScene config apply using shipped `public/data/*.json`. */
 export function bootPublicConfigFixtures(): void {
   applyDefenseMaps(readPublicJson("defense-maps.json"));
-  const enemiesRaw = readPublicJson<Record<string, EnemyDefInput>>(
-    "enemies.json",
-  );
+  const enemiesRaw =
+    readPublicJson<Record<string, EnemyDefInput>>("enemies.json");
   const enemies = Object.fromEntries(
     Object.entries(enemiesRaw).map(([id, row]) => [
       id,
@@ -38,18 +37,21 @@ export function bootPublicConfigFixtures(): void {
     ]),
   );
   applyEnemyBodyRadii(enemies);
-  applyEntityPhysics(normalizeEntityPhysics(readPublicJson("entity-physics.json")));
-  applyEnemyAi(normalizeEnemyAi(readPublicJson("enemy-ai.json")));
-  const { endlessPanelDefaultConcurrent: _ui, ...tuning } = normalizePlayerConfig(
-    readPublicJson("player.json"),
+  applyEntityPhysics(
+    normalizeEntityPhysics(readPublicJson("entity-physics.json")),
   );
+  applyEnemyAi(normalizeEnemyAi(readPublicJson("enemy-ai.json")));
+  const { endlessPanelDefaultConcurrent: _ui, ...tuning } =
+    normalizePlayerConfig(readPublicJson("player.json"));
   applyPlayerTuning(tuning);
   applyHitFlashConfig(normalizeHitFlash(readPublicJson("hit-flash.json")));
   const spells = normalizeSpellCatalog(
     readPublicJson<{ spells: SpellDefinition[] }>("spells.json"),
   );
   setSpellCatalog(spells);
-  const spellInputTuning = normalizeSpellInput(readPublicJson("spell_input.json"));
+  const spellInputTuning = normalizeSpellInput(
+    readPublicJson("spell_input.json"),
+  );
   applySpellInputTuning({
     ...spellInputTuning,
     groundTapAutoCastSpellIds: deriveGroundTapAutoCastSpellIds(spells),

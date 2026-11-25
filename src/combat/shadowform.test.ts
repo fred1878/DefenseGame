@@ -35,6 +35,8 @@ describe("shadowform", () => {
   it("composes move speed with optional status slow", () => {
     expect(shadowformMoveSpeedMultiplier(false, mechanics)).toBe(1);
     expect(shadowformMoveSpeedMultiplier(true, mechanics)).toBeCloseTo(1.2);
-    expect(shadowformMoveSpeedMultiplier(true, mechanics, 0.5)).toBeCloseTo(0.6);
+    expect(shadowformMoveSpeedMultiplier(true, mechanics, 0.5)).toBeCloseTo(
+      0.6,
+    );
   });
 });

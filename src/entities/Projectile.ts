@@ -18,7 +18,10 @@ import {
   releaseProjectileSprite,
 } from "./projectilePool";
 
-export { destroyProjectilePool, releaseProjectileSprite } from "./projectilePool";
+export {
+  destroyProjectilePool,
+  releaseProjectileSprite,
+} from "./projectilePool";
 
 /** Source art faces upper-right at rotation 0. */
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
@@ -50,9 +53,9 @@ export type PlayerProjectile = {
   /** Owning enemy when spawned from `DefenseEnemyTick`. */
   sourceEnemyId?: string;
   /** Ice Effect 01 travel overlay for `ice_bolt`. */
-  iceBoltFx?: IceBoltProjectileFxState;
+  iceBoltFx?: IceBoltProjectileFxState | undefined;
   /** PVFX Foundry seamless flight loop overlay. */
-  pvfxFlightFx?: PvfxProjectileFxState;
+  pvfxFlightFx?: PvfxProjectileFxState | undefined;
   /** Committed lob landing (blast center) while in flight. */
   lobAimX?: number;
   lobAimY?: number;
@@ -83,7 +86,10 @@ function projectileRotOffset(textureKey: string): number {
     : STONE_THROW_ROT_OFFSET;
 }
 
-function aimProjectileSprite(sprite: Phaser.Physics.Arcade.Sprite, textureKey: string): void {
+function aimProjectileSprite(
+  sprite: Phaser.Physics.Arcade.Sprite,
+  textureKey: string,
+): void {
   const body = sprite.body as Phaser.Physics.Arcade.Body;
   const angle = Math.atan2(body.velocity.y, body.velocity.x);
   sprite.setRotation(angle + projectileRotOffset(textureKey));
@@ -152,7 +158,7 @@ function steerProjectileToward(
 
 export type ProjectileHitUpdate = {
   alive: boolean;
-  hitEnemyId?: string;
+  hitEnemyId?: string | undefined;
 };
 
 export function updateProjectile(
@@ -179,9 +185,7 @@ export function updateProjectile(
   aimProjectileSprite(projectile.sprite, projectile.sprite.texture.key);
 
   let firstT: number | null = null;
-  let firstTarget:
-    | (typeof enemies)[number]
-    | undefined;
+  let firstTarget: (typeof enemies)[number] | undefined;
 
   const skipIds = projectile.damagedEnemyIds;
   for (const e of enemies) {
@@ -253,10 +257,7 @@ export function updateProjectile(
   projectile.prevY = y1;
 
   if (projectile.traveled >= projectile.maxTravel) {
-    if (
-      projectile.spellBehavior === "aoe_on_hit" &&
-      projectile.blastRadiusWu
-    ) {
+    if (projectile.spellBehavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       const detonation: ProjectileDetonation = {
         x: projectile.sprite.x,
         y: projectile.sprite.y,
@@ -301,7 +302,11 @@ export type SpellProjectileUpdateContext = {
 export function updateSpellProjectile(
   projectile: PlayerProjectile,
   ctx: SpellProjectileUpdateContext,
-): { alive: boolean; detonation?: ProjectileDetonation; hitEnemyId?: string } {
+): {
+  alive: boolean;
+  detonation?: ProjectileDetonation | undefined;
+  hitEnemyId?: string | undefined;
+} {
   if (projectile.spellBehavior === "tracking" && projectile.trackEnemyId) {
     const target = ctx.findEnemy(projectile.trackEnemyId);
     if (target?.damageable.alive) {
@@ -427,10 +432,7 @@ export function updateEnemyProjectile(
   );
 
   if (t !== null && player.damageable.alive) {
-    if (
-      projectile.spellBehavior === "aoe_on_hit" &&
-      projectile.blastRadiusWu
-    ) {
+    if (projectile.spellBehavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       projectile.pendingDetonation = {
         x: projectile.sprite.x,
         y: projectile.sprite.y,
@@ -462,10 +464,7 @@ export function updateEnemyProjectile(
   projectile.prevY = y1;
 
   if (projectile.traveled >= projectile.maxTravel) {
-    if (
-      projectile.spellBehavior === "aoe_on_hit" &&
-      projectile.blastRadiusWu
-    ) {
+    if (projectile.spellBehavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       projectile.pendingDetonation = {
         x: projectile.sprite.x,
         y: projectile.sprite.y,

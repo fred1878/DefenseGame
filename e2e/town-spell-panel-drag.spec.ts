@@ -25,7 +25,10 @@ test.describe("@manual town spell panel drag", () => {
       )
       .toBe(true);
 
-    await waitForTapTargets(page, ["spell-sort-slot-0", "spell-sort-pool-heal"]);
+    await waitForTapTargets(page, [
+      "spell-sort-slot-0",
+      "spell-sort-pool-heal",
+    ]);
 
     const from = await page.evaluate(() => {
       const t = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
@@ -41,7 +44,9 @@ test.describe("@manual town spell panel drag", () => {
     await expect
       .poll(
         () =>
-          page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots()),
+          page.evaluate(() =>
+            window.__DEFENSEGAME_E2E__?.api?.getSpellSortBarSlots(),
+          ),
         { timeout: 5_000 },
       )
       .toEqual(expect.arrayContaining(["heal"]));

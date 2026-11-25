@@ -42,26 +42,32 @@ test.describe("defense HUD layout", () => {
     );
     expect(chromeKey).toBeNull();
 
-    const { targets, stripCenterY, stripH, slotCount, hitRects, playAreaBottom } =
-      await page.evaluate(() => {
-        const hud = window.__HUD_DEBUG__ as
-          | {
-              stripCenterY: number;
-              stripH: number;
-              playAreaBottom?: number;
-            }
-          | undefined;
-        const api = window.__DEFENSEGAME_E2E__?.api;
-        const rects = api?.getSpellSlotHitRects() ?? [];
-        return {
-          targets: api?.getUiTapTargets() ?? {},
-          stripCenterY: hud?.stripCenterY ?? 0,
-          stripH: hud?.stripH ?? 0,
-          playAreaBottom: hud?.playAreaBottom ?? 0,
-          slotCount: rects.length,
-          hitRects: rects,
-        };
-      });
+    const {
+      targets,
+      stripCenterY,
+      stripH,
+      slotCount,
+      hitRects,
+      playAreaBottom,
+    } = await page.evaluate(() => {
+      const hud = window.__HUD_DEBUG__ as
+        | {
+            stripCenterY: number;
+            stripH: number;
+            playAreaBottom?: number;
+          }
+        | undefined;
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      const rects = api?.getSpellSlotHitRects() ?? [];
+      return {
+        targets: api?.getUiTapTargets() ?? {},
+        stripCenterY: hud?.stripCenterY ?? 0,
+        stripH: hud?.stripH ?? 0,
+        playAreaBottom: hud?.playAreaBottom ?? 0,
+        slotCount: rects.length,
+        hitRects: rects,
+      };
+    });
 
     expect(slotCount).toBe(8);
     expect(stripCenterY).toBeGreaterThan(1020);
@@ -108,7 +114,10 @@ test.describe("defense HUD layout", () => {
         if (!pt) return null;
         return { x: pt.x - pad, y: pt.y - pad, w: pad * 2, h: pad * 2 };
       };
-      const hits = (a: NonNullable<ReturnType<typeof rects>>, b: NonNullable<ReturnType<typeof rects>>) =>
+      const hits = (
+        a: NonNullable<ReturnType<typeof rects>>,
+        b: NonNullable<ReturnType<typeof rects>>,
+      ) =>
         a.x < b.x + b.w &&
         a.x + a.w > b.x &&
         a.y < b.y + b.h &&
@@ -132,26 +141,28 @@ test.describe("defense HUD layout", () => {
     expect(overlap!.spellMel, JSON.stringify(overlap)).toBe(false);
     expect(overlap!.debugSpell, JSON.stringify(overlap)).toBe(false);
 
-  const combatOrder = await page.evaluate(() => {
-    const t = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
-    const auto = t["combat-auto"];
-    const mel = t["combat-mode"];
-    const atk = t["combat-atk"];
-    if (!auto || !mel || !atk) return null;
-    return {
-      autoX: auto.x,
-      melX: mel.x,
-      atkX: atk.x,
-      autoY: auto.y,
-      melY: mel.y,
-      atkY: atk.y,
-    };
-  });
-  expect(combatOrder).not.toBeNull();
-  expect(Math.abs(combatOrder!.autoY - combatOrder!.melY)).toBeLessThanOrEqual(6);
-  expect(combatOrder!.autoX).toBeLessThan(combatOrder!.melX);
-  expect(combatOrder!.melY).toBeLessThan(combatOrder!.atkY);
-  expect(combatOrder!.atkY).toBeGreaterThan(980);
+    const combatOrder = await page.evaluate(() => {
+      const t = window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets() ?? {};
+      const auto = t["combat-auto"];
+      const mel = t["combat-mode"];
+      const atk = t["combat-atk"];
+      if (!auto || !mel || !atk) return null;
+      return {
+        autoX: auto.x,
+        melX: mel.x,
+        atkX: atk.x,
+        autoY: auto.y,
+        melY: mel.y,
+        atkY: atk.y,
+      };
+    });
+    expect(combatOrder).not.toBeNull();
+    expect(
+      Math.abs(combatOrder!.autoY - combatOrder!.melY),
+    ).toBeLessThanOrEqual(6);
+    expect(combatOrder!.autoX).toBeLessThan(combatOrder!.melX);
+    expect(combatOrder!.melY).toBeLessThan(combatOrder!.atkY);
+    expect(combatOrder!.atkY).toBeGreaterThan(980);
   });
 
   test("combat controls match combatChromeLayout anchors", async () => {
@@ -173,20 +184,24 @@ test.describe("defense HUD layout", () => {
       return hit;
     };
 
-    expect(Math.abs(target("combat-atk").x - chrome.atkX)).toBeLessThanOrEqual(tol);
-    expect(Math.abs(target("combat-atk").y - chrome.btnY)).toBeLessThanOrEqual(tol);
-    expect(Math.abs(target("combat-mode").x - chrome.modeX)).toBeLessThanOrEqual(
+    expect(Math.abs(target("combat-atk").x - chrome.atkX)).toBeLessThanOrEqual(
       tol,
     );
-    expect(Math.abs(target("combat-mode").y - chrome.modeY)).toBeLessThanOrEqual(
+    expect(Math.abs(target("combat-atk").y - chrome.btnY)).toBeLessThanOrEqual(
       tol,
     );
-    expect(Math.abs(target("combat-auto").x - chrome.autoX)).toBeLessThanOrEqual(
-      tol,
-    );
-    expect(Math.abs(target("combat-auto").y - chrome.autoY)).toBeLessThanOrEqual(
-      tol,
-    );
+    expect(
+      Math.abs(target("combat-mode").x - chrome.modeX),
+    ).toBeLessThanOrEqual(tol);
+    expect(
+      Math.abs(target("combat-mode").y - chrome.modeY),
+    ).toBeLessThanOrEqual(tol);
+    expect(
+      Math.abs(target("combat-auto").x - chrome.autoX),
+    ).toBeLessThanOrEqual(tol);
+    expect(
+      Math.abs(target("combat-auto").y - chrome.autoY),
+    ).toBeLessThanOrEqual(tol);
     expect(chrome.bottomStrip.stripCenterY).toBeGreaterThan(1020);
     expect(layout.probe!.playArea.bottomBandTop).toBe(
       chrome.bottomStrip.stripTop,

@@ -14,7 +14,9 @@ import {
   separateCircleFromBlockerAabb,
 } from "./defenseObstacleBlocker";
 
-function fakeRegistry(store: Record<string, unknown> = {}): Phaser.Data.DataManager {
+function fakeRegistry(
+  store: Record<string, unknown> = {},
+): Phaser.Data.DataManager {
   return {
     get: (key: string) => store[key],
     set: (key: string, value: unknown) => {
@@ -28,7 +30,9 @@ describe("defenseObstacleBlockerRects", () => {
     const rects = defenseObstacleBlockerRects(fakeRegistry());
     expect(rects.length).toBe(DEFENSE_OBSTACLE_PLACEMENTS.length);
     for (let i = 0; i < rects.length; i++) {
-      const base = defenseObstacleColliderFromPlacement(DEFENSE_OBSTACLE_PLACEMENTS[i]!);
+      const base = defenseObstacleColliderFromPlacement(
+        DEFENSE_OBSTACLE_PLACEMENTS[i]!,
+      );
       const rect = rects[i]!;
       expect(rect.x).toBeCloseTo(base.x, 5);
       expect(rect.y).toBeCloseTo(base.y, 5);

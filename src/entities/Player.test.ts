@@ -37,7 +37,9 @@ describe("Player setVelocityFromStick melee aim lock", () => {
     player.setVelocityFromStick(0, 1, 200, { lockMeleeAim: true });
 
     expect(player.getFacingAngle()).toBeCloseTo(aimEast);
-    const body = player.sprite.body as unknown as { setVelocity: ReturnType<typeof vi.fn> };
+    const body = player.sprite.body as unknown as {
+      setVelocity: ReturnType<typeof vi.fn>;
+    };
     expect(body.setVelocity).toHaveBeenCalledWith(0, 200);
   });
 

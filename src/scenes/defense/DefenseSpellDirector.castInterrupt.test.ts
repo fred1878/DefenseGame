@@ -8,7 +8,10 @@ import {
 
 describe("DefenseSpellDirector cast interrupt cleanup", () => {
   it("clears ground telegraphs and aim reticle when windup is interrupted", () => {
-    const destroySpy = vi.spyOn(SpellGroundAoeTelegraph, "destroySpellGroundAoeTelegraph");
+    const destroySpy = vi.spyOn(
+      SpellGroundAoeTelegraph,
+      "destroySpellGroundAoeTelegraph",
+    );
     const gfx = {
       setDepth: vi.fn(),
       clear: vi.fn(),
@@ -21,30 +24,36 @@ describe("DefenseSpellDirector cast interrupt cleanup", () => {
     const groundReticle = { showAt: vi.fn(), hide: vi.fn() };
     const spellCaster = new SpellCastController();
     spellCaster.tryBeginCast("flamestrike", "auto");
-    const groundAoeTelegraph: SpellGroundAoeTelegraph.SpellGroundAoeTelegraph = {
-      gfx: gfx as unknown as Phaser.GameObjects.Graphics,
-      zoneX: 50,
-      zoneY: 60,
-      zoneRadius: 78,
-      phaseMs: 0,
-      palette: { fill: 0xff5533, stroke: 0xffcc66, inner: 0xffffff },
-      mode: "windup",
-      windupMs: 650,
-    };
+    const groundAoeTelegraph: SpellGroundAoeTelegraph.SpellGroundAoeTelegraph =
+      {
+        gfx: gfx as unknown as Phaser.GameObjects.Graphics,
+        zoneX: 50,
+        zoneY: 60,
+        zoneRadius: 78,
+        phaseMs: 0,
+        palette: { fill: 0xff5533, stroke: 0xffcc66, inner: 0xffffff },
+        mode: "windup",
+        windupMs: 650,
+      };
 
     const host = {
       scene: {
         registry: { get: () => undefined },
         add: { graphics: () => gfx },
       } as unknown as Phaser.Scene,
-      save: { buildings: {}, player: { moveSpeedWu: 100 } } as unknown as DefenseSpellDirectorHost["save"],
+      save: {
+        buildings: {},
+        player: { moveSpeedWu: 100 },
+      } as unknown as DefenseSpellDirectorHost["save"],
       player: {
         sprite: { x: 0, y: 0, setVelocity: vi.fn() },
         setVelocityFromStick: vi.fn(),
       } as unknown as DefenseSpellDirectorHost["player"],
       enemies: [],
       projectiles: [],
-      targeting: { facingTarget: vi.fn() } as unknown as DefenseSpellDirectorHost["targeting"],
+      targeting: {
+        facingTarget: vi.fn(),
+      } as unknown as DefenseSpellDirectorHost["targeting"],
       spellCaster,
       spellInputQueue: {} as DefenseSpellDirectorHost["spellInputQueue"],
       enemySpellStatus: {} as DefenseSpellDirectorHost["enemySpellStatus"],

@@ -52,7 +52,9 @@ export function darkenTint(tint: number, factor = 0.72): number {
   return (r << 16) + (g << 8) + b;
 }
 
-export function isImageBg(bg: BgVisual | undefined): bg is Phaser.GameObjects.Image {
+export function isImageBg(
+  bg: BgVisual | undefined,
+): bg is Phaser.GameObjects.Image {
   return bg instanceof Phaser.GameObjects.Image;
 }
 
@@ -115,7 +117,8 @@ function pointerHitsGameObject(
 ): boolean {
   const hits = scene.input.hitTestPointer(pointer);
   for (const hit of hits) {
-    if (isSameOrDescendant(hit as Phaser.GameObjects.GameObject, obj)) return true;
+    if (isSameOrDescendant(hit as Phaser.GameObjects.GameObject, obj))
+      return true;
   }
   const screenRect = interactiveObjectScreenRect(obj);
   if (screenRect) {
@@ -129,13 +132,17 @@ function isSameOrDescendant(
   root: Phaser.GameObjects.GameObject,
 ): boolean {
   if (hit === root) return true;
-  if (root instanceof Phaser.GameObjects.Container && root.list.includes(hit)) return true;
+  if (root instanceof Phaser.GameObjects.Container && root.list.includes(hit))
+    return true;
   let node: Phaser.GameObjects.GameObject | null = hit;
   while (node) {
     if (node === root) return true;
     const parent: Phaser.GameObjects.Container | null =
-      (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-        .parentContainer ?? null;
+      (
+        node as Phaser.GameObjects.GameObject & {
+          parentContainer?: Phaser.GameObjects.Container;
+        }
+      ).parentContainer ?? null;
     node = parent;
   }
   return false;
@@ -167,7 +174,9 @@ export function bindPress(
   _activateOn: "pointerdown" | "pointerup" = "pointerdown",
 ): void {
   void _activateOn;
-  const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
+  const go = obj as Phaser.GameObjects.GameObject & {
+    input?: { alwaysEnabled?: boolean };
+  };
   if (go.input) go.input.alwaysEnabled = true;
 
   const slopPx = scaleUiX(TOUCH_BUTTON_RELEASE_SLOP_PX);
@@ -233,7 +242,9 @@ export function bindTapOrLongPress(
   callbacks: TapOrLongPressCallbacks,
   pressVisual?: PressVisual,
 ): void {
-  const go = obj as Phaser.GameObjects.GameObject & { input?: { alwaysEnabled?: boolean } };
+  const go = obj as Phaser.GameObjects.GameObject & {
+    input?: { alwaysEnabled?: boolean };
+  };
   if (go.input) go.input.alwaysEnabled = true;
 
   const slopPx = scaleUiX(TOUCH_BUTTON_RELEASE_SLOP_PX);

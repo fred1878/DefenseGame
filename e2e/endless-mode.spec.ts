@@ -26,7 +26,8 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
     .toBe(true);
 
   const expectedConcurrent = await page.evaluate(
-    () => window.__DEFENSEGAME_E2E__?.api?.getEndlessPanelDefaultConcurrent() ?? 0,
+    () =>
+      window.__DEFENSEGAME_E2E__?.api?.getEndlessPanelDefaultConcurrent() ?? 0,
   );
   expect(expectedConcurrent).toBeGreaterThan(0);
 
@@ -59,13 +60,13 @@ test("endless training opens from Haunted Well and spawns chosen enemy", async (
     .toEqual({ endless: true, enemyId: "grunt", count: expectedConcurrent });
 
   expect(
-    await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.api?.hasLeaveEndlessButton(),
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.hasLeaveEndlessButton(),
     ),
   ).toBe(true);
   expect(
-    await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.api?.hasReturnButton(),
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.hasReturnButton(),
     ),
   ).toBe(false);
 
@@ -96,8 +97,8 @@ test("endless infinite HP blocks player damage", async ({ page }) => {
     .toBe(true);
 
   expect(
-    await page.evaluate(
-      () => window.__DEFENSEGAME_E2E__?.api?.isEndlessInfiniteHp(),
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.isEndlessInfiniteHp(),
     ),
   ).toBe(true);
 

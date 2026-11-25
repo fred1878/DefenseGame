@@ -24,10 +24,7 @@ import {
   getWorldPixelScale,
   worldScaleDebugLabel,
 } from "../core/worldPixelScale";
-import {
-  fullscreenButtonLabel,
-  toggleFullscreen,
-} from "../ui/fullscreen";
+import { fullscreenButtonLabel, toggleFullscreen } from "../ui/fullscreen";
 import {
   DEBUG_MENU_CLOSE,
   isDefenseDebugHost,
@@ -54,7 +51,7 @@ export class DebugMenuScene extends Phaser.Scene {
     const safe = readSafeInsets();
     const w = this.scale.width;
     const h = this.scale.height;
-     const panelTop = hudBandHeight(safe.top) + scaleUiY(48);
+    const panelTop = hudBandHeight(safe.top) + scaleUiY(48);
 
     this.add
       .rectangle(0, 0, w, h, 0x000000, 0.65)
@@ -114,7 +111,9 @@ export class DebugMenuScene extends Phaser.Scene {
       () => {
         const next = !showTouchInput(this.registry);
         setShowTouchInput(this.registry, next);
-        this.touchToggle.setLabel(next ? "Touch input: ON" : "Touch input: OFF");
+        this.touchToggle.setLabel(
+          next ? "Touch input: ON" : "Touch input: OFF",
+        );
       },
       { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
     );
@@ -197,25 +196,18 @@ export class DebugMenuScene extends Phaser.Scene {
       );
     }
 
-    createTouchButton(
-      this,
-      w / 2,
-      closeY,
-      "Close",
-      () => this.closeMenu(),
-      {
-        width: scaleUiX(160),
-        height: scaleUiY(44),
-        depth: 402,
-        fontSize: `${scaleUiX(18)}px`,
-      },
-    );
+    createTouchButton(this, w / 2, closeY, "Close", () => this.closeMenu(), {
+      width: scaleUiX(160),
+      height: scaleUiY(44),
+      depth: 402,
+      fontSize: `${scaleUiX(18)}px`,
+    });
 
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on("shutdown", () => this.touchDebug.destroy());
   }
 
-  update(_time: number, _delta: number): void {
+  override update(_time: number, _delta: number): void {
     if (!showTouchInput(this.registry)) {
       this.touchDebug.clear();
       return;
@@ -231,7 +223,8 @@ export class DebugMenuScene extends Phaser.Scene {
   private isPointerOverInteractive(pointer: Phaser.Input.Pointer): boolean {
     const hits = this.input.hitTestPointer(pointer);
     for (const hit of hits) {
-      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject)) return true;
+      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject))
+        return true;
     }
     return false;
   }
@@ -241,8 +234,11 @@ export class DebugMenuScene extends Phaser.Scene {
     while (node) {
       if (node.input?.enabled) return true;
       const parent: Phaser.GameObjects.Container | null =
-        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-          .parentContainer ?? null;
+        (
+          node as Phaser.GameObjects.GameObject & {
+            parentContainer?: Phaser.GameObjects.Container;
+          }
+        ).parentContainer ?? null;
       node = parent;
     }
     return false;

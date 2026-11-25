@@ -10,8 +10,12 @@ describe("ArrowRainTelegraph palettes", () => {
   it("uses orange/gold default and distinct purple for lobber", () => {
     expect(ARROW_RAIN_TELEGRAPH_PALETTE.stroke).toBe(0xffcc66);
     expect(ARROW_RAIN_TELEGRAPH_PALETTE.fill).toBe(0xff5533);
-    expect(LOBBER_TELEGRAPH_PALETTE.fill).not.toBe(ARROW_RAIN_TELEGRAPH_PALETTE.fill);
-    expect(LOBBER_TELEGRAPH_PALETTE.stroke).not.toBe(ARROW_RAIN_TELEGRAPH_PALETTE.stroke);
+    expect(LOBBER_TELEGRAPH_PALETTE.fill).not.toBe(
+      ARROW_RAIN_TELEGRAPH_PALETTE.fill,
+    );
+    expect(LOBBER_TELEGRAPH_PALETTE.stroke).not.toBe(
+      ARROW_RAIN_TELEGRAPH_PALETTE.stroke,
+    );
   });
 
   it("draws windup strokes using the telegraph palette", () => {

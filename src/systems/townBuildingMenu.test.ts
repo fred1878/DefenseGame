@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { DataStore } from "../core/DataStore";
 import type { TownBuildingDef } from "../core/townBuildingTypes";
 import { createNewSave } from "../core/GameState";
-import { handleTownBuildingTap, townBuildingSubtitle } from "./townBuildingMenu";
+import {
+  handleTownBuildingTap,
+  townBuildingSubtitle,
+} from "./townBuildingMenu";
 
 describe("townBuildingMenu", () => {
   const store = new DataStore();
@@ -142,7 +145,9 @@ describe("townBuildingMenu", () => {
       height: 112,
       opensSpellBar: true,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe("— Spell bar");
+    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
+      "— Spell bar",
+    );
     const { result } = handleTownBuildingTap(store, createNewSave(), def);
     expect(result.kind).toBe("openSpellBar");
   });

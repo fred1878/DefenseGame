@@ -22,9 +22,15 @@ describe("phaser custom vendor bundle", () => {
   });
 
   it("manifest matches installed phaser version", () => {
-    const manifestPath = path.join(process.cwd(), "vendor/phaser-defense.manifest.json");
+    const manifestPath = path.join(
+      process.cwd(),
+      "vendor/phaser-defense.manifest.json",
+    );
     const phaserPkg = JSON.parse(
-      fs.readFileSync(path.join(process.cwd(), "node_modules/phaser/package.json"), "utf8"),
+      fs.readFileSync(
+        path.join(process.cwd(), "node_modules/phaser/package.json"),
+        "utf8",
+      ),
     ) as { version: string };
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as {
       phaserVersion: string;
