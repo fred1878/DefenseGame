@@ -11,6 +11,8 @@ import {
   type EnemyKnockbackCarrier,
 } from "../combat/enemyKnockback";
 import type { IceBoltProjectileFxState } from "../combat/SpellIceBoltProjectileFx";
+import type { PvfxProjectileFxState } from "../combat/SpellPvfxProjectileFx";
+import { projectileTextureRotationOffset } from "../content/combatPvfxAssets";
 
 /** Source art faces upper-right at rotation 0. */
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
@@ -43,6 +45,8 @@ export type PlayerProjectile = {
   sourceEnemyId?: string;
   /** Ice Effect 01 travel overlay for `ice_bolt`. */
   iceBoltFx?: IceBoltProjectileFxState;
+  /** PVFX Foundry seamless flight loop overlay. */
+  pvfxFlightFx?: PvfxProjectileFxState;
   /** Committed lob landing (blast center) while in flight. */
   lobAimX?: number;
   lobAimY?: number;
@@ -66,6 +70,8 @@ const SPELL_BOLT_TEXTURES = new Set<string>([
 ]);
 
 function projectileRotOffset(textureKey: string): number {
+  const pvfx = projectileTextureRotationOffset(textureKey);
+  if (pvfx !== undefined) return pvfx;
   return SPELL_BOLT_TEXTURES.has(textureKey)
     ? FIRE_BOLT_ROT_OFFSET
     : STONE_THROW_ROT_OFFSET;

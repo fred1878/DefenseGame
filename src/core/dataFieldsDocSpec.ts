@@ -63,7 +63,7 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...DEFENSE_MAP_FIELD_BOOT_KEYS,
     ...DEFENSE_MAP_OBSTACLE_BOOT_KEYS,
   ]),
-  "spell_input.json": [...SPELL_INPUT_BOOT_KEYS],
+  "spell_input.json": [...SPELL_INPUT_BOOT_KEYS, "groundTapAutoCastSpellIds"],
   "spells.json": uniqueSorted([
     ...SPELLS_FILE_BOOT_KEYS,
     ...SPELL_ROW_BOOT_STRING_FIELDS,

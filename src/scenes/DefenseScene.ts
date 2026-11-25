@@ -16,6 +16,7 @@ import type { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
 import type { SpellHealChannelFx } from "../combat/SpellHealChannelFx";
 import type { SpellIceCastWindupFx } from "../combat/SpellIceCastWindupFx";
 import { EnemyIceRootFxController } from "../combat/EnemyIceRootFx";
+import { EnemyIceStunFxController } from "../combat/EnemyIceStunFx";
 import type { SpellGroundAoeTelegraph } from "../combat/SpellGroundAoeTelegraph";
 import type { SpellGroundZone } from "../combat/spellGroundZone";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
@@ -135,6 +136,7 @@ export class DefenseScene extends Phaser.Scene {
   private healChannelFx: SpellHealChannelFx | null = null;
   private iceCastWindupFx: SpellIceCastWindupFx | null = null;
   private readonly enemyIceRootFx = new EnemyIceRootFxController(this);
+  private readonly enemyIceStunFx = new EnemyIceStunFxController(this);
   private channelAreaStarted = false;
   private shadowformEndsAt = 0;
   private iceWallExpires: Array<{
@@ -248,6 +250,7 @@ export class DefenseScene extends Phaser.Scene {
     this.spellInputQueue = new SpellInputQueue();
     this.enemySpellStatus = new EnemySpellStatusMap();
     this.enemyIceRootFx.reset();
+    this.enemyIceStunFx.reset();
     this.iceCastWindupFx?.stop();
     this.iceCastWindupFx = null;
     this.spellChannelArea = null;
@@ -677,6 +680,7 @@ export class DefenseScene extends Phaser.Scene {
       get iceCastWindupFx() { return scene.iceCastWindupFx; },
       set iceCastWindupFx(v) { scene.iceCastWindupFx = v; },
       get enemyIceRootFx() { return scene.enemyIceRootFx; },
+      get enemyIceStunFx() { return scene.enemyIceStunFx; },
       get channelAreaStarted() { return scene.channelAreaStarted; },
       set channelAreaStarted(v) { scene.channelAreaStarted = v; },
       get shadowformEndsAt() { return scene.shadowformEndsAt; },

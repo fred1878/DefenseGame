@@ -20,6 +20,7 @@ import {
 } from "../../combat/FireNovaRingFx";
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
+import { playMeteorStrikeFx } from "../../combat/SpellMeteorStrikeFx";
 import {
   DEFENSE_RENDER_DEPTH,
   defenseHalfHeight,
@@ -77,14 +78,20 @@ export function resolveDefenseSpellEffect(
           startAlpha: 0.98,
           scaleEnd: 1.45,
         });
+      } else if (def.id === "meteor") {
+        playMeteorStrikeFx(
+          host.scene,
+          bx,
+          by,
+          blastRadiusPx,
+          host.maskWorldObject,
+        );
       } else {
         host.flashNova(bx, by, blastRadiusPx, {
           blastTextureKey:
-            def.id === "meteor"
-              ? COMBAT_FX_TEXTURE.spellShockwave
-              : def.id === "flamestrike"
-                ? COMBAT_FX_TEXTURE.spellFireNova
-                : def.blastTextureKey,
+            def.id === "flamestrike"
+              ? COMBAT_FX_TEXTURE.spellFireNova
+              : def.blastTextureKey,
         });
       }
       break;

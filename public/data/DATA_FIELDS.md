@@ -269,6 +269,7 @@ Virtual stick thresholds for spell cast interrupt vs movement detection (`applyS
 |-------|------|---------|
 | `castInterruptStickAngleDeg` | deg | Bearing change from cast-start stick aim that cancels windup/channel; release/neutral stick does not interrupt. |
 | `stickMovingMagnitudeEps` | dimensionless | Raw stick magnitude above which the player counts as moving (`isStickMoving`, auto-cast stationary skip). |
+| `groundTapAutoCastSpellIds` | string[] | Ground spells that auto-target on short spell-bar tap (press-and-drag still manual aim). |
 
 ---
 
