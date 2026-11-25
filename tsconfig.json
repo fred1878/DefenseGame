@@ -6,6 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "strict": true,
@@ -17,7 +18,8 @@
     "noImplicitOverride": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "outDir": "dist-types",
+    "noEmit": true,
+    "tsBuildInfoFile": "dist-types/tsconfig.tsbuildinfo",
     "types": ["node"]
   },
   "include": ["src", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]

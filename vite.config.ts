@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
-import { phaserModulePreloadPlugin } from "./vite-plugin-phaser-preload";
+import { phaserModulePreloadPlugin } from "./vite-plugin-phaser-preload.ts";
 
 const repoRoot = path.dirname(fileURLToPath(import.meta.url));
 
