@@ -213,10 +213,12 @@ export function updateProjectile(
         projectile.damageFlavor,
       );
       if (behavior !== "aoe_on_hit") {
+        // Push away from where the projectile struck, not from where it ended
+        // the step (a fast shot can overshoot the target within one frame).
         applyEnemyKnockbackFrom(
           firstTarget.enemy,
-          projectile.sprite.x,
-          projectile.sprite.y,
+          x0 + (x1 - x0) * firstT,
+          y0 + (y1 - y0) * firstT,
           knockback,
         );
       }
@@ -446,10 +448,11 @@ export function updateEnemyProjectile(
         projectile.damage * incomingDamageMult,
         projectile.damageFlavor,
       );
+      // Push away from the impact point on this step's path (see enemy hits).
       applyKnockbackFrom(
         player.sprite,
-        projectile.sprite.x,
-        projectile.sprite.y,
+        x0 + (x1 - x0) * t,
+        y0 + (y1 - y0) * t,
         knockback,
       );
     }
