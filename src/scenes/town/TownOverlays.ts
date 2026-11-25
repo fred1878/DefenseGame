@@ -13,6 +13,7 @@ import { EndlessModePanelLoadingSkeleton } from "../../ui/EndlessModePanelLoadin
 import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
 import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
 import { WavePlannerPanel } from "../../ui/WavePlannerPanel";
+import type { ScreenRect } from "../../ui/screenLayout";
 
 /** Scene callbacks the Town overlays need (save access + run launch). */
 export type TownOverlaysHost = {
@@ -191,6 +192,14 @@ export class TownOverlays {
           this.defenseLoadingOverlay = null;
         });
       });
+  }
+
+  /** Layout-derived touch-debug outlines for open town modals (endless uses its own geometry). */
+  collectTouchDebugScreenRects(): ScreenRect[] {
+    if (this.endlessPanel) {
+      return this.endlessPanel.touchDebugScreenRects();
+    }
+    return [];
   }
 
   /** Merge open overlay e2e tap targets into `out` (same order as before the split). */

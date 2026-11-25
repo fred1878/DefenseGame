@@ -10,6 +10,7 @@ export {
 export { bindContainerPress, bindTapOrLongPress } from "./touchButtonPress";
 
 export {
+  hitAreaLocalPointToScreen,
   interactiveObjectScreenRect,
   containerScreenRect,
   isTouchButtonVisuallyPressed,

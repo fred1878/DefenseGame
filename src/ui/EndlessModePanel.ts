@@ -12,6 +12,7 @@ import {
   paintRosterRowSelection,
   setRosterStartEnabled,
 } from "./rosterPanelShared";
+import type { ScreenRect } from "./screenLayout";
 import type { createTouchButton } from "./touchButton";
 import { paintUiRoundedRect, type UiRoundedRect } from "./uiRoundedRect";
 import {
@@ -25,6 +26,10 @@ import {
   endlessPanelE2eTapTargets,
   type EndlessPanelScrollState,
 } from "./endlessMode/EndlessModePanelE2E";
+import {
+  collectEndlessModeTouchDebugScreenRects,
+  type EndlessModeTouchDebugInput,
+} from "./endlessMode/EndlessModePanelTouchDebug";
 
 /**
  * Town overlay: multi-select foes, per-type concurrent caps, then start endless defense.
@@ -55,6 +60,9 @@ export class EndlessModePanel {
   private readonly startButtonY: number;
   private readonly maskGraphics: Phaser.GameObjects.Graphics;
   private readonly scroll: EndlessModePanelScroll;
+  private readonly listViewport: Phaser.GameObjects.Rectangle;
+  private readonly scrollTrack: Phaser.GameObjects.Rectangle;
+  private readonly scrollThumb: Phaser.GameObjects.Rectangle;
 
   constructor(
     scene: Phaser.Scene,
@@ -73,6 +81,8 @@ export class EndlessModePanel {
     this.scroll = scroll;
     const ui = buildEndlessModePanelUi(scene, store, enemyIds, this.caps, {
       listViewportHitForScroll: (x, y) => scroll.listViewportHitForScroll(x, y),
+      listViewportPointerToScreen: (viewport, lx, ly) =>
+        scroll.listViewportPointerToScreen(viewport, lx, ly),
       rowNameHitTest: (row) => scroll.rowNameHitTest(row),
       rowCapHitTest: (row) => scroll.rowCapHitTest(row),
       onBumpCap: (enemyId, delta) => this.bumpCap(enemyId, delta),
@@ -101,6 +111,9 @@ export class EndlessModePanel {
     this.startButtonY = ui.startButtonY;
     this.startBtn = ui.startBtn;
     this.closeBtn = ui.closeBtn;
+    this.listViewport = ui.listViewport;
+    this.scrollTrack = ui.scrollTrack;
+    this.scrollThumb = ui.scrollThumb;
     scroll.attach({
       listContent: ui.listContent,
       scrollTrack: ui.scrollTrack,
@@ -212,6 +225,21 @@ export class EndlessModePanel {
 
   e2eEnemyConcurrentCap(enemyId: string): number | null {
     return this.caps.get(enemyId) ?? null;
+  }
+
+  touchDebugScreenRects(): ScreenRect[] {
+    const input: EndlessModeTouchDebugInput = {
+      layout: this.layout,
+      scroll: this.scroll,
+      rows: this.rows,
+      listViewport: this.listViewport,
+      scrollTrack: this.scrollTrack,
+      scrollThumb: this.scrollThumb,
+      infiniteHpBg: this.infiniteHpBg,
+      startBtn: this.startBtn,
+      closeBtn: this.closeBtn,
+    };
+    return collectEndlessModeTouchDebugScreenRects(input);
   }
 
   e2eTapTargets(): Record<string, { x: number; y: number }> {

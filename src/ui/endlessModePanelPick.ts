@@ -1,7 +1,8 @@
 export type EndlessRowPickInput = {
   screenX: number;
   screenY: number;
-  capColLeft: number;
+  /** When set, taps in the cap column (screenX >= this) do not map to a row. */
+  capColLeft?: number;
   listTop: number;
   listViewportH: number;
   listContentY: number;
@@ -21,7 +22,7 @@ export function pickEndlessEnemyRowAtScreen(
   input: EndlessRowPickInput,
 ): string | null {
   const topSlop = input.topHitSlopPx ?? 0;
-  if (input.screenX >= input.capColLeft) {
+  if (input.capColLeft != null && input.screenX >= input.capColLeft) {
     return null;
   }
   if (
@@ -53,6 +54,23 @@ export function pickEndlessEnemyRowAtScreen(
   if (input.screenY < pickMinY || input.screenY > visibleBottom) return null;
 
   return input.enemyIds[index] ?? null;
+}
+
+/**
+ * Map a screen point in the endless roster viewport to a row id for hit routing
+ * (name + cap columns). Used by the scroll catcher so drags on row chrome pass
+ * through to row widgets across the full panel width.
+ */
+export function pickEndlessRowBandAtScreen(
+  input: EndlessRowPickInput & { listLeft: number; rowW: number },
+): string | null {
+  if (
+    input.screenX < input.listLeft ||
+    input.screenX > input.listLeft + input.rowW
+  ) {
+    return null;
+  }
+  return pickEndlessEnemyRowAtScreen({ ...input, capColLeft: undefined });
 }
 
 /** True when any part of the row band intersects the clipped list viewport. */

@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import { scaleUiY } from "../../core/displayScale";
+import { hitAreaLocalPointToScreen } from "../touchButton";
 import {
   endlessRowCenterOverlapsViewport,
   pickEndlessEnemyRowAtScreen,
+  pickEndlessRowBandAtScreen,
 } from "../endlessModePanelPick";
 import { layoutRosterScrollbar } from "../rosterPanelShared";
 import {
@@ -71,17 +73,26 @@ export class EndlessModePanelScroll {
     this.scene.input.off("wheel", this.onWheel);
   }
 
-  /** Viewport scroll catcher: name-column gaps only; rows and cap column use row widgets. */
+  /** Viewport scroll catcher: full panel width between row bands (row chrome uses row widgets). */
   listViewportHitForScroll(screenX: number, screenY: number): boolean {
-    const { capColLeft, listTop, listViewportH } = this.view.layout;
-    if (screenX >= capColLeft) return false;
+    const { listLeft, rowW, listTop, listViewportH } = this.view.layout;
+    if (screenX < listLeft || screenX > listLeft + rowW) return false;
     if (screenY < listTop || screenY > listTop + listViewportH) {
       return false;
     }
-    if (this.pickVisibleRowAtScreen(screenX, screenY)) {
+    if (this.pickVisibleRowBandAtScreen(screenX, screenY)) {
       return false;
     }
     return true;
+  }
+
+  listViewportPointerToScreen(
+    viewport: Phaser.GameObjects.Rectangle,
+    localX: number,
+    localY: number,
+  ): { screenX: number; screenY: number } | null {
+    const pt = hitAreaLocalPointToScreen(viewport, localX, localY);
+    return pt ? { screenX: pt.x, screenY: pt.y } : null;
   }
 
   private readonly onSceneDragMove = (pointer: Phaser.Input.Pointer): void => {
@@ -172,9 +183,9 @@ export class EndlessModePanelScroll {
   ) => boolean {
     return (hitArea, x, y, gameObject) => {
       if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
-      const screenX = (gameObject as Phaser.GameObjects.Rectangle).x + x;
-      const screenY = this.view.listContent.y + row.bg.y + y;
-      return this.pickVisibleRowAtScreen(screenX, screenY) === row.enemyId;
+      const pt = hitAreaLocalPointToScreen(gameObject, x, y);
+      if (!pt) return false;
+      return this.pickVisibleRowAtScreen(pt.x, pt.y) === row.enemyId;
     };
   }
 
@@ -200,6 +211,26 @@ export class EndlessModePanelScroll {
       screenX,
       screenY,
       capColLeft: layout.capColLeft,
+      listTop: layout.listTop,
+      listViewportH: layout.listViewportH,
+      listContentY: listContent.y,
+      rowStride: layout.rowStride,
+      rowH: layout.rowH,
+      enemyIds: rows.map((r) => r.enemyId),
+      topHitSlopPx: scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX),
+    });
+  }
+
+  private pickVisibleRowBandAtScreen(
+    screenX: number,
+    screenY: number,
+  ): string | null {
+    const { layout, listContent, rows } = this.view;
+    return pickEndlessRowBandAtScreen({
+      screenX,
+      screenY,
+      listLeft: layout.listLeft,
+      rowW: layout.rowW,
       listTop: layout.listTop,
       listViewportH: layout.listViewportH,
       listContentY: listContent.y,

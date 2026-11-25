@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   endlessRowCenterOverlapsViewport,
   pickEndlessEnemyRowAtScreen,
+  pickEndlessRowBandAtScreen,
 } from "./endlessModePanelPick";
 
 const ROSTER = ["grunt", "skirmisher", "javelineer", "archer", "boss"] as const;
@@ -86,6 +87,44 @@ describe("pickEndlessEnemyRowAtScreen", () => {
         screenX: 200,
       }),
     ).toBe(ROSTER[4]);
+  });
+});
+
+describe("pickEndlessRowBandAtScreen", () => {
+  it("includes cap-column taps on the same row band", () => {
+    const listLeft = 46;
+    const rowW = 448;
+    expect(
+      pickEndlessRowBandAtScreen({
+        screenX: 420,
+        screenY: 230,
+        listLeft,
+        rowW,
+        listTop: 210,
+        listViewportH: 6 * 74 - 11,
+        listContentY: 210,
+        rowStride: 74,
+        rowH: 63,
+        enemyIds: ROSTER,
+      }),
+    ).toBe("grunt");
+  });
+
+  it("still rejects horizontal misses outside the roster width", () => {
+    expect(
+      pickEndlessRowBandAtScreen({
+        screenX: 10,
+        screenY: 230,
+        listLeft: 46,
+        rowW: 448,
+        listTop: 210,
+        listViewportH: 6 * 74 - 11,
+        listContentY: 210,
+        rowStride: 74,
+        rowH: 63,
+        enemyIds: ROSTER,
+      }),
+    ).toBeNull();
   });
 });
 

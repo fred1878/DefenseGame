@@ -198,7 +198,8 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eTownTouchDebugRectCount(): number {
-    return collectTownTouchDebugUiRects(this, this.touchDebug).length;
+    return collectTownTouchDebugUiRects(this, this.touchDebug, this.overlays)
+      .length;
   }
 
   e2eIsTouchButtonPressed(testId: string): boolean {
@@ -325,7 +326,11 @@ export class TownScene extends Phaser.Scene {
     }
     this.touchDebug.draw({
       pointerUiBlocked: (pointer) => isPointerOverInteractive(this, pointer),
-      uiScreenRects: collectTownTouchDebugUiRects(this, this.touchDebug),
+      uiScreenRects: collectTownTouchDebugUiRects(
+        this,
+        this.touchDebug,
+        this.overlays,
+      ),
     });
   }
 
