@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shortBuildIdLabel, urlBuildParamLine } from "./buildId";
+import { shortBuildIdLabel, townBuildIdLine } from "./buildId";
 
 describe("shortBuildIdLabel", () => {
   it("keeps short ids intact", () => {
@@ -11,20 +11,20 @@ describe("shortBuildIdLabel", () => {
   });
 });
 
-describe("urlBuildParamLine", () => {
-  it("returns null when b param absent", () => {
-    expect(urlBuildParamLine("abc123", null)).toBeNull();
+describe("townBuildIdLine", () => {
+  it("shows build only when b param absent", () => {
+    expect(townBuildIdLine("abc123", null)).toBe("Build abc123");
   });
 
   it("marks match when b equals embedded", () => {
-    expect(urlBuildParamLine("deadbeef", "deadbeef")).toBe(
-      "URL b=deadbeef · match",
+    expect(townBuildIdLine("deadbeef", "deadbeef")).toBe(
+      "Build deadbeef · match",
     );
   });
 
   it("marks mismatch when b differs from embedded", () => {
-    expect(urlBuildParamLine("newsha", "oldsha")).toBe(
-      "URL b=oldsha · mismatch",
+    expect(townBuildIdLine("newsha", "oldsha")).toBe(
+      "Build newsha · mismatch",
     );
   });
 });
