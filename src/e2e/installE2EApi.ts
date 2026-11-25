@@ -159,6 +159,12 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getProjectileCount() {
       return activeDefense(game)?.e2eProjectileCount() ?? 0;
     },
+    getAttackMode() {
+      return activeDefense(game)?.e2eAttackMode() ?? null;
+    },
+    getLivingEnemyHps() {
+      return activeDefense(game)?.e2eLivingEnemyHps() ?? [];
+    },
     getEnemyCount() {
       return activeDefense(game)?.e2eEnemyCount() ?? 0;
     },
