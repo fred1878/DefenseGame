@@ -13,5 +13,5 @@ alwaysApply: false
 - Gameplay numbers belong in `public/data/*.json`, loaded at Boot through `DataStore`. Missing required fields must throw `ConfigLoadError`; no TypeScript fallbacks.
 - `src/config/` is canvas, HUD layout and render depths only.
 - Per-enemy `combat` blocks live on each `enemies.json` row. Behavior id maps to `src/ai/behaviors/`.
-- Adding or renaming a boot-required field means updating `public/data/DATA_FIELDS.md` in the same change.
+- Adding or renaming a boot-required field means updating `docs/DATA_FIELDS.md` in the same change.
 - Spell ids stay in `src/content/spells.ts`; numeric spell tuning is in `spells.json` and `spell_input.json`.

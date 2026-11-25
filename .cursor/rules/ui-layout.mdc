@@ -10,4 +10,4 @@ alwaysApply: false
 - Design canvas is 540×1200. Use `src/ui/screenLayout.ts` helpers and `scaleUiX`/`scaleUiY` rather than hard-coded HUD coordinates.
 - Modals acquire modal input, bind the dim backdrop, and pop the modality on close.
 - Touch button helpers are already split (`touchButton.ts` barrel and its parts).
-- Big Town panels keep the panel class as the entry point and put parts in a folder: `ui/endlessMode/` (Build, Scroll, E2E), `ui/spellBarSort/` (Build, Drag, E2E), `ui/wavePlanner/` (Build, Scroll).
+- Big Town panels keep the panel class as the entry point and put parts in a folder: `ui/endlessMode/` (Build, Scroll, E2E), `ui/spellBarSort/` (Build, Drag, E2E), `ui/wavePlanner/` (Build, Scroll). The Endless and Wave planner rosters share `ui/rosterPanelShared.ts` (list chrome, scrollbar, row selection, start enable).

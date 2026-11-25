@@ -15,10 +15,15 @@ BootScene (load `public/data/*.json` + assets, restore save) → TownScene (upgr
 ```bash
 npm install
 npm run dev              # Vite, http://127.0.0.1:5173
-npm run verify           # typecheck + vitest (default agent check)
-npm run typecheck
+npm run verify           # typecheck + lint + knip + vitest (default agent check)
+npm run typecheck        # tsc: src, e2e, configs
+npm run lint             # Biome, errors only (CI gate)
+npm run lint:all         # Biome incl. warnings
+npm run knip             # unused files/exports/deps (CI gate)
+npm run format           # Biome formatter (not enforced; avoid repo-wide churn)
 npm run test             # Vitest only
-npm run build            # production bundle → dist/
+npm run test:coverage    # Vitest + coverage thresholds
+npm run build            # tsc -b + production bundle → dist/
 npm run build:e2e        # production build with E2E hooks
 npm run test:e2e         # Playwright (run build:e2e first; not part of verify)
 npm run preview
@@ -33,7 +38,7 @@ src/
   main.ts         # Phaser.Game (portrait 540×1200, FIT + autoRound)
   config/         # Layout/engine constants only — no gameplay numbers
   content/        # Asset keys, spell catalog ids
-  core/           # GameState, saveTypes, DataStore, EventBus
+  core/           # GameState, saveTypes, DataStore, normalize* (JSON validation)
   input/          # VirtualStick, input modality, modal backdrop
   combat/         # Hitboxes, damage, knockback, SpellCastController, SpellEffects
   debug/          # DebugState flags + debug drawers
@@ -44,10 +49,13 @@ src/
   scenes/defense/ # DefenseScene helpers (HUD, ticks, spells, e2e, night end)
   systems/        # WaveSpawner, town buildings, endless roster/scheduler
   ui/             # SpellBar, panels, touch buttons, screenLayout
+  audio/          # SFX helpers (public/assets/audio/sfx)
+  world/          # Ground layers, camera, spawn points
+  test/           # Vitest Phaser stub + input fakes
   e2e/            # installE2E hooks (VITE_E2E=true or ?e2e=1)
 public/data/      # Runtime JSON (Boot via DataStore.loadAll)
 public/assets/    # Sprites/audio (do not edit binaries in Cursor)
-docs/             # This guide, TESTING, CI_RELEASES, WAVES
+docs/             # This guide, DATA_FIELDS, TESTING, CI_RELEASES, WAVES
 ```
 
 Prefer a new JSON row + a small behavior module over growing scene files.
@@ -58,21 +66,21 @@ Prefer a new JSON row + a small behavior module over growing scene files.
 |-------|------|--------|
 | Tuning | `src/config/` | Canvas/layout, HUD px, render depths. **No gameplay numbers.** |
 | Code content | `src/content/` | Texture keys/paths (`assets.ts`), spell ids (`spells.ts`) |
-| Runtime JSON | `public/data/` | enemies, enemy-ai, player, defense-maps, spell_input, spells, entity-physics, waves, buildings… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](../public/data/DATA_FIELDS.md). |
+| Runtime JSON | `public/data/` | enemies, enemy-ai, player, defense-maps, spell_input, spells, entity-physics, waves, buildings… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). |
 
 Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`).
 
 ## Conventions
 
-- **Content vs code:** new enemy = row in `enemies.json` + `src/ai/behaviors/*` if needed. Changing boot-required JSON keys means updating `DATA_FIELDS.md` in the same PR (`dataFieldsDoc.test.ts` checks both ways).
+- **Content vs code:** new enemy = row in `enemies.json` + `src/ai/behaviors/*` if needed (ranged kiters reuse `behaviors/rangedKite.ts`). Changing boot-required JSON keys means updating `DATA_FIELDS.md` in the same PR (`dataFieldsDoc.test.ts` checks both ways).
 - **Vitest:** don't assert against shipped `public/data/*.json` values; use inline fixtures.
 - **Combat:** Arcade bodies for movement; custom hitboxes for attacks. Player FSM `idle → windup → active → recovery` (damage only in `active`). Objective is `townWallHp`.
 - **Input:** one owner at a time via `src/input/inputModality.ts`. Modals use `acquireModalInput` + `bindModalDimBackdrop`; host scenes react to `INPUT_MODALITY_CHANGED`.
 - **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 - **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx`).
-- **CI:** typecheck, unit tests and build must stay green. Merges to main publish Pages.
-- **Defense pooling (PR12):** projectile sprites via `src/entities/projectilePool.ts` (`releaseProjectileSprite` on despawn); enemy shells via `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Scene shutdown calls `destroyProjectilePool` / `destroyDefenseEnemyPool`.
+- **CI:** typecheck, Biome lint, knip, unit tests (with coverage thresholds), build and Chromium Playwright must stay green. Delete dead code rather than adding knip ignores. Merges to main publish Pages.
+- **Defense pooling:** projectile sprites via `src/entities/projectilePool.ts` (`releaseProjectileSprite` on despawn); enemy shells via `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Scene shutdown calls `destroyProjectilePool` / `destroyDefenseEnemyPool`.
 
 ## Related docs
 
-[DATA_FIELDS.md](../public/data/DATA_FIELDS.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)
+[DATA_FIELDS.md](./DATA_FIELDS.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)

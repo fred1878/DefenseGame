@@ -9,7 +9,7 @@ import {
   validateFieldDescription,
 } from "./dataFieldsDocParse";
 
-const DOC_PATH = path.join(process.cwd(), "public/data/DATA_FIELDS.md");
+const DOC_PATH = path.join(process.cwd(), "docs/DATA_FIELDS.md");
 
 function loadDataFieldsDoc(): string {
   return readFileSync(DOC_PATH, "utf8");

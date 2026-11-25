@@ -16,10 +16,10 @@ Do work in this sequence unless a PR blocks you. Steps **0** and **1** are **don
 | Step | Work | Effort |
 |------|------|--------|
 | **0** | Merge [docs PR #108](https://github.com/fred1878/DefenseGame/pull/108) (`REFACTOR_PLAN.md`, README, this roadmap) — **done** | S |
-| **1** | **DefenseScene refactor** — **done** (PRs 1–11, P1, P2; PR12 pooling skipped). Historical plan: [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) | L |
+| **1** | **DefenseScene refactor** — **done** (PRs 1–12, P1, P2; pooling landed in `5bc75e1`). Historical plan: [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) | L |
 | **2** | Tag **`v0.1.0`** + optional GitHub Release | S |
 | **3** | Milestone **B** content (post–night 10, four town buildings) | M–L |
-| **4** | Milestone **C** (cone art VFX, pooling) | M–L |
+| **4** | Milestone **C** (cone art VFX; pooling done) | M–L |
 | **5** | Milestone **D** UX/audio/meta | L–XL |
 | **6** | Milestone **F** Capacitor + stores | XL |
 
@@ -27,7 +27,7 @@ Continue from **step 2** (tag `v0.1.0`) or Milestone B. The historical refactor 
 
 ### Refactor checklist (Milestone E detail)
 
-Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
+Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done):
 
 - [x] PR1 — `DefenseSceneE2E.ts` ([#116](https://github.com/fred1878/DefenseGame/pull/116))
 - [x] PR2 — `DefenseWaveSpawner.ts` ([#128](https://github.com/fred1878/DefenseGame/pull/128))
@@ -69,7 +69,7 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 | Wall + smith upgrades | M | Yes | More upgrade types |
 | Gallows / spell bar buildings | S | Yes | Art and copy |
 | **Campaign after night 10** | M | No | Ending or NG+; stop repeating night 10 wave |
-| **Four unwired town buildings** | M | No | Haunted Well, Plague Clinic, both Market Stalls — effects + `upgradeId` |
+| **Unwired town buildings** | M | Partial | Haunted Well (endless) and Plague Clinic (wave planner) are wired; both Market Stalls still need effects + `upgradeId` |
 | Endless concurrent spawn (if on `main`) | M | Partial | Polish, balance, docs |
 
 ---
@@ -78,12 +78,12 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
-| 22 spells in JSON | L | Yes | Balance, tooltips, VFX per spell |
+| 23 spells in JSON | L | Yes | Balance, tooltips, VFX per spell |
 | 8-slot spell bar + channeling | M | Yes | Cooldown UX, errors |
 | Town spell sort panel | M | Yes | Mobile drag edge cases |
 | Minimap + HUD chrome | M | Yes | Icons, scaling |
 | **Cone / cone-of-fire VFX** | S | Gameplay only | Replace `SpellConeFx.ts` Graphics wedge with art |
-| **Enemy + projectile pooling** | L | No | Pools per AGENTS.md; ties refactor PR12 |
+| **Enemy + projectile pooling** | L | Yes | Landed (`projectilePool.ts`, `DefenseEnemySpawner`); profile on low-end phones |
 
 ---
 
@@ -95,7 +95,7 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 | Settings menu | M | No | Volume, controls |
 | Pause menu (player-facing) | M | No | Not only debug overlay |
 | Tutorial | L | No | First night guidance |
-| Audio / music | L | No | No `sound` usage in `src/` yet |
+| Audio / music | L | Partial | SFX for melee, fire and coins (`src/audio/`); no music, settings or volume yet |
 | Walk-cycle animations | L | No | Static facing sprites only |
 | `weaponId` + `save.flags` | M | Persisted only | Gameplay unlocks / combat hooks |
 
@@ -124,7 +124,8 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 
 - [README.md](./README.md)
 - [docs/AGENTS.md](./docs/AGENTS.md)
-- [docs/REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md)
+- [docs/DATA_FIELDS.md](./docs/DATA_FIELDS.md)
+- [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md)
 - [docs/CI_RELEASES.md](./docs/CI_RELEASES.md)
 - [docs/TESTING.md](./docs/TESTING.md)
 - [docs/WAVES.md](./docs/WAVES.md)

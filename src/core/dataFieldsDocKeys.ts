@@ -1,6 +1,6 @@
 /**
  * Field names documented for JSON loaded at Boot without a dedicated normalize* module.
- * Kept in sync with `public/data/DATA_FIELDS.md`; CI reads this via `dataFieldsDoc.test.ts`.
+ * Kept in sync with `docs/DATA_FIELDS.md`; CI reads this via `dataFieldsDoc.test.ts`.
  */
 
 export const WAVES_DOC_KEYS = [

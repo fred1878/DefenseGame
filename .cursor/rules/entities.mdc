@@ -1,0 +1,11 @@
+---
+description: Player, enemy instances, projectiles and pools
+globs:
+  - src/entities/**/*.ts
+alwaysApply: false
+---
+
+- `Enemy.ts` (`EnemyInstance`) and `Player.ts` are plain data plus sprite. Behavior lives in `src/ai/`; attack state machines live in `EnemyCombat.ts` and `enemyRanged/*`.
+- Ranged enemy combat modules share `enemyRanged/combatPhase.ts` (`tickCooldownAndFaceTarget`, `boltToCommittedAim`, commit/interrupt). Reuse it rather than copying the cooldown or aim code.
+- Projectiles and enemies are pooled. Release projectiles with `releaseProjectileSprite` (`projectilePool.ts`), and recycle enemy shells through `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Reset all per-life state when an object is reused.
+- Unit tests build enemies with `testEnemyInstance.ts`.
