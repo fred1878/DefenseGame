@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ConfigLoadError } from "./configValidation";
-import { normalizeSpellInput } from "./normalizeSpellInput";
+import { normalizeSpellInput, type SpellInputConfigInput } from "./normalizeSpellInput";
 
 describe("normalizeSpellInput", () => {
   it("requires both stick epsilon fields", () => {
@@ -22,7 +22,7 @@ describe("normalizeSpellInput", () => {
       castInterruptStickAngleDeg: 20,
       stickMovingMagnitudeEps: 0.1,
       groundTapAutoCastSpellIds: ["meteor", 0, null, "blizzard"],
-    });
+    } as SpellInputConfigInput);
     expect(out.groundTapAutoCastSpellIds).toEqual(["meteor", "blizzard"]);
   });
 });
