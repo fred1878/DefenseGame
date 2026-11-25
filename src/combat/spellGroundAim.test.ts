@@ -107,6 +107,24 @@ describe("resolveAutoCastGroundAim", () => {
     expect(aim.y).toBe(0);
   });
 
+  it("uses facing offset when no living enemies exist", () => {
+    const facingRad = 0;
+    const groundMax = 100;
+    const aim = resolveAutoCastGroundAim(
+      0,
+      0,
+      facingRad,
+      null,
+      [],
+      "ranged",
+      50,
+      80,
+      groundMax,
+    );
+    expect(aim.x).toBeCloseTo(groundMax * 0.55);
+    expect(aim.y).toBeCloseTo(0);
+  });
+
   it("does not use facing offset when a living enemy exists beyond ground max range", () => {
     const facingRad = Math.PI / 2;
     const aim = resolveAutoCastGroundAim(
@@ -136,5 +154,12 @@ describe("resolveManualDefaultGroundAim", () => {
     const aim = resolveManualDefaultGroundAim(0, 0, 0, null, enemies, 240);
     expect(aim.x).toBe(0);
     expect(aim.y).toBe(60);
+  });
+
+  it("uses facing offset when no focus and no enemies in ground range", () => {
+    const groundMax = 100;
+    const aim = resolveManualDefaultGroundAim(0, 0, Math.PI / 2, null, [], groundMax);
+    expect(aim.x).toBeCloseTo(0);
+    expect(aim.y).toBeCloseTo(groundMax * 0.55);
   });
 });

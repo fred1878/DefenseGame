@@ -20,9 +20,5 @@ export function deriveGroundTapAutoCastSpellIds(
 export function spellGroundTapAutoCasts(spellId: string): boolean {
   const def = spellById(spellId);
   if (def) return spellGroundTapAutoCastsForDef(def);
-  try {
-    return GROUND_TAP_AUTO_CAST_SPELL_IDS.includes(spellId);
-  } catch {
-    return false;
-  }
+  return GROUND_TAP_AUTO_CAST_SPELL_IDS.includes(spellId);
 }

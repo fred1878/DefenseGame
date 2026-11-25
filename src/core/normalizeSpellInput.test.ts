@@ -16,4 +16,13 @@ describe("normalizeSpellInput", () => {
     expect(out.stickMovingMagnitudeEps).toBe(0.1);
     expect(out.groundTapAutoCastSpellIds).toEqual([]);
   });
+
+  it("filters groundTapAutoCastSpellIds to strings", () => {
+    const out = normalizeSpellInput({
+      castInterruptStickAngleDeg: 20,
+      stickMovingMagnitudeEps: 0.1,
+      groundTapAutoCastSpellIds: ["meteor", 0, null, "blizzard"],
+    });
+    expect(out.groundTapAutoCastSpellIds).toEqual(["meteor", "blizzard"]);
+  });
 });
