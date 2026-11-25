@@ -192,10 +192,18 @@ export function tickDefenseProjectiles(
         ? host.findEnemyInstance?.(p.sourceEnemyId)
         : undefined;
       if (source?.behavior === "lobber") {
+        const lobTune = source.combatTuning.lobber;
+        if (!lobTune) {
+          throw new Error(
+            `Lobber detonation missing combatTuning.lobber for ${source.defId}`,
+          );
+        }
         spawnLobberGroundImpactSmokeFx(
           host.scene,
           det.x,
           det.y,
+          lobTune.blastRadiusWu,
+          lobTune.impactVfxBlastMul,
           host.registerWorldDraw,
         );
       }

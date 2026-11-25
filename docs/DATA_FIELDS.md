@@ -123,6 +123,9 @@ Player-facing arc swipe (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward
 | `cooldownMs` | ms | Milliseconds before the same attack can be queued again. |
 | `fxStartMs` | ms | Required. Delay from **windup start** (idle→windup) until melee swipe VFX spawns. `0` = first windup frame. |
 | `fxDurationMs` | ms | Optional. Target on-screen swipe length. **Omit** → sheet plays at natural speed (no timeScale). **Shorter** → `timeScale = natural / fxDurationMs` (speed up). **Longer** → timeScale &lt; 1 (slow/stretch). Ends on anim complete, not clipped early. |
+| `vfxDisplayW` | px | Art px melee swipe PVFX width before world display scaling; should read against `rangeWu`. |
+| `vfxDisplayH` | px | Art px melee swipe PVFX height before world display scaling. |
+| `vfxOffsetWu` | WU | Spawn offset along attack facing from attacker center (positions swipe along thrust). |
 | `meleeChaseStandoffWu` | WU | Extra WU gap when chase stops short of player body contact. |
 
 #### `combat.arrowRain` (`arrowRainArcher`)
@@ -210,6 +213,7 @@ Telegraphed ground zone ticks.
 | `projectileSpeedWu` | px/s | Projectile speed in px/s. |
 | `blastRadiusWu` | px | Px blast radius on lob impact. |
 | `blastDamageScale` | dimensionless | Dimensionless lob blast damage scale. |
+| `impactVfxBlastMul` | dimensionless | Smoke B impact sprite size as `blastRadiusWu × mul` in world pixels (matches blast read). |
 
 #### `combat.ward` (`ward`)
 

@@ -38,6 +38,9 @@ export const ENEMY_COMBAT_MELEE_KEYS = [
   "recoveryMs",
   "cooldownMs",
   "fxStartMs",
+  "vfxDisplayW",
+  "vfxDisplayH",
+  "vfxOffsetWu",
 ] as const;
 export const ENEMY_COMBAT_MELEE_OPTIONAL_KEYS = ["fxDurationMs"] as const;
 export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY = "meleeChaseStandoffWu" as const;
@@ -104,6 +107,7 @@ export const ENEMY_COMBAT_LOBBER_KEYS = [
   "projectileSpeedWu",
   "blastRadiusWu",
   "blastDamageScale",
+  "impactVfxBlastMul",
 ] as const;
 export const ENEMY_COMBAT_WARD_KEYS = [
   "protectRadiusWu",
@@ -180,6 +184,9 @@ export function requireEnemyMeleeCombat(
     cooldownMs: base.cooldownMs!,
     fxStartMs: base.fxStartMs!,
     fxDurationMs,
+    vfxDisplayW: base.vfxDisplayW!,
+    vfxDisplayH: base.vfxDisplayH!,
+    vfxOffsetWu: base.vfxOffsetWu!,
   };
   if (MELEE_CHASE_STANDOFF_BEHAVIORS.has(behavior)) {
     const standoff = requireNumberFields(
