@@ -191,21 +191,14 @@ export class EndlessModePanelScroll {
 
   rowCapHitTest(
     row: EnemyRow,
-  ): (
-    hitArea: Phaser.Geom.Rectangle,
-    x: number,
-    y: number,
-  ) => boolean {
+  ): (hitArea: Phaser.Geom.Rectangle, x: number, y: number) => boolean {
     return (hitArea, x, y) => {
       if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
       return endlessRowCenterOverlapsViewport(this.rowViewportState(row));
     };
   }
 
-  pickVisibleRowAtScreen(
-    screenX: number,
-    screenY: number,
-  ): string | null {
+  pickVisibleRowAtScreen(screenX: number, screenY: number): string | null {
     const { layout, listContent, rows } = this.view;
     return pickEndlessEnemyRowAtScreen({
       screenX,
@@ -242,13 +235,14 @@ export class EndlessModePanelScroll {
   }
 
   /** Screen center of a row's name cell, or null when scrolled out of the viewport. */
-  rowScreenCenter(
-    row: EnemyRow,
-  ): { x: number; y: number } | null {
+  rowScreenCenter(row: EnemyRow): { x: number; y: number } | null {
     const { layout, listContent } = this.view;
     const cy = listContent.y + row.bg.y;
     const half = layout.rowH / 2;
-    if (cy + half < layout.listTop || cy - half > layout.listTop + layout.listViewportH) {
+    if (
+      cy + half < layout.listTop ||
+      cy - half > layout.listTop + layout.listViewportH
+    ) {
       return null;
     }
     return { x: row.bg.x, y: cy };
@@ -261,7 +255,10 @@ export class EndlessModePanelScroll {
     const { layout, listContent } = this.view;
     const cy = listContent.y + row.capBg.y;
     const half = layout.rowH / 2;
-    if (cy + half < layout.listTop || cy - half > layout.listTop + layout.listViewportH) {
+    if (
+      cy + half < layout.listTop ||
+      cy - half > layout.listTop + layout.listViewportH
+    ) {
       return null;
     }
     const obj = which === "minus" ? row.capMinus : row.capPlus;

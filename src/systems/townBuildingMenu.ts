@@ -39,8 +39,7 @@ export function townBuildingSubtitle(
       return `— Wall max (L${level}, HP ${save.townWallHp}/${save.townWallHpMax})`;
     }
     const cost = up.costByLevel[level];
-    const next =
-      cost !== undefined ? `, next ${cost}g` : "";
+    const next = cost !== undefined ? `, next ${cost}g` : "";
     return `— Upgrade wall (L${level}${next})`;
   }
   if (upgradeId === "blacksmith") {
@@ -49,8 +48,7 @@ export function townBuildingSubtitle(
       return `— Smith max (L${level}, damage x${dmg})`;
     }
     const cost = up.costByLevel[level];
-    const next =
-      cost !== undefined ? `, next ${cost}g` : "";
+    const next = cost !== undefined ? `, next ${cost}g` : "";
     return `— Upgrade smith (L${level}, damage x${dmg}${next})`;
   }
 

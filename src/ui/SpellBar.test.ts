@@ -50,7 +50,11 @@ vi.mock("./touchButton", () => ({
     buttons.push(container);
     return { container };
   },
-  bindTapOrLongPress: (_s: unknown, _o: unknown, cb: TapOrLongPressCallbacks) => {
+  bindTapOrLongPress: (
+    _s: unknown,
+    _o: unknown,
+    cb: TapOrLongPressCallbacks,
+  ) => {
     bound.push(cb);
   },
   interactiveObjectScreenRect: (o: FakeObj) => ({
@@ -132,7 +136,10 @@ describe("SpellBar", () => {
     const { callbacks } = make([groundTap.id]);
     const pointer = { id: 1, x: 0, y: 0 };
     bound[0]!.onPressStart!(pointer as never);
-    expect(callbacks.onGroundCastArm).toHaveBeenCalledWith(groundTap.id, pointer);
+    expect(callbacks.onGroundCastArm).toHaveBeenCalledWith(
+      groundTap.id,
+      pointer,
+    );
     bound[0]!.onTap();
     expect(callbacks.onCastRequest).toHaveBeenCalledWith(groundTap.id, 0);
   });
@@ -150,7 +157,10 @@ describe("SpellBar", () => {
     const border1 = rects[2]!;
     expect(border0.setVisible).toHaveBeenLastCalledWith(true);
     expect(border1.setVisible).toHaveBeenLastCalledWith(false);
-    bar.refreshAutoCastBorders([instant.id, cooldownSpell.id], [cooldownSpell.id]);
+    bar.refreshAutoCastBorders(
+      [instant.id, cooldownSpell.id],
+      [cooldownSpell.id],
+    );
     expect(border0.setVisible).toHaveBeenLastCalledWith(false);
     expect(border1.setVisible).toHaveBeenLastCalledWith(true);
   });
@@ -177,7 +187,13 @@ describe("SpellBar", () => {
     expect(r.width).toBeGreaterThan((n - 1) * 70 + 60);
     expect(bar.e2eSlotTapCenters()).toHaveLength(n);
     expect(bar.e2eSlotTapCenters()[0]).toEqual({ index: 0, x: 100, y: 1000 });
-    expect(bar.e2eSlotHitRects()[1]).toEqual({ index: 1, x: 140, y: 970, width: 60, height: 60 });
+    expect(bar.e2eSlotHitRects()[1]).toEqual({
+      index: 1,
+      x: 140,
+      y: 970,
+      width: 60,
+      height: 60,
+    });
   });
 
   it("destroy removes overlays and borders", () => {

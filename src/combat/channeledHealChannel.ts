@@ -59,6 +59,9 @@ export function advanceChanneledHealTicks(
   return fired;
 }
 
-export function channeledHealTickHealAmount(def: SpellDefinition, ticksFired: number): number {
+export function channeledHealTickHealAmount(
+  def: SpellDefinition,
+  ticksFired: number,
+): number {
   return channeledHealPerTickAmount(def) * ticksFired;
 }

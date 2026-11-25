@@ -66,7 +66,8 @@ export function destroyDefenseSceneObjects(d: DefenseSceneDisposables): void {
   d.debugBtn?.container.destroy();
   d.uiCamera?.destroy();
   for (const p of d.projectiles) releaseProjectileSprite(d.scene, p.sprite);
-  for (const p of d.enemyProjectiles) releaseProjectileSprite(d.scene, p.sprite);
+  for (const p of d.enemyProjectiles)
+    releaseProjectileSprite(d.scene, p.sprite);
   destroyProjectilePool(d.scene);
   for (const e of d.enemies) {
     destroyArrowRainTelegraph(e.arrowRain?.telegraph);

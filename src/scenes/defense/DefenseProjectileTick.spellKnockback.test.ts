@@ -6,7 +6,10 @@ import bundledSpells from "../../../public/data/spells.json";
 import { setSpellCatalog, type SpellDefinition } from "../../content/spells";
 import type { PlayerProjectile } from "../../entities/Projectile";
 import type { Player } from "../../entities/Player";
-import { tickDefenseProjectiles, type DefenseProjectileTickHost } from "./DefenseProjectileTick";
+import {
+  tickDefenseProjectiles,
+  type DefenseProjectileTickHost,
+} from "./DefenseProjectileTick";
 
 function projectileWithSpell(spellId: string): PlayerProjectile {
   return {
@@ -67,7 +70,10 @@ describe("tickDefenseProjectiles spell knockback", () => {
     };
     setSpellCatalog([broken]);
     expect(() =>
-      tickDefenseProjectiles(tickHost([projectileWithSpell("broken_bolt")]), 16),
+      tickDefenseProjectiles(
+        tickHost([projectileWithSpell("broken_bolt")]),
+        16,
+      ),
     ).toThrow(ConfigLoadError);
   });
 });

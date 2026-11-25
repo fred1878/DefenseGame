@@ -44,7 +44,13 @@ describe("ward behavior helpers", () => {
     const allies = [
       { id: "a", behavior: "meleeChaser", defId: "grunt", x: 50, y: 0 },
       { id: "b", behavior: "javelineer", defId: "javelineer", x: 80, y: 0 },
-      { id: "c", behavior: "arrowRainArcher", defId: "arrow_rain_archer", x: 120, y: 0 },
+      {
+        id: "c",
+        behavior: "arrowRainArcher",
+        defId: "arrow_rain_archer",
+        x: 120,
+        y: 0,
+      },
     ];
     const pick = pickWardProtectee(allies, 0, 0, 200);
     expect(pick?.id).toBe("b");
@@ -120,9 +126,9 @@ describe("ward post hold", () => {
       WARD_POST_BREAK_MOVE_PX,
     );
     expect(decision.hold).toBe(true);
-    expect(wardPostHoldBroken(extra, 110, 3, 0, 0, WARD_POST_BREAK_MOVE_PX, true)).toBe(
-      false,
-    );
+    expect(
+      wardPostHoldBroken(extra, 110, 3, 0, 0, WARD_POST_BREAK_MOVE_PX, true),
+    ).toBe(false);
   });
 
   it("breaks grace when the player moves meaningfully", () => {
@@ -222,18 +228,17 @@ describe("slewWardHoldFacing", () => {
   it("keeps current facing inside slack", () => {
     const current = 0;
     const target = WARD_POST_FACING_SLACK_RAD * 0.5;
-    expect(slewWardHoldFacing(current, target, WARD_POST_FACING_SLACK_RAD)).toBe(
-      current,
-    );
+    expect(
+      slewWardHoldFacing(current, target, WARD_POST_FACING_SLACK_RAD),
+    ).toBe(current);
   });
 
   it("snaps to target beyond slack", () => {
     const current = 0;
     const target = Math.PI / 2;
-    expect(slewWardHoldFacing(current, target, WARD_POST_FACING_SLACK_RAD)).toBeCloseTo(
-      target,
-      5,
-    );
+    expect(
+      slewWardHoldFacing(current, target, WARD_POST_FACING_SLACK_RAD),
+    ).toBeCloseTo(target, 5);
   });
 });
 

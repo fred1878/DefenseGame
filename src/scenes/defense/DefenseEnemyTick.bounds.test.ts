@@ -80,5 +80,4 @@ describe("tickDefenseEnemies field bounds", () => {
     expect(enemy.knockbackVx).toBe(0);
     expect(enemy.knockbackVy).toBe(0);
   });
-
 });

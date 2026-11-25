@@ -4,9 +4,14 @@ import type { Damageable } from "../../combat/DamageSystem";
 import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import type { PlayerProjectile } from "../../entities/Projectile";
 import type { Player } from "../../entities/Player";
-import { tickDefenseProjectiles, type DefenseProjectileTickHost } from "./DefenseProjectileTick";
+import {
+  tickDefenseProjectiles,
+  type DefenseProjectileTickHost,
+} from "./DefenseProjectileTick";
 
-function mockHost(projectiles: PlayerProjectile[]): DefenseProjectileTickHost & {
+function mockHost(
+  projectiles: PlayerProjectile[],
+): DefenseProjectileTickHost & {
   status: EnemySpellStatusMap;
 } {
   const scene = { registry: {} } as unknown as Phaser.Scene;

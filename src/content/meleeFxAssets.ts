@@ -132,18 +132,17 @@ export const MELEE_FX_ANIM = {
   reaver: "melee_fx_reaver",
 } as const;
 
-const ENEMY_MELEE_FX_CLIP: Partial<
-  Record<string, keyof typeof MELEE_FX_ANIM>
-> = {
-  grunt: "grunt",
-  skirmisher: "skirmisher",
-  bruiser: "bruiser",
-  slow_siege: "slow_siege",
-  charger: "charger",
-  ward: "ward",
-  fast_sapper: "fast_sapper",
-  reaver: "reaver",
-};
+const ENEMY_MELEE_FX_CLIP: Partial<Record<string, keyof typeof MELEE_FX_ANIM>> =
+  {
+    grunt: "grunt",
+    skirmisher: "skirmisher",
+    bruiser: "bruiser",
+    slow_siege: "slow_siege",
+    charger: "charger",
+    ward: "ward",
+    fast_sapper: "fast_sapper",
+    reaver: "reaver",
+  };
 
 export type MeleeFxClipId = keyof typeof MELEE_FX_ANIM;
 
@@ -166,9 +165,7 @@ export function enemyMeleeFxSpec(
 ): EnemyMeleeFxSpec | undefined {
   const clipId = enemyMeleeFxClipId(enemyDefId);
   if (!clipId) return undefined;
-  const asset = MELEE_FX_ASSETS.find(
-    (a) => a.key === `fx_melee_${clipId}`,
-  );
+  const asset = MELEE_FX_ASSETS.find((a) => a.key === `fx_melee_${clipId}`);
   if (!asset) return undefined;
   const animFacing = MELEE_FX_ANIM_FACING[clipId];
   return {

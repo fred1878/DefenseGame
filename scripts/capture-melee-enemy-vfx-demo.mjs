@@ -108,7 +108,10 @@ try {
   await page.goto(`${base}/?e2e=1`, { waitUntil: "networkidle" });
   await gotoTownReady(page, base);
   await gotoDefenseReady(page, { spawnWarmupEnemy: false });
-  const defenseTrimSec = Math.max(0, (Date.now() - recordStartMs) / 1000 - 0.15);
+  const defenseTrimSec = Math.max(
+    0,
+    (Date.now() - recordStartMs) / 1000 - 0.15,
+  );
 
   await page.evaluate(() => {
     const api = window.__DEFENSEGAME_E2E__?.api;

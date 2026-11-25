@@ -161,7 +161,10 @@ export class DefensePlayerCombat {
         PLAYER_TUNING.meleeFxStartMs,
         () => {
           this.playerMeleeFxTimer = undefined;
-          if (player.attackPhaseNow === "idle" || player.strikeMode() !== "melee") {
+          if (
+            player.attackPhaseNow === "idle" ||
+            player.strikeMode() !== "melee"
+          ) {
             return;
           }
           showPlayerMeleeSwipe(

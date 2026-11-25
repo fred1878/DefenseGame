@@ -33,8 +33,11 @@ function hasInteractiveInput(obj: Phaser.GameObjects.GameObject): boolean {
   while (node) {
     if (node.input?.enabled) return true;
     const parent: Phaser.GameObjects.Container | null =
-      (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-        .parentContainer ?? null;
+      (
+        node as Phaser.GameObjects.GameObject & {
+          parentContainer?: Phaser.GameObjects.Container;
+        }
+      ).parentContainer ?? null;
     node = parent;
   }
   return false;

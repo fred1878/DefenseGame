@@ -199,7 +199,9 @@ export function runDefenseCampaignNightEnd(
   const wallDamage = input.wallHpStart - finalWallHp;
   const result: NightResult = {
     won: input.won,
-    goldEarned: input.won ? input.rewardGold : Math.floor(input.rewardGold * 0.25),
+    goldEarned: input.won
+      ? input.rewardGold
+      : Math.floor(input.rewardGold * 0.25),
     wallDamage,
     night: input.save.night,
   };

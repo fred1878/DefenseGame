@@ -36,9 +36,10 @@ export function defenseGroundTileStep(
     : GROUND_TILE_SIZE;
 }
 
-export function defenseFieldPx(
-  registry?: Phaser.Data.DataManager,
-): { width: number; height: number } {
+export function defenseFieldPx(registry?: Phaser.Data.DataManager): {
+  width: number;
+  height: number;
+} {
   assertDefenseFieldLoaded();
   const step = defenseGroundTileStep(registry);
   return {
@@ -79,9 +80,7 @@ export function northWallApproachY(
   registry?: Phaser.Data.DataManager,
   standoffWu = NORTH_WALL_MELEE_STANDOFF_WU,
 ): number {
-  const standoffPx = registry
-    ? worldUnit(standoffWu, registry)
-    : standoffWu;
+  const standoffPx = registry ? worldUnit(standoffWu, registry) : standoffWu;
   return northWallAttackY(registry) + standoffPx;
 }
 
@@ -134,10 +133,8 @@ export function obstaclePhysicsLayout(
   const block = OBSTACLE_BLOCKER_FOOTPRINT[textureKey];
   const s =
     DEFENSE_OBSTACLE_WORLD_SCALE * (registry ? worldScaleFactor(registry) : 1);
-  const bodyW =
-    Math.min(block.w, crop.w) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
-  const bodyH =
-    Math.min(block.h, crop.h) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
+  const bodyW = Math.min(block.w, crop.w) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
+  const bodyH = Math.min(block.h, crop.h) * s * OBSTACLE_COLLIDER_SIZE_SCALE;
   const displayW = crop.w * s;
   const displayH = crop.h * s;
   return {

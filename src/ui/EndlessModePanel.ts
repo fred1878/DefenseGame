@@ -77,7 +77,9 @@ export class EndlessModePanel {
     const enemyIds = listPlayableDefenseEnemyIds(store);
     if (enemyIds.length === 0) enemyIds.push("grunt");
 
-    const scroll = new EndlessModePanelScroll(scene, (id) => this.toggleSelect(id));
+    const scroll = new EndlessModePanelScroll(scene, (id) =>
+      this.toggleSelect(id),
+    );
     this.scroll = scroll;
     const ui = buildEndlessModePanelUi(scene, store, enemyIds, this.caps, {
       listViewportHitForScroll: (x, y) => scroll.listViewportHitForScroll(x, y),
@@ -86,7 +88,8 @@ export class EndlessModePanel {
       rowNameHitTest: (row) => scroll.rowNameHitTest(row),
       rowCapHitTest: (row) => scroll.rowCapHitTest(row),
       onBumpCap: (enemyId, delta) => this.bumpCap(enemyId, delta),
-      onRowPointerDown: (pointer, enemyId) => scroll.beginDrag(pointer, "row", enemyId),
+      onRowPointerDown: (pointer, enemyId) =>
+        scroll.beginDrag(pointer, "row", enemyId),
       onCapPointerDown: (pointer) => scroll.beginDrag(pointer, "cap"),
       onViewportPointerDown: (pointer) => scroll.beginDrag(pointer, "viewport"),
       onToggleInfiniteHp: () => this.toggleInfiniteHp(),

@@ -15,10 +15,7 @@ export function requireRecord(
   return value as Record<string, unknown>;
 }
 
-export function requireFiniteNumber(
-  value: unknown,
-  path: string,
-): number {
+export function requireFiniteNumber(value: unknown, path: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new ConfigLoadError(`Missing or invalid number at ${path}`);
   }

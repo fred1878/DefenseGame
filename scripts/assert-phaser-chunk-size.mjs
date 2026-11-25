@@ -27,9 +27,13 @@ function findPhaserChunk() {
   if (!fs.existsSync(distAssets)) {
     throw new Error("dist/assets missing — run vite build first");
   }
-  const files = fs.readdirSync(distAssets).filter((f) => /^phaser-[\w-]+\.js$/.test(f));
+  const files = fs
+    .readdirSync(distAssets)
+    .filter((f) => /^phaser-[\w-]+\.js$/.test(f));
   if (files.length !== 1) {
-    throw new Error(`Expected one phaser-*.js in dist/assets, found: ${files.join(", ") || "none"}`);
+    throw new Error(
+      `Expected one phaser-*.js in dist/assets, found: ${files.join(", ") || "none"}`,
+    );
   }
   return path.join(distAssets, files[0]);
 }

@@ -6,13 +6,10 @@ import {
 
 describe("buildChainLightningSegments", () => {
   it("chains primary through each hop in order", () => {
-    const segs = buildChainLightningSegments(
-      { x: 0, y: 0 },
-      [
-        { x: 50, y: 0 },
-        { x: 80, y: 30 },
-      ],
-    );
+    const segs = buildChainLightningSegments({ x: 0, y: 0 }, [
+      { x: 50, y: 0 },
+      { x: 80, y: 30 },
+    ]);
     expect(segs).toEqual([
       { from: { x: 0, y: 0 }, to: { x: 50, y: 0 } },
       { from: { x: 50, y: 0 }, to: { x: 80, y: 30 } },

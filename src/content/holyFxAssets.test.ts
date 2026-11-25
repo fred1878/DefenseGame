@@ -15,7 +15,8 @@ describe("registerHolyFxAnimations", () => {
     registerHolyFxAnimations(asScene(scene));
 
     const created = scene.anims.create.mock.calls.map(
-      (c) => c[0] as unknown as { key: string; frames: unknown[]; repeat: number },
+      (c) =>
+        c[0] as unknown as { key: string; frames: unknown[]; repeat: number },
     );
     expect(created.map((c) => c.key)).toEqual([
       HOLY_FX_ANIM.flashImpact,

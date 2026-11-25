@@ -33,11 +33,21 @@ export function createCombatHudChrome(
     .setDepth(depth);
 
   const bottomPanel = scene.add
-    .rectangle(w / 2, bottomY + bottomH / 2, w, bottomH, PANEL_FILL, PANEL_ALPHA)
+    .rectangle(
+      w / 2,
+      bottomY + bottomH / 2,
+      w,
+      bottomH,
+      PANEL_FILL,
+      PANEL_ALPHA,
+    )
     .setScrollFactor(0)
     .setDepth(depth);
 
-  const border = scene.add.graphics().setScrollFactor(0).setDepth(depth + 1);
+  const border = scene.add
+    .graphics()
+    .setScrollFactor(0)
+    .setDepth(depth + 1);
   border.lineStyle(2, BORDER, 1);
   if (topH > 1) {
     border.strokeRect(0.5, 0.5, w - 1, topH - 1);

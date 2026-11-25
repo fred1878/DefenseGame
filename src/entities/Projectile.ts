@@ -18,7 +18,10 @@ import {
   releaseProjectileSprite,
 } from "./projectilePool";
 
-export { destroyProjectilePool, releaseProjectileSprite } from "./projectilePool";
+export {
+  destroyProjectilePool,
+  releaseProjectileSprite,
+} from "./projectilePool";
 
 /** Source art faces upper-right at rotation 0. */
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
@@ -83,7 +86,10 @@ function projectileRotOffset(textureKey: string): number {
     : STONE_THROW_ROT_OFFSET;
 }
 
-function aimProjectileSprite(sprite: Phaser.Physics.Arcade.Sprite, textureKey: string): void {
+function aimProjectileSprite(
+  sprite: Phaser.Physics.Arcade.Sprite,
+  textureKey: string,
+): void {
   const body = sprite.body as Phaser.Physics.Arcade.Body;
   const angle = Math.atan2(body.velocity.y, body.velocity.x);
   sprite.setRotation(angle + projectileRotOffset(textureKey));
@@ -179,9 +185,7 @@ export function updateProjectile(
   aimProjectileSprite(projectile.sprite, projectile.sprite.texture.key);
 
   let firstT: number | null = null;
-  let firstTarget:
-    | (typeof enemies)[number]
-    | undefined;
+  let firstTarget: (typeof enemies)[number] | undefined;
 
   const skipIds = projectile.damagedEnemyIds;
   for (const e of enemies) {
@@ -253,10 +257,7 @@ export function updateProjectile(
   projectile.prevY = y1;
 
   if (projectile.traveled >= projectile.maxTravel) {
-    if (
-      projectile.spellBehavior === "aoe_on_hit" &&
-      projectile.blastRadiusWu
-    ) {
+    if (projectile.spellBehavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       const detonation: ProjectileDetonation = {
         x: projectile.sprite.x,
         y: projectile.sprite.y,
@@ -427,10 +428,7 @@ export function updateEnemyProjectile(
   );
 
   if (t !== null && player.damageable.alive) {
-    if (
-      projectile.spellBehavior === "aoe_on_hit" &&
-      projectile.blastRadiusWu
-    ) {
+    if (projectile.spellBehavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       projectile.pendingDetonation = {
         x: projectile.sprite.x,
         y: projectile.sprite.y,
@@ -462,10 +460,7 @@ export function updateEnemyProjectile(
   projectile.prevY = y1;
 
   if (projectile.traveled >= projectile.maxTravel) {
-    if (
-      projectile.spellBehavior === "aoe_on_hit" &&
-      projectile.blastRadiusWu
-    ) {
+    if (projectile.spellBehavior === "aoe_on_hit" && projectile.blastRadiusWu) {
       projectile.pendingDetonation = {
         x: projectile.sprite.x,
         y: projectile.sprite.y,

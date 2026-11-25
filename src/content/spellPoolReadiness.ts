@@ -13,7 +13,8 @@ const POOL_COMING_SOON_ALPHA = 0.48;
  */
 export function isSpellPoolSelectable(def: SpellDefinition): boolean {
   return (
-    def.castableInDefense && def.implementationPhase <= SHIPPED_DEFENSE_SPELL_PHASE
+    def.castableInDefense &&
+    def.implementationPhase <= SHIPPED_DEFENSE_SPELL_PHASE
   );
 }
 

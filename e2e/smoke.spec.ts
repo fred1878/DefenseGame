@@ -37,7 +37,9 @@ test.describe("smoke", () => {
   test("smoke-enter-defense", async ({ page }) => {
     await gotoE2E(page);
     await startDefense(page);
-    const player = await page.evaluate(() => window.__DEFENSEGAME_E2E__?.player);
+    const player = await page.evaluate(
+      () => window.__DEFENSEGAME_E2E__?.player,
+    );
     expect(player).not.toBeNull();
   });
 });

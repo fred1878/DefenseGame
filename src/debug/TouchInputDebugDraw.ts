@@ -62,9 +62,14 @@ export class TouchInputDebugDraw {
     this.screen.clear();
     this.world.clear();
 
-    const zones = options.excludeZones ?? options.stick?.getDebugLayout().excludeZones ?? [];
+    const zones =
+      options.excludeZones ??
+      options.stick?.getDebugLayout().excludeZones ??
+      [];
     const uiRects =
-      options.uiScreenRects ?? options.stick?.getDebugLayout().uiScreenRects ?? [];
+      options.uiScreenRects ??
+      options.stick?.getDebugLayout().uiScreenRects ??
+      [];
 
     for (const z of zones) {
       this.screen.fillStyle(0xf59e0b, 0.12);
@@ -88,15 +93,32 @@ export class TouchInputDebugDraw {
           stickState.downY,
           layout.dragThreshold,
         );
-        this.drawCrosshair(stickState.downX, stickState.downY, 0x60a5fa, "pending");
+        this.drawCrosshair(
+          stickState.downX,
+          stickState.downY,
+          0x60a5fa,
+          "pending",
+        );
       }
       if (stickState.active) {
         this.screen.fillStyle(0x2a2d38, 0.35);
-        this.screen.fillCircle(stickState.originX, stickState.originY, layout.radius);
+        this.screen.fillCircle(
+          stickState.originX,
+          stickState.originY,
+          layout.radius,
+        );
         this.screen.lineStyle(2, 0x7db8ff, 0.9);
-        this.screen.strokeCircle(stickState.originX, stickState.originY, layout.radius);
+        this.screen.strokeCircle(
+          stickState.originX,
+          stickState.originY,
+          layout.radius,
+        );
         this.screen.fillStyle(0x7db8ff, 0.75);
-        this.screen.fillCircle(stickState.knobX, stickState.knobY, layout.radius * 0.42);
+        this.screen.fillCircle(
+          stickState.knobX,
+          stickState.knobY,
+          layout.radius * 0.42,
+        );
         this.screen.lineStyle(1, 0xe0f2fe, 0.85);
         this.screen.lineBetween(
           stickState.originX,
@@ -135,16 +157,34 @@ export class TouchInputDebugDraw {
       const alpha = 0.25 + t * 0.55;
       this.screen.lineStyle(2, flash.picked ? 0x4ade80 : 0xfacc15, alpha);
       this.screen.strokeCircle(flash.screenX, flash.screenY, 14 + t * 6);
-      this.drawCrosshair(flash.screenX, flash.screenY, flash.picked ? 0x4ade80 : 0xfacc15);
+      this.drawCrosshair(
+        flash.screenX,
+        flash.screenY,
+        flash.picked ? 0x4ade80 : 0xfacc15,
+      );
 
       this.world.lineStyle(2, flash.picked ? 0x4ade80 : 0xfacc15, alpha * 0.85);
-      this.world.strokeCircle(flash.worldX, flash.worldY, flash.pickRadiusWorld);
+      this.world.strokeCircle(
+        flash.worldX,
+        flash.worldY,
+        flash.pickRadiusWorld,
+      );
       this.world.lineStyle(1, flash.picked ? 0x86efac : 0xfde047, alpha * 0.6);
-      this.world.lineBetween(flash.worldX, flash.worldY - flash.pickRadiusWorld - 8, flash.worldX, flash.worldY);
+      this.world.lineBetween(
+        flash.worldX,
+        flash.worldY - flash.pickRadiusWorld - 8,
+        flash.worldX,
+        flash.worldY,
+      );
     }
   }
 
-  private drawCrosshair(x: number, y: number, color: number, _tag?: string): void {
+  private drawCrosshair(
+    x: number,
+    y: number,
+    color: number,
+    _tag?: string,
+  ): void {
     const r = 10;
     this.screen.lineStyle(2, color, 0.95);
     this.screen.lineBetween(x - r, y, x + r, y);

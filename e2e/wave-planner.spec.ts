@@ -28,10 +28,13 @@ test("wave planner: open from the clinic, close, reopen and start a planned nigh
 
   // The planner roster uses the same playable list as the endless panel;
   // its first row is selected by default (count 1, at 0 ms).
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+  await page.evaluate(() =>
+    window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
+  );
   await waitForTapTargets(page, ["endless-close"]);
   const firstEnemy = await page.evaluate(
-    () => window.__DEFENSEGAME_E2E__?.api?.getEndlessRosterEnemyIds()[0] ?? null,
+    () =>
+      window.__DEFENSEGAME_E2E__?.api?.getEndlessRosterEnemyIds()[0] ?? null,
   );
   expect(firstEnemy).toBeTruthy();
   await tapTarget(page, "endless-close");
@@ -39,8 +42,12 @@ test("wave planner: open from the clinic, close, reopen and start a planned nigh
 
   await openPlanner(page);
   await tapTarget(page, "wave-planner-close");
-  await expect.poll(() => tapTargetIds(page)).not.toContain("wave-planner-start");
-  expect(await page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene)).toBe("Town");
+  await expect
+    .poll(() => tapTargetIds(page))
+    .not.toContain("wave-planner-start");
+  expect(await page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene)).toBe(
+    "Town",
+  );
 
   await openPlanner(page);
   await tapTarget(page, "wave-planner-start");
@@ -56,10 +63,14 @@ test("wave planner: open from the clinic, close, reopen and start a planned nigh
     .toBe(true);
   await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.setGodMode(true));
   expect(
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.isWavePlannerDefense()),
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.isWavePlannerDefense(),
+    ),
   ).toBe(true);
   expect(
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.isEndlessDefense()),
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.isEndlessDefense(),
+    ),
   ).toBe(false);
 
   // Only the planned enemy spawns.

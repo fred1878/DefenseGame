@@ -18,7 +18,9 @@ import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 
 /** E2E hooks: readiness, input, combat, enemies, night/endless state, tap targets. */
 
-export function defenseSceneE2eIsReady(scene: DefenseSceneE2eDelegate): boolean {
+export function defenseSceneE2eIsReady(
+  scene: DefenseSceneE2eDelegate,
+): boolean {
   return Boolean(scene.player?.sprite);
 }
 
@@ -34,9 +36,10 @@ export function defenseSceneE2eSetStick(
   scene.stick.setE2eOverride(dx, dy);
 }
 
-export function defenseSceneE2ePlayerPosition(
-  scene: DefenseSceneE2eDelegate,
-): { x: number; y: number } {
+export function defenseSceneE2ePlayerPosition(scene: DefenseSceneE2eDelegate): {
+  x: number;
+  y: number;
+} {
   return { x: scene.player.sprite.x, y: scene.player.sprite.y };
 }
 
@@ -47,7 +50,9 @@ export function defenseSceneE2eAttackPhase(
 }
 
 /** Player attack mode as cycled by the MEL/RNG/AUTO toggle. */
-export function defenseSceneE2eAttackMode(scene: DefenseSceneE2eDelegate): string {
+export function defenseSceneE2eAttackMode(
+  scene: DefenseSceneE2eDelegate,
+): string {
   return scene.player.mode;
 }
 
@@ -229,9 +234,7 @@ export function defenseSceneE2eHasReturnButton(
 export function defenseSceneE2eHasLeaveEndlessButton(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return (
-    Boolean(scene.leaveEndlessBtn?.container.visible) && !scene.nightEnded
-  );
+  return Boolean(scene.leaveEndlessBtn?.container.visible) && !scene.nightEnded;
 }
 
 export function defenseSceneE2eSimulateScreenTap(
@@ -322,7 +325,9 @@ export function defenseSceneE2eIsEndlessInfiniteHp(
   return scene.endlessInfiniteHp;
 }
 
-export function defenseSceneE2ePlayerHp(scene: DefenseSceneE2eDelegate): number {
+export function defenseSceneE2ePlayerHp(
+  scene: DefenseSceneE2eDelegate,
+): number {
   return Math.floor(scene.player.damageable.hp);
 }
 
@@ -423,13 +428,24 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
   const melee = enemy?.combatTuning.melee;
   const activeMs = melee?.activeMs ?? 220;
   if (!melee) {
-    throw new Error(`E2E melee FX preview requires combat.melee on ${enemyDefId}`);
+    throw new Error(
+      `E2E melee FX preview requires combat.melee on ${enemyDefId}`,
+    );
   }
-  showEnemyMeleeSwipe(scene, enemyDefId, ex, ey, facingRad, undefined, activeMs, {
-    vfxDisplayW: melee.vfxDisplayW,
-    vfxDisplayH: melee.vfxDisplayH,
-    vfxOffsetWu: melee.vfxOffsetWu,
-  });
+  showEnemyMeleeSwipe(
+    scene,
+    enemyDefId,
+    ex,
+    ey,
+    facingRad,
+    undefined,
+    activeMs,
+    {
+      vfxDisplayW: melee.vfxDisplayW,
+      vfxDisplayH: melee.vfxDisplayH,
+      vfxOffsetWu: melee.vfxOffsetWu,
+    },
+  );
   return { facingRad, spriteRotation, flipX: pose.flipX, offX, side };
 }
 

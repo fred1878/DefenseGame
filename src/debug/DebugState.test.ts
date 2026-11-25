@@ -7,7 +7,9 @@ import {
   showTouchInput,
 } from "./DebugState";
 
-function fakeRegistry(store: Record<string, unknown> = {}): Phaser.Data.DataManager {
+function fakeRegistry(
+  store: Record<string, unknown> = {},
+): Phaser.Data.DataManager {
   return {
     get: (key: string) => store[key],
     set: (key: string, value: unknown) => {

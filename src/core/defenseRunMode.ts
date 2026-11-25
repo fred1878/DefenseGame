@@ -54,15 +54,17 @@ function isWavePlannerPayload(
   );
 }
 
-function isEndlessSelections(
-  raw: unknown,
-): raw is {
+function isEndlessSelections(raw: unknown): raw is {
   kind: "endless";
   selections: EndlessRunSelection[];
   infiniteHp?: boolean;
 } {
   if (typeof raw !== "object" || raw === null) return false;
-  const r = raw as { kind?: string; selections?: unknown; infiniteHp?: unknown };
+  const r = raw as {
+    kind?: string;
+    selections?: unknown;
+    infiniteHp?: unknown;
+  };
   return (
     r.kind === "endless" &&
     Array.isArray(r.selections) &&
@@ -84,9 +86,7 @@ export function resolveEndlessRunSelections(
   return selections.map((s) => ({
     enemyId: s.enemyId,
     concurrentCap: clampEndlessConcurrent(
-      s.concurrentCap > 0
-        ? s.concurrentCap
-        : ENDLESS_CONCURRENT_MIN,
+      s.concurrentCap > 0 ? s.concurrentCap : ENDLESS_CONCURRENT_MIN,
     ),
   }));
 }
@@ -137,7 +137,9 @@ export function readDefenseRunMode(
 }
 
 export function setNightDefenseRun(registry: Phaser.Data.DataManager): void {
-  registry.set(DEFENSE_RUN_MODE_KEY, { kind: "night" } satisfies DefenseRunMode);
+  registry.set(DEFENSE_RUN_MODE_KEY, {
+    kind: "night",
+  } satisfies DefenseRunMode);
 }
 
 export function setEndlessDefenseRun(

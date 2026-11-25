@@ -5,13 +5,15 @@ import { EnemyIceStunFxController } from "./EnemyIceStunFx";
 import { PVFX_ANIM, PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
 
 (Phaser as { BlendModes?: { ADD: number } }).BlendModes = { ADD: 1 };
-(Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 
 function mockScene() {
   const scene = {
     textures: {
-      exists: (key: string) => PVFX_FX_ASSETS.some((entry) => entry.key === key),
+      exists: (key: string) =>
+        PVFX_FX_ASSETS.some((entry) => entry.key === key),
     },
     anims: {
       exists: (key: string) => Object.values(PVFX_ANIM).includes(key as never),

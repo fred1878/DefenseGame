@@ -3,12 +3,7 @@
  * Writes versioned PNGs under /opt/cursor/artifacts/review/.
  */
 import { createHash } from "node:crypto";
-import {
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-} from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
 export const REVIEW_DIR = "/opt/cursor/artifacts/review";
@@ -45,7 +40,8 @@ function listSceneCaptures(scene) {
 /** Md5 of the most recent capture for `scene`, excluding `excludePath` if set. */
 export function md5FromLastRun(scene, excludePath) {
   for (const { full } of listSceneCaptures(scene)) {
-    if (excludePath && path.resolve(full) === path.resolve(excludePath)) continue;
+    if (excludePath && path.resolve(full) === path.resolve(excludePath))
+      continue;
     try {
       return md5File(full);
     } catch {

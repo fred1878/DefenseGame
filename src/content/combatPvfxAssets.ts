@@ -135,8 +135,11 @@ export function assertPvfxClipReady(
   }
 }
 
-export function projectileTextureRotationOffset(textureKey: string): number | undefined {
-  if (PVFX_RIGHT_FACING_TEXTURES.has(textureKey)) return PVFX_RIGHT_FACING_ROT_OFFSET;
+export function projectileTextureRotationOffset(
+  textureKey: string,
+): number | undefined {
+  if (PVFX_RIGHT_FACING_TEXTURES.has(textureKey))
+    return PVFX_RIGHT_FACING_ROT_OFFSET;
   return undefined;
 }
 
@@ -180,7 +183,9 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
     });
   };
 
-  const meteor = PVFX_FX_ASSETS.find((a) => a.key === PVFX_TEXTURE.meteorStrike)!;
+  const meteor = PVFX_FX_ASSETS.find(
+    (a) => a.key === PVFX_TEXTURE.meteorStrike,
+  )!;
   createOnce(
     PVFX_ANIM.meteorStrike,
     PVFX_TEXTURE.meteorStrike,
@@ -190,7 +195,9 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
     0,
   );
 
-  const shatter = PVFX_FX_ASSETS.find((a) => a.key === PVFX_TEXTURE.iceShatter)!;
+  const shatter = PVFX_FX_ASSETS.find(
+    (a) => a.key === PVFX_TEXTURE.iceShatter,
+  )!;
   createOnce(
     PVFX_ANIM.iceShatterStunLoop,
     PVFX_TEXTURE.iceShatter,
@@ -220,7 +227,14 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
         : flightKey === PVFX_TEXTURE.fireballFlight
           ? PVFX_ANIM.fireballFlight
           : PVFX_ANIM.lightningFlight;
-    createOnce(animKey, flightKey, 0, entry.frameCount - 1, entry.frameRate, -1);
+    createOnce(
+      animKey,
+      flightKey,
+      0,
+      entry.frameCount - 1,
+      entry.frameRate,
+      -1,
+    );
   }
 
   for (const oneShot of [

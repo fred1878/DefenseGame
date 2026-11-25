@@ -84,7 +84,13 @@ export function bootstrapDefenseWorld(
 
   if (!endless) {
     const wall = scene.add
-      .rectangle(0, -halfH + 20, halfW * 2, worldUnit(40, scene.registry), 0x52525b)
+      .rectangle(
+        0,
+        -halfH + 20,
+        halfW * 2,
+        worldUnit(40, scene.registry),
+        0x52525b,
+      )
       .setOrigin(0.5, 0);
     registerWorld(wall);
   }
@@ -95,7 +101,11 @@ export function bootstrapDefenseWorld(
     const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
     const blocker = obstacleBlockers[i]!;
     const displayPos = defenseObstacleSpriteDisplayPosition(placement, reg);
-    const art = scene.add.image(displayPos.x, displayPos.y, placement.textureKey);
+    const art = scene.add.image(
+      displayPos.x,
+      displayPos.y,
+      placement.textureKey,
+    );
     art.setDepth(DEFENSE_RENDER_DEPTH.obstacleRock);
     configureDefenseObstacleArt(art, placement.textureKey, reg);
     registerWorld(art);

@@ -24,7 +24,9 @@ test("endless respawns stay targetable after dead cull", async ({ page }) => {
     .poll(
       async () =>
         page.evaluate(
-          () => window.__DEFENSEGAME_E2E__?.api?.canFocusFirstLivingEnemy() ?? false,
+          () =>
+            window.__DEFENSEGAME_E2E__?.api?.canFocusFirstLivingEnemy() ??
+            false,
         ),
       { timeout: 10_000 },
     )
@@ -51,7 +53,9 @@ test("endless respawns stay targetable after dead cull", async ({ page }) => {
     .poll(
       async () =>
         page.evaluate(
-          () => window.__DEFENSEGAME_E2E__?.api?.canFocusFirstLivingEnemy() ?? false,
+          () =>
+            window.__DEFENSEGAME_E2E__?.api?.canFocusFirstLivingEnemy() ??
+            false,
         ),
       { timeout: 10_000 },
     )

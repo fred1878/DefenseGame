@@ -92,7 +92,9 @@ function lockStaticBodyToBlocker(
   zone.setData(DEFENSE_OBSTACLE_BLOCKER_DATA_KEY, blocker);
   const body = zone.body as Phaser.Physics.Arcade.StaticBody;
   const resync = (): Phaser.Physics.Arcade.StaticBody => {
-    const stored = zone.getData(DEFENSE_OBSTACLE_BLOCKER_DATA_KEY) as DefenseObstacleRect;
+    const stored = zone.getData(
+      DEFENSE_OBSTACLE_BLOCKER_DATA_KEY,
+    ) as DefenseObstacleRect;
     const { left, top, w, h } = defenseObstacleBlockerAabb(stored);
     syncStaticBodyWorldAabb(body, left, top, w, h);
     return body;

@@ -37,9 +37,7 @@ function fakeContainer(
   } as unknown as Phaser.GameObjects.Container;
 }
 
-function fakeScene(
-  roots: Phaser.GameObjects.GameObject[],
-): Phaser.Scene {
+function fakeScene(roots: Phaser.GameObjects.GameObject[]): Phaser.Scene {
   return {
     children: { list: roots },
     cameras: { main: {} },
@@ -75,6 +73,8 @@ describe("collectInteractiveScreenRects", () => {
   it("skips objects in the skip set", () => {
     const skipped = fakeInteractive("a");
     const scene = fakeScene([skipped, fakeInteractive("b")]);
-    expect(collectInteractiveScreenRects(scene, { skip: [skipped] })).toHaveLength(1);
+    expect(
+      collectInteractiveScreenRects(scene, { skip: [skipped] }),
+    ).toHaveLength(1);
   });
 });

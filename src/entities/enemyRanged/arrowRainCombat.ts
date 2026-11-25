@@ -31,9 +31,7 @@ export function updateArrowRainCombat(
   }
 
   const minVolleyRange = tune.preferredRangeWu - tune.kiteBandSlackWu;
-  const inRange =
-    dist <= tune.attackTriggerRangeWu &&
-    dist >= minVolleyRange;
+  const inRange = dist <= tune.attackTriggerRangeWu && dist >= minVolleyRange;
 
   if (c.phase === "idle" && c.cooldownMs <= 0 && inRange) {
     c.phase = "windup";
@@ -105,7 +103,8 @@ export function updateArrowRainCombat(
             target.y,
             extra.zoneX,
             extra.zoneY,
-          ) <= zonePx + target.radius;
+          ) <=
+          zonePx + target.radius;
         if (inZone) {
           hitPlayer = true;
           damage += tune.damage * tune.tickDamageScale;

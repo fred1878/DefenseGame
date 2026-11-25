@@ -13,7 +13,10 @@ const enemiesRaw = JSON.parse(
   readFileSync(resolve("public/data/enemies.json"), "utf8"),
 ) as Record<string, EnemyDefInput>;
 const enemyDefs = Object.fromEntries(
-  Object.entries(enemiesRaw).map(([id, row]) => [id, normalizeEnemyRow(id, row)]),
+  Object.entries(enemiesRaw).map(([id, row]) => [
+    id,
+    normalizeEnemyRow(id, row),
+  ]),
 );
 import { createEnemyNav } from "../EnemyBrain";
 import {
@@ -52,17 +55,16 @@ describe("melee pack anchor and unreachable stickiness", () => {
 
 describe("player melee standoff", () => {
   it("holds when center distance is within body contact plus gap", () => {
-    const enemy = mockEnemyInstance({ behavior: "meleeChaser", defId: "grunt" });
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
     const standoff = playerMeleeChaseStandoffCenterDist(enemy);
     enemy.sprite.x = 0;
     enemy.sprite.y = 0;
     const playerX = standoff - 1;
-    expect(
-      shouldHoldAtPlayerMelee(enemy, "player", playerX, 0),
-    ).toBe(true);
-    expect(
-      shouldHoldAtPlayerMelee(enemy, "wall", playerX, 0),
-    ).toBe(false);
+    expect(shouldHoldAtPlayerMelee(enemy, "player", playerX, 0)).toBe(true);
+    expect(shouldHoldAtPlayerMelee(enemy, "wall", playerX, 0)).toBe(false);
   });
 
   it("stops chase intent at standoff but keeps knockback slide", () => {
@@ -152,9 +154,7 @@ describe("player melee standoff", () => {
     enemy.sprite.x = -30;
     enemy.sprite.y = 0;
     const peers = [{ x: -80, y: 0, defId: "grunt" }];
-    expect(
-      shouldHoldMeleeChaseChordBlocked(enemy, 0, 0, peers),
-    ).toBe(false);
+    expect(shouldHoldMeleeChaseChordBlocked(enemy, 0, 0, peers)).toBe(false);
   });
 
   it("blocks when a front ally is between hold and player on a rear approach", () => {
@@ -273,11 +273,14 @@ describe("wall melee hold helpers", () => {
   it("keeps closing while idle in the trigger band but outside hit range", () => {
     const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
     const wall = testWallCombat;
-    enemy.sprite.y = northWallAttackY() + (wall.hitRangeWu + wall.triggerRangeWu) / 2;
+    enemy.sprite.y =
+      northWallAttackY() + (wall.hitRangeWu + wall.triggerRangeWu) / 2;
     enemy.combat.phase = "idle";
     enemy.combat.cooldownMs = 0;
     expect(wallMeleeDistToAttackPlane(enemy)).toBeGreaterThan(wall.hitRangeWu);
-    expect(wallMeleeDistToAttackPlane(enemy)).toBeLessThanOrEqual(wall.triggerRangeWu);
+    expect(wallMeleeDistToAttackPlane(enemy)).toBeLessThanOrEqual(
+      wall.triggerRangeWu,
+    );
     expect(shouldHoldAtWallMelee(enemy, "wall")).toBe(false);
   });
 
@@ -317,9 +320,7 @@ describe("wall melee hold helpers", () => {
     });
     enemy.nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
     const body = { velocity: { x: 140, y: 0 } };
-    (
-      enemy.sprite as unknown as { body: typeof body }
-    ).body = body;
+    (enemy.sprite as unknown as { body: typeof body }).body = body;
     applyChaseVelocity(enemy, 200, 0, 1, {
       nav: enemy.nav,
       deltaMs: 16,

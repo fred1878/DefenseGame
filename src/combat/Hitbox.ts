@@ -11,7 +11,10 @@ export type CircleHitbox = {
   ownerId?: string;
 };
 
-export function circlesOverlap(a: CircleHitbox, b: { x: number; y: number; radius: number }): boolean {
+export function circlesOverlap(
+  a: CircleHitbox,
+  b: { x: number; y: number; radius: number },
+): boolean {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   const r = a.radius + b.radius;
@@ -36,7 +39,9 @@ export function arcHitboxHitsTarget(
   let delta = angleToTarget - facingAngleRad;
   while (delta > Math.PI) delta -= Math.PI * 2;
   while (delta < -Math.PI) delta += Math.PI * 2;
-  return Math.abs(delta) <= arcHalfRad + Math.atan2(targetRadius, Math.max(dist, 1));
+  return (
+    Math.abs(delta) <= arcHalfRad + Math.atan2(targetRadius, Math.max(dist, 1))
+  );
 }
 
 /** Earliest intersection parameter t ∈ [0, 1] along segment (x0,y0)→(x1,y1) with a circle, or null. */

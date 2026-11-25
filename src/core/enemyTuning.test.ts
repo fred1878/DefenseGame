@@ -13,7 +13,9 @@ describe("resolveEnemyCombat", () => {
       "grunt",
     );
     expect(tuned.wall.damage).toBeGreaterThan(0);
-    expect(tuned.melee!.triggerRangeWu).toBeGreaterThanOrEqual(tuned.melee!.rangeWu);
+    expect(tuned.melee!.triggerRangeWu).toBeGreaterThanOrEqual(
+      tuned.melee!.rangeWu,
+    );
     expect(tuned.arrowRain).toBeUndefined();
   });
 
@@ -194,7 +196,8 @@ describe("normalizeEnemyRow", () => {
       ...shippedEnemyCombat("grunt"),
       melee: { ...shippedEnemyCombat("grunt").melee! },
     };
-    delete (broken.melee as { meleeChaseStandoffWu?: number }).meleeChaseStandoffWu;
+    delete (broken.melee as { meleeChaseStandoffWu?: number })
+      .meleeChaseStandoffWu;
     const missing: EnemyDef = normalizeEnemyRow("grunt", {
       behavior: "meleeChaser",
       textureKey: "enemy_grunt",

@@ -35,5 +35,7 @@ export function playMeteorStrikeFx(
     .setDisplaySize(display, display)
     .play(PVFX_ANIM.meteorStrike);
   registerWorldDraw?.(sprite);
-  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
+  sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () =>
+    sprite.destroy(),
+  );
 }

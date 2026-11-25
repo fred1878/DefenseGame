@@ -2,11 +2,7 @@ import Phaser from "phaser";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { scaleUiX } from "../core/displayScale";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";
-import {
-  FakeEmitter,
-  fakeEventData,
-  fakePointer,
-} from "../test/fakeInput";
+import { FakeEmitter, fakeEventData, fakePointer } from "../test/fakeInput";
 import {
   bindPress,
   bindTapOrLongPress,
@@ -17,7 +13,10 @@ import {
 type FakeScene = {
   input: FakeEmitter & { hitTestPointer: ReturnType<typeof vi.fn> };
   events: FakeEmitter;
-  tweens: { add: ReturnType<typeof vi.fn>; killTweensOf: ReturnType<typeof vi.fn> };
+  tweens: {
+    add: ReturnType<typeof vi.fn>;
+    killTweensOf: ReturnType<typeof vi.fn>;
+  };
 };
 
 function fakeScene(): FakeScene {
@@ -34,13 +33,16 @@ function fakeScene(): FakeScene {
 /** Container-like button (instanceof the stub Container) with its own emitter. */
 function fakeButton() {
   const emitter = new FakeEmitter();
-  const container = Object.assign(Object.create(Phaser.GameObjects.Container.prototype), {
-    list: [] as unknown[],
-    input: { alwaysEnabled: false },
-    on: emitter.on.bind(emitter),
-    off: emitter.off.bind(emitter),
-    emit: emitter.emit.bind(emitter),
-  });
+  const container = Object.assign(
+    Object.create(Phaser.GameObjects.Container.prototype),
+    {
+      list: [] as unknown[],
+      input: { alwaysEnabled: false },
+      on: emitter.on.bind(emitter),
+      off: emitter.off.bind(emitter),
+      emit: emitter.emit.bind(emitter),
+    },
+  );
   return container;
 }
 
@@ -134,9 +136,12 @@ describe("bindPress", () => {
   it("tints image backgrounds with setTint", () => {
     const scene = fakeScene();
     const btn = fakeButton();
-    const img = Object.assign(Object.create(Phaser.GameObjects.Image.prototype), {
-      setTint: vi.fn(),
-    });
+    const img = Object.assign(
+      Object.create(Phaser.GameObjects.Image.prototype),
+      {
+        setTint: vi.fn(),
+      },
+    );
     bindPress(asScene(scene), asGo(btn), vi.fn(), {
       bg: img as never,
       colors: { rest: 1, pressed: 2 },

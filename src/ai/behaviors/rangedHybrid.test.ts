@@ -9,10 +9,7 @@ import {
 } from "../../entities/EnemyRangedCombat";
 import type { EnemyAttackTarget } from "../../entities/EnemyCombat";
 
-function playerTarget(
-  x: number,
-  y: number,
-): EnemyAttackTarget {
+function playerTarget(x: number, y: number): EnemyAttackTarget {
   return {
     kind: "player",
     x,
@@ -30,40 +27,49 @@ function playerTarget(
 
 describe("rangedHybrid combat state machine", () => {
   const base = shippedEnemyCombat("reaver");
-  const combatTuning = resolveEnemyCombat("rangedHybrid", {
-    ...base,
-    melee: {
-      ...base.melee!,
-      windupMs: 80,
-      activeMs: 60,
-      recoveryMs: 80,
-      cooldownMs: 40,
-      triggerRangeWu: 120,
-      rangeWu: 61,
+  const combatTuning = resolveEnemyCombat(
+    "rangedHybrid",
+    {
+      ...base,
+      melee: {
+        ...base.melee!,
+        windupMs: 80,
+        activeMs: 60,
+        recoveryMs: 80,
+        cooldownMs: 40,
+        triggerRangeWu: 120,
+        rangeWu: 61,
+      },
+      stationaryRanged: {
+        ...base.stationaryRanged!,
+        preferredRangeWu: 110,
+        attackTriggerRangeWu: 200,
+        windupMs: 200,
+        activeMs: 40,
+        recoveryMs: 100,
+        cooldownMs: 200,
+      },
+      hybrid: {
+        ...base.hybrid!,
+        closeMeleeRadiusWu: 90,
+        preferredRangeWu: 110,
+        maxMeleeSwings: 3,
+        retreatRangeSlackWu: 12,
+      },
     },
-    stationaryRanged: {
-      ...base.stationaryRanged!,
-      preferredRangeWu: 110,
-      attackTriggerRangeWu: 200,
-      windupMs: 200,
-      activeMs: 40,
-      recoveryMs: 100,
-      cooldownMs: 200,
-    },
-    hybrid: {
-      ...base.hybrid!,
-      closeMeleeRadiusWu: 90,
-      preferredRangeWu: 110,
-      maxMeleeSwings: 3,
-      retreatRangeSlackWu: 12,
-    },
-  }, "reaver");
+    "reaver",
+  );
 
   it("enters melee when the player is within melee trigger range", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     updateRangedHybridCombat(
@@ -79,7 +85,12 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
@@ -99,7 +110,12 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
@@ -119,7 +135,12 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.combat.cooldownMs = 0;
@@ -137,7 +158,12 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "melee";
@@ -159,7 +185,12 @@ describe("rangedHybrid combat state machine", () => {
     const enemy = mockEnemyInstance({
       behavior: "rangedHybrid",
       combatTuning,
-      sprite: { x: 0, y: 0, setVelocity: vi.fn(), scene: { registry: { get: () => undefined } } } as never,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
     });
     enemy.rangedHybrid = createRangedHybridCombatState();
     enemy.rangedHybrid.mode = "retreat";

@@ -16,7 +16,10 @@ describe("defenseWorldToScreen", () => {
       zoom: 1,
       x: play.x,
       y: play.y,
-    } as Pick<Phaser.Cameras.Scene2D.Camera, "scrollX" | "scrollY" | "zoom" | "x" | "y"> as Phaser.Cameras.Scene2D.Camera;
+    } as Pick<
+      Phaser.Cameras.Scene2D.Camera,
+      "scrollX" | "scrollY" | "zoom" | "x" | "y"
+    > as Phaser.Cameras.Scene2D.Camera;
 
     const pt = defenseWorldToScreen(cam, 0, 0);
     expect(pt.x).toBe(-10 + play.x);

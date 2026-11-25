@@ -11,13 +11,22 @@ export function groundTileVariantIndex(
   return (h >>> 0) % variantCount;
 }
 
-export function groundDecorShouldPlace(tx: number, ty: number, seed: number): boolean {
+export function groundDecorShouldPlace(
+  tx: number,
+  ty: number,
+  seed: number,
+): boolean {
   let h = seed ^ Math.imul(tx, 2246822519) ^ Math.imul(ty, 3266489917);
   h = Math.imul(h ^ (h >>> 16), 668265263);
   return (h >>> 0) % 100 < 9;
 }
 
-export function groundDecorJitter(tx: number, ty: number, seed: number, span: number): number {
+export function groundDecorJitter(
+  tx: number,
+  ty: number,
+  seed: number,
+  span: number,
+): number {
   const v = groundTileVariantIndex(tx, ty, seed ^ 0x9e3779b9, 997);
   return ((v % span) - span / 2) | 0;
 }

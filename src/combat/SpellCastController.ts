@@ -182,13 +182,19 @@ export class SpellCastController {
   }
 
   /** Channeled spells arm CD when channeling begins, not when the channel ends. */
-  private armChannelStartCooldown(_spellId: SpellId, def: SpellDefinition): void {
+  private armChannelStartCooldown(
+    _spellId: SpellId,
+    def: SpellDefinition,
+  ): void {
     if (def.channelMs > 0) {
       this.cooldownRemainingMs.set(_spellId, def.cooldownMs);
     }
   }
 
-  private cooldownArmedDuringChannel(_spellId: SpellId, def: SpellDefinition): boolean {
+  private cooldownArmedDuringChannel(
+    _spellId: SpellId,
+    def: SpellDefinition,
+  ): boolean {
     return def.channelMs > 0;
   }
 

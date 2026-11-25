@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import { spawnChargerChargeStartSmokeFx } from "./ChargerChargeSmokeFx";
 import { SMOKE_FX_ANIM, SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 
-(Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 
 function mockScene() {
   const created: string[] = [];
@@ -52,9 +53,9 @@ describe("spawnChargerChargeStartSmokeFx", () => {
       textures: { exists: () => false },
       anims: { exists: () => false },
     } as unknown as Phaser.Scene;
-    expect(() =>
-      spawnChargerChargeStartSmokeFx(scene, 0, 0, false),
-    ).toThrow(/Smoke A texture missing/);
+    expect(() => spawnChargerChargeStartSmokeFx(scene, 0, 0, false)).toThrow(
+      /Smoke A texture missing/,
+    );
   });
 
   it("spawns at fixed world position with flipX for leftward charge", () => {

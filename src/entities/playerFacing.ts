@@ -1,6 +1,9 @@
 import type { PlayerCardinal } from "../content/assets";
 
-export function cardinalFromDelta(dx: number, dy: number): PlayerCardinal | null {
+export function cardinalFromDelta(
+  dx: number,
+  dy: number,
+): PlayerCardinal | null {
   if (dx === 0 && dy === 0) return null;
   if (Math.abs(dx) >= Math.abs(dy)) {
     return dx >= 0 ? "e" : "w";

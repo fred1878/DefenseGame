@@ -5,7 +5,9 @@ import {
   HUD_BAND_MIN_LUMINANCE_LIFT,
 } from "./helpers/defenseHudBandPixels";
 
-async function waitForHudBands(page: import("@playwright/test").Page): Promise<void> {
+async function waitForHudBands(
+  page: import("@playwright/test").Page,
+): Promise<void> {
   await expect
     .poll(
       async () => {

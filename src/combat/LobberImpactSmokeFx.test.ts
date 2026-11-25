@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import { spawnLobberGroundImpactSmokeFx } from "./LobberImpactSmokeFx";
 import { SMOKE_FX_ANIM, SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 
-(Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 
 function mockScene() {
   const created: string[] = [];
@@ -51,9 +52,9 @@ describe("spawnLobberGroundImpactSmokeFx", () => {
       textures: { exists: () => false },
       anims: { exists: () => false },
     } as unknown as Phaser.Scene;
-    expect(() =>
-      spawnLobberGroundImpactSmokeFx(scene, 0, 0, 100, 2.4),
-    ).toThrow(/Smoke B texture missing/);
+    expect(() => spawnLobberGroundImpactSmokeFx(scene, 0, 0, 100, 2.4)).toThrow(
+      /Smoke B texture missing/,
+    );
   });
 
   it("plays lob impact animation when pack is loaded", () => {

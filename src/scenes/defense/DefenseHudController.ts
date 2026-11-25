@@ -9,7 +9,10 @@ import type { Player } from "../../entities/Player";
 import { SpellCastController } from "../../combat/SpellCastController";
 import { CastBar } from "../../ui/CastBar";
 import { SpellBar } from "../../ui/SpellBar";
-import { createCombatHudChrome, type CombatHudChrome } from "../../ui/combatHudChrome";
+import {
+  createCombatHudChrome,
+  type CombatHudChrome,
+} from "../../ui/combatHudChrome";
 import {
   DefenseMinimap,
   defenseMinimapLayout,
@@ -97,15 +100,16 @@ function buildDefenseHudController(
   const bottomStrip = bottomHudStripLayout(scene, safe);
   const playArea = defensePlayAreaLayout(scene, safe);
   if (isE2EEnabled() && typeof window !== "undefined") {
-    (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }).__HUD_DEBUG__ =
-      {
-        bottomChromeTextureKey: null,
-        stripCenterY: bottomStrip.stripCenterY,
-        stripH: bottomStrip.stripH,
-        playAreaY: playArea.y,
-        playAreaBottom: playArea.y + playArea.height,
-        playAreaHeight: playArea.height,
-      };
+    (
+      window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
+    ).__HUD_DEBUG__ = {
+      bottomChromeTextureKey: null,
+      stripCenterY: bottomStrip.stripCenterY,
+      stripH: bottomStrip.stripH,
+      playAreaY: playArea.y,
+      playAreaBottom: playArea.y + playArea.height,
+      playAreaHeight: playArea.height,
+    };
   }
 
   const attackButton = createTouchCircleButton(
@@ -190,8 +194,9 @@ function buildDefenseHudController(
   }
 
   if (isE2EEnabled() && typeof window !== "undefined") {
-    const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
-      .__HUD_DEBUG__;
+    const dbg = (
+      window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
+    ).__HUD_DEBUG__;
     const spell0 = spellBar.e2eSlotTapCenters()[0];
     if (dbg) {
       dbg.spellSlot0CanvasY = spell0?.y ?? null;
@@ -265,8 +270,9 @@ function buildDefenseHudController(
   const minimap = new DefenseMinimap(scene, registerUi);
   const minimapLayout = defenseMinimapLayout(scene, safe);
   if (isE2EEnabled() && typeof window !== "undefined") {
-    const dbg = (window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> })
-      .__HUD_DEBUG__;
+    const dbg = (
+      window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
+    ).__HUD_DEBUG__;
     if (dbg) {
       dbg.minimap = minimapLayout;
     }
@@ -275,7 +281,12 @@ function buildDefenseHudController(
   const w = scene.scale.width;
   const h = scene.scale.height;
   const spellRect = spellBar.getScreenRect();
-  const uiMask = buildCombatStickUiMask(scene, chrome, spellRect, debugBtn.container);
+  const uiMask = buildCombatStickUiMask(
+    scene,
+    chrome,
+    spellRect,
+    debugBtn.container,
+  );
   const minimapRect = defenseMinimapScreenRect(scene, safe);
   const playBelowY = playArea.y + playArea.height;
   const stick = new VirtualStick(scene, {

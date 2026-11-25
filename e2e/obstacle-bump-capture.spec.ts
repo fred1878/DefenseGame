@@ -59,7 +59,9 @@ test.describe("obstacle bump — player stays outside blocker rect", () => {
     await api.eval<void>("api.setGodMode(false)");
   });
 
-  test("Arcade static body AABB matches blocker overlay rect", async ({ page }) => {
+  test("Arcade static body AABB matches blocker overlay rect", async ({
+    page,
+  }) => {
     const api = e2eApi(page);
     const idx = TARGET_OBSTACLE_INDEX;
     const blocker = await api.eval<BlockerAabb & { w: number; h: number }>(

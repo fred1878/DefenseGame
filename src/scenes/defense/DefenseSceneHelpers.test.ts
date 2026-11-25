@@ -53,7 +53,11 @@ describe("formatDefenseHudText", () => {
   });
 
   it("shows the attack phase when not casting", () => {
-    const text = formatDefenseHudText({ ...baseHud, attackPhase: "windup", mode: "ranged" });
+    const text = formatDefenseHudText({
+      ...baseHud,
+      attackPhase: "windup",
+      mode: "ranged",
+    });
     expect(text.split("\n")[2]).toBe("Enemies 2 · Ranged · Auto OFF");
     expect(text.split("\n")[3]).toBe("ATK: windup");
   });
@@ -73,7 +77,13 @@ describe("checkDefenseRunEnd", () => {
   it("ends a campaign night as won when the plan is done and no enemies live", () => {
     const onNightEnd = vi.fn();
     const onEndlessEnd = vi.fn();
-    checkDefenseRunEnd({ ...base, spawnPlanComplete: true, livingEnemies: 0, onNightEnd, onEndlessEnd });
+    checkDefenseRunEnd({
+      ...base,
+      spawnPlanComplete: true,
+      livingEnemies: 0,
+      onNightEnd,
+      onEndlessEnd,
+    });
     expect(onNightEnd).toHaveBeenCalledWith(true);
     expect(onEndlessEnd).not.toHaveBeenCalled();
   });
@@ -81,10 +91,22 @@ describe("checkDefenseRunEnd", () => {
   it("does not use wall HP for endless runs", () => {
     const onNightEnd = vi.fn();
     const onEndlessEnd = vi.fn();
-    checkDefenseRunEnd({ ...base, endless: true, wallHp: 0, onNightEnd, onEndlessEnd });
+    checkDefenseRunEnd({
+      ...base,
+      endless: true,
+      wallHp: 0,
+      onNightEnd,
+      onEndlessEnd,
+    });
     expect(onNightEnd).not.toHaveBeenCalled();
     expect(onEndlessEnd).not.toHaveBeenCalled();
-    checkDefenseRunEnd({ ...base, endless: true, playerHp: 0, onNightEnd, onEndlessEnd });
+    checkDefenseRunEnd({
+      ...base,
+      endless: true,
+      playerHp: 0,
+      onNightEnd,
+      onEndlessEnd,
+    });
     expect(onEndlessEnd).toHaveBeenCalledWith("player");
   });
 });
@@ -96,7 +118,9 @@ describe("endlessHudHeader", () => {
 
   it("names the first enemy type and counts the rest", () => {
     expect(endlessHudHeader(store, null)).toBe("Endless");
-    expect(endlessHudHeader(store, [{ enemyId: "goblin", concurrentCap: 1 }])).toBe("Endless · Goblin");
+    expect(
+      endlessHudHeader(store, [{ enemyId: "goblin", concurrentCap: 1 }]),
+    ).toBe("Endless · Goblin");
     expect(
       endlessHudHeader(store, [
         { enemyId: "goblin", concurrentCap: 1 },

@@ -53,7 +53,11 @@ describe("entityPhysics", () => {
     const sprite = {
       x: 4000,
       y: 0,
-      setPosition: vi.fn(function (this: { x: number; y: number }, nx: number, ny: number) {
+      setPosition: vi.fn(function (
+        this: { x: number; y: number },
+        nx: number,
+        ny: number,
+      ) {
         this.x = nx;
         this.y = ny;
       }),

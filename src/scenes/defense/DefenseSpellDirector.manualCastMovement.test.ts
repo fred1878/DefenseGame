@@ -7,17 +7,24 @@ import {
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
 
-function minimalHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
+function minimalHost(
+  spellCaster: SpellCastController,
+): DefenseSpellDirectorHost {
   return {
     scene: { registry: { get: () => undefined } } as unknown as Phaser.Scene,
-    save: { buildings: {}, player: { moveSpeedWu: 100 } } as unknown as DefenseSpellDirectorHost["save"],
+    save: {
+      buildings: {},
+      player: { moveSpeedWu: 100 },
+    } as unknown as DefenseSpellDirectorHost["save"],
     player: {
       sprite: { x: 0, y: 0, setVelocity: vi.fn() },
       setVelocityFromStick: vi.fn(),
     } as unknown as DefenseSpellDirectorHost["player"],
     enemies: [],
     projectiles: [],
-    targeting: { facingTarget: vi.fn() } as unknown as DefenseSpellDirectorHost["targeting"],
+    targeting: {
+      facingTarget: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["targeting"],
     spellCaster,
     spellInputQueue: {} as DefenseSpellDirectorHost["spellInputQueue"],
     enemySpellStatus: {} as DefenseSpellDirectorHost["enemySpellStatus"],
@@ -59,7 +66,10 @@ describe("DefenseSpellDirector manual cast movement", () => {
     const host = minimalHost(spellCaster);
     const director = new DefenseSpellDirector(host);
     const resolveSpy = vi
-      .spyOn(director as unknown as { resolveSpellEffect: () => void }, "resolveSpellEffect")
+      .spyOn(
+        director as unknown as { resolveSpellEffect: () => void },
+        "resolveSpellEffect",
+      )
       .mockImplementation(() => {});
 
     director.beginSpellCast("fire_bolt", "manual");
@@ -71,7 +81,11 @@ describe("DefenseSpellDirector manual cast movement", () => {
       director.updateChanneling(16, { x: 0, y: 0 }, () => false);
       elapsed += 16;
     }
-    director.updateChanneling(windupMs - elapsed + 1, { x: 0, y: 0 }, () => false);
+    director.updateChanneling(
+      windupMs - elapsed + 1,
+      { x: 0, y: 0 },
+      () => false,
+    );
     expect(spellCaster.isChanneling()).toBe(false);
     expect(host.player.setVelocityFromStick).not.toHaveBeenCalled();
     resolveSpy.mockRestore();
@@ -84,9 +98,9 @@ describe("DefenseSpellDirector manual cast movement", () => {
 
     director.beginSpellCast("fire_bolt", "manual", 0.55, 0);
     expect(host.player.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
-    expect(
-      spellCaster.updateChannel(16, 0.55, 0),
-    ).toMatchObject({ type: "windup" });
+    expect(spellCaster.updateChannel(16, 0.55, 0)).toMatchObject({
+      type: "windup",
+    });
     director.updateChanneling(16, { x: 0.55, y: 0 }, () => false);
     expect(spellCaster.isChanneling()).toBe(true);
     expect(host.player.setVelocityFromStick).not.toHaveBeenCalled();

@@ -99,8 +99,7 @@ export function fakeGameObject(
       calls.push(["destroy", []]);
       target.destroyed = true;
     },
-    callsTo: (method) =>
-      calls.filter(([m]) => m === method).map(([, a]) => a),
+    callsTo: (method) => calls.filter(([m]) => m === method).map(([, a]) => a),
     last: (method) => {
       const all = calls.filter(([m]) => m === method);
       return all.at(-1)?.[1];
@@ -163,7 +162,9 @@ export type TweenConfig = {
 export type FakeScene = ReturnType<typeof fakeScene>;
 
 /** A scene with recording `add`, `tweens`, `time`, `textures` and `anims`. */
-export function fakeScene(opts: { textures?: string[]; anims?: string[] } = {}) {
+export function fakeScene(
+  opts: { textures?: string[]; anims?: string[] } = {},
+) {
   const created: FakeGameObject[] = [];
   const tweenConfigs: TweenConfig[] = [];
   const delayed: Array<{ delay: number; fn: Fn; args: unknown[] }> = [];
@@ -215,7 +216,8 @@ export function fakeScene(opts: { textures?: string[]; anims?: string[] } = {}) 
       generateFrameNumbers: vi.fn(
         (key: string, range: { start: number; end: number }) => {
           const out: Array<{ key: string; frame: number }> = [];
-          for (let f = range.start; f <= range.end; f++) out.push({ key, frame: f });
+          for (let f = range.start; f <= range.end; f++)
+            out.push({ key, frame: f });
           return out;
         },
       ),

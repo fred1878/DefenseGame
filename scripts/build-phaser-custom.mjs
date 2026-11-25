@@ -31,13 +31,18 @@ const PHASER_OVERLAYS = [
 
 function readPhaserVersion() {
   const pkg = JSON.parse(
-    fs.readFileSync(path.join(repoRoot, "node_modules/phaser/package.json"), "utf8"),
+    fs.readFileSync(
+      path.join(repoRoot, "node_modules/phaser/package.json"),
+      "utf8",
+    ),
   );
   return pkg.version;
 }
 
 async function runWebpack() {
-  const configUrl = pathToFileURL(path.join(__dirname, "phaser-webpack.config.cjs")).href;
+  const configUrl = pathToFileURL(
+    path.join(__dirname, "phaser-webpack.config.cjs"),
+  ).href;
   const { default: config } = await import(configUrl);
 
   return new Promise((resolve, reject) => {
@@ -109,7 +114,9 @@ async function main() {
   };
   fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
 
-  console.log(`Wrote ${path.relative(repoRoot, outFile)} (${bytes} bytes, phaser@${version})`);
+  console.log(
+    `Wrote ${path.relative(repoRoot, outFile)} (${bytes} bytes, phaser@${version})`,
+  );
   console.log(`Wrote ${path.relative(repoRoot, manifestFile)}`);
 }
 

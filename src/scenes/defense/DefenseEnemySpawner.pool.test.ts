@@ -64,7 +64,10 @@ function mockHost() {
       },
     },
     add: {
-      text: vi.fn(() => ({ setOrigin: vi.fn().mockReturnThis(), setText: vi.fn() })),
+      text: vi.fn(() => ({
+        setOrigin: vi.fn().mockReturnThis(),
+        setText: vi.fn(),
+      })),
       graphics: vi.fn(() => ({
         clear: vi.fn(),
         fillStyle: vi.fn().mockReturnThis(),

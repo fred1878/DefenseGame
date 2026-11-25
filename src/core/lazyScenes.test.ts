@@ -22,11 +22,7 @@ describe("ensureDebugMenuScene", () => {
     await ensureDebugMenuScene(game);
 
     expect(game.scene.getScene).toHaveBeenCalledWith("DebugMenu");
-    expect(add).toHaveBeenCalledWith(
-      "DebugMenu",
-      expect.any(Function),
-      false,
-    );
+    expect(add).toHaveBeenCalledWith("DebugMenu", expect.any(Function), false);
   });
 
   it("is a no-op when DebugMenu is already registered", async () => {

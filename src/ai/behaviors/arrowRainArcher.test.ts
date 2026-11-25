@@ -43,7 +43,11 @@ describe("arrowRainArcherBehavior", () => {
   } as unknown as import("../../pathfinding/grid").NavGrid;
 
   it("backs away when player is inside arrow rain preferred range", () => {
-    const grid = buildNavGrid([], DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
+    const grid = buildNavGrid(
+      [],
+      DEFENSE_MAP.cellSize,
+      DEFENSE_MAP.pathClearancePx,
+    );
     const enemy = mockArcher(0, 0);
     enemy.nav.replanMs = 0;
     const preferred = testArrowRainCombat.preferredRangeWu - 30;
@@ -65,7 +69,11 @@ describe("arrowRainArcherBehavior", () => {
   });
 
   it("replans a flee path when inside preferred range", () => {
-    const grid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
+    const grid = buildNavGrid(
+      DEFENSE_OBSTACLES,
+      DEFENSE_MAP.cellSize,
+      DEFENSE_MAP.pathClearancePx,
+    );
     const replanSpy = vi.spyOn(EnemyBrain, "replanEnemyPath");
     const enemy = mockArcher(0, 120);
     enemy.nav.replanMs = 0;

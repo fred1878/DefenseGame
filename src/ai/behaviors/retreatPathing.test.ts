@@ -14,7 +14,11 @@ import {
 import * as EnemyBrain from "../EnemyBrain";
 
 describe("retreatPathing", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize, DEFENSE_MAP.pathClearancePx);
+  const grid = buildNavGrid(
+    DEFENSE_OBSTACLES,
+    DEFENSE_MAP.cellSize,
+    DEFENSE_MAP.pathClearancePx,
+  );
 
   it("places flee goals on the away-from-threat vector", () => {
     const goal = retreatGoalFromThreat(0, 0, 100, 0, 80);

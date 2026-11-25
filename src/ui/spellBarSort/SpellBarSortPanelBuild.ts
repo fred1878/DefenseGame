@@ -115,11 +115,7 @@ export function buildSpellBarSortPanelUi(
 
     const autoBorder = scene.add
       .rectangle(x, y, barCell, barCell)
-      .setStrokeStyle(
-        bar.autoCastBorderWidthPx,
-        bar.autoCastBorderColor,
-        1,
-      )
+      .setStrokeStyle(bar.autoCastBorderWidthPx, bar.autoCastBorderColor, 1)
       .setFillStyle(0x000000, 0)
       .setVisible(autoCastFlagsForSlots(slots, autoCastSpellIds)[i] ?? false);
 
@@ -138,7 +134,9 @@ export function buildSpellBarSortPanelUi(
       },
     );
 
-    const icon = scene.add.image(x, y, "spell_icon_fire_bolt").setVisible(false);
+    const icon = scene.add
+      .image(x, y, "spell_icon_fire_bolt")
+      .setVisible(false);
     const nameLabel = scene.add
       .text(
         x,

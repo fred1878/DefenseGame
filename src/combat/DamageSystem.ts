@@ -1,9 +1,4 @@
-export const DAMAGE_FLAVORS = [
-  "fire",
-  "frost",
-  "physical",
-  "water",
-] as const;
+export const DAMAGE_FLAVORS = ["fire", "frost", "physical", "water"] as const;
 
 export type DamageFlavor = (typeof DAMAGE_FLAVORS)[number];
 
@@ -11,9 +6,7 @@ export type DamageFlavor = (typeof DAMAGE_FLAVORS)[number];
 export const MELEE_HIT_FLAVOR: DamageFlavor = "physical";
 
 /** Keeps explicit spell flavors from data; maps unset swing rows to melee physical. */
-export function swingSpellDamageFlavor(
-  fromSpell?: DamageFlavor,
-): DamageFlavor {
+export function swingSpellDamageFlavor(fromSpell?: DamageFlavor): DamageFlavor {
   if (fromSpell) return fromSpell;
   return MELEE_HIT_FLAVOR;
 }

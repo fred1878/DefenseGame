@@ -42,7 +42,10 @@ function minimalTickHost(
     navGrid: testNavGrid,
     enemies,
     enemyProjectiles: [],
-    enemySpellStatus: { isStunned: () => false, isRooted: () => false } as never,
+    enemySpellStatus: {
+      isStunned: () => false,
+      isRooted: () => false,
+    } as never,
     enemyPathGoals: new Map(),
     wallHp: 100,
     playerInvulnMs: 0,
@@ -101,7 +104,9 @@ describe("tickDefenseEnemies damage paths", () => {
     const host = minimalTickHost([enemy]);
     host.playerHurtbox.damageable.onDamaged = onDamaged;
     tickDefenseEnemies(host, 16);
-    expect(host.playerHurtbox.damageable.hp).toBe(100 - testChargerCombat.chargeDamage);
+    expect(host.playerHurtbox.damageable.hp).toBe(
+      100 - testChargerCombat.chargeDamage,
+    );
     expect(enemy.behaviorExtra.chargeHitThisDash).toBe(true);
     expect(onDamaged).toHaveBeenCalledWith(
       testChargerCombat.chargeDamage,

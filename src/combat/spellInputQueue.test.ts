@@ -120,6 +120,8 @@ describe("SpellInputQueue", () => {
 
     expect(onManualAtk()).toBe("queued");
     attackBusy = false;
-    expect(q.consumeIfReady(0, 0, spellById)).toEqual({ kind: "manual_attack" });
+    expect(q.consumeIfReady(0, 0, spellById)).toEqual({
+      kind: "manual_attack",
+    });
   });
 });

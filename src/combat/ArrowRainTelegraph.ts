@@ -89,6 +89,8 @@ export function updateArrowRainTelegraph(
   }
 }
 
-export function destroyArrowRainTelegraph(telegraph: ArrowRainTelegraph | undefined): void {
+export function destroyArrowRainTelegraph(
+  telegraph: ArrowRainTelegraph | undefined,
+): void {
   telegraph?.gfx.destroy();
 }

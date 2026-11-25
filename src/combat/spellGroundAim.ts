@@ -1,4 +1,8 @@
-import { clampGroundTarget, nearestEnemy, type EnemyHitTarget } from "./spellMechanics";
+import {
+  clampGroundTarget,
+  nearestEnemy,
+  type EnemyHitTarget,
+} from "./spellMechanics";
 import { pickAutoCastCombatEnemy } from "./spellAutoCastCombatEnemy";
 
 export type GroundAimEnemy = EnemyHitTarget & { alive: boolean };
@@ -61,12 +65,24 @@ export function resolveManualDefaultGroundAim(
     ? enemies.find((e) => e.id === focusEnemyId && e.alive)
     : null;
   if (focus) {
-    return clampGroundTarget(playerX, playerY, focus.x, focus.y, groundMaxRange);
+    return clampGroundTarget(
+      playerX,
+      playerY,
+      focus.x,
+      focus.y,
+      groundMaxRange,
+    );
   }
   const living = enemies.filter((e) => e.alive);
   const nearest = nearestEnemy(playerX, playerY, living, groundMaxRange);
   if (nearest) {
-    return clampGroundTarget(playerX, playerY, nearest.x, nearest.y, groundMaxRange);
+    return clampGroundTarget(
+      playerX,
+      playerY,
+      nearest.x,
+      nearest.y,
+      groundMaxRange,
+    );
   }
   const tx = playerX + Math.cos(facingRad) * groundMaxRange * 0.55;
   const ty = playerY + Math.sin(facingRad) * groundMaxRange * 0.55;

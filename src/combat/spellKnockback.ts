@@ -12,12 +12,18 @@ export function spellDirectKnockback(def: SpellDefinition): number {
 
 /** Blast-radius knockback from spell row data (AoE detonation, blast mechanic). Zero disables push. */
 export function spellBlastKnockback(def: SpellDefinition): number {
-  return requireFiniteNumber(def.blastKnockbackWu, spellFieldPath(def, "blastKnockback"));
+  return requireFiniteNumber(
+    def.blastKnockbackWu,
+    spellFieldPath(def, "blastKnockback"),
+  );
 }
 
 /** Chain lightning first-target knockback from spell row data. */
 export function spellChainKnockback(def: SpellDefinition): number {
-  return requireFiniteNumber(def.chainKnockbackWu, spellFieldPath(def, "chainKnockback"));
+  return requireFiniteNumber(
+    def.chainKnockbackWu,
+    spellFieldPath(def, "chainKnockback"),
+  );
 }
 
 /** Chain lightning hop knockback from spell row data. */
@@ -29,9 +35,14 @@ export function spellChainHopKnockback(def: SpellDefinition): number {
 }
 
 /** Spell projectile direct hit must resolve knockback from catalog, never player tuning. */
-export function spellProjectileDirectKnockback(spellId: string, def: SpellDefinition | undefined): number {
+export function spellProjectileDirectKnockback(
+  spellId: string,
+  def: SpellDefinition | undefined,
+): number {
   if (!def) {
-    throw new ConfigLoadError(`Unknown spell knockback for projectile spellId=${spellId}`);
+    throw new ConfigLoadError(
+      `Unknown spell knockback for projectile spellId=${spellId}`,
+    );
   }
   return spellDirectKnockback(def);
 }

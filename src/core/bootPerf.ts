@@ -1,12 +1,18 @@
 export function markBoot(name: string): void {
-  if (typeof performance === "undefined" || typeof performance.mark !== "function") {
+  if (
+    typeof performance === "undefined" ||
+    typeof performance.mark !== "function"
+  ) {
     return;
   }
   performance.mark(name);
 }
 
 export function measureBoot(name: string, start: string, end: string): void {
-  if (typeof performance === "undefined" || typeof performance.measure !== "function") {
+  if (
+    typeof performance === "undefined" ||
+    typeof performance.measure !== "function"
+  ) {
     return;
   }
   try {

@@ -42,7 +42,9 @@ describe("registerMeleeFxAnimations", () => {
 describe("enemyMeleeFxSpec", () => {
   it("maps melee enemies to a clip without touching balance JSON", () => {
     expect(enemyMeleeFxSpec("grunt")?.animKey).toBe(MELEE_FX_ANIM.grunt);
-    expect(enemyMeleeFxSpec("skirmisher")?.textureKey).toBe("fx_melee_skirmisher");
+    expect(enemyMeleeFxSpec("skirmisher")?.textureKey).toBe(
+      "fx_melee_skirmisher",
+    );
     expect(enemyMeleeFxSpec("sentry_archer")).toBeUndefined();
   });
 });

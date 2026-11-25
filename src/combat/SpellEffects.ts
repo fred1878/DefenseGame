@@ -33,19 +33,17 @@ import { worldUnit } from "../core/worldPixelScale";
 import { showPlayerMeleeSwipe } from "./MeleeSwipeFx";
 import { showSpellConeFx } from "./SpellConeFx";
 import { showChainLightningFx } from "./ChainLightningFx";
-import {
-  ICE_BOLT_SPELL_ID,
-} from "../content/iceFxSpells";
-import {
-  ICE_FX_TEXTURE,
-  assertIceCombatFxReady,
-} from "../content/iceFxAssets";
+import { ICE_BOLT_SPELL_ID } from "../content/iceFxSpells";
+import { ICE_FX_TEXTURE, assertIceCombatFxReady } from "../content/iceFxAssets";
 import {
   attachIceBoltProjectileFx,
   playIceBoltHitFx,
 } from "./SpellIceBoltProjectileFx";
 import { attachPvfxProjectileFx } from "./SpellPvfxProjectileFx";
-import { PVFX_TEXTURE, spellProjectileTextureKey } from "../content/combatPvfxAssets";
+import {
+  PVFX_TEXTURE,
+  spellProjectileTextureKey,
+} from "../content/combatPvfxAssets";
 
 export function applyNova(
   scene: Phaser.Scene,
@@ -73,7 +71,12 @@ export function applyNova(
     if (d <= radius + e.radius) {
       applyDamage(e.damageable, damage, def.damageFlavor ?? "fire");
       if (status && def.onHit) {
-        applySpellOnHitEffects(status, e.id, def.onHit, def.damageFlavor ?? "fire");
+        applySpellOnHitEffects(
+          status,
+          e.id,
+          def.onHit,
+          def.damageFlavor ?? "fire",
+        );
       }
     }
   }
@@ -243,7 +246,14 @@ export function strikeSpellCone(
   const half = Phaser.Math.DegToRad(def.coneArcDeg! / 2);
   const damage = (def.baseDamage ?? 12) * damageMult;
   const flavor = def.damageFlavor ?? "fire";
-  for (const e of enemiesInCone(playerX, playerY, facingRad, range, half, enemies)) {
+  for (const e of enemiesInCone(
+    playerX,
+    playerY,
+    facingRad,
+    range,
+    half,
+    enemies,
+  )) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
     applyDamage(full.damageable, damage, flavor);
@@ -268,7 +278,10 @@ export function applySpellCone(
   enemies: SpellEnemyTarget[],
   damageMult: number,
   status?: EnemySpellStatusMap,
-  opts?: { showFx?: boolean; registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void },
+  opts?: {
+    showFx?: boolean;
+    registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void;
+  },
 ): void {
   if (opts?.showFx !== false) {
     showSpellConeFx(
@@ -289,7 +302,16 @@ export function applySpellCone(
       );
     }
   }
-  strikeSpellCone(scene, playerX, playerY, facingRad, def, enemies, damageMult, status);
+  strikeSpellCone(
+    scene,
+    playerX,
+    playerY,
+    facingRad,
+    def,
+    enemies,
+    damageMult,
+    status,
+  );
 }
 
 export function applyInstantTargeted(
@@ -307,7 +329,8 @@ export function applyInstantTargeted(
     scene.registry,
   );
   const target =
-    (targetId && enemies.find((e) => e.id === targetId && e.damageable.alive)) ||
+    (targetId &&
+      enemies.find((e) => e.id === targetId && e.damageable.alive)) ||
     nearestEnemy(playerX, playerY, enemies, maxR);
   if (!target) return null;
   const full = enemies.find((e) => e.id === target.id);

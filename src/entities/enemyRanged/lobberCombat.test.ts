@@ -8,23 +8,27 @@ import { mockEnemyInstance } from "../testEnemyInstance";
 
 describe("updateLobberCombat attack commit", () => {
   const base = shippedEnemyCombat("lobber");
-  const combatTuning = resolveEnemyCombat("lobber", {
-    ...base,
-    lobber: {
-      ...base.lobber!,
-      damage: 12,
-      preferredRangeWu: 100,
-      attackTriggerRangeWu: 180,
-      windupMs: 400,
-      activeMs: 80,
-      recoveryMs: 300,
-      cooldownMs: 800,
-      projectileSpeedWu: 200,
-      blastRadiusWu: 50,
-      blastDamageScale: 0.9,
-      kiteBandSlackWu: 22,
+  const combatTuning = resolveEnemyCombat(
+    "lobber",
+    {
+      ...base,
+      lobber: {
+        ...base.lobber!,
+        damage: 12,
+        preferredRangeWu: 100,
+        attackTriggerRangeWu: 180,
+        windupMs: 400,
+        activeMs: 80,
+        recoveryMs: 300,
+        cooldownMs: 800,
+        projectileSpeedWu: 200,
+        blastRadiusWu: 50,
+        blastDamageScale: 0.9,
+        kiteBandSlackWu: 22,
+      },
     },
-  }, "lobber");
+    "lobber",
+  );
 
   it("throws at committed aim after player leaves band", () => {
     const enemy = mockEnemyInstance({
@@ -74,7 +78,14 @@ describe("updateLobberCombat attack commit", () => {
   });
 
   it("keeps telegraph after recovery when lob is airborne", () => {
-    const gfx = { clear: vi.fn(), lineStyle: vi.fn(), fillStyle: vi.fn(), strokeCircle: vi.fn(), fillCircle: vi.fn(), destroy: vi.fn() };
+    const gfx = {
+      clear: vi.fn(),
+      lineStyle: vi.fn(),
+      fillStyle: vi.fn(),
+      strokeCircle: vi.fn(),
+      fillCircle: vi.fn(),
+      destroy: vi.fn(),
+    };
     const telegraph = {
       gfx,
       zoneX: 10,

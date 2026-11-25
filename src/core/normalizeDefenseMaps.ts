@@ -50,10 +50,7 @@ export type DefenseMapsRegistry = {
   maps: DefenseMapDef[];
 };
 
-function requireTextureKey(
-  raw: unknown,
-  path: string,
-): ObstacleTextureKey {
+function requireTextureKey(raw: unknown, path: string): ObstacleTextureKey {
   if (typeof raw !== "string" || !VALID_TEXTURE_KEYS.has(raw)) {
     throw new ConfigLoadError(`Missing or invalid textureKey at ${path}`);
   }
@@ -87,7 +84,9 @@ function normalizeMap(row: DefenseMapInput, index: number): DefenseMapDef {
   }
   const obstaclesRaw = block.obstacles;
   if (!Array.isArray(obstaclesRaw) || obstaclesRaw.length === 0) {
-    throw new ConfigLoadError(`Expected non-empty obstacles at ${path}.obstacles`);
+    throw new ConfigLoadError(
+      `Expected non-empty obstacles at ${path}.obstacles`,
+    );
   }
   const obstacles = obstaclesRaw.map((o, i) =>
     normalizePlacement(o as DefenseMapObstacleInput, `${path}.obstacles[${i}]`),
