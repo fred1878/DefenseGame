@@ -1,14 +1,7 @@
 import Phaser from "phaser";
-import {
-  getEmbeddedBuildId,
-  shortBuildIdLabel,
-  urlBuildParamLine,
-} from "../buildId";
-import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
 import { DataStore } from "../core/DataStore";
 import {
-  playerDamageMult,
   persistSave,
   prepareDefenseNight,
   resetSaveAndReload,
@@ -16,10 +9,8 @@ import {
 import { showTouchInput } from "../debug/DebugState";
 import {
   DEBUG_MENU_CLOSE,
-  launchDebugMenuFromHost,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
-import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
@@ -30,30 +21,11 @@ import {
   popInputModality,
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
-import {
-  createTouchButton,
-  isTouchButtonVisuallyPressed,
-} from "../ui/touchButton";
-import {
-  debugButtonPosition,
-  readSafeInsets,
-  townFullscreenButtonPosition,
-  townResetSaveButtonPosition,
-  townStatusTextTopY,
-  townTitleY,
-} from "../ui/screenLayout";
-import { scaleUiX } from "../core/displayScale";
-import { uiTextStyle } from "../ui/uiTextStyle";
-import {
-  fullscreenButtonLabel,
-  toggleFullscreen,
-} from "../ui/fullscreen";
+import type { createTouchButton } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
-import { EndlessModePanel } from "../ui/EndlessModePanel";
-import { EndlessModePanelLoadingSkeleton } from "../ui/EndlessModePanelLoadingSkeleton";
-import { WavePlannerPanel } from "../ui/WavePlannerPanel";
+import type { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
+import type { EndlessModePanel } from "../ui/EndlessModePanel";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
@@ -74,13 +46,22 @@ import {
 } from "../systems/townBuildingMenu";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
-import {
-  ensureNightReady,
-  ensureTownReachableReady,
-  isTownReachableReady,
-} from "../core/GameAssetLoader";
-import { TownDefenseLoadingOverlay } from "../ui/TownDefenseLoadingOverlay";
+import { ensureTownReachableReady } from "../core/GameAssetLoader";
 import { markE2EAssetsLoaded } from "../e2e/installE2E";
+import {
+  createTownHeader,
+  createTownHeaderButtons,
+  formatTownStatus,
+} from "./town/TownHeader";
+import { TownOverlays } from "./town/TownOverlays";
+import {
+  collectTownUiTapTargets,
+  isTownTouchButtonPressed,
+} from "./town/TownSceneE2E";
+import {
+  collectTownTouchDebugUiRects,
+  isPointerOverInteractive,
+} from "./town/TownTouchDebug";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -92,11 +73,22 @@ export class TownScene extends Phaser.Scene {
   private buildingControls = new Map<string, TownBuildingControl>();
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
-  private spellSortPanel: SpellBarSortPanel | null = null;
-  private endlessPanel: EndlessModePanel | null = null;
-  private endlessPanelLoading: EndlessModePanelLoadingSkeleton | null = null;
-  private wavePlannerPanel: WavePlannerPanel | null = null;
-  private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
+  private readonly overlays = new TownOverlays(this, {
+    getSave: () => this.save,
+    onSpellBarSorted: (result) => {
+      this.save.spellBar = result;
+      persistSave(this.save);
+      this.registry.set("save", this.save);
+    },
+    onStartEndless: (selections, infiniteHp) =>
+      this.overlays.transitionToDefense(() =>
+        this.beginEndlessDefense(selections, infiniteHp),
+      ),
+    onStartWavePlanner: (groups) =>
+      this.overlays.transitionToDefense(() =>
+        this.beginWavePlannerDefense(groups),
+      ),
+  });
   private readonly onInputModalityChanged = (): void => this.syncTownBaseInput();
   private readonly onDebugMenuClose = (): void => {
     popInputModality(this, INPUT_MODALITY.debugMenu.id);
@@ -115,37 +107,7 @@ export class TownScene extends Phaser.Scene {
     }
     const store = this.registry.get("dataStore") as DataStore;
 
-    this.add
-      .rectangle(0, 0, GAME.width, GAME.height, 0x1a1c24)
-      .setOrigin(0);
-
-    const titleY = townTitleY();
-    this.add
-      .text(
-        GAME.width / 2,
-        titleY,
-        "Town — Day",
-        uiTextStyle(this, {
-          fontSize: `${scaleUiX(28)}px`,
-          color: "#f4f4f5",
-        }),
-      )
-      .setOrigin(0.5);
-
-    this.statusText = this.add
-      .text(
-        GAME.width / 2,
-        townStatusTextTopY(),
-        "",
-        uiTextStyle(this, {
-          fontSize: `${scaleUiX(18)}px`,
-          color: "#a1a1aa",
-          align: "center",
-          wordWrap: { width: GAME.width - scaleUiX(48) },
-        }),
-      )
-      .setOrigin(0.5, 0);
-
+    this.statusText = createTownHeader(this);
     this.refreshStatus(store);
 
     const controls = spawnTownBuildingControls(
@@ -165,65 +127,13 @@ export class TownScene extends Phaser.Scene {
       this.buildingControls.set(c.buildingId, c);
     }
 
-    const safe = readSafeInsets();
-    const dbgPos = debugButtonPosition(this, safe);
-    this.debugButton = createTouchButton(
-      this,
-      dbgPos.x,
-      dbgPos.y,
-      "Debug",
-      () => {
-        this.launchDebugMenuFromTown();
-      },
-      {
-        width: scaleUiX(88),
-        height: scaleUiX(36),
-        depth: 200,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x3f3f46,
-        strokeColor: 0xa1a1aa,
-      },
-    );
-
-    const fsWidth = scaleUiX(168);
-    const fsHeight = scaleUiX(36);
-    const fsPos = townFullscreenButtonPosition(this, safe, fsWidth, fsHeight);
-    const fsLabel = fullscreenButtonLabel(this.scale);
-    this.fullscreenButton = createTouchButton(
-      this,
-      fsPos.x,
-      fsPos.y,
-      fsLabel,
-      () => toggleFullscreen(this.scale),
-      {
-        width: fsWidth,
-        height: fsHeight,
-        depth: 200,
-        fontSize: `${scaleUiX(13)}px`,
-        fillColor: 0x1e3a5f,
-        strokeColor: 0x60a5fa,
-        activateOn: "pointerup",
-      },
-    );
-
-    const resetWidth = scaleUiX(118);
-    const resetHeight = scaleUiX(36);
-    const resetPos = townResetSaveButtonPosition(this, safe, resetWidth, resetHeight);
-    this.resetButton = createTouchButton(
-      this,
-      resetPos.x,
-      resetPos.y,
-      "Reset save",
-      () => this.onResetTap(),
-      {
-        width: resetWidth,
-        height: resetHeight,
-        depth: 200,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x7f1d1d,
-        strokeColor: 0xf87171,
-      },
-    );
+    const buttons = createTownHeaderButtons(this, {
+      onDebug: () => this.overlays.launchDebugMenu(),
+      onReset: () => this.onResetTap(),
+    });
+    this.debugButton = buttons.debugButton;
+    this.fullscreenButton = buttons.fullscreenButton;
+    this.resetButton = buttons.resetButton;
 
     this.touchDebug = new TouchInputDebugDraw(this);
     this.events.on(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
@@ -236,7 +146,7 @@ export class TownScene extends Phaser.Scene {
         this.statusFlashEvent.remove(false);
         this.statusFlashEvent = null;
       }
-      this.teardownTownOverlays();
+      this.overlays.teardown();
       this.buildingControls.clear();
       this.touchDebug.destroy();
     });
@@ -263,41 +173,20 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartNight(): void {
-    this.transitionToDefense(() => this.beginDefenseNight());
+    this.overlays.transitionToDefense(() => this.beginDefenseNight());
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const out: Record<string, { x: number; y: number }> = {};
     const store = this.registry.get("dataStore") as DataStore;
-    for (const [id, control] of this.buildingControls) {
-      const pt = control.spriteCenter();
-      out[`town-building-${id}`] = pt;
-      const def = store.townBuildings[id];
-      if (def?.startsNight) {
-        out["start-night"] = pt;
-      }
-    }
-    if (this.spellSortPanel) {
-      Object.assign(out, this.spellSortPanel.e2eTapTargets());
-    }
-    if (this.endlessPanelLoading) {
-      Object.assign(out, this.endlessPanelLoading.e2eTapTargets());
-    }
-    if (this.endlessPanel) {
-      Object.assign(out, this.endlessPanel.e2eTapTargets());
-    }
-    if (this.wavePlannerPanel) {
-      Object.assign(out, this.wavePlannerPanel.e2eTapTargets());
-    }
-    return out;
+    return collectTownUiTapTargets(store, this.buildingControls, this.overlays);
   }
 
   e2eGetSpellSortSlotHitRects(): ReturnType<SpellBarSortPanel["e2eSlotHitRects"]> {
-    return this.spellSortPanel?.e2eSlotHitRects() ?? [];
+    return this.overlays.spellSortPanel?.e2eSlotHitRects() ?? [];
   }
 
   e2eGetSpellSortBarSlots(): string[] {
-    return this.spellSortPanel?.e2eBarSlots() ?? [];
+    return this.overlays.spellSortPanel?.e2eBarSlots() ?? [];
   }
 
   e2eTownBuildingDebugRectCount(): number {
@@ -305,38 +194,32 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eTownTouchDebugRectCount(): number {
-    return this.collectTouchDebugUiRects().length;
+    return collectTownTouchDebugUiRects(this, this.touchDebug).length;
   }
 
   e2eIsTouchButtonPressed(testId: string): boolean {
-    if (testId === "start-night") {
-      const btn = this.buildingControls.get("town_special_gallows_square");
-      return btn
-        ? isTouchButtonVisuallyPressed(btn.container)
-        : false;
-    }
-    return false;
+    return isTownTouchButtonPressed(this.buildingControls, testId);
   }
 
   e2eOpenSpellSortPanel(): void {
     this.save = this.registry.get("save") as SaveGame;
-    this.openSpellSortPanel();
+    this.overlays.openSpellSortPanel();
   }
 
   e2eIsSpellSortPanelOpen(): boolean {
-    return this.spellSortPanel !== null;
+    return this.overlays.spellSortPanel !== null;
   }
 
   e2eOpenEndlessPanel(): void {
-    this.openEndlessPanel();
+    this.overlays.openEndlessPanel();
   }
 
   e2eIsEndlessPanelOpen(): boolean {
-    return this.endlessPanel !== null;
+    return this.overlays.endlessPanel !== null;
   }
 
   e2eIsEndlessPanelLoading(): boolean {
-    return this.endlessPanelLoading !== null;
+    return this.overlays.endlessPanelLoading !== null;
   }
 
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
@@ -345,173 +228,52 @@ export class TownScene extends Phaser.Scene {
     const selections: EndlessRunSelection[] = [
       { enemyId, concurrentCap: cap },
     ];
-    this.endlessPanel?.destroy();
-    this.endlessPanel = null;
-    this.transitionToDefense(() =>
+    this.overlays.dismissEndlessPanel();
+    this.overlays.transitionToDefense(() =>
       this.beginEndlessDefense(selections, infiniteHp),
     );
   }
 
   e2eEndlessInfiniteHpEnabled(): boolean {
-    return this.endlessPanel?.e2eInfiniteHpEnabled() ?? false;
+    return this.overlays.endlessPanel?.e2eInfiniteHpEnabled() ?? false;
   }
 
   e2eSetEndlessInfiniteHp(enabled: boolean): void {
-    this.endlessPanel?.e2eSetInfiniteHp(enabled);
+    this.overlays.endlessPanel?.e2eSetInfiniteHp(enabled);
   }
 
   e2eScrollEndlessEnemyList(deltaY: number): void {
-    this.endlessPanel?.e2eScrollEnemyList(deltaY);
+    this.overlays.endlessPanel?.e2eScrollEnemyList(deltaY);
   }
 
   e2eEndlessEnemyListScrollState(): ReturnType<
     EndlessModePanel["e2eEnemyListScrollState"]
   > | null {
-    return this.endlessPanel?.e2eEnemyListScrollState() ?? null;
+    return this.overlays.endlessPanel?.e2eEnemyListScrollState() ?? null;
   }
 
   e2eEndlessSelectedEnemyId(): string | null {
-    return this.endlessPanel?.e2eSelectedEnemyId() ?? null;
+    return this.overlays.endlessPanel?.e2eSelectedEnemyId() ?? null;
   }
 
   e2eEndlessSelectedEnemyIds(): string[] {
-    return this.endlessPanel?.e2eSelectedEnemyIds() ?? [];
+    return this.overlays.endlessPanel?.e2eSelectedEnemyIds() ?? [];
   }
 
   e2eEndlessRosterEnemyIds(): string[] {
-    return this.endlessPanel?.e2eRosterEnemyIds() ?? [];
+    return this.overlays.endlessPanel?.e2eRosterEnemyIds() ?? [];
   }
 
   e2eEndlessEnemyConcurrentCap(enemyId: string): number | null {
-    return this.endlessPanel?.e2eEnemyConcurrentCap(enemyId) ?? null;
+    return this.overlays.endlessPanel?.e2eEnemyConcurrentCap(enemyId) ?? null;
   }
 
   e2eToggleEndlessEnemy(enemyId: string): void {
-    this.endlessPanel?.e2eToggleEnemy(enemyId);
+    this.overlays.endlessPanel?.e2eToggleEnemy(enemyId);
   }
 
   e2eSetEndlessEnemyCap(enemyId: string, cap: number): void {
-    this.endlessPanel?.e2eSetEnemyCap(enemyId, cap);
-  }
-
-  private openSpellSortPanel(): void {
-    if (this.spellSortPanel) return;
-    const store = this.registry.get("dataStore") as DataStore;
-    if (isTownReachableReady(this.game, store)) {
-      this.createSpellSortPanel();
-      return;
-    }
-    void ensureTownReachableReady(this, store).then(() => {
-      if (this.spellSortPanel) return;
-      this.createSpellSortPanel();
-    });
-  }
-
-  private createSpellSortPanel(): void {
-    this.spellSortPanel = new SpellBarSortPanel(
-      this,
-      this.save.spellBar.slots,
-      this.save.spellBar.autoCastSpellIds,
-      (result) => {
-        this.save.spellBar = result;
-        persistSave(this.save);
-        this.registry.set("save", this.save);
-        this.spellSortPanel = null;
-      },
-    );
-  }
-
-  private openWavePlannerPanel(): void {
-    if (this.wavePlannerPanel) return;
-    const store = this.registry.get("dataStore") as DataStore;
-    const open = () => {
-      if (this.wavePlannerPanel) return;
-      this.wavePlannerPanel = new WavePlannerPanel(
-      this,
-      this.registry.get("dataStore") as DataStore,
-      (groups) => {
-        this.wavePlannerPanel = null;
-        this.transitionToDefense(() => this.beginWavePlannerDefense(groups));
-      },
-      () => {
-        this.wavePlannerPanel = null;
-      },
-      );
-    };
-    if (isTownReachableReady(this.game, store)) {
-      open();
-      return;
-    }
-    void ensureTownReachableReady(this, store).then(open);
-  }
-
-  private openEndlessPanel(): void {
-    if (this.endlessPanel || this.endlessPanelLoading) return;
-    const store = this.registry.get("dataStore") as DataStore;
-    const open = () => {
-      this.endlessPanelLoading?.destroy();
-      this.endlessPanelLoading = null;
-      if (this.endlessPanel) return;
-      this.endlessPanel = new EndlessModePanel(
-      this,
-      store,
-      (selections, infiniteHp) => {
-        this.endlessPanel = null;
-        this.transitionToDefense(() =>
-          this.beginEndlessDefense(selections, infiniteHp),
-        );
-      },
-      () => {
-        this.endlessPanel = null;
-      },
-      );
-    };
-    if (isTownReachableReady(this.game, store)) {
-      open();
-      return;
-    }
-    let endlessOpenCancelled = false;
-    const dismissLoading = (): void => {
-      endlessOpenCancelled = true;
-      this.endlessPanelLoading = null;
-    };
-    this.endlessPanelLoading = new EndlessModePanelLoadingSkeleton(this, dismissLoading);
-    void ensureTownReachableReady(this, store)
-      .then(() => {
-        if (endlessOpenCancelled) return;
-        open();
-      })
-      .catch((err) => {
-        console.error("Endless panel readiness failed", err);
-        this.endlessPanelLoading?.showError("Could not load endless roster. Try again.");
-        this.time.delayedCall(2800, () => {
-          this.endlessPanelLoading?.destroy();
-          this.endlessPanelLoading = null;
-        });
-      });
-  }
-
-  private launchDebugMenuFromTown(): void {
-    const store = this.registry.get("dataStore") as DataStore;
-    const launch = () => launchDebugMenuFromHost(this);
-    if (isTownReachableReady(this.game, store)) {
-      launch();
-      return;
-    }
-    void ensureTownReachableReady(this, store).then(launch);
-  }
-
-  private teardownTownOverlays(): void {
-    this.endlessPanelLoading?.destroy();
-    this.endlessPanelLoading = null;
-    this.endlessPanel?.destroy();
-    this.endlessPanel = null;
-    this.wavePlannerPanel?.destroy();
-    this.wavePlannerPanel = null;
-    this.spellSortPanel?.destroy();
-    this.spellSortPanel = null;
-    this.defenseLoadingOverlay?.destroy();
-    this.defenseLoadingOverlay = null;
+    this.overlays.endlessPanel?.e2eSetEnemyCap(enemyId, cap);
   }
 
   /** Re-enable town layout + header chrome only when no modal owns input. */
@@ -525,57 +287,29 @@ export class TownScene extends Phaser.Scene {
     setContainerInputEnabled(this.fullscreenButton.container, enabled);
   }
 
-  private transitionToDefense(run: () => void): void {
-    const store = this.registry.get("dataStore") as DataStore;
-    if (isTownReachableReady(this.game, store)) {
-      run();
-      return;
-    }
-    if (!this.defenseLoadingOverlay) {
-      this.defenseLoadingOverlay = new TownDefenseLoadingOverlay(this);
-    }
-    void ensureNightReady(this, store)
-      .then(() => {
-        this.defenseLoadingOverlay?.destroy();
-        this.defenseLoadingOverlay = null;
-        run();
-      })
-      .catch((err) => {
-        console.error("Night readiness failed", err);
-        this.defenseLoadingOverlay?.showError(
-          "Could not load defense. Try again.",
-        );
-        this.time.delayedCall(2800, () => {
-          this.defenseLoadingOverlay?.destroy();
-          this.defenseLoadingOverlay = null;
-        });
-      });
-  }
-
   private beginDefenseNight(): void {
-    this.save = prepareDefenseNight(this.save);
-    persistSave(this.save);
-    this.registry.set("save", this.save);
-    setNightDefenseRun(this.registry);
-    this.scene.start("Defense");
+    this.beginDefenseRun(() => setNightDefenseRun(this.registry));
   }
 
   private beginEndlessDefense(
     selections: EndlessRunSelection[],
     infiniteHp: boolean,
   ): void {
-    this.save = prepareDefenseNight(this.save);
-    persistSave(this.save);
-    this.registry.set("save", this.save);
-    setEndlessDefenseRun(this.registry, selections, infiniteHp);
-    this.scene.start("Defense");
+    this.beginDefenseRun(() =>
+      setEndlessDefenseRun(this.registry, selections, infiniteHp),
+    );
   }
 
   private beginWavePlannerDefense(groups: WaveGroup[]): void {
+    this.beginDefenseRun(() => setWavePlannerDefenseRun(this.registry, groups));
+  }
+
+  /** Prepare + persist the night save, set the run mode, start Defense. */
+  private beginDefenseRun(setRunMode: () => void): void {
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
     this.registry.set("save", this.save);
-    setWavePlannerDefenseRun(this.registry, groups);
+    setRunMode();
     this.scene.start("Defense");
   }
 
@@ -585,35 +319,9 @@ export class TownScene extends Phaser.Scene {
       return;
     }
     this.touchDebug.draw({
-      pointerUiBlocked: (pointer) => this.isPointerOverInteractive(pointer),
-      uiScreenRects: this.collectTouchDebugUiRects(),
+      pointerUiBlocked: (pointer) => isPointerOverInteractive(this, pointer),
+      uiScreenRects: collectTownTouchDebugUiRects(this, this.touchDebug),
     });
-  }
-
-  private collectTouchDebugUiRects() {
-    return collectInteractiveScreenRects(this, {
-      skip: [this.touchDebug.uiGraphics(), this.touchDebug.worldGraphics()],
-    });
-  }
-
-  private isPointerOverInteractive(pointer: Phaser.Input.Pointer): boolean {
-    const hits = this.input.hitTestPointer(pointer);
-    for (const hit of hits) {
-      if (this.hasInteractiveInput(hit as Phaser.GameObjects.GameObject)) return true;
-    }
-    return false;
-  }
-
-  private hasInteractiveInput(obj: Phaser.GameObjects.GameObject): boolean {
-    let node: Phaser.GameObjects.GameObject | null = obj;
-    while (node) {
-      if (node.input?.enabled) return true;
-      const parent: Phaser.GameObjects.Container | null =
-        (node as Phaser.GameObjects.GameObject & { parentContainer?: Phaser.GameObjects.Container })
-          .parentContainer ?? null;
-      node = parent;
-    }
-    return false;
   }
 
   private onResetTap(): void {
@@ -638,19 +346,19 @@ export class TownScene extends Phaser.Scene {
     const goldBefore = this.save.gold;
     const { save, result } = handleTownBuildingTap(store, this.save, def);
     if (result.kind === "startNight") {
-      this.transitionToDefense(() => this.beginDefenseNight());
+      this.overlays.transitionToDefense(() => this.beginDefenseNight());
       return;
     }
     if (result.kind === "openSpellBar") {
-      this.openSpellSortPanel();
+      this.overlays.openSpellSortPanel();
       return;
     }
     if (result.kind === "openEndlessMode") {
-      this.openEndlessPanel();
+      this.overlays.openEndlessPanel();
       return;
     }
     if (result.kind === "openWavePlanner") {
-      this.openWavePlannerPanel();
+      this.overlays.openWavePlannerPanel();
       return;
     }
     if (result.kind === "upgraded") {
@@ -689,30 +397,6 @@ export class TownScene extends Phaser.Scene {
   }
 
   private refreshStatus(store: DataStore): void {
-    const wall = this.save.buildings.wall ?? 0;
-    const smith = this.save.buildings.blacksmith ?? 0;
-    const dmg = playerDamageMult(this.save.buildings).toFixed(2);
-    const wallDef = store.buildings.wall;
-    const wallCost =
-      wall < (wallDef?.maxLevel ?? 0)
-        ? wallDef?.costByLevel[wall]
-        : undefined;
-    const embedded = getEmbeddedBuildId();
-    const urlB =
-      typeof window !== "undefined"
-        ? new URL(window.location.href).searchParams.get("b")
-        : null;
-    const buildLines = [
-      `Build ${shortBuildIdLabel(embedded)}`,
-      urlBuildParamLine(embedded, urlB),
-    ].filter((line): line is string => line !== null);
-    this.statusText.setText(
-      [
-        `Night ${this.save.night} · Gold ${this.save.gold}`,
-        `Wall L${wall} (HP ${this.save.townWallHp}/${this.save.townWallHpMax})${wallCost !== undefined ? ` — next ${wallCost}g` : ""}`,
-        `Blacksmith L${smith} (damage x${dmg})`,
-        ...buildLines,
-      ].join("\n"),
-    );
+    this.statusText.setText(formatTownStatus(this.save, store));
   }
 }
