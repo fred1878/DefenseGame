@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import {
-  pickEnemyCombatTarget,
+  pickEnemyTarget,
   updateEnemyBrain,
   wallCombatPoint,
 } from "../../ai/EnemyBrain";
@@ -142,7 +142,7 @@ export function tickDefenseEnemies(
       playerAggroRadiusWu(PLAYER_AGGRO_RADIUS),
       host.registry,
     );
-    const combatTargetKind = pickEnemyCombatTarget(
+    const combatTargetKind = pickEnemyTarget(
       host.navGrid,
       e.sprite.x,
       e.sprite.y,

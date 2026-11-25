@@ -5,7 +5,6 @@
  */
 export type {
   DefenseObstacleBumpCardinal,
-  DefenseObstacleBumpProbe,
   DefenseSceneE2eDelegate,
 } from "./DefenseSceneE2ETypes";
 export * from "./DefenseSceneE2ECombat";

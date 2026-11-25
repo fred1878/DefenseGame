@@ -168,8 +168,8 @@ export function separateCircleFromBlockerAabb(
   }
   const closestX = Math.max(rect.left, Math.min(cx, rect.right));
   const closestY = Math.max(rect.top, Math.min(cy, rect.bottom));
-  let dx = cx - closestX;
-  let dy = cy - closestY;
+  const dx = cx - closestX;
+  const dy = cy - closestY;
   const dist = Math.hypot(dx, dy);
   if (dist < 1e-5) {
     const distTop = Math.abs(cy - rect.top);

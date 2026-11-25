@@ -101,21 +101,6 @@ export function updateEnemyNameplate(
   drawHpBar(plate, hp / maxHp);
 }
 
-export function hideEnemyNameplateOnDeath(
-  plate: EnemyNameplate | undefined,
-  scene: Phaser.Scene,
-): void {
-  if (!plate || plate.dying) return;
-  plate.dying = true;
-  scene.tweens.add({
-    targets: plate.container,
-    alpha: 0,
-    duration: 160,
-    ease: "Quad.Out",
-    onComplete: () => destroyEnemyNameplate(plate),
-  });
-}
-
 /** Fade nameplate on death, then reset for reuse (enemy pooling). */
 export function recycleEnemyNameplateAfterDeath(
   plate: EnemyNameplate | undefined,

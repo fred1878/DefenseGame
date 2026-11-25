@@ -5,14 +5,6 @@ import {
   requireRecord,
 } from "./configValidation";
 
-export const TOWN_LAYOUT_BOOT_KEYS = ["buildingDisplayScale", "slots"] as const;
-
-export const TOWN_LAYOUT_SLOT_BOOT_KEYS = [
-  "buildingId",
-  "x",
-  "y",
-] as const satisfies readonly (keyof TownLayoutSlot)[];
-
 export type TownLayoutInput = {
   buildingDisplayScale?: number;
   slots?: Partial<TownLayoutSlot>[];

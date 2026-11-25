@@ -26,9 +26,3 @@ export function poolSpellIconAlpha(
   if (barSlots.includes(spellId)) return POOL_ON_BAR_ALPHA;
   return POOL_READY_ALPHA;
 }
-
-export const SPELL_POOL_VISUAL = {
-  readyAlpha: POOL_READY_ALPHA,
-  onBarAlpha: POOL_ON_BAR_ALPHA,
-  comingSoonAlpha: POOL_COMING_SOON_ALPHA,
-} as const;

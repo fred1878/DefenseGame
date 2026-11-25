@@ -4,7 +4,7 @@
  *
  *   npm run build:e2e && node scripts/capture-melee-enemy-vfx-demo.mjs
  */
-import { mkdirSync, readdirSync, unlinkSync } from "node:fs";
+import { mkdirSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { execSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";

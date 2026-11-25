@@ -68,7 +68,8 @@ function makeStickHarness(options?: Partial<VirtualStickOptions>) {
           if (context !== undefined) fn.call(context, p);
           else fn(p);
         };
-        (handlers[event] ??= []).push(call);
+        handlers[event] ??= [];
+        handlers[event].push(call);
       },
       off() {},
       hitTestPointer: () => [] as unknown[],

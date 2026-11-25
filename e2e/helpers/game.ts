@@ -1,7 +1,5 @@
 import { type Page, expect } from "@playwright/test";
 
-export const E2E_SAVE_KEY = "defensegame-e2e-save";
-
 export async function gotoE2E(page: Page): Promise<void> {
   await page.addInitScript(() => {
     localStorage.removeItem("defensegame-e2e-save");

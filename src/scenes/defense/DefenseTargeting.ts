@@ -67,7 +67,7 @@ export class DefenseTargeting {
       return;
     }
     const enemy = this.getEnemyById(id);
-    if (!enemy || !enemy.damageable.alive) {
+    if (!enemy?.damageable.alive) {
       this.focusEnemyId = null;
       this.host.targetIndicator.detach();
       return;
@@ -79,7 +79,7 @@ export class DefenseTargeting {
   syncFocusTarget(): void {
     if (!this.focusEnemyId) return;
     const enemy = this.getEnemyById(this.focusEnemyId);
-    if (!enemy || !enemy.damageable.alive) {
+    if (!enemy?.damageable.alive) {
       this.setFocusEnemy(null);
       return;
     }
@@ -103,7 +103,7 @@ export class DefenseTargeting {
   ): { x: number; y: number } | null {
     if (!this.focusEnemyId) return null;
     const e = this.getEnemyById(this.focusEnemyId);
-    if (!e || !e.damageable.alive) return null;
+    if (!e?.damageable.alive) return null;
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
     const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);

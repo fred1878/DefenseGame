@@ -7,7 +7,7 @@
  * Writes trimmed webms under DEFENSE_HOLY_COMPARE_OUT_DIR (default store media/).
  */
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, renameSync, unlinkSync, readdirSync } from "node:fs";
+import { mkdirSync, readFileSync, unlinkSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";

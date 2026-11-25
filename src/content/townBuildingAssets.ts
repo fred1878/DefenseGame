@@ -19,6 +19,3 @@ export const TOWN_BUILDING_ASSETS = [
     file: "town_special_witchlight_beacon_daylit.png",
   },
 ] as const;
-
-export type TownBuildingTextureKey =
-  (typeof TOWN_BUILDING_ASSETS)[number]["key"];

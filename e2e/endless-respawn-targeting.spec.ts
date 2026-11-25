@@ -30,8 +30,8 @@ test("endless respawns stay targetable after dead cull", async ({ page }) => {
     )
     .toBe(true);
 
-  const countBefore = await page.evaluate(
-    () => window.__DEFENSEGAME_E2E__?.flags?.enemyCount ?? 0,
+  const countBefore = await page.evaluate(() =>
+    Number(window.__DEFENSEGAME_E2E__?.flags?.enemyCount ?? 0),
   );
   expect(countBefore).toBeGreaterThan(0);
 

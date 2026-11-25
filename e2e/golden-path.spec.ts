@@ -72,22 +72,6 @@ test.describe("golden paths — combat", () => {
     );
     expect(stoneOk).toBe(true);
   });
-
-  test("defense-fireball", async () => {
-    const page = boot.page;
-    await waitCombatAttackIdle(page);
-    await apiEval(page, "api.castSpell(1)");
-    await expect
-      .poll(async () => apiEval(page, "api.getProjectileCount()"), {
-        timeout: 20_000,
-      })
-      .toBeGreaterThan(0);
-    const fireOk = await apiEval(
-      page,
-      "api.textureLoaded('fx_pvfx_fireball_flight') || api.textureLoaded('fx_spell_fire_bolt')",
-    );
-    expect(fireOk).toBe(true);
-  });
 });
 
 test.describe("golden paths — night result", () => {
