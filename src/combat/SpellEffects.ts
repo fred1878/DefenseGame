@@ -33,6 +33,8 @@ import { worldUnit } from "../core/worldPixelScale";
 import { showPlayerMeleeSwipe } from "./MeleeSwipeFx";
 import { showSpellConeFx } from "./SpellConeFx";
 import { showChainLightningFx } from "./ChainLightningFx";
+import { ICE_BOLT_SPELL_ID } from "../content/iceFxSpells";
+import { attachIceBoltProjectileFx } from "./SpellIceBoltProjectileFx";
 
 export function applyNova(
   scene: Phaser.Scene,
@@ -130,6 +132,9 @@ export function spawnSpellProjectile(
     projectile.spellBehavior = "pierce";
   }
   projectile.spellId = def.id;
+  if (def.id === ICE_BOLT_SPELL_ID) {
+    attachIceBoltProjectileFx(scene, projectile);
+  }
   return projectile;
 }
 

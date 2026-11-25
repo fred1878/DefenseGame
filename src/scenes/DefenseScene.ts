@@ -14,6 +14,8 @@ import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
 import type { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
 import type { SpellHealChannelFx } from "../combat/SpellHealChannelFx";
+import type { SpellIceCastWindupFx } from "../combat/SpellIceCastWindupFx";
+import { EnemyIceRootFxController } from "../combat/EnemyIceRootFx";
 import type { SpellGroundAoeTelegraph } from "../combat/SpellGroundAoeTelegraph";
 import type { SpellGroundZone } from "../combat/spellGroundZone";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
@@ -131,6 +133,8 @@ export class DefenseScene extends Phaser.Scene {
   private lingerAoeTelegraph: SpellGroundAoeTelegraph | null = null;
   private blizzardChannelFx: SpellBlizzardChannelFx | null = null;
   private healChannelFx: SpellHealChannelFx | null = null;
+  private iceCastWindupFx: SpellIceCastWindupFx | null = null;
+  private readonly enemyIceRootFx = new EnemyIceRootFxController(this);
   private channelAreaStarted = false;
   private shadowformEndsAt = 0;
   private iceWallExpires: Array<{
@@ -243,6 +247,9 @@ export class DefenseScene extends Phaser.Scene {
     this.spellCaster = new SpellCastController();
     this.spellInputQueue = new SpellInputQueue();
     this.enemySpellStatus = new EnemySpellStatusMap();
+    this.enemyIceRootFx.reset();
+    this.iceCastWindupFx?.stop();
+    this.iceCastWindupFx = null;
     this.spellChannelArea = null;
     this.spellGroundZones = [];
     this.pendingGroundCast = null;
@@ -479,6 +486,7 @@ export class DefenseScene extends Phaser.Scene {
         endlessInfiniteHp: this.endlessInfiniteHp,
         enemySpellStatus: this.enemySpellStatus,
         findEnemyInstance: (id) => this.enemies.find((en) => en.id === id),
+        registerWorldDraw: (go) => this.registerWorldDraw(go),
       },
       delta,
     );
@@ -666,6 +674,9 @@ export class DefenseScene extends Phaser.Scene {
       set blizzardChannelFx(v) { scene.blizzardChannelFx = v; },
       get healChannelFx() { return scene.healChannelFx; },
       set healChannelFx(v) { scene.healChannelFx = v; },
+      get iceCastWindupFx() { return scene.iceCastWindupFx; },
+      set iceCastWindupFx(v) { scene.iceCastWindupFx = v; },
+      get enemyIceRootFx() { return scene.enemyIceRootFx; },
       get channelAreaStarted() { return scene.channelAreaStarted; },
       set channelAreaStarted(v) { scene.channelAreaStarted = v; },
       get shadowformEndsAt() { return scene.shadowformEndsAt; },

@@ -34,7 +34,10 @@ import {
   spellPlaysFireWhooshOnChannelLinger,
 } from "../../audio/fireWhooshSfx";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
-import { syncDefenseHealChannelFx } from "./DefenseSpellTelegraphs";
+import {
+  syncDefenseHealChannelFx,
+  syncDefenseIceCastWindupFx,
+} from "./DefenseSpellTelegraphs";
 
 /** Per-cast tick state for channeled cone (damage) and channeled heal spells. */
 export class DefenseSpellChannelTicks {
@@ -189,6 +192,7 @@ export function updateDefenseSpellChanneling(
     if (chDef) {
       director.syncGroundCastTelegraphs(chDef, channel.type, channel.progress, delta);
       syncDefenseHealChannelFx(host, chDef, channel.type, px, py);
+      syncDefenseIceCastWindupFx(host, chDef, channel.type, px, py);
     }
     if (channel.type === "channeling" && chDef && !host.channelAreaStarted) {
       if (chDef.mechanicType !== "channeled_cone") {

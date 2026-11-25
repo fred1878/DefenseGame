@@ -10,6 +10,7 @@ import {
   applyEnemyKnockbackFrom,
   type EnemyKnockbackCarrier,
 } from "../combat/enemyKnockback";
+import type { IceBoltProjectileFxState } from "../combat/SpellIceBoltProjectileFx";
 
 /** Source art faces upper-right at rotation 0. */
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
@@ -40,6 +41,8 @@ export type PlayerProjectile = {
   pendingDetonation?: ProjectileDetonation;
   /** Owning enemy when spawned from `DefenseEnemyTick`. */
   sourceEnemyId?: string;
+  /** Ice Effect 01 travel overlay for `ice_bolt`. */
+  iceBoltFx?: IceBoltProjectileFxState;
   /** Committed lob landing (blast center) while in flight. */
   lobAimX?: number;
   lobAimY?: number;

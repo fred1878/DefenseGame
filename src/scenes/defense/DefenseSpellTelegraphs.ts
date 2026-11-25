@@ -1,6 +1,8 @@
 import type { SpellDefinition } from "../../content/spells";
 import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
 import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
+import { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
+import { spellUsesIceCastWindupFx } from "../../content/iceFxSpells";
 import {
   destroySpellGroundAoeTelegraph,
   registerSpellGroundAoeTelegraphWorld,
@@ -26,6 +28,8 @@ export function clearDefenseGroundCastTelegraphs(
     host.healChannelFx = null;
     healFx.fadeOut();
   }
+  host.iceCastWindupFx?.stop();
+  host.iceCastWindupFx = null;
 }
 
 export function clearDefenseLingerAoeTelegraph(
@@ -139,4 +143,32 @@ export function pulseDefenseImpactAoeTelegraph(
   registerSpellGroundAoeTelegraphWorld(impact, host.maskWorldObject);
   updateSpellGroundAoeTelegraph(impact, 0, "impact", 1);
   host.delayedCall(360, () => destroySpellGroundAoeTelegraph(impact));
+}
+
+/** Ice VFX 2 Start on caster during frost spell windup. */
+export function syncDefenseIceCastWindupFx(
+  host: DefenseSpellDirectorHost,
+  def: SpellDefinition,
+  phase: "windup" | "channeling",
+  px: number,
+  py: number,
+): void {
+  if (!spellUsesIceCastWindupFx(def)) {
+    if (host.iceCastWindupFx) {
+      host.iceCastWindupFx.stop();
+      host.iceCastWindupFx = null;
+    }
+    return;
+  }
+  if (phase === "windup") {
+    if (!host.iceCastWindupFx) {
+      host.iceCastWindupFx = new SpellIceCastWindupFx(host.scene);
+      host.iceCastWindupFx.start(px, py, spellCastMs(def), host.maskWorldObject);
+    } else {
+      host.iceCastWindupFx.follow(px, py);
+    }
+    return;
+  }
+  host.iceCastWindupFx?.stop();
+  host.iceCastWindupFx = null;
 }

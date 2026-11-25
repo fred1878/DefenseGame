@@ -54,6 +54,8 @@ function spellDirectorTestHost(
     lingerAoeTelegraph: null,
     blizzardChannelFx: null,
     healChannelFx: null,
+    iceCastWindupFx: null,
+    enemyIceRootFx: { tick: vi.fn(), reset: vi.fn() },
     channelAreaStarted: false,
     shadowformEndsAt: 0,
     iceWallExpires: [],
