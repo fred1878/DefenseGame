@@ -3,10 +3,12 @@ import { PLAYER_TUNING } from "../../config";
 import type { DefenseObstacleRect } from "../../config/defense";
 import { collectInteractiveScreenRects } from "../../debug/collectInteractiveScreenRects";
 import {
+  showCombatRanges,
   showEnemyPaths,
   showHitboxes,
   showTouchInput,
 } from "../../debug/DebugState";
+import { CombatRangeDebugDraw } from "../../debug/CombatRangeDebugDraw";
 import { HitboxDebugDraw } from "../../debug/HitboxDebugDraw";
 import { PathDebugDraw } from "../../debug/PathDebugDraw";
 import {
@@ -99,8 +101,9 @@ export function drawDefenseEnemyPaths(input: DefenseEnemyPathsInput): void {
   }
 }
 
-export type DefenseHitboxDebugInput = {
+export type DefenseCombatDebugInput = {
   registry: Phaser.Data.DataManager;
+  rangeDebug: CombatRangeDebugDraw;
   hitboxDebug: HitboxDebugDraw;
   player: Player;
   enemies: EnemyInstance[];
@@ -110,53 +113,66 @@ export type DefenseHitboxDebugInput = {
   wu: (atDefault2x: number) => number;
 };
 
-export function drawDefenseDebugHitboxes(input: DefenseHitboxDebugInput): void {
-  const { hitboxDebug, player, wu } = input;
-  if (!showHitboxes(input.registry)) {
-    hitboxDebug.clear();
-    return;
-  }
-  hitboxDebug.clear();
+export function drawDefenseCombatDebug(input: DefenseCombatDebugInput): void {
+  const { rangeDebug, hitboxDebug, player, wu } = input;
+  const showRanges = showCombatRanges(input.registry);
+  const showBoxes = showHitboxes(input.registry);
+
+  if (!showRanges) rangeDebug.clear();
+  if (!showBoxes) hitboxDebug.clear();
+  if (!showRanges && !showBoxes) return;
+
   const pBody = player.sprite.body as Phaser.Physics.Arcade.Body;
   const px = pBody.center.x;
   const py = pBody.center.y;
   const playerR = pBody.halfWidth;
-  hitboxDebug.drawMeleeActivationRange(
-    px,
-    py,
-    wu(PLAYER_TUNING.autoAttackMeleeRange),
-  );
-  hitboxDebug.drawMeleeMaxRange(px, py, wu(PLAYER_TUNING.meleeStrikeRangeWu));
-  hitboxDebug.drawCircle(px, py, playerR);
 
-  if (player.strikeMode() === "melee" && player.attackPhaseNow === "active") {
-    const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
-    hitboxDebug.drawMeleeArc(
+  if (showRanges) {
+    rangeDebug.clear();
+    rangeDebug.drawMeleeActivationRange(
       px,
       py,
-      player.meleeHitboxFacingRad(),
-      wu(PLAYER_TUNING.meleeStrikeRangeWu),
-      arcHalf,
+      wu(PLAYER_TUNING.autoAttackMeleeRange),
     );
+    rangeDebug.drawMeleeMaxRange(px, py, wu(PLAYER_TUNING.meleeStrikeRangeWu));
+  }
+
+  if (showBoxes) {
+    hitboxDebug.clear();
+    hitboxDebug.drawCircle(px, py, playerR);
+    if (player.strikeMode() === "melee" && player.attackPhaseNow === "active") {
+      const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
+      hitboxDebug.drawMeleeArc(
+        px,
+        py,
+        player.meleeHitboxFacingRad(),
+        wu(PLAYER_TUNING.meleeStrikeRangeWu),
+        arcHalf,
+      );
+    }
   }
 
   for (const e of input.enemies) {
     if (!e.damageable.alive) continue;
-    drawEnemyHitboxes(hitboxDebug, e, wu);
+    if (showRanges) drawEnemyCombatRanges(rangeDebug, e);
+    if (showBoxes) drawEnemyHitboxes(hitboxDebug, e, wu);
   }
 
   const projBodyR = projectileArcadeRadiusPx(input.registry);
 
   for (const p of input.enemyProjectiles) {
     if (!p.sprite.active) continue;
-    hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
+    if (showBoxes) {
+      hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
+    }
     if (
+      showRanges &&
       p.spellBehavior === "aoe_on_hit" &&
       p.blastRadiusWu !== undefined &&
       p.lobAimX !== undefined &&
       p.lobAimY !== undefined
     ) {
-      hitboxDebug.drawProjectileBlastRadius(
+      rangeDebug.drawProjectileBlastRadius(
         p.lobAimX,
         p.lobAimY,
         wu(p.blastRadiusWu),
@@ -164,14 +180,43 @@ export function drawDefenseDebugHitboxes(input: DefenseHitboxDebugInput): void {
     }
   }
 
-  for (const p of input.projectiles) {
-    if (p.sprite.active) {
-      hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
+  if (showBoxes) {
+    for (const p of input.projectiles) {
+      if (p.sprite.active) {
+        hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
+      }
+    }
+    for (const obs of input.obstacleBlockers) {
+      hitboxDebug.drawObstacleRect(obs.x, obs.y, obs.w, obs.h);
     }
   }
+}
 
-  for (const obs of input.obstacleBlockers) {
-    hitboxDebug.drawObstacleRect(obs.x, obs.y, obs.w, obs.h);
+function drawEnemyCombatRanges(
+  rangeDebug: CombatRangeDebugDraw,
+  e: EnemyInstance,
+): void {
+  if (enemyUsesMeleePlayerActivationRange(e.behavior)) {
+    const melee = e.combatTuning.melee;
+    if (melee) {
+      rangeDebug.drawMeleeActivationRange(
+        e.sprite.x,
+        e.sprite.y,
+        melee.triggerRangeWu,
+      );
+      rangeDebug.drawMeleeMaxRange(e.sprite.x, e.sprite.y, melee.rangeWu);
+    }
+  }
+  if (e.behavior === "charger") {
+    const extra = e.behaviorExtra;
+    if (extra.chargeActiveMs > 0 || extra.chargeWindupMs > 0) {
+      rangeDebug.drawChargeDashLine(
+        e.sprite.x,
+        e.sprite.y,
+        extra.chargeAimX,
+        extra.chargeAimY,
+      );
+    }
   }
 }
 
@@ -180,17 +225,6 @@ function drawEnemyHitboxes(
   e: EnemyInstance,
   wu: (atDefault2x: number) => number,
 ): void {
-  if (enemyUsesMeleePlayerActivationRange(e.behavior)) {
-    const melee = e.combatTuning.melee;
-    if (melee) {
-      hitboxDebug.drawMeleeActivationRange(
-        e.sprite.x,
-        e.sprite.y,
-        melee.triggerRangeWu,
-      );
-      hitboxDebug.drawMeleeMaxRange(e.sprite.x, e.sprite.y, melee.rangeWu);
-    }
-  }
   hitboxDebug.drawCircle(
     e.sprite.x,
     e.sprite.y,
@@ -215,25 +249,13 @@ function drawEnemyHitboxes(
       wu(enemyCollisionBodyRadius(e.defId)) + wu(playerBodyRadiusPx());
     if (extra.chargeActiveMs > 0) {
       hitboxDebug.drawChargeTouchRadius(e.sprite.x, e.sprite.y, touchR);
-      hitboxDebug.drawChargeDashLine(
-        e.sprite.x,
-        e.sprite.y,
-        extra.chargeAimX,
-        extra.chargeAimY,
-      );
-    } else if (extra.chargeWindupMs > 0) {
-      hitboxDebug.drawChargeDashLine(
-        e.sprite.x,
-        e.sprite.y,
-        extra.chargeAimX,
-        extra.chargeAimY,
-      );
     }
   }
 }
 
 export type DefenseDebugDrawers = {
   hitboxDebug: HitboxDebugDraw;
+  rangeDebug: CombatRangeDebugDraw;
   pathDebug: PathDebugDraw;
   touchDebug: TouchInputDebugDraw;
 };
@@ -245,11 +267,13 @@ export function createDefenseDebugDrawers(
   registerUiDraw: (go: Phaser.GameObjects.GameObject) => void,
 ): DefenseDebugDrawers {
   const hitboxDebug = new HitboxDebugDraw(scene);
+  const rangeDebug = new CombatRangeDebugDraw(scene);
   const pathDebug = new PathDebugDraw(scene);
   const touchDebug = new TouchInputDebugDraw(scene);
   registerWorldDraw(hitboxDebug.graphics());
+  registerWorldDraw(rangeDebug.graphics());
   registerWorldDraw(pathDebug.graphics());
   registerWorldDraw(touchDebug.worldGraphics());
   registerUiDraw(touchDebug.uiGraphics());
-  return { hitboxDebug, pathDebug, touchDebug };
+  return { hitboxDebug, rangeDebug, pathDebug, touchDebug };
 }

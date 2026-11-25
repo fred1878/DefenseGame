@@ -33,6 +33,7 @@ export type DefenseSceneDisposables = {
   castBar?: Destroyable;
   spellBar?: Destroyable;
   hitboxDebug?: Destroyable;
+  rangeDebug?: Destroyable;
   pathDebug?: Destroyable;
   touchDebug?: Destroyable;
   fpsOverlay?: Destroyable;
@@ -55,6 +56,7 @@ export function destroyDefenseSceneObjects(d: DefenseSceneDisposables): void {
   d.castBar?.destroy();
   d.spellBar?.destroy();
   d.hitboxDebug?.destroy();
+  d.rangeDebug?.destroy();
   d.pathDebug?.destroy();
   d.touchDebug?.destroy();
   d.fpsOverlay?.destroy();

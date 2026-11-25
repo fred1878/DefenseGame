@@ -19,6 +19,7 @@ describe("DebugState", () => {
     const reg = fakeRegistry();
     expect(getDebugFlags(reg)).toEqual({
       showHitboxes: false,
+      showCombatRanges: false,
       showTouchInput: false,
       showEnemyPaths: false,
       showFpsCounter: false,
