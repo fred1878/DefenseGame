@@ -3,6 +3,7 @@ import { GAME } from "../config";
 import {
   combatChromeLayout,
   defensePlayAreaLayout,
+  fpsDebugOverlayPosition,
   DEFENSE_BOTTOM_HUD_SHIFT_PX,
   DEFENSE_TOP_CHROME_TRIM_PX,
   hudBandHeight,
@@ -22,6 +23,7 @@ import {
   townTitleY,
 } from "./screenLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
+import { defenseMinimapLayout } from "./defenseMinimap";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 
 function mockScene(
@@ -56,6 +58,26 @@ describe("screenLayout", () => {
       GAME.height + DEFENSE_BOTTOM_HUD_SHIFT_PX,
     );
     expect(play.width).toBe(GAME.width);
+  });
+
+  it("fps overlay clears defense minimap and town header buttons", () => {
+    const defense = {
+      ...mockScene(),
+      scene: { key: "Defense" },
+    } as Parameters<typeof fpsDebugOverlayPosition>[0];
+    const mini = defenseMinimapLayout(defense, safe);
+    const defensePos = fpsDebugOverlayPosition(defense, safe);
+    expect(defensePos.y).toBeGreaterThanOrEqual(mini.y + mini.height);
+
+    const town = {
+      ...mockScene(),
+      scene: { key: "Town" },
+    } as Parameters<typeof fpsDebugOverlayPosition>[0];
+    const townPos = fpsDebugOverlayPosition(town, safe);
+    expect(townPos.y).toBeGreaterThanOrEqual(safe.top + scaleUiX(36));
+    const reset = townResetSaveButtonPosition(town, safe, scaleUiX(118), scaleUiX(36));
+    const resetBottom = reset.y + scaleUiX(36) / 2;
+    expect(townPos.y).toBeGreaterThan(resetBottom);
   });
 
   it("hudTextPosition respects safe insets", () => {

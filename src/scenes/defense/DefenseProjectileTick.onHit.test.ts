@@ -50,26 +50,50 @@ function mockHost(projectiles: PlayerProjectile[]): DefenseProjectileTickHost & 
   };
 }
 
+function mockProjectileSprite(
+  scene: Phaser.Scene,
+  textureKey: string,
+): {
+  sprite: Phaser.Physics.Arcade.Sprite;
+  setActive: ReturnType<typeof vi.fn>;
+  setVisible: ReturnType<typeof vi.fn>;
+} {
+  const setActive = vi.fn().mockReturnThis();
+  const setVisible = vi.fn().mockReturnThis();
+  const sprite = {
+    active: true,
+    x: 32,
+    y: 0,
+    texture: { key: textureKey },
+    scene,
+    setActive,
+    setVisible,
+    setRotation: vi.fn(),
+    body: {
+      velocity: { x: 400, y: 0 },
+      stop: vi.fn(),
+      enable: true,
+    },
+  } as unknown as Phaser.Physics.Arcade.Sprite;
+  return { sprite, setActive, setVisible };
+}
+
 describe("tickDefenseProjectiles onHit", () => {
   it("applies knockback when a non-spell projectile hits", () => {
-    const destroyed = vi.fn();
     const enemyKnock = {
       sprite: { x: 30, y: 0 } as Phaser.Physics.Arcade.Sprite,
       knockbackVx: 0,
       knockbackVy: 0,
       weight: 100,
     };
+    const base = mockHost([]);
+    const { sprite, setActive, setVisible } = mockProjectileSprite(
+      base.scene,
+      "player_ranged",
+    );
     const projectile: PlayerProjectile = {
       id: "p0",
-      sprite: {
-        active: true,
-        x: 32,
-        y: 0,
-        texture: { key: "player_ranged" },
-        destroy: destroyed,
-        setRotation: vi.fn(),
-        body: { velocity: { x: 400, y: 0 } },
-      } as unknown as Phaser.Physics.Arcade.Sprite,
+      sprite,
       damage: 12,
       damageFlavor: "fire",
       maxTravel: 200,
@@ -77,8 +101,8 @@ describe("tickDefenseProjectiles onHit", () => {
       prevX: 0,
       prevY: 0,
     };
+    base.projectiles = [projectile];
 
-    const base = mockHost([projectile]);
     const host: DefenseProjectileTickHost = {
       ...base,
       enemyTargets: () => [
@@ -91,23 +115,20 @@ describe("tickDefenseProjectiles onHit", () => {
 
     tickDefenseProjectiles(host, 16);
     expect(Math.abs(enemyKnock.knockbackVx)).toBeGreaterThan(0);
-    expect(destroyed).toHaveBeenCalled();
+    expect(setActive).toHaveBeenCalledWith(false);
+    expect(setVisible).toHaveBeenCalledWith(false);
   });
 
   it("applies ice_bolt slow when the projectile hits", () => {
-    const destroyed = vi.fn();
+    const base = mockHost([]);
+    const { sprite, setActive } = mockProjectileSprite(
+      base.scene,
+      "fx_spell_ice_bolt",
+    );
     const projectile: PlayerProjectile = {
       id: "p0",
       spellId: "ice_bolt",
-      sprite: {
-        active: true,
-        x: 32,
-        y: 0,
-        texture: { key: "fx_spell_ice_bolt" },
-        destroy: destroyed,
-        setRotation: vi.fn(),
-        body: { velocity: { x: 400, y: 0 } },
-      } as unknown as Phaser.Physics.Arcade.Sprite,
+      sprite,
       damage: 12,
       damageFlavor: "fire",
       maxTravel: 200,
@@ -115,11 +136,10 @@ describe("tickDefenseProjectiles onHit", () => {
       prevX: 0,
       prevY: 0,
     };
+    base.projectiles = [projectile];
+    tickDefenseProjectiles(base, 16);
 
-    const host = mockHost([projectile]);
-    tickDefenseProjectiles(host, 16);
-
-    expect(destroyed).toHaveBeenCalled();
-    expect(host.status.moveSpeedMultiplier("grunt")).toBeCloseTo(0.3);
+    expect(setActive).toHaveBeenCalledWith(false);
+    expect(base.status.moveSpeedMultiplier("grunt")).toBeCloseTo(0.3);
   });
 });

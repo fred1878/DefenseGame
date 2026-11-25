@@ -40,7 +40,7 @@ Track [REFACTOR_PLAN.md](./docs/REFACTOR_PLAN.md) merge table:
 - [x] PR9 — `DefenseEnemyTick.ts`
 - [x] PR10 — `DefenseSpellDirector.ts` ([#131](https://github.com/fred1878/DefenseGame/pull/131))
 - [x] PR11 — `systems/WaveSpawner.ts` promotion
-- [ ] PR12 — Pooling (**skipped** — separate track per plan)
+- [x] PR12 — Pooling (enemy + projectile pools; `DefenseEnemySpawner`, `projectilePool.ts`)
 - [x] P1 — `touchButtonPress.ts`, `touchButtonFactories.ts`, `touchButtonGeometry.ts` ([#133](https://github.com/fred1878/DefenseGame/pull/133))
 - [x] P2 — `enemyRanged/*` per-behavior modules ([#134](https://github.com/fred1878/DefenseGame/pull/134))
 

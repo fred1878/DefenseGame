@@ -13,4 +13,5 @@ export {
   type ScreenRect,
 } from "./screenLayoutCore";
 export * from "./defenseHudLayout";
+export * from "./fpsHudLayout";
 export * from "./townHudLayout";

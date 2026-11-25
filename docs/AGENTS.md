@@ -71,6 +71,7 @@ Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`)
 - **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
 - **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx`).
 - **CI:** typecheck, unit tests and build must stay green. Merges to main publish Pages.
+- **Defense pooling (PR12):** projectile sprites via `src/entities/projectilePool.ts` (`releaseProjectileSprite` on despawn); enemy shells via `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Scene shutdown calls `destroyProjectilePool` / `destroyDefenseEnemyPool`.
 
 ## Related docs
 

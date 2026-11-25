@@ -26,6 +26,7 @@ import {
   openDebugMenuFromHost,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
+import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
 import type { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
 import type { PathDebugDraw } from "../debug/PathDebugDraw";
 import type { FocusTapFlash, TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
@@ -100,7 +101,7 @@ export class DefenseScene extends Phaser.Scene {
   private projectileSerial = 0;
   private hudText!: Phaser.GameObjects.Text;
   attackButton!: Phaser.GameObjects.Container;
-  private autoAttackEnabled = false;
+  private autoAttackEnabled = true;
   autoToggle!: ReturnType<typeof createTouchToggleButton>;
   modeToggle!: ReturnType<typeof createTouchToggleButton>;
   private uiBlockers: Phaser.GameObjects.GameObject[] = [];
@@ -111,6 +112,7 @@ export class DefenseScene extends Phaser.Scene {
   private hitboxDebug!: HitboxDebugDraw;
   private pathDebug!: PathDebugDraw;
   private touchDebug!: TouchInputDebugDraw;
+  private fpsOverlay!: FpsDebugOverlay;
   private enemyPathGoals = new Map<
     string,
     { targetKind: "wall" | "player"; x: number; y: number }
@@ -191,6 +193,7 @@ export class DefenseScene extends Phaser.Scene {
       hitboxDebug: this.hitboxDebug,
       pathDebug: this.pathDebug,
       touchDebug: this.touchDebug,
+      fpsOverlay: this.fpsOverlay,
       minimap: this.minimap,
       returnToTownBtn: this.returnToTownBtn,
       leaveEndlessBtn: this.leaveEndlessBtn,
@@ -244,7 +247,7 @@ export class DefenseScene extends Phaser.Scene {
     this.targeting?.resetForNewRun();
     this.focusTapFlash = null;
     this.combat.resetForNewRun();
-    this.autoAttackEnabled = false;
+    this.autoAttackEnabled = true;
     this.playerInvulnMs = 0;
     this.spellCaster = new SpellCastController();
     this.spellInputQueue = new SpellInputQueue();
@@ -379,6 +382,7 @@ export class DefenseScene extends Phaser.Scene {
       pathDebug: this.pathDebug,
       touchDebug: this.touchDebug,
     } = createDefenseDebugDrawers(this, this.registerWorldDraw, this.registerUiDraw));
+    this.fpsOverlay = new FpsDebugOverlay(this, this.registerUiDraw);
     for (const go of this.castBar.worldRoots()) {
       this.registerWorldDraw(go);
     }
@@ -631,6 +635,7 @@ export class DefenseScene extends Phaser.Scene {
       },
       delta,
     );
+    this.fpsOverlay.tick(this.registry, delta, this.game);
   }
 
   private spellDirector!: DefenseSpellDirector;

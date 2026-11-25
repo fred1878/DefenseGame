@@ -19,7 +19,6 @@ describe("segmentFirstCircleHitT", () => {
 
 describe("updateProjectile", () => {
   it("stops on first enemy hit along the path", () => {
-    const destroyed = vi.fn();
     const damageable: Damageable = {
       id: "e1",
       hp: 10,
@@ -35,9 +34,17 @@ describe("updateProjectile", () => {
         x: 32,
         y: 0,
         texture: { key: "fx_stone_throw" },
-        destroy: destroyed,
+        scene: {
+          physics: { add: { sprite: vi.fn() } },
+        },
+        setActive: vi.fn().mockReturnThis(),
+        setVisible: vi.fn().mockReturnThis(),
+        body: {
+          stop: vi.fn(),
+          enable: true,
+          velocity: { x: 400, y: 0 },
+        },
         setRotation: vi.fn(),
-        body: { velocity: { x: 400, y: 0 } },
       } as unknown as Phaser.Physics.Arcade.Sprite,
       damage: 5,
       damageFlavor: "physical",
@@ -71,12 +78,10 @@ describe("updateProjectile", () => {
 
     expect(hit.alive).toBe(false);
     expect(hit.hitEnemyId).toBe("e1");
-    expect(destroyed).toHaveBeenCalled();
     expect(damageable.hp).toBe(5);
   });
 
   it("does not apply direct knockback when detonating AoE on hit", () => {
-    const destroyed = vi.fn();
     const damageable: Damageable = {
       id: "e1",
       hp: 10,
@@ -95,9 +100,17 @@ describe("updateProjectile", () => {
         x: 32,
         y: 0,
         texture: { key: "fx_stone_throw" },
-        destroy: destroyed,
+        scene: {
+          physics: { add: { sprite: vi.fn() } },
+        },
+        setActive: vi.fn().mockReturnThis(),
+        setVisible: vi.fn().mockReturnThis(),
+        body: {
+          stop: vi.fn(),
+          enable: true,
+          velocity: { x: 400, y: 0 },
+        },
         setRotation: vi.fn(),
-        body: { velocity: { x: 400, y: 0 } },
       } as unknown as Phaser.Physics.Arcade.Sprite,
       damage: 5,
       damageFlavor: "physical",

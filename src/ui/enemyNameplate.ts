@@ -116,6 +116,31 @@ export function hideEnemyNameplateOnDeath(
   });
 }
 
+/** Fade nameplate on death, then reset for reuse (enemy pooling). */
+export function recycleEnemyNameplateAfterDeath(
+  plate: EnemyNameplate | undefined,
+  scene: Phaser.Scene,
+  onComplete: () => void,
+): void {
+  if (!plate || plate.dying) {
+    onComplete();
+    return;
+  }
+  plate.dying = true;
+  scene.tweens.killTweensOf(plate.container);
+  scene.tweens.add({
+    targets: plate.container,
+    alpha: 0,
+    duration: 160,
+    ease: "Quad.Out",
+    onComplete: () => {
+      plate.dying = false;
+      plate.container.setAlpha(1);
+      onComplete();
+    },
+  });
+}
+
 export function destroyEnemyNameplate(plate: EnemyNameplate | undefined): void {
   if (!plate) return;
   plate.container.destroy(true);

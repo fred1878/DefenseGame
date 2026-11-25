@@ -5,7 +5,13 @@ import { setShadowformRuntimeMults } from "../../config/shadowformRuntime";
 import { shadowformActive } from "../../combat/shadowform";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { Player } from "../../entities/Player";
-import type { EnemyProjectile, PlayerProjectile } from "../../entities/Projectile";
+import {
+  destroyProjectilePool,
+  releaseProjectileSprite,
+  type EnemyProjectile,
+  type PlayerProjectile,
+} from "../../entities/Projectile";
+import { destroyDefenseEnemyPool } from "./DefenseEnemySpawner";
 import { destroyEnemyNameplate } from "../../ui/enemyNameplate";
 import {
   blocksBaseLayerInput,
@@ -29,6 +35,7 @@ export type DefenseSceneDisposables = {
   hitboxDebug?: Destroyable;
   pathDebug?: Destroyable;
   touchDebug?: Destroyable;
+  fpsOverlay?: Destroyable;
   minimap?: Destroyable;
   returnToTownBtn: TouchButtonHandle | null;
   leaveEndlessBtn: TouchButtonHandle | null;
@@ -50,19 +57,22 @@ export function destroyDefenseSceneObjects(d: DefenseSceneDisposables): void {
   d.hitboxDebug?.destroy();
   d.pathDebug?.destroy();
   d.touchDebug?.destroy();
+  d.fpsOverlay?.destroy();
   d.minimap?.destroy();
   d.returnToTownBtn?.container.destroy();
   d.leaveEndlessBtn?.container.destroy();
   d.debugBtn?.container.destroy();
   d.uiCamera?.destroy();
-  for (const p of d.projectiles) p.sprite.destroy();
-  for (const p of d.enemyProjectiles) p.sprite.destroy();
+  for (const p of d.projectiles) releaseProjectileSprite(d.scene, p.sprite);
+  for (const p of d.enemyProjectiles) releaseProjectileSprite(d.scene, p.sprite);
+  destroyProjectilePool(d.scene);
   for (const e of d.enemies) {
     destroyArrowRainTelegraph(e.arrowRain?.telegraph);
     destroyArrowRainTelegraph(e.lobber?.telegraph);
     e.sprite.destroy();
     destroyEnemyNameplate(e.nameplate);
   }
+  destroyDefenseEnemyPool(d.scene);
 }
 
 export function syncShadowformPlayerFx(

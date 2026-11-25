@@ -11,6 +11,7 @@ import {
   DEBUG_MENU_CLOSE,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
+import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { configureSceneInput } from "../input/inputTuning";
 import {
@@ -73,6 +74,7 @@ export class TownScene extends Phaser.Scene {
   private buildingControls = new Map<string, TownBuildingControl>();
   private statusFlashEvent: Phaser.Time.TimerEvent | null = null;
   private touchDebug!: TouchInputDebugDraw;
+  private fpsOverlay!: FpsDebugOverlay;
   private readonly overlays = new TownOverlays(this, {
     getSave: () => this.save,
     onSpellBarSorted: (result) => {
@@ -136,6 +138,7 @@ export class TownScene extends Phaser.Scene {
     this.resetButton = buttons.resetButton;
 
     this.touchDebug = new TouchInputDebugDraw(this);
+    this.fpsOverlay = new FpsDebugOverlay(this);
     this.events.on(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
     this.events.on("shutdown", () => {
@@ -149,6 +152,7 @@ export class TownScene extends Phaser.Scene {
       this.overlays.teardown();
       this.buildingControls.clear();
       this.touchDebug.destroy();
+      this.fpsOverlay.destroy();
     });
 
     markBoot("defensegame:town-prefetch-start");
@@ -313,7 +317,8 @@ export class TownScene extends Phaser.Scene {
     this.scene.start("Defense");
   }
 
-  update(_time: number, _delta: number): void {
+  update(_time: number, delta: number): void {
+    this.fpsOverlay.tick(this.registry, delta, this.game);
     if (!showTouchInput(this.registry)) {
       this.touchDebug.clear();
       return;

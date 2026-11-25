@@ -2,9 +2,11 @@ import Phaser from "phaser";
 import {
   getDebugFlags,
   setShowEnemyPaths,
+  setShowFpsCounter,
   setShowHitboxes,
   setShowTouchInput,
   showEnemyPaths,
+  showFpsCounter,
   showHitboxes,
   showTouchInput,
 } from "../debug/DebugState";
@@ -34,6 +36,7 @@ export class DebugMenuScene extends Phaser.Scene {
   private hitboxToggle!: ReturnType<typeof createTouchButton>;
   private touchToggle!: ReturnType<typeof createTouchButton>;
   private pathToggle!: ReturnType<typeof createTouchButton>;
+  private fpsToggle!: ReturnType<typeof createTouchButton>;
   private fullscreenToggle!: ReturnType<typeof createTouchButton>;
   private worldScaleToggle!: ReturnType<typeof createTouchButton>;
   private touchDebug!: TouchInputDebugDraw;
@@ -111,10 +114,25 @@ export class DebugMenuScene extends Phaser.Scene {
       { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
     );
 
-    this.worldScaleToggle = createTouchButton(
+    this.fpsToggle = createTouchButton(
       this,
       w / 2,
       h / 2 + scaleUiY(135),
+      flags.showFpsCounter ? "FPS / frame time: ON" : "FPS / frame time: OFF",
+      () => {
+        const next = !showFpsCounter(this.registry);
+        setShowFpsCounter(this.registry, next);
+        this.fpsToggle.setLabel(
+          next ? "FPS / frame time: ON" : "FPS / frame time: OFF",
+        );
+      },
+      { width: scaleUiX(240), height: scaleUiY(48), depth: 402 },
+    );
+
+    this.worldScaleToggle = createTouchButton(
+      this,
+      w / 2,
+      h / 2 + scaleUiY(200),
       worldScaleDebugLabel(getWorldPixelScale(this.registry)),
       () => {
         const next = cycleDebugWorldPixelScale(this.game);
@@ -126,7 +144,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.fullscreenToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(200),
+      h / 2 + scaleUiY(265),
       fullscreenButtonLabel(this.scale),
       () => {
         toggleFullscreen(this.scale);
@@ -141,13 +159,13 @@ export class DebugMenuScene extends Phaser.Scene {
     );
 
     const fromDefense = isDefenseDebugHost(this);
-    const closeY = fromDefense ? h / 2 + scaleUiY(335) : h / 2 + scaleUiY(270);
+    const closeY = fromDefense ? h / 2 + scaleUiY(400) : h / 2 + scaleUiY(335);
 
     if (fromDefense) {
       createTouchButton(
         this,
         w / 2,
-        h / 2 + scaleUiY(270),
+        h / 2 + scaleUiY(335),
         "Go to town",
         () => this.leaveDefenseForTown(),
         {

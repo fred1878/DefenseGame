@@ -21,6 +21,7 @@ describe("DebugState", () => {
       showHitboxes: false,
       showTouchInput: false,
       showEnemyPaths: false,
+      showFpsCounter: false,
     });
   });
 

@@ -13,6 +13,12 @@ import {
 import type { IceBoltProjectileFxState } from "../combat/SpellIceBoltProjectileFx";
 import type { PvfxProjectileFxState } from "../combat/SpellPvfxProjectileFx";
 import { projectileTextureRotationOffset } from "../content/combatPvfxAssets";
+import {
+  acquireProjectileSprite,
+  releaseProjectileSprite,
+} from "./projectilePool";
+
+export { destroyProjectilePool, releaseProjectileSprite } from "./projectilePool";
 
 /** Source art faces upper-right at rotation 0. */
 const FIRE_BOLT_ROT_OFFSET = Math.PI / 4;
@@ -83,6 +89,10 @@ function aimProjectileSprite(sprite: Phaser.Physics.Arcade.Sprite, textureKey: s
   sprite.setRotation(angle + projectileRotOffset(textureKey));
 }
 
+function despawnProjectileSprite(sprite: Phaser.Physics.Arcade.Sprite): void {
+  releaseProjectileSprite(sprite.scene, sprite);
+}
+
 export function spawnPlayerProjectile(
   scene: Phaser.Scene,
   x: number,
@@ -95,14 +105,20 @@ export function spawnPlayerProjectile(
   textureKey: string = COMBAT_FX_TEXTURE.stoneThrow,
   damageFlavor: DamageFlavor,
 ): PlayerProjectile {
-  const sprite = scene.physics.add.sprite(x, y, textureKey);
   const base = SPELL_BOLT_TEXTURES.has(textureKey)
     ? SPRITE_DISPLAY.fireBolt
     : SPRITE_DISPLAY.stoneThrow;
   const display = worldDisplayPx(base, scene.registry);
-  sprite.setDisplaySize(display, display);
-  sprite.setCircle(worldDisplayPx(4, scene.registry) / 2);
-  sprite.setDepth(DEFENSE_RENDER_DEPTH.projectile);
+  const circleR = worldDisplayPx(4, scene.registry) / 2;
+  const sprite = acquireProjectileSprite(
+    scene,
+    x,
+    y,
+    textureKey,
+    display,
+    circleR,
+    DEFENSE_RENDER_DEPTH.projectile,
+  );
   const vx = Math.cos(angleRad) * speed;
   const vy = Math.sin(angleRad) * speed;
   sprite.setVelocity(vx, vy);
@@ -205,7 +221,7 @@ export function updateProjectile(
     if (behavior === "pierce") {
       if (projectile.pierceRemaining !== undefined) {
         if (projectile.pierceRemaining <= 0) {
-          projectile.sprite.destroy();
+          despawnProjectileSprite(projectile.sprite);
           return { alive: false, hitEnemyId };
         }
         projectile.pierceRemaining -= 1;
@@ -223,10 +239,10 @@ export function updateProjectile(
         flavor: projectile.damageFlavor,
       };
       projectile.pendingDetonation = detonation;
-      projectile.sprite.destroy();
+      despawnProjectileSprite(projectile.sprite);
       return { alive: false, hitEnemyId };
     }
-    projectile.sprite.destroy();
+    despawnProjectileSprite(projectile.sprite);
     return { alive: false, hitEnemyId };
   }
 
@@ -250,7 +266,7 @@ export function updateProjectile(
       };
       projectile.pendingDetonation = detonation;
     }
-    projectile.sprite.destroy();
+    despawnProjectileSprite(projectile.sprite);
     return { alive: false };
   }
 
@@ -435,7 +451,7 @@ export function updateEnemyProjectile(
         knockback,
       );
     }
-    projectile.sprite.destroy();
+    despawnProjectileSprite(projectile.sprite);
     return false;
   }
 
@@ -458,7 +474,7 @@ export function updateEnemyProjectile(
         flavor: projectile.damageFlavor,
       };
     }
-    projectile.sprite.destroy();
+    despawnProjectileSprite(projectile.sprite);
     return false;
   }
 

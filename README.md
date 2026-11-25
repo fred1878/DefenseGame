@@ -43,7 +43,7 @@ Verified against the current codebase (not a wish list):
 | **Debug** | Hitboxes, touch overlay, enemy paths, world pixel scale (session-only) |
 | **Deploy** | Versioned bundles + `version.json` cache bust on Pages |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music/SFX, walk-cycle animation, campaign ending after night 12, Capacitor store builds, object pooling for enemies/projectiles.
+**Not implemented yet:** title/settings/pause menus, tutorial, music/SFX, walk-cycle animation, campaign ending after night 12, Capacitor store builds.
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 

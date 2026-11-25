@@ -162,8 +162,10 @@ export function defenseSceneE2eKillAllEnemies(
   scene: DefenseSceneE2eDelegate,
 ): void {
   for (const e of scene.enemies) {
-    e.damageable.alive = false;
-    e.sprite.destroy();
+    if (e.damageable.alive) {
+      e.damageable.alive = false;
+      e.damageable.onDeath?.();
+    }
   }
   scene.enemies.length = 0;
 }
