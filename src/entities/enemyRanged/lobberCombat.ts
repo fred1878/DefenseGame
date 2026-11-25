@@ -30,7 +30,7 @@ export function updateLobberCombat(
   extra: LobberCombatState,
   deltaMs: number,
   onWallHit?: () => void,
-): { spawnLob?: LobSpawnRequest } {
+): { spawnLob?: LobSpawnRequest | undefined } {
   const c = enemy.combat;
   const tune = enemy.combatTuning.lobber!;
   const dist = tickCooldownAndFaceTarget(enemy, target, deltaMs);

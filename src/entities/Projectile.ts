@@ -53,9 +53,9 @@ export type PlayerProjectile = {
   /** Owning enemy when spawned from `DefenseEnemyTick`. */
   sourceEnemyId?: string;
   /** Ice Effect 01 travel overlay for `ice_bolt`. */
-  iceBoltFx?: IceBoltProjectileFxState;
+  iceBoltFx?: IceBoltProjectileFxState | undefined;
   /** PVFX Foundry seamless flight loop overlay. */
-  pvfxFlightFx?: PvfxProjectileFxState;
+  pvfxFlightFx?: PvfxProjectileFxState | undefined;
   /** Committed lob landing (blast center) while in flight. */
   lobAimX?: number;
   lobAimY?: number;
@@ -158,7 +158,7 @@ function steerProjectileToward(
 
 export type ProjectileHitUpdate = {
   alive: boolean;
-  hitEnemyId?: string;
+  hitEnemyId?: string | undefined;
 };
 
 export function updateProjectile(
@@ -302,7 +302,11 @@ export type SpellProjectileUpdateContext = {
 export function updateSpellProjectile(
   projectile: PlayerProjectile,
   ctx: SpellProjectileUpdateContext,
-): { alive: boolean; detonation?: ProjectileDetonation; hitEnemyId?: string } {
+): {
+  alive: boolean;
+  detonation?: ProjectileDetonation | undefined;
+  hitEnemyId?: string | undefined;
+} {
   if (projectile.spellBehavior === "tracking" && projectile.trackEnemyId) {
     const target = ctx.findEnemy(projectile.trackEnemyId);
     if (target?.damageable.alive) {

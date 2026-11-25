@@ -480,7 +480,7 @@ export class DefenseScene extends Phaser.Scene {
     this.events.once("shutdown", this.onDefenseShutdown);
   }
 
-  update(_time: number, delta: number): void {
+  override update(_time: number, delta: number): void {
     this.spellCaster.tickCooldowns(delta);
     syncShadowformRuntime(this.player, this.shadowformEndsAt, this.time.now);
     const dir = this.stick.getDirection();

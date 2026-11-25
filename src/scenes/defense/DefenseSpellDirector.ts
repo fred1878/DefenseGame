@@ -107,7 +107,7 @@ export type DefenseSpellDirectorHost = {
     y: number,
     radius: number,
     def?: {
-      blastTextureKey?: string;
+      blastTextureKey?: string | undefined;
       durationMs?: number;
       startAlpha?: number;
       scaleEnd?: number;

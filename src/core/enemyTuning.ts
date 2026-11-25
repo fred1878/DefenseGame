@@ -159,7 +159,7 @@ export type EnemyMeleeCombat = {
    * Optional target on-screen swipe length (ms). Omit → sheet plays at natural speed.
    * When set: `timeScale = natural / fxDurationMs` (faster or slower, not clipped early).
    */
-  fxDurationMs?: number;
+  fxDurationMs?: number | undefined;
   vfxDisplayW: number;
   vfxDisplayH: number;
   vfxOffsetWu: number;

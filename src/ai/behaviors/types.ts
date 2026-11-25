@@ -27,8 +27,8 @@ export type EnemyBehaviorContext = {
   playerX: number;
   playerY: number;
   deltaMs: number;
-  peerAgents?: readonly NavPeerAgent[];
-  peerAllies?: readonly EnemyPeerAlly[];
+  peerAgents?: readonly NavPeerAgent[] | undefined;
+  peerAllies?: readonly EnemyPeerAlly[] | undefined;
   objective?: EnemyObjectiveMode;
 };
 
