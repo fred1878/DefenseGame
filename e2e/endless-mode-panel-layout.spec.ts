@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E } from "./helpers/game";
-import { dragCanvas, tapCanvas } from "./helpers/touch";
+import { type CanvasBox, dragCanvas, tapCanvas } from "./helpers/touch";
 
 const GAME_WIDTH = 540;
 const GAME_HEIGHT = 1200;
@@ -161,41 +161,76 @@ test.describe("endless mode panel layout", () => {
   test("roster drag scroll shifts list offset", async ({ page }) => {
     await gotoE2E(page);
     await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel());
+
+    // One poll for "panel open + roster laid out": while the modal is up every
+    // page round trip waits on a (software-rendered) frame on CI, so keep them few.
+    type DragPlan =
+      | { scrollable: false }
+      | {
+          scrollable: true;
+          x: number;
+          y: number;
+          scrollBefore: number;
+          canvasBox: CanvasBox;
+        };
+    let plan: DragPlan | null = null;
     await expect
       .poll(
-        () =>
-          page.evaluate(() =>
-            Boolean(window.__DEFENSEGAME_E2E__?.api?.isEndlessPanelOpen()),
-          ),
+        async () => {
+          plan = await page.evaluate((): DragPlan | null => {
+            const api = window.__DEFENSEGAME_E2E__?.api;
+            if (!api?.isEndlessPanelOpen()) return null;
+            const state = api.getEndlessEnemyListScrollState();
+            if (!state) return null;
+            if (state.maxScroll <= 0) return { scrollable: false };
+            const targets = api.getUiTapTargets() ?? {};
+            const firstKey = Object.keys(targets)
+              .filter((k) => k.startsWith("endless-enemy-"))
+              .sort()[0];
+            const row = firstKey ? targets[firstKey] : null;
+            const canvas = document.querySelector("#game canvas");
+            if (!row || !canvas) return null;
+            const rect = canvas.getBoundingClientRect();
+            return {
+              scrollable: true,
+              x: row.x,
+              y: row.y,
+              scrollBefore: state.scrollY,
+              canvasBox: {
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+              },
+            };
+          });
+          return plan !== null;
+        },
         { timeout: 15_000 },
       )
       .toBe(true);
+    const drag = plan as DragPlan | null;
+    test.skip(!drag || !drag.scrollable, "Roster fits without scrolling");
+    if (!drag || !drag.scrollable) return;
 
-    const drag = await page.evaluate(() => {
-      const api = window.__DEFENSEGAME_E2E__?.api;
-      const state = api?.getEndlessEnemyListScrollState();
-      if (!state || state.maxScroll <= 0) return null;
-      const targets = api?.getUiTapTargets() ?? {};
-      const firstKey = Object.keys(targets)
-        .filter((k) => k.startsWith("endless-enemy-"))
-        .sort()[0];
-      const row = firstKey ? targets[firstKey] : null;
-      return {
-        x: row?.x ?? 135,
-        y: row?.y ?? state.listTop + 24,
-        scrollBefore: state.scrollY,
-      };
+    // Drag distance (90px) is far above the 10px tap threshold, so two
+    // moves are enough; each one is a renderer round trip.
+    await dragCanvas(page, drag.x, drag.y, drag.x, drag.y - 90, {
+      steps: 2,
+      canvasBox: drag.canvasBox,
     });
-    test.skip(!drag, "Roster fits without scrolling");
 
-    await dragCanvas(page, drag!.x, drag!.y, drag!.x, drag!.y - 90);
-
-    const scrollAfter = await page.evaluate(
-      () =>
-        window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyListScrollState()
-          ?.scrollY ?? 0,
-    );
-    expect(scrollAfter).toBeGreaterThan(drag!.scrollBefore + 8);
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () =>
+              window.__DEFENSEGAME_E2E__?.api?.getEndlessEnemyListScrollState()
+                ?.scrollY ?? 0,
+          ),
+        { timeout: 5_000 },
+      )
+      .toBeGreaterThan(drag.scrollBefore + 8);
   });
 
   test("start is blocked when no enemies are selected", async ({ page }) => {
