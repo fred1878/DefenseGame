@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
+import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
 import type { SaveGame } from "../../core/saveTypes";
 import { persistSave, playerDamageMult } from "../../core/GameState";
@@ -14,6 +15,7 @@ import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
 import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
 import type { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
 import type { EnemyIceRootFxController } from "../../combat/EnemyIceRootFx";
+import type { EnemyIceStunFxController } from "../../combat/EnemyIceStunFx";
 import {
   spellNeedsGroundAoeTelegraph,
   type SpellGroundAoeTelegraph,
@@ -87,6 +89,7 @@ export type DefenseSpellDirectorHost = {
   healChannelFx: SpellHealChannelFx | null;
   iceCastWindupFx: SpellIceCastWindupFx | null;
   enemyIceRootFx: EnemyIceRootFxController;
+  enemyIceStunFx: EnemyIceStunFxController;
   channelAreaStarted: boolean;
   shadowformEndsAt: number;
   iceWallExpires: Array<{ sprite: Phaser.Physics.Arcade.Image; expiresAt: number }>;
@@ -178,13 +181,7 @@ export class DefenseSpellDirector {
   onSpellCastRequest(spellId: string, stickX = 0, stickY = 0): void {
     const def = spellById(spellId);
     if (!def) return;
-    if (
-      def.requireEnemyTarget &&
-      spellTargetMode(def) === "enemy" &&
-      !this.host.targeting.focusEnemyId
-    ) {
-      return;
-    }
+    if (!this.prepareManualCastTargeting(def)) return;
     if (!this.host.player.canAttack() || this.host.spellCaster.isChanneling()) {
       this.host.spellInputQueue.enqueue(spellId);
       return;
@@ -192,7 +189,8 @@ export class DefenseSpellDirector {
     if (
       spellRequiresManualTarget(def) &&
       spellTargetMode(def) === "ground" &&
-      !this.host.pendingGroundCast
+      !this.host.pendingGroundCast &&
+      !spellGroundTapAutoCasts(def.id)
     ) {
       this.host.pendingGroundCast = spellId;
       const aim = this.defaultGroundTarget(def);
@@ -224,17 +222,44 @@ export class DefenseSpellDirector {
     const spellId = queued.spellId;
     const def = spellById(spellId);
     if (!def) return;
-    if (
-      def.requireEnemyTarget &&
-      spellTargetMode(def) === "enemy" &&
-      !this.host.targeting.focusEnemyId
-    ) {
-      return;
-    }
+    if (!this.prepareManualCastTargeting(def)) return;
     if (spellTargetMode(def) === "ground") {
       this.host.groundAim = this.defaultGroundTarget(def);
     }
     this.beginSpellCast(spellId, "manual", stickX, stickY);
+  }
+
+  /**
+   * Auto-acquire nearest valid target when the player has not picked one manually.
+   * Returns false when no valid target exists for spells that need one.
+   */
+  prepareManualCastTargeting(def: SpellDefinition): boolean {
+    const mode = spellTargetMode(def);
+    const target = this.autoCastCombatTarget(def);
+
+    if (def.requireEnemyTarget === true && mode === "enemy") {
+      if (!this.host.targeting.focusEnemyId && !target) return false;
+      if (!this.host.targeting.focusEnemyId && target) {
+        this.host.targeting.setFocusEnemy(target.id);
+        this.host.player.faceToward(target.x, target.y);
+      }
+      return true;
+    }
+
+    if (spellGroundTapAutoCasts(def.id) && mode === "ground") {
+      if (!target) return false;
+      this.host.groundAim = this.autoCastGroundTarget(def);
+      return true;
+    }
+
+    if (target && mode === "enemy" && !this.host.targeting.focusEnemyId) {
+      this.host.targeting.setFocusEnemy(target.id);
+      this.host.player.faceToward(target.x, target.y);
+    }
+    if (target && mode === "ground" && !this.host.groundAim) {
+      this.host.groundAim = this.autoCastGroundTarget(def);
+    }
+    return true;
   }
 
   private flushQueuedManualAttack(): void {

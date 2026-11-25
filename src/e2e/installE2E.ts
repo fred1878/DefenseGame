@@ -7,6 +7,7 @@ import type { DataStore } from "../core/DataStore";
 import { COMBAT_FX_ASSETS, SPELL_FX_ASSETS, spellIconTextureKey } from "../content/assets";
 import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { ICE_FX_ASSETS } from "../content/iceFxAssets";
+import { PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import {
   mergePlayerWithoutLegacyMoveSpeed,
@@ -596,6 +597,7 @@ export function markE2EAssetsLoaded(game: Phaser.Game): void {
     ...SPELL_FX_ASSETS.map((a) => a.key),
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),
+    ...PVFX_FX_ASSETS.map((a) => a.key),
   ];
   const ok = keys.every((k) => game.textures.exists(k));
   publishE2E({ assetsLoaded: ok, flags: { combatFxKeys: keys.join(",") } });

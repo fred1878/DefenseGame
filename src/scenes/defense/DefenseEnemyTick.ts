@@ -39,7 +39,9 @@ import type { Damageable } from "../../combat/DamageSystem";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { decayEnemyKnockback, setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { updateEnemyNameplate } from "../../ui/enemyNameplate";
-import { SPRITE_DISPLAY } from "../../content/assets";
+import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../../content/assets";
+import { enemyProjectileTextureKey, PVFX_TEXTURE } from "../../content/combatPvfxAssets";
+import { attachPvfxProjectileFx } from "../../combat/SpellPvfxProjectileFx";
 
 export type DefenseEnemyTickHost = {
   scene: Phaser.Scene;
@@ -219,6 +221,11 @@ export function tickDefenseEnemies(
         const req = bolt.spawnBolt;
         const tune = e.combatTuning.stationaryRanged!;
         const id = host.nextProjectileId("es_");
+        const boltTexture = enemyProjectileTextureKey(
+          host.scene,
+          e.defId,
+          COMBAT_FX_TEXTURE.stoneThrow,
+        );
         const boltProj = spawnEnemyProjectile(
           host.scene,
           req.fromX,
@@ -229,7 +236,16 @@ export function tickDefenseEnemies(
           req.damage,
           worldUnit(tune.projectileMaxTravelWu, host.scene.registry),
           id,
+          boltTexture,
         );
+        if (boltTexture === PVFX_TEXTURE.arrowFlight) {
+          attachPvfxProjectileFx(
+            host.scene,
+            boltProj,
+            boltTexture,
+            host.maskWorldObject,
+          );
+        }
         boltProj.sourceEnemyId = e.id;
         host.maskWorldObject?.(boltProj.sprite);
         enemyProjectiles.push(boltProj);

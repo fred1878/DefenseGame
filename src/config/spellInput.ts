@@ -3,6 +3,8 @@ export type SpellInputTuning = {
   castInterruptStickAngleDeg: number;
   /** Raw stick magnitude above which the player counts as moving (auto-cast / queue). */
   stickMovingMagnitudeEps: number;
+  /** Ground spells that cast at auto-target on a short spell-bar tap (drag still manual aim). */
+  groundTapAutoCastSpellIds: readonly string[];
 };
 
 function unsetSpellInputScalar(label: string): number {
@@ -23,7 +25,19 @@ export let STICK_MOVING_MAGNITUDE_EPS = unsetSpellInputScalar(
   "STICK_MOVING_MAGNITUDE_EPS",
 );
 
+export let GROUND_TAP_AUTO_CAST_SPELL_IDS: readonly string[] = new Proxy(
+  [] as readonly string[],
+  {
+    get() {
+      throw new Error(
+        "GROUND_TAP_AUTO_CAST_SPELL_IDS not loaded — Boot must apply public/data/spell_input.json",
+      );
+    },
+  },
+);
+
 export function applySpellInputTuning(tuning: SpellInputTuning): void {
   CAST_INTERRUPT_STICK_ANGLE_DEG = tuning.castInterruptStickAngleDeg;
   STICK_MOVING_MAGNITUDE_EPS = tuning.stickMovingMagnitudeEps;
+  GROUND_TAP_AUTO_CAST_SPELL_IDS = tuning.groundTapAutoCastSpellIds;
 }
