@@ -57,10 +57,12 @@ function applyTint(
   }
 
   if (entry.mode === "fill") {
-    sprite.setTintFill(entry.tint);
+    sprite.setTint(entry.tint).setTintMode(Phaser.TintModes.FILL);
     return;
   }
 
+  // Phaser 4: setTint() no longer resets FILL mode, so pick the mode explicitly.
+  sprite.setTintMode(Phaser.TintModes.MULTIPLY);
   if (entry.colorFade) {
     sprite.setTint(hitFlashTintAtStrength(flavor, strength));
   } else {

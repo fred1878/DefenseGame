@@ -3,7 +3,7 @@
  * scrollbar + mask, scrollbar thumb layout, row selection paint and the Start
  * button enabled state.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { createTouchButton } from "./touchButton";
@@ -12,10 +12,10 @@ export type RosterListChrome = {
   scrollTrack: Phaser.GameObjects.Rectangle;
   scrollThumb: Phaser.GameObjects.Rectangle;
   maskGraphics: Phaser.GameObjects.Graphics;
-  mask: Phaser.Display.Masks.GeometryMask;
+  mask: Phaser.Filters.Mask;
 };
 
-/** Scroll track + thumb beside the list, and a geometry mask over the viewport. */
+/** Scroll track + thumb beside the list, and a Mask filter clipping it to the viewport. */
 export function addRosterListChrome(
   scene: Phaser.Scene,
   root: Phaser.GameObjects.Container,
@@ -51,8 +51,10 @@ export function addRosterListChrome(
   const maskGraphics = scene.make.graphics({ x: 0, y: 0 }, false);
   maskGraphics.fillStyle(0xffffff);
   maskGraphics.fillRect(listLeft, listTop, rowW, listViewportH);
-  const mask = maskGraphics.createGeometryMask();
-  listContent.setMask(mask);
+  // Phaser 4: GeometryMask is Canvas-only (setMask is ignored under WebGL), so clip
+  // the list with the Mask filter, rendered from the same viewport rectangle.
+  listContent.enableFilters();
+  const mask = listContent.filters!.internal.addMask(maskGraphics);
   return { scrollTrack, scrollThumb, maskGraphics, mask };
 }
 

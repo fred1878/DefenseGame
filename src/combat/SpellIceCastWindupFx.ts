@@ -36,7 +36,7 @@ export class SpellIceCastWindupFx {
       .play(ICE_FX_ANIM.castStart);
     registerWorldDraw?.(sprite);
     const anim = this.scene.anims.get(ICE_FX_ANIM.castStart);
-    const animMs = anim.duration;
+    const animMs = anim?.duration ?? 0;
     if (animMs > 0 && castMs > 0) {
       sprite.anims.timeScale = animMs / castMs;
     }

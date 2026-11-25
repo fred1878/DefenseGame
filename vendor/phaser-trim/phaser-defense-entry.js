@@ -22,13 +22,12 @@ var Phaser = {
   Cameras: require("./cameras"),
   Core: require("./core"),
   Class: require("./utils/Class"),
-  Create: require("./create"),
   Curves: require("./curves"),
   Data: require("./data"),
   Display: require("./display"),
   DOM: require("./dom"),
   Events: require("./events"),
-  FX: require("./fx"),
+  Filters: require("./filters"),
   Game: require("./core/Game"),
   GameObjects: require("./gameobjects"),
   Geom: require("./geom"),
@@ -47,27 +46,13 @@ var Phaser = {
   Structs: require("./structs"),
   Textures: require("./textures"),
   Time: require("./time"),
+  TintModes: require("./renderer/TintModes"),
   Tweens: require("./tweens"),
   Utils: require("./utils"),
 };
 
 if (typeof FEATURE_SOUND) {
   Phaser.Sound = require("./sound");
-}
-
-if (typeof PLUGIN_CAMERA3D) {
-  Phaser.Cameras.Sprite3D = require("../plugins/camera3d/src");
-  Phaser.GameObjects.Sprite3D =
-    require("../plugins/camera3d/src/sprite3d/Sprite3D");
-  Phaser.GameObjects.Factories.Sprite3D =
-    require("../plugins/camera3d/src/sprite3d/Sprite3DFactory");
-  Phaser.GameObjects.Creators.Sprite3D =
-    require("../plugins/camera3d/src/sprite3d/Sprite3DCreator");
-}
-
-if (typeof PLUGIN_FBINSTANT) {
-  Phaser.FacebookInstantGamesPlugin =
-    require("../plugins/fbinstant/src/FacebookInstantGamesPlugin");
 }
 
 Phaser = Extend(false, Phaser, CONST);

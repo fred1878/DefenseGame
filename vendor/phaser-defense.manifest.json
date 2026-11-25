@@ -1,7 +1,7 @@
 {
-  "phaserVersion": "3.90.0",
-  "builtAt": "2026-11-25T19:58:04.512Z",
-  "bytes": 5845393,
+  "phaserVersion": "4.2.1",
+  "builtAt": "2026-11-25T20:11:53.255Z",
+  "bytes": 6495414,
   "entry": "vendor/phaser-trim/phaser-defense-entry.js",
   "trims": [
     "physics: arcade-only (entry)",

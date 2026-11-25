@@ -28,45 +28,60 @@ function inputSpaceToScreen(
   const csy = cam.scrollY;
   const worldPtrX = px - csx * sfx + csx;
   const worldPtrY = py - csy * sfy + csy;
-  return worldPointToScreen(worldPtrX, worldPtrY, cam);
+  return cameraWorldToScreen(worldPtrX, worldPtrY, {
+    x: cam.x,
+    y: cam.y,
+    width: cam.width,
+    height: cam.height,
+    originX: cam.originX,
+    originY: cam.originY,
+    scrollX: csx,
+    scrollY: csy,
+    zoomX: cam.zoomX,
+    zoomY: cam.zoomY,
+    // Phaser 4's .d.ts omits Camera#rotation (it is a runtime property).
+    rotation: (cam as { rotation?: number }).rotation ?? 0,
+  });
 }
 
-/** Inverse of Camera.getWorldPoint — world → pointer (screen) space. */
-function worldPointToScreen(
+/** The camera properties that define its view transform (all public on Phaser's Camera). */
+export type CameraView = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  originX: number;
+  originY: number;
+  scrollX: number;
+  scrollY: number;
+  zoomX: number;
+  zoomY: number;
+  rotation: number;
+};
+
+/**
+ * World → pointer (screen) space; the inverse of `Camera.getWorldPoint`.
+ *
+ * Computed from the camera's public properties instead of `Camera#matrix`, whose
+ * meaning changed in Phaser 4 (it now already includes scroll, and position moved
+ * to `matrixExternal`). Phaser's camera view transform is
+ *   screen = camPos + origin + Rotate(Zoom(world - scroll - origin))
+ * with origin = (width * originX, height * originY).
+ */
+export function cameraWorldToScreen(
   worldX: number,
   worldY: number,
-  cam: Phaser.Cameras.Scene2D.Camera,
+  cam: CameraView,
 ): { x: number; y: number } {
-  const camXf = cam as Phaser.Cameras.Scene2D.Camera & {
-    matrix?: Phaser.GameObjects.Components.TransformMatrix;
-    rotation: number;
-    zoomX: number;
-    zoomY: number;
-  };
-  const cameraMatrix = camXf.matrix?.matrix;
-  if (!cameraMatrix) {
-    return { x: worldX, y: worldY };
-  }
-  const mva = cameraMatrix[0] ?? 1;
-  const mvb = cameraMatrix[1] ?? 0;
-  const mvc = cameraMatrix[2] ?? 0;
-  const mvd = cameraMatrix[3] ?? 1;
-  const mve = cameraMatrix[4] ?? 0;
-  const mvf = cameraMatrix[5] ?? 0;
-
-  const sx = worldX * mva + worldY * mvc + mve;
-  const sy = worldX * mvb + worldY * mvd + mvf;
-
-  const c = Math.cos(camXf.rotation);
-  const s = Math.sin(camXf.rotation);
-  const scrollX = cam.scrollX;
-  const scrollY = cam.scrollY;
-  const zoomX = camXf.zoomX;
-  const zoomY = camXf.zoomY;
-
+  const ox = cam.width * cam.originX;
+  const oy = cam.height * cam.originY;
+  const dx = (worldX - cam.scrollX - ox) * cam.zoomX;
+  const dy = (worldY - cam.scrollY - oy) * cam.zoomY;
+  const c = Math.cos(cam.rotation);
+  const s = Math.sin(cam.rotation);
   return {
-    x: sx - (scrollX * c - scrollY * s) * zoomX,
-    y: sy - (scrollX * s + scrollY * c) * zoomY,
+    x: cam.x + ox + dx * c - dy * s,
+    y: cam.y + oy + dx * s + dy * c,
   };
 }
 
