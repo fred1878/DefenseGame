@@ -180,7 +180,8 @@ export function tickDefenseProjectiles(
         host.player.damageable.alive
       ) {
         const scale =
-          (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ?? 1;
+          (p as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale ??
+          1;
         applyDamage(
           host.player.damageable,
           det.damage * scale * playerIncomingDamageMult(),

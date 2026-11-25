@@ -158,7 +158,14 @@ describe("resolveManualDefaultGroundAim", () => {
 
   it("uses facing offset when no focus and no enemies in ground range", () => {
     const groundMax = 100;
-    const aim = resolveManualDefaultGroundAim(0, 0, Math.PI / 2, null, [], groundMax);
+    const aim = resolveManualDefaultGroundAim(
+      0,
+      0,
+      Math.PI / 2,
+      null,
+      [],
+      groundMax,
+    );
     expect(aim.x).toBeCloseTo(0);
     expect(aim.y).toBeCloseTo(groundMax * 0.55);
   });

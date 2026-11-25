@@ -6,9 +6,11 @@ let debugMenuScenePromise: Promise<void> | null = null;
 export async function ensureDefenseScene(game: Phaser.Game): Promise<void> {
   if (game.scene.getScene("Defense")) return;
   if (!defenseScenePromise) {
-    defenseScenePromise = import("../scenes/DefenseScene").then(({ DefenseScene }) => {
-      game.scene.add("Defense", DefenseScene, false);
-    });
+    defenseScenePromise = import("../scenes/DefenseScene").then(
+      ({ DefenseScene }) => {
+        game.scene.add("Defense", DefenseScene, false);
+      },
+    );
   }
   await defenseScenePromise;
 }

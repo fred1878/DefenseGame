@@ -18,20 +18,30 @@ export function spellPlaysFireWhooshOnChanneledConeTick(
   def: SpellDefinition,
   isFirstTick: boolean,
 ): boolean {
-  return isFirstTick && def.damageFlavor === "fire" && def.mechanicType === "channeled_cone";
+  return (
+    isFirstTick &&
+    def.damageFlavor === "fire" &&
+    def.mechanicType === "channeled_cone"
+  );
 }
 
 /** Ground channeled fire (e.g. flamestrike) opening burst when the channel zone starts. */
-export function spellPlaysFireWhooshOnChanneledAreaStart(def: SpellDefinition): boolean {
+export function spellPlaysFireWhooshOnChanneledAreaStart(
+  def: SpellDefinition,
+): boolean {
   return def.damageFlavor === "fire" && def.mechanicType === "channeled_area";
 }
 
 /** Linger / post-impact ground fire (e.g. flamestrike afterburn). */
-export function spellPlaysFireWhooshOnChannelLinger(def: SpellDefinition): boolean {
+export function spellPlaysFireWhooshOnChannelLinger(
+  def: SpellDefinition,
+): boolean {
   return def.damageFlavor === "fire" && (def.lingerMs ?? 0) > 0;
 }
 
 export function playFireWhooshSfx(scene: Phaser.Scene): void {
   if (!scene.cache.audio.exists(FIRE_WHOOSH_SFX_KEY)) return;
-  scene.sound.play(FIRE_WHOOSH_SFX_KEY, { volume: COMBAT_AUDIO.fireWhooshVolume });
+  scene.sound.play(FIRE_WHOOSH_SFX_KEY, {
+    volume: COMBAT_AUDIO.fireWhooshVolume,
+  });
 }

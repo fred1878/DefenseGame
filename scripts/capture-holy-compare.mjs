@@ -42,8 +42,7 @@ function parseArgs() {
 }
 
 const defaultOutDir =
-  process.env.DEFENSE_HOLY_COMPARE_OUT_DIR ??
-  "/cursor/stores/self/media";
+  process.env.DEFENSE_HOLY_COMPARE_OUT_DIR ?? "/cursor/stores/self/media";
 
 function outPath(phase, kind) {
   mkdirSync(defaultOutDir, { recursive: true });
@@ -60,7 +59,7 @@ function wait(ms) {
 async function playerCenteredClip(page) {
   return page.evaluate((size) => {
     const api = window.__DEFENSEGAME_E2E__?.api;
-  if (!api) throw new Error("E2E api missing");
+    if (!api) throw new Error("E2E api missing");
     const p = api.getPlayerPosition();
     const screen = api.worldPointToDefenseScreen(p.x, p.y);
     const half = size / 2;

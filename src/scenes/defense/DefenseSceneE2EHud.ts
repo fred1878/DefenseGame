@@ -95,33 +95,40 @@ export function defenseSceneE2eSampleHudBandPixelsAsync(
 }> {
   const points = defenseSceneE2eHudBandPixelProbePoints(scene);
   return new Promise((resolve) => {
-    scene.game.renderer.snapshot((image: HTMLImageElement | Phaser.Display.Color) => {
-      if (!(image instanceof HTMLImageElement)) {
-        const zero = { r: 0, g: 0, b: 0, a: 0, luminance: 0 };
+    scene.game.renderer.snapshot(
+      (image: HTMLImageElement | Phaser.Display.Color) => {
+        if (!(image instanceof HTMLImageElement)) {
+          const zero = { r: 0, g: 0, b: 0, a: 0, luminance: 0 };
+          resolve({
+            points,
+            topBand: zero,
+            bottomBand: zero,
+            playArea: zero,
+          });
+          return;
+        }
         resolve({
           points,
-          topBand: zero,
-          bottomBand: zero,
-          playArea: zero,
+          topBand: readPixelFromSnapshot(
+            scene,
+            image,
+            points.topBand.x,
+            points.topBand.y,
+          ),
+          bottomBand: readPixelFromSnapshot(
+            scene,
+            image,
+            points.bottomBand.x,
+            points.bottomBand.y,
+          ),
+          playArea: readPixelFromSnapshot(
+            scene,
+            image,
+            points.playArea.x,
+            points.playArea.y,
+          ),
         });
-        return;
-      }
-      resolve({
-        points,
-        topBand: readPixelFromSnapshot(scene, image, points.topBand.x, points.topBand.y),
-        bottomBand: readPixelFromSnapshot(
-          scene,
-          image,
-          points.bottomBand.x,
-          points.bottomBand.y,
-        ),
-        playArea: readPixelFromSnapshot(
-          scene,
-          image,
-          points.playArea.x,
-          points.playArea.y,
-        ),
-      });
-    });
+      },
+    );
   });
 }

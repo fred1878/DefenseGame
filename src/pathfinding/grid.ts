@@ -93,7 +93,16 @@ export function buildNavGrid(
     cellSize,
   );
 
-  return { cellSize, cols, rows, minX, minY, blocked, solidBlocked, clearancePx };
+  return {
+    cellSize,
+    cols,
+    rows,
+    minX,
+    minY,
+    blocked,
+    solidBlocked,
+    clearancePx,
+  };
 }
 
 export function worldToCell(
@@ -107,14 +116,22 @@ export function worldToCell(
   return { col, row };
 }
 
-export function cellToWorldCenter(grid: NavGrid, col: number, row: number): { x: number; y: number } {
+export function cellToWorldCenter(
+  grid: NavGrid,
+  col: number,
+  row: number,
+): { x: number; y: number } {
   return {
     x: grid.minX + (col + 0.5) * grid.cellSize,
     y: grid.minY + (row + 0.5) * grid.cellSize,
   };
 }
 
-export function cellSolidBlocked(grid: NavGrid, col: number, row: number): boolean {
+export function cellSolidBlocked(
+  grid: NavGrid,
+  col: number,
+  row: number,
+): boolean {
   if (col < 0 || row < 0 || col >= grid.cols || row >= grid.rows) return true;
   const solid = grid.solidBlocked ?? grid.blocked;
   return solid[cellIndex(grid, col, row)] === 1;

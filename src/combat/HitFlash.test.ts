@@ -68,17 +68,27 @@ describe("HitFlash", () => {
   it("applies tint fill and alpha fade for physical at peak strength", () => {
     const sprite = mockFlashSprite();
     const scene = mockFlashScene();
-    flashSpriteTint(scene, sprite as unknown as Phaser.GameObjects.Sprite, "physical");
+    flashSpriteTint(
+      scene,
+      sprite as unknown as Phaser.GameObjects.Sprite,
+      "physical",
+    );
     expect(sprite.setTint).toHaveBeenCalledWith(16777215);
     expect(sprite.setTintMode).toHaveBeenCalledWith(Phaser.TintModes.FILL);
-    expect(sprite.setTintMode).not.toHaveBeenCalledWith(Phaser.TintModes.MULTIPLY);
+    expect(sprite.setTintMode).not.toHaveBeenCalledWith(
+      Phaser.TintModes.MULTIPLY,
+    );
     expect(sprite.setAlpha).toHaveBeenCalledWith(1);
   });
 
   it("applies multiply tint, color lerp, and alpha at peak for elemental flavors", () => {
     const sprite = mockFlashSprite();
     const scene = mockFlashScene();
-    flashSpriteTint(scene, sprite as unknown as Phaser.GameObjects.Sprite, "water");
+    flashSpriteTint(
+      scene,
+      sprite as unknown as Phaser.GameObjects.Sprite,
+      "water",
+    );
     expect(sprite.setTint).toHaveBeenCalledWith(7254992);
     expect(sprite.setTintMode).toHaveBeenCalledWith(Phaser.TintModes.MULTIPLY);
     expect(sprite.setTintMode).not.toHaveBeenCalledWith(Phaser.TintModes.FILL);

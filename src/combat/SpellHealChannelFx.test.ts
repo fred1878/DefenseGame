@@ -32,7 +32,13 @@ describe("SpellHealChannelFx", () => {
     const chain = (k: string) => {
       glow[k] = vi.fn(() => glow);
     };
-    for (const k of ["setDepth", "setTint", "setAlpha", "setBlendMode", "setDisplaySize"]) {
+    for (const k of [
+      "setDepth",
+      "setTint",
+      "setAlpha",
+      "setBlendMode",
+      "setDisplaySize",
+    ]) {
       chain(k);
     }
     const image = vi.fn(() => glow);

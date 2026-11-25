@@ -19,9 +19,7 @@ export function normalizeTownLayout(
     "town_layout.buildingDisplayScale",
   );
   if (buildingDisplayScale < 1) {
-    throw new ConfigLoadError(
-      "town_layout.buildingDisplayScale must be >= 1",
-    );
+    throw new ConfigLoadError("town_layout.buildingDisplayScale must be >= 1");
   }
 
   const slotsRaw = root.slots;

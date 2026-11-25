@@ -1,13 +1,11 @@
 import Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
 import { PVFX_ANIM, PVFX_TEXTURE } from "../content/combatPvfxAssets";
-import {
-  meteorStrikeFxFlipX,
-  playMeteorStrikeFx,
-} from "./SpellMeteorStrikeFx";
+import { meteorStrikeFxFlipX, playMeteorStrikeFx } from "./SpellMeteorStrikeFx";
 
-(Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  Phaser as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 (Phaser as { BlendModes?: { ADD: number } }).BlendModes = { ADD: 1 };
 
 function mockScene() {
@@ -56,8 +54,8 @@ describe("playMeteorStrikeFx", () => {
   it("passes flipX to the meteor sprite", () => {
     const scene = mockScene();
     playMeteorStrikeFx(scene, 100, 200, 48, true);
-    const sprite = (scene.add.sprite as ReturnType<typeof vi.fn>).mock.results[0]!
-      .value as { setFlipX: ReturnType<typeof vi.fn> };
+    const sprite = (scene.add.sprite as ReturnType<typeof vi.fn>).mock
+      .results[0]!.value as { setFlipX: ReturnType<typeof vi.fn> };
     expect(sprite.setFlipX).toHaveBeenCalledWith(true);
   });
 });

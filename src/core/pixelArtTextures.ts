@@ -21,10 +21,10 @@ import { SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 const GAME_SPRITE_KEYS = [
   ...Object.values(PLAYER_TEXTURE),
   ...ENEMY_SPRITE_ASSETS.map((a) => a.key),
-    ...COMBAT_FX_ASSETS.map((a) => a.key),
-    ...SPELL_FX_ASSETS.map((a) => a.key),
-    ...SPELL_ICON_ASSETS.map((a) => a.key),
-  ];
+  ...COMBAT_FX_ASSETS.map((a) => a.key),
+  ...SPELL_FX_ASSETS.map((a) => a.key),
+  ...SPELL_ICON_ASSETS.map((a) => a.key),
+];
 
 /** Nearest-neighbor sampling for world sprites/tiles; UI stays vector (Graphics/Text). */
 export function configurePixelArtTextures(scene: Phaser.Scene): void {

@@ -31,11 +31,10 @@ function mockScene(): Phaser.Scene {
   const scene = {
     physics: { add: { sprite: vi.fn() } },
   } as unknown as Phaser.Scene;
-  (
-    scene.physics.add as { sprite: typeof scene.physics.add.sprite }
-  ).sprite = vi.fn((_x, _y, key) =>
-    mockProjectileSprite(scene, key),
-  ) as unknown as typeof scene.physics.add.sprite;
+  (scene.physics.add as { sprite: typeof scene.physics.add.sprite }).sprite =
+    vi.fn((_x, _y, key) =>
+      mockProjectileSprite(scene, key),
+    ) as unknown as typeof scene.physics.add.sprite;
   return scene;
 }
 

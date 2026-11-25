@@ -66,7 +66,11 @@ describe("pickEnemyTarget", () => {
       if (clearanceCell) break;
     }
     expect(clearanceCell).not.toBeNull();
-    const player = cellToWorldCenter(grid, clearanceCell!.col, clearanceCell!.row);
+    const player = cellToWorldCenter(
+      grid,
+      clearanceCell!.col,
+      clearanceCell!.row,
+    );
     const ex = player.x + 60;
     const ey = player.y;
     expect(pickEnemyTarget(grid, ex, ey, player.x, player.y)).toBe("player");
@@ -131,7 +135,10 @@ describe("wallTargetPoint", () => {
 describe("noteEnemyPathProgress", () => {
   it("forces replan when the enemy stalls on a waypoint", () => {
     const nav = createEnemyNav();
-    nav.path = [{ x: 0, y: 0 }, { x: 100, y: -200 }];
+    nav.path = [
+      { x: 0, y: 0 },
+      { x: 100, y: -200 },
+    ];
     nav.pathIndex = 1;
     nav.replanMs = 200;
     const stallMs = DEFENSE_MAP.pathStallMs;
@@ -154,7 +161,11 @@ describe("pathingPeerAgents", () => {
 
 describe("replanEnemyPath", () => {
   it("produces a non-empty path toward goal", () => {
-    const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
+    const grid = buildNavGrid(
+      DEFENSE_OBSTACLES,
+      16,
+      DEFENSE_MAP.pathClearancePx,
+    );
     const nav = createEnemyNav();
     replanEnemyPath(nav, grid, 0, 400, 0, -500);
     expect(nav.path.length).toBeGreaterThan(0);

@@ -28,12 +28,7 @@ describe("meleeChaserBehavior", () => {
     };
     expect(shouldMeleeLosShortcutToPlayer(enemy, nav, 0, 0)).toBe(true);
     expect(
-      shouldMeleeLosShortcutToPlayer(
-        enemy,
-        { ...nav, pathIndex: 0 },
-        0,
-        0,
-      ),
+      shouldMeleeLosShortcutToPlayer(enemy, { ...nav, pathIndex: 0 }, 0, 0),
     ).toBe(false);
     expect(
       shouldMeleeLosShortcutToPlayer(
@@ -134,7 +129,10 @@ describe("meleeChaserBehavior", () => {
     enemy.nav = {
       ...createEnemyNav(),
       targetKind: "player",
-      path: [{ x: -35, y: 70 }, { x: -10, y: 80 }],
+      path: [
+        { x: -35, y: 70 },
+        { x: -10, y: 80 },
+      ],
       pathIndex: 1,
       replanMs: 5000,
     };
@@ -243,10 +241,7 @@ describe("meleeChaserBehavior", () => {
     const [vx, vy] = setVelocity.mock.calls.at(-1)!;
     expect(Math.hypot(vx, vy)).toBeGreaterThan(0);
     const moveAngle = Math.atan2(vy, vx);
-    const towardWp = Math.atan2(
-      waypoint.y - flank.y,
-      waypoint.x - flank.x,
-    );
+    const towardWp = Math.atan2(waypoint.y - flank.y, waypoint.x - flank.x);
     expect(
       Math.abs(
         Math.atan2(

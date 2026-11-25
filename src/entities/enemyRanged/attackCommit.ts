@@ -1,7 +1,4 @@
-import type {
-  EnemyAttackTarget,
-  EnemyCombatState,
-} from "../EnemyCombat";
+import type { EnemyAttackTarget, EnemyCombatState } from "../EnemyCombat";
 
 export function commitEnemyAttack(
   c: EnemyCombatState,

@@ -1,7 +1,4 @@
-import {
-  DAMAGE_FLAVORS,
-  type DamageFlavor,
-} from "../combat/DamageSystem";
+import { DAMAGE_FLAVORS, type DamageFlavor } from "../combat/DamageSystem";
 import {
   ConfigLoadError,
   requireFiniteNumber,
@@ -51,9 +48,7 @@ export const HIT_FLASH_FLAVOR_BOOT_KEYS = [
 function requireTint(value: unknown, path: string): number {
   const n = requireFiniteNumber(value, path);
   if (!Number.isInteger(n) || n < 0 || n > 0xffffff) {
-    throw new ConfigLoadError(
-      `Expected integer tint 0..16777215 at ${path}`,
-    );
+    throw new ConfigLoadError(`Expected integer tint 0..16777215 at ${path}`);
   }
   return n;
 }
@@ -67,17 +62,12 @@ function requireBoolean(value: unknown, path: string): boolean {
 
 function requireHitFlashMode(value: unknown, path: string): HitFlashMode {
   if (value !== "fill" && value !== "multiply") {
-    throw new ConfigLoadError(
-      `Expected "fill" or "multiply" at ${path}`,
-    );
+    throw new ConfigLoadError(`Expected "fill" or "multiply" at ${path}`);
   }
   return value;
 }
 
-function normalizeFlavorEntry(
-  raw: unknown,
-  path: string,
-): HitFlashFlavorEntry {
+function normalizeFlavorEntry(raw: unknown, path: string): HitFlashFlavorEntry {
   const entry = requireRecord(raw, path);
   return {
     tint: requireTint(entry.tint, `${path}.tint`),
@@ -101,10 +91,7 @@ export function normalizeHitFlash(
     );
   }
   return {
-    durationMs: requireFiniteNumber(
-      root.durationMs,
-      "hit-flash.durationMs",
-    ),
+    durationMs: requireFiniteNumber(root.durationMs, "hit-flash.durationMs"),
     flavors,
   };
 }

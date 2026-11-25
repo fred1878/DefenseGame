@@ -61,7 +61,9 @@ export class WavePlannerPanel {
     const enemyIds = listPlayableDefenseEnemyIds(store);
     if (enemyIds.length === 0) enemyIds.push("grunt");
 
-    const scroll = new WavePlannerPanelScroll(scene, (id) => this.toggleSelect(id));
+    const scroll = new WavePlannerPanelScroll(scene, (id) =>
+      this.toggleSelect(id),
+    );
     this.scroll = scroll;
     const ui = buildWavePlannerPanelUi(
       scene,
@@ -69,8 +71,10 @@ export class WavePlannerPanel {
       enemyIds,
       { counts: this.counts, atMs: this.atMs, intervalMs: this.intervalMs },
       {
-        onBumpField: (enemyId, field, delta) => this.bumpField(enemyId, field, delta),
-        wireListViewport: (listViewport) => scroll.wireListViewportDrag(listViewport),
+        onBumpField: (enemyId, field, delta) =>
+          this.bumpField(enemyId, field, delta),
+        wireListViewport: (listViewport) =>
+          scroll.wireListViewportDrag(listViewport),
         onStartPressed: () => {
           const groups = this.buildGroups();
           if (groups.length === 0) return;

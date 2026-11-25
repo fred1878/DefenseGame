@@ -42,7 +42,9 @@ export function createEnemyNameplate(
     shadow: uiSmallLabelShadow(),
   });
 
-  const nameText = scene.add.text(0, 0, displayName, nameStyle).setOrigin(0.5, 1);
+  const nameText = scene.add
+    .text(0, 0, displayName, nameStyle)
+    .setOrigin(0.5, 1);
   const barY = gap;
   const hpY = barY + barH + gap;
   const hpText = scene.add.text(0, hpY, "", hpStyle).setOrigin(0.5, 0);

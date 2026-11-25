@@ -115,7 +115,10 @@ export function syncDefenseGroundAimModality(
   scene: Phaser.Scene,
   pendingGroundCast: string | null,
 ): void {
-  const active = isInputModalityActive(scene, INPUT_MODALITY.defenseGroundAim.id);
+  const active = isInputModalityActive(
+    scene,
+    INPUT_MODALITY.defenseGroundAim.id,
+  );
   if (pendingGroundCast && !active) {
     pushInputModality(scene, INPUT_MODALITY.defenseGroundAim);
   } else if (!pendingGroundCast && active) {

@@ -78,6 +78,8 @@ describe("ensureNightReady fast path", () => {
     const game = mockGame(registry, { defense: true, debugMenu: true });
     const scene = mockScene(game);
     await expect(ensureNightReady(scene, store)).resolves.toBeUndefined();
-    await expect(ensureTownReachableReady(scene, store)).resolves.toBeUndefined();
+    await expect(
+      ensureTownReachableReady(scene, store),
+    ).resolves.toBeUndefined();
   });
 });

@@ -7,7 +7,9 @@ export const COIN_GAIN_SFX_KEY = "sfx_coin_gain_01";
 /** Plays when gold is spent (building upgrades, etc.). */
 export function playCoinSpendSfx(scene: Phaser.Scene): void {
   if (!scene.cache.audio.exists(COIN_SPEND_SFX_KEY)) return;
-  scene.sound.play(COIN_SPEND_SFX_KEY, { volume: ECONOMY_AUDIO.coinSpendVolume });
+  scene.sound.play(COIN_SPEND_SFX_KEY, {
+    volume: ECONOMY_AUDIO.coinSpendVolume,
+  });
 }
 
 /** Plays when gold is earned (night rewards, etc.). */

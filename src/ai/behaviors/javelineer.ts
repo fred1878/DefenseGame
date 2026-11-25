@@ -70,7 +70,14 @@ function resolveStrafeSign(
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   if (
-    strafeTangentBlocked(grid, ex, ey, tangentX * sign, tangentY * sign, peerAgents)
+    strafeTangentBlocked(
+      grid,
+      ex,
+      ey,
+      tangentX * sign,
+      tangentY * sign,
+      peerAgents,
+    )
   ) {
     sign = sign === 1 ? -1 : 1;
     enemy.behaviorExtra.strafeSign = sign;
@@ -190,7 +197,10 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         towardPlayer: false,
         speedMul: 1.1,
         peerAgents,
-        retreatGoalDistPx: Math.max(minRange - dist + worldUnit(48, reg), worldUnit(72, reg)),
+        retreatGoalDistPx: Math.max(
+          minRange - dist + worldUnit(48, reg),
+          worldUnit(72, reg),
+        ),
       });
     } else if (dist > maxRange) {
       replanPathIfDue(ctx, frame);

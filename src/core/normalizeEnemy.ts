@@ -115,10 +115,16 @@ export function assertEnemyResolvedCombat(id: string, row: EnemyDef): void {
     }
   }
   if (resolved.arrowRain) {
-    assertPositiveDamage(resolved.arrowRain.damage, `${path}.combat.arrowRain.damage`);
+    assertPositiveDamage(
+      resolved.arrowRain.damage,
+      `${path}.combat.arrowRain.damage`,
+    );
   }
   if (resolved.javelineer) {
-    assertPositiveDamage(resolved.javelineer.damage, `${path}.combat.javelineer.damage`);
+    assertPositiveDamage(
+      resolved.javelineer.damage,
+      `${path}.combat.javelineer.damage`,
+    );
   }
   if (resolved.stationaryRanged) {
     assertPositiveDamage(
@@ -127,7 +133,10 @@ export function assertEnemyResolvedCombat(id: string, row: EnemyDef): void {
     );
   }
   if (resolved.lobber) {
-    assertPositiveDamage(resolved.lobber.damage, `${path}.combat.lobber.damage`);
+    assertPositiveDamage(
+      resolved.lobber.damage,
+      `${path}.combat.lobber.damage`,
+    );
   }
   if (resolved.charger) {
     assertPositiveDamage(

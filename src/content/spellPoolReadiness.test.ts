@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { poolSpellIconAlpha, isSpellPoolSelectable } from "./spellPoolReadiness";
+import {
+  poolSpellIconAlpha,
+  isSpellPoolSelectable,
+} from "./spellPoolReadiness";
 import { spellById } from "./spells";
 
 describe("spellPoolReadiness", () => {
@@ -7,15 +10,11 @@ describe("spellPoolReadiness", () => {
     const meteor = spellById("meteor");
     expect(meteor).toBeDefined();
     expect(isSpellPoolSelectable(meteor!)).toBe(true);
-    expect(
-      poolSpellIconAlpha("meteor", ["fire_bolt", "heal"], true),
-    ).toBe(1);
+    expect(poolSpellIconAlpha("meteor", ["fire_bolt", "heal"], true)).toBe(1);
   });
 
   it("dims pool icons that are already on the bar", () => {
-    expect(
-      poolSpellIconAlpha("meteor", ["meteor", ""], true),
-    ).toBe(0.5);
+    expect(poolSpellIconAlpha("meteor", ["meteor", ""], true)).toBe(0.5);
   });
 
   it("treats blink as pool-ready", () => {

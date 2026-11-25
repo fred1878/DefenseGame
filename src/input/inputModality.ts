@@ -59,12 +59,17 @@ export function clearInputModalities(scene: Phaser.Scene): void {
   emitChanged(scene);
 }
 
-export function peekInputModality(scene: Phaser.Scene): InputModalityToken | null {
+export function peekInputModality(
+  scene: Phaser.Scene,
+): InputModalityToken | null {
   const stack = modalityStack(scene);
   return stack.length > 0 ? stack[stack.length - 1]! : null;
 }
 
-export function isInputModalityActive(scene: Phaser.Scene, id: string): boolean {
+export function isInputModalityActive(
+  scene: Phaser.Scene,
+  id: string,
+): boolean {
   return modalityStack(scene).some((t) => t.id === id);
 }
 

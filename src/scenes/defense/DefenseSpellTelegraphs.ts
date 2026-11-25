@@ -163,7 +163,12 @@ export function syncDefenseIceCastWindupFx(
   if (phase === "windup") {
     if (!host.iceCastWindupFx) {
       host.iceCastWindupFx = new SpellIceCastWindupFx(host.scene);
-      host.iceCastWindupFx.start(px, py, spellCastMs(def), host.maskWorldObject);
+      host.iceCastWindupFx.start(
+        px,
+        py,
+        spellCastMs(def),
+        host.maskWorldObject,
+      );
     } else {
       host.iceCastWindupFx.follow(px, py);
     }

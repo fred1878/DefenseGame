@@ -41,7 +41,9 @@ function spellDirectorTestHost(
     enemySpellStatus: {} as DefenseSpellDirectorHost["enemySpellStatus"],
     spellBar: {} as DefenseSpellDirectorHost["spellBar"],
     castBar: {} as DefenseSpellDirectorHost["castBar"],
-    groundReticle: { hide: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
+    groundReticle: {
+      hide: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["groundReticle"],
     obstacleGroup: {} as Phaser.Physics.Arcade.StaticGroup,
     spellChannelArea: { x: 120, y: 140 },
     get spellGroundZones() {
@@ -80,7 +82,10 @@ function spellDirectorTestHost(
 
 describe("DefenseSpellDirector linger AoE telegraph", () => {
   it("spawns and registers a linger telegraph for flamestrike", () => {
-    const registerSpy = vi.spyOn(SpellGroundAoeTelegraph, "registerSpellGroundAoeTelegraphWorld");
+    const registerSpy = vi.spyOn(
+      SpellGroundAoeTelegraph,
+      "registerSpellGroundAoeTelegraphWorld",
+    );
     const host = spellDirectorTestHost();
     const director = new DefenseSpellDirector(host);
     const def = spellById("flamestrike");

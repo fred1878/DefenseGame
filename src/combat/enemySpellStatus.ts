@@ -1,4 +1,8 @@
-import { applyDamage, type Damageable, type DamageFlavor } from "./DamageSystem";
+import {
+  applyDamage,
+  type Damageable,
+  type DamageFlavor,
+} from "./DamageSystem";
 
 export type EnemySpellStatus = {
   rootRemainingMs: number;
@@ -78,7 +82,11 @@ export class EnemySpellStatusMap {
 
   tick(
     deltaMs: number,
-    applyDotDamage?: (enemyId: string, amount: number, flavor: DamageFlavor) => void,
+    applyDotDamage?: (
+      enemyId: string,
+      amount: number,
+      flavor: DamageFlavor,
+    ) => void,
   ): void {
     for (const [id, status] of this.byEnemyId) {
       status.rootRemainingMs = Math.max(0, status.rootRemainingMs - deltaMs);

@@ -36,9 +36,15 @@ const PALETTE_DEFAULT: SpellAoeTelegraphPalette = {
   inner: 0xf8fafc,
 };
 
-export function spellGroundAoePalette(def: SpellDefinition): SpellAoeTelegraphPalette {
+export function spellGroundAoePalette(
+  def: SpellDefinition,
+): SpellAoeTelegraphPalette {
   if (def.id === "blizzard") return PALETTE_ICE;
-  if (def.damageFlavor === "fire" || def.id === "meteor" || def.id === "flamestrike") {
+  if (
+    def.damageFlavor === "fire" ||
+    def.id === "meteor" ||
+    def.id === "flamestrike"
+  ) {
     return PALETTE_FIRE;
   }
   return PALETTE_DEFAULT;
@@ -104,7 +110,11 @@ export function updateSpellGroundAoeTelegraph(
   telegraph.gfx.fillCircle(telegraph.zoneX, telegraph.zoneY, r);
 
   const inner = r * (active ? 0.55 + pulse * 0.15 : 0.35 + t * 0.45);
-  telegraph.gfx.lineStyle(2, pal.inner, active ? 0.35 + pulse * 0.25 : 0.2 + t * 0.3);
+  telegraph.gfx.lineStyle(
+    2,
+    pal.inner,
+    active ? 0.35 + pulse * 0.25 : 0.2 + t * 0.3,
+  );
   telegraph.gfx.strokeCircle(telegraph.zoneX, telegraph.zoneY, inner);
 }
 

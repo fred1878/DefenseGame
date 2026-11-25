@@ -61,7 +61,10 @@ export function defenseSceneE2eObstacleArcadeBodyAabb(
   const child = scene.obstacleGroup.getChildren()[index] as
     | Phaser.GameObjects.Rectangle
     | undefined;
-  const body = child?.body as Phaser.Physics.Arcade.StaticBody | null | undefined;
+  const body = child?.body as
+    | Phaser.Physics.Arcade.StaticBody
+    | null
+    | undefined;
   if (!body) {
     throw new Error(`obstacle arcade body index ${index} missing`);
   }
@@ -154,9 +157,15 @@ export function defenseSceneE2eObstacleBumpProbe(
 export function defenseSceneE2eResolvePlayerObstacleOverlap(
   scene: DefenseSceneE2eDelegate,
 ): void {
-  correctPlayerObstacleBlockerOverlap(scene.player.sprite, scene.obstacleBlockers);
+  correctPlayerObstacleBlockerOverlap(
+    scene.player.sprite,
+    scene.obstacleBlockers,
+  );
   scene.physics.world.collide(scene.player.sprite, scene.obstacleGroup);
-  correctPlayerObstacleBlockerOverlap(scene.player.sprite, scene.obstacleBlockers);
+  correctPlayerObstacleBlockerOverlap(
+    scene.player.sprite,
+    scene.obstacleBlockers,
+  );
 }
 
 export function defenseSceneE2eFlushTangentPosition(

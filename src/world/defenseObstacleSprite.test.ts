@@ -21,8 +21,10 @@ import {
 describe("defense obstacle art", () => {
   it("keeps crop rects inside each texture frame", () => {
     for (const { key } of DEFENSE_OBSTACLE_ASSETS) {
-      const frame = OBSTACLE_SOURCE_FRAME[key as keyof typeof OBSTACLE_SOURCE_FRAME];
-      const crop = OBSTACLE_SPRITE_CROP[key as keyof typeof OBSTACLE_SPRITE_CROP];
+      const frame =
+        OBSTACLE_SOURCE_FRAME[key as keyof typeof OBSTACLE_SOURCE_FRAME];
+      const crop =
+        OBSTACLE_SPRITE_CROP[key as keyof typeof OBSTACLE_SPRITE_CROP];
       expect(crop.x + crop.w).toBeLessThanOrEqual(frame.w);
       expect(crop.y + crop.h).toBeLessThanOrEqual(frame.h);
     }
@@ -46,8 +48,12 @@ describe("defense obstacle art", () => {
       expect(obs.h).toBe(size.h);
       expect(disp.w).toBe(crop.w * s);
       expect(disp.h).toBe(crop.h * s);
-      expect(obs.w).toBeCloseTo(Math.min(block.w, crop.w) * s * OBSTACLE_COLLIDER_SIZE_SCALE);
-      expect(obs.h).toBeCloseTo(Math.min(block.h, crop.h) * s * OBSTACLE_COLLIDER_SIZE_SCALE);
+      expect(obs.w).toBeCloseTo(
+        Math.min(block.w, crop.w) * s * OBSTACLE_COLLIDER_SIZE_SCALE,
+      );
+      expect(obs.h).toBeCloseTo(
+        Math.min(block.h, crop.h) * s * OBSTACLE_COLLIDER_SIZE_SCALE,
+      );
       expect(obs.w).toBeLessThanOrEqual(disp.w);
       expect(obs.h).toBeLessThanOrEqual(disp.h);
     }

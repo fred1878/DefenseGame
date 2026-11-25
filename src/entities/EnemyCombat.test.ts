@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../config/defense";
-import { enemyMeleeContactCenterDist, resolveEnemyCombat } from "../core/enemyTuning";
+import {
+  enemyMeleeContactCenterDist,
+  resolveEnemyCombat,
+} from "../core/enemyTuning";
 import { playerBodyRadiusPx } from "./entityPhysics";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import {

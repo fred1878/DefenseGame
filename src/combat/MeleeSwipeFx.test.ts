@@ -4,8 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import { MELEE_FX_ASSETS, MELEE_FX_ANIM } from "../content/meleeFxAssets";
 import { meleeSwipeRotation, showEnemyMeleeSwipe } from "./MeleeSwipeFx";
 
-(PhaserNs as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }).Animations =
-  { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
+(
+  PhaserNs as { Animations?: { Events: { ANIMATION_COMPLETE: string } } }
+).Animations = { Events: { ANIMATION_COMPLETE: "animationcomplete" } };
 
 /** `slash-arc-v2` bisector is west when sprite rotation is 0. */
 function slashAimDirection(spriteRotation: number): number {
@@ -37,7 +38,9 @@ describe("meleeSwipeRotation", () => {
 
 describe("showEnemyMeleeSwipe", () => {
   it("spawns PVFX when pack is loaded and uses authored vfx size", () => {
-    const skirmisher = MELEE_FX_ASSETS.find((a) => a.key === "fx_melee_skirmisher")!;
+    const skirmisher = MELEE_FX_ASSETS.find(
+      (a) => a.key === "fx_melee_skirmisher",
+    )!;
     const scene = {
       registry: { get: () => 2 },
       textures: {
@@ -78,19 +81,14 @@ describe("showEnemyMeleeSwipe", () => {
       },
     } as unknown as Phaser.Scene;
 
-    showEnemyMeleeSwipe(
-      scene,
-      "skirmisher",
-      10,
-      20,
-      0,
-      undefined,
-      80,
-      { vfxDisplayW: 78, vfxDisplayH: 28, vfxOffsetWu: 26 },
-    );
+    showEnemyMeleeSwipe(scene, "skirmisher", 10, 20, 0, undefined, 80, {
+      vfxDisplayW: 78,
+      vfxDisplayH: 28,
+      vfxOffsetWu: 26,
+    });
 
-    const sprite = (scene.add.sprite as ReturnType<typeof vi.fn>).mock.results[0]!
-      .value as { setDisplaySize: ReturnType<typeof vi.fn> };
+    const sprite = (scene.add.sprite as ReturnType<typeof vi.fn>).mock
+      .results[0]!.value as { setDisplaySize: ReturnType<typeof vi.fn> };
     expect(sprite.setDisplaySize).toHaveBeenCalled();
     const [w, h] = sprite.setDisplaySize.mock.calls[0] as [number, number];
     expect(w).toBeGreaterThan(skirmisher.frameWidth);

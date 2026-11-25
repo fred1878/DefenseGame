@@ -20,8 +20,12 @@ test.describe("@manual obstacle v2 overlay proof", () => {
     await api.eval<void>("api.setPlayerPosition(-256, -320)");
 
     await page.waitForTimeout(400);
-    const shot = await page.screenshot({ fullPage: false, animations: "disabled" });
-    const artifactPath = "/opt/cursor/artifacts/obstacle-v2-mobile-overlays.png";
+    const shot = await page.screenshot({
+      fullPage: false,
+      animations: "disabled",
+    });
+    const artifactPath =
+      "/opt/cursor/artifacts/obstacle-v2-mobile-overlays.png";
     fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
     fs.writeFileSync(artifactPath, shot);
     await testInfo.attach("obstacle-v2-defense-overlays", {

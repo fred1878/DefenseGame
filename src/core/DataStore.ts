@@ -3,7 +3,10 @@ import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
 import { applyDefenseMaps } from "../config/defenseMaps";
 import { applyEnemyAi } from "../config/enemy";
-import { applyEnemyBodyRadii, applyEntityPhysics } from "../entities/entityPhysics";
+import {
+  applyEnemyBodyRadii,
+  applyEntityPhysics,
+} from "../entities/entityPhysics";
 import { applyPlayerTuning } from "../config/player";
 import {
   normalizeDefenseMaps,
@@ -16,10 +19,7 @@ import {
 import { normalizeEnemyAi, type EnemyAiInput } from "./normalizeEnemyAi";
 import type { EnemyCombatPartial } from "./enemyTuning";
 import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
-import {
-  normalizeHitFlash,
-  type HitFlashInput,
-} from "./normalizeHitFlash";
+import { normalizeHitFlash, type HitFlashInput } from "./normalizeHitFlash";
 import {
   normalizeSpellInput,
   type SpellInputConfigInput,
@@ -37,7 +37,10 @@ import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import { applyHitFlashConfig } from "../config/hitFlash";
 import { applySpellInputTuning } from "../config/spellInput";
 import { applyShadowformMechanics } from "../config/shadowformMechanics";
-import { normalizeTownLayout, type TownLayoutInput } from "./normalizeTownLayout";
+import {
+  normalizeTownLayout,
+  type TownLayoutInput,
+} from "./normalizeTownLayout";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 
 export type EnemyDef = {
@@ -86,14 +89,15 @@ export class DataStore {
 
   async loadTownBoot(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
-    const [buildings, townBuildings, townLayout, playerFile] = await Promise.all([
-      fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
-      fetchJson<Record<string, TownBuildingDef>>(
-        `${prefix}data/town_buildings.json`,
-      ),
-      fetchJson<TownLayoutInput>(`${prefix}data/town_layout.json`),
-      fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
-    ]);
+    const [buildings, townBuildings, townLayout, playerFile] =
+      await Promise.all([
+        fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
+        fetchJson<Record<string, TownBuildingDef>>(
+          `${prefix}data/town_buildings.json`,
+        ),
+        fetchJson<TownLayoutInput>(`${prefix}data/town_layout.json`),
+        fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
+      ]);
     this.buildings = buildings;
     this.townBuildings = townBuildings;
     this.townLayout = normalizeTownLayout(townLayout);

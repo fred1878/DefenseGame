@@ -12,7 +12,10 @@ import type { Page } from "@playwright/test";
  *
  * Call before `gotoE2E` (both use `addInitScript`, which only affects the next navigation).
  */
-export async function installVisualDeterminism(page: Page, seed = 0x5eed1234): Promise<void> {
+export async function installVisualDeterminism(
+  page: Page,
+  seed = 0x5eed1234,
+): Promise<void> {
   await page.addInitScript((initialSeed: number) => {
     let state = initialSeed >>> 0;
     // mulberry32
@@ -53,10 +56,13 @@ export async function installVisualDeterminism(page: Page, seed = 0x5eed1234): P
 /** Let `frames` more animation frames render (game loop running). */
 export async function waitFrames(page: Page, frames: number): Promise<void> {
   const start = await page.evaluate(
-    () => (window as unknown as { __visualFrames?: number }).__visualFrames ?? 0,
+    () =>
+      (window as unknown as { __visualFrames?: number }).__visualFrames ?? 0,
   );
   await page.waitForFunction(
-    (target) => ((window as unknown as { __visualFrames?: number }).__visualFrames ?? 0) >= target,
+    (target) =>
+      ((window as unknown as { __visualFrames?: number }).__visualFrames ??
+        0) >= target,
     start + frames,
     { timeout: 30_000, polling: 50 },
   );

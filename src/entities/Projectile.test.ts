@@ -26,7 +26,10 @@ describe("updateProjectile", () => {
       alive: true,
       team: "enemy",
     };
-    const enemySprite = { x: 30, y: 0 } as unknown as Phaser.Physics.Arcade.Sprite;
+    const enemySprite = {
+      x: 30,
+      y: 0,
+    } as unknown as Phaser.Physics.Arcade.Sprite;
     const projectile: PlayerProjectile = {
       id: "p0",
       sprite: {
@@ -90,7 +93,10 @@ describe("updateProjectile", () => {
       team: "enemy",
     };
     const enemyKnock = { knockbackVx: 0, knockbackVy: 0, weight: 100 };
-    const enemySprite = { x: 30, y: 0 } as unknown as Phaser.Physics.Arcade.Sprite;
+    const enemySprite = {
+      x: 30,
+      y: 0,
+    } as unknown as Phaser.Physics.Arcade.Sprite;
     const projectile: PlayerProjectile = {
       id: "p0",
       spellBehavior: "aoe_on_hit",

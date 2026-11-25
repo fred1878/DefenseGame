@@ -34,8 +34,16 @@ function spellDirectorTestHost(
       facingTarget: vi.fn(),
     } as unknown as DefenseSpellDirectorHost["targeting"],
     spellBar: {} as DefenseSpellDirectorHost["spellBar"],
-    castBar: { setVisible: vi.fn(), setPhase: vi.fn(), setProgress: vi.fn(), setWorldPosition: vi.fn() } as unknown as DefenseSpellDirectorHost["castBar"],
-    groundReticle: { showAt: vi.fn(), hide: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
+    castBar: {
+      setVisible: vi.fn(),
+      setPhase: vi.fn(),
+      setProgress: vi.fn(),
+      setWorldPosition: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["castBar"],
+    groundReticle: {
+      showAt: vi.fn(),
+      hide: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["groundReticle"],
     obstacleGroup: {} as Phaser.Physics.Arcade.StaticGroup,
     obstacleBlockers: [],
     spellChannelArea: null,
@@ -57,7 +65,8 @@ function spellDirectorTestHost(
     filterDeadEnemies: vi.fn(),
     timeNow: () => 0,
     delayedCall: vi.fn(),
-    enemySpellStatus: {} as unknown as DefenseSpellDirectorHost["enemySpellStatus"],
+    enemySpellStatus:
+      {} as unknown as DefenseSpellDirectorHost["enemySpellStatus"],
     ...overrides,
   } as unknown as DefenseSpellDirectorHost;
 }
@@ -137,7 +146,10 @@ describe("DefenseSpellDirector spell queue", () => {
         faceToward,
         tryStartAttack,
       } as unknown as DefenseSpellDirectorHost["player"],
-      targeting: { focusEnemyId: null, facingTarget } as unknown as DefenseSpellDirectorHost["targeting"],
+      targeting: {
+        focusEnemyId: null,
+        facingTarget,
+      } as unknown as DefenseSpellDirectorHost["targeting"],
     });
     const director = new DefenseSpellDirector(host);
 

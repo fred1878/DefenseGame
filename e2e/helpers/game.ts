@@ -18,9 +18,7 @@ export async function gotoE2E(page: Page): Promise<void> {
   await expect
     .poll(
       async () =>
-        page.evaluate(
-          () => window.__DEFENSEGAME_E2E__?.assetsLoaded === true,
-        ),
+        page.evaluate(() => window.__DEFENSEGAME_E2E__?.assetsLoaded === true),
       { timeout: 60_000 },
     )
     .toBe(true);

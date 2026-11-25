@@ -21,7 +21,8 @@ const MathNS = {
       Math.hypot(x2 - x1, y2 - y1),
   },
   DegToRad: (deg: number) => (deg * Math.PI) / 180,
-  Clamp: (v: number, min: number, max: number) => Math.max(min, Math.min(max, v)),
+  Clamp: (v: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, v)),
 };
 
 const Phaser = {
@@ -30,7 +31,15 @@ const Phaser = {
   Scale: { FIT: 0, CENTER_BOTH: 0 },
   Input: { Events: { POINTER_DOWN: "pointerdown", POINTER_UP: "pointerup" } },
   Loader: { Events: { COMPLETE: "complete", FILE_LOAD_ERROR: "loaderror" } },
-  Scenes: { Events: { CREATE: "create", SHUTDOWN: "shutdown", DESTROY: "destroy", TRANSITION_START: "transitionstart", TRANSITION_COMPLETE: "transitioncomplete" } },
+  Scenes: {
+    Events: {
+      CREATE: "create",
+      SHUTDOWN: "shutdown",
+      DESTROY: "destroy",
+      TRANSITION_START: "transitionstart",
+      TRANSITION_COMPLETE: "transitioncomplete",
+    },
+  },
   GameObjects: {
     Components: {
       TransformMatrix: class {
@@ -73,7 +82,14 @@ const Phaser = {
   BlendModes: { NORMAL: 0, ADD: 1, MULTIPLY: 2, SCREEN: 3 },
   Animations: { Events: { ANIMATION_COMPLETE: "animationcomplete" } },
   Textures: { FilterMode: { LINEAR: 0, NEAREST: 1 } },
-  TintModes: { MULTIPLY: 0, FILL: 1, ADD: 2, SCREEN: 4, OVERLAY: 5, HARD_LIGHT: 6 },
+  TintModes: {
+    MULTIPLY: 0,
+    FILL: 1,
+    ADD: 2,
+    SCREEN: 4,
+    OVERLAY: 5,
+    HARD_LIGHT: 6,
+  },
   Physics: { Arcade: { Sprite: class {}, Body: class {} } },
   Cameras: { Scene2D: { Camera: class {} } },
 };

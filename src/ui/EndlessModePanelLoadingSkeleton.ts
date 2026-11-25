@@ -28,8 +28,14 @@ export class EndlessModePanelLoadingSkeleton {
     this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townEndless);
     this.root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
 
-    const dim = scene.add
-      .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x000000, 0.72);
+    const dim = scene.add.rectangle(
+      GAME.width / 2,
+      GAME.height / 2,
+      GAME.width,
+      GAME.height,
+      0x000000,
+      0.72,
+    );
     bindModalDimBackdrop(dim);
     this.root.add(dim);
 
@@ -74,23 +80,18 @@ export class EndlessModePanelLoadingSkeleton {
       scaleUiY(28);
     const listBottom = GAME.height - footerBlockH;
     const crY =
-      listBottom +
-      scaleUiY(12) +
-      infiniteRowH +
-      gapAfterInfinite +
-      crLineHalf;
+      listBottom + scaleUiY(12) + infiniteRowH + gapAfterInfinite + crLineHalf;
     const startY = crY + crLineHalf + gapCrToStart + startBtnH / 2;
     const closeY = startY + scaleUiY(56);
 
-    const hintSk = scene.add
-      .rectangle(
-        GAME.width / 2,
-        scaleUiY(118),
-        rowW,
-        scaleUiY(14),
-        0x3f3f46,
-        0.85,
-      );
+    const hintSk = scene.add.rectangle(
+      GAME.width / 2,
+      scaleUiY(118),
+      rowW,
+      scaleUiY(14),
+      0x3f3f46,
+      0.85,
+    );
     this.root.add(hintSk);
 
     for (let i = 0; i < ENDLESS_PANEL_LOADING_SKELETON_ROWS; i++) {
@@ -108,7 +109,8 @@ export class EndlessModePanelLoadingSkeleton {
       this.root.add(capSk);
     }
 
-    const footerY = listTop + ENDLESS_PANEL_LOADING_SKELETON_ROWS * rowStride + scaleUiY(24);
+    const footerY =
+      listTop + ENDLESS_PANEL_LOADING_SKELETON_ROWS * rowStride + scaleUiY(24);
     const footerSk = scene.add.rectangle(
       GAME.width / 2,
       footerY,

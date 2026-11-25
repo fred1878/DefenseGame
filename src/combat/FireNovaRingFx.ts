@@ -21,7 +21,10 @@ export function fireNovaRingDurationMs(
   if (authored > 0) return authored;
   return Math.min(
     INSTANT_RING_MAX_MS,
-    Math.max(INSTANT_RING_BASE_MS, Math.round(radiusPx * INSTANT_RING_PER_RADIUS_PX)),
+    Math.max(
+      INSTANT_RING_BASE_MS,
+      Math.round(radiusPx * INSTANT_RING_PER_RADIUS_PX),
+    ),
   );
 }
 

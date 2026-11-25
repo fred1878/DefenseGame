@@ -6,9 +6,13 @@ const GAME_HEIGHT = 1200;
 const VIEWPORT_MARGIN = 8;
 
 test.describe("@manual town spell panel layout", () => {
-  test("sort slots are in viewport and 2× defense hit size", async ({ page }) => {
+  test("sort slots are in viewport and 2× defense hit size", async ({
+    page,
+  }) => {
     await gotoE2E(page);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.openSpellSortPanel());
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.openSpellSortPanel(),
+    );
     await expect
       .poll(
         () =>

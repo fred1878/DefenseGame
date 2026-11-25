@@ -32,9 +32,18 @@ function identityCamera(
 
 type PhaserTransformMatrix = {
   matrix: Float32Array;
-  applyITRS(x: number, y: number, rotation: number, scaleX: number, scaleY: number): PhaserTransformMatrix;
+  applyITRS(
+    x: number,
+    y: number,
+    rotation: number,
+    scaleX: number,
+    scaleY: number,
+  ): PhaserTransformMatrix;
   translate(x: number, y: number): PhaserTransformMatrix;
-  multiply(rhs: PhaserTransformMatrix, out: PhaserTransformMatrix): PhaserTransformMatrix;
+  multiply(
+    rhs: PhaserTransformMatrix,
+    out: PhaserTransformMatrix,
+  ): PhaserTransformMatrix;
 };
 
 /**
@@ -43,7 +52,10 @@ type PhaserTransformMatrix = {
  * matrix the same way `Camera#preRender` does in Phaser 4 and inverts it like `getWorldPoint`.
  */
 const TransformMatrix = createRequire(import.meta.url)(
-  path.join(process.cwd(), "node_modules/phaser/src/gameobjects/components/TransformMatrix.js"),
+  path.join(
+    process.cwd(),
+    "node_modules/phaser/src/gameobjects/components/TransformMatrix.js",
+  ),
 ) as new () => PhaserTransformMatrix;
 
 function realCamera(opts: {
@@ -265,9 +277,18 @@ describe("interactiveObjectScreenRect", () => {
 describe("cameraWorldToScreen", () => {
   const cases = [
     { name: "scrolled", cam: { scrollY: 350 } },
-    { name: "scrolled + offset viewport", cam: { x: 12, y: 30, scrollX: -40, scrollY: 610 } },
-    { name: "scrolled + zoomed", cam: { scrollX: 25, scrollY: 420, zoom: 1.75 } },
-    { name: "scrolled + zoomed + rotated", cam: { scrollY: 200, zoom: 0.8, rotation: 0.35 } },
+    {
+      name: "scrolled + offset viewport",
+      cam: { x: 12, y: 30, scrollX: -40, scrollY: 610 },
+    },
+    {
+      name: "scrolled + zoomed",
+      cam: { scrollX: 25, scrollY: 420, zoom: 1.75 },
+    },
+    {
+      name: "scrolled + zoomed + rotated",
+      cam: { scrollY: 200, zoom: 0.8, rotation: 0.35 },
+    },
   ];
   const points: Array<[number, number]> = [
     [0, 0],
@@ -280,7 +301,11 @@ describe("cameraWorldToScreen", () => {
     it(`is the inverse of Camera.getWorldPoint (${name})`, () => {
       const cam = realCamera(opts);
       for (const [wx, wy] of points) {
-        const screen = cameraWorldToScreen(wx, wy, cam as unknown as CameraView);
+        const screen = cameraWorldToScreen(
+          wx,
+          wy,
+          cam as unknown as CameraView,
+        );
         const back = cam.getWorldPoint(screen.x, screen.y);
         expect(back.x).toBeCloseTo(wx, 3);
         expect(back.y).toBeCloseTo(wy, 3);

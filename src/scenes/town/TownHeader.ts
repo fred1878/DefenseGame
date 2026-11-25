@@ -21,9 +21,7 @@ type TouchButton = ReturnType<typeof createTouchButton>;
 
 /** Background, "Town — Day" title, and the (empty) status text block. */
 export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
-  scene.add
-    .rectangle(0, 0, GAME.width, GAME.height, 0x1a1c24)
-    .setOrigin(0);
+  scene.add.rectangle(0, 0, GAME.width, GAME.height, 0x1a1c24).setOrigin(0);
 
   const titleY = townTitleY();
   scene.add
@@ -107,7 +105,12 @@ export function createTownHeaderButtons(
 
   const resetWidth = scaleUiX(118);
   const resetHeight = scaleUiX(36);
-  const resetPos = townResetSaveButtonPosition(scene, safe, resetWidth, resetHeight);
+  const resetPos = townResetSaveButtonPosition(
+    scene,
+    safe,
+    resetWidth,
+    resetHeight,
+  );
   const resetButton = createTouchButton(
     scene,
     resetPos.x,
@@ -134,9 +137,7 @@ export function formatTownStatus(save: SaveGame, store: DataStore): string {
   const dmg = playerDamageMult(save.buildings).toFixed(2);
   const wallDef = store.buildings.wall;
   const wallCost =
-    wall < (wallDef?.maxLevel ?? 0)
-      ? wallDef?.costByLevel[wall]
-      : undefined;
+    wall < (wallDef?.maxLevel ?? 0) ? wallDef?.costByLevel[wall] : undefined;
   const embedded = getEmbeddedBuildId();
   const urlB =
     typeof window !== "undefined"

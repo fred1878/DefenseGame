@@ -125,7 +125,10 @@ function defaultBehaviorExtra(
   };
 }
 
-function bindEnemyBehaviorSubstate(enemy: EnemyInstance, behavior: string): void {
+function bindEnemyBehaviorSubstate(
+  enemy: EnemyInstance,
+  behavior: string,
+): void {
   delete enemy.arrowRain;
   delete enemy.javelineer;
   delete enemy.stationaryRanged;
@@ -272,13 +275,7 @@ export function spawnEnemy(
     },
   };
   const combatTuning = resolveEnemyCombat(def.behavior, def.combat, defId);
-  const nameplate = createEnemyNameplate(
-    scene,
-    x,
-    y,
-    def.displayName,
-    side,
-  );
+  const nameplate = createEnemyNameplate(scene, x, y, def.displayName, side);
   updateEnemyNameplate(nameplate, x, y, side, damageable);
 
   const enemy: EnemyInstance = {

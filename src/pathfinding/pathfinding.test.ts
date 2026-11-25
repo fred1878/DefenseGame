@@ -5,7 +5,12 @@ import {
   enemyPathClearancePx,
   maxNavObstacleClearancePx,
 } from "../entities/entityPhysics";
-import { buildNavGrid, cellBlocked, cellSolidBlocked, cellToWorldCenter } from "./grid";
+import {
+  buildNavGrid,
+  cellBlocked,
+  cellSolidBlocked,
+  cellToWorldCenter,
+} from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
 
@@ -53,11 +58,7 @@ describe("nav grid", () => {
 
 describe("A*", () => {
   it("does not cut corners on diagonal steps", () => {
-    const blocked = new Uint8Array([
-      0, 1, 0,
-      1, 0, 0,
-      0, 0, 0,
-    ]);
+    const blocked = new Uint8Array([0, 1, 0, 1, 0, 0, 0, 0, 0]);
     const grid = {
       cellSize: 10,
       cols: 3,
@@ -141,11 +142,7 @@ describe("A*", () => {
   });
 
   it("marks reachedGoal false when the agent cannot enter the goal cell", () => {
-    const blocked = new Uint8Array([
-      0, 1, 0,
-      1, 0, 0,
-      0, 0, 0,
-    ]);
+    const blocked = new Uint8Array([0, 1, 0, 1, 0, 0, 0, 0, 0]);
     const grid = {
       cellSize: 10,
       cols: 3,
@@ -184,9 +181,9 @@ describe("line of sight", () => {
       DEFENSE_MAP.pathClearancePx,
     );
     const rock = DEFENSE_OBSTACLES[0]!;
-    expect(hasLineOfSight(grid, rock.x - 120, rock.y, rock.x + 120, rock.y)).toBe(
-      false,
-    );
+    expect(
+      hasLineOfSight(grid, rock.x - 120, rock.y, rock.x + 120, rock.y),
+    ).toBe(false);
   });
 
   it("is clear across open ground", () => {
@@ -208,10 +205,7 @@ describe("line of sight", () => {
     let clearanceCell: { col: number; row: number } | null = null;
     for (let r = 0; r < grid.rows; r++) {
       for (let c = 0; c < grid.cols; c++) {
-        if (
-          cellBlocked(grid, c, r) &&
-          !cellSolidBlocked(grid, c, r)
-        ) {
+        if (cellBlocked(grid, c, r) && !cellSolidBlocked(grid, c, r)) {
           clearanceCell = { col: c, row: r };
           break;
         }
@@ -219,7 +213,11 @@ describe("line of sight", () => {
       if (clearanceCell) break;
     }
     expect(clearanceCell).not.toBeNull();
-    const player = cellToWorldCenter(grid, clearanceCell!.col, clearanceCell!.row);
+    const player = cellToWorldCenter(
+      grid,
+      clearanceCell!.col,
+      clearanceCell!.row,
+    );
     const enemy = { x: player.x + 80, y: player.y };
     expect(hasLineOfSight(grid, enemy.x, enemy.y, player.x, player.y)).toBe(
       true,

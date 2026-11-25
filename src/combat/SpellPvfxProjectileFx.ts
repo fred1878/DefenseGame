@@ -67,8 +67,7 @@ export function attachPvfxProjectileFx(
 export function syncPvfxProjectileFx(projectile: PlayerProjectile): void {
   const fx = projectile.pvfxFlightFx;
   if (!fx?.sprite.active || !projectile.sprite.active) return;
-  const offset =
-    projectileTextureRotationOffset(fx.sprite.texture.key) ?? 0;
+  const offset = projectileTextureRotationOffset(fx.sprite.texture.key) ?? 0;
   fx.sprite.setPosition(projectile.sprite.x, projectile.sprite.y);
   fx.sprite.setRotation(flightAngle(projectile) + offset);
 }

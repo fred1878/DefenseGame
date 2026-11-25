@@ -149,7 +149,10 @@ async function measureOnce(browser) {
     const startupMarks = performance
       .getEntriesByType("mark")
       .filter((m) => startupMarkNames.includes(m.name))
-      .map((m) => ({ name: m.name, startTimeMs: Math.round(m.startTime * 10) / 10 }));
+      .map((m) => ({
+        name: m.name,
+        startTimeMs: Math.round(m.startTime * 10) / 10,
+      }));
     return {
       domContentLoaded: nav?.domContentLoadedEventEnd ?? 0,
       loadEvent: nav?.loadEventEnd ?? 0,
@@ -199,7 +202,9 @@ try {
   const results = [];
   for (let i = 0; i < runs; i++) {
     results.push(await measureOnce(browser));
-    process.stderr.write(`run ${i + 1}/${runs}: town ready ${results[i].townInteractiveMs}ms\n`);
+    process.stderr.write(
+      `run ${i + 1}/${runs}: town ready ${results[i].townInteractiveMs}ms\n`,
+    );
   }
   await browser.close();
 

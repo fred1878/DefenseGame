@@ -22,9 +22,7 @@ export function scaleUiY(px: number): number {
 }
 
 /** Capped devicePixelRatio for crisp Phaser Text (extra sharpness when FIT scale is non-integer). */
-export function clampRenderResolution(
-  max = GAME.renderResolutionCap,
-): number {
+export function clampRenderResolution(max = GAME.renderResolutionCap): number {
   if (typeof window === "undefined") return 1;
   const dpr = window.devicePixelRatio ?? 1;
   return Math.min(Math.max(dpr, 1), max);

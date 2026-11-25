@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { scaleUiY } from "../../core/displayScale";
 import { FakeEmitter, fakePointer } from "../../test/fakeInput";
-import type { PlannerRow, WavePlannerListLayout } from "./WavePlannerPanelBuild";
+import type {
+  PlannerRow,
+  WavePlannerListLayout,
+} from "./WavePlannerPanelBuild";
 import { WavePlannerPanelScroll } from "./WavePlannerPanelScroll";
 
 const layout: WavePlannerListLayout = {
@@ -21,7 +24,9 @@ function setup(overrides: Partial<WavePlannerListLayout> = {}) {
   const input = new FakeEmitter();
   const scene = { input } as unknown as Phaser.Scene;
   const onTapRow = vi.fn();
-  const rows = Array.from({ length: 8 }, (_, i) => ({ enemyId: `w${i}` })) as unknown as PlannerRow[];
+  const rows = Array.from({ length: 8 }, (_, i) => ({
+    enemyId: `w${i}`,
+  })) as unknown as PlannerRow[];
   const view = {
     listContent: { y: layout.listTop },
     scrollTrack: bar(),

@@ -43,7 +43,10 @@ function spellDirectorTestHost(
       setProgress: vi.fn(),
       setWorldPosition: vi.fn(),
     } as unknown as DefenseSpellDirectorHost["castBar"],
-    groundReticle: { showAt: vi.fn(), hide: vi.fn() } as unknown as DefenseSpellDirectorHost["groundReticle"],
+    groundReticle: {
+      showAt: vi.fn(),
+      hide: vi.fn(),
+    } as unknown as DefenseSpellDirectorHost["groundReticle"],
     obstacleGroup: {} as Phaser.Physics.Arcade.StaticGroup,
     obstacleBlockers: [],
     spellChannelArea: null,
@@ -68,7 +71,8 @@ function spellDirectorTestHost(
     filterDeadEnemies: vi.fn(),
     timeNow: () => 0,
     delayedCall: vi.fn(),
-    enemySpellStatus: {} as unknown as DefenseSpellDirectorHost["enemySpellStatus"],
+    enemySpellStatus:
+      {} as unknown as DefenseSpellDirectorHost["enemySpellStatus"],
     ...overrides,
   } as unknown as DefenseSpellDirectorHost;
 }
@@ -81,7 +85,9 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
         spellCaster: new SpellCastController(),
       }),
     );
-    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 
@@ -101,7 +107,9 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
       ] as unknown as DefenseSpellDirectorHost["enemies"],
     });
     const director = new DefenseSpellDirector(host);
-    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 
@@ -135,7 +143,9 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
       ] as unknown as DefenseSpellDirectorHost["enemies"],
     });
     const director = new DefenseSpellDirector(host);
-    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 
@@ -156,7 +166,9 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
       ] as unknown as DefenseSpellDirectorHost["enemies"],
     });
     const director = new DefenseSpellDirector(host);
-    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 
@@ -200,7 +212,9 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
       } as unknown as DefenseSpellDirectorHost["targeting"],
     });
     const director = new DefenseSpellDirector(host);
-    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 
@@ -224,7 +238,9 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
         save: save as unknown as DefenseSpellDirectorHost["save"],
       }),
     );
-    const beginSpy = vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 

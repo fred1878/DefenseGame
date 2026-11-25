@@ -30,9 +30,7 @@ export function hitFlashDurationMs(): number {
   return HIT_FLASH_CONFIG.durationMs;
 }
 
-export function hitFlashFlavorEntry(
-  flavor: DamageFlavor,
-): HitFlashFlavorEntry {
+export function hitFlashFlavorEntry(flavor: DamageFlavor): HitFlashFlavorEntry {
   return HIT_FLASH_CONFIG.flavors[flavor];
 }
 

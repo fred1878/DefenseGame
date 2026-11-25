@@ -46,7 +46,11 @@ function setup(overrides: Partial<EndlessListLayout> = {}) {
       displayOriginY: layout.rowH / 2,
       scrollFactorX: 0,
       scrollFactorY: 0,
-      scene: { cameras: { main: { scrollX: 0, scrollY: 0, rotation: 0, zoomX: 1, zoomY: 1 } } },
+      scene: {
+        cameras: {
+          main: { scrollX: 0, scrollY: 0, rotation: 0, zoomX: 1, zoomY: 1 },
+        },
+      },
       getWorldTransformMatrix(temp: typeof matrix) {
         Object.assign(temp, matrix);
         return temp;
@@ -159,7 +163,10 @@ describe("EndlessModePanelScroll", () => {
   it("reports row and cap centers only while visible", () => {
     const { scroll, rows } = setup();
     expect(scroll.rowScreenCenter(rows[0]!)).toEqual({ x: 150, y: 225 });
-    expect(scroll.capControlCenter(rows[0]!, "plus")).toEqual({ x: 450, y: 225 });
+    expect(scroll.capControlCenter(rows[0]!, "plus")).toEqual({
+      x: 450,
+      y: 225,
+    });
     expect(scroll.rowScreenCenter(rows[9]!)).toBeNull();
     expect(scroll.capControlCenter(rows[9]!, "minus")).toBeNull();
     scroll.applyScroll(layout.maxScroll);
@@ -176,7 +183,7 @@ describe("EndlessModePanelScroll", () => {
       layout.nameColW,
       layout.rowH,
     );
-  const capHit = new Phaser.Geom.Rectangle(
+    const capHit = new Phaser.Geom.Rectangle(
       -layout.capColW / 2,
       -layout.rowH / 2,
       layout.capColW,

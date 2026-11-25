@@ -37,9 +37,17 @@ const ADD_WORLD_FACTORY_METHODS = [
   "nineslice",
 ] as const;
 
-const PHYSICS_ADD_WORLD_METHODS = ["sprite", "staticSprite", "image", "staticImage"] as const;
+const PHYSICS_ADD_WORLD_METHODS = [
+  "sprite",
+  "staticSprite",
+  "image",
+  "staticImage",
+] as const;
 
-function adoptCreatedWorldObject(scene: Phaser.Scene, go: Phaser.GameObjects.GameObject): void {
+function adoptCreatedWorldObject(
+  scene: Phaser.Scene,
+  go: Phaser.GameObjects.GameObject,
+): void {
   if (scene.registry.get(SUPPRESS_WORLD_ADOPT_KEY) === true) return;
   const worldLayer = scene.registry.get(DEFENSE_WORLD_LAYER_REGISTRY_KEY) as
     | Phaser.GameObjects.Layer
@@ -68,7 +76,10 @@ function patchFactoryRecord(
     const original = record[name];
     if (typeof original !== "function") continue;
     const bound = (...args: unknown[]) =>
-      (original as (...args: unknown[]) => Phaser.GameObjects.GameObject).apply(target, args);
+      (original as (...args: unknown[]) => Phaser.GameObjects.GameObject).apply(
+        target,
+        args,
+      );
     record[name] = wrapFactoryMethod(scene, bound);
   }
 }

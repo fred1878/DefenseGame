@@ -164,6 +164,15 @@ export class HitboxDebugDraw {
     ty: number,
     tr: number,
   ): boolean {
-    return arcHitboxHitsTarget(originX, originY, facing, range, arcHalfRad, tx, ty, tr);
+    return arcHitboxHitsTarget(
+      originX,
+      originY,
+      facing,
+      range,
+      arcHalfRad,
+      tx,
+      ty,
+      tr,
+    );
   }
 }

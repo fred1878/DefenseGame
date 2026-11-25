@@ -32,7 +32,10 @@ export function effectivePlayerAggroRadius(
   return baseRadiusWu * mechanics.aggroRadiusMult;
 }
 
-export function shadowformBuffRemainingMs(endsAt: number, nowMs: number): number {
+export function shadowformBuffRemainingMs(
+  endsAt: number,
+  nowMs: number,
+): number {
   if (!shadowformActive(endsAt, nowMs)) return 0;
   return Math.max(0, endsAt - nowMs);
 }

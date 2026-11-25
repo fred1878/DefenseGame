@@ -50,38 +50,32 @@ describe("DATA_FIELDS.md", () => {
   });
 
   it.each(
-    Object.entries(BOOT_DOCUMENTED_KEYS_BY_FILE).map(([file, keys]) => [
-      file,
-      keys,
-    ] as const),
-  )(
-    "bidirectional boot parity for %s",
-    (file, expectedKeys) => {
-      const section = sections.get(file);
-      expect(section, `no section for ${file}`).toBeDefined();
-      const documented = parseDocumentedFields(section!);
-      const expectedSet = new Set(expectedKeys);
-      const documentedKeys = new Set(documented.keys());
+    Object.entries(BOOT_DOCUMENTED_KEYS_BY_FILE).map(
+      ([file, keys]) => [file, keys] as const,
+    ),
+  )("bidirectional boot parity for %s", (file, expectedKeys) => {
+    const section = sections.get(file);
+    expect(section, `no section for ${file}`).toBeDefined();
+    const documented = parseDocumentedFields(section!);
+    const expectedSet = new Set(expectedKeys);
+    const documentedKeys = new Set(documented.keys());
 
-      const missing = expectedKeys.filter((k) => !documentedKeys.has(k));
-      const extra = [...documentedKeys].filter((k) => !expectedSet.has(k));
+    const missing = expectedKeys.filter((k) => !documentedKeys.has(k));
+    const extra = [...documentedKeys].filter((k) => !expectedSet.has(k));
 
-      expect(
-        missing,
-        `${file}: add documented entries for boot keys`,
-      ).toEqual([]);
-      expect(
-        extra,
-        `${file}: remove stale entries or update dataFieldsDocSpec / normalize*`,
-      ).toEqual([]);
-    },
-  );
+    expect(missing, `${file}: add documented entries for boot keys`).toEqual(
+      [],
+    );
+    expect(
+      extra,
+      `${file}: remove stale entries or update dataFieldsDocSpec / normalize*`,
+    ).toEqual([]);
+  });
 
   it.each(
-    Object.entries(BOOT_DOCUMENTED_KEYS_BY_FILE).map(([file, keys]) => [
-      file,
-      keys,
-    ] as const),
+    Object.entries(BOOT_DOCUMENTED_KEYS_BY_FILE).map(
+      ([file, keys]) => [file, keys] as const,
+    ),
   )(
     "each boot field in %s has a substantive description",
     (file, expectedKeys) => {

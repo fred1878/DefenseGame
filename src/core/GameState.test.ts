@@ -39,10 +39,7 @@ describe("GameState", () => {
         items.delete(k);
       },
     });
-    items.set(
-      key,
-      JSON.stringify({ version: SAVE_VERSION, save: legacySave }),
-    );
+    items.set(key, JSON.stringify({ version: SAVE_VERSION, save: legacySave }));
 
     const loaded = loadSave();
     expect(loaded.player).not.toHaveProperty("moveSpeed");

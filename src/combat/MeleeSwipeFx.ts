@@ -83,15 +83,19 @@ export function showEnemyMeleeSwipe(
     }
     spawnEnemyMeleeAnim(scene, spec, vfxSize, x, y, facingRad, fxDurationMs);
   } else {
-    spawnGruntMeleeFallback(scene, x, y, facingRad, fxDurationMs, fallbackNaturalMs);
+    spawnGruntMeleeFallback(
+      scene,
+      x,
+      y,
+      facingRad,
+      fxDurationMs,
+      fallbackNaturalMs,
+    );
   }
   publishEnemyMeleeFxE2E(enemyDefId, facingRad);
 }
 
-function publishEnemyMeleeFxE2E(
-  enemyDefId: string,
-  facingRad: number,
-): void {
+function publishEnemyMeleeFxE2E(enemyDefId: string, facingRad: number): void {
   if (!isE2EEnabled()) return;
   const spec = enemyMeleeFxSpec(enemyDefId);
   const pose = spec

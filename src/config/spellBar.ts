@@ -49,7 +49,8 @@ export const DEFENSE_SPELL_BAR = {
   tapPaddingPx: SPELL_BAR.tapPaddingPx * HUD_SPELL_BAR_2X_SCALE,
   iconInsetFrac: SPELL_BAR.iconInsetFrac,
   cooldownRingWidthPx: SPELL_BAR.cooldownRingWidthPx * HUD_SPELL_BAR_2X_SCALE,
-  autoCastBorderWidthPx: SPELL_BAR.autoCastBorderWidthPx * HUD_SPELL_BAR_2X_SCALE,
+  autoCastBorderWidthPx:
+    SPELL_BAR.autoCastBorderWidthPx * HUD_SPELL_BAR_2X_SCALE,
   autoCastBorderColor: SPELL_BAR.autoCastBorderColor,
   longPressMs: SPELL_BAR.longPressMs,
   fontSize: `${scaleUiX(11 * HUD_SPELL_BAR_2X_SCALE)}px`,

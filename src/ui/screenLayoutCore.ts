@@ -10,7 +10,12 @@ export type SafeInsets = {
   left: number;
 };
 
-export type ScreenRect = { x: number; y: number; width: number; height: number };
+export type ScreenRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export const HUD_SIDE = scaleUiX(12);
 

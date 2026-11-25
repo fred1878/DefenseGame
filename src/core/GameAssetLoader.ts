@@ -223,9 +223,7 @@ export function isTownReachableReady(
   game: Phaser.Game,
   store: DataStore,
 ): boolean {
-  return (
-    isNightReady(game, store) && game.scene.getScene("DebugMenu") !== null
-  );
+  return isNightReady(game, store) && game.scene.getScene("DebugMenu") !== null;
 }
 
 /** Background Town prefetch and on-demand gate (deduped with per-asset loaders). */

@@ -6,7 +6,8 @@ export const PLAYER_MELEE_SLASH_SFX_KEYS = [
   "sfx_player_melee_slash_02",
 ] as const;
 
-export type PlayerMeleeSlashSfxKey = (typeof PLAYER_MELEE_SLASH_SFX_KEYS)[number];
+export type PlayerMeleeSlashSfxKey =
+  (typeof PLAYER_MELEE_SLASH_SFX_KEYS)[number];
 
 export function pickPlayerMeleeSlashSfxKey(
   rng: () => number = Math.random,
