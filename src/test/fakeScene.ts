@@ -75,6 +75,19 @@ export function fakeGameObject(
     active: true,
     list: [] as unknown[],
     anims: { timeScale: 1 },
+    scaleX: 1,
+    scaleY: 1,
+    scrollFactorX: 1,
+    scrollFactorY: 1,
+    originX: 0.5,
+    originY: 0.5,
+    width: typeof args[2] === "number" ? args[2] : 0,
+    height: typeof args[3] === "number" ? args[3] : 0,
+    displayOriginX: 0,
+    displayOriginY: 0,
+    /** Absent so geometry helpers use x/y/scale directly. */
+    getWorldTransformMatrix: undefined,
+    parentContainer: null,
     /** Phaser 4 filter lists (`enableFilters()` then `filters.internal.addMask`). */
     filters: {
       internal: { addMask: (src: unknown) => fakeGameObject("mask", [src]) },
@@ -96,6 +109,14 @@ export function fakeGameObject(
       },
     },
   });
+  /** Phaser: displayOrigin = size x origin (rect/image/text/container all default to 0.5). */
+  const syncDisplayOrigin = () => {
+    target.displayOriginX =
+      (target.width as number) * (target.originX as number);
+    target.displayOriginY =
+      (target.height as number) * (target.originY as number);
+  };
+  syncDisplayOrigin();
   let proxy: FakeGameObject;
   const own: Record<string, Fn> = {
     on: (event, fn) => {
@@ -145,6 +166,58 @@ export function fakeGameObject(
       calls.push(["setPosition", [x, y]]);
       target.x = x as number;
       if (y !== undefined) target.y = y as number;
+      return proxy;
+    },
+    setInteractive: (hitArea, hitAreaCallback) => {
+      calls.push(["setInteractive", [hitArea, hitAreaCallback]]);
+      const prev = target.input as Record<string, unknown> | undefined;
+      if (hitArea === undefined && prev) {
+        target.input = { ...prev, enabled: true };
+        return proxy;
+      }
+      // Config objects / no shape: Phaser hit-tests the object's own frame.
+      const isShape =
+        typeof hitArea === "object" &&
+        hitArea !== null &&
+        ("width" in hitArea || "radius" in hitArea);
+      target.input = {
+        hitArea: isShape
+          ? hitArea
+          : new Phaser.Geom.Rectangle(
+              0,
+              0,
+              target.width as number,
+              target.height as number,
+            ),
+        hitAreaCallback,
+        enabled: true,
+      };
+      return proxy;
+    },
+    disableInteractive: () => {
+      calls.push(["disableInteractive", []]);
+      const input = target.input as Record<string, unknown> | undefined;
+      if (input) input.enabled = false;
+      return proxy;
+    },
+    setOrigin: (x, y) => {
+      calls.push(["setOrigin", [x, y]]);
+      target.originX = x ?? 0.5;
+      target.originY = y ?? x ?? 0.5;
+      syncDisplayOrigin();
+      return proxy;
+    },
+    setSize: (w, h) => {
+      calls.push(["setSize", [w, h]]);
+      target.width = w;
+      target.height = h;
+      syncDisplayOrigin();
+      return proxy;
+    },
+    setScrollFactor: (x, y) => {
+      calls.push(["setScrollFactor", [x, y]]);
+      target.scrollFactorX = x;
+      target.scrollFactorY = y ?? x;
       return proxy;
     },
     setVelocity: (vx, vy) => {
@@ -220,6 +293,7 @@ export function fakeScene(
         get(_t, kind: string) {
           return (...args: unknown[]) => {
             const go = fakeGameObject(`${prefix}${kind}`, args);
+            go.scene = scene;
             created.push(go);
             return go;
           };
@@ -282,9 +356,18 @@ export function fakeScene(
     scene: { key: "FakeScene" },
     cameras: {
       main: {
+        x: 0,
+        y: 0,
+        width: opts.width ?? 540,
+        height: opts.height ?? 1200,
+        originX: 0.5,
+        originY: 0.5,
         scrollX: 0,
         scrollY: 0,
         zoom: 1,
+        zoomX: 1,
+        zoomY: 1,
+        rotation: 0,
         getWorldPoint: (x: number, y: number) => ({ x, y }),
       },
     },

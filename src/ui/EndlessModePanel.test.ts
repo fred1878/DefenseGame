@@ -1,43 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { DataStore } from "../core/DataStore";
-import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
+import { rosterStore as store } from "../test/rosterStore";
 import { fakeEventData, fakePointer } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
 import { EndlessModePanel } from "./EndlessModePanel";
-
-function store(ids: string[]) {
-  const s = new DataStore();
-  s.enemies = Object.fromEntries(
-    ids.map((id, i) => [
-      id,
-      {
-        hp: 10,
-        speedWu: 1,
-        damage: 1,
-        weight: 100,
-        behavior: "meleeChaser",
-        textureKey: `enemy_${id}`,
-        displayName: id.toUpperCase(),
-        challengeRating: i + 1,
-        bodyRadiusWu: 14,
-        combat: shippedEnemyCombat("grunt"),
-      },
-    ]),
-  ) as DataStore["enemies"];
-  s.player = { endlessPanelDefaultConcurrent: 2 } as DataStore["player"];
-  s.waves = {
-    "1": {
-      rewardGold: 1,
-      groups: ids.map((enemyId) => ({
-        atMs: 0,
-        enemyId,
-        count: 1,
-        intervalMs: 0,
-      })),
-    },
-  } as DataStore["waves"];
-  return s;
-}
 
 type Row = {
   enemyId: string;
@@ -251,7 +216,12 @@ describe("EndlessModePanel", () => {
     expect(targets["endless-infinite-hp"]!.y).toBeLessThan(
       targets["endless-challenge-rating"]!.y,
     );
-    // viewport + (name, cap column, minus, plus) per visible row
-    expect(rects).toHaveLength(1 + 2 * 4);
+    // viewport + (name, cap column, minus, plus) per visible row + infinite HP, Start, Close
+    expect(rects).toHaveLength(1 + 2 * 4 + 3);
+    for (const r of rects) {
+      expect(r.x).toBeGreaterThanOrEqual(0);
+      expect(r.x + r.width).toBeLessThanOrEqual(540);
+      expect(r.y + r.height).toBeLessThanOrEqual(1200);
+    }
   });
 });
