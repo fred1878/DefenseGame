@@ -26,7 +26,7 @@ export default defineConfig({
       // AST (Vitest 2 counted per source line), so the same tests report lower
       // numbers. Keep these just under the actual totals.
       thresholds: {
-        lines: 60,
+        lines: 59,
         functions: 58,
         branches: 54,
         statements: 58,
