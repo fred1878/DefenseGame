@@ -3,8 +3,8 @@ import { scaleUiY } from "../../core/displayScale";
 import { hitAreaLocalPointToScreen } from "../touchButton";
 import {
   endlessRowCenterOverlapsViewport,
+  endlessRowVisibleScreenYBand,
   pickEndlessEnemyRowAtScreen,
-  pickEndlessRowBandAtScreen,
 } from "../endlessModePanelPick";
 import { layoutRosterScrollbar } from "../rosterPanelShared";
 import {
@@ -73,14 +73,12 @@ export class EndlessModePanelScroll {
     this.scene.input.off("wheel", this.onWheel);
   }
 
-  /** Viewport scroll catcher: full panel width between row bands (row chrome uses row widgets). */
+  /** Viewport scroll catcher: full roster band (row widgets sit above for taps/drags). */
   listViewportHitForScroll(screenX: number, screenY: number): boolean {
     const { listLeft, rowW, listTop, listViewportH } = this.view.layout;
+    const topSlop = scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX);
     if (screenX < listLeft || screenX > listLeft + rowW) return false;
-    if (screenY < listTop || screenY > listTop + listViewportH) {
-      return false;
-    }
-    if (this.pickVisibleRowBandAtScreen(screenX, screenY)) {
+    if (screenY < listTop - topSlop || screenY > listTop + listViewportH) {
       return false;
     }
     return true;
@@ -185,7 +183,26 @@ export class EndlessModePanelScroll {
       if (!Phaser.Geom.Rectangle.Contains(hitArea, x, y)) return false;
       const pt = hitAreaLocalPointToScreen(gameObject, x, y);
       if (!pt) return false;
-      return this.pickVisibleRowAtScreen(pt.x, pt.y) === row.enemyId;
+      const { layout, listContent, rows } = this.view;
+      if (pt.x >= layout.capColLeft) return false;
+      const rowIndex = rows.indexOf(row);
+      if (rowIndex < 0) return false;
+      const bandTop = rowIndex * layout.rowStride;
+      const bandBottom = bandTop + layout.rowH;
+      const contentY = pt.y - listContent.y;
+      if (contentY < bandTop || contentY > bandBottom) return false;
+      const topSlop = scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX);
+      const yBand = endlessRowVisibleScreenYBand({
+        listTop: layout.listTop,
+        listViewportH: layout.listViewportH,
+        listContentY: listContent.y,
+        rowIndex,
+        rowStride: layout.rowStride,
+        rowH: layout.rowH,
+        topHitSlopPx: topSlop,
+      });
+      if (yBand == null) return false;
+      return pt.y >= yBand.top && pt.y <= yBand.bottom;
     };
   }
 
@@ -204,26 +221,6 @@ export class EndlessModePanelScroll {
       screenX,
       screenY,
       capColLeft: layout.capColLeft,
-      listTop: layout.listTop,
-      listViewportH: layout.listViewportH,
-      listContentY: listContent.y,
-      rowStride: layout.rowStride,
-      rowH: layout.rowH,
-      enemyIds: rows.map((r) => r.enemyId),
-      topHitSlopPx: scaleUiY(LIST_VIEWPORT_TOP_HIT_SLOP_PX),
-    });
-  }
-
-  private pickVisibleRowBandAtScreen(
-    screenX: number,
-    screenY: number,
-  ): string | null {
-    const { layout, listContent, rows } = this.view;
-    return pickEndlessRowBandAtScreen({
-      screenX,
-      screenY,
-      listLeft: layout.listLeft,
-      rowW: layout.rowW,
       listTop: layout.listTop,
       listViewportH: layout.listViewportH,
       listContentY: listContent.y,
