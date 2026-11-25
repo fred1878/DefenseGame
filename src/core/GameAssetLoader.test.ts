@@ -20,6 +20,7 @@ function fakeLoader(listSize = 0) {
     setBaseURL: vi.fn(),
     image: vi.fn(),
     audio: vi.fn(),
+    font: vi.fn(),
     spritesheet: vi.fn(),
     once: vi.fn((event: string, fn: (...args: unknown[]) => void) => {
       const list = listeners.get(event) ?? [];
@@ -108,6 +109,7 @@ describe("GameAssetLoader queues", () => {
     queueDefenseBootAssets(defense as never, "/");
     expect(defense.image.mock.calls.length).toBeGreaterThan(0);
     expect(defense.spritesheet.mock.calls.length).toBeGreaterThan(0);
+    expect(defense.font.mock.calls.length).toBeGreaterThan(0);
   });
 });
 
