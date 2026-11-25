@@ -4,6 +4,7 @@ import {
   endlessRowCenterOverlapsViewport,
   pickEndlessEnemyRowAtScreen,
 } from "../endlessModePanelPick";
+import { layoutRosterScrollbar } from "../rosterPanelShared";
 import {
   LIST_VIEWPORT_TOP_HIT_SLOP_PX,
   type EndlessListLayout,
@@ -245,21 +246,6 @@ export class EndlessModePanelScroll {
 
   private refreshScrollbar(): void {
     const { layout, scrollTrack, scrollThumb } = this.view;
-    const show = layout.maxScroll > 0;
-    scrollTrack.setVisible(show);
-    scrollThumb.setVisible(show);
-    if (!show) return;
-    const trackH = layout.listViewportH;
-    const minThumb = scaleUiY(28);
-    const thumbH = Math.max(
-      minThumb,
-      (layout.listViewportH / layout.contentHeight) * trackH,
-    );
-    const travel = Math.max(0, trackH - thumbH);
-    const thumbY =
-      layout.listTop +
-      (layout.maxScroll > 0 ? (this.scrollYValue / layout.maxScroll) * travel : 0);
-    scrollThumb.setDisplaySize(scrollThumb.width, thumbH);
-    scrollThumb.y = thumbY;
+    layoutRosterScrollbar(layout, this.scrollYValue, scrollTrack, scrollThumb);
   }
 }

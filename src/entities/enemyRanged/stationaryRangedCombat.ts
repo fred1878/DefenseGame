@@ -2,7 +2,11 @@ import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import type { EnemyInstance } from "../Enemy";
 import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";
-import { advanceCombatPhase } from "./combatPhase";
+import {
+  advanceCombatPhase,
+  boltToCommittedAim,
+  tickCooldownAndFaceTarget,
+} from "./combatPhase";
 import type { JavelinSpawnRequest, StationaryRangedCombatState } from "./types";
 
 export function updateStationaryRangedCombat(
@@ -14,14 +18,7 @@ export function updateStationaryRangedCombat(
 ): { spawnBolt?: JavelinSpawnRequest } {
   const c = enemy.combat;
   const tune = enemy.combatTuning.stationaryRanged!;
-  if (c.cooldownMs > 0) c.cooldownMs = Math.max(0, c.cooldownMs - deltaMs);
-
-  const dx = target.x - enemy.sprite.x;
-  const dy = target.y - enemy.sprite.y;
-  const dist = Math.hypot(dx, dy);
-  if (c.phase === "idle") {
-    c.facing = Math.atan2(dy, dx);
-  }
+  const dist = tickCooldownAndFaceTarget(enemy, target, deltaMs);
 
   const minVolley = Math.max(0, tune.preferredRangeWu - tune.kiteBandSlackWu);
   const inRange =
@@ -55,13 +52,7 @@ export function updateStationaryRangedCombat(
 
   if (c.phase === "active" && !extra.shotFired && c.attackTargetKind != null) {
     extra.shotFired = true;
-    spawnBolt = {
-      fromX: enemy.sprite.x,
-      fromY: enemy.sprite.y,
-      toX: c.commitAimX,
-      toY: c.commitAimY,
-      damage: tune.damage,
-    };
+    spawnBolt = boltToCommittedAim(enemy, tune.damage);
     if (c.attackTargetKind === "wall" && !c.hitThisSwing) {
       c.hitThisSwing = true;
       onWallHit?.();

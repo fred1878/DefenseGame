@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { scaleUiY } from "../../core/displayScale";
+import { layoutRosterScrollbar } from "../rosterPanelShared";
 import type { PlannerRow, WavePlannerListLayout } from "./WavePlannerPanelBuild";
 
 const TAP_DRAG_THRESHOLD_PX = 10;
@@ -90,17 +90,6 @@ export class WavePlannerPanelScroll {
     const { layout, listContent, scrollTrack, scrollThumb } = this.view;
     this.scrollYValue = Phaser.Math.Clamp(next, 0, layout.maxScroll);
     listContent.y = layout.listTop - this.scrollYValue;
-    const show = layout.maxScroll > 0;
-    scrollTrack.setVisible(show);
-    scrollThumb.setVisible(show);
-    if (!show) return;
-    const trackH = layout.listViewportH;
-    const minThumb = scaleUiY(28);
-    const thumbH = Math.max(minThumb, (layout.listViewportH / layout.contentHeight) * trackH);
-    const travel = Math.max(0, trackH - thumbH);
-    const thumbY =
-      layout.listTop + (layout.maxScroll > 0 ? (this.scrollYValue / layout.maxScroll) * travel : 0);
-    scrollThumb.setDisplaySize(scrollThumb.width, thumbH);
-    scrollThumb.y = thumbY;
+    layoutRosterScrollbar(layout, this.scrollYValue, scrollTrack, scrollThumb);
   }
 }

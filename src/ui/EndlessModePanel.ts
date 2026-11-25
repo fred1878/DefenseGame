@@ -8,6 +8,10 @@ import {
   ENDLESS_CONCURRENT_MIN,
 } from "../systems/endlessSpawnScheduler";
 import { sumChallengeRating } from "../systems/challengeRating";
+import {
+  paintRosterRowSelection,
+  setRosterStartEnabled,
+} from "./rosterPanelShared";
 import type { createTouchButton } from "./touchButton";
 import { paintUiRoundedRect, type UiRoundedRect } from "./uiRoundedRect";
 import {
@@ -154,10 +158,7 @@ export class EndlessModePanel {
   private refreshSelection(): void {
     for (const row of this.rows) {
       const on = this.selectedIds.has(row.enemyId);
-      row.bg.setFillStyle(on ? 0x1e3a5f : 0x3f3f46);
-      row.bg.setStrokeStyle(2, on ? 0x60a5fa : 0x71717a);
-      row.check.setText(on ? "☑" : "☐");
-      row.check.setColor(on ? "#93c5fd" : "#a1a1aa");
+      paintRosterRowSelection(row, on);
       row.capBg.setStrokeStyle(2, on ? 0x52525b : 0x3f3f46);
       row.capMinus.setAlpha(on ? 1 : 0.65);
       row.capPlus.setAlpha(on ? 1 : 0.65);
@@ -166,12 +167,7 @@ export class EndlessModePanel {
   }
 
   private refreshStartButton(): void {
-    const enabled = this.selectedIds.size > 0;
-    const btn = this.startBtn?.container;
-    if (!btn) return;
-    btn.setAlpha(enabled ? 1 : 0.45);
-    if (enabled) btn.setInteractive();
-    else btn.disableInteractive();
+    setRosterStartEnabled(this.startBtn, this.selectedIds.size > 0);
   }
 
   private refreshInfiniteHpVisuals(): void {

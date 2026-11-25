@@ -1,5 +1,4 @@
-import { DEFENSE_MAP, northWallAttackY, PLAYER_AGGRO_RADIUS } from "../../config";
-import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
+import { northWallAttackY } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
 import {
   cellBlocked,
@@ -7,7 +6,6 @@ import {
   type NavGrid,
   type NavPeerAgent,
 } from "../../pathfinding/grid";
-import { replanEnemyPath, resolveEnemyTarget } from "../EnemyBrain";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { EnemyBehavior } from "./types";
 import {
@@ -15,6 +13,12 @@ import {
   applyDirectVelocity,
   setEnemyChaseVelocity,
 } from "./movement";
+import {
+  beginBehaviorFrame,
+  followPlannedPath,
+  frameResult,
+  replanPathIfDue,
+} from "./rangedKite";
 import { applyRetreatPathing } from "./retreatPathing";
 
 const STRAFE_PROBE_DIST = 44;
@@ -156,26 +160,8 @@ function kiteArcVelocity(
 
 export const javelineerBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
-  const ex = enemy.sprite.x;
-  const ey = enemy.sprite.y;
-  const reg = enemy.sprite.scene.registry;
-  const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
-  const resolved = resolveEnemyTarget(
-    nav,
-    grid,
-    ex,
-    ey,
-    playerX,
-    playerY,
-    deltaMs,
-    worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
-    ctx.objective ?? "defendWall",
-    reg,
-  );
-  const desired = resolved.targetKind;
-  nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
-
-  const goal = { x: resolved.goalX, y: resolved.goalY };
+  const frame = beginBehaviorFrame(ctx);
+  const { ex, ey, reg, waypointRadius, desired, goal } = frame;
 
   const dx = playerX - ex;
   const dy = playerY - ey;
@@ -207,35 +193,8 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         retreatGoalDistPx: Math.max(minRange - dist + worldUnit(48, reg), worldUnit(72, reg)),
       });
     } else if (dist > maxRange) {
-      if (nav.replanMs <= 0 || nav.path.length === 0) {
-        replanEnemyPath(
-          nav,
-          grid,
-          ex,
-          ey,
-          goal.x,
-          goal.y,
-          waypointRadius,
-          peerAgents,
-          enemy,
-        );
-        nav.replanMs = DEFENSE_MAP.pathReplanMs;
-      }
-      let moveX = goal.x;
-      let moveY = goal.y;
-      if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-        const wp = nav.path[nav.pathIndex]!;
-        const d = Math.hypot(wp.x - ex, wp.y - ey);
-        if (d <= waypointRadius) {
-          nav.pathIndex += 1;
-        }
-        const nextWp = nav.path[nav.pathIndex];
-        if (nextWp) {
-          moveX = nextWp.x;
-          moveY = nextWp.y;
-        }
-      }
-      applyChaseVelocity(enemy, moveX, moveY, 1.08, { nav, deltaMs });
+      replanPathIfDue(ctx, frame);
+      followPlannedPath(ctx, frame, 1.08);
     } else {
       const distError = dist - ideal;
       let radialBlend = 0;
@@ -301,55 +260,17 @@ export const javelineerBehavior: EnemyBehavior = (ctx) => {
         ),
       });
     } else if (distToWall > maxRange) {
-      if (nav.replanMs <= 0 || nav.path.length === 0) {
-        replanEnemyPath(
-          nav,
-          grid,
-          ex,
-          ey,
-          goal.x,
-          goal.y,
-          waypointRadius,
-          peerAgents,
-          enemy,
-        );
-        nav.replanMs = DEFENSE_MAP.pathReplanMs;
-      }
-      let moveX = goal.x;
-      let moveY = goal.y;
-      if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-        const wp = nav.path[nav.pathIndex]!;
-        const d = Math.hypot(wp.x - ex, wp.y - ey);
-        if (d <= waypointRadius) {
-          nav.pathIndex += 1;
-        }
-        const nextWp = nav.path[nav.pathIndex];
-        if (nextWp) {
-          moveX = nextWp.x;
-          moveY = nextWp.y;
-        }
-      }
-      applyChaseVelocity(enemy, moveX, moveY, 1, { nav, deltaMs });
+      replanPathIfDue(ctx, frame);
+      followPlannedPath(ctx, frame, 1);
     } else {
       advanceStrafeSign(enemy, deltaMs);
       const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
       applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
     }
-  } else if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      peerAgents,
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
+  } else if (replanPathIfDue(ctx, frame)) {
+    // Untuned javelineer only re-steers on the ticks it replans.
     applyChaseVelocity(enemy, goal.x, goal.y, 1, { nav, deltaMs });
   }
 
-  return { targetX: goal.x, targetY: goal.y, targetKind: desired };
+  return frameResult(frame);
 };
