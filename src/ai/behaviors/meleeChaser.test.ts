@@ -372,6 +372,63 @@ describe("meleeChaserBehavior", () => {
     const [vx] = setVelocity.mock.calls.at(-1)!;
     expect(vx).toBeGreaterThan(0);
   });
+
+  it("cuts in toward the player once the path is exhausted and the chord is clear", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speedWu: 80,
+    });
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "player",
+      path: [{ x: 0, y: 0 }],
+      pathIndex: 1,
+      replanMs: 5000,
+      pathGoalReached: true,
+    };
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    meleeChaserBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 200,
+      playerY: 0,
+      deltaMs: 16,
+      objective: "huntPlayer",
+    });
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
+
+  it("leaves a spent waypoint without a next one", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+      speedWu: 80,
+    });
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "wall",
+      path: [{ x: 0, y: 0 }],
+      pathIndex: 0,
+      replanMs: 5000,
+      pathGoalReached: false,
+    };
+    meleeChaserBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 10_000,
+      playerY: 10_000,
+      deltaMs: 16,
+    });
+    expect(enemy.nav.pathIndex).toBe(1);
+  });
 });
 
 it("holds at the wall when the player is far away", () => {

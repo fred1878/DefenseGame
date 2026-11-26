@@ -404,6 +404,48 @@ describe("wardBehavior", () => {
     expect(setVelocity).not.toHaveBeenCalledWith(0, 0);
     expect(setVelocity).toHaveBeenCalled();
   });
+
+  it("uses the default aggro radius and follows a path with no protectee", () => {
+    const setVelocity = vi.fn();
+    const enemy = mockEnemyInstance({
+      behavior: "ward",
+      defId: "ward",
+      speedWu: 50,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity,
+        body: { velocity: { x: 0, y: 0 } },
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    const ward = enemy.combatTuning.ward;
+    if (ward && "playerAggroRadiusWu" in ward) {
+      delete (ward as { playerAggroRadiusWu?: number }).playerAggroRadiusWu;
+    }
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "wall",
+      path: [
+        { x: 0, y: 0 },
+        { x: 80, y: 0 },
+      ],
+      pathIndex: 0,
+      replanMs: 1000,
+    };
+    wardBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 400,
+      playerY: 400,
+      deltaMs: 16,
+    });
+    expect(enemy.nav.pathIndex).toBe(1);
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
 });
 
 describe("ward helper edge cases", () => {
