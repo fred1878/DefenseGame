@@ -31,6 +31,7 @@ import {
 } from "../entities/Projectile";
 import { worldUnit } from "../core/worldPixelScale";
 import { showPlayerMeleeSwipe } from "./MeleeSwipeFx";
+import { playConeOfFireIncinerateFx } from "./ConeOfFireIncinerateFx";
 import { showSpellConeFx } from "./SpellConeFx";
 import { showChainLightningFx } from "./ChainLightningFx";
 import { ICE_BOLT_SPELL_ID } from "../content/iceFxSpells";
@@ -286,14 +287,25 @@ export function applySpellCone(
   },
 ): void {
   if (opts?.showFx !== false) {
-    showSpellConeFx(
-      scene,
-      playerX,
-      playerY,
-      facingRad,
-      def.coneRangeWu!,
-      def.coneArcDeg!,
-    );
+    if (def.id === "cone_of_fire") {
+      playConeOfFireIncinerateFx(
+        scene,
+        playerX,
+        playerY,
+        facingRad,
+        def.coneRangeWu!,
+        opts?.registerWorldDraw,
+      );
+    } else {
+      showSpellConeFx(
+        scene,
+        playerX,
+        playerY,
+        facingRad,
+        def.coneRangeWu!,
+        def.coneArcDeg!,
+      );
+    }
     if (def.id === "cone_of_cold") {
       playIceBoltHitFx(
         scene,
