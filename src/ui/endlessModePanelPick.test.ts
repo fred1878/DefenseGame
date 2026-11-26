@@ -235,3 +235,92 @@ describe("endlessRowCenterOverlapsViewport", () => {
     ).toBe(true);
   });
 });
+
+describe("endless row pick fallbacks", () => {
+  it("returns null for rows scrolled fully out of the viewport", () => {
+    expect(
+      endlessRowVisibleScreenYBand({
+        listTop: 100,
+        listViewportH: 40,
+        listContentY: 100,
+        rowIndex: 8,
+        rowStride: 50,
+        rowH: 40,
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects slop that's too far above the list and indexes past the roster", () => {
+    expect(
+      pick({
+        screenY: LAYOUT.listTop - LAYOUT.topHitSlopPx - 8,
+      }),
+    ).toBeNull();
+    expect(
+      pick({
+        screenY: LAYOUT.listTop + 10,
+        listViewportH: 4000,
+        enemyIds: ["grunt"],
+        rowStride: 10,
+        rowH: 8,
+        listContentY: LAYOUT.listTop,
+      }),
+    ).toBeNull();
+    expect(
+      pick({
+        screenY: LAYOUT.listTop + LAYOUT.rowH / 2,
+        enemyIds: [undefined as never],
+      }),
+    ).toBeNull();
+  });
+
+  it("defaults top slop to zero when omitted", () => {
+    expect(
+      endlessRowVisibleScreenYBand({
+        listTop: LAYOUT.listTop,
+        listViewportH: LAYOUT.listViewportH,
+        listContentY: LAYOUT.listContentY,
+        rowIndex: 0,
+        rowStride: LAYOUT.rowStride,
+        rowH: LAYOUT.rowH,
+      })?.top,
+    ).toBe(LAYOUT.listTop);
+  });
+});
+
+describe("pickEndlessEnemyRowAtScreen leftover branches", () => {
+  it("treats a missing top slop as zero and rejects a far-above content tap", () => {
+    const mid = LAYOUT.listTop + LAYOUT.rowH / 2;
+    const { topHitSlopPx: _omit, ...base } = {
+      capColLeft: LAYOUT.capColLeft,
+      listTop: LAYOUT.listTop,
+      listViewportH: LAYOUT.listViewportH,
+      listContentY: LAYOUT.listContentY,
+      rowStride: LAYOUT.rowStride,
+      rowH: LAYOUT.rowH,
+      enemyIds: [...ROSTER],
+      topHitSlopPx: LAYOUT.topHitSlopPx,
+      screenX: LAYOUT.nameColCenterX,
+      screenY: mid,
+    };
+    expect(pickEndlessEnemyRowAtScreen(base)).toBe("grunt");
+    expect(
+      pick({
+        screenY: LAYOUT.listTop,
+        listContentY: LAYOUT.listTop + LAYOUT.rowStride * 3,
+      }),
+    ).toBeNull();
+  });
+
+  it("returns no row when the visible band is thinner than a pixel", () => {
+    // Push row 0 almost completely above the viewport so the visible slice is < 1px.
+    const listContentY = LAYOUT.listTop - LAYOUT.rowH + 0.25;
+    expect(
+      pick({
+        screenY: LAYOUT.listTop,
+        listContentY,
+        topHitSlopPx: 0,
+      }),
+    ).toBeNull();
+  });
+});

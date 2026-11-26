@@ -228,3 +228,59 @@ describe("bindTapOrLongPress", () => {
     expect(scene.input.listenerCount("pointerup")).toBe(0);
   });
 });
+
+describe("bindPress leftover branches", () => {
+  it("binds a non-container without input and cleans up if input is gone", () => {
+    const scene = fakeScene();
+    const emitter = new FakeEmitter();
+    const obj = {
+      on: emitter.on.bind(emitter),
+      off: emitter.off.bind(emitter),
+      emit: emitter.emit.bind(emitter),
+    };
+    const onPress = vi.fn();
+    bindPress(
+      asScene(scene),
+      obj as unknown as Phaser.GameObjects.GameObject,
+      onPress,
+    );
+    obj.emit("pointerdown", fakePointer(10, 10), 0, 0, fakeEventData());
+    scene.input.hitTestPointer.mockReturnValue([obj]);
+    scene.input.emit("pointerup", fakePointer(10, 10));
+    expect(onPress).toHaveBeenCalledTimes(1);
+
+    (scene as { input?: unknown }).input = undefined;
+    scene.events.emit(Phaser.Scenes.Events.DESTROY);
+  });
+
+  it("counts a descendant that is not in the container list", () => {
+    const scene = fakeScene();
+    const btn = fakeButton();
+    const child = { parentContainer: btn };
+    const onPress = vi.fn();
+    bindPress(asScene(scene), asGo(btn), onPress);
+    press(btn);
+    scene.input.hitTestPointer.mockReturnValue([child]);
+    scene.input.emit("pointerup", fakePointer(10, 10));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("bindTapOrLongPress leftover branches", () => {
+  it("marks the drag as exceeded only once, then cleans up without input", () => {
+    const scene = fakeScene();
+    const btn = fakeButton();
+    bindTapOrLongPress(asScene(scene), asGo(btn), {
+      onTap: vi.fn(),
+      onLongPress: vi.fn(),
+      longPressMs: 400,
+    });
+    press(btn, 10, 10);
+    const far = 10 + scaleUiX(VIRTUAL_STICK_DRAG_THRESHOLD_PX) + 2;
+    scene.input.emit("pointermove", fakePointer(far, 10));
+    scene.input.emit("pointermove", fakePointer(far + 4, 10));
+    scene.input.emit("pointerup", fakePointer(far + 4, 10));
+    (scene as { input?: unknown }).input = undefined;
+    scene.events.emit(Phaser.Scenes.Events.DESTROY);
+  });
+});

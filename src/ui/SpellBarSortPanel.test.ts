@@ -227,3 +227,90 @@ describe("SpellBarSortPanel", () => {
     }
   });
 });
+
+describe("SpellBarSortPanel leftover branches", () => {
+  it("hides the icon when a filled slot has no texture", () => {
+    const extra = selectable.find((id) => id !== A && id !== B && id !== C);
+    if (!extra) return;
+    const { views } = open([extra]);
+    expect(views.slotViews[0]!.icon.last("setVisible")?.[0]).toBe(false);
+    expect(views.slotViews[0]!.nameLabel.last("setVisible")?.[0]).toBe(true);
+  });
+
+  it("treats a hole in the slot list as empty and ignores a dead pool toggle", () => {
+    const { panel, views } = open([A]);
+    const box = panel as unknown as {
+      slots: Array<string | undefined>;
+      refreshSlotDisplay: () => void;
+      toggleAutoCast: (i: number) => void;
+      togglePoolSpell: (id: string) => void;
+    };
+    delete box.slots[0];
+    box.refreshSlotDisplay();
+    expect(views.slotViews[0]!.indexLabel.last("setVisible")?.[0]).toBe(true);
+    box.toggleAutoCast(0);
+    box.togglePoolSpell("not-a-spell");
+    if (notSelectable) box.togglePoolSpell(notSelectable.id);
+  });
+
+  it("re-homes a displaced spell into the first empty slot", () => {
+    const { panel } = open([A, B, "", ""]);
+    const box = panel as unknown as {
+      slots: string[];
+      dragCtl: { takeDraggedSpell: () => string | null };
+      onDropOnSlot: (i: number) => void;
+    };
+    box.dragCtl = { takeDraggedSpell: () => C };
+    box.onDropOnSlot(0);
+    expect(box.slots[0]).toBe(C);
+    expect(box.slots).toContain(A);
+  });
+});
+
+describe("SpellBarSortPanel remaining leftover branches", () => {
+  it("does nothing when dropping on an empty slot with no drag", () => {
+    const { panel } = open(["", ""]);
+    const box = panel as unknown as {
+      slots: string[];
+      dragCtl: { takeDraggedSpell: () => string | null };
+      onDropOnSlot: (i: number) => void;
+    };
+    const before = [...box.slots];
+    box.dragCtl = { takeDraggedSpell: () => null };
+    box.onDropOnSlot(0);
+    expect(box.slots).toEqual(before);
+  });
+
+  it("drops a displaced spell when the bar has no empty slot", () => {
+    const filled = selectable.slice(0, 8);
+    if (filled.length < 4 || !C) return;
+    const { panel } = open(filled);
+    const box = panel as unknown as {
+      slots: string[];
+      dragCtl: { takeDraggedSpell: () => string | null };
+      onDropOnSlot: (i: number) => void;
+    };
+    const incoming = filled[1]!;
+    const displaced = box.slots[0];
+    box.dragCtl = { takeDraggedSpell: () => incoming };
+    box.onDropOnSlot(0);
+    expect(box.slots[0]).toBe(incoming);
+    expect(box.slots.filter((id) => id === displaced).length).toBeLessThan(2);
+  });
+
+  it("falls back to the spell name when a short label is missing", () => {
+    const { panel, views } = open([A]);
+    const box = panel as unknown as { refreshSlotDisplay: () => void };
+    const catalog = getSpellCatalog();
+    const def = catalog.find((d) => d.id === A);
+    if (!def) return;
+    const prev = def.shortLabel;
+    (def as { shortLabel?: string }).shortLabel = "";
+    try {
+      box.refreshSlotDisplay();
+      expect(views.slotViews[0]!.nameLabel.last("setText")?.[0]).toBe(def.name);
+    } finally {
+      def.shortLabel = prev;
+    }
+  });
+});

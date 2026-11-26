@@ -61,5 +61,6 @@ describe("swingSpellDamageFlavor", () => {
     expect(swingSpellDamageFlavor("fire")).toBe("fire");
     expect(swingSpellDamageFlavor("frost")).toBe("frost");
     expect(swingSpellDamageFlavor("water")).toBe("water");
+    expect(swingSpellDamageFlavor("lightning")).toBe("lightning");
   });
 });

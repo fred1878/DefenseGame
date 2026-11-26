@@ -404,4 +404,117 @@ describe("wardBehavior", () => {
     expect(setVelocity).not.toHaveBeenCalledWith(0, 0);
     expect(setVelocity).toHaveBeenCalled();
   });
+
+  it("uses the default aggro radius and follows a path with no protectee", () => {
+    const setVelocity = vi.fn();
+    const enemy = mockEnemyInstance({
+      behavior: "ward",
+      defId: "ward",
+      speedWu: 50,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity,
+        body: { velocity: { x: 0, y: 0 } },
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    const ward = enemy.combatTuning.ward;
+    if (ward && "playerAggroRadiusWu" in ward) {
+      delete (ward as { playerAggroRadiusWu?: number }).playerAggroRadiusWu;
+    }
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "wall",
+      path: [
+        { x: 0, y: 0 },
+        { x: 80, y: 0 },
+      ],
+      pathIndex: 0,
+      replanMs: 1000,
+    };
+    wardBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 400,
+      playerY: 400,
+      deltaMs: 16,
+    });
+    expect(enemy.nav.pathIndex).toBe(1);
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
+});
+
+describe("ward helper edge cases", () => {
+  it("wraps facing deltas across the ±π boundary", () => {
+    const slack = WARD_POST_FACING_SLACK_RAD;
+    expect(slewWardHoldFacing(0, Math.PI * 3, slack)).toBeCloseTo(Math.PI, 6);
+    expect(slewWardHoldFacing(0, -Math.PI * 3, slack)).toBeCloseTo(-Math.PI, 6);
+  });
+
+  it("returns no protectee when allies are missing or not ranged", () => {
+    expect(pickWardProtectee(undefined, 0, 0, 200)).toBeUndefined();
+    expect(pickWardProtectee([], 0, 0, 200)).toBeUndefined();
+    expect(
+      pickWardProtectee(
+        [{ id: "g", behavior: "meleeChaser", defId: "grunt", x: 0, y: 0 }],
+        0,
+        0,
+        200,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("sits on the ally when the player is stacked on them", () => {
+    const reg = { get: () => undefined } as never;
+    expect(wardScreenPoint(4, 4, 4, 4, 40, reg)).toEqual({ x: 4, y: 4 });
+  });
+
+  it("drops hold after grace when the post goal drifts", () => {
+    const extra = freshWardExtra();
+    evaluateWardPostHold(
+      extra,
+      16,
+      true,
+      0,
+      0,
+      10,
+      0,
+      0,
+      80,
+      WARD_POST_BREAK_MOVE_PX,
+    );
+    evaluateWardPostHold(
+      extra,
+      WARD_POST_GRACE_MS,
+      true,
+      0,
+      0,
+      10,
+      0,
+      0,
+      80,
+      WARD_POST_BREAK_MOVE_PX,
+    );
+    const dropped = evaluateWardPostHold(
+      extra,
+      16,
+      true,
+      200,
+      0,
+      10,
+      0,
+      0,
+      80,
+      WARD_POST_BREAK_MOVE_PX,
+    );
+    expect(dropped).toEqual({
+      hold: false,
+      skipReplan: false,
+      snapFacing: false,
+    });
+  });
 });

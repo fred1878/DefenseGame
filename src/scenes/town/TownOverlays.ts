@@ -8,13 +8,16 @@ import {
   isTownReachableReady,
 } from "../../core/GameAssetLoader";
 import { launchDebugMenuFromHost } from "../../debug/debugMenuLifecycle";
-import { EndlessModePanel } from "../../ui/EndlessModePanel";
-import { EndlessModePanelLoadingSkeleton } from "../../ui/EndlessModePanelLoadingSkeleton";
 import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
 import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
-import { WavePlannerPanel } from "../../ui/WavePlannerPanel";
 import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
 import type { ScreenRect } from "../../ui/screenLayout";
+import {
+  isEndlessModeSetupActive,
+  isWavePlannerSetupActive,
+  openEndlessModeSetupScene,
+  openWavePlannerSetupScene,
+} from "./townSetupSceneLifecycle";
 
 /** Scene callbacks the Town overlays need (save access + run launch). */
 export type TownOverlaysHost = {
@@ -28,14 +31,11 @@ export type TownOverlaysHost = {
 };
 
 /**
- * Town modal overlays: spell bar sort, endless roster (+ loading skeleton),
- * wave planner, save menu, debug menu launch, and the defense loading overlay.
+ * Town modal overlays: spell bar sort, save menu, debug launch, defense loading.
+ * Endless roster and wave planner run on dedicated setup scenes (Town paused).
  */
 export class TownOverlays {
   spellSortPanel: SpellBarSortPanel | null = null;
-  endlessPanel: EndlessModePanel | null = null;
-  endlessPanelLoading: EndlessModePanelLoadingSkeleton | null = null;
-  wavePlannerPanel: WavePlannerPanel | null = null;
   saveMenuPanel: SaveMenuPanel | null = null;
   private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
 
@@ -71,27 +71,10 @@ export class TownOverlays {
   }
 
   openWavePlannerPanel(): void {
-    if (this.wavePlannerPanel) return;
-    const store = this.scene.registry.get("dataStore") as DataStore;
-    const open = () => {
-      if (this.wavePlannerPanel) return;
-      this.wavePlannerPanel = new WavePlannerPanel(
-        this.scene,
-        this.scene.registry.get("dataStore") as DataStore,
-        (groups) => {
-          this.wavePlannerPanel = null;
-          this.host.onStartWavePlanner(groups);
-        },
-        () => {
-          this.wavePlannerPanel = null;
-        },
-      );
-    };
-    if (isTownReachableReady(this.scene.game, store)) {
-      open();
-      return;
-    }
-    void ensureTownReachableReady(this.scene, store).then(open);
+    if (isWavePlannerSetupActive(this.scene.game)) return;
+    openWavePlannerSetupScene(this.scene, {
+      onStart: (groups) => this.host.onStartWavePlanner(groups),
+    });
   }
 
   openSaveMenuPanel(): void {
@@ -110,58 +93,11 @@ export class TownOverlays {
   }
 
   openEndlessPanel(): void {
-    if (this.endlessPanel || this.endlessPanelLoading) return;
-    const store = this.scene.registry.get("dataStore") as DataStore;
-    const open = () => {
-      this.endlessPanelLoading?.destroy();
-      this.endlessPanelLoading = null;
-      if (this.endlessPanel) return;
-      this.endlessPanel = new EndlessModePanel(
-        this.scene,
-        store,
-        (selections, infiniteHp) => {
-          this.endlessPanel = null;
-          this.host.onStartEndless(selections, infiniteHp);
-        },
-        () => {
-          this.endlessPanel = null;
-        },
-      );
-    };
-    if (isTownReachableReady(this.scene.game, store)) {
-      open();
-      return;
-    }
-    let endlessOpenCancelled = false;
-    const dismissLoading = (): void => {
-      endlessOpenCancelled = true;
-      this.endlessPanelLoading = null;
-    };
-    this.endlessPanelLoading = new EndlessModePanelLoadingSkeleton(
-      this.scene,
-      dismissLoading,
-    );
-    void ensureTownReachableReady(this.scene, store)
-      .then(() => {
-        if (endlessOpenCancelled) return;
-        open();
-      })
-      .catch((err) => {
-        console.error("Endless panel readiness failed", err);
-        this.endlessPanelLoading?.showError(
-          "Could not load endless roster. Try again.",
-        );
-        this.scene.time.delayedCall(2800, () => {
-          this.endlessPanelLoading?.destroy();
-          this.endlessPanelLoading = null;
-        });
-      });
-  }
-
-  /** Close the endless roster without starting (e2e start path). */
-  dismissEndlessPanel(): void {
-    this.endlessPanel?.destroy();
-    this.endlessPanel = null;
+    if (isEndlessModeSetupActive(this.scene.game)) return;
+    openEndlessModeSetupScene(this.scene, {
+      onStart: (selections, infiniteHp) =>
+        this.host.onStartEndless(selections, infiniteHp),
+    });
   }
 
   launchDebugMenu(): void {
@@ -175,12 +111,6 @@ export class TownOverlays {
   }
 
   teardown(): void {
-    this.endlessPanelLoading?.destroy();
-    this.endlessPanelLoading = null;
-    this.endlessPanel?.destroy();
-    this.endlessPanel = null;
-    this.wavePlannerPanel?.destroy();
-    this.wavePlannerPanel = null;
     this.saveMenuPanel?.destroy();
     this.saveMenuPanel = null;
     this.spellSortPanel?.destroy();
@@ -217,11 +147,8 @@ export class TownOverlays {
       });
   }
 
-  /** Layout-derived touch-debug outlines for open town modals (endless uses its own geometry). */
+  /** Layout-derived touch-debug outlines for open town modals on this scene. */
   collectTouchDebugScreenRects(): ScreenRect[] {
-    if (this.endlessPanel) {
-      return this.endlessPanel.touchDebugScreenRects();
-    }
     return [];
   }
 
@@ -229,15 +156,6 @@ export class TownOverlays {
   collectE2eTapTargets(out: Record<string, { x: number; y: number }>): void {
     if (this.spellSortPanel) {
       Object.assign(out, this.spellSortPanel.e2eTapTargets());
-    }
-    if (this.endlessPanelLoading) {
-      Object.assign(out, this.endlessPanelLoading.e2eTapTargets());
-    }
-    if (this.endlessPanel) {
-      Object.assign(out, this.endlessPanel.e2eTapTargets());
-    }
-    if (this.wavePlannerPanel) {
-      Object.assign(out, this.wavePlannerPanel.e2eTapTargets());
     }
     if (this.saveMenuPanel) {
       Object.assign(out, this.saveMenuPanel.e2eTapTargets());

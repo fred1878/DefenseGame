@@ -155,4 +155,25 @@ describe("saveSlots", () => {
     expect(normalizeSave(legacy).night).toBe(6);
     expect(items.has(saveSlotStorageKey(3))).toBe(true);
   });
+
+  it("no-ops when localStorage is missing and defaults a bad savedAt", () => {
+    vi.stubGlobal("localStorage", undefined);
+    expect(readSaveSlot(0)).toBeNull();
+    expect(loadSaveSlot(0)).toBeNull();
+    expect(() => deleteSaveSlot(0)).not.toThrow();
+    const written = writeSaveSlot(0, createNewSave(), 5);
+    expect(written.savedAt).toBe(5);
+    vi.unstubAllGlobals();
+
+    const items = stubStorage();
+    items.set(
+      saveSlotStorageKey(0),
+      JSON.stringify({
+        version: SAVE_VERSION,
+        savedAt: "later",
+        save: createNewSave(),
+      }),
+    );
+    expect(readSaveSlot(0)?.savedAt).toBe(0);
+  });
 });

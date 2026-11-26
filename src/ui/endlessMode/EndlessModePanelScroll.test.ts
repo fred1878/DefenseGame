@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { scaleUiY } from "../../core/displayScale";
 import { FakeEmitter, fakePointer } from "../../test/fakeInput";
 import type { EndlessListLayout, EnemyRow } from "./EndlessModePanelBuild";
+import * as endlessModePanelPick from "../endlessModePanelPick";
 import { EndlessModePanelScroll } from "./EndlessModePanelScroll";
 
 const ROWS = 10;
@@ -207,5 +208,70 @@ describe("EndlessModePanelScroll", () => {
     expect(nameHit(rowHit, 0, 0, rows[9]!.bg as never)).toBe(false);
     expect(scroll.rowCapHitTest(rows[0]!)(capHit, 0, 0)).toBe(true);
     expect(scroll.rowCapHitTest(rows[9]!)(capHit, 0, 0)).toBe(false);
+  });
+});
+
+describe("EndlessModePanelScroll leftover branches", () => {
+  it("ignores a move from another pointer and a second listener attach", () => {
+    const { scroll, input } = setup();
+    scroll.beginDrag(fakePointer(100, 300, 1) as never, "row", "e2");
+    input.emit("pointermove", fakePointer(100, 250, 2));
+    expect(scroll.scrollY).toBe(0);
+    scroll.beginDrag(fakePointer(100, 300, 1) as never, "row", "e2");
+    input.emit("pointermove", fakePointer(100, 250, 1));
+    expect(scroll.scrollY).toBe(50);
+  });
+
+  it("does not toggle a row when a viewport tap has no enemy under it", () => {
+    const { scroll, input, onTapRow } = setup();
+    scroll.beginDrag(fakePointer(100, 10) as never, "viewport");
+    input.emit("pointerup", fakePointer(100, 10));
+    expect(onTapRow).not.toHaveBeenCalled();
+  });
+
+  it("rejects name and cap hits outside the hit area or off the roster", () => {
+    const { scroll, rows } = setup();
+    const nameHit = scroll.rowNameHitTest(rows[0]!);
+    const capHit = scroll.rowCapHitTest(rows[0]!);
+    const area = new Phaser.Geom.Rectangle(-150, -25, 300, 50);
+    const contains = vi
+      .spyOn(Phaser.Geom.Rectangle, "Contains")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(false)
+      .mockReturnValue(true);
+    expect(nameHit(area, 400, 0, rows[0]!.bg as never)).toBe(false);
+    expect(capHit(area, 10_000, 10_000)).toBe(false);
+    contains.mockRestore();
+    const ghost = { ...rows[0]!, enemyId: "ghost" } as (typeof rows)[0];
+    const ghostHit = scroll.rowNameHitTest(ghost);
+    expect(ghostHit(area, 0, 0, rows[0]!.bg as never)).toBe(false);
+  });
+
+  it("rejects a name hit whose local point has no screen mapping", () => {
+    const { scroll, rows } = setup();
+    const nameHit = scroll.rowNameHitTest(rows[0]!);
+    const area = new Phaser.Geom.Rectangle(-150, -25, 300, 50);
+    const ghost = { x: 0, y: 0 } as never;
+    expect(nameHit(area, 0, 0, ghost)).toBe(false);
+  });
+
+  it("rejects a name hit that lands in the cap column", () => {
+    const { scroll, rows } = setup();
+    const nameHit = scroll.rowNameHitTest(rows[0]!);
+    const area = new Phaser.Geom.Rectangle(-150, -25, 300, 50);
+    // Local X 250 maps to screen x = 150 + (250 - 150) = 250; still left of
+    // capColLeft 370. Use 400: 150 + (400 - 150) = 400 >= 370.
+    expect(nameHit(area, 400, 0, rows[0]!.bg as never)).toBe(false);
+  });
+
+  it("rejects a name hit when the row has no visible y-band", () => {
+    const { scroll, rows } = setup();
+    const nameHit = scroll.rowNameHitTest(rows[0]!);
+    const area = new Phaser.Geom.Rectangle(-150, -25, 300, 50);
+    const band = vi
+      .spyOn(endlessModePanelPick, "endlessRowVisibleScreenYBand")
+      .mockReturnValue(null);
+    expect(nameHit(area, 0, 0, rows[0]!.bg as never)).toBe(false);
+    band.mockRestore();
   });
 });

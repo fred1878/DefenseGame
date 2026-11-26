@@ -119,4 +119,15 @@ describe("enemyKnockback", () => {
     expect(light.knockbackVx).toBeGreaterThan(heavy.knockbackVx);
     expect(light.knockbackVx / heavy.knockbackVx).toBeCloseTo(4, 5);
   });
+
+  it("ignores a non-positive decay step", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      knockbackVx: 50,
+      knockbackVy: 0,
+    });
+    decayEnemyKnockback(enemy, 0);
+    decayEnemyKnockback(enemy, -16);
+    expect(enemy.knockbackVx).toBe(50);
+  });
 });

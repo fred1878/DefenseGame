@@ -7,6 +7,9 @@ import {
   spellRequiresManualTarget,
   spellTargetMode,
   spellUsesManualGroundAim,
+  spellChannelTickMs,
+  spellCastMs,
+  spellRequiresStationary,
 } from "./spellTargeting";
 import type { SpellDefinition } from "./spells";
 
@@ -148,5 +151,56 @@ describe("spellTargeting", () => {
         def({ id: "fire_nova", mechanicType: "blast", centerOnCaster: true }),
       ),
     ).toBe(false);
+  });
+
+  it("infers target modes and tick/cast defaults from the mechanic", () => {
+    expect(spellTargetMode(def({ mechanicType: "heal" }))).toBe("self");
+    expect(spellTargetMode(def({ mechanicType: "buff" }))).toBe("self");
+    expect(spellTargetMode(def({ mechanicType: "blink" }))).toBe("self");
+    expect(spellTargetMode(def({ mechanicType: "tracking_projectile" }))).toBe(
+      "enemy",
+    );
+    expect(spellTargetMode(def({ mechanicType: "tracking_swing" }))).toBe(
+      "enemy",
+    );
+    expect(spellTargetMode(def({ mechanicType: "channeled_area" }))).toBe(
+      "ground",
+    );
+    expect(spellTargetMode(def({ mechanicType: "blast" }))).toBe("ground");
+    expect(
+      spellTargetMode(def({ mechanicType: "blast", centerOnCaster: true })),
+    ).toBe("none");
+    expect(
+      spellTargetMode(
+        def({ mechanicType: "channeled", centerOnCaster: false }),
+      ),
+    ).toBe("ground");
+    expect(spellTargetMode(def({ mechanicType: "channeled" }))).toBe("none");
+    expect(spellTargetMode(def({ mechanicType: "projectile" }))).toBe("none");
+    expect(
+      spellRequiresManualTarget(
+        def({
+          mechanicType: "instant_targeted",
+          requireEnemyTarget: true,
+        }),
+      ),
+    ).toBe(true);
+    expect(spellChannelTickMs(def({}))).toBe(250);
+    expect(spellChannelTickMs(def({ channelTickMs: 80 }))).toBe(80);
+    expect(spellCastMs(def({}))).toBe(0);
+    expect(spellCastMs(def({ castMs: 400 }))).toBe(400);
+    expect(spellRequiresStationary(def({ channelMs: 0 }))).toBe(false);
+    expect(spellRequiresStationary(def({ channelMs: 500 }))).toBe(true);
+    expect(spellRequiresStationary(def({ castMs: 200 }))).toBe(true);
+  });
+});
+
+describe("spellAutoCastRequiresCombatTarget leftover branches", () => {
+  it("requires a combat target for swings that have no explicit target mode", () => {
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "rend", mechanicType: "swing" }),
+      ),
+    ).toBe(true);
   });
 });

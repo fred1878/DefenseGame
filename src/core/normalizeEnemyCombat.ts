@@ -1,11 +1,13 @@
 import { finalizeEnemyMeleeFxTiming } from "../combat/meleeFxTiming";
 import {
+  ConfigLoadError,
   optionalFiniteNumber,
   requireNumberFields,
   requireRecord,
 } from "./configValidation";
 import type {
   EnemyArrowRainCombat,
+  EnemyAttackMovement,
   EnemyChargerCombat,
   EnemyHybridCombat,
   EnemyJavelineerCombat,
@@ -113,6 +115,7 @@ export const ENEMY_COMBAT_LOBBER_KEYS = [
   "blastRadiusWu",
   "blastDamageScale",
   "impactVfxBlastMul",
+  "attackCreepSpeedMul",
 ] as const;
 export const ENEMY_COMBAT_WARD_KEYS = [
   "protectRadiusWu",
@@ -160,6 +163,48 @@ function section<T extends Record<string, number>>(
   return requireNumberFields(block, keys, path) as T;
 }
 
+/** Boot-required keys for `attackMovement` on phased attack kits. */
+export const ENEMY_ATTACK_MOVEMENT_KEYS = [
+  "windupMul",
+  "activeMul",
+  "recoveryMul",
+] as const;
+
+export function requireAttackMovement(
+  raw: unknown,
+  path: string,
+): EnemyAttackMovement {
+  const block = requireRecord(raw, path);
+  const nums = requireNumberFields(block, ENEMY_ATTACK_MOVEMENT_KEYS, path);
+  const out: EnemyAttackMovement = {
+    windupMul: nums.windupMul!,
+    activeMul: nums.activeMul!,
+    recoveryMul: nums.recoveryMul!,
+  };
+  for (const key of ENEMY_ATTACK_MOVEMENT_KEYS) {
+    const value = out[key];
+    if (value < 0) {
+      throw new ConfigLoadError(`${path}.${key} must be >= 0`);
+    }
+  }
+  return out;
+}
+
+function withAttackMovement<T extends Record<string, number>>(
+  raw: unknown,
+  path: string,
+  base: T,
+): T & { attackMovement: EnemyAttackMovement } {
+  const block = requireRecord(raw, path);
+  return {
+    ...base,
+    attackMovement: requireAttackMovement(
+      block.attackMovement,
+      `${path}.attackMovement`,
+    ),
+  };
+}
+
 export function requireEnemyWallCombat(
   raw: unknown,
   path: string,
@@ -179,7 +224,7 @@ export function requireEnemyMeleeCombat(
     block.fxDurationMs,
     `${path}.fxDurationMs`,
   );
-  const preFx: Parameters<typeof finalizeEnemyMeleeFxTiming>[1] = {
+  const preFx: Omit<EnemyMeleeCombat, "attackMovement"> = {
     triggerRangeWu: base.triggerRangeWu!,
     rangeWu: base.rangeWu!,
     arcDeg: base.arcDeg!,
@@ -198,24 +243,40 @@ export function requireEnemyMeleeCombat(
       .meleeChaseStandoffWu!;
     preFx.meleeChaseStandoffWu = standoff;
   }
-  return finalizeEnemyMeleeFxTiming(enemyId, preFx);
+  const attackMovement = requireAttackMovement(
+    block.attackMovement,
+    `${path}.attackMovement`,
+  );
+  return finalizeEnemyMeleeFxTiming(enemyId, { ...preFx, attackMovement });
 }
 
 export function requireEnemyArrowRainCombat(
   raw: unknown,
   path: string,
 ): EnemyArrowRainCombat {
-  return section<EnemyArrowRainCombat>(raw, path, ENEMY_COMBAT_ARROW_RAIN_KEYS);
+  return withAttackMovement(
+    raw,
+    path,
+    section<Omit<EnemyArrowRainCombat, "attackMovement">>(
+      raw,
+      path,
+      ENEMY_COMBAT_ARROW_RAIN_KEYS,
+    ),
+  );
 }
 
 export function requireEnemyJavelineerCombat(
   raw: unknown,
   path: string,
 ): EnemyJavelineerCombat {
-  return section<EnemyJavelineerCombat>(
+  return withAttackMovement(
     raw,
     path,
-    ENEMY_COMBAT_JAVELINEER_KEYS,
+    section<Omit<EnemyJavelineerCombat, "attackMovement">>(
+      raw,
+      path,
+      ENEMY_COMBAT_JAVELINEER_KEYS,
+    ),
   );
 }
 
@@ -223,10 +284,14 @@ export function requireEnemyStationaryRangedCombat(
   raw: unknown,
   path: string,
 ): EnemyStationaryRangedCombat {
-  return section<EnemyStationaryRangedCombat>(
+  return withAttackMovement(
     raw,
     path,
-    ENEMY_COMBAT_STATIONARY_RANGED_KEYS,
+    section<Omit<EnemyStationaryRangedCombat, "attackMovement">>(
+      raw,
+      path,
+      ENEMY_COMBAT_STATIONARY_RANGED_KEYS,
+    ),
   );
 }
 
@@ -248,7 +313,19 @@ export function requireEnemyLobberCombat(
   raw: unknown,
   path: string,
 ): EnemyLobberCombat {
-  return section<EnemyLobberCombat>(raw, path, ENEMY_COMBAT_LOBBER_KEYS);
+  const resolved = withAttackMovement(
+    raw,
+    path,
+    section<Omit<EnemyLobberCombat, "attackMovement">>(
+      raw,
+      path,
+      ENEMY_COMBAT_LOBBER_KEYS,
+    ),
+  );
+  if (resolved.attackCreepSpeedMul < 0) {
+    throw new ConfigLoadError(`${path}.attackCreepSpeedMul must be >= 0`);
+  }
+  return resolved;
 }
 
 export function requireEnemyWardCombat(

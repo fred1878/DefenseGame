@@ -53,8 +53,12 @@ function makeMockArc() {
   return arc;
 }
 
-function makeStickHarness(options?: Partial<VirtualStickOptions>) {
+function makeStickHarness(
+  options?: Partial<VirtualStickOptions>,
+  extras?: { hitTestPointer?: () => unknown[] },
+) {
   const handlers: Record<string, ((p: HarnessPointer) => void)[]> = {};
+  const offs: Array<[string, unknown, unknown]> = [];
   const scene = {
     add: {
       circle: () => makeMockArc(),
@@ -68,8 +72,10 @@ function makeStickHarness(options?: Partial<VirtualStickOptions>) {
         handlers[event] ??= [];
         handlers[event].push(call);
       },
-      off() {},
-      hitTestPointer: () => [] as unknown[],
+      off(event: string, fn: unknown, context?: unknown) {
+        offs.push([event, fn, context]);
+      },
+      hitTestPointer: extras?.hitTestPointer ?? (() => [] as unknown[]),
     },
   };
   const stick = new VirtualStick(scene as unknown as Phaser.Scene, {
@@ -182,5 +188,177 @@ describe("VirtualStick gesture FSM", () => {
     stick.setE2eOverride(0, 0);
     expect(stick.getDirection().x).toBe(0);
     expect(stick.getDirection().y).toBe(0);
+  });
+});
+
+describe("VirtualStick remaining input branches", () => {
+  it("uses default radius and drag threshold when omitted", () => {
+    const handlers: Record<
+      string,
+      ((p: { id: number; x: number; y: number }) => void)[]
+    > = {};
+    const scene = {
+      add: { circle: () => makeMockArc() },
+      input: {
+        on(
+          event: string,
+          fn: (p: { id: number; x: number; y: number }) => void,
+          ctx?: unknown,
+        ) {
+          const call = (p: { id: number; x: number; y: number }) =>
+            ctx !== undefined ? fn.call(ctx, p) : fn(p);
+          let list = handlers[event];
+          if (!list) {
+            list = [];
+            handlers[event] = list;
+          }
+          list.push(call);
+        },
+        off() {},
+        hitTestPointer: () => [],
+      },
+    };
+    const bare = new VirtualStick(scene as unknown as Phaser.Scene);
+    const layout = bare.getDebugLayout();
+    expect(layout.radius).toBe(56);
+    expect(layout.dragThreshold).toBe(16);
+  });
+
+  it("updates an existing e2e override and reports debug layout helpers", () => {
+    const drawn: unknown[] = [];
+    const { stick, down, move, up, pointer } = makeStickHarness({
+      registerUiDraw: (go) => {
+        drawn.push(go);
+      },
+    });
+    expect(drawn.length).toBe(2);
+    stick.setE2eOverride(1, 0);
+    stick.setE2eOverride(0, 1);
+    expect(stick.getDirection().y).toBeCloseTo(1);
+
+    stick.setUiScreenRects([{ x: 0, y: 0, width: 10, height: 10 }]);
+    stick.setBlockers([{} as Phaser.GameObjects.GameObject]);
+    expect(stick.getDebugLayout().uiScreenRects).toHaveLength(1);
+    expect(
+      stick.wouldBlockPointer(
+        pointer(1, 2, 2) as unknown as Phaser.Input.Pointer,
+      ),
+    ).toBe(true);
+
+    down(200, 200, 1);
+    down(400, 400, 2); // second pointer ignored
+    move(205, 200, 2); // wrong id ignored
+    up(205, 200, 2);
+    expect(stick.getDebugState().pointerId).toBe(1);
+    move(200, 200, 1); // still pending, at origin
+    move(280, 200, 1);
+    move(200, 200, 1); // active but length 0
+    expect(stick.getDebugState().active).toBe(true);
+    expect(stick.getDirection().x).toBe(0);
+    up(200, 200, 1);
+  });
+
+  it("treats an expired drag-end window as no tap", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(5_000);
+    const { stick, down, move, up, pointer } = makeStickHarness();
+    down(10, 10);
+    move(80, 10);
+    up(80, 10);
+    vi.advanceTimersByTime(STICK_POST_DRAG_TAP_SUPPRESS_MS + 5);
+    expect(
+      stick.tryConsumeTap(
+        pointer(1, 80, 10) as unknown as Phaser.Input.Pointer,
+      ),
+    ).toEqual({ kind: "none" });
+    vi.useRealTimers();
+  });
+
+  it("blocks start in exclude zones and over interactive UI or blockers", () => {
+    const { stick: excluded, down: downEx } = makeStickHarness({
+      excludeZones: [{ x: 0, y: 0, width: 50, height: 50 }],
+    });
+    downEx(10, 10);
+    expect(excluded.getDebugState().pointerId).toBe(null);
+
+    const interactive = { input: { enabled: true }, parentContainer: null };
+    const { stick: uiStick, down: downUi } = makeStickHarness(
+      {},
+      {
+        hitTestPointer: () => [interactive],
+      },
+    );
+    downUi(200, 200);
+    expect(uiStick.getDebugState().pointerId).toBe(null);
+
+    const child = {
+      input: { enabled: false },
+      parentContainer: { input: { enabled: false } },
+    };
+    const blockedParent = child.parentContainer;
+    const { stick: blocked, down: downBlocked } = makeStickHarness(
+      { blockers: [blockedParent as never] },
+      { hitTestPointer: () => [child] },
+    );
+    downBlocked(200, 200);
+    expect(blocked.getDebugState().pointerId).toBe(null);
+
+    const inert = { input: undefined, parentContainer: null };
+    const {
+      stick: open,
+      down: downOpen,
+      stick: _s,
+    } = makeStickHarness({}, { hitTestPointer: () => [inert] });
+    downOpen(200, 200);
+    expect(open.getDebugState().pointerId).toBe(1);
+    open.destroy({ input: { off: () => undefined } } as never);
+  });
+});
+
+describe("VirtualStick leftover branches", () => {
+  it("destroys the sprites when the scene has no input plugin", () => {
+    const { stick } = makeStickHarness();
+    expect(() => stick.destroy({} as never)).not.toThrow();
+  });
+
+  it("ignores a move after the gesture is no longer active or pending", () => {
+    const { stick, down, move } = makeStickHarness();
+    down(200, 200);
+    const box = stick as unknown as { pending: boolean; active: boolean };
+    box.pending = false;
+    box.active = false;
+    move(400, 200);
+    expect(stick.getDirection().x).toBe(0);
+    expect(stick.getDebugState().active).toBe(false);
+  });
+
+  it("clears a press that is neither a drag nor still pending", () => {
+    const { stick, down, up } = makeStickHarness();
+    down(200, 200);
+    const box = stick as unknown as {
+      pending: boolean;
+      gestureHadDrag: boolean;
+    };
+    box.pending = false;
+    box.gestureHadDrag = false;
+    up(200, 200);
+    expect(stick.getDebugState().pointerId).toBe(null);
+    expect(stick.tryConsumeTap({ id: 1, x: 200, y: 200 } as never)).toEqual({
+      kind: "none",
+    });
+  });
+
+  it("ignores hits on the stick's own base or knob", () => {
+    const { stick, down } = makeStickHarness(
+      {},
+      {
+        hitTestPointer: () => {
+          const box = stick as unknown as { base: unknown; knob: unknown };
+          return [box.base, box.knob];
+        },
+      },
+    );
+    down(200, 200);
+    expect(stick.getDebugState().pointerId).toBe(1);
   });
 });

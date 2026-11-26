@@ -4,6 +4,7 @@ import { fakeEventData, fakePointer } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
 import { rosterStore } from "../test/rosterStore";
 import type { NumField } from "./wavePlanner/WavePlannerPanelBuild";
+import * as touchButton from "./touchButton";
 import { WavePlannerPanel } from "./WavePlannerPanel";
 
 const ids = ["archer", "bruiser", "charger", "grunt"];
@@ -190,5 +191,89 @@ describe("WavePlannerPanel", () => {
       expect(t[id]!.y).toBeGreaterThan(0);
       expect(t[id]!.y).toBeLessThan(1200);
     }
+  });
+
+  it("seeds stepper values when bumping an unselected row", () => {
+    const { panel, bump, row } = open();
+    const maps = panel as unknown as {
+      counts: Map<string, number>;
+      atMs: Map<string, number>;
+      intervalMs: Map<string, number>;
+    };
+    maps.counts.delete("charger");
+    maps.atMs.delete("charger");
+    maps.intervalMs.delete("charger");
+    bump("charger", "count", "plus");
+    expect(row("charger").values.count.last("setText")).toEqual(["2"]);
+    bump("charger", "atMs", "plus", 2);
+    expect(row("charger").values.atMs.last("setText")).toEqual(["200"]);
+    bump("charger", "intervalMs", "minus");
+    expect(row("charger").values.intervalMs.last("setText")).toEqual(["700"]);
+  });
+
+  it("skips already-inactive chrome when tearing down", () => {
+    const { panel, ui, onDismiss } = open();
+    ui.maskGraphics.active = false;
+    ui.startBtn.container.active = false;
+    ui.closeBtn.container.active = false;
+    ui.root.active = false;
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("omits e2e targets once Start and Close are gone", () => {
+    const { panel, ui } = open();
+    ui.startBtn = null as never;
+    ui.closeBtn = null as never;
+    expect(panel.e2eTapTargets()).toEqual({});
+  });
+});
+
+describe("WavePlannerPanel leftover branches", () => {
+  it("uses default field values when a selected id has no stored caps", () => {
+    const { panel } = open(["grunt"]);
+    const box = panel as unknown as {
+      counts: Map<string, number>;
+      atMs: Map<string, number>;
+      intervalMs: Map<string, number>;
+      selectedIds: Set<string>;
+      buildGroups: () => Array<{
+        enemyId: string;
+        count: number;
+        atMs: number;
+        intervalMs: number;
+      }>;
+      bumpField: (id: string, field: string, delta: number) => void;
+    };
+    box.counts.delete("grunt");
+    box.atMs.delete("grunt");
+    box.intervalMs.delete("grunt");
+    const groups = box.buildGroups();
+    expect(groups[0]?.enemyId).toBe("grunt");
+    expect(groups[0]?.count).toBeGreaterThan(0);
+    box.bumpField("missing", "count", 1);
+  });
+
+  it("destroy skips inactive objects and is a no-op the second time", () => {
+    const { panel, ui, onDismiss } = open(["grunt"]);
+    ui.maskGraphics.active = false;
+    ui.startBtn.container.active = false;
+    ui.closeBtn.container.active = false;
+    ui.root.active = false;
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("omits e2e targets when Start and Close have no screen rect", () => {
+    const { panel } = open(["grunt"]);
+    const rect = vi
+      .spyOn(touchButton, "interactiveObjectScreenRect")
+      .mockReturnValue(null);
+    expect(panel.e2eTapTargets()).toEqual({});
+    rect.mockRestore();
   });
 });

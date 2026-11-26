@@ -1,11 +1,6 @@
 import { worldUnit } from "../../core/worldPixelScale";
-import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import type { EnemyBehavior } from "./types";
-import {
-  applyChaseVelocity,
-  playerChaseVelocityOpts,
-  setEnemyChaseVelocity,
-} from "./movement";
+import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
 import {
   applyKiteBand,
   beginBehaviorFrame,
@@ -69,11 +64,6 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
         preferred - dist + worldUnit(hybrid.retreatRangeSlackWu, reg),
       ),
     });
-    return frameResult(frame);
-  }
-
-  if (enemyIsAttacking(enemy.combat) && extra?.mode !== "melee") {
-    setEnemyChaseVelocity(enemy, 0, 0);
     return frameResult(frame);
   }
 

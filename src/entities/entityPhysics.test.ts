@@ -13,6 +13,7 @@ import {
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
+import { ConfigLoadError } from "../core/configValidation";
 
 describe("entityPhysics", () => {
   it("exposes loaded player and enemy body radii", () => {
@@ -102,5 +103,31 @@ describe("entityPhysics", () => {
     expect(body.setFriction).toHaveBeenCalledWith(0, 0);
     expect(body.pushable).toBe(false);
     expect(sprite.setCollideWorldBounds).toHaveBeenCalledWith(true);
+  });
+});
+
+describe("entityPhysics leftover branches", () => {
+  it("throws when an enemy id has no body radius", () => {
+    expect(() => enemyCollisionBodyRadius("not_a_real_enemy")).toThrow(
+      ConfigLoadError,
+    );
+  });
+
+  it("leaves pushable and world bounds alone when options are omitted", () => {
+    const body = {
+      pushable: true,
+      setFriction: vi.fn(),
+    };
+    const sprite = {
+      displayWidth: 64,
+      displayHeight: 64,
+      setCircle: vi.fn(),
+      setBounce: vi.fn(),
+      setCollideWorldBounds: vi.fn(),
+      body,
+    } as unknown as Phaser.Physics.Arcade.Sprite;
+    tuneArcadeDynamicBody(sprite, 14);
+    expect(body.pushable).toBe(true);
+    expect(sprite.setCollideWorldBounds).not.toHaveBeenCalled();
   });
 });

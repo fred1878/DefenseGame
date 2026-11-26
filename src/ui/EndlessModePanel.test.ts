@@ -225,3 +225,45 @@ describe("EndlessModePanel", () => {
     }
   });
 });
+
+describe("EndlessModePanel leftover branches", () => {
+  it("reports a null selection and cap when nothing is selected or known", () => {
+    const { panel, tapRow } = open(["grunt"]);
+    tapRow("grunt");
+    expect(panel.e2eSelectedEnemyId()).toBeNull();
+    expect(panel.e2eSelectedEnemyIds()).toEqual([]);
+    expect(panel.e2eEnemyConcurrentCap("missing")).toBeNull();
+  });
+
+  it("destroy skips inactive objects and is a no-op the second time", () => {
+    const { panel, ui, onDismiss } = open(["grunt"]);
+    const box = panel as unknown as {
+      maskGraphics: { active: boolean; destroy: ReturnType<typeof vi.fn> };
+    };
+    box.maskGraphics.active = false;
+    ui.startBtn.container.active = false;
+    ui.closeBtn.container.active = false;
+    ui.root.active = false;
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("EndlessModePanel cap fallbacks", () => {
+  it("uses the minimum cap when a selected id has no stored value", () => {
+    const { panel } = open(["grunt"]);
+    const box = panel as unknown as {
+      caps: Map<string, number>;
+      bumpCap: (id: string, delta: number) => void;
+      buildSelections: () => Array<{ enemyId: string; concurrentCap: number }>;
+    };
+    box.caps.delete("grunt");
+    const before = box.buildSelections();
+    expect(before[0]?.concurrentCap).toBeGreaterThan(0);
+    box.bumpCap("grunt", 1);
+    expect(box.caps.get("grunt")).toBe(before[0]!.concurrentCap + 1);
+    box.bumpCap("missing", 1);
+  });
+});

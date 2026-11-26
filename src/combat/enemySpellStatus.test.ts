@@ -51,4 +51,37 @@ describe("EnemySpellStatusMap", () => {
     expect(onDamaged).toHaveBeenCalledTimes(1);
     expect(onDamaged).toHaveBeenCalledWith(5, "fire");
   });
+
+  it("clears a finished DOT after the last tick", () => {
+    const m = new EnemySpellStatusMap();
+    m.applyDot("e1", 20, 200, "fire");
+    const hits: number[] = [];
+    m.tick(250, (_id, amount) => {
+      hits.push(amount);
+    });
+    expect(hits.length).toBeGreaterThan(0);
+    expect(m.moveSpeedMultiplier("e1")).toBe(1);
+  });
+});
+
+describe("applyDotTickToDamageable", () => {
+  it("applies one stored DOT tick and no-ops without a DOT", () => {
+    const m = new EnemySpellStatusMap();
+    const onDamaged = vi.fn();
+    const damageable: Damageable = {
+      id: "e1",
+      hp: 100,
+      maxHp: 100,
+      alive: true,
+      team: "enemy",
+      onDamaged,
+    };
+    m.applyDotTickToDamageable("e1", damageable);
+    expect(onDamaged).not.toHaveBeenCalled();
+
+    m.applyDot("e1", 20, 2000, "fire");
+    m.applyDotTickToDamageable("e1", damageable);
+    expect(onDamaged).toHaveBeenCalledWith(5, "fire");
+    expect(damageable.hp).toBe(95);
+  });
 });

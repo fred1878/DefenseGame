@@ -15,7 +15,15 @@ describe("PWA precache policy", () => {
 
   it("precache globs include JS, data, images and audio", () => {
     const joined = PWA_PRECACHE_GLOB_PATTERNS.join(" ");
-    for (const ext of ["js", "json", "png", "mp3", "html", "webmanifest"]) {
+    for (const ext of [
+      "js",
+      "json",
+      "png",
+      "mp3",
+      "html",
+      "webmanifest",
+      "ttf",
+    ]) {
       expect(joined).toContain(ext);
     }
   });

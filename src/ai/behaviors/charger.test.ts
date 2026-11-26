@@ -165,4 +165,138 @@ describe("chargerBehavior", () => {
     expect(vx).toBeGreaterThan(0);
     expect(Math.abs(vy)).toBeLessThan(0.01);
   });
+
+  it("dashes east when windup ends on top of the aim point", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      sprite: {
+        x: 5,
+        y: 7,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    enemy.combatTuning.charger = testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeWindupMs = 8;
+    enemy.behaviorExtra.chargeAimX = 5;
+    enemy.behaviorExtra.chargeAimY = 7;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 5,
+      playerY: 7,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.chargeDashDirX).toBe(1);
+    expect(enemy.behaviorExtra.chargeDashDirY).toBe(0);
+    expect(enemy.behaviorExtra.chargeActiveMs).toBe(
+      testChargerCombat.dashDurationMs,
+    );
+  });
+
+  it("uses the default dash speed when the tune omits it, and ticks cooldown", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      speedWu: 80,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    const { dashSpeedMul: _omit, ...rest } = testChargerCombat;
+    void _omit;
+    enemy.combatTuning.charger = rest as typeof testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeActiveMs = 40;
+    enemy.behaviorExtra.chargeDashDirX = 1;
+    enemy.behaviorExtra.chargeDashDirY = 0;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 80,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalled();
+
+    enemy.behaviorExtra.chargeActiveMs = 0;
+    enemy.behaviorExtra.chargeWindupMs = 0;
+    enemy.behaviorExtra.chargeCooldownMs = 50;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 80,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.chargeCooldownMs).toBe(34);
+  });
+
+  it("stays in windup until the timer elapses", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    enemy.combatTuning.charger = testChargerCombat;
+    enemy.nav = { ...createEnemyNav(), targetKind: "player" };
+    enemy.behaviorExtra.chargeWindupMs = 80;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 80,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.behaviorExtra.chargeWindupMs).toBe(64);
+    expect(enemy.behaviorExtra.chargeActiveMs).toBe(0);
+  });
+
+  it("follows and advances along an existing path when not charging", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "charger",
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    enemy.combatTuning.charger = testChargerCombat;
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "wall",
+      path: [
+        { x: 0, y: 0 },
+        { x: 80, y: 0 },
+      ],
+      pathIndex: 0,
+      replanMs: 1000,
+    };
+    enemy.behaviorExtra.chargeCooldownMs = 400;
+    chargerBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 400,
+      playerY: 400,
+      deltaMs: 16,
+    });
+    expect(enemy.nav.pathIndex).toBe(1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveEnemyCombat } from "./enemyTuning";
+import { requireMeleeChaseStandoffWu, resolveEnemyCombat } from "./enemyTuning";
 import { ConfigLoadError } from "./configValidation";
 import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
 import type { EnemyDef } from "./DataStore";
@@ -212,5 +212,16 @@ describe("normalizeEnemyRow", () => {
     expect(() => assertEnemyResolvedCombat("grunt", missing)).toThrow(
       ConfigLoadError,
     );
+  });
+});
+
+describe("requireMeleeChaseStandoffWu leftover branches", () => {
+  it("throws for a non-chase behavior and when the field is missing", () => {
+    expect(() =>
+      requireMeleeChaseStandoffWu({ meleeChaseStandoffWu: 4 }, "lobber", "x"),
+    ).toThrow(ConfigLoadError);
+    expect(() =>
+      requireMeleeChaseStandoffWu({}, "meleeChaser", "grunt"),
+    ).toThrow(/meleeChaseStandoffWu/);
   });
 });

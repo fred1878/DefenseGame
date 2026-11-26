@@ -50,3 +50,91 @@ describe("normalizeDefenseMaps", () => {
     expect(resolveDefenseMap(reg, "a").field.cols).toBe(10);
   });
 });
+
+describe("normalizeDefenseMaps validation", () => {
+  const validObstacle = {
+    tileX: 1,
+    tileY: 2,
+    textureKey: "obstacle_wide_slab",
+  };
+
+  function validMaps(overrides: Record<string, unknown> = {}) {
+    return {
+      defaultMapId: "a",
+      maps: [
+        {
+          id: "a",
+          field: { cols: 10, rows: 12 },
+          obstacles: [validObstacle],
+        },
+      ],
+      ...overrides,
+    };
+  }
+
+  it("rejects an unknown obstacle texture", () => {
+    expect(() =>
+      normalizeDefenseMaps(
+        validMaps({
+          maps: [
+            {
+              id: "a",
+              field: { cols: 10, rows: 12 },
+              obstacles: [{ ...validObstacle, textureKey: "not_a_texture" }],
+            },
+          ],
+        }),
+      ),
+    ).toThrow(/textureKey/);
+  });
+
+  it("rejects a blank map id, a zero-size field, and empty obstacles", () => {
+    expect(() =>
+      normalizeDefenseMaps(
+        validMaps({
+          maps: [
+            {
+              id: "  ",
+              field: { cols: 10, rows: 12 },
+              obstacles: [validObstacle],
+            },
+          ],
+        }),
+      ),
+    ).toThrow(/id/);
+    expect(() =>
+      normalizeDefenseMaps(
+        validMaps({
+          maps: [
+            {
+              id: "a",
+              field: { cols: 0, rows: 12 },
+              obstacles: [validObstacle],
+            },
+          ],
+        }),
+      ),
+    ).toThrow(/field/);
+    expect(() =>
+      normalizeDefenseMaps(
+        validMaps({
+          maps: [{ id: "a", field: { cols: 10, rows: 12 }, obstacles: [] }],
+        }),
+      ),
+    ).toThrow(/obstacles/);
+  });
+
+  it("rejects a missing or unknown default map id", () => {
+    expect(() =>
+      normalizeDefenseMaps(validMaps({ defaultMapId: "  " })),
+    ).toThrow(/defaultMapId/);
+    expect(() =>
+      normalizeDefenseMaps(validMaps({ defaultMapId: "missing" })),
+    ).toThrow(/not found/);
+  });
+
+  it("throws when resolving an id that is not in the registry", () => {
+    const reg = normalizeDefenseMaps(validMaps());
+    expect(() => resolveDefenseMap(reg, "nope")).toThrow(/not found/);
+  });
+});

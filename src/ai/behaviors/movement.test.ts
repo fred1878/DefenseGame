@@ -8,6 +8,7 @@ import type { EnemyDefInput } from "../../core/normalizeEnemy";
 import { normalizeEnemyRow } from "../../core/normalizeEnemy";
 import { applyEnemyBodyRadii } from "../../entities/entityPhysics";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createRangedHybridCombatState } from "../../entities/EnemyRangedCombat";
 
 const enemiesRaw = JSON.parse(
   readFileSync(resolve("public/data/enemies.json"), "utf8"),
@@ -21,9 +22,12 @@ const enemyDefs = Object.fromEntries(
 import { createEnemyNav } from "../EnemyBrain";
 import {
   applyChaseVelocity,
+  applyDirectVelocity,
+  attackMovementScale,
   applyWallMeleeHold,
   commitPlayerChasePathGoal,
   meleePackPlayerAnchor,
+  playerMeleeChaseHoldPoint,
   playerMeleeChaseStandoffCenterDist,
   shouldHoldAtPlayerMelee,
   shouldHoldMeleeChaseChordBlocked,
@@ -352,5 +356,255 @@ describe("wall melee hold helpers", () => {
     applyWallMeleeHold(enemy);
     expect(setVelocity).toHaveBeenCalledWith(0, 0);
     expect(enemy.sprite.y).toBe(approachY);
+  });
+});
+
+describe("movement remaining branches", () => {
+  it("throws when melee standoff is requested without a melee table", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    delete (enemy.combatTuning as { melee?: unknown }).melee;
+    expect(() => playerMeleeChaseStandoffCenterDist(enemy)).toThrow(
+      /combat.melee/,
+    );
+  });
+
+  it("holds at the current position when stacked on the player", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    enemy.sprite.x = 12;
+    enemy.sprite.y = 8;
+    expect(playerMeleeChaseHoldPoint(enemy, 12, 8)).toEqual({ x: 12, y: 8 });
+  });
+
+  it("records path-goal reachability for later standoff checks", () => {
+    const nav = createEnemyNav();
+    nav.pathGoalReached = true;
+    commitPlayerChasePathGoal(nav, false, true, false);
+    expect(nav.pathGoalReached).toBe(false);
+    commitPlayerChasePathGoal(nav, true, false, true);
+    expect(nav.pathGoalReached).toBe(true);
+    commitPlayerChasePathGoal(nav, true, false, false);
+    expect(nav.pathGoalReached).toBe(false);
+    commitPlayerChasePathGoal(nav, true, true, false);
+    expect(nav.pathGoalReached).toBe(true);
+  });
+
+  it("holds at the wall while a swing is in progress, without snapping south", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const approachY = wallMeleeStandoffY(enemy);
+    enemy.sprite.y = approachY + 2;
+    enemy.combat.phase = "windup";
+    expect(shouldHoldAtWallMelee(enemy, "wall")).toBe(true);
+    applyWallMeleeHold(enemy);
+    expect(enemy.sprite.y).toBe(approachY + 2);
+  });
+
+  it("zeros a degenerate direct velocity", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      speedWu: 80,
+    });
+    applyDirectVelocity(enemy, 0, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("applies status speed fallback and blocks a swinging chaser", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy as { statusSpeedMul?: number }).statusSpeedMul;
+    enemy.combat.phase = "idle";
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    applyChaseVelocity(enemy, 100, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+
+    setVelocity.mockClear();
+    enemy.combat.phase = "windup";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("holds chase velocity at the wall when the target is the wall", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const approachY = wallMeleeStandoffY(enemy);
+    enemy.sprite.y = approachY + 2;
+    enemy.combat.phase = "idle";
+    applyChaseVelocity(enemy, enemy.sprite.x, approachY, 1, {
+      targetKind: "wall",
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+});
+
+describe("data-driven attack movement", () => {
+  function lastVx(enemy: ReturnType<typeof mockEnemyInstance>): number {
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const call = setVelocity.mock.calls.at(-1);
+    if (!call) throw new Error("setVelocity not called");
+    return call[0] as number;
+  }
+
+  it("keeps shipped melee defaults: chasers still, bruisers at half speed", () => {
+    const chaser = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    chaser.combat.phase = "windup";
+    expect(attackMovementScale(chaser)).toBe(0);
+    applyChaseVelocity(chaser, 100, 0, 1);
+    expect(lastVx(chaser)).toBe(0);
+
+    const bruiser = mockEnemyInstance({ behavior: "bruiser", speedWu: 100 });
+    bruiser.combat.phase = "recovery";
+    expect(attackMovementScale(bruiser)).toBe(0.5);
+    applyChaseVelocity(bruiser, 100, 0, 1);
+    expect(lastVx(bruiser)).toBeCloseTo(50, 1);
+  });
+
+  it("applies per-phase multipliers from the executing melee kit", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    enemy.combatTuning.melee = {
+      ...enemy.combatTuning.melee!,
+      attackMovement: { windupMul: 0.2, activeMul: 0.35, recoveryMul: 0.8 },
+    };
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+
+    enemy.combat.phase = "idle";
+    expect(attackMovementScale(enemy)).toBe(1);
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(100, 1);
+
+    enemy.combat.phase = "windup";
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(20, 1);
+
+    enemy.combat.phase = "active";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(35, 1);
+
+    enemy.combat.phase = "recovery";
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(80, 1);
+  });
+
+  it("uses the hybrid kit for the mode currently executing", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      defId: "reaver",
+      speedWu: 100,
+    });
+    enemy.rangedHybrid = createRangedHybridCombatState();
+    enemy.combatTuning.melee = {
+      ...enemy.combatTuning.melee!,
+      attackMovement: { windupMul: 0.25, activeMul: 0.25, recoveryMul: 0.25 },
+    };
+    enemy.combatTuning.stationaryRanged = {
+      ...enemy.combatTuning.stationaryRanged!,
+      attackMovement: { windupMul: 0.6, activeMul: 0.6, recoveryMul: 0.6 },
+    };
+    enemy.combat.phase = "windup";
+    enemy.rangedHybrid.mode = "melee";
+    expect(attackMovementScale(enemy)).toBe(0.25);
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(25, 1);
+
+    enemy.rangedHybrid.mode = "ranged";
+    expect(attackMovementScale(enemy)).toBe(0.6);
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(60, 1);
+  });
+
+  it("treats a missing attackMovement block as a full hold while attacking", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy.combatTuning.melee as { attackMovement?: unknown })
+      .attackMovement;
+    enemy.combat.phase = "active";
+    expect(attackMovementScale(enemy)).toBe(0);
+    applyDirectVelocity(enemy, 1, 0, 1);
+    expect(lastVx(enemy)).toBe(0);
+  });
+
+  it("reads attackMovement from the ranged kit that is attacking", () => {
+    const cases = [
+      {
+        behavior: "arrowRainArcher" as const,
+        defId: "arrow_rain_archer",
+        kit: "arrowRain" as const,
+      },
+      {
+        behavior: "javelineer" as const,
+        defId: "javelineer",
+        kit: "javelineer" as const,
+      },
+      {
+        behavior: "stationaryRanged" as const,
+        defId: "sentry_archer",
+        kit: "stationaryRanged" as const,
+      },
+      {
+        behavior: "lobber" as const,
+        defId: "lobber",
+        kit: "lobber" as const,
+      },
+    ];
+    for (const { behavior, defId, kit } of cases) {
+      const enemy = mockEnemyInstance({ behavior, defId, speedWu: 100 });
+      const block = enemy.combatTuning[kit];
+      if (!block || !("attackMovement" in block)) {
+        throw new Error(`expected ${kit} attackMovement`);
+      }
+      block.attackMovement = {
+        windupMul: 0.4,
+        activeMul: 0.4,
+        recoveryMul: 0.4,
+      };
+      enemy.combat.phase = "active";
+      expect(attackMovementScale(enemy), behavior).toBe(0.4);
+      applyDirectVelocity(enemy, 1, 0, 1);
+      expect(lastVx(enemy), behavior).toBeCloseTo(40, 1);
+    }
+  });
+
+  it("allows a caller to override the phase scale", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    enemy.combat.phase = "windup";
+    applyDirectVelocity(enemy, 1, 0, 0.5, { phaseScale: 1 });
+    expect(lastVx(enemy)).toBeCloseTo(50, 1);
+  });
+});
+
+describe("applyDirectVelocity leftover branches", () => {
+  it("uses a status speed of 1 when none is set", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy as { statusSpeedMul?: number }).statusSpeedMul;
+    enemy.combat.phase = "idle";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
+});
+
+describe("shouldHoldMeleeChaseChordBlocked leftover branches", () => {
+  it("treats a zero-length hold chord as a point check", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    const playerX = 0;
+    const playerY = 0;
+    enemy.sprite.x = -80;
+    enemy.sprite.y = 0;
+    const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+    enemy.sprite.x = hold.x;
+    enemy.sprite.y = hold.y;
+    const peers = [{ x: hold.x / 2, y: 0, defId: "grunt" }];
+    // Enemy is already on the hold point, so the hold-chord segment has
+    // zero length. The closer peer still sits on the player line.
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, playerX, playerY, peers),
+    ).toBe(true);
   });
 });

@@ -31,4 +31,13 @@ describe("normalizePlayerConfig", () => {
     const cfg = normalizePlayerConfig(shippedPlayer() as PlayerConfigInput);
     expect(cfg.endlessPanelDefaultConcurrent).toBeGreaterThan(0);
   });
+
+  it("omits meleeFxDurationMs when the field is missing", () => {
+    const raw = shippedPlayer() as PlayerConfigInput & {
+      meleeFxDurationMs?: number;
+    };
+    delete raw.meleeFxDurationMs;
+    const cfg = normalizePlayerConfig(raw);
+    expect(cfg.meleeFxDurationMs).toBeUndefined();
+  });
 });

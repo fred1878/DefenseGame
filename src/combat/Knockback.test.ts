@@ -33,3 +33,22 @@ describe("applyKnockbackFrom", () => {
     expect(speed).toBeLessThanOrEqual(200 * 1.35 + 0.01);
   });
 });
+
+describe("applyKnockbackFrom leftover branches", () => {
+  it("still knocks back from the same point and skips a sprite with no body", () => {
+    const body = { velocity: { x: 0, y: 0 } };
+    const sprite = {
+      x: 10,
+      y: 20,
+      body,
+    } as Parameters<typeof applyKnockbackFrom>[0];
+    applyKnockbackFrom(sprite, 10, 20, 80);
+    expect(Math.hypot(body.velocity.x, body.velocity.y)).toBe(0);
+
+    const orphan = { x: 1, y: 1, body: null } as Parameters<
+      typeof applyKnockbackFrom
+    >[0];
+    applyKnockbackFrom(orphan, 0, 0, 80);
+    expect(orphan.body).toBeNull();
+  });
+});

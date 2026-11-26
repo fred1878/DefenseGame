@@ -141,3 +141,21 @@ describe("combatPvfxAssets scene helpers", () => {
     );
   });
 });
+
+describe("assertPvfxClipReady leftover branches", () => {
+  it("treats a missing exists() result as an unregistered anim", () => {
+    const scene = asScene(
+      fakeScene({ textures: [PVFX_TEXTURE.fireballFlight] }),
+    );
+    (scene.anims as { exists: (key: string) => unknown }).exists = () =>
+      undefined;
+    expect(() =>
+      assertPvfxClipReady(
+        scene,
+        PVFX_TEXTURE.fireballFlight,
+        PVFX_ANIM.fireballFlight,
+        "test",
+      ),
+    ).toThrow(/PVFX animation missing/);
+  });
+});

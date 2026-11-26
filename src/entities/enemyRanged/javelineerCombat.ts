@@ -1,5 +1,5 @@
 import type { EnemyInstance } from "../Enemy";
-import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
+import type { EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";
 import {
   advanceCombatPhase,
@@ -66,10 +66,6 @@ export function updateJavelineerCombat(
         onWallHit?.();
       }
     }
-  }
-
-  if (enemyIsAttacking(c)) {
-    enemy.sprite.setVelocity(0, 0);
   }
 
   return { spawnJavelin, meleeHit };

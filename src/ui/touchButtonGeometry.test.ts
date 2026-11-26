@@ -5,6 +5,7 @@ import Phaser from "phaser";
 import {
   type CameraView,
   cameraWorldToScreen,
+  containerScreenRect,
   hitAreaLocalPointToScreen,
   interactiveObjectScreenRect,
 } from "./touchButtonGeometry";
@@ -338,5 +339,106 @@ describe("hitAreaLocalPointToScreen", () => {
     expect(center).not.toBeNull();
     expect(center!.x).toBeCloseTo(90, 4);
     expect(center!.y).toBeCloseTo(1100, 4);
+  });
+});
+
+describe("interactiveObjectScreenRect fallbacks", () => {
+  it("returns null when the object has no scene", () => {
+    const obj = {
+      x: 10,
+      y: 10,
+      scaleX: 1,
+      scaleY: 1,
+      input: { hitArea: { x: 0, y: 0, width: 20, height: 10 } },
+    };
+    expect(
+      interactiveObjectScreenRect(
+        obj as unknown as Phaser.GameObjects.GameObject,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe("touchButtonGeometry leftover branches", () => {
+  it("returns null from hitAreaLocalPointToScreen when the object has no scene", () => {
+    const go = {
+      x: 0,
+      y: 0,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: 0,
+      displayOriginY: 0,
+    } as unknown as Phaser.GameObjects.GameObject;
+    expect(hitAreaLocalPointToScreen(go, 0, 0)).toBeNull();
+  });
+
+  it("defaults missing scroll factors and camera rotation", () => {
+    const camera = {
+      x: 0,
+      y: 0,
+      width: 540,
+      height: 1200,
+      originX: 0.5,
+      originY: 0.5,
+      scrollX: 10,
+      scrollY: 20,
+      zoomX: 1,
+      zoomY: 1,
+    } as unknown as Phaser.Cameras.Scene2D.Camera;
+    const go = {
+      x: 100,
+      y: 200,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: 10,
+      displayOriginY: 10,
+      scene: fakeScene(camera),
+      input: { hitArea: new Phaser.Geom.Rectangle(0, 0, 20, 20) },
+    } as unknown as Phaser.GameObjects.GameObject;
+    const local = hitAreaLocalPointToScreen(go, 10, 10, camera);
+    expect(local).not.toBeNull();
+    const rect = interactiveObjectScreenRect(go, camera);
+    expect(rect).not.toBeNull();
+    expect(rect!.width).toBeGreaterThan(0);
+  });
+
+  it("maps a circular hit area to a screen square", () => {
+    const camera = identityCamera();
+    const go = {
+      x: 80,
+      y: 90,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: 16,
+      displayOriginY: 16,
+      scrollFactorX: 0,
+      scrollFactorY: 0,
+      scene: fakeScene(camera),
+      input: { hitArea: new Phaser.Geom.Circle(16, 16, 16) },
+    } as unknown as Phaser.GameObjects.GameObject;
+    const rect = interactiveObjectScreenRect(go, camera);
+    expect(rect).not.toBeNull();
+    expect(rect!.width).toBeCloseTo(32, 4);
+    expect(rect!.height).toBeCloseTo(32, 4);
+  });
+
+  it("uses a zero pad by default for containerScreenRect", () => {
+    const camera = identityCamera();
+    const container = {
+      x: 50,
+      y: 60,
+      scaleX: 1,
+      scaleY: 1,
+      displayOriginX: 10,
+      displayOriginY: 10,
+      scrollFactorX: 0,
+      scrollFactorY: 0,
+      scene: fakeScene(camera),
+      input: { hitArea: new Phaser.Geom.Rectangle(0, 0, 20, 20) },
+      getBounds: () => ({ x: 40, y: 50, width: 20, height: 20 }),
+    } as unknown as Phaser.GameObjects.Container;
+    const r = containerScreenRect(container);
+    expect(r.width).toBeGreaterThan(0);
+    expect(r.x).toBeCloseTo(interactiveObjectScreenRect(container)!.x, 4);
   });
 });

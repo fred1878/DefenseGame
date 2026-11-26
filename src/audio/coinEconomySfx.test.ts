@@ -40,3 +40,13 @@ describe("playCoinDeltaSfx", () => {
     expect(play).not.toHaveBeenCalled();
   });
 });
+
+describe("playCoinDeltaSfx leftover branches", () => {
+  it("is silent when the coin clips are missing from the cache", () => {
+    const play = vi.fn();
+    const scene = mockScene(play, false);
+    playCoinDeltaSfx(scene, 100, 50);
+    playCoinDeltaSfx(scene, 0, 40);
+    expect(play).not.toHaveBeenCalled();
+  });
+});

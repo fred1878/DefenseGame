@@ -77,3 +77,13 @@ describe("inputModality stack", () => {
     expect(fn).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("inputModality leftover branches", () => {
+  it("ignores popping an unknown id and clearing an empty stack", () => {
+    const scene = mockScene();
+    popInputModality(scene, "missing");
+    expect(peekInputModality(scene)).toBeNull();
+    clearInputModalities(scene);
+    expect(peekInputModality(scene)).toBeNull();
+  });
+});

@@ -27,7 +27,9 @@ import type { createTouchButton } from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import type { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
-import type { EndlessModePanel } from "../ui/EndlessModePanel";
+import { EndlessModeSetupScene } from "./EndlessModeSetupScene";
+import { WavePlannerSetupScene } from "./WavePlannerSetupScene";
+import { activeTownUiHost } from "../e2e/townUiHost";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
@@ -56,6 +58,7 @@ import {
   formatTownStatus,
 } from "./town/TownHeader";
 import { TownOverlays } from "./town/TownOverlays";
+import { dismissTownSetupScenes } from "./town/townSetupSceneLifecycle";
 import {
   collectTownUiTapTargets,
   isTownTouchButtonPressed,
@@ -187,6 +190,13 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eGetUiTapTargets();
+    }
+    if (host instanceof WavePlannerSetupScene) {
+      return host.e2eGetUiTapTargets();
+    }
     const store = this.registry.get("dataStore") as DataStore;
     return collectTownUiTapTargets(store, this.buildingControls, this.overlays);
   }
@@ -206,6 +216,13 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eTownTouchDebugRectCount(): number {
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eTouchDebugRectCount();
+    }
+    if (host instanceof WavePlannerSetupScene) {
+      return host.e2eTouchDebugRectCount();
+    }
     return collectTownTouchDebugUiRects(this, this.touchDebug, this.overlays)
       .length;
   }
@@ -228,65 +245,109 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eIsEndlessPanelOpen(): boolean {
-    return this.overlays.endlessPanel !== null;
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) return host.e2eIsOpen();
+    return false;
   }
 
   e2eIsEndlessPanelLoading(): boolean {
-    return this.overlays.endlessPanelLoading !== null;
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) return host.e2eIsLoading();
+    return false;
   }
 
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      host.e2eStartEndless(enemyId, infiniteHp);
+      return;
+    }
     const store = this.registry.get("dataStore") as DataStore;
     const cap = clampEndlessConcurrent(
       store.player.endlessPanelDefaultConcurrent,
     );
     const selections: EndlessRunSelection[] = [{ enemyId, concurrentCap: cap }];
-    this.overlays.dismissEndlessPanel();
     this.overlays.transitionToDefense(() =>
       this.beginEndlessDefense(selections, infiniteHp),
     );
   }
 
   e2eEndlessInfiniteHpEnabled(): boolean {
-    return this.overlays.endlessPanel?.e2eInfiniteHpEnabled() ?? false;
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eEndlessInfiniteHpEnabled();
+    }
+    return false;
   }
 
   e2eSetEndlessInfiniteHp(enabled: boolean): void {
-    this.overlays.endlessPanel?.e2eSetInfiniteHp(enabled);
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      host.e2eSetEndlessInfiniteHp(enabled);
+    }
   }
 
   e2eScrollEndlessEnemyList(deltaY: number): void {
-    this.overlays.endlessPanel?.e2eScrollEnemyList(deltaY);
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      host.e2eScrollEndlessEnemyList(deltaY);
+    }
   }
 
   e2eEndlessEnemyListScrollState(): ReturnType<
-    EndlessModePanel["e2eEnemyListScrollState"]
+    EndlessModeSetupScene["e2eEndlessEnemyListScrollState"]
   > | null {
-    return this.overlays.endlessPanel?.e2eEnemyListScrollState() ?? null;
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eEndlessEnemyListScrollState();
+    }
+    return null;
   }
 
   e2eEndlessSelectedEnemyId(): string | null {
-    return this.overlays.endlessPanel?.e2eSelectedEnemyId() ?? null;
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eEndlessSelectedEnemyId();
+    }
+    return null;
   }
 
   e2eEndlessSelectedEnemyIds(): string[] {
-    return this.overlays.endlessPanel?.e2eSelectedEnemyIds() ?? [];
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eEndlessSelectedEnemyIds();
+    }
+    return [];
   }
 
   e2eEndlessRosterEnemyIds(): string[] {
-    return this.overlays.endlessPanel?.e2eRosterEnemyIds() ?? [];
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eEndlessRosterEnemyIds();
+    }
+    return [];
   }
 
   e2eEndlessEnemyConcurrentCap(enemyId: string): number | null {
-    return this.overlays.endlessPanel?.e2eEnemyConcurrentCap(enemyId) ?? null;
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      return host.e2eEndlessEnemyConcurrentCap(enemyId);
+    }
+    return null;
   }
 
   e2eToggleEndlessEnemy(enemyId: string): void {
-    this.overlays.endlessPanel?.e2eToggleEnemy(enemyId);
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      host.e2eToggleEndlessEnemy(enemyId);
+    }
   }
 
   e2eSetEndlessEnemyCap(enemyId: string, cap: number): void {
-    this.overlays.endlessPanel?.e2eSetEnemyCap(enemyId, cap);
+    const host = activeTownUiHost(this.game);
+    if (host instanceof EndlessModeSetupScene) {
+      host.e2eSetEndlessEnemyCap(enemyId, cap);
+    }
   }
 
   /** Re-enable town layout + header chrome only when no modal owns input. */
@@ -330,6 +391,7 @@ export class TownScene extends Phaser.Scene {
 
   /** Prepare + persist the night save, set the run mode, start Defense. */
   private beginDefenseRun(setRunMode: () => void): void {
+    dismissTownSetupScenes(this.game);
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
     this.registry.set("save", this.save);

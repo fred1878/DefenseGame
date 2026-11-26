@@ -17,10 +17,12 @@ import {
   applyHealAmount,
   applyInstantTargeted,
   applyNova,
+  applySpellBlastAt,
   applySpellCone,
   applySpellSwing,
   spawnChanneledFireball,
   spawnSpellProjectile,
+  strikeSpellCone,
   type SpellEnemyTarget,
 } from "./SpellEffects";
 
@@ -427,6 +429,23 @@ describe("heals", () => {
     expect(d.hp).toBe(60);
   });
 
+  it("reports the applied heal and ignores overheal on the callback", () => {
+    const onHealed = vi.fn();
+    const d = {
+      id: "p",
+      hp: 50,
+      maxHp: 60,
+      alive: true,
+      team: "player" as const,
+      onHealed,
+    };
+    applyHealAmount(d, 4);
+    expect(onHealed).toHaveBeenCalledWith(4);
+    applyHealAmount(d, 20);
+    expect(onHealed).toHaveBeenLastCalledWith(6);
+    expect(d.hp).toBe(60);
+  });
+
   it("revives the alive flag when a downed target is healed above zero", () => {
     const d = {
       id: "p",
@@ -574,5 +593,196 @@ describe("spawnSpellProjectile", () => {
       PVFX_TEXTURE.fireballFlight,
     );
     expect(p.pvfxFlightFx).toBeDefined();
+  });
+});
+
+describe("SpellEffects fallbacks", () => {
+  it("nova uses default damage, skips dead enemies, and can apply on-hit", () => {
+    const scene = fakeScene();
+    const live = target("live", 5, 0, 80);
+    const dead = target("dead", 5, 0, 0);
+    dead.damageable.alive = false;
+    const status = fakeStatus();
+    applyNova(
+      asScene(scene),
+      0,
+      0,
+      def({
+        blastRadiusWu: 40,
+        onHit: { stunMs: 200 },
+      }),
+      [live, dead],
+      1,
+      status,
+    );
+    expect(hp(live)).toBeLessThan(80);
+    expect(hp(dead)).toBe(0);
+    expect(status.applyStun).toHaveBeenCalled();
+  });
+
+  it("blast, swing, and cone skip corpses and default the damage", () => {
+    const scene = fakeScene();
+    const live = target("live", 8, 0, 60);
+    const dead = target("dead", 8, 0, 0);
+    dead.damageable.alive = false;
+    const status = fakeStatus();
+    applySpellBlastAt(
+      asScene(scene),
+      0,
+      0,
+      def({ blastRadiusWu: 40, onHit: { slowMs: 100 } }),
+      [live, dead],
+      1,
+      status,
+    );
+    applySpellSwing(
+      asScene(scene),
+      0,
+      0,
+      0,
+      def({ swingRangeWu: 40, swingArcDeg: 90 }),
+      [live, dead],
+      1,
+      status,
+    );
+    strikeSpellCone(
+      asScene(scene),
+      0,
+      0,
+      0,
+      def({ coneRangeWu: 40, coneArcDeg: 90, onHit: { rootMs: 100 } }),
+      [live, dead],
+      1,
+      status,
+    );
+    expect(hp(dead)).toBe(0);
+  });
+
+  it("instant targeted uses range and damage defaults and can splash", () => {
+    const scene = fakeScene();
+    const live = target("live", 8, 0, 80);
+    const status = fakeStatus();
+    const id = applyInstantTargeted(
+      asScene(scene),
+      def({
+        onHit: { stunMs: 150 },
+        blastRadiusWu: 40,
+      }),
+      [live],
+      null,
+      0,
+      0,
+      1,
+      status,
+    );
+    expect(id).toBe("live");
+    expect(hp(live)).toBeLessThan(80);
+    expect(status.applyStun).toHaveBeenCalled();
+    expect(
+      applyInstantTargeted(asScene(scene), def({}), [], "missing", 0, 0, 1),
+    ).toBeNull();
+  });
+
+  it("projectiles default trackEnemyId and chain default damage", () => {
+    const bolt = spawnSpellProjectile(
+      asScene(fakeScene()),
+      0,
+      0,
+      0,
+      def({
+        mechanicType: "projectile",
+        projectileTextureKey: "fx_stone_throw",
+      }),
+      1,
+      "p",
+    );
+    expect(bolt.trackEnemyId ?? null).toBeNull();
+    const a = target("a", 10, 0, 80);
+    const b = target("b", 20, 0, 80);
+    applyChainLightning(
+      asScene(fakeScene()),
+      0,
+      0,
+      def({
+        chainLightningHopRangeWu: 80,
+        chainLightningHops: 2,
+      }),
+      [a, b],
+      1,
+      "a",
+    );
+    expect(hp(a)).toBeLessThan(80);
+  });
+
+  it("skips on-hit when none is set and throws if a blast has no radius", () => {
+    const scene = asScene(fakeScene());
+    const live = target("live", 8, 0, 80);
+    applyNova(scene, 0, 0, def({ blastRadiusWu: 40 }), [live], 1);
+    expect(hp(live)).toBeLessThan(80);
+    expect(() => applySpellBlastAt(scene, 0, 0, def({}), [live], 1)).toThrow(
+      /missing blastRadiusWu/,
+    );
+    applySpellSwing(
+      scene,
+      0,
+      0,
+      0,
+      def({
+        swingRangeWu: 40,
+        swingArcDeg: 90,
+        onHit: { stunMs: 80 },
+      }),
+      [target("swing", 8, 0, 80)],
+      1,
+      fakeStatus(),
+    );
+    strikeSpellCone(
+      scene,
+      0,
+      0,
+      0,
+      def({ coneRangeWu: 40, coneArcDeg: 90 }),
+      [target("cone", 8, 0, 80)],
+      1,
+    );
+    const bolt = spawnSpellProjectile(
+      scene,
+      0,
+      0,
+      0,
+      def({
+        mechanicType: "tracking_projectile",
+        projectileTextureKey: "fx_stone_throw",
+      }),
+      1,
+      "track",
+    );
+    expect(bolt.trackEnemyId ?? null).toBeNull();
+    const burst = target("burst", 8, 0, 80);
+    applyInstantTargeted(
+      scene,
+      def({ burstDamage: 10, baseDamage: 5 }),
+      [burst],
+      "burst",
+      0,
+      0,
+      1,
+    );
+    expect(hp(burst)).toBeLessThan(80);
+  });
+
+  it("does not notify onHealed when the target is already at max hp", () => {
+    const onHealed = vi.fn();
+    const damageable = {
+      id: "p",
+      hp: 50,
+      maxHp: 50,
+      alive: true,
+      team: "player" as const,
+      onHealed,
+    };
+    applyHealAmount(damageable, 10);
+    expect(onHealed).not.toHaveBeenCalled();
+    expect(damageable.hp).toBe(50);
   });
 });

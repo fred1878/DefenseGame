@@ -28,6 +28,13 @@
       "peakAlpha": 1,
       "colorFade": true,
       "alphaFade": true
+    },
+    "lightning": {
+      "tint": 16761446,
+      "mode": "fill",
+      "peakAlpha": 1,
+      "colorFade": false,
+      "alphaFade": true
     }
   }
 }

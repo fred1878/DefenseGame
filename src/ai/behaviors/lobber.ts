@@ -49,8 +49,19 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   const preferred = worldUnit(lob.preferredRangeWu, reg);
   const attackMax = worldUnit(lob.attackTriggerRangeWu, reg);
 
+  // Mid-throw: never retreat or chase — the lob telegraph is already planted.
+  // In attack range, creep toward the target at `attackCreepSpeedMul` (0 = still).
+  // This creep uses only that multiplier, not `attackMovement`, so one knob
+  // turns the formerly-dead 0.35 drift on or off.
   if (enemyIsAttacking(enemy.combat)) {
-    setEnemyChaseVelocity(enemy, 0, 0);
+    const creepMul = lob.attackCreepSpeedMul;
+    if (dist <= attackMax && creepMul > 0) {
+      applyDirectVelocity(enemy, targetX - ex, targetY - ey, creepMul, {
+        phaseScale: 1,
+      });
+    } else {
+      setEnemyChaseVelocity(enemy, 0, 0);
+    }
     return frameResult(frame);
   }
 
@@ -78,11 +89,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
     });
     return frameResult(frame);
   } else if (dist <= attackMax) {
-    if (enemy.combat.phase === "idle") {
-      setEnemyChaseVelocity(enemy, 0, 0);
-    } else {
-      applyDirectVelocity(enemy, targetX - ex, targetY - ey, 0.35);
-    }
+    setEnemyChaseVelocity(enemy, 0, 0);
   } else {
     followPlannedPath(ctx, frame, 0.9);
   }

@@ -51,3 +51,20 @@ describe("channeledGroundZoneChannel", () => {
     expect(channeledGroundZoneCompletionRemainder(def, 1.5)).toBe(3);
   });
 });
+
+describe("channeledGroundZoneChannel leftover branches", () => {
+  it("uses one tick and zero damage when channel and damage are missing", () => {
+    const def = channeledGroundDef(12);
+    delete (def as { channelMs?: number }).channelMs;
+    delete (def as { baseDamage?: number }).baseDamage;
+    expect(channeledGroundZoneMaxTicks(def)).toBe(1);
+    expect(channeledGroundZoneTotalDamage(def, 2)).toBe(0);
+    expect(channeledGroundZonePerTickDamage(def, 2)).toBe(0);
+  });
+
+  it("uses one tick when channelMs is zero", () => {
+    const def = channeledGroundDef(12);
+    def.channelMs = 0;
+    expect(channeledGroundZoneMaxTicks(def)).toBe(1);
+  });
+});

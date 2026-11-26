@@ -10,6 +10,8 @@ import {
   cellBlocked,
   cellSolidBlocked,
   cellToWorldCenter,
+  nearestWalkable,
+  worldToCell,
 } from "./grid";
 import { findPath } from "./astar";
 import { hasLineOfSight } from "./los";
@@ -222,5 +224,60 @@ describe("line of sight", () => {
     expect(hasLineOfSight(grid, enemy.x, enemy.y, player.x, player.y)).toBe(
       true,
     );
+  });
+});
+
+describe("grid cell helpers", () => {
+  const grid = buildNavGrid(
+    [],
+    DEFENSE_MAP.cellSize,
+    DEFENSE_MAP.pathClearancePx,
+  );
+
+  it("returns null for world points outside the grid", () => {
+    expect(worldToCell(grid, -10_000, 0)).toBeNull();
+    expect(worldToCell(grid, 0, 10_000)).toBeNull();
+  });
+
+  it("treats out-of-bounds cells as blocked", () => {
+    expect(cellBlocked(grid, -1, 0)).toBe(true);
+    expect(cellSolidBlocked(grid, 0, -1)).toBe(true);
+    expect(cellBlocked(grid, grid.cols, 0)).toBe(true);
+  });
+
+  it("blocks a cell occupied by a peer and skips zero-radius peers", () => {
+    const mid = {
+      col: Math.floor(grid.cols / 2),
+      row: Math.floor(grid.rows / 2),
+    };
+    const { x, y } = cellToWorldCenter(grid, mid.col, mid.row);
+    expect(
+      cellBlocked(grid, mid.col, mid.row, [{ x, y, clearancePx: 40 }]),
+    ).toBe(true);
+    expect(
+      cellBlocked(grid, mid.col, mid.row, [{ x, y, clearancePx: 0 }]),
+    ).toBe(false);
+    expect(
+      nearestWalkable(grid, mid.col, mid.row, [{ x, y, clearancePx: 40 }]),
+    ).not.toEqual(mid);
+    expect(nearestWalkable(grid, mid.col, mid.row)).toEqual(mid);
+  });
+
+  it("returns the original cell when the whole map is blocked", () => {
+    const solid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize, 10_000);
+    const start = { col: 0, row: 0 };
+    expect(nearestWalkable(solid, start.col, start.row)).toEqual(start);
+  });
+});
+
+describe("cellBlocked leftover branches", () => {
+  it("uses the agent fallback radius when a peer has no clearance", () => {
+    const grid = buildNavGrid(
+      [],
+      DEFENSE_MAP.cellSize,
+      DEFENSE_MAP.pathClearancePx,
+    );
+    const { x, y } = cellToWorldCenter(grid, 2, 2);
+    expect(cellBlocked(grid, 2, 2, [{ x, y }], 20)).toBe(true);
   });
 });

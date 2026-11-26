@@ -85,3 +85,41 @@ describe("spellBarAutoCast", () => {
     ]);
   });
 });
+
+describe("spellBarAutoCast leftover branches", () => {
+  it("drops blank, duplicate, and unknown ids when deduping", () => {
+    expect(
+      normalizeAutoCastSpellIds(["fire_bolt"], {
+        autoCastSpellIds: ["fire_bolt", "fire_bolt", "", "not_a_spell"],
+      }),
+    ).toEqual(["fire_bolt"]);
+  });
+
+  it("returns the default list when legacy flags are missing", () => {
+    expect(normalizeAutoCastSpellIds(["fire_bolt"])).toEqual([]);
+    expect(normalizeAutoCastSpellIds(["fire_bolt"], { autoCast: [] })).toEqual(
+      [],
+    );
+  });
+
+  it("skips a true legacy flag whose slot is empty", () => {
+    const ids = normalizeAutoCastSpellIds(["", "meteor"], {
+      autoCast: [true, true],
+    });
+    expect(ids).toEqual(["meteor"]);
+  });
+
+  it("toggles off an existing id and ignores a blank or unknown id", () => {
+    expect(toggleAutoCastSpellId(["meteor"], "meteor")).toEqual([]);
+    expect(toggleAutoCastSpellId(["meteor"], "")).toEqual(["meteor"]);
+    expect(toggleAutoCastSpellId(["meteor"], "not_a_spell")).toEqual([
+      "meteor",
+    ]);
+  });
+
+  it("treats a missing slot id as empty when reading legacy flags", () => {
+    const slots = [] as string[];
+    slots.length = 1;
+    expect(normalizeAutoCastSpellIds(slots, { autoCast: [true] })).toEqual([]);
+  });
+});

@@ -63,3 +63,26 @@ describe("pickAutoCastSpell", () => {
     expect(pick?.spellId).toBe("fire_bolt");
   });
 });
+
+describe("pickAutoCastSpell leftover branches", () => {
+  const slots = ["fire_nova", "fire_bolt", "heal", "", "", "", "", ""];
+
+  it("returns null while already channeling", () => {
+    const auto = ["fire_nova"];
+    expect(pickAutoCastSpell(slots, auto, false, () => 0, true)).toBeNull();
+  });
+
+  it("skips holes, unknown ids, and a missing cooldown value", () => {
+    const holes = ["missing_spell" as never, undefined as never, "fire_nova"];
+    const auto = ["missing_spell", "fire_nova"] as never;
+    const pick = pickAutoCastSpell(
+      holes,
+      auto,
+      false,
+      (id) => (id === "fire_nova" ? undefined : 0) as never,
+      false,
+    );
+    expect(pick?.spellId).toBe("fire_nova");
+    expect(pick?.slotIndex).toBe(2);
+  });
+});

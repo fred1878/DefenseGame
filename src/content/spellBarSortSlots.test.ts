@@ -59,3 +59,12 @@ describe("isSpellOnDefenseBar", () => {
     expect(isSpellOnDefenseBar(["heal", ""], "nova")).toBe(false);
   });
 });
+
+describe("toggleSpellOnDefenseBar leftover branches", () => {
+  it("leaves the bar unchanged when the spell id is blank", () => {
+    const slots = ["heal", ""];
+    expect(toggleSpellOnDefenseBar(slots, "")).toEqual(
+      normalizeBarSlots(slots),
+    );
+  });
+});

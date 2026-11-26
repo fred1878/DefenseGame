@@ -45,6 +45,7 @@ export type DefenseSceneDisposables = {
   projectiles: PlayerProjectile[];
   enemyProjectiles: EnemyProjectile[];
   enemies: EnemyInstance[];
+  damageNumbers?: { destroy(): void };
 };
 
 /** Destroy HUD, debug drawers, projectiles and enemies; caller clears its references. */
@@ -64,6 +65,7 @@ export function destroyDefenseSceneObjects(d: DefenseSceneDisposables): void {
   d.returnToTownBtn?.container.destroy();
   d.leaveEndlessBtn?.container.destroy();
   d.debugBtn?.container.destroy();
+  d.damageNumbers?.destroy();
   d.uiCamera?.destroy();
   for (const p of d.projectiles) releaseProjectileSprite(d.scene, p.sprite);
   for (const p of d.enemyProjectiles)

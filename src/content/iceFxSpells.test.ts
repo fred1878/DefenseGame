@@ -22,5 +22,6 @@ describe("spellUsesIceCastWindupFx", () => {
     expect(
       spellUsesIceCastWindupFx(frost({ castMs: 500, damageFlavor: "fire" })),
     ).toBe(false);
+    expect(spellUsesIceCastWindupFx(frost({}))).toBe(false);
   });
 });

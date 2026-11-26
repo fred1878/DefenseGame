@@ -103,3 +103,13 @@ describe("scheduleEnemyMeleeFx", () => {
     expect(remove).toHaveBeenCalledWith(false);
   });
 });
+
+describe("scheduleEnemyMeleeFx leftover branches", () => {
+  it("does nothing when the enemy has no melee table", () => {
+    const { enemy, scene } = meleeEnemy({ behavior: "meleeChaser" });
+    delete (enemy.combatTuning as { melee?: unknown }).melee;
+    scheduleEnemyMeleeFx(enemy);
+    expect(scene.delayed).toHaveLength(0);
+    expect(enemy.combat.slashFxShown).toBe(false);
+  });
+});

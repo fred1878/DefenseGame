@@ -99,3 +99,26 @@ describe("WavePlannerPanelScroll", () => {
     expect(onTapRow).not.toHaveBeenCalled();
   });
 });
+
+describe("WavePlannerPanelScroll leftover branches", () => {
+  it("ignores a wheel event with no vertical delta", () => {
+    const { scroll, input, view } = setup();
+    scroll.bindWheel();
+    const y = view.listContent.y;
+    input.emit("wheel", {}, [], 0, 0);
+    expect(view.listContent.y).toBe(y);
+    scroll.unbindWheel();
+  });
+
+  it("returns no row for the numeric column or an out-of-range index", () => {
+    const { scroll, view } = setup();
+    const pick = (
+      scroll as unknown as {
+        pickVisibleRowAtScreen: (x: number, y: number) => string | null;
+      }
+    ).pickVisibleRowAtScreen.bind(scroll);
+    expect(pick(320, 330)).toBeNull();
+    view.listContent.y = 1000;
+    expect(pick(100, 250)).toBeNull();
+  });
+});

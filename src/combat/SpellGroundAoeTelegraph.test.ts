@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   registerSpellGroundAoeTelegraphWorld,
+  spellGroundAoePalette,
   spellNeedsGroundAoeTelegraph,
   spawnSpellGroundAoeTelegraph,
   type SpellAoeTelegraphPalette,
@@ -97,5 +98,64 @@ describe("spellNeedsGroundAoeTelegraph", () => {
         }),
       ),
     ).toBe(false);
+  });
+});
+
+describe("spellGroundAoePalette and telegraph eligibility", () => {
+  it("picks ice, fire, and default palettes by id or flavor", () => {
+    expect(spellGroundAoePalette(def({ id: "blizzard" }))).toEqual({
+      fill: 0x7dd3fc,
+      stroke: 0x38bdf8,
+      inner: 0xe0f2fe,
+    });
+    expect(
+      spellGroundAoePalette(def({ id: "meteor", damageFlavor: "physical" })),
+    ).toEqual({
+      fill: 0xff5533,
+      stroke: 0xffcc66,
+      inner: 0xffffff,
+    });
+    expect(spellGroundAoePalette(def({ id: "flamestrike" }))).toEqual({
+      fill: 0xff5533,
+      stroke: 0xffcc66,
+      inner: 0xffffff,
+    });
+    expect(
+      spellGroundAoePalette(def({ id: "fire_bolt", damageFlavor: "fire" })),
+    ).toEqual({
+      fill: 0xff5533,
+      stroke: 0xffcc66,
+      inner: 0xffffff,
+    });
+    expect(spellGroundAoePalette(def({ id: "heal" }))).toEqual({
+      fill: 0x94a3b8,
+      stroke: 0xe2e8f0,
+      inner: 0xf8fafc,
+    });
+  });
+
+  it("needs a telegraph only when a ground blast has windup or channel", () => {
+    expect(
+      spellNeedsGroundAoeTelegraph(
+        def({ targetMode: "ground", blastRadiusWu: 40, channelMs: 500 }),
+      ),
+    ).toBe(true);
+    expect(
+      spellNeedsGroundAoeTelegraph(
+        def({ targetMode: "ground", blastRadiusWu: 40 }),
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("spellNeedsGroundAoeTelegraph leftover branches", () => {
+  it("rejects a ground spell with no blast radius or channel", () => {
+    const bare = def({ targetMode: "ground" });
+    delete (bare as { blastRadiusWu?: number }).blastRadiusWu;
+    delete (bare as { channelMs?: number }).channelMs;
+    delete (bare as { castMs?: number }).castMs;
+    expect(spellNeedsGroundAoeTelegraph(bare)).toBe(false);
+    bare.blastRadiusWu = 80;
+    expect(spellNeedsGroundAoeTelegraph(bare)).toBe(false);
   });
 });

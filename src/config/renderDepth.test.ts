@@ -13,4 +13,10 @@ describe("DEFENSE_RENDER_DEPTH", () => {
       DEFENSE_RENDER_DEPTH.projectile,
     );
   });
+
+  it("draws floating damage numbers above enemy nameplates", () => {
+    expect(DEFENSE_RENDER_DEPTH.damageNumber).toBeGreaterThan(
+      DEFENSE_RENDER_DEPTH.enemyNameplate,
+    );
+  });
 });

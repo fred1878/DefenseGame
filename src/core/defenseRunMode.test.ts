@@ -4,9 +4,14 @@ import {
   resolveEndlessRunSelections,
   resolveWavePlannerGroups,
   setEndlessDefenseRun,
+  setNightDefenseRun,
   setWavePlannerDefenseRun,
   DEFENSE_RUN_MODE_KEY,
 } from "./defenseRunMode";
+import {
+  WAVE_PLANNER_DEFAULT_AT_MS,
+  WAVE_PLANNER_DEFAULT_INTERVAL_MS,
+} from "../systems/wavePlannerTiming";
 
 describe("readDefenseRunMode", () => {
   it("reads multi-select endless payload", () => {
@@ -189,5 +194,51 @@ describe("setEndlessDefenseRun", () => {
         { enemyId: "bruiser", concurrentCap: 6 },
       ],
     });
+  });
+});
+
+describe("readDefenseRunMode leftover branches", () => {
+  it("treats a missing or non-object payload as a night run", () => {
+    const missing = {
+      get: () => undefined,
+    } as unknown as Phaser.Data.DataManager;
+    expect(readDefenseRunMode(missing)).toEqual({ kind: "night" });
+    const empty = {
+      get: () => null,
+    } as unknown as Phaser.Data.DataManager;
+    expect(readDefenseRunMode(empty)).toEqual({ kind: "night" });
+    const flag = {
+      get: () => "endless",
+    } as unknown as Phaser.Data.DataManager;
+    expect(readDefenseRunMode(flag)).toEqual({ kind: "night" });
+  });
+
+  it("defaults planner times when atMs or intervalMs are missing", () => {
+    const groups = resolveWavePlannerGroups([
+      { enemyId: "grunt", count: 4 },
+    ] as never);
+    expect(groups[0]?.atMs).toBe(WAVE_PLANNER_DEFAULT_AT_MS);
+    expect(groups[0]?.intervalMs).toBe(WAVE_PLANNER_DEFAULT_INTERVAL_MS);
+  });
+
+  it("ignores a legacy endless payload that has no enemyId", () => {
+    const registry = {
+      get: () => ({ kind: "endless" }),
+    } as unknown as Phaser.Data.DataManager;
+    expect(readDefenseRunMode(registry)).toEqual({ kind: "night" });
+  });
+});
+
+describe("setNightDefenseRun", () => {
+  it("writes a night run payload", () => {
+    const data: Record<string, unknown> = {};
+    const registry = {
+      set: (k: string, v: unknown) => {
+        data[k] = v;
+      },
+      get: (k: string) => data[k],
+    } as Phaser.Data.DataManager;
+    setNightDefenseRun(registry);
+    expect(readDefenseRunMode(registry)).toEqual({ kind: "night" });
   });
 });

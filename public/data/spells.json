@@ -58,7 +58,7 @@
       "iconFile": "lightning_bolt.png",
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
-      "damageFlavor": "physical",
+      "damageFlavor": "lightning",
       "castMs": 400,
       "knockbackWu": 140
     },
@@ -407,7 +407,7 @@
       "iconFile": "chain_lightning.png",
       "projectileTextureKey": "fx_spell_lightning_bolt",
       "projectileFile": "lightning-bolt-mrpg-16.png",
-      "damageFlavor": "physical",
+      "damageFlavor": "lightning",
       "castMs": 450,
       "targetMode": "enemy",
       "requireEnemyTarget": true,

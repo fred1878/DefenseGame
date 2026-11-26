@@ -11,6 +11,7 @@ import {
   enemyShouldDrawMeleeArcOverlay,
   enemyUsesMeleePlayerActivationRange,
   updateEnemyCombat,
+  enemyIsAttacking,
   type EnemyCombatState,
 } from "./EnemyCombat";
 import { createRangedHybridCombatState } from "./EnemyRangedCombat";
@@ -190,5 +191,102 @@ describe("enemyShouldDrawMeleeArcOverlay", () => {
     expect(enemyShouldDrawMeleeArcOverlay(reaver)).toBe(false);
     reaver.rangedHybrid!.mode = "melee";
     expect(enemyShouldDrawMeleeArcOverlay(reaver)).toBe(true);
+  });
+});
+
+describe("updateEnemyCombat phases", () => {
+  it("throws when the enemy has no melee combat table", () => {
+    const enemy = mockEnemy(0, 0);
+    delete (enemy.combatTuning as { melee?: unknown }).melee;
+    expect(() =>
+      updateEnemyCombat(
+        enemy,
+        {
+          kind: "player",
+          x: 0,
+          y: 0,
+          radius: 12,
+          damageable: {
+            id: "p",
+            hp: 10,
+            maxHp: 10,
+            alive: true,
+            team: "player" as const,
+          },
+        },
+        16,
+      ),
+    ).toThrow(/combat.melee/);
+  });
+
+  it("steps windup, active, and recovery then returns to idle", () => {
+    const enemy = mockEnemy(0, 0);
+    const melee = enemy.combatTuning.melee!;
+    const target = {
+      kind: "player" as const,
+      x: 8,
+      y: 0,
+      radius: 12,
+      damageable: {
+        id: "p",
+        hp: 10,
+        maxHp: 10,
+        alive: true,
+        team: "player" as const,
+      },
+    };
+    expect(updateEnemyCombat(enemy, target, 16)).toBe(false);
+    expect(enemy.combat.phase).toBe("windup");
+    expect(enemyIsAttacking(enemy.combat)).toBe(true);
+    updateEnemyCombat(enemy, target, melee.windupMs);
+    expect(enemy.combat.phase).toBe("active");
+    updateEnemyCombat(enemy, target, melee.activeMs);
+    expect(enemy.combat.phase).toBe("recovery");
+    updateEnemyCombat(enemy, target, melee.recoveryMs);
+    expect(enemy.combat.phase).toBe("idle");
+    expect(enemy.combat.cooldownMs).toBe(melee.cooldownMs);
+  });
+
+  it("arcs a charger only between dashes", () => {
+    const charger = mockEnemy(0, 0, undefined, "charger", "charger");
+    charger.combat.phase = "active";
+    charger.behaviorExtra.chargeActiveMs = 0;
+    charger.behaviorExtra.chargeWindupMs = 0;
+    expect(enemyShouldDrawMeleeArcOverlay(charger)).toBe(true);
+    charger.behaviorExtra.chargeActiveMs = 80;
+    expect(enemyShouldDrawMeleeArcOverlay(charger)).toBe(false);
+    charger.combat.phase = "idle";
+    expect(enemyShouldDrawMeleeArcOverlay(charger)).toBe(false);
+  });
+});
+
+describe("updateEnemyCombat wall leftover branches", () => {
+  it("starts a wall attack from idle inside trigger range", () => {
+    const wy = northWallAttackY();
+    const wall = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    ).wall;
+    const enemy = mockEnemy(0, wy + wall.triggerRangeWu * 0.25);
+    enemy.combat.phase = "idle";
+    enemy.combat.cooldownMs = 0;
+    updateEnemyCombat(enemy, { kind: "wall", x: 0, y: wy }, 16);
+    expect(enemy.combat.phase).toBe("windup");
+  });
+
+  it("holds position while attacking inside wall trigger range", () => {
+    const wy = northWallAttackY();
+    const wall = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    ).wall;
+    const enemy = mockEnemy(0, wy + wall.triggerRangeWu * 0.25);
+    enemy.combat.phase = "windup";
+    enemy.combat.phaseMs = 0;
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    updateEnemyCombat(enemy, { kind: "wall", x: 0, y: wy }, 16);
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
   });
 });

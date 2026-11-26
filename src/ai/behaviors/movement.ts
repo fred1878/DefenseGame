@@ -35,6 +35,8 @@ export type ChaseVelocityOptions = {
   playerY?: number | undefined;
   /** Live ally positions for peer chord blocking on direct player closes. */
   meleeChasePeers?: readonly MeleeChasePeer[] | undefined;
+  /** Overrides {@link attackMovementScale} for this call. */
+  phaseScale?: number | undefined;
 };
 
 export function meleeChasePeersFromAllies(
@@ -318,22 +320,45 @@ export function applyWallMeleeHold(enemy: EnemyInstance): void {
   }
 }
 
-const BRUISER_ATTACK_MOVE_MUL = 0.5;
-
-function enemyMovementBlocked(enemy: EnemyInstance): boolean {
-  if (enemy.behavior === "javelineer" || enemy.behavior === "bruiser") {
-    return false;
+/**
+ * `attackMovement` block for the attack currently executing.
+ * Hybrid enemies use melee or ranged kits based on `rangedHybrid.mode`.
+ */
+function attackMovementForCurrentAttack(
+  enemy: EnemyInstance,
+): { windupMul: number; activeMul: number; recoveryMul: number } | undefined {
+  const tuning = enemy.combatTuning;
+  switch (enemy.behavior) {
+    case "arrowRainArcher":
+      return tuning.arrowRain?.attackMovement;
+    case "javelineer":
+      return tuning.javelineer?.attackMovement;
+    case "stationaryRanged":
+      return tuning.stationaryRanged?.attackMovement;
+    case "lobber":
+      return tuning.lobber?.attackMovement;
+    case "rangedHybrid":
+      if (enemy.rangedHybrid?.mode === "melee") {
+        return tuning.melee?.attackMovement;
+      }
+      return tuning.stationaryRanged?.attackMovement;
+    default:
+      return tuning.melee?.attackMovement;
   }
-  return enemyIsAttacking(enemy.combat);
 }
 
-function chasePhaseScale(enemy: EnemyInstance): number {
-  if (enemy.behavior === "javelineer") return 1;
-  if (enemy.behavior === "bruiser" && enemyIsAttacking(enemy.combat)) {
-    return BRUISER_ATTACK_MOVE_MUL;
-  }
-  if (enemy.combat.phase === "active") return 0.35;
-  return 1;
+/**
+ * Walk-speed multiplier for the current combat phase.
+ * Idle is always 1. Missing config while attacking is 0 (held still).
+ */
+export function attackMovementScale(enemy: EnemyInstance): number {
+  const phase = enemy.combat.phase;
+  if (phase === "idle") return 1;
+  const move = attackMovementForCurrentAttack(enemy);
+  if (!move) return 0;
+  if (phase === "windup") return move.windupMul;
+  if (phase === "active") return move.activeMul;
+  return move.recoveryMul;
 }
 
 export function applyChaseVelocity(
@@ -374,11 +399,11 @@ export function applyChaseVelocity(
     applyPlayerMeleeHold(enemy);
     return;
   }
-  if (enemyMovementBlocked(enemy)) {
+  const chaseScale = opts?.phaseScale ?? attackMovementScale(enemy);
+  if (chaseScale <= 0) {
     setEnemyChaseVelocity(enemy, 0, 0);
     return;
   }
-  const chaseScale = chasePhaseScale(enemy);
   const statusMul = enemy.statusSpeedMul ?? 1;
   const reg = enemy.sprite.scene.registry;
   const speed =
@@ -404,22 +429,28 @@ export function applyChaseVelocity(
   setEnemyChaseVelocity(enemy, desiredVx, desiredVy);
 }
 
+export type DirectVelocityOptions = {
+  /** Overrides {@link attackMovementScale} for this call. */
+  phaseScale?: number | undefined;
+};
+
 export function applyDirectVelocity(
   enemy: EnemyInstance,
   dirX: number,
   dirY: number,
   speedMul = 1,
+  opts?: DirectVelocityOptions,
 ): void {
-  if (enemyMovementBlocked(enemy)) {
-    setEnemyChaseVelocity(enemy, 0, 0);
-    return;
-  }
   const len = Math.hypot(dirX, dirY);
   if (len < 0.001) {
     setEnemyChaseVelocity(enemy, 0, 0);
     return;
   }
-  const chaseScale = chasePhaseScale(enemy);
+  const chaseScale = opts?.phaseScale ?? attackMovementScale(enemy);
+  if (chaseScale <= 0) {
+    setEnemyChaseVelocity(enemy, 0, 0);
+    return;
+  }
   const statusMul = enemy.statusSpeedMul ?? 1;
   const reg = enemy.sprite.scene.registry;
   const speed =

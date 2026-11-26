@@ -95,6 +95,7 @@ import {
   bindPlayerObstacleCorrection,
   bootstrapDefenseWorld,
 } from "./defense/DefenseWorldBootstrap";
+import type { DamageNumberFx } from "./defense/DamageNumberFx";
 import { tickDefenseProjectiles } from "./defense/DefenseProjectileTick";
 import {
   syncDefenseEnemyNameplates,
@@ -245,6 +246,7 @@ export class DefenseScene extends Phaser.Scene {
       leaveEndlessBtn: this.leaveEndlessBtn,
       debugBtn: this.debugBtn,
       uiCamera: this.uiCamera,
+      damageNumbers: this.damageNumbers,
       projectiles: this.projectiles,
       enemyProjectiles: this.enemyProjectiles,
       enemies: this.enemies,
@@ -271,6 +273,7 @@ export class DefenseScene extends Phaser.Scene {
   private registerWorldDraw!: (go: Phaser.GameObjects.GameObject) => void;
   private registerUiDraw!: (go: Phaser.GameObjects.GameObject) => void;
   private uiCamera!: Phaser.Cameras.Scene2D.Camera;
+  private damageNumbers!: DamageNumberFx;
 
   constructor() {
     super({ key: "Defense" });
@@ -367,6 +370,7 @@ export class DefenseScene extends Phaser.Scene {
     this.registerWorldDraw = world.registerWorldDraw;
     this.registerUiDraw = world.registerUiDraw;
     this.uiCamera = world.cameraRig.uiCamera;
+    this.damageNumbers = world.damageNumbers;
 
     const hud = createDefenseHudController({
       scene: this,
@@ -597,6 +601,7 @@ export class DefenseScene extends Phaser.Scene {
     this.enemyProjectiles = enemyTick.enemyProjectiles;
 
     syncDefenseEnemyNameplates(this.enemies, this.registry);
+    this.damageNumbers.update();
 
     this.drawDebugOverlays(delta);
     this.minimap.draw(
@@ -1020,6 +1025,14 @@ export class DefenseScene extends Phaser.Scene {
         onFocusEnemy: (id) => this.targeting.setFocusEnemy(id),
       },
       maskWorldObject: (go) => this.registerWorldDraw(go),
+      notifyDamaged: (enemy, amount, flavor) => {
+        this.damageNumbers.floatFromSource(
+          enemy.damageable.id,
+          enemy.sprite,
+          amount,
+          { flavor },
+        );
+      },
     };
   }
 
