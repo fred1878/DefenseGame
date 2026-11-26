@@ -87,7 +87,7 @@ describe("requestPanelLogic", () => {
     expect(cards[0]!.stat).toMatch(/^Your .*Rusty Sword$/);
     expect(cards[0]!.price).toMatch(/^\d+g$/);
     expect(cards[1]).toMatchObject({
-      meta: "Any item of this type · pays 150%",
+      meta: "Any match · pays 150%",
       stat: "No match in your bag",
       price: "—",
       selected: false,

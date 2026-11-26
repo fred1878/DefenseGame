@@ -141,6 +141,7 @@ describe("ShopPanel", () => {
     expect(t).toMatch(/TRADER WANTS/i);
     expect(t).toMatch(/Requests pay 150%/);
     expect(h.ids()).not.toContain("shop-chip-all");
+    expect(h.ids()).not.toContain("shop-sort");
     expect(h.ids()).not.toContain("shop-fill");
     h.tap("shop-card-1"); // no ring in the bag: Sell stays disabled
     expect(h.ids()).not.toContain("shop-fill");

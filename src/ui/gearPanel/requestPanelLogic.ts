@@ -27,7 +27,7 @@ export function traderRequests(
 function kindLabel(request: BuyRequest): string {
   if (request.kind === "base") return "Any rarity";
   if (request.kind === "unique") return "Unique";
-  return "Any item of this type";
+  return "Any match";
 }
 
 function requestItemType(

@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import type { SaveGame } from "../core/saveTypes";
 import type { ModalInputLease } from "../input/modalBackdrop";
 import { DG_THEME } from "./theme/dgTheme";
-import type { DgKit, Tap } from "./gearPanel/dgPanelKit";
+import type { Box, DgKit, Tap } from "./gearPanel/dgPanelKit";
 import {
   createActionBar,
   createCard,
@@ -70,6 +70,8 @@ export class ShopPanel {
   private readonly tabs: ReturnType<DgKit["tabs"]>;
   private readonly chips: Chip[] = [];
   private readonly sortTap: Tap;
+  private readonly sortBox: Box;
+  private readonly sortIcon: Phaser.GameObjects.Image | null;
   private readonly stockLabel: ReturnType<DgKit["section"]>;
   private readonly soonLabel: ReturnType<DgKit["section"]>;
   private readonly pager: ReturnType<DgKit["pager"]>;
@@ -142,12 +144,12 @@ export class ShopPanel {
       };
       this.chips.push(chip);
     }
-    kit.box(476, 176, 48, 32, {
+    this.sortBox = kit.box(476, 176, 48, 32, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       radius: 10,
     });
-    kit.icon(500, 192, "sort", 18);
+    this.sortIcon = kit.icon(500, 192, "sort", 18);
     this.sortTap = kit.tap(470, 170, 60, 44, () =>
       this.dispatch({ type: "sort" }),
     );
@@ -234,6 +236,9 @@ export class ShopPanel {
 
     // Chips: lay out left to right from their label widths (none on Wants).
     const chips = wants ? [] : filterChips(ctx, save, st);
+    this.sortBox.g.setVisible(!wants);
+    this.sortIcon?.setVisible(!wants);
+    this.sortTap.setEnabled(!wants);
     let cx = 16;
     this.chips.forEach((chip, i) => {
       const v = chips[i];
