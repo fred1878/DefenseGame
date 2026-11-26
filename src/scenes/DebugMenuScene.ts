@@ -29,6 +29,7 @@ import {
   DEBUG_MENU_CLOSE,
   isDefenseDebugHost,
 } from "../debug/debugMenuLifecycle";
+import { debugMenuStackCenterY } from "../debug/debugMenuLayout";
 import { transitionDefenseToTown } from "./defense/DefenseNightEnd";
 
 export class DebugMenuScene extends Phaser.Scene {
@@ -52,6 +53,8 @@ export class DebugMenuScene extends Phaser.Scene {
     const w = this.scale.width;
     const h = this.scale.height;
     const panelTop = hudBandHeight(safe.top) + scaleUiY(48);
+    const fromDefense = isDefenseDebugHost(this);
+    const stackY = debugMenuStackCenterY(h, safe, fromDefense);
 
     this.add
       .rectangle(0, 0, w, h, 0x000000, 0.65)
@@ -78,7 +81,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.hitboxToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 - scaleUiY(92),
+      stackY - scaleUiY(92),
       flags.showHitboxes ? "Hitboxes: ON" : "Hitboxes: OFF",
       () => {
         const next = !showHitboxes(this.registry);
@@ -91,7 +94,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.rangeToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 - scaleUiY(27),
+      stackY - scaleUiY(27),
       flags.showCombatRanges ? "Combat ranges: ON" : "Combat ranges: OFF",
       () => {
         const next = !showCombatRanges(this.registry);
@@ -106,7 +109,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.touchToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(38),
+      stackY + scaleUiY(38),
       flags.showTouchInput ? "Touch input: ON" : "Touch input: OFF",
       () => {
         const next = !showTouchInput(this.registry);
@@ -121,7 +124,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.pathToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(103),
+      stackY + scaleUiY(103),
       flags.showEnemyPaths ? "Enemy paths: ON" : "Enemy paths: OFF",
       () => {
         const next = !showEnemyPaths(this.registry);
@@ -134,7 +137,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.fpsToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(168),
+      stackY + scaleUiY(168),
       flags.showFpsCounter ? "FPS / frame time: ON" : "FPS / frame time: OFF",
       () => {
         const next = !showFpsCounter(this.registry);
@@ -149,7 +152,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.worldScaleToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(233),
+      stackY + scaleUiY(233),
       worldScaleDebugLabel(getWorldPixelScale(this.registry)),
       () => {
         const next = cycleDebugWorldPixelScale(this.game);
@@ -161,7 +164,7 @@ export class DebugMenuScene extends Phaser.Scene {
     this.fullscreenToggle = createTouchButton(
       this,
       w / 2,
-      h / 2 + scaleUiY(298),
+      stackY + scaleUiY(298),
       fullscreenButtonLabel(this.scale),
       () => {
         toggleFullscreen(this.scale);
@@ -175,14 +178,15 @@ export class DebugMenuScene extends Phaser.Scene {
       },
     );
 
-    const fromDefense = isDefenseDebugHost(this);
-    const closeY = fromDefense ? h / 2 + scaleUiY(433) : h / 2 + scaleUiY(368);
+    const closeY = fromDefense
+      ? stackY + scaleUiY(433)
+      : stackY + scaleUiY(368);
 
     if (fromDefense) {
       createTouchButton(
         this,
         w / 2,
-        h / 2 + scaleUiY(368),
+        stackY + scaleUiY(368),
         "Go to town",
         () => this.leaveDefenseForTown(),
         {
