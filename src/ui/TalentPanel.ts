@@ -711,7 +711,7 @@ export class TalentPanel {
     let rankInnerW = Math.ceil(this.detailRank.width);
     let rankW = rankInnerW + rankPadH * 2;
     let rankX = rankRight - rankW;
-    let titleMax = Math.max(72, rankX - titleX - 8);
+    const titleMax = Math.max(72, rankX - titleX - 8);
     fitText(this.detailName, loc.node.name, titleMax);
     const rankMax =
       rankRight - rankPadH - titleX - Math.ceil(this.detailName.width) - 8;
