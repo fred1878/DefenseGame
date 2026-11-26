@@ -22,15 +22,14 @@ export default defineConfig({
         "src/scenes/**",
         "src/world/**",
       ],
-      // Re-baselined for Vitest 5: its v8 provider maps coverage through the
-      // AST (Vitest 2 counted per source line), so the same tests report lower
-      // numbers. Keep these just under the actual totals.
+      // Actual coverage is higher (lines/statements/functions ~98%,
+      // branches ~96%). These floors leave a little room without going back
+      // to the old 75/69 baselines.
       thresholds: {
-        lines: 75,
-        functions: 75,
-        // Branches are at 69.2%; held just under until branch tests catch up.
-        branches: 69,
-        statements: 75,
+        lines: 95,
+        functions: 95,
+        branches: 90,
+        statements: 95,
       },
     },
   },

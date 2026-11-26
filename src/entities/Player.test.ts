@@ -192,4 +192,37 @@ describe("Player leftover branches", () => {
     player.damageEnemiesInArc([enemy], 10, 0);
     expect(enemy.damageable.hp).toBe(100);
   });
+
+  it("does not reset facing when a locked melee swing has no stick input", () => {
+    const player = mockPlayer();
+    player.faceToward(100, 0);
+    const aim = player.getFacingAngle();
+    player.tryStartAttack("melee");
+    player.setVelocityFromStick(0, 0, 200, { lockMeleeAim: true });
+    expect(player.getFacingAngle()).toBeCloseTo(aim);
+  });
+
+  it("stays in recovery until the recovery window elapses", () => {
+    const player = mockPlayer();
+    player.tryStartAttack("melee");
+    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
+    player.updateAttack(PLAYER_TUNING.meleeActiveMs);
+    expect(player.attackPhaseNow).toBe("recovery");
+    player.updateAttack(1);
+    expect(player.attackPhaseNow).toBe("recovery");
+    player.updateAttack(PLAYER_TUNING.meleeRecoveryMs);
+    expect(player.attackPhaseNow).toBe("idle");
+  });
+
+  it("skips a living enemy outside the melee arc", () => {
+    const player = mockPlayer();
+    player.faceToward(100, 0);
+    player.tryStartAttack("melee");
+    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
+    const behind = mockEnemyAt(-80, 0);
+    behind.id = "behind";
+    behind.damageable.id = "behind";
+    player.damageEnemiesInArc([behind], 10, 0);
+    expect(behind.damageable.hp).toBe(100);
+  });
 });

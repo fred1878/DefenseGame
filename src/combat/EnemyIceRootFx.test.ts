@@ -145,3 +145,74 @@ describe("EnemyIceRootFxController", () => {
     expect(sprites.length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("EnemyIceRootFx leftover branches", () => {
+  it("does not play ending when the leftover entry is not a hold", () => {
+    const { scene, sprites } = mockScene();
+    const fx = new EnemyIceRootFxController(scene);
+    const status = new EnemySpellStatusMap();
+    const enemy = {
+      id: "e1",
+      sprite: { x: 3, y: 7, active: true } as Phaser.Physics.Arcade.Sprite,
+    };
+    status.applyRoot("e1", 800);
+    fx.tick([enemy], status);
+    const box = fx as unknown as {
+      entries: Map<string, { mode: string; sprite: unknown }>;
+    };
+    const entry = box.entries.get("e1");
+    if (!entry) throw new Error("expected hold entry");
+    entry.mode = "ending";
+    const before = sprites.length;
+    status.tick(900);
+    fx.tick([enemy], status);
+    expect(sprites.length).toBe(before);
+  });
+
+  it("keeps an ending sprite when the enemy has despawned", () => {
+    const { scene, sprites } = mockScene();
+    scene.add.sprite = vi.fn(() => {
+      const sprite: Record<string, unknown> = {
+        destroy: vi.fn(),
+        setPosition: vi.fn(),
+        play: vi.fn(function (this: typeof sprite) {
+          return this;
+        }),
+        once: vi.fn(),
+        anims: { pause: vi.fn() },
+        x: 3,
+        y: 7,
+      };
+      const chain = (): typeof sprite => sprite;
+      sprite.setDepth = chain;
+      sprite.setBlendMode = chain;
+      sprite.setAlpha = chain;
+      sprite.setDisplaySize = chain;
+      sprites.push(sprite as (typeof sprites)[number]);
+      return sprite;
+    }) as unknown as typeof scene.add.sprite;
+    const fx = new EnemyIceRootFxController(scene);
+    const status = new EnemySpellStatusMap();
+    const enemy = {
+      id: "e1",
+      sprite: { x: 3, y: 7, active: true } as Phaser.Physics.Arcade.Sprite,
+    };
+    status.applyRoot("e1", 200);
+    fx.tick([enemy], status);
+    status.tick(500);
+    fx.tick([], status);
+    const box = fx as unknown as {
+      entries: Map<string, { mode: string }>;
+    };
+    expect(box.entries.get("e1")?.mode).toBe("ending");
+    const ending = sprites[1]!;
+    const complete = ending.once.mock.calls[0]![1] as () => void;
+    complete();
+    expect(box.entries.has("e1")).toBe(false);
+    // A later complete from a stale sprite must not delete a newer entry.
+    const newer = { sprite: { destroy: vi.fn() }, mode: "ending" };
+    box.entries.set("e1", newer as never);
+    complete();
+    expect(box.entries.get("e1")).toBe(newer);
+  });
+});

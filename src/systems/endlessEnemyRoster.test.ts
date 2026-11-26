@@ -60,6 +60,7 @@ describe("listPlayableDefenseEnemyIds", () => {
     store.enemies = {
       zebra: { ...base, displayName: "Zebra" },
       ape: { ...base, textureKey: "enemy_ape", displayName: "Ape" },
+      cat: { ...base, textureKey: "enemy_cat", displayName: "Cat" },
     };
     delete (store.enemies.ape as { displayName?: string }).displayName;
     store.waves = {
@@ -68,10 +69,11 @@ describe("listPlayableDefenseEnemyIds", () => {
         groups: [
           { atMs: 0, enemyId: "zebra", count: 1, intervalMs: 0 },
           { atMs: 0, enemyId: "ape", count: 1, intervalMs: 0 },
+          { atMs: 0, enemyId: "cat", count: 1, intervalMs: 0 },
           { atMs: 0, enemyId: "missing", count: 1, intervalMs: 0 },
         ],
       },
     };
-    expect(listPlayableDefenseEnemyIds(store)).toEqual(["ape", "zebra"]);
+    expect(listPlayableDefenseEnemyIds(store)).toEqual(["ape", "cat", "zebra"]);
   });
 });

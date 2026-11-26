@@ -197,4 +197,17 @@ describe("installE2EDom", () => {
     vi.stubGlobal("window", { location: { href: "http://localhost/?e2e=1" } });
     positionDomMirrors({ "start-night": { x: 1, y: 2 } });
   });
+
+  it("skips target ids that have no mirrored button", () => {
+    vi.stubEnv("VITE_E2E", "true");
+    installDom();
+    const api = {
+      startNight: vi.fn(),
+      tapDomMirror: vi.fn(),
+    } as unknown as DefenseGameE2EApi;
+    ensureDomTestActions(api);
+    expect(() =>
+      positionDomMirrors({ "not-a-mirror-id": { x: 1, y: 2 } }),
+    ).not.toThrow();
+  });
 });

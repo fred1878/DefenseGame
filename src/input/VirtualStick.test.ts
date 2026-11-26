@@ -314,3 +314,51 @@ describe("VirtualStick remaining input branches", () => {
     open.destroy({ input: { off: () => undefined } } as never);
   });
 });
+
+describe("VirtualStick leftover branches", () => {
+  it("destroys the sprites when the scene has no input plugin", () => {
+    const { stick } = makeStickHarness();
+    expect(() => stick.destroy({} as never)).not.toThrow();
+  });
+
+  it("ignores a move after the gesture is no longer active or pending", () => {
+    const { stick, down, move } = makeStickHarness();
+    down(200, 200);
+    const box = stick as unknown as { pending: boolean; active: boolean };
+    box.pending = false;
+    box.active = false;
+    move(400, 200);
+    expect(stick.getDirection().x).toBe(0);
+    expect(stick.getDebugState().active).toBe(false);
+  });
+
+  it("clears a press that is neither a drag nor still pending", () => {
+    const { stick, down, up } = makeStickHarness();
+    down(200, 200);
+    const box = stick as unknown as {
+      pending: boolean;
+      gestureHadDrag: boolean;
+    };
+    box.pending = false;
+    box.gestureHadDrag = false;
+    up(200, 200);
+    expect(stick.getDebugState().pointerId).toBe(null);
+    expect(stick.tryConsumeTap({ id: 1, x: 200, y: 200 } as never)).toEqual({
+      kind: "none",
+    });
+  });
+
+  it("ignores hits on the stick's own base or knob", () => {
+    const { stick, down } = makeStickHarness(
+      {},
+      {
+        hitTestPointer: () => {
+          const box = stick as unknown as { base: unknown; knob: unknown };
+          return [box.base, box.knob];
+        },
+      },
+    );
+    down(200, 200);
+    expect(stick.getDebugState().pointerId).toBe(1);
+  });
+});

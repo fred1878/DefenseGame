@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
 import { HOLY_FX_ANIM, HOLY_FX_TEXTURE } from "../content/holyFxAssets";
+import { COMBAT_FX_TEXTURE } from "../content/assets";
 import { SpellHealChannelFx } from "./SpellHealChannelFx";
 
 (Phaser as { BlendModes?: { ADD: number } }).BlendModes = { ADD: 1 };
@@ -175,5 +176,60 @@ describe("SpellHealChannelFx", () => {
     fx.fadeOut();
     fx.follow(1, 2);
     expect(scene.add.graphics).not.toHaveBeenCalled();
+  });
+});
+
+describe("SpellHealChannelFx leftover glow branches", () => {
+  it("follows and fades the shockwave glow when the holy loop is missing", () => {
+    const glow = {
+      setPosition: vi.fn(),
+      setDepth: vi.fn().mockReturnThis(),
+      setTint: vi.fn().mockReturnThis(),
+      setAlpha: vi.fn().mockReturnThis(),
+      setBlendMode: vi.fn().mockReturnThis(),
+      setDisplaySize: vi.fn().mockReturnThis(),
+    };
+    const gfx = {
+      setDepth: vi.fn(),
+      setBlendMode: vi.fn(),
+      clear: vi.fn(),
+      fillStyle: vi.fn(),
+      fillCircle: vi.fn(),
+      lineStyle: vi.fn(),
+      strokeCircle: vi.fn(),
+    };
+    const tweens: Array<{
+      stop: ReturnType<typeof vi.fn>;
+      onComplete?: () => void;
+    }> = [];
+    const scene = {
+      textures: {
+        exists: (key: string) => key === COMBAT_FX_TEXTURE.spellShockwave,
+      },
+      add: {
+        graphics: vi.fn(() => gfx),
+        image: vi.fn(() => glow),
+        sprite: vi.fn(),
+      },
+      tweens: {
+        add: vi.fn((cfg: { onComplete?: () => void }) => {
+          const tw: {
+            stop: ReturnType<typeof vi.fn>;
+            onComplete?: () => void;
+          } = { stop: vi.fn() };
+          if (cfg.onComplete) tw.onComplete = cfg.onComplete;
+          tweens.push(tw);
+          return tw;
+        }),
+      },
+    } as unknown as Phaser.Scene;
+    const fx = new SpellHealChannelFx(scene);
+    const register = vi.fn();
+    fx.start(4, 8, register);
+    expect(scene.add.image).toHaveBeenCalled();
+    fx.follow(20, 30);
+    expect(glow.setPosition).toHaveBeenCalledWith(20, 30);
+    fx.fadeOut();
+    expect(tweens.length).toBeGreaterThan(1);
   });
 });
