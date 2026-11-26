@@ -229,3 +229,41 @@ describe("WavePlannerPanel", () => {
     expect(panel.e2eTapTargets()).toEqual({});
   });
 });
+
+describe("WavePlannerPanel leftover branches", () => {
+  it("uses default field values when a selected id has no stored caps", () => {
+    const { panel } = open(["grunt"]);
+    const box = panel as unknown as {
+      counts: Map<string, number>;
+      atMs: Map<string, number>;
+      intervalMs: Map<string, number>;
+      selectedIds: Set<string>;
+      buildGroups: () => Array<{
+        enemyId: string;
+        count: number;
+        atMs: number;
+        intervalMs: number;
+      }>;
+      bumpField: (id: string, field: string, delta: number) => void;
+    };
+    box.counts.delete("grunt");
+    box.atMs.delete("grunt");
+    box.intervalMs.delete("grunt");
+    const groups = box.buildGroups();
+    expect(groups[0]?.enemyId).toBe("grunt");
+    expect(groups[0]?.count).toBeGreaterThan(0);
+    box.bumpField("missing", "count", 1);
+  });
+
+  it("destroy skips inactive objects and is a no-op the second time", () => {
+    const { panel, ui, onDismiss } = open(["grunt"]);
+    ui.maskGraphics.active = false;
+    ui.startBtn.container.active = false;
+    ui.closeBtn.container.active = false;
+    ui.root.active = false;
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+});

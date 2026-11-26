@@ -40,4 +40,19 @@ describe("interruptEnemyAttack", () => {
     expect(enemy.stationaryRanged?.shotFired).toBe(false);
     expect(enemy.rangedHybrid?.shotFired).toBe(false);
   });
+
+  it("clears a mid-attack enemy that has no ranged extra state", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      combat: {
+        phase: "active",
+        phaseMs: 20,
+        hitThisSwing: true,
+        attackTargetKind: "player",
+      } as never,
+    });
+    interruptEnemyAttack(enemy);
+    expect(enemy.combat.phase).toBe("idle");
+    expect(enemy.combat.hitThisSwing).toBe(false);
+  });
 });

@@ -203,4 +203,54 @@ describe("rangedHybrid combat state machine", () => {
     );
     expect(enemy.rangedHybrid.mode).toBe("ranged");
   });
+
+  it("stays in retreat until the player is at preferred range", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      combatTuning,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    enemy.rangedHybrid = createRangedHybridCombatState();
+    enemy.rangedHybrid.mode = "retreat";
+    resetHybridCombatPhase(enemy.combat);
+    const result = updateRangedHybridCombat(
+      enemy,
+      playerTarget(30, 0),
+      enemy.rangedHybrid,
+      16,
+    );
+    expect(enemy.rangedHybrid.mode).toBe("retreat");
+    expect(result.meleeHit).toBe(false);
+  });
+
+  it("counts a finished swing without retreating before the max", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      combatTuning,
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    enemy.rangedHybrid = createRangedHybridCombatState();
+    enemy.rangedHybrid.mode = "melee";
+    enemy.rangedHybrid.meleeSwings = 0;
+    enemy.combat.phase = "recovery";
+    enemy.rangedHybrid.prevPhase = "recovery";
+    updateRangedHybridCombat(
+      enemy,
+      playerTarget(30, 0),
+      enemy.rangedHybrid,
+      enemy.combatTuning.melee!.recoveryMs + 5,
+    );
+    expect(enemy.rangedHybrid.mode).toBe("melee");
+    expect(enemy.rangedHybrid.meleeSwings).toBe(1);
+  });
 });

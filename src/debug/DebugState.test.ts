@@ -71,3 +71,13 @@ describe("DebugState remaining accessors", () => {
     expect(showFpsCounter(reg)).toBe(true);
   });
 });
+
+describe("getDebugFlags leftover branches", () => {
+  it("defaults a missing showHitboxes flag on a partial record", () => {
+    const reg = fakeRegistry({
+      debugFlags: { showCombatRanges: true },
+    });
+    expect(getDebugFlags(reg).showHitboxes).toBe(false);
+    expect(getDebugFlags(reg).showCombatRanges).toBe(true);
+  });
+});

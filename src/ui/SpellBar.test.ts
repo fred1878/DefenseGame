@@ -257,3 +257,28 @@ describe("SpellBar", () => {
     expect(bar.e2eSlotHitRects()).toEqual([]);
   });
 });
+
+describe("SpellBar leftover branches", () => {
+  it("skips cooldown overlays when a slot has no chrome or unknown id", () => {
+    const { bar } = make(["not-a-real-spell", cooldownSpell.id], [], () => 40);
+    const box = bar as unknown as {
+      slotChrome: Array<unknown>;
+      refreshCooldownOverlays: () => void;
+    };
+    box.slotChrome.splice(1, 1);
+    box.refreshCooldownOverlays();
+  });
+});
+
+describe("SpellBar sparse-slot leftovers", () => {
+  it("treats a hole in the slot list as empty", () => {
+    const { bar } = make([instant.id]);
+    const box = bar as unknown as {
+      slots: Array<string | undefined>;
+      refreshAutoCastBorders?: () => void;
+      refreshCooldownOverlays: () => void;
+    };
+    delete box.slots[0];
+    box.refreshCooldownOverlays();
+  });
+});

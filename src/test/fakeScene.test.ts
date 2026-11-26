@@ -96,3 +96,17 @@ describe("fakeScene leftover helpers", () => {
     expect(fired).toBe(0);
   });
 });
+
+describe("finishTween leftover branches", () => {
+  it("finishes a tween whose targets are an array of objects", () => {
+    const a = { alpha: 1 };
+    const b = { alpha: 1 };
+    finishTween({
+      targets: [a, b],
+      alpha: 0.25,
+      duration: 50,
+    });
+    expect(a.alpha).toBe(0.25);
+    expect(b.alpha).toBe(0.25);
+  });
+});

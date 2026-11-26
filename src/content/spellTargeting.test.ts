@@ -194,3 +194,13 @@ describe("spellTargeting", () => {
     expect(spellRequiresStationary(def({ castMs: 200 }))).toBe(true);
   });
 });
+
+describe("spellAutoCastRequiresCombatTarget leftover branches", () => {
+  it("requires a combat target for swings that have no explicit target mode", () => {
+    expect(
+      spellAutoCastRequiresCombatTarget(
+        def({ id: "rend", mechanicType: "swing" }),
+      ),
+    ).toBe(true);
+  });
+});
