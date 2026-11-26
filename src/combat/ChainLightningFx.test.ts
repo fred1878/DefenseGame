@@ -24,3 +24,12 @@ describe("jitterLightningPolyline", () => {
     expect(poly[poly.length - 1]).toEqual({ x: 110, y: 20 });
   });
 });
+
+describe("jitterLightningPolyline leftover branches", () => {
+  it("still builds a polyline when the endpoints coincide", () => {
+    const pts = jitterLightningPolyline(4, 8, 4, 8, 3, 2, () => 0.5);
+    expect(pts[0]).toEqual({ x: 4, y: 8 });
+    expect(pts.at(-1)).toEqual({ x: 4, y: 8 });
+    expect(pts).toHaveLength(4);
+  });
+});

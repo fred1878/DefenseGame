@@ -573,3 +573,16 @@ describe("data-driven attack movement", () => {
     expect(lastVx(enemy)).toBeCloseTo(50, 1);
   });
 });
+
+describe("applyDirectVelocity leftover branches", () => {
+  it("uses a status speed of 1 when none is set", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy as { statusSpeedMul?: number }).statusSpeedMul;
+    enemy.combat.phase = "idle";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
+});

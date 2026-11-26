@@ -166,3 +166,37 @@ describe("HitFlash tween callbacks", () => {
     expect(sprite.setData).toHaveBeenCalledWith("hitFlashStrength", undefined);
   });
 });
+
+describe("HitFlash leftover flavor flags", () => {
+  it("skips alpha and color fades when those flags are off", () => {
+    const raw = JSON.parse(
+      readFileSync(
+        path.join(process.cwd(), "public/data/hit-flash.json"),
+        "utf8",
+      ),
+    );
+    const cfg = normalizeHitFlash(raw);
+    const previous = normalizeHitFlash(raw);
+    cfg.flavors.fire = {
+      ...cfg.flavors.fire!,
+      tint: 0xff0000,
+      mode: "multiply",
+      peakAlpha: 0.5,
+      alphaFade: false,
+      colorFade: false,
+    };
+    try {
+      applyHitFlashConfig(cfg);
+      const sprite = mockFlashSprite();
+      sprite._data.set("hitFlashFlavor", "fire");
+      sprite._data.set("hitFlashStrength", 0.5);
+      reapplySpriteHitFlashIfActive(
+        sprite as unknown as Phaser.GameObjects.Sprite,
+      );
+      expect(sprite.setAlpha).toHaveBeenCalledWith(1);
+      expect(sprite.setTint).toHaveBeenCalledWith(0xff0000);
+    } finally {
+      applyHitFlashConfig(previous);
+    }
+  });
+});

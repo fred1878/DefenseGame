@@ -259,3 +259,34 @@ describe("updateEnemyCombat phases", () => {
     expect(enemyShouldDrawMeleeArcOverlay(charger)).toBe(false);
   });
 });
+
+describe("updateEnemyCombat wall leftover branches", () => {
+  it("starts a wall attack from idle inside trigger range", () => {
+    const wy = northWallAttackY();
+    const wall = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    ).wall;
+    const enemy = mockEnemy(0, wy + wall.triggerRangeWu * 0.25);
+    enemy.combat.phase = "idle";
+    enemy.combat.cooldownMs = 0;
+    updateEnemyCombat(enemy, { kind: "wall", x: 0, y: wy }, 16);
+    expect(enemy.combat.phase).toBe("windup");
+  });
+
+  it("holds position while attacking inside wall trigger range", () => {
+    const wy = northWallAttackY();
+    const wall = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    ).wall;
+    const enemy = mockEnemy(0, wy + wall.triggerRangeWu * 0.25);
+    enemy.combat.phase = "windup";
+    enemy.combat.phaseMs = 0;
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    updateEnemyCombat(enemy, { kind: "wall", x: 0, y: wy }, 16);
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+});

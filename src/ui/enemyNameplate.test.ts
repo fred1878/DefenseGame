@@ -3,6 +3,7 @@ import {
   destroyEnemyNameplate,
   prepareEnemyNameplateForRespawn,
   recycleEnemyNameplateAfterDeath,
+  updateEnemyNameplate,
   stashEnemyNameplateForPool,
   type EnemyNameplate,
 } from "./enemyNameplate";
@@ -81,5 +82,36 @@ describe("destroyEnemyNameplate", () => {
     const plate = mockPlate();
     destroyEnemyNameplate(plate);
     expect(plate.container.destroy).toHaveBeenCalledWith(true);
+  });
+});
+
+describe("updateEnemyNameplate leftover branches", () => {
+  it("skips updates on a dying plate and draws no fill at zero HP", () => {
+    const plate = mockPlate();
+    const damageable = {
+      id: "e1",
+      hp: 0,
+      maxHp: 10,
+      alive: false,
+      team: "enemy" as const,
+    };
+    plate.dying = true;
+    updateEnemyNameplate(plate, 1, 2, 32, damageable);
+    expect(plate.container.setPosition).not.toHaveBeenCalled();
+
+    plate.dying = false;
+    updateEnemyNameplate(plate, 3, 4, 32, damageable);
+    expect(plate.hpText.setText).toHaveBeenCalledWith("0/10");
+    expect(plate.barGfx.fillRect).toHaveBeenCalledTimes(1);
+  });
+
+  it("recycles nothing when the plate is missing or already dying", () => {
+    const onComplete = vi.fn();
+    recycleEnemyNameplateAfterDeath(undefined, mockScene(), onComplete);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    const plate = mockPlate();
+    plate.dying = true;
+    recycleEnemyNameplateAfterDeath(plate, mockScene(), onComplete);
+    expect(onComplete).toHaveBeenCalledTimes(2);
   });
 });
