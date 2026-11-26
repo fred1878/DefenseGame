@@ -222,7 +222,7 @@ export function autoCastRates(
   const key = `${slots.join(",")}|${cooldownPct}|${moving}`;
   const defs = slots.map((id) => spellById(id));
   const hit = rateCache.get(key);
-  if (hit && hit.defs.every((d, i) => d === defs[i])) return hit.rates;
+  if (hit?.defs.every((d, i) => d === defs[i])) return hit.rates;
   const ready = new Map<SpellId, number>();
   const casts = new Map<SpellId, number>();
   for (let t = 0; t < ROTATION_MS; ) {

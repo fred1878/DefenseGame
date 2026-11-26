@@ -303,7 +303,7 @@ function report(dirs) {
  * Fit on nights >= --min-night (default 13); earlier nights are held out
  * and only scored. Writes the fitted model to --out (default stdout).
  */
-function fit(dirs) {
+function runFit(dirs) {
   // --fix steepness=3,exposure=1 pins knobs (set, and left out of the search).
   const fixed = Object.fromEntries(
     list("--fix", "").map((kv) => {
@@ -393,4 +393,4 @@ function tally(dirs) {
 if (command === "run") runFights();
 else if (command === "tally") tally(positional);
 else if (command === "report") report(positional);
-else fit(positional);
+else runFit(positional);

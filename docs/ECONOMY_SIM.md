@@ -46,8 +46,11 @@ A 300-run run of every strategy over 20 nights takes about 2 minutes (1000 runs 
 | `--overrides file.json` | – | `{ "loot": { "sellBackPct": 30 }, ... }` deep-merged (arrays replace) |
 | `--no-sell` | – | Never sell surplus drops |
 | `--no-talents` | – | Never spend talent points (compare against talent builds) |
-| `--spell-dps`, `--grace`, `--threat`, `--steepness` | 12, 20, 0.5, 4 | Power model knobs (below) |
-| `--weights O,D,W` | 0.2,0.6,0.2 | Offence, defence and wall exponents of the power ratio. `--weights 0.5,0.25,0.25 --steepness 3` is the model from before the real-combat check |
+| `--model fitted.json` | – | Power model knobs from a fitted model file (`npm run sim:fights -- fit --out`); the flags below override it |
+| `--still-share`, `--moving-share` | 0.1, 0.5 | Share of the fight standing still (whole bar auto-casts) and moving (instant spells only) |
+| `--crowd-area`, `--exposure` | 640000, 0.5 | Crowd area (wu²) for area hits; incoming damage × (kill time ÷ fight time)^exposure |
+| `--grace`, `--threat`, `--steepness` | 45, 0.35, 2 | Power model knobs (below) |
+| `--weights O,D,W` | 0,0.9,0.1 | Offence, defence and wall exponents of the power ratio. Offence still counts through `exposure` (fast kills take less damage) |
 | `--easy`, `--hard` | 2, 1 | Power-ratio thresholds for the "too easy"/"too hard" flags |
 | `--out DIR` | sim-output | Output folder |
 | `--quiet` | – | Skip the console tables |
@@ -118,77 +121,123 @@ off. Each run's final ranks are on `RunResult.talents`. See
 
 - **`power` (default).** Win chance follows player power vs night
   difficulty, so strategies, gear and wall actually matter and the sim can
-  tell you *where* players fall behind:
-  - offence = player DPS / required DPS, where player DPS = weapon damage ÷
-    attack cycle + expected DoT procs + `spellDps` × gear spell multiplier,
-    and required DPS = total wave HP ÷ (spawn span + `grace` s).
-  - defence = EHP ÷ (wave damage × `threat`), EHP = max HP ÷ (1 − armour reduction)
-    + lifesteal% × weapon DPS × fight time × 0.25 (`lifestealUptime`). Wave
-    damage is one hit from every enemy, scaled by each group's `damageMul`.
-  - wall = wall HP ÷ (wall damage × `threat`).
-  - ratio = offence^0.2 × defence^0.6 × wall^0.2; win = ratio^k / (1 + ratio^k), k = `steepness` (4).
-  - Ratio 1 = 50% win; 1.2 ≈ 67%; 1.5 ≈ 84%; 2 ≈ 94%. It is still a
-    heuristic, not a combat sim: compare *relative* numbers (strategies,
-    nights, before/after a change) more than absolute win rates.
-  - The weights come from real fights (below). The old model (0.5/0.25/0.25,
-    k 3) leaned on offence, but in real play a low-DPS player still wins,
-    just slowly; what loses nights is the player dying.
+  tell you *where* players fall behind. The model is crowd-aware and its
+  knobs are fitted to real headless fights (next section):
+  - **Weapon:** single-target DPS (damage ÷ attack cycle + expected DoT
+    procs) × uptime (melee 0.65, ranged 0.30, measured from the damage
+    tally). Melee swings count `weaponCrowd` (0) of the extra enemies in the
+    arc: real fights showed no measurable multi-hit gain, knockback scatters
+    packs.
+  - **Spells:** the default bar in the bot's auto-cast order (longest
+    cooldown first) is replayed for a minute with the game's own
+    `pickAutoCastSpell`, standing (whole bar) and moving (instant spells
+    only). Spell DPS = gear multiplier × (`still-share` × standing DPS +
+    `moving-share` × moving DPS); AoE spells hit 1 + (alive − 1) × area ÷
+    `crowd-area` enemies.
+  - **Bombs** use the same crowd rule over a 90 wu radius; potions add EHP.
+  - **Crowd:** enemies alive at once = count × kill time ÷ (spawn span +
+    kill time), solved as a fixed point with the area hits above.
+  - offence = effective DPS ÷ (wave HP ÷ (spawn span + `grace`)).
+  - defence = EHP ÷ (wave damage × `threat` × exposure × crowd control),
+    exposure = (kill time ÷ fight time)^`exposure`, crowd control = 1 −
+    0.3 × slow/stun proc uptime. EHP = max HP ÷ (1 − armour reduction) +
+    potions + lifesteal healing over the kill time.
+  - wall = wall HP ÷ (wall damage × `threat` × exposure).
+  - ratio = offence^0 × defence^0.9 × wall^0.1; win = ratio^k / (1 + ratio^k), k = `steepness` (2).
+  - The fit put the wall weight at 0; it is kept at 0.1 so wall upgrades
+    still count (it costs 0.007 log loss). Compare *relative* numbers more
+    than absolute win rates.
 - **`fixed`.** Every attempt wins with `--win-rate`. Use it to isolate pure
   economy (gold flow, affordability) from the difficulty model.
 
 ## Checking the model against real fights
 
-`scripts/win-model-snapshots.mjs` runs the sim (balanced strategy) and saves
-the player's save at chosen nights for four gear levels: the p10, p50 and p90
-power ratio of the runs, plus a "behind" save (lowest ratio seen). The manual
-Playwright spec `e2e/win-model.spec.ts` (`@manual`, not in CI) then loads each
-save in the real game (`/?e2e=1&campaignWaves=1`, so the real waves.json
-groups spawn at random positions), and a simple bot plays the night: it
-auto-attacks, casts every spell when ready, uses melee or ranged by whichever
-does more DPS, targets the enemy closest to the north wall, kites in ranged
-mode and backs off under 35% HP. A night counts as won if `save.night`
-advanced. Results go to `sim-output/win-model-results.jsonl`.
+`npm run sim:fights` is the real-fight harness (`scripts/sim-fights.mjs`).
+`run` plays the sim per strategy, saves each chosen night's starting save at
+the p10 / p50 / p90 power ratio (and with `--behind`, a median save from
+three nights earlier), then replays every save in the real game through the
+manual Playwright spec `e2e/win-model.spec.ts` (`@manual`, not in CI;
+headless Chromium, `/?e2e=1&campaignWaves=1`, 8 workers). The bot
+auto-attacks with the better weapon mode, auto-casts the whole bar (longest
+cooldown first), targets the enemy nearest the north wall, kites in ranged
+mode, backs off under 35% HP, drinks a potion (Q) under 45% HP and throws a
+bomb (E) when 5+ enemies are within 160 px. A night is won if `save.night`
+advanced. Each fight also records the game's damage tally by flavour
+(physical = weapon; elements = spells, procs, bombs).
 
 ```bash
-npm run build:e2e
-node scripts/win-model-snapshots.mjs sim-output/win-model-snapshots.json --nights 5,8,10,12,15,18,20
-E2E_WORKERS=8 WIN_MODEL_SNAPSHOTS=sim-output/win-model-snapshots.json WIN_MODEL_REPEATS=3 \
-  npx playwright test e2e/win-model.spec.ts --project=chromium
+# real fights on the shipped data (builds dist with build:e2e if missing; --build forces it)
+npm run sim:fights -- --nights 7,10,12,14,16,18,20 --strategies balanced,ranged,spell-caster,no-spend
+# candidate data without a rebuild: overrides are served to the game in place of /data/*.json
+npm run sim:fights -- --nights 13,16,20 --overrides candidate-waves.json --out sim-output/fights/cand
+npm run sim:fights -- report sim-output/fights/cand [--model fitted.json]   # predicted vs real
+npm run sim:fights -- tally sim-output/fights/*                             # damage tally vs model DPS
+npm run sim:fights -- fit sim-output/fights/* --fix steepness=2 --out fitted.json
 ```
 
-First check (84 fights: nights 5, 8, 10, 12, 15, 18, 20 × 4 gear levels × 3
-repeats, old waves without `damageMul`):
+`fit` does coordinate descent on the model knobs by log loss over nights ≥
+`--min-night` (13); earlier nights are held out and only scored.
 
-| Night | 5 | 8 | 10 | 12 | 15 | 18 | 20 | All |
-|---|---|---|---|---|---|---|---|---|
-| Old model predicted | 78% | 61% | 53% | 53% | 53% | 50% | 49% | 57% |
-| Bot won | 42% | 58% | 75% | 67% | 83% | 92% | 100% | 74% |
+### Calibration (November 2026)
 
-Losses were almost all player deaths. Low offence barely mattered (a night-20
-save at offence ratio 0.46 still won 3/3, it just took 202 s). Log loss:
-old model 55.8, a flat base rate 48.3, the new 0.2/0.6/0.2 k 4 model 39.0,
-best fit (pure defence, k 6) 30.0. The new default sits between the old model
-and the best fit on purpose: the bot is simple (charges into melee, never
-drinks potions) and the sample is small. Night 5 is the hardest early night
-for the bot (12 grunts + 10 skirmishers + charger and reaver all at once).
+422 real fights: shipped waves (129, nights 3–20, plus `--behind` saves),
+three candidate wave sets for nights 13–20 (213) and the final waves (131,
+nights 7–20). Weapon uptimes and spell shares were pinned from the damage
+tally (`tally`: melee dealt 0.65× its single-target DPS over a fight with no
+trend in crowd size, ranged 0.30×; element damage ≈ 0.49 × moving bar DPS +
+0.11 × standing bar DPS). The other knobs were fitted on nights 13–20 with
+steepness pinned at 2 (steeper fits overfit: held-out log loss went up).
 
-Check on the shipped waves (nights 13–20 with `damageMul` 1.3–2.1) and
-talents on (48 fights: nights 12, 15, 18, 20 × 4 gear levels × 3 repeats):
+| | Old model (0.2/0.6/0.2, k 4, spell 12 DPS) | Crowd model (fitted) | Base rate |
+|---|---|---|---|
+| Log loss, all 422 fights | 0.815 | 0.484 | – |
+| Log loss, held-out nights 3–12 (77 fights) | 0.425 | 0.417 | 0.433 |
+| Final waves (131 fights, out of sample) | 0.585 | 0.437 | – |
+| Final waves: mean predicted vs real | 49% vs 70% | 65% vs 70% | – |
 
-| Night | 12 | 15 | 18 | 20 | All |
-|---|---|---|---|---|---|
-| Model predicted | 76% | 58% | 48% | 45% | 57% |
-| Bot won | 100% | 92% | 100% | 100% | 98% |
+Final waves, per night (predicted → real):
 
-Even the "behind" saves (model 11–41%) won 11 of 12. In those wins the bot
-kept 85–95% of its HP and the wall was almost never hit: with 60–70 enemies
-alive at once, they die before they get close. So **the model still
-over-rates late nights**. The likely gap is crowd damage: weapon arcs, AoE
-spells and on-hit procs hit many enemies at once, but the model's offence
-treats player DPS as single-target against the night's total HP. Treat the
-late-night win chances as relative (how strategies and nights compare), and
-expect real late nights to be easier than the table says until offence is
-modelled for crowds or the waves are pushed harder in real play.
+| Night | 7 | 10 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Old model | 75% | 54% | 70% | 55% | 47% | 46% | 41% | 44% | 37% | 37% | 37% |
+| Crowd model | 90% | 85% | 90% | 73% | 68% | 64% | 56% | 54% | 47% | 46% | 41% |
+| Real | 67% | 92% | 100% | 67% | 83% | 58% | 73% | 67% | 58% | 58% | 50% |
+
+Per strategy on the final waves (predicted → real): balanced 78% → 81%,
+ranged 66% → 79%, spell-caster 72% → 85%, no-spend 44% → 36% (old model:
+65 / 60 / 57 / 17%). The crowd model still under-rates late nights a little
+and over-rates night 7 (no-spend lost all three there).
+
+What the tally showed:
+
+- **Melee arcs barely multi-hit in practice.** Weapon damage per second
+  does not grow with enemies alive; knockback (250) scatters packs.
+- **Cast-windup spells almost never land.** In every batch frost and
+  lightning damage were 0 and fire was 3–12% (mostly nova, bombs and
+  burns): the bot keeps moving, auto-cast skips windup spells while moving,
+  and movement interrupts them. Water bolt (instant, 150 ms) does 22–46% of
+  all damage.
+- Spell-caster still wins as often as balanced in real fights; the old model
+  rated it weakest because it valued element boosts on spells that never
+  cast.
+
+### Retune of nights 13–20
+
+Nights 13–20 keep their groups; `hpMul` ramps ×1.5 → ×2.8 and `damageMul`
+×1.3 → ×2.0 on top of the previous values (nights 1–12 unchanged). Real
+fights on the final waves, nights 13–20 (one fight per save):
+
+| Build | Won |
+|---|---|
+| Spenders (balanced, ranged, spell-caster), p50 | 20/23 (87%) |
+| Spenders, all tiers | 55/71 (77%) |
+| Spenders, p10 | 12/24 (50%) |
+| Spenders, p90 | 23/24 (night 20: 2/3) |
+| No-spend p10 / p50 | 0/16 |
+| No-spend p90 (lucky drops) | 6/8 |
+
+Pooled with the two earlier runs of the same waves, median spenders won
+40/53 (75%) of nights 13–20. Night 20: p50 spenders 3/3, p90 2/3, p10 0/3.
 
 ## Reading the output
 
