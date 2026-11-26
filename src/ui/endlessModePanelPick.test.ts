@@ -235,3 +235,55 @@ describe("endlessRowCenterOverlapsViewport", () => {
     ).toBe(true);
   });
 });
+
+describe("endless row pick fallbacks", () => {
+  it("returns null for rows scrolled fully out of the viewport", () => {
+    expect(
+      endlessRowVisibleScreenYBand({
+        listTop: 100,
+        listViewportH: 40,
+        listContentY: 100,
+        rowIndex: 8,
+        rowStride: 50,
+        rowH: 40,
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects slop that's too far above the list and indexes past the roster", () => {
+    expect(
+      pick({
+        screenY: LAYOUT.listTop - LAYOUT.topHitSlopPx - 8,
+      }),
+    ).toBeNull();
+    expect(
+      pick({
+        screenY: LAYOUT.listTop + 10,
+        listViewportH: 4000,
+        enemyIds: ["grunt"],
+        rowStride: 10,
+        rowH: 8,
+        listContentY: LAYOUT.listTop,
+      }),
+    ).toBeNull();
+    expect(
+      pick({
+        screenY: LAYOUT.listTop + LAYOUT.rowH / 2,
+        enemyIds: [undefined as never],
+      }),
+    ).toBeNull();
+  });
+
+  it("defaults top slop to zero when omitted", () => {
+    expect(
+      endlessRowVisibleScreenYBand({
+        listTop: LAYOUT.listTop,
+        listViewportH: LAYOUT.listViewportH,
+        listContentY: LAYOUT.listContentY,
+        rowIndex: 0,
+        rowStride: LAYOUT.rowStride,
+        rowH: LAYOUT.rowH,
+      })?.top,
+    ).toBe(LAYOUT.listTop);
+  });
+});

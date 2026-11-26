@@ -340,3 +340,20 @@ describe("hitAreaLocalPointToScreen", () => {
     expect(center!.y).toBeCloseTo(1100, 4);
   });
 });
+
+describe("interactiveObjectScreenRect fallbacks", () => {
+  it("returns null when the object has no scene", () => {
+    const obj = {
+      x: 10,
+      y: 10,
+      scaleX: 1,
+      scaleY: 1,
+      input: { hitArea: { x: 0, y: 0, width: 20, height: 10 } },
+    };
+    expect(
+      interactiveObjectScreenRect(
+        obj as unknown as Phaser.GameObjects.GameObject,
+      ),
+    ).toBeNull();
+  });
+});

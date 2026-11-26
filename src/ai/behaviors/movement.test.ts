@@ -21,9 +21,11 @@ const enemyDefs = Object.fromEntries(
 import { createEnemyNav } from "../EnemyBrain";
 import {
   applyChaseVelocity,
+  applyDirectVelocity,
   applyWallMeleeHold,
   commitPlayerChasePathGoal,
   meleePackPlayerAnchor,
+  playerMeleeChaseHoldPoint,
   playerMeleeChaseStandoffCenterDist,
   shouldHoldAtPlayerMelee,
   shouldHoldMeleeChaseChordBlocked,
@@ -352,5 +354,55 @@ describe("wall melee hold helpers", () => {
     applyWallMeleeHold(enemy);
     expect(setVelocity).toHaveBeenCalledWith(0, 0);
     expect(enemy.sprite.y).toBe(approachY);
+  });
+});
+
+describe("movement remaining branches", () => {
+  it("throws when melee standoff is requested without a melee table", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    delete (enemy.combatTuning as { melee?: unknown }).melee;
+    expect(() => playerMeleeChaseStandoffCenterDist(enemy)).toThrow(
+      /combat.melee/,
+    );
+  });
+
+  it("holds at the current position when stacked on the player", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    enemy.sprite.x = 12;
+    enemy.sprite.y = 8;
+    expect(playerMeleeChaseHoldPoint(enemy, 12, 8)).toEqual({ x: 12, y: 8 });
+  });
+
+  it("records path-goal reachability for later standoff checks", () => {
+    const nav = createEnemyNav();
+    nav.pathGoalReached = true;
+    commitPlayerChasePathGoal(nav, false, true, false);
+    expect(nav.pathGoalReached).toBe(false);
+    commitPlayerChasePathGoal(nav, true, false, true);
+    expect(nav.pathGoalReached).toBe(true);
+    commitPlayerChasePathGoal(nav, true, false, false);
+    expect(nav.pathGoalReached).toBe(false);
+    commitPlayerChasePathGoal(nav, true, true, false);
+    expect(nav.pathGoalReached).toBe(true);
+  });
+
+  it("holds at the wall while a swing is in progress, without snapping south", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const approachY = wallMeleeStandoffY(enemy);
+    enemy.sprite.y = approachY + 2;
+    enemy.combat.phase = "windup";
+    expect(shouldHoldAtWallMelee(enemy, "wall")).toBe(true);
+    applyWallMeleeHold(enemy);
+    expect(enemy.sprite.y).toBe(approachY + 2);
+  });
+
+  it("zeros a degenerate direct velocity", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      speedWu: 80,
+    });
+    applyDirectVelocity(enemy, 0, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
   });
 });
