@@ -9,8 +9,8 @@ import {
 } from "./helpers/visual";
 
 /**
- * Screenshot checks for the four main screens (Town, Endless panel with a
- * scrolled roster, Wave planner, Defense). They catch rendering regressions
+ * Screenshot checks for the main screens (Town, Endless panel with a
+ * scrolled roster, Wave planner, Defense, Blacksmith, Inventory). They catch rendering regressions
  * that layout/tap-target tests can't, e.g. the roster list losing its clip mask
  * and drawing over the footer.
  *
@@ -142,4 +142,63 @@ test("visual: defense (night lost, summary panel)", async ({ page }) => {
   await waitFrames(page, 40);
   await freezeGameLoop(page);
   await expect(page).toHaveScreenshot("defense-night-lost.png", SHOT);
+});
+
+const BLACKSMITH = "town-building-town_special_moon_brazier";
+
+test("visual: blacksmith (buy tab, card selected with compare)", async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.setSave({ gold: 140, night: 2 });
+  });
+  await waitForTapTargets(page, [BLACKSMITH]);
+  await tapTarget(page, BLACKSMITH);
+  await waitForTapTargets(page, ["shop-close", "shop-card-0"]);
+  await tapTarget(page, "shop-card-0");
+  await waitForTapTargets(page, ["shop-buyEquip"]);
+  await waitFrames(page, 20);
+  await freezeGameLoop(page);
+  await expect(page).toHaveScreenshot("blacksmith.png", SHOT);
+});
+
+test("visual: inventory (equipped slots, bag and detail)", async ({ page }) => {
+  await page.evaluate(() => {
+    const item = (
+      uid: number,
+      baseId: string,
+      rarity: "common" | "magic" | "rare",
+      lvl: number,
+    ) => ({
+      uid,
+      baseId,
+      rarity,
+      itemLevel: lvl,
+      affixes: [],
+    });
+    window.__DEFENSEGAME_E2E__?.api?.setSave({
+      gold: 260,
+      night: 4,
+      consumables: { minor_healing_potion: 2 },
+      gear: {
+        items: [
+          item(1, "iron_sword", "common", 3),
+          item(2, "leather_cap", "common", 2),
+          item(3, "short_bow", "magic", 3),
+          item(4, "padded_vest", "rare", 4),
+          item(5, "worn_boots", "common", 2),
+        ],
+        equipped: { meleeWeapon: 1, helm: 2 },
+        nextUid: 6,
+      },
+    });
+  });
+  await waitForTapTargets(page, ["town-gear"]);
+  await tapTarget(page, "town-gear");
+  await waitForTapTargets(page, ["inv-close", "inv-bag-0"]);
+  await tapTarget(page, "inv-bag-0");
+  await waitForTapTargets(page, ["inv-equip"]);
+  await waitFrames(page, 20);
+  await freezeGameLoop(page);
+  await expect(page).toHaveScreenshot("inventory.png", SHOT);
 });

@@ -38,7 +38,8 @@ export type GearStats = {
   ranged: RangedWeaponProfile | null;
 };
 
-function affixContribution(
+/** What one rolled affix adds (a stat modifier or an on-hit proc). */
+export function affixContribution(
   def: AffixDef,
   rolled: RolledAffix,
 ): { modifier?: StatModifier; proc?: OnHitProc } {

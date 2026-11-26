@@ -44,11 +44,16 @@ test("gear: open from town, equip a bag item, sell one and close", async ({
   });
   await waitForTapTargets(page, ["town-gear"]);
   await tapTarget(page, "town-gear");
-  await waitForTapTargets(page, ["gear-close", "gear-row-0", "gear-row-1"]);
+  await waitForTapTargets(page, [
+    "inv-close",
+    "inv-slot-meleeWeapon",
+    "inv-bag-0",
+    "inv-bag-1",
+  ]);
 
-  await tapTarget(page, "gear-row-0");
-  await waitForTapTargets(page, ["gear-equip"]);
-  await tapTarget(page, "gear-equip");
+  await tapTarget(page, "inv-bag-0");
+  await waitForTapTargets(page, ["inv-equip", "inv-sell"]);
+  await tapTarget(page, "inv-equip");
   await expect
     .poll(() =>
       page.evaluate(() =>
@@ -59,16 +64,31 @@ test("gear: open from town, equip a bag item, sell one and close", async ({
     )
     .toHaveLength(1);
 
-  await tapTarget(page, "gear-row-0");
-  await tapTarget(page, "gear-sell");
+  // The equipped item is now in its slot; one item is left in the bag.
+  await waitForTapTargets(page, ["inv-unequip"]);
+  await expect.poll(() => tapTargetIds(page)).not.toContain("inv-bag-1");
+  await tapTarget(page, "inv-bag-0");
+  await waitForTapTargets(page, ["inv-sell"]);
+  await tapTarget(page, "inv-sell");
   await expect
     .poll(() =>
       page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.getSave()?.gold),
     )
     .toBeGreaterThan(0);
 
-  await tapTarget(page, "gear-close");
-  await expect.poll(() => tapTargetIds(page)).not.toContain("gear-close");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          window.__DEFENSEGAME_E2E__?.api?.getSave()?.gear.items.length ?? 0,
+      ),
+    )
+    .toBe(1);
+
+  await tapTarget(page, "inv-tab-consumables");
+  await expect.poll(() => tapTargetIds(page)).not.toContain("inv-sell");
+  await tapTarget(page, "inv-close");
+  await expect.poll(() => tapTargetIds(page)).not.toContain("inv-close");
   await expect.poll(() => tapTargetIds(page)).toContain("town-gear");
 });
 
