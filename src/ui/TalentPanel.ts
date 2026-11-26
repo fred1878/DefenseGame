@@ -508,10 +508,11 @@ export class TalentPanel {
   private learn(): void {
     const save = this.getSave();
     const id = this.selectedId;
-    if (!canLearn(this.catalog, save.talents, id)) {
+    const reg = this.scene.registry;
+    if (!canLearn(this.catalog, save.talents, id, reg)) {
       const loc = findTalent(this.catalog, id)!;
       this.statusText.setText(
-        pointsAvailable(save.talents) < 1
+        pointsAvailable(save.talents, reg) < 1
           ? "No talent points — win a night to earn more"
           : (lockReason(this.catalog, save.talents, loc) ?? ""),
       );
@@ -520,7 +521,7 @@ export class TalentPanel {
     this.resetArmed = false;
     this.onSaveChange({
       ...save,
-      talents: learnTalent(this.catalog, save.talents, id),
+      talents: learnTalent(this.catalog, save.talents, id, reg),
     });
     const loc = findTalent(this.catalog, id)!;
     this.statusText.setText(`Learned ${loc.node.name}`);
@@ -530,7 +531,8 @@ export class TalentPanel {
   private reset(): void {
     const save = this.getSave();
     const cost = this.catalog.config.resetCostGold;
-    if (!canResetTalents(this.catalog, save.talents, save.gold)) {
+    const reg = this.scene.registry;
+    if (!canResetTalents(this.catalog, save.talents, save.gold, reg)) {
       this.resetArmed = false;
       this.statusText.setText(
         pointsSpent(save.talents) === 0
@@ -546,7 +548,7 @@ export class TalentPanel {
       this.refresh();
       return;
     }
-    const r = resetTalents(this.catalog, save.talents, save.gold)!;
+    const r = resetTalents(this.catalog, save.talents, save.gold, reg)!;
     this.resetArmed = false;
     this.onSaveChange({ ...save, talents: r.talents, gold: r.gold });
     this.statusText.setText("Talents reset — points refunded");
@@ -572,7 +574,7 @@ export class TalentPanel {
     const save = this.getSave();
     const talents = save.talents;
     const cat = this.catalog;
-    const free = pointsAvailable(talents);
+    const free = pointsAvailable(talents, this.scene.registry);
     this.pointsPill.setText(`✦ ${free} pts`);
     this.summary.setText(
       `${pointsSpent(talents)} spent · ${talents.earned} earned · ${save.gold}g`,
@@ -687,7 +689,12 @@ export class TalentPanel {
       g.fillRoundedRect(barX, barY, Math.max(6, barW * frac), 6, 3);
     }
 
-    const learnable = canLearn(this.catalog, talents, loc.node.id);
+    const learnable = canLearn(
+      this.catalog,
+      talents,
+      loc.node.id,
+      this.scene.registry,
+    );
     this.learnBtn.setLabel(
       rank >= loc.node.maxRank ? "Maxed" : "↑ Learn · 1 pt",
     );
@@ -697,7 +704,9 @@ export class TalentPanel {
       this.resetArmed ? `Confirm · ${cost}g` : `⟳ Reset · ${cost}g`,
     );
     this.resetBtn.container.setAlpha(
-      canResetTalents(this.catalog, talents, save.gold) ? 1 : DISABLED_ALPHA,
+      canResetTalents(this.catalog, talents, save.gold, this.scene.registry)
+        ? 1
+        : DISABLED_ALPHA,
     );
   }
 
