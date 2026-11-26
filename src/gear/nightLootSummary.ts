@@ -1,4 +1,10 @@
 import type { NightResult, SaveGame } from "../core/saveTypes";
+import type { CampaignNightLossReason } from "../scenes/defense/nightEndMessaging";
+import {
+  campaignNightEndFlavor,
+  campaignNightEndHeadline,
+  campaignNightProgressNote,
+} from "../scenes/defense/nightEndMessaging";
 import { applyNightResultDetailed } from "../core/GameState";
 import { bagItems } from "./inventory";
 import type { ItemDraft } from "./itemGen";
@@ -21,6 +27,7 @@ export type NightLootSummary = {
   night: number;
   headline: string;
   flavor: string;
+  progressNote: string;
   goldEarned: number;
   goldTotal: number;
   goldEarnedText: string;
@@ -99,6 +106,7 @@ export type AssembleNightLootSummaryInput = {
   soldGold: number;
   bagFreeSlots: number;
   catalog: GearCatalog;
+  lossReason?: CampaignNightLossReason;
 };
 
 /** Build the campaign night-end summary from already-applied gold, drops and wall HP. */
@@ -122,12 +130,13 @@ export function assembleNightLootSummary(
   return {
     won: input.won,
     night: input.night,
-    headline: input.won
-      ? `Night ${input.night} defended!`
-      : `Night ${input.night} lost`,
-    flavor: input.won
-      ? "Dawn breaks over the settlement."
-      : "Scouts recover what they can.",
+    headline: campaignNightEndHeadline(
+      input.won,
+      input.night,
+      input.lossReason,
+    ),
+    flavor: campaignNightEndFlavor(input.won, input.lossReason),
+    progressNote: campaignNightProgressNote(input.won, input.night),
     goldEarned: input.goldEarned,
     goldTotal: input.goldTotal,
     goldEarnedText: `+${input.goldEarned} gold`,
@@ -156,6 +165,7 @@ export type CampaignNightEndResolution = {
 
 export type ResolveCampaignNightEndInput = {
   won: boolean;
+  lossReason?: CampaignNightLossReason;
   wallHp: number;
   wallHpStart: number;
   rewardGold: number;
@@ -206,6 +216,9 @@ export function resolveCampaignNightEnd(
     summary: assembleNightLootSummary({
       won: input.won,
       night: result.night,
+      ...(input.lossReason !== undefined
+        ? { lossReason: input.lossReason }
+        : {}),
       goldEarned,
       goldTotal: next.gold,
       wallHp: finalWallHp,
