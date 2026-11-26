@@ -646,3 +646,55 @@ describe("buildApi", () => {
     expect(late.defenseMethods.setStick).toHaveBeenLastCalledWith(0, 0);
   });
 });
+
+describe("buildApi setup-scene leftover branches", () => {
+  beforeEach(() => {
+    vi.stubGlobal("window", {
+      location: { href: "http://localhost/" },
+      __DEFENSEGAME_E2E__: undefined,
+    });
+  });
+
+  it("hides town building debug rects while a setup scene is active", () => {
+    const game = makeGame({ townActive: true });
+    const setup = {
+      scene: {
+        key: "TownEndlessSetup",
+        isActive: () => true,
+        isPaused: () => false,
+      },
+      e2eTouchDebugRectCount: () => 11,
+    };
+    const inner = game.scene.getScene.bind(game.scene);
+    (game.scene as { getScene: (key: string) => unknown }).getScene = (
+      key: string,
+    ) => {
+      if (key === "TownEndlessSetup") return setup;
+      return inner(key);
+    };
+    const api = buildApi(game as never);
+    expect(api.getTownBuildingDebugRectCount()).toBe(0);
+    expect(api.getTownTouchDebugRectCount()).toBe(11);
+  });
+
+  it("routes wave-planner setup touch debug rects", () => {
+    const game = makeGame({ townActive: true });
+    const setup = {
+      scene: {
+        key: "TownWavePlannerSetup",
+        isActive: () => true,
+        isPaused: () => false,
+      },
+      e2eTouchDebugRectCount: () => 7,
+    };
+    const inner = game.scene.getScene.bind(game.scene);
+    (game.scene as { getScene: (key: string) => unknown }).getScene = (
+      key: string,
+    ) => {
+      if (key === "TownWavePlannerSetup") return setup;
+      return inner(key);
+    };
+    const api = buildApi(game as never);
+    expect(api.getTownTouchDebugRectCount()).toBe(7);
+  });
+});
