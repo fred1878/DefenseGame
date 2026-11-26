@@ -8,6 +8,7 @@ vi.mock("../ui/touchButton", () => ({
     if (!tag) return null;
     if (tag === "a") return { x: 0, y: 0, width: 40, height: 40 };
     if (tag === "b") return { x: 50, y: 0, width: 30, height: 30 };
+    if (tag === "zero") return { x: 0, y: 0, width: 0, height: 10 };
     return null;
   },
 }));
@@ -76,5 +77,14 @@ describe("collectInteractiveScreenRects", () => {
     expect(
       collectInteractiveScreenRects(scene, { skip: [skipped] }),
     ).toHaveLength(1);
+  });
+
+  it("skips interactive objects with no or zero-size screen rect", () => {
+    const scene = fakeScene([
+      fakeInteractive("zero"),
+      fakeInteractive(""),
+      fakeInteractive("a"),
+    ]);
+    expect(collectInteractiveScreenRects(scene)).toHaveLength(1);
   });
 });

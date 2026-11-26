@@ -239,3 +239,90 @@ describe("EnemyIceStunFxController", () => {
     expect(loop.destroy).toHaveBeenCalled();
   });
 });
+
+describe("EnemyIceStunFx leftover branches", () => {
+  it("leaves a never-stunned enemy untinted", () => {
+    const scene = mockScene();
+    const fx = new EnemyIceStunFxController(scene);
+    const status = new EnemySpellStatusMap();
+    const enemySprite = {
+      active: true,
+      x: 1,
+      y: 2,
+      setTint: vi.fn(),
+      clearTint: vi.fn(),
+    } as unknown as Phaser.Physics.Arcade.Sprite;
+    fx.tick([{ id: "e1", sprite: enemySprite }], status);
+    expect(enemySprite.setTint).not.toHaveBeenCalled();
+    expect(enemySprite.clearTint).not.toHaveBeenCalled();
+    expect(scene.add.sprite).not.toHaveBeenCalled();
+  });
+
+  it("does not release when the leftover entry is not a loop", () => {
+    const scene = mockScene();
+    const fx = new EnemyIceStunFxController(scene);
+    const status = new EnemySpellStatusMap();
+    const enemySprite = {
+      active: true,
+      x: 1,
+      y: 2,
+      setTint: vi.fn(),
+      clearTint: vi.fn(),
+    } as unknown as Phaser.Physics.Arcade.Sprite;
+    status.applyStun("e1", 400);
+    fx.tick([{ id: "e1", sprite: enemySprite }], status);
+    const box = fx as unknown as {
+      entries: Map<string, { mode: string; tinted: boolean; sprite: unknown }>;
+    };
+    const entry = box.entries.get("e1");
+    if (!entry) throw new Error("expected loop entry");
+    entry.mode = "release";
+    const spritesBefore = (scene.add.sprite as ReturnType<typeof vi.fn>).mock
+      .calls.length;
+    status.tick(500);
+    fx.tick([{ id: "e1", sprite: enemySprite }], status);
+    expect(
+      (scene.add.sprite as ReturnType<typeof vi.fn>).mock.calls.length,
+    ).toBe(spritesBefore);
+  });
+
+  it("skips spawn when the stun loop anim is missing", () => {
+    const scene = mockScene();
+    (scene.anims as { exists: (key: string) => unknown }).exists = () =>
+      undefined;
+    const fx = new EnemyIceStunFxController(scene);
+    const status = new EnemySpellStatusMap();
+    const enemySprite = {
+      active: true,
+      x: 1,
+      y: 2,
+      setTint: vi.fn(),
+      clearTint: vi.fn(),
+    } as unknown as Phaser.Physics.Arcade.Sprite;
+    status.applyStun("e1", 400);
+    fx.tick([{ id: "e1", sprite: enemySprite }], status);
+    expect(scene.add.sprite).not.toHaveBeenCalled();
+  });
+
+  it("skips the release sprite when that anim is missing", () => {
+    const scene = mockScene();
+    (scene.anims as { exists: (key: string) => unknown }).exists = (
+      key: string,
+    ) => (key === PVFX_ANIM.iceShatterStunLoop ? true : undefined);
+    const fx = new EnemyIceStunFxController(scene);
+    const status = new EnemySpellStatusMap();
+    const enemySprite = {
+      active: true,
+      x: 1,
+      y: 2,
+      setTint: vi.fn(),
+      clearTint: vi.fn(),
+    } as unknown as Phaser.Physics.Arcade.Sprite;
+    status.applyStun("e1", 400);
+    fx.tick([{ id: "e1", sprite: enemySprite }], status);
+    expect(scene.add.sprite).toHaveBeenCalledTimes(1);
+    status.tick(500);
+    fx.tick([{ id: "e1", sprite: enemySprite }], status);
+    expect(scene.add.sprite).toHaveBeenCalledTimes(1);
+  });
+});

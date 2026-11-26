@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import Phaser from "phaser";
 import { fakeGameObject, fakeScene, finishTween } from "./fakeScene";
 
 type Harness = {
@@ -108,5 +109,20 @@ describe("finishTween leftover branches", () => {
     });
     expect(a.alpha).toBe(0.25);
     expect(b.alpha).toBe(0.25);
+  });
+});
+
+describe("fakeGameObject leftover branches", () => {
+  it("falls back to Object.prototype when the stub class is missing", () => {
+    const objects = Phaser.GameObjects as unknown as Record<string, unknown>;
+    const prev = objects.GameObject;
+    delete objects.GameObject;
+    try {
+      const go = fakeGameObject("not-a-real-kind", [1, 2]);
+      expect(go.x).toBe(1);
+      expect(go.y).toBe(2);
+    } finally {
+      objects.GameObject = prev;
+    }
   });
 });

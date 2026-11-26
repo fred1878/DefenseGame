@@ -269,3 +269,15 @@ describe("grid cell helpers", () => {
     expect(nearestWalkable(solid, start.col, start.row)).toEqual(start);
   });
 });
+
+describe("cellBlocked leftover branches", () => {
+  it("uses the agent fallback radius when a peer has no clearance", () => {
+    const grid = buildNavGrid(
+      [],
+      DEFENSE_MAP.cellSize,
+      DEFENSE_MAP.pathClearancePx,
+    );
+    const { x, y } = cellToWorldCenter(grid, 2, 2);
+    expect(cellBlocked(grid, 2, 2, [{ x, y }], 20)).toBe(true);
+  });
+});

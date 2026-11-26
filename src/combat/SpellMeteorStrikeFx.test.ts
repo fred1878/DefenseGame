@@ -58,4 +58,12 @@ describe("playMeteorStrikeFx", () => {
       .results[0]!.value as { setFlipX: ReturnType<typeof vi.fn> };
     expect(sprite.setFlipX).toHaveBeenCalledWith(true);
   });
+
+  it("does nothing when the meteor anim is missing after register", () => {
+    const scene = mockScene();
+    (scene.anims as { exists: (key: string) => unknown }).exists = () =>
+      undefined;
+    playMeteorStrikeFx(scene, 100, 200, 48, false);
+    expect(scene.add.sprite).not.toHaveBeenCalled();
+  });
 });

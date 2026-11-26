@@ -105,3 +105,34 @@ describe("FpsDebugOverlay", () => {
     expect(String(setText.mock.calls.at(-1)?.[0])).toContain("48.0 FPS");
   });
 });
+
+describe("FpsDebugOverlay leftover branches", () => {
+  it("falls back to the loop fps when the instant reading is not finite", () => {
+    const reg = fakeRegistry();
+    setShowFpsCounter(reg, true);
+    const setVisible = vi.fn();
+    const setText = vi.fn();
+    const scene = {
+      scale: { width: 540 },
+      scene: { key: "Town" },
+      registry: { get: () => undefined },
+      add: {
+        text: () => ({
+          setOrigin: () => ({
+            setScrollFactor: () => ({
+              setDepth: () => ({
+                setVisible,
+                setText,
+                destroy: vi.fn(),
+              }),
+            }),
+          }),
+        }),
+      },
+    } as unknown as Phaser.Scene;
+    const overlay = new FpsDebugOverlay(scene);
+    overlay.tick(reg, 1e-308, { loop: { actualFps: 48 } } as Phaser.Game);
+    expect(setVisible).toHaveBeenCalledWith(true);
+    expect(String(setText.mock.calls.at(-1)?.[0])).toContain("48.0 FPS");
+  });
+});

@@ -74,4 +74,12 @@ describe("spawnChargerChargeStartSmokeFx", () => {
     expect(sprite.setFlipX).toHaveBeenCalledWith(true);
     expect(sprite.play).toHaveBeenCalledWith(SMOKE_FX_ANIM.chargeStart);
   });
+
+  it("throws when the charge-start animation did not register", () => {
+    const { scene } = mockScene();
+    scene.anims.exists = () => false;
+    expect(() => spawnChargerChargeStartSmokeFx(scene, 0, 0, false)).toThrow(
+      /animation/,
+    );
+  });
 });

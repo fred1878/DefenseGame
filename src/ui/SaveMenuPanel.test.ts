@@ -3,6 +3,7 @@ import { createNewSave } from "../core/GameState";
 import { deleteSaveSlot, writeSaveSlot } from "../core/saveSlots";
 import { fakePointer, fakeEventData } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
+import * as touchButton from "./touchButton";
 import { SaveMenuPanel } from "./SaveMenuPanel";
 
 type Internals = {
@@ -161,5 +162,20 @@ describe("SaveMenuPanel refresh leftover branches", () => {
     };
     box.state.slots = [];
     box.refresh();
+  });
+
+  it("omits e2e targets when the buttons have no screen rect", () => {
+    stubStorage();
+    const { panel } = openPanel();
+    const rect = vi
+      .spyOn(touchButton, "interactiveObjectScreenRect")
+      .mockReturnValue(null);
+    const targets = panel.e2eTapTargets();
+    expect(targets["save-menu-save"]).toBeUndefined();
+    expect(targets["save-menu-close"]).toBeUndefined();
+    expect(
+      Object.keys(targets).every((k) => k.startsWith("save-menu-slot-")),
+    ).toBe(true);
+    rect.mockRestore();
   });
 });

@@ -117,3 +117,13 @@ describe("showFlashHealPulseFx", () => {
     expect(scene.tweenConfigs).toHaveLength(1);
   });
 });
+
+describe("showFlashHealPulseFx leftover branches", () => {
+  it("skips the holy sprite when the impact anim exists() is undefined", () => {
+    const scene = fakeScene({ textures: [HOLY_FX_TEXTURE.impact] });
+    (scene.anims as { exists: (key: string) => unknown }).exists = () =>
+      undefined;
+    showFlashHealPulseFx(asScene(scene), 0, 0);
+    expect(scene.made("sprite")).toHaveLength(0);
+  });
+});

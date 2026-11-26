@@ -586,3 +586,25 @@ describe("applyDirectVelocity leftover branches", () => {
     expect(vx).toBeGreaterThan(0);
   });
 });
+
+describe("shouldHoldMeleeChaseChordBlocked leftover branches", () => {
+  it("treats a zero-length hold chord as a point check", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    const playerX = 0;
+    const playerY = 0;
+    enemy.sprite.x = -80;
+    enemy.sprite.y = 0;
+    const hold = playerMeleeChaseHoldPoint(enemy, playerX, playerY);
+    enemy.sprite.x = hold.x;
+    enemy.sprite.y = hold.y;
+    const peers = [{ x: hold.x / 2, y: 0, defId: "grunt" }];
+    // Enemy is already on the hold point, so the hold-chord segment has
+    // zero length. The closer peer still sits on the player line.
+    expect(
+      shouldHoldMeleeChaseChordBlocked(enemy, playerX, playerY, peers),
+    ).toBe(true);
+  });
+});

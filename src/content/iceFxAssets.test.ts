@@ -52,3 +52,35 @@ describe("assertIceCombatFxReady", () => {
     );
   });
 });
+
+describe("ice FX leftover exists() branches", () => {
+  it("treats a missing exists() result as an unregistered anim", () => {
+    const scene = {
+      textures: {
+        exists: (key: string) =>
+          ICE_FX_ASSETS.some((entry) => entry.key === key),
+      },
+      anims: { exists: () => undefined },
+    } as unknown as Phaser.Scene;
+    expect(() => assertIceCombatFxReady(scene, "test")).toThrow(
+      /missing anims/,
+    );
+  });
+
+  it("throws when textures are loaded but animations stay unregistered", () => {
+    const scene = {
+      textures: {
+        exists: (key: string) =>
+          ICE_FX_ASSETS.some((entry) => entry.key === key),
+      },
+      anims: {
+        exists: () => undefined,
+        create: vi.fn(),
+        generateFrameNumbers: vi.fn(() => []),
+      },
+    } as unknown as Phaser.Scene;
+    expect(() => registerIceFxAnimations(scene)).toThrow(
+      /textures loaded but Phaser animations were not registered/,
+    );
+  });
+});

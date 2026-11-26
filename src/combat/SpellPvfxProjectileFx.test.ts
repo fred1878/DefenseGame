@@ -95,4 +95,30 @@ describe("SpellPvfxProjectileFx", () => {
     // No overlay -> sync is a no-op.
     expect(() => syncPvfxProjectileFx(p)).not.toThrow();
   });
+
+  it("does nothing when the flight anim is missing after register", () => {
+    const scene = pvfxScene();
+    (scene.anims as { exists: (key: string) => unknown }).exists = () =>
+      undefined;
+    const p = projectile(1, 0);
+    attachPvfxProjectileFx(asScene(scene), p, PVFX_TEXTURE.fireballFlight);
+    expect(scene.created).toHaveLength(0);
+    expect(p.pvfxFlightFx).toBeUndefined();
+  });
+
+  it("uses a zero rotation offset for an unknown overlay texture", () => {
+    const scene = pvfxScene();
+    const p = projectile(1, 0);
+    attachPvfxProjectileFx(asScene(scene), p, PVFX_TEXTURE.fireballFlight);
+    const overlay = scene.made("sprite")[0]!;
+    (overlay as unknown as { texture: { key: string } }).texture = {
+      key: "unknown",
+    };
+    const body = p.sprite as unknown as { x: number; y: number };
+    body.x = 9;
+    body.y = 10;
+    syncPvfxProjectileFx(p);
+    expect(overlay.last("setPosition")).toEqual([9, 10]);
+    expect(overlay.last("setRotation")![0]).toBeCloseTo(0);
+  });
 });

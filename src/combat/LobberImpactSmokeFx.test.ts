@@ -71,4 +71,12 @@ describe("spawnLobberGroundImpactSmokeFx", () => {
     expect(w).toBe(h);
     expect(w).toBeGreaterThan(0);
   });
+
+  it("throws when the lob impact animation did not register", () => {
+    const { scene } = mockScene();
+    scene.anims.exists = () => false;
+    expect(() => spawnLobberGroundImpactSmokeFx(scene, 0, 0, 100, 2.4)).toThrow(
+      /animation/,
+    );
+  });
 });

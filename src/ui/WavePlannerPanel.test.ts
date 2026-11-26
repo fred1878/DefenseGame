@@ -4,6 +4,7 @@ import { fakeEventData, fakePointer } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
 import { rosterStore } from "../test/rosterStore";
 import type { NumField } from "./wavePlanner/WavePlannerPanelBuild";
+import * as touchButton from "./touchButton";
 import { WavePlannerPanel } from "./WavePlannerPanel";
 
 const ids = ["archer", "bruiser", "charger", "grunt"];
@@ -265,5 +266,14 @@ describe("WavePlannerPanel leftover branches", () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
     panel.destroy();
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("omits e2e targets when Start and Close have no screen rect", () => {
+    const { panel } = open(["grunt"]);
+    const rect = vi
+      .spyOn(touchButton, "interactiveObjectScreenRect")
+      .mockReturnValue(null);
+    expect(panel.e2eTapTargets()).toEqual({});
+    rect.mockRestore();
   });
 });

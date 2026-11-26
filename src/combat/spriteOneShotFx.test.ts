@@ -132,6 +132,16 @@ describe("SpellIceCastWindupFx", () => {
     fx.follow(1, 1);
     expect(next.callsTo("setPosition")).toHaveLength(0);
   });
+
+  it("uses a zero timescale when the clip has no duration", () => {
+    const scene = fakeScene({ textures: iceTextures, anims: iceAnims });
+    scene.anims.get = () => undefined as never;
+    const fx = new SpellIceCastWindupFx(asScene(scene));
+    fx.start(10, 20, 300);
+    const [s] = scene.made("sprite");
+    expect((s!.anims as { timeScale: number }).timeScale).toBe(1);
+    fx.stop();
+  });
 });
 
 describe("playBruiserMeleeCritHitOnPlayerFx", () => {

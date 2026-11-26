@@ -53,4 +53,17 @@ describe("SpellBarSortDrag leftover branches", () => {
     drag.onPointerUp(fakePointer(40, 0) as never);
     expect(onPoolTap).not.toHaveBeenCalled();
   });
+
+  it("ignores move and promote when no pool press is active", () => {
+    const { drag } = make();
+    expect(() =>
+      drag.onPointerMove(fakePointer(10, 10) as never),
+    ).not.toThrow();
+    const promote = drag as unknown as {
+      promotePoolPressToDrag: (pointer: unknown) => void;
+    };
+    expect(() =>
+      promote.promotePoolPressToDrag(fakePointer(10, 10)),
+    ).not.toThrow();
+  });
 });

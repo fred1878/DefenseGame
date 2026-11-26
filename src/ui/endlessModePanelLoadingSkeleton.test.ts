@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { asScene, fakeScene } from "../test/fakeScene";
+import * as touchButton from "./touchButton";
 import {
   ENDLESS_PANEL_LOADING_SKELETON_ROWS,
   EndlessModePanelLoadingSkeleton,
@@ -50,5 +51,17 @@ describe("EndlessModePanelLoadingSkeleton", () => {
     const again = new EndlessModePanelLoadingSkeleton(asScene(fakeScene()));
     again.destroy();
     expect(press.length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("EndlessModePanelLoadingSkeleton leftover branches", () => {
+  it("returns no e2e targets when the close button has no screen rect", () => {
+    const overlay = new EndlessModePanelLoadingSkeleton(asScene(fakeScene()));
+    const rect = vi
+      .spyOn(touchButton, "interactiveObjectScreenRect")
+      .mockReturnValue(null);
+    expect(overlay.e2eTapTargets()).toEqual({});
+    rect.mockRestore();
+    overlay.destroy();
   });
 });
