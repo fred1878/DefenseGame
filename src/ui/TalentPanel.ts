@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { DG_THEME as SHARED_THEME, themeInt } from "./theme/dgTheme";
 import { GAME } from "../config";
 import { DAMAGE_NUMBER_FONT_FAMILY } from "../config/damageNumbers";
 import { UI_TEXTURE } from "../content/assets";
@@ -52,27 +53,28 @@ import { UI_FONT_FAMILY, uiTextStyle } from "./uiTextStyle";
 type Button = ReturnType<typeof createTouchButton>;
 
 /** "DG Theme" colours from the Figma file. */
-export const DG_THEME = {
-  abyss: 0x0c0a09,
-  panel: 0x1a1613,
-  raised: 0x241e19,
-  slot: 0x12100d,
-  selected: 0x2e2416,
-  iron: 0x3d342c,
-  steel: 0x6b625a,
-  gold: 0xd4a64a,
-  goldBright: 0xfbbf24,
-  crimson: 0x9f1d2b,
-  arcane: 0xa78bfa,
-  buy: 0x8a5a0b,
-  neutral: 0x3a322b,
-  text: "#F4EDE1",
-  textSecondary: "#B5AA9A",
-  textMuted: "#7A7064",
-  goldText: "#D4A64A",
-  goldBrightText: "#FBBF24",
-  positive: "#4ADE80",
-  arcaneText: "#A78BFA",
+/** Talent panel palette, taken from the shared DG Theme (Figma variables). */
+const DG = {
+  abyss: themeInt("bgAbyss"),
+  panel: themeInt("bgPanel"),
+  raised: themeInt("bgRaised"),
+  slot: themeInt("bgSlot"),
+  selected: themeInt("bgSelected"),
+  iron: themeInt("borderIron"),
+  steel: themeInt("borderSteel"),
+  gold: themeInt("accentGold"),
+  goldBright: themeInt("accentGoldBright"),
+  crimson: themeInt("accentCrimson"),
+  arcane: themeInt("schoolArcane"),
+  buy: themeInt("buttonBuy"),
+  neutral: themeInt("buttonNeutral"),
+  text: SHARED_THEME.textPrimary,
+  textSecondary: SHARED_THEME.textSecondary,
+  textMuted: SHARED_THEME.textMuted,
+  goldText: SHARED_THEME.accentGold,
+  goldBrightText: SHARED_THEME.accentGoldBright,
+  positive: SHARED_THEME.statePositive,
+  arcaneText: SHARED_THEME.schoolArcane,
 } as const;
 
 const PIXEL_FONT = `"${DAMAGE_NUMBER_FONT_FAMILY}", ${UI_FONT_FAMILY}`;
@@ -102,10 +104,10 @@ type DiffView = {
 };
 
 const STATE_RING: Record<TalentNodeState, { fill: number; stroke: number }> = {
-  locked: { fill: DG_THEME.slot, stroke: DG_THEME.iron },
-  available: { fill: DG_THEME.raised, stroke: DG_THEME.goldBright },
-  partial: { fill: DG_THEME.raised, stroke: DG_THEME.gold },
-  maxed: { fill: DG_THEME.selected, stroke: DG_THEME.gold },
+  locked: { fill: DG.slot, stroke: DG.iron },
+  available: { fill: DG.raised, stroke: DG.goldBright },
+  partial: { fill: DG.raised, stroke: DG.gold },
+  maxed: { fill: DG.selected, stroke: DG.gold },
 };
 
 /**
@@ -157,7 +159,7 @@ export class TalentPanel {
       GAME.height / 2,
       GAME.width,
       GAME.height,
-      DG_THEME.abyss,
+      DG.abyss,
       0.97,
     );
     bindModalDimBackdrop(dim);
@@ -178,7 +180,7 @@ export class TalentPanel {
           .setDisplaySize(52, 52),
       );
     }
-    this.text(L.pad + 84, headerMid - 14, "Talents", 26, DG_THEME.text, true)
+    this.text(L.pad + 84, headerMid - 14, "Talents", 26, DG.text, true)
       .setOrigin(0, 0.5)
       .setFontStyle("bold");
     this.text(
@@ -186,14 +188,14 @@ export class TalentPanel {
       headerMid + 16,
       pointsSubtitle(catalog.config),
       13,
-      DG_THEME.textMuted,
+      DG.textMuted,
     ).setOrigin(0, 0.5);
     this.pointsPill = this.text(
       W - L.pad - 16 - 40 - 12 - 48,
       headerMid,
       "",
       17,
-      DG_THEME.goldBrightText,
+      DG.goldBrightText,
       true,
     ).setOrigin(0.5);
     this.closeBtn = createTouchButton(
@@ -207,8 +209,8 @@ export class TalentPanel {
         height: 40,
         depth: 501,
         fontSize: "20px",
-        fillColor: DG_THEME.neutral,
-        strokeColor: DG_THEME.steel,
+        fillColor: DG.neutral,
+        strokeColor: DG.steel,
         tapPadding: 6,
         activateOn: "pointerup",
       },
@@ -222,16 +224,16 @@ export class TalentPanel {
       pbMid,
       "",
       12,
-      DG_THEME.textSecondary,
+      DG.textSecondary,
     ).setOrigin(0, 0.5);
     const legend: Array<[string, number, number]> = [
-      ["Learned", DG_THEME.gold, DG_THEME.raised],
-      ["Available", DG_THEME.goldBright, DG_THEME.raised],
-      ["Locked", DG_THEME.iron, DG_THEME.slot],
+      ["Learned", DG.gold, DG.raised],
+      ["Available", DG.goldBright, DG.raised],
+      ["Locked", DG.iron, DG.slot],
     ];
     let lx = W - L.pad - 12;
     for (const [label, stroke, fill] of [...legend].reverse()) {
-      const t = this.text(lx, pbMid, label, 11, DG_THEME.textSecondary);
+      const t = this.text(lx, pbMid, label, 11, DG.textSecondary);
       t.setOrigin(1, 0.5);
       lx -= label.length * 6 + 6;
       this.chrome.fillStyle(fill, 1).fillCircle(lx - 5, pbMid, 5);
@@ -244,24 +246,17 @@ export class TalentPanel {
     catalog.branches.forEach((b, i) => {
       const cx = this.layout.branchCenters[i]!;
       this.branches.push({
-        name: this.text(
-          cx,
-          headY + 17,
-          b.name,
-          16,
-          DG_THEME.text,
-          true,
-        ).setOrigin(0.5),
-        spent: this.text(cx, headY + 37, "", 10, DG_THEME.goldText).setOrigin(
+        name: this.text(cx, headY + 17, b.name, 16, DG.text, true).setOrigin(
           0.5,
         ),
+        spent: this.text(cx, headY + 37, "", 10, DG.goldText).setOrigin(0.5),
       });
     });
 
     // Tier labels.
     this.layout.tierRowTops.forEach((top, t) => {
       const gx = L.pad + L.treePad + L.gutterW / 2;
-      this.text(gx, top + 26, tierNumeral(t), 16, DG_THEME.goldText, true)
+      this.text(gx, top + 26, tierNumeral(t), 16, DG.goldText, true)
         .setOrigin(0.5)
         .setFontStyle("bold");
       this.text(
@@ -269,7 +264,7 @@ export class TalentPanel {
         top + 44,
         `${tierThreshold(catalog, t)} pts`,
         9,
-        DG_THEME.textMuted,
+        DG.textMuted,
       ).setOrigin(0.5);
     });
 
@@ -287,7 +282,7 @@ export class TalentPanel {
         y: slot.y,
         icon: null,
         hit,
-        rank: this.text(slot.x, slot.y + L.orbR, "", 12, DG_THEME.text, true)
+        rank: this.text(slot.x, slot.y + L.orbR, "", 12, DG.text, true)
           .setOrigin(0.5)
           .setFontStyle("bold"),
         name: this.text(
@@ -295,7 +290,7 @@ export class TalentPanel {
           slot.y + L.orbR + 14,
           loc.node.name,
           11,
-          DG_THEME.text,
+          DG.text,
           false,
           { align: "center", wordWrap: { width: 74 } },
         ).setOrigin(0.5, 0),
@@ -304,7 +299,7 @@ export class TalentPanel {
           slot.y + L.orbR + 42,
           "",
           9,
-          DG_THEME.textMuted,
+          DG.textMuted,
         ).setOrigin(0.5, 0),
       });
     }
@@ -312,7 +307,7 @@ export class TalentPanel {
     // Detail panel.
     const dx = L.pad + 16;
     const dy = this.layout.detailY + 14;
-    this.detailName = this.text(dx, dy, "", 22, DG_THEME.text, true)
+    this.detailName = this.text(dx, dy, "", 22, DG.text, true)
       .setOrigin(0, 0)
       .setFontStyle("bold");
     this.detailRank = this.text(
@@ -320,57 +315,42 @@ export class TalentPanel {
       dy + 13,
       "",
       13,
-      DG_THEME.goldBrightText,
+      DG.goldBrightText,
       true,
     ).setOrigin(1, 0.5);
-    this.detailDesc = this.text(
-      dx,
-      dy + 34,
-      "",
-      13,
-      DG_THEME.textSecondary,
-      false,
-      { wordWrap: { width: W - 2 * L.pad - 32 } },
-    );
+    this.detailDesc = this.text(dx, dy + 34, "", 13, DG.textSecondary, false, {
+      wordWrap: { width: W - 2 * L.pad - 32 },
+    });
     for (let i = 0; i < 2; i++) {
       const y = dy + 78 + i * 20;
       this.diffs.push({
-        label: this.text(dx, y, "", 13, DG_THEME.textSecondary),
-        from: this.text(
-          W - L.pad - 150,
-          y,
-          "",
-          13,
-          DG_THEME.textMuted,
-        ).setOrigin(1, 0),
-        to: this.text(W - L.pad - 80, y, "", 13, DG_THEME.positive).setOrigin(
+        label: this.text(dx, y, "", 13, DG.textSecondary),
+        from: this.text(W - L.pad - 150, y, "", 13, DG.textMuted).setOrigin(
           1,
           0,
         ),
-        delta: this.text(
-          W - L.pad - 16,
-          y,
-          "",
-          12,
-          DG_THEME.positive,
-        ).setOrigin(1, 0),
+        to: this.text(W - L.pad - 80, y, "", 13, DG.positive).setOrigin(1, 0),
+        delta: this.text(W - L.pad - 16, y, "", 12, DG.positive).setOrigin(
+          1,
+          0,
+        ),
       });
     }
-    this.procText = this.text(dx, dy + 78, "", 12, DG_THEME.textSecondary);
-    this.tierLeft = this.text(dx, dy + 122, "", 11, DG_THEME.textMuted);
+    this.procText = this.text(dx, dy + 78, "", 12, DG.textSecondary);
+    this.tierLeft = this.text(dx, dy + 122, "", 11, DG.textMuted);
     this.tierRight = this.text(
       W - L.pad - 16,
       dy + 122,
       "",
       11,
-      DG_THEME.arcaneText,
+      DG.arcaneText,
     ).setOrigin(1, 0);
     this.statusText = this.text(
       W / 2,
       this.layout.actionY - L.actionH / 2 - 14,
       "",
       12,
-      DG_THEME.goldBrightText,
+      DG.goldBrightText,
       false,
       { align: "center" },
     ).setOrigin(0.5);
@@ -388,8 +368,8 @@ export class TalentPanel {
         height: L.actionH,
         depth: 501,
         fontSize: "18px",
-        fillColor: DG_THEME.buy,
-        strokeColor: DG_THEME.goldBright,
+        fillColor: DG.buy,
+        strokeColor: DG.goldBright,
         tapPadding: 4,
         activateOn: "pointerup",
       },
@@ -405,8 +385,8 @@ export class TalentPanel {
         height: L.actionH,
         depth: 501,
         fontSize: "18px",
-        fillColor: DG_THEME.neutral,
-        strokeColor: DG_THEME.steel,
+        fillColor: DG.neutral,
+        strokeColor: DG.steel,
         tapPadding: 4,
         activateOn: "pointerup",
       },
@@ -475,43 +455,17 @@ export class TalentPanel {
       g.lineStyle(sw, stroke, 1).strokeRoundedRect(x, y, w, h, r);
     };
     const inner = W - 2 * L.pad;
-    panel(
-      L.pad,
-      L.headerY,
-      inner,
-      L.headerH,
-      14,
-      DG_THEME.panel,
-      DG_THEME.gold,
-    );
+    panel(L.pad, L.headerY, inner, L.headerH, 14, DG.panel, DG.gold);
     if (!this.scene.textures.exists(UI_TEXTURE.atkCircle)) {
       const cy = L.headerY + L.headerH / 2;
-      g.fillStyle(DG_THEME.crimson, 1).fillCircle(L.pad + 42, cy, 26);
-      g.lineStyle(2, DG_THEME.gold, 1).strokeCircle(L.pad + 42, cy, 26);
+      g.fillStyle(DG.crimson, 1).fillCircle(L.pad + 42, cy, 26);
+      g.lineStyle(2, DG.gold, 1).strokeCircle(L.pad + 42, cy, 26);
     }
     // Points pill (header).
     const pillCx = W - L.pad - 16 - 40 - 12 - 48;
     const pillCy = L.headerY + L.headerH / 2;
-    panel(
-      pillCx - 46,
-      pillCy - 17,
-      92,
-      34,
-      16,
-      DG_THEME.slot,
-      DG_THEME.gold,
-      1,
-    );
-    panel(
-      L.pad,
-      L.pointsY,
-      inner,
-      L.pointsH,
-      10,
-      DG_THEME.slot,
-      DG_THEME.iron,
-      1,
-    );
+    panel(pillCx - 46, pillCy - 17, 92, 34, 16, DG.slot, DG.gold, 1);
+    panel(L.pad, L.pointsY, inner, L.pointsH, 10, DG.slot, DG.iron, 1);
     panel(
       L.pad,
       L.treeY,
@@ -519,7 +473,7 @@ export class TalentPanel {
       this.layout.treeBottom - L.treeY,
       14,
       0x1b1511,
-      DG_THEME.gold,
+      DG.gold,
     );
     panel(
       L.pad,
@@ -527,8 +481,8 @@ export class TalentPanel {
       inner,
       L.detailH,
       14,
-      DG_THEME.panel,
-      DG_THEME.arcane,
+      DG.panel,
+      DG.arcane,
     );
   }
 
@@ -631,15 +585,15 @@ export class TalentPanel {
     cat.branches.forEach((b, i) => {
       const spent = branchPointsSpent(talents, b);
       const cx = this.layout.branchCenters[i]!;
-      g.fillStyle(spent ? DG_THEME.raised : DG_THEME.slot, 1);
+      g.fillStyle(spent ? DG.raised : DG.slot, 1);
       g.fillRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
-      g.lineStyle(1, spent ? DG_THEME.gold : DG_THEME.iron, 1);
+      g.lineStyle(1, spent ? DG.gold : DG.iron, 1);
       g.strokeRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
       const view = this.branches[i]!;
-      view.name.setColor(spent ? DG_THEME.text : DG_THEME.textSecondary);
+      view.name.setColor(spent ? DG.text : DG.textSecondary);
       view.spent
         .setText(`${spent} pts spent`)
-        .setColor(spent ? DG_THEME.goldText : DG_THEME.textMuted);
+        .setColor(spent ? DG.goldText : DG.textMuted);
     });
     // Iron first, gold on top, so shared segments read as learned.
     const learned = (id: string) => talentRank(talents, id) > 0;
@@ -647,7 +601,7 @@ export class TalentPanel {
       for (const c of this.layout.connectors) {
         const lit = learned(c.parentId) && learned(c.childId);
         if ((pass === "gold") !== lit) continue;
-        g.lineStyle(3, lit ? DG_THEME.gold : DG_THEME.iron, 1);
+        g.lineStyle(3, lit ? DG.gold : DG.iron, 1);
         g.beginPath();
         g.moveTo(c.points[0]!.x, c.points[0]!.y);
         for (const p of c.points.slice(1)) g.lineTo(p.x, p.y);
@@ -659,36 +613,36 @@ export class TalentPanel {
       const ring = STATE_RING[state];
       const selected = n.loc.node.id === this.selectedId;
       if (selected) {
-        g.lineStyle(5, DG_THEME.arcane, 1).strokeCircle(n.x, n.y, L.orbR + 6);
+        g.lineStyle(5, DG.arcane, 1).strokeCircle(n.x, n.y, L.orbR + 6);
       }
       if (state === "available") {
-        g.fillStyle(DG_THEME.goldBright, 0.18).fillCircle(n.x, n.y, L.orbR + 6);
+        g.fillStyle(DG.goldBright, 0.18).fillCircle(n.x, n.y, L.orbR + 6);
       }
       g.fillStyle(ring.fill, 1).fillCircle(n.x, n.y, L.orbR);
       g.lineStyle(state === "locked" ? 2 : 3, ring.stroke, 1);
       g.strokeCircle(n.x, n.y, L.orbR);
       // Rank pill overlapping the orb's bottom edge.
       const pillW = 34;
-      g.fillStyle(state === "locked" ? DG_THEME.slot : DG_THEME.abyss, 1);
+      g.fillStyle(state === "locked" ? DG.slot : DG.abyss, 1);
       g.fillRoundedRect(n.x - pillW / 2, n.y + L.orbR - 9, pillW, 18, 8);
-      g.lineStyle(1, state === "locked" ? DG_THEME.iron : DG_THEME.gold, 1);
+      g.lineStyle(1, state === "locked" ? DG.iron : DG.gold, 1);
       g.strokeRoundedRect(n.x - pillW / 2, n.y + L.orbR - 9, pillW, 18, 8);
       const rank = talentRank(talents, n.loc.node.id);
       n.rank
         .setText(`${rank}/${n.loc.node.maxRank}`)
         .setColor(
           state === "locked"
-            ? DG_THEME.textMuted
+            ? DG.textMuted
             : state === "maxed"
-              ? DG_THEME.goldBrightText
-              : DG_THEME.text,
+              ? DG.goldBrightText
+              : DG.text,
         );
       n.name.setColor(
         state === "locked"
-          ? DG_THEME.textMuted
+          ? DG.textMuted
           : state === "available"
-            ? DG_THEME.goldBrightText
-            : DG_THEME.text,
+            ? DG.goldBrightText
+            : DG.text,
       );
       n.note.setText(
         choiceTakenElsewhere(talents, n.loc) && rank === 0
@@ -726,10 +680,10 @@ export class TalentPanel {
     const barW = GAME.width - 2 * L.pad - 32;
     const barY = this.tierLeft.y + 20;
     const g = this.tree;
-    g.fillStyle(DG_THEME.slot, 1).fillRoundedRect(barX, barY, barW, 6, 3);
+    g.fillStyle(DG.slot, 1).fillRoundedRect(barX, barY, barW, 6, 3);
     const frac = Math.min(1, progress.have / Math.max(1, progress.need));
     if (frac > 0) {
-      g.fillStyle(DG_THEME.arcane, 1);
+      g.fillStyle(DG.arcane, 1);
       g.fillRoundedRect(barX, barY, Math.max(6, barW * frac), 6, 3);
     }
 

@@ -41,6 +41,7 @@ import {
   SMOKE_FX_ROOT,
   registerSmokeFxAnimations,
 } from "../content/smokeFxAssets";
+import { queueUiIcons } from "../ui/icons/uiIcons";
 import { configurePixelArtTextures } from "./pixelArtTextures";
 import type { DataStore } from "./DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
@@ -83,6 +84,10 @@ export function queueTownFluffAssets(
   for (const { key, file } of UI_ASSETS) {
     loader.image(key, `${UI_ASSET_ROOT}/${file}`);
   }
+  // Gear / shop panels: line icons and the Pixelify Sans titles.
+  queueUiIcons(loader);
+  const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+  queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
   for (const { key, file } of SFX_ASSETS) {
     loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
   }

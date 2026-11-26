@@ -429,7 +429,7 @@ Bag size, sell-back rate and gear drop tables. `nightWon` / `nightLost` roll at 
 | Field | Meaning |
 |-------|---------|
 | `inventoryCapacity` | Max unequipped items in the bag; drops beyond it are sold automatically. |
-| `sellBackPct` | Percent of an item's price paid when selling it (50 = half price). |
+| `sellBackPct` | Percent of an item's price paid when selling it (50 = half price; shipped 30). Shown on the shop and inventory Sell buttons. |
 | `lostNightGoldPct` | Percent of a night's `rewardGold` paid when a campaign night is lost (default 25). |
 | `tables` | Object keyed by table id (`nightWon`, `nightLost`; more can be added for adventures). |
 
