@@ -48,6 +48,13 @@ import {
   ITEMS_WEAPON_EXTRA_KEYS,
 } from "./normalizeItems";
 import { PLAYER_BOOT_KEYS } from "./normalizePlayer";
+import {
+  TALENTS_BRANCH_BOOT_KEYS,
+  TALENTS_CONFIG_BOOT_KEYS,
+  TALENTS_FILE_BOOT_KEYS,
+  TALENTS_NODE_BOOT_KEYS,
+  TALENTS_TIER_BOOT_KEYS,
+} from "./normalizeTalents";
 import { SPELL_INPUT_BOOT_KEYS } from "./normalizeSpellInput";
 import {
   SPELL_KNOCKBACK_BOOT_FIELDS,
@@ -101,6 +108,13 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...SHOPS_FILE_BOOT_KEYS,
     ...SHOPS_TRADER_BOOT_KEYS,
     ...SHOPS_BLACKSMITH_BOOT_KEYS,
+  ]),
+  "talents.json": uniqueSorted([
+    ...TALENTS_FILE_BOOT_KEYS,
+    ...TALENTS_CONFIG_BOOT_KEYS,
+    ...TALENTS_BRANCH_BOOT_KEYS,
+    ...TALENTS_TIER_BOOT_KEYS,
+    ...TALENTS_NODE_BOOT_KEYS,
   ]),
   "player.json": [...PLAYER_BOOT_KEYS, "autoAttackMeleeRange"],
   "defense-maps.json": uniqueSorted([

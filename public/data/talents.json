@@ -1,0 +1,452 @@
+{
+  "config": {
+    "pointsPerNightWon": 1,
+    "pointsPerNightLost": 0,
+    "startingPoints": 1,
+    "resetCostGold": 50,
+    "tierThresholds": [
+      0,
+      2,
+      4,
+      5,
+      8
+    ]
+  },
+  "branches": [
+    {
+      "id": "blade",
+      "name": "Blade",
+      "icon": "sword",
+      "tiers": [
+        {
+          "nodes": [
+            {
+              "id": "sharpened_edge",
+              "name": "Sharpened Edge",
+              "icon": "sword",
+              "maxRank": 3,
+              "description": "Melee hits deal more damage.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "meleeDamage",
+                    "value": 1.5
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "heavy_swing",
+              "name": "Heavy Swing",
+              "icon": "hammer",
+              "maxRank": 2,
+              "requires": [
+                "sharpened_edge"
+              ],
+              "description": "All weapon damage is increased.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "damagePct",
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "exclusive": true,
+          "nodes": [
+            {
+              "id": "wide_arc",
+              "name": "Wide Arc",
+              "icon": "wind",
+              "maxRank": 1,
+              "requires": [
+                "heavy_swing"
+              ],
+              "description": "Your melee swing sweeps a wider arc.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "meleeArcPct",
+                    "value": 30
+                  },
+                  {
+                    "stat": "meleeDamage",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            {
+              "id": "bloodletting",
+              "name": "Bloodletting",
+              "icon": "droplet",
+              "maxRank": 1,
+              "requires": [
+                "heavy_swing"
+              ],
+              "description": "Weapon hits heal you.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "lifestealPct",
+                    "value": 4
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "iron_hide",
+              "name": "Iron Hide",
+              "icon": "shield",
+              "maxRank": 3,
+              "requires": [
+                "wide_arc",
+                "bloodletting"
+              ],
+              "description": "Tougher skin: armour and max HP.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "armour",
+                    "value": 5
+                  },
+                  {
+                    "stat": "maxHp",
+                    "value": 5
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "executioner",
+              "name": "Executioner",
+              "icon": "star",
+              "maxRank": 1,
+              "requires": [
+                "iron_hide"
+              ],
+              "description": "Brutal blows that can stun.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "damagePct",
+                    "value": 10
+                  }
+                ],
+                "procs": [
+                  {
+                    "kind": "stun",
+                    "chancePct": 12,
+                    "ms": 500
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "marksman",
+      "name": "Marksman",
+      "icon": "bow",
+      "tiers": [
+        {
+          "nodes": [
+            {
+              "id": "steady_aim",
+              "name": "Steady Aim",
+              "icon": "target",
+              "maxRank": 3,
+              "description": "Ranged shots deal more damage.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "rangedDamage",
+                    "value": 1.5
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "long_draw",
+              "name": "Long Draw",
+              "icon": "bow",
+              "maxRank": 2,
+              "requires": [
+                "steady_aim"
+              ],
+              "description": "Longer ranged reach and harder shots.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "rangedRangePct",
+                    "value": 10
+                  },
+                  {
+                    "stat": "rangedDamage",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "exclusive": true,
+          "nodes": [
+            {
+              "id": "quick_nock",
+              "name": "Quick Nock",
+              "icon": "wind",
+              "maxRank": 1,
+              "requires": [
+                "long_draw"
+              ],
+              "description": "Attack faster.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "attackSpeedPct",
+                    "value": 12
+                  }
+                ]
+              }
+            },
+            {
+              "id": "frost_tips",
+              "name": "Frost Tips",
+              "icon": "snowflake",
+              "maxRank": 1,
+              "requires": [
+                "long_draw"
+              ],
+              "description": "Weapon hits can chill enemies.",
+              "perRank": {
+                "procs": [
+                  {
+                    "kind": "slow",
+                    "chancePct": 30,
+                    "slowPct": 30,
+                    "ms": 1500
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "deadeye",
+              "name": "Deadeye",
+              "icon": "arrowUp",
+              "maxRank": 3,
+              "requires": [
+                "quick_nock",
+                "frost_tips"
+              ],
+              "description": "All weapon damage is increased.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "damagePct",
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "volley",
+              "name": "Volley",
+              "icon": "star",
+              "maxRank": 1,
+              "requires": [
+                "deadeye"
+              ],
+              "description": "A relentless stream of shots.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "attackSpeedPct",
+                    "value": 10
+                  },
+                  {
+                    "stat": "rangedDamage",
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sorcery",
+      "name": "Sorcery",
+      "icon": "sparkles",
+      "tiers": [
+        {
+          "nodes": [
+            {
+              "id": "arcane_study",
+              "name": "Arcane Study",
+              "icon": "sparkles",
+              "maxRank": 3,
+              "description": "Every spell on your bar hits harder.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "spellPowerPct",
+                    "value": 8
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "kindling",
+              "name": "Kindling",
+              "icon": "flame",
+              "maxRank": 2,
+              "requires": [
+                "arcane_study"
+              ],
+              "description": "Fire spells burn hotter.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "elementDamagePct",
+                    "element": "fire",
+                    "value": 12
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "exclusive": true,
+          "nodes": [
+            {
+              "id": "deep_winter",
+              "name": "Deep Winter",
+              "icon": "snowflake",
+              "maxRank": 1,
+              "requires": [
+                "kindling"
+              ],
+              "description": "Frost spells bite deeper.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "elementDamagePct",
+                    "element": "frost",
+                    "value": 25
+                  }
+                ]
+              }
+            },
+            {
+              "id": "overcharge",
+              "name": "Overcharge",
+              "icon": "zap",
+              "maxRank": 1,
+              "requires": [
+                "kindling"
+              ],
+              "description": "Lightning spells strike harder.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "elementDamagePct",
+                    "element": "lightning",
+                    "value": 25
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "focus",
+              "name": "Focus",
+              "icon": "refresh",
+              "maxRank": 3,
+              "requires": [
+                "deep_winter",
+                "overcharge"
+              ],
+              "description": "All spells come back sooner.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "cooldownPct",
+                    "value": 5
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "meteor_storm",
+              "name": "Meteor Storm",
+              "icon": "star",
+              "maxRank": 1,
+              "requires": [
+                "focus"
+              ],
+              "description": "Raw power, and a much bigger Meteor.",
+              "perRank": {
+                "modifiers": [
+                  {
+                    "stat": "spellPowerPct",
+                    "value": 12
+                  },
+                  {
+                    "stat": "spellDamagePct",
+                    "spell": "meteor",
+                    "value": 25
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -192,6 +192,7 @@ Details: [docs/TESTING.md](./docs/TESTING.md), [docs/CI_RELEASES.md](./docs/CI_R
 |-----|-------------|
 | [docs/AGENTS.md](./docs/AGENTS.md) | Architecture, data formats, commands, agent workflow |
 | [docs/ITEMS.md](./docs/ITEMS.md) | Rarity, item level, affix rules (gear) |
+| [docs/TALENTS.md](./docs/TALENTS.md) | Talent tree rules, current talents, placeholder values |
 | [docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md) | Headless progression / balance simulator |
 | [docs/DATA_FIELDS.md](./docs/DATA_FIELDS.md) | Every boot-required JSON field (checked by `dataFieldsDoc.test.ts`) |
 | [docs/TESTING.md](./docs/TESTING.md) | Unit/e2e test map and CI gates |

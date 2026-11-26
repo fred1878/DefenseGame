@@ -45,6 +45,7 @@ A 1000-run run of all five strategies takes about 35 s.
 | `--set file.path=value` | – | Override any data value (repeatable). Files: `items`, `loot`, `shops`, `consumables`, `waves`, `buildings`, `player`, `enemies`, `spells`. Object keys and array indexes are path segments (e.g. `waves.10.rewardGold`). Values are parsed as JSON, else string |
 | `--overrides file.json` | – | `{ "loot": { "sellBackPct": 30 }, ... }` deep-merged (arrays replace) |
 | `--no-sell` | – | Never sell surplus drops |
+| `--no-talents` | – | Never spend talent points (compare against talent builds) |
 | `--spell-dps`, `--grace`, `--threat`, `--steepness` | 12, 20, 0.5, 3 | Power model knobs (below) |
 | `--easy`, `--hard` | 2, 1 | Power-ratio thresholds for the "too easy"/"too hard" flags |
 | `--out DIR` | sim-output | Output folder |
@@ -97,6 +98,18 @@ walls-first, gear-first, balanced, the gear-priority profiles (except
 wall-turtle), shop-investor and reroller put any gold left after their plan
 into shop levels, then shop again at the new level. All strategies equip
 strictly better items and (unless `--no-sell`) sell the rest of the bag.
+
+### Talents
+
+Talent points come in as they do in the game (`public/data/talents.json`).
+In each town phase (and at the start of a run), every strategy spends all
+its points one rank at a time. Each rank goes to the learnable talent that
+raises its gear score the most. melee-dps, tank, sustain and wall-turtle stay
+in Blade first, ranged in Marksman, and spell-caster in Sorcery. Other
+strategies pick from the whole tree. Talent bonuses feed the same power model
+as gear, and `cooldownPct` divides into spell DPS. `--no-talents` turns this
+off. Each run's final ranks are on `RunResult.talents`. See
+[TALENTS.md](./TALENTS.md).
 
 ### Win models
 

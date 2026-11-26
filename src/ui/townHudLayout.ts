@@ -91,6 +91,14 @@ export function townGearButtonPosition(
     y: scene.scale.height - margin - safe.bottom - scaleUiY(12),
   };
 }
+/** Talents button: just left of the Gear button (bottom-right). */
+export function townTalentsButtonPosition(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): { x: number; y: number } {
+  const gear = townGearButtonPosition(scene, safe);
+  return { x: gear.x - scaleUiX(88) - scaleUiX(10), y: gear.y };
+}
 /** Town actions stacked from the bottom (0 = start night, then building rows, then spell bar). */
 export function townActionButtonY(
   scene: Phaser.Scene,

@@ -34,6 +34,7 @@ import type {
   ItemType,
   OnHitProc,
   SaveGear,
+  StatBonus,
   StatModifier,
 } from "../../gear/gearTypes";
 import {
@@ -312,13 +313,14 @@ export type StatRow = { label: string; value: string };
 const signedPct = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(round1(v))}%`;
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Total stats with the equipped gear (Inventory hero panel). */
+/** Total stats with the equipped gear plus any talent bonus (Inventory hero panel). */
 export function totalStatRows(
   catalog: GearCatalog,
   gear: SaveGear,
   max = 8,
+  bonus?: StatBonus,
 ): StatRow[] {
-  const s = gearStatsFor(catalog, gear);
+  const s = gearStatsFor(catalog, gear, bonus);
   const t = effectivePlayerTuning(basePlayerTuning(), s);
   const f = s.flat;
   const dr = round1(armourReduction(catalog, f.armour) * 100);
