@@ -1,4 +1,8 @@
-import { PLAYER_TUNING, SPELL_BAR } from "../config";
+import { SPELL_BAR } from "../config";
+import { basePlayerTuning } from "../config/player";
+import { getGearCatalog } from "../gear/gearCatalog";
+import { gearStatsFor } from "../gear/itemStats";
+import { createEmptyGear, normalizeSaveGear } from "../gear/saveGear";
 import {
   createDefaultAutoCastSpellIds,
   normalizeAutoCastSpellIds,
@@ -25,10 +29,10 @@ export function createNewSave(): SaveGame {
     townWallHp: wallMax,
     townWallHpMax: wallMax,
     player: {
-      hp: PLAYER_TUNING.maxHp,
-      hpMax: PLAYER_TUNING.maxHp,
-      weaponId: "sword",
+      hp: basePlayerTuning().maxHp,
+      hpMax: basePlayerTuning().maxHp,
     },
+    gear: createEmptyGear(),
     spellBar: {
       slots: createDefaultSpellBarSlots(),
       autoCastSpellIds: createDefaultAutoCastSpellIds(),
@@ -79,6 +83,7 @@ function remapSpellBarIds(spellBar: SaveSpellBar): SaveSpellBar {
 
 export type LegacySavePlayer = Partial<SaveGame["player"]> & {
   moveSpeed?: number;
+  weaponId?: string;
 };
 
 export function mergePlayerWithoutLegacyMoveSpeed(
@@ -86,7 +91,7 @@ export function mergePlayerWithoutLegacyMoveSpeed(
   raw?: LegacySavePlayer,
 ): SaveGame["player"] {
   if (!raw) return { ...base };
-  const { moveSpeed: _legacy, ...rest } = raw;
+  const { moveSpeed: _legacy, weaponId: _weapon, ...rest } = raw;
   return { ...base, ...rest };
 }
 
@@ -117,13 +122,31 @@ function migrateSave(
       ...Array(Math.max(0, SPELL_BAR.slotCount - 3)).fill(""),
     ].slice(0, SPELL_BAR.slotCount);
   }
-  return {
+  return syncPlayerHpMax({
     ...base,
     ...save,
     player: mergePlayerWithoutLegacyMoveSpeed(base.player, save.player),
+    gear: normalizeSaveGear(save.gear, getGearCatalog()),
     buildings: { ...base.buildings, ...save.buildings },
     spellBar,
-  };
+  });
+}
+
+/**
+ * Max HP = `player.json` maxHp + equipped gear. A higher cap adds the gain to
+ * current HP (like the wall upgrade); a lower cap clamps it.
+ */
+export function syncPlayerHpMax(save: SaveGame): SaveGame {
+  const hpMax = Math.max(
+    1,
+    basePlayerTuning().maxHp +
+      gearStatsFor(getGearCatalog(), save.gear).flat.maxHp,
+  );
+  const prevMax = save.player.hpMax;
+  if (hpMax === prevMax) return save;
+  const gained = Math.max(0, hpMax - prevMax);
+  const hp = Math.max(1, Math.min(hpMax, save.player.hp + gained));
+  return { ...save, player: { ...save.player, hp, hpMax } };
 }
 
 export function persistSave(save: SaveGame): void {

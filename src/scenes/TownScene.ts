@@ -8,6 +8,7 @@ import {
   resetSaveAndReload,
 } from "../core/GameState";
 import { showTouchInput } from "../debug/DebugState";
+import { applyGearLoadout } from "../gear/gearRuntime";
 import {
   DEBUG_MENU_CLOSE,
   resumeFromDebugMenu,
@@ -115,6 +116,7 @@ export class TownScene extends Phaser.Scene {
       this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
     }
     const store = this.registry.get("dataStore") as DataStore;
+    applyGearLoadout(this.save.gear);
 
     this.statusText = createTownHeader(this);
     this.refreshStatus(store);

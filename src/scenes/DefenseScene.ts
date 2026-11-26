@@ -7,6 +7,8 @@ import type { SaveGame } from "../core/saveTypes";
 import type { DataStore, EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { playerDamageMult } from "../core/GameState";
+import { applyGearLoadout } from "../gear/gearRuntime";
+import { applyWeaponHitEffects } from "../gear/gearProcs";
 import { worldUnit } from "../core/worldPixelScale";
 import {
   shadowformActive,
@@ -322,6 +324,16 @@ export class DefenseScene extends Phaser.Scene {
     this.endlessInfiniteHp = false;
   }
 
+  /** Lifesteal and gear on-hit procs for player auto-attacks. */
+  private onWeaponHit(enemyId: string, damage: number): void {
+    applyWeaponHitEffects({
+      enemyId,
+      damage,
+      status: this.enemySpellStatus,
+      player: this.player.damageable,
+    });
+  }
+
   isEndlessMode(): boolean {
     return (this.endlessSelections?.length ?? 0) > 0;
   }
@@ -334,6 +346,7 @@ export class DefenseScene extends Phaser.Scene {
     configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
     ensureDefenseSaveSpellBar(this.save);
+    applyGearLoadout(this.save.gear);
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
     this.wallHpStart = this.wallHp;
@@ -531,6 +544,7 @@ export class DefenseScene extends Phaser.Scene {
       this.enemies.filter((e) => e.damageable.alive),
       PLAYER_TUNING.meleeDamage * mult,
       this.wu(PLAYER_TUNING.meleeKnockbackWu),
+      (enemy, damage) => this.onWeaponHit(enemy.id, damage),
     );
 
     if (this.player.consumeRangedShot()) {
@@ -546,7 +560,8 @@ export class DefenseScene extends Phaser.Scene {
         projectiles: this.projectiles,
         enemyProjectiles: this.enemyProjectiles,
         enemyTargets: () => this.enemyTargets(),
-        spellDamageMult: () => this.spellDirector.spellDamageMult(),
+        spellDamageMult: (def) => this.spellDirector.spellDamageMult(def),
+        onWeaponHit: (enemyId, damage) => this.onWeaponHit(enemyId, damage),
         wu: (n) => this.wu(n),
         findEnemy: (id) => {
           const e = this.targeting.getEnemyById(id);

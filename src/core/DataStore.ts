@@ -42,6 +42,9 @@ import {
   type TownLayoutInput,
 } from "./normalizeTownLayout";
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
+import { normalizeItems } from "./normalizeItems";
+import { setGearCatalog } from "../gear/gearCatalog";
+import type { GearCatalog } from "../gear/gearTypes";
 
 export type EnemyDef = {
   hp: number;
@@ -83,13 +86,14 @@ export class DataStore {
   spells: SpellDefinition[] = [];
   shadowformMechanics!: ShadowformMechanics;
   player!: PlayerConfig;
+  items!: GearCatalog;
 
   defenseDataReady = false;
   private defenseDataPromise: Promise<void> | null = null;
 
   async loadTownBoot(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
-    const [buildings, townBuildings, townLayout, playerFile] =
+    const [buildings, townBuildings, townLayout, playerFile, itemsFile] =
       await Promise.all([
         fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
         fetchJson<Record<string, TownBuildingDef>>(
@@ -97,6 +101,7 @@ export class DataStore {
         ),
         fetchJson<TownLayoutInput>(`${prefix}data/town_layout.json`),
         fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
+        fetchJson<unknown>(`${prefix}data/items.json`),
       ]);
     this.buildings = buildings;
     this.townBuildings = townBuildings;
@@ -104,6 +109,8 @@ export class DataStore {
     this.player = normalizePlayerConfig(playerFile);
     const { endlessPanelDefaultConcurrent: _ui, ...playerTuning } = this.player;
     applyPlayerTuning(playerTuning);
+    this.items = normalizeItems(itemsFile);
+    setGearCatalog(this.items);
   }
 
   async loadDefenseData(baseUrl = ""): Promise<void> {

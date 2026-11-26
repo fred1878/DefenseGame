@@ -49,7 +49,20 @@ function unsetPlayerTuning(): PlayerTuning {
   return trap;
 }
 
-/** Replace runtime tuning after `public/data/player.json` loads (Boot). */
+let BASE_PLAYER_TUNING: PlayerTuning = PLAYER_TUNING;
+
+/** Replace runtime tuning after `public/data/player.json` loads (Boot). Resets any gear on top. */
 export function applyPlayerTuning(tuning: PlayerTuning): void {
+  BASE_PLAYER_TUNING = { ...tuning };
+  PLAYER_TUNING = { ...tuning };
+}
+
+/** `player.json` values without gear (weapons fall back to these). */
+export function basePlayerTuning(): PlayerTuning {
+  return BASE_PLAYER_TUNING;
+}
+
+/** Active tuning with gear applied; the base stays as loaded from JSON. */
+export function applyEffectivePlayerTuning(tuning: PlayerTuning): void {
   PLAYER_TUNING = { ...tuning };
 }

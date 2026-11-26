@@ -8,6 +8,7 @@ import {
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { loadSave, persistSave } from "../core/GameState";
+import { applyGearLoadout } from "../gear/gearRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
 
@@ -58,6 +59,7 @@ export class BootScene extends Phaser.Scene {
     getDebugFlags(this.registry);
     const save = loadSave();
     persistSave(save);
+    applyGearLoadout(save.gear);
     this.registry.set("dataStore", store);
     this.registry.set("save", save);
     if (isE2EEnabled()) {

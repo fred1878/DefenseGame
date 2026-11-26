@@ -49,7 +49,11 @@ export type DefenseProjectileTickHost = {
   projectiles: PlayerProjectile[];
   enemyProjectiles: EnemyProjectile[];
   enemyTargets: () => DefenseProjectileEnemyTarget[];
-  spellDamageMult: () => number;
+  spellDamageMult: (
+    def?: import("../../content/spells").SpellDefinition,
+  ) => number;
+  /** Player auto-attack shot hit an enemy (lifesteal / on-hit procs). */
+  onWeaponHit?: (enemyId: string, damage: number) => void;
   wu: (atDefault2x: number) => number;
   findEnemy: (id: string) => DefenseProjectileEnemyTarget | undefined;
   enemySpellStatus: EnemySpellStatusMap;
@@ -107,6 +111,9 @@ export function tickDefenseProjectiles(
         destroyIceBoltProjectileFx(p);
       }
     }
+    if (result.hitEnemyId && !p.spellId) {
+      host.onWeaponHit?.(result.hitEnemyId, p.damage);
+    }
     if (result.hitEnemyId && p.spellId) {
       const def = spellById(p.spellId);
       if (def?.onHit) {
@@ -127,7 +134,7 @@ export function tickDefenseProjectiles(
           result.detonation.y,
           def,
           host.enemyTargets(),
-          host.spellDamageMult(),
+          host.spellDamageMult(def),
           host.enemySpellStatus,
         );
         host.flashNova(
