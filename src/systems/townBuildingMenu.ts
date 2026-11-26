@@ -1,7 +1,7 @@
 import type { DataStore } from "../core/DataStore";
 import type { SaveGame } from "../core/saveTypes";
 import type { TownBuildingDef } from "../core/townBuildingTypes";
-import { playerDamageMult, wallHpBonusFromBuildings } from "../core/GameState";
+import { wallHpBonusFromBuildings } from "../core/GameState";
 import type { BuildingDef } from "../core/DataStore";
 
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
@@ -10,10 +10,10 @@ const SPELL_BAR_SUBTITLE = "— Spell bar";
 const ENDLESS_MODE_SUBTITLE = "— Endless training";
 const WAVE_PLANNER_SUBTITLE = "— Wave planner";
 const SAVE_MENU_SUBTITLE = "— Saves";
+const SHOP_SUBTITLE = { trader: "— Trader", blacksmith: "— Blacksmith" };
 
 function upgradeEffectLabel(effect: string): string {
   if (effect === "wallHpMax") return "Wall HP";
-  if (effect === "playerDamage") return "Player damage";
   return effect;
 }
 
@@ -28,6 +28,7 @@ export function townBuildingSubtitle(
   if (def.opensEndlessMode) return ENDLESS_MODE_SUBTITLE;
   if (def.opensWavePlanner) return WAVE_PLANNER_SUBTITLE;
   if (def.opensSaveMenu) return SAVE_MENU_SUBTITLE;
+  if (def.opensShop) return SHOP_SUBTITLE[def.opensShop];
 
   const upgradeId = def.upgradeId;
   if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
@@ -43,15 +44,6 @@ export function townBuildingSubtitle(
     const cost = up.costByLevel[level];
     const next = cost !== undefined ? `, next ${cost}g` : "";
     return `— Upgrade wall (L${level}${next})`;
-  }
-  if (upgradeId === "blacksmith") {
-    const dmg = playerDamageMult(save.buildings).toFixed(2);
-    if (level >= up.maxLevel) {
-      return `— Smith max (L${level}, damage x${dmg})`;
-    }
-    const cost = up.costByLevel[level];
-    const next = cost !== undefined ? `, next ${cost}g` : "";
-    return `— Upgrade smith (L${level}, damage x${dmg}${next})`;
   }
 
   if (level >= up.maxLevel) {
@@ -77,7 +69,8 @@ export type TownBuildingTapResult =
   | { kind: "openSpellBar"; message: string }
   | { kind: "openEndlessMode"; message: string }
   | { kind: "openWavePlanner"; message: string }
-  | { kind: "openSaveMenu"; message: string };
+  | { kind: "openSaveMenu"; message: string }
+  | { kind: "openShop"; shop: "trader" | "blacksmith"; message: string };
 
 /** Tap handler for a town building menu row (upgrade when wired, else status-only). */
 export function handleTownBuildingTap(
@@ -99,6 +92,12 @@ export function handleTownBuildingTap(
   }
   if (def.opensSaveMenu) {
     return { save, result: { kind: "openSaveMenu", message: "" } };
+  }
+  if (def.opensShop) {
+    return {
+      save,
+      result: { kind: "openShop", shop: def.opensShop, message: "" },
+    };
   }
 
   const upgradeId = def.upgradeId;
@@ -171,13 +170,9 @@ function tryApplyBuildingUpgrade(
     next.townWallHp = Math.min(max, save.townWallHp + maxDelta);
   }
 
-  const smith = next.buildings.blacksmith ?? 0;
-  const dmg = playerDamageMult(next.buildings).toFixed(2);
   let message = `Upgraded to L${level + 1}`;
   if (def.effect === "wallHpMax") {
     message = `Wall L${level + 1} · HP ${next.townWallHp}/${next.townWallHpMax}`;
-  } else if (def.effect === "playerDamage") {
-    message = `Blacksmith L${smith} · damage x${dmg}`;
   }
 
   return { save: next, result: { kind: "upgraded", message } };

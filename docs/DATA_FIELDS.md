@@ -33,6 +33,8 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `hit-flash.json` | yes (`normalizeHitFlash`) |
 | `items.json` | yes (`normalizeItems`) |
 | `loot.json` | yes (`normalizeLoot`) |
+| `consumables.json` | yes (`normalizeConsumables`) |
+| `shops.json` | yes (`normalizeShops`) |
 | `player.json` | yes (`normalizePlayerConfig`) |
 | `spell_input.json` | yes (`normalizeSpellInput`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
@@ -51,6 +53,8 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
 | `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
 | `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
+| `consumables.json` | — | [ConsumablesConfig](../src/gear/consumables.ts) | [normalizeConsumables.ts](../src/core/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts) |
+| `shops.json` | — | [ShopsConfig](../src/gear/shops.ts) | [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts) |
 | `loot.json` | — | [LootConfig](../src/gear/loot.ts) | [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts) |
 | `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
 | `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
@@ -441,6 +445,78 @@ Each table:
 
 ---
 
+## consumables.json
+
+**TypeScript:** [ConsumablesConfig](../src/gear/consumables.ts) — [normalizeConsumables.ts](../src/core/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts).
+
+Potions and bombs usable in combat from the Potion / Bomb HUD buttons (keys Q / E). Each button uses the first owned item of its kind in file order. Saves store charges by id.
+
+| Field | Meaning |
+|-------|---------|
+| `items` | Object keyed by consumable id. |
+| `name` | Display name in shops, the bag summary and HUD toasts. |
+| `kind` | heal (drink: restores HP) or bomb (thrown at the nearest target in range). |
+| `price` | Base gold price before the shop's priceMulPct. |
+| `maxStack` | Most charges of this id the player can carry. |
+| `cooldownMs` | Shared cooldown of the HUD button after use, in ms. |
+| `healHp` | Required for heal: HP restored per use. |
+| `bomb` | Required for bomb: blast settings below. |
+
+Each bomb:
+
+| Field | Meaning |
+|-------|---------|
+| `damage` | Damage dealt to every enemy in the blast radius. |
+| `radiusWu` | WU; blast radius. |
+| `rangeWu` | WU; max throw distance to the target enemy. |
+| `flavor` | Damage flavor (fire, frost, lightning, water, physical) for damage numbers. |
+| `knockbackWu` | WU; knockback away from the blast centre. |
+| `projectile` | COMBAT_FX_TEXTURE name for the thrown sprite (e.g. spellArcBomb). |
+| `blast` | COMBAT_FX_TEXTURE name for the blast flash (e.g. spellFireNova). |
+| `dotDps` | Optional burn / DoT damage per second applied to enemies hit. |
+| `dotMs` | Optional DoT duration in ms. |
+| `slowPct` | Optional movement slow percent applied to enemies hit. |
+| `slowMs` | Optional slow duration in ms. |
+| `stunMs` | Optional stun duration in ms. |
+
+---
+
+## shops.json
+
+**TypeScript:** [ShopsConfig](../src/gear/shops.ts) — [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts).
+
+Town shops. The trader (night Market Stall) rolls new random stock after every campaign night; the blacksmith (Moon Brazier) sells a fixed catalogue of plain bases that unlocks with nights. Items sell back for `loot.json` sellBackPct of their item price.
+
+| Field | Meaning |
+|-------|---------|
+| `trader` | Random daily stock settings (below). |
+| `blacksmith` | Fixed catalogue settings (below). |
+| `title` | Shop name shown in the shop panel title. |
+| `priceMulPct` | Percent of the item / consumable price charged by this shop (125 = 25% markup). |
+
+Trader:
+
+| Field | Meaning |
+|-------|---------|
+| `itemCount` | Random items rolled per day. |
+| `minItemLevelOffset` | Lowest offset added to the current night for each item's item level. |
+| `maxItemLevelOffset` | Highest offset added to the current night for each item's item level. |
+| `rarityWeights` | Rarity id → relative weight for trader items (rarity `minItemLevel` still applies). |
+| `consumables` | Array of `{ id, qty, chancePct }` consumable offers rolled per day. |
+| `id` | consumables.json id offered. |
+| `qty` | Charges in stock that day. |
+| `chancePct` | Percent chance the offer appears that day. |
+
+Blacksmith (`consumables` rows here are `{ id, unlockNight }` and always in stock):
+
+| Field | Meaning |
+|-------|---------|
+| `items` | Array of `{ baseId, unlockNight }`: plain common copies of items.json bases, unlimited stock. |
+| `baseId` | items.json base sold. |
+| `unlockNight` | Campaign night from which the row is for sale. |
+
+---
+
 ## player.json
 
 **TypeScript:** [PlayerConfigInput](../src/core/normalizePlayer.ts), [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts).
@@ -607,13 +683,13 @@ Each group:
 
 **TypeScript:** [BuildingDef](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
 
-Town upgrade defs keyed by building id (`wall`, `blacksmith`, …).
+Town upgrade defs keyed by building id (`wall`). The old `blacksmith` damage upgrade was replaced by the Blacksmith shop (`shops.json`).
 
 | Field | Meaning |
 |-------|---------|
 | `maxLevel` | Maximum purchasable upgrade level for this town building. |
 | `costByLevel` | Gold cost per upgrade level index in town. |
-| `effect` | Effect id applied on upgrade: wallHpMax or playerDamage via GameState (see `GameState` / town menu) |
+| `effect` | Effect id applied on upgrade: wallHpMax via GameState (see `GameState` / town menu) |
 
 ---
 
@@ -635,6 +711,7 @@ Town clickable building art + actions (`TownBuildingDef`).
 | `opensEndlessMode` | When true, opens the endless enemy training panel. |
 | `opensWavePlanner` | When true, opens the custom wave planner panel. |
 | `opensSaveMenu` | When true, opens the manual save-slot menu. |
+| `opensShop` | Opens a shop from `shops.json`: trader (random daily stock) or blacksmith (fixed catalogue). |
 
 ---
 

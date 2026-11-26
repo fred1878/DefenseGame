@@ -46,6 +46,10 @@ import { normalizeItems } from "./normalizeItems";
 import { setGearCatalog } from "../gear/gearCatalog";
 import { setLootConfig, type LootConfig } from "../gear/loot";
 import { normalizeLoot } from "./normalizeLoot";
+import { setConsumablesConfig } from "../gear/consumables";
+import { setShopsConfig } from "../gear/shops";
+import { normalizeConsumables } from "./normalizeConsumables";
+import { normalizeShops } from "./normalizeShops";
 import type { GearCatalog } from "../gear/gearTypes";
 
 export type EnemyDef = {
@@ -103,6 +107,8 @@ export class DataStore {
       playerFile,
       itemsFile,
       lootFile,
+      consumablesFile,
+      shopsFile,
     ] = await Promise.all([
       fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
       fetchJson<Record<string, TownBuildingDef>>(
@@ -112,6 +118,8 @@ export class DataStore {
       fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
       fetchJson<unknown>(`${prefix}data/items.json`),
       fetchJson<unknown>(`${prefix}data/loot.json`),
+      fetchJson<unknown>(`${prefix}data/consumables.json`),
+      fetchJson<unknown>(`${prefix}data/shops.json`),
     ]);
     this.buildings = buildings;
     this.townBuildings = townBuildings;
@@ -123,6 +131,8 @@ export class DataStore {
     setGearCatalog(this.items);
     this.loot = normalizeLoot(lootFile);
     setLootConfig(this.loot);
+    setConsumablesConfig(normalizeConsumables(consumablesFile));
+    setShopsConfig(normalizeShops(shopsFile));
   }
 
   async loadDefenseData(baseUrl = ""): Promise<void> {

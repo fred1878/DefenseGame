@@ -12,7 +12,6 @@ import {
   applyNightResult,
   createNewSave,
   loadSave,
-  playerDamageMult,
   prepareDefenseNight,
   persistSave,
   resetSaveAndReload,
@@ -111,7 +110,6 @@ describe("GameState", () => {
 
   it("scales building modifiers", () => {
     expect(wallHpBonusFromBuildings({ wall: 2 })).toBe(100);
-    expect(playerDamageMult({ blacksmith: 1 })).toBeCloseTo(1.1);
   });
 
   it("prepares defense after a lost night at 0 wall or player hp", () => {

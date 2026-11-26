@@ -53,6 +53,8 @@ export type DefenseHudControllerDeps = {
   onGroundCastCancel: () => void;
   onOpenDebugMenu: () => void;
   onLeaveEndless: () => void;
+  onUsePotion: () => void;
+  onUseBomb: () => void;
   getAutoAttackEnabled: () => boolean;
   setAutoAttackEnabled: (on: boolean) => void;
 };
@@ -68,6 +70,8 @@ export type DefenseHudBuild = {
   spellBar: SpellBar;
   hudText: Phaser.GameObjects.Text;
   debugBtn: TouchButtonHandle;
+  potionBtn: TouchButtonHandle;
+  bombBtn: TouchButtonHandle;
   leaveEndlessBtn: TouchButtonHandle | null;
   minimap: DefenseMinimap;
   minimapLayout: ReturnType<typeof defenseMinimapLayout>;
@@ -244,6 +248,48 @@ function buildDefenseHudController(
   registerUi(debugBtn.container);
   uiBlockers.push(debugBtn.container);
 
+  // Potion / bomb: bottom-left above the HUD strip, mirroring Debug (hidden with no charges).
+  const consumableBtn = (
+    x: number,
+    label: string,
+    onTap: () => void,
+    fill: number,
+    stroke: number,
+    testId: string,
+  ): TouchButtonHandle => {
+    const btn = createTouchButton(scene, x, dbgPos.y, label, onTap, {
+      width: scaleUiX(88),
+      height: scaleUiX(36),
+      depth: 200,
+      fontSize: `${scaleUiX(13)}px`,
+      fillColor: fill,
+      strokeColor: stroke,
+      tapPadding: scaleUiX(6),
+    });
+    btn.container.setData("testid", testId);
+    btn.container.setVisible(false);
+    registerUi(btn.container);
+    uiBlockers.push(btn.container);
+    return btn;
+  };
+  const potionX = safe.left + scaleUiX(8 + 44);
+  const potionBtn = consumableBtn(
+    potionX,
+    "Potion",
+    deps.onUsePotion,
+    0x7f1d1d,
+    0xf87171,
+    "defense-potion",
+  );
+  const bombBtn = consumableBtn(
+    potionX + scaleUiX(96),
+    "Bomb",
+    deps.onUseBomb,
+    0x78350f,
+    0xfbbf24,
+    "defense-bomb",
+  );
+
   let leaveEndlessBtn: TouchButtonHandle | null = null;
   if (deps.endless || deps.wavePlanner) {
     const leaveBtn = nightReturnButtonPosition(scene, safe);
@@ -317,6 +363,10 @@ function buildDefenseHudController(
   const setHudChromeVisible = (visible: boolean) => {
     hudText.setVisible(visible);
     debugBtn.container.setVisible(visible);
+    if (!visible) {
+      potionBtn.container.setVisible(false);
+      bombBtn.container.setVisible(false);
+    }
     hudChrome?.setVisible(visible);
     minimap?.setVisible(visible);
   };
@@ -335,6 +385,8 @@ function buildDefenseHudController(
     spellBar,
     hudText,
     debugBtn,
+    potionBtn,
+    bombBtn,
     leaveEndlessBtn,
     minimap,
     minimapLayout,

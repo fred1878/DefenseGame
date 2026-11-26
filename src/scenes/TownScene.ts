@@ -492,6 +492,11 @@ export class TownScene extends Phaser.Scene {
       this.overlays.openSaveMenuPanel();
       return;
     }
+    if (result.kind === "openShop") {
+      this.save = this.registry.get("save") as SaveGame;
+      this.overlays.openGearPanel(result.shop);
+      return;
+    }
     if (result.kind === "upgraded") {
       this.save = save;
       playCoinDeltaSfx(this, goldBefore, save.gold);

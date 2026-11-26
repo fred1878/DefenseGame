@@ -1,0 +1,49 @@
+{
+  "trader": {
+    "title": "Trader",
+    "itemCount": 6,
+    "minItemLevelOffset": 0,
+    "maxItemLevelOffset": 2,
+    "priceMulPct": 125,
+    "rarityWeights": { "common": 15, "magic": 52, "rare": 25, "epic": 7, "legendary": 1 },
+    "consumables": [
+      { "id": "minor_healing_potion", "qty": 3, "chancePct": 100 },
+      { "id": "healing_potion", "qty": 2, "chancePct": 40 },
+      { "id": "fire_bomb", "qty": 2, "chancePct": 70 },
+      { "id": "frost_bomb", "qty": 2, "chancePct": 45 },
+      { "id": "thunder_bomb", "qty": 2, "chancePct": 35 }
+    ]
+  },
+  "blacksmith": {
+    "title": "Blacksmith",
+    "priceMulPct": 100,
+    "items": [
+      { "baseId": "rusty_sword", "unlockNight": 1 },
+      { "baseId": "sling", "unlockNight": 1 },
+      { "baseId": "leather_cap", "unlockNight": 1 },
+      { "baseId": "padded_vest", "unlockNight": 1 },
+      { "baseId": "worn_boots", "unlockNight": 1 },
+      { "baseId": "iron_sword", "unlockNight": 3 },
+      { "baseId": "hand_axe", "unlockNight": 3 },
+      { "baseId": "short_bow", "unlockNight": 3 },
+      { "baseId": "iron_helm", "unlockNight": 3 },
+      { "baseId": "leather_gloves", "unlockNight": 1 },
+      { "baseId": "spear", "unlockNight": 3 },
+      { "baseId": "crossbow", "unlockNight": 5 },
+      { "baseId": "chainmail", "unlockNight": 5 },
+      { "baseId": "chain_leggings", "unlockNight": 5 },
+      { "baseId": "steel_sword", "unlockNight": 7 },
+      { "baseId": "war_hammer", "unlockNight": 5 },
+      { "baseId": "long_bow", "unlockNight": 7 },
+      { "baseId": "steel_helm", "unlockNight": 9 },
+      { "baseId": "plate_cuirass", "unlockNight": 9 },
+      { "baseId": "iron_gauntlets", "unlockNight": 5 },
+      { "baseId": "heavy_crossbow", "unlockNight": 9 }
+    ],
+    "consumables": [
+      { "id": "minor_healing_potion", "unlockNight": 1 },
+      { "id": "fire_bomb", "unlockNight": 2 },
+      { "id": "healing_potion", "unlockNight": 5 }
+    ]
+  }
+}

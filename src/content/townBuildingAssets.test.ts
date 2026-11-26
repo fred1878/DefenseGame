@@ -54,7 +54,8 @@ describe("town building v02 keep list", () => {
 
   it("wires legacy upgrades to thematic building rows", () => {
     expect(defs.town_special_witchlight_beacon?.upgradeId).toBe("wall");
-    expect(defs.town_special_moon_brazier?.upgradeId).toBe("blacksmith");
+    expect(defs.town_special_moon_brazier?.opensShop).toBe("blacksmith");
+    expect(defs.town_market_stall?.opensShop).toBe("trader");
   });
 
   it("wires gallows square to start night", () => {

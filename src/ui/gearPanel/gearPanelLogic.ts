@@ -18,10 +18,21 @@ import {
 import type { LootConfig } from "../../gear/loot";
 import type { EquipSlot, GearCatalog } from "../../gear/gearTypes";
 import type { SaveGame } from "../../core/saveTypes";
+import {
+  buyOffer,
+  shopOffers,
+  type ShopContext,
+  type ShopId,
+} from "../../gear/shops";
 
 export const GEAR_PANEL_ROWS_PER_PAGE = 6;
 
+export type GearPanelTab = "bag" | "shop";
+
 export type GearPanelState = {
+  tab: GearPanelTab;
+  /** Selected shop offer index (shop tab). */
+  selectedOffer: number | null;
   sort: ItemSortMode;
   page: number;
   /** Selected owned item (bag or equipped). */
@@ -36,15 +47,41 @@ export type GearPanelCommand =
   | { type: "sort" }
   | { type: "equip" }
   | { type: "unequip" }
-  | { type: "sell" };
+  | { type: "sell" }
+  | { type: "tab"; tab: GearPanelTab }
+  | { type: "selectOffer"; index: number }
+  | { type: "buy" };
 
 export type GearPanelContext = {
   catalog: GearCatalog;
   loot: LootConfig;
+  /** When set the panel is a shop (Shop + Bag tabs). */
+  shop?: { id: ShopId; ctx: ShopContext };
 };
 
-export function createGearPanelState(): GearPanelState {
-  return { sort: "slot", page: 0, selectedUid: null, status: "" };
+export function createGearPanelState(
+  tab: GearPanelTab = "bag",
+): GearPanelState {
+  return {
+    tab,
+    selectedOffer: null,
+    sort: "slot",
+    page: 0,
+    selectedUid: null,
+    status: "",
+  };
+}
+
+/** Rows in the active tab (bag items or shop offers). */
+export function tabRowCount(
+  ctx: GearPanelContext,
+  save: SaveGame,
+  state: GearPanelState,
+): number {
+  if (state.tab === "shop" && ctx.shop) {
+    return shopOffers(save, ctx.shop.ctx, ctx.shop.id).length;
+  }
+  return bagRows(ctx, save, state).length;
 }
 
 /** Bag items (unequipped) in the current sort order. */
@@ -116,7 +153,7 @@ function clampPage(
   save: SaveGame,
   state: GearPanelState,
 ): GearPanelState {
-  const pages = pageCount(bagRows(ctx, save, state).length);
+  const pages = pageCount(tabRowCount(ctx, save, state));
   return { ...state, page: Math.min(Math.max(0, state.page), pages - 1) };
 }
 
@@ -176,6 +213,37 @@ export function reduceGearPanel(
       return {
         save: next,
         state: { ...state, status: `Unequipped ${sel.name}` },
+      };
+    }
+    case "tab":
+      return {
+        save,
+        state: {
+          ...state,
+          tab: cmd.tab,
+          page: 0,
+          selectedOffer: null,
+          selectedUid: null,
+          status: "",
+        },
+      };
+    case "selectOffer":
+      return {
+        save,
+        state: { ...state, selectedOffer: cmd.index, status: "" },
+      };
+    case "buy": {
+      if (!ctx.shop || state.selectedOffer === null) return { save, state };
+      const r = buyOffer(save, ctx.shop.ctx, ctx.shop.id, state.selectedOffer);
+      const offers = shopOffers(r.save, ctx.shop.ctx, ctx.shop.id);
+      const stillThere = state.selectedOffer < offers.length;
+      return {
+        save: r.save,
+        state: clampPage(ctx, r.save, {
+          ...state,
+          selectedOffer: stillThere ? state.selectedOffer : null,
+          status: r.message,
+        }),
       };
     }
     case "sell": {

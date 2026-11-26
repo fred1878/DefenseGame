@@ -107,21 +107,21 @@ export const ITEMS_MODIFIER_BOOT_KEYS = [
   "slowPct",
 ] as const;
 
-function requireString(value: unknown, path: string): string {
+export function requireString(value: unknown, path: string): string {
   if (typeof value !== "string" || value.length === 0) {
     throw new ConfigLoadError(`Missing or invalid string at ${path}`);
   }
   return value;
 }
 
-function requireArray(value: unknown, path: string): unknown[] {
+export function requireArray(value: unknown, path: string): unknown[] {
   if (!Array.isArray(value)) {
     throw new ConfigLoadError(`Missing or invalid array at ${path}`);
   }
   return value;
 }
 
-function requireOneOf<T extends string>(
+export function requireOneOf<T extends string>(
   value: unknown,
   allowed: readonly T[],
   path: string,
@@ -134,7 +134,7 @@ function requireOneOf<T extends string>(
   return value as T;
 }
 
-function requireFlavor(value: unknown, path: string): DamageFlavor {
+export function requireFlavor(value: unknown, path: string): DamageFlavor {
   return requireOneOf(value, DAMAGE_FLAVORS, path);
 }
 

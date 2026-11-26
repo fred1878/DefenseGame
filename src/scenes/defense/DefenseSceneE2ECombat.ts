@@ -276,6 +276,14 @@ export function defenseSceneE2eGetUiTapTargets(
   }
   const dbg = centerOf(scene.debugBtn.container);
   if (dbg) out["defense-debug"] = dbg;
+  for (const [id, btn] of [
+    ["defense-potion", scene.potionBtn],
+    ["defense-bomb", scene.bombBtn],
+  ] as const) {
+    if (!btn?.container.visible) continue;
+    const c = centerOf(btn.container);
+    if (c) out[id] = c;
+  }
   if (scene.returnToTownBtn) {
     const ret = centerOf(scene.returnToTownBtn.container);
     if (ret) out["defense-return-to-town"] = ret;

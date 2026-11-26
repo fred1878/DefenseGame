@@ -6,7 +6,6 @@ import { resetShadowformRuntimeMults } from "../config/shadowformRuntime";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore, EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
-import { playerDamageMult } from "../core/GameState";
 import { applyGearLoadout } from "../gear/gearRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
 import { worldUnit } from "../core/worldPixelScale";
@@ -17,6 +16,7 @@ import {
 import { SpellInputQueue } from "../combat/spellInputQueue";
 import { SpellCastController } from "../combat/SpellCastController";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
+import { DefenseConsumables } from "./defense/DefenseConsumables";
 import type { SpellBlizzardChannelFx } from "../combat/SpellBlizzardChannelFx";
 import type { SpellHealChannelFx } from "../combat/SpellHealChannelFx";
 import type { SpellIceCastWindupFx } from "../combat/SpellIceCastWindupFx";
@@ -196,6 +196,8 @@ export class DefenseScene extends Phaser.Scene {
   private spellBar!: SpellBar;
   private castBar!: CastBar;
   debugBtn!: TouchButtonHandle;
+  potionBtn?: TouchButtonHandle;
+  bombBtn?: TouchButtonHandle;
   private safe!: SafeInsets;
   private onPointerUpBound = (p: Phaser.Input.Pointer) => this.onScreenTap(p);
   private onPointerDownBound = (p: Phaser.Input.Pointer) =>
@@ -204,7 +206,9 @@ export class DefenseScene extends Phaser.Scene {
     this.groundAimCtl.onPointerMove(p);
   private setHudChromeVisible = (visible: boolean): void => {
     this.hudSetChromeVisible?.(visible);
+    if (visible) this.consumables?.refresh(true);
   };
+  private consumables: DefenseConsumables | null = null;
   private hudSetChromeVisible: ((visible: boolean) => void) | null = null;
   private readonly onInputModalityChanged = (): void =>
     syncDefenseBaseInput(this, {
@@ -221,6 +225,8 @@ export class DefenseScene extends Phaser.Scene {
     resumeFromDebugMenu(this);
   };
   private onDefenseShutdown = (): void => {
+    this.consumables?.destroy();
+    this.consumables = null;
     this.events.off(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
     this.game.events.off(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
     clearInputModalities(this);
@@ -400,6 +406,8 @@ export class DefenseScene extends Phaser.Scene {
       onGroundCastCancel: () => this.cancelPendingGroundCast(),
       onOpenDebugMenu: () => this.openDebugMenu(),
       onLeaveEndless: () => this.leaveTrainingRun(),
+      onUsePotion: () => this.consumables?.use("heal"),
+      onUseBomb: () => this.consumables?.use("bomb"),
       getAutoAttackEnabled: () => this.autoAttackEnabled,
       setAutoAttackEnabled: (on) => {
         this.autoAttackEnabled = on;
@@ -415,12 +423,30 @@ export class DefenseScene extends Phaser.Scene {
     this.spellBar = hud.spellBar;
     this.hudText = hud.hudText;
     this.debugBtn = hud.debugBtn;
+    this.potionBtn = hud.potionBtn;
+    this.bombBtn = hud.bombBtn;
     this.leaveEndlessBtn = hud.leaveEndlessBtn;
     this.minimap = hud.minimap;
     this.minimapLayout = hud.minimapLayout;
     this.stick = hud.stick;
     this.uiBlockers = hud.uiBlockers;
     this.hudSetChromeVisible = hud.setHudChromeVisible;
+    this.consumables?.destroy();
+    this.consumables = new DefenseConsumables({
+      scene: this,
+      save: this.save,
+      player: this.player,
+      potionBtn: hud.potionBtn,
+      bombBtn: hud.bombBtn,
+      enemyTargets: () => this.enemyTargets(),
+      focusEnemyId: () => this.targeting?.focusEnemyId ?? null,
+      enemySpellStatus: () => this.enemySpellStatus,
+      wu: (n) => this.wu(n),
+      flashNova: (x, y, r, def) => this.combat.flashNova(x, y, r, def),
+      registerWorldDraw: (go) => this.registerWorldDraw(go),
+      registerUiDraw: world.registerUiDraw,
+      canAct: () => !this.nightEnded && this.scene.isActive(),
+    });
     this.refreshModeToggle = hud.refreshModeToggle;
 
     this.targetIndicator = new TargetIndicator(this);
@@ -539,16 +565,15 @@ export class DefenseScene extends Phaser.Scene {
     }
     this.combat.syncMeleeSwipeFx();
 
-    const mult = playerDamageMult(this.save.buildings);
     this.player.damageEnemiesInArc(
       this.enemies.filter((e) => e.damageable.alive),
-      PLAYER_TUNING.meleeDamage * mult,
+      PLAYER_TUNING.meleeDamage,
       this.wu(PLAYER_TUNING.meleeKnockbackWu),
       (enemy, damage) => this.onWeaponHit(enemy.id, damage),
     );
 
     if (this.player.consumeRangedShot()) {
-      this.combat.fireProjectile(PLAYER_TUNING.rangedDamage * mult);
+      this.combat.fireProjectile(PLAYER_TUNING.rangedDamage);
     }
 
     const projTick = tickDefenseProjectiles(
@@ -631,6 +656,7 @@ export class DefenseScene extends Phaser.Scene {
 
     const living = this.enemies.filter((e) => e.damageable.alive).length;
     this.spellBar.refreshCooldownOverlays();
+    this.consumables?.refresh();
     if (!this.nightEnded) this.refreshHudText(living);
 
     checkDefenseRunEnd({

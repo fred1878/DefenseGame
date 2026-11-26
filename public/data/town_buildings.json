@@ -18,7 +18,7 @@
     "textureKey": "town_special_moon_brazier",
     "width": 80,
     "height": 80,
-    "upgradeId": "blacksmith"
+    "opensShop": "blacksmith"
   },
   "town_special_plague_clinic": {
     "label": "Plague Clinic",
@@ -31,7 +31,8 @@
     "label": "Market Stall (Night)",
     "textureKey": "town_market_stall",
     "width": 112,
-    "height": 72
+    "height": 72,
+    "opensShop": "trader"
   },
   "town_market_stall_daylit": {
     "label": "Market Stall (Daylit)",
