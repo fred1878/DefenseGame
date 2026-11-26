@@ -314,6 +314,8 @@ describe("buildApi", () => {
     expect(api.getAttackMode()).toBeNull();
     expect(api.getLivingEnemyHps()).toEqual([]);
     expect(api.getLivingEnemyPositions()).toEqual([]);
+    api.resetCombatTally();
+    expect(api.getCombatTally()).toEqual({});
     api.setAttackMode("ranged");
     expect(api.getEnemyCount()).toBe(0);
     expect(api.nightEnded()).toBe(false);

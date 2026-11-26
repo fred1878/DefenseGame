@@ -46,6 +46,9 @@ export type DefenseGameE2EApi = {
   setAttackMode(mode: import("../config").AttackMode): void;
   /** Living enemies' world positions and HP (win-model validation bot). */
   getLivingEnemyPositions(): Array<{ x: number; y: number; hp: number }>;
+  /** Damage dealt to enemies by flavor since the last reset (real-fight harness). */
+  getCombatTally(): import("./combatTally").CombatTally;
+  resetCombatTally(): void;
   getEnemyCount(): number;
   setManualReturnToTown(on: boolean): void;
   nightEnded(): boolean;

@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { SaveGame } from "../../core/saveTypes";
+import { talentBonus } from "../../talents/talentLogic";
+import { DEFAULT_POWER_MODEL, playerPower } from "./power";
 import {
   defaultSimOptions,
   emptyRarityCounts,
@@ -305,10 +308,24 @@ describe("simulate", () => {
     const off = simulateRun(data, opts({ talents: false }), 4);
     expect(off.talents!.ranks).toEqual({});
     expect(off.talents!.earned).toBeGreaterThan(0);
-    const on = simulateRun(data, opts(), 4);
-    const last = (r: typeof on) => r.records[r.records.length - 1]!;
-    expect(last(on).powerAfter.weaponDps).toBeGreaterThan(
-      last(off).powerAfter.weaponDps,
+    // With talents on, the learned ranks add power on top of the same gear.
+    let last: SaveGame | null = null;
+    const on = simulateRun(
+      data,
+      opts({ onNightStart: (save) => (last = structuredClone(save)) }),
+      4,
     );
+    expect(Object.keys(on.talents!.ranks).length).toBeGreaterThan(0);
+    const save = last as unknown as SaveGame;
+    const without = playerPower(data.catalog, save.gear);
+    const withTalents = playerPower(
+      data.catalog,
+      save.gear,
+      DEFAULT_POWER_MODEL,
+      talentBonus(data.talents, save.talents),
+    );
+    expect(
+      withTalents.weaponDps + withTalents.spellDps + withTalents.ehp,
+    ).toBeGreaterThan(without.weaponDps + without.spellDps + without.ehp);
   });
 });

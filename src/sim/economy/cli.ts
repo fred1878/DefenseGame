@@ -44,7 +44,11 @@ npm run sim:economy -- [options]
   --overrides FILE     JSON overrides shaped like {"loot": {...}, "waves": {...}}
   --no-sell            keep non-upgrades in the bag (bag fills, drops auto-sell)
   --no-talents         never spend talent points (compare against talent builds)
-  --spell-dps N        base spell DPS before spell power (default ${DEFAULT_POWER_MODEL.spellBaseDps})
+  --model FILE         power model knobs from a fitted model file (sim:fights fit --out); flags below override it
+  --still-share P      share of the fight standing still (whole bar auto-casts; default ${DEFAULT_POWER_MODEL.castStillShare})
+  --moving-share P     share of the fight moving (instant spells only; default ${DEFAULT_POWER_MODEL.castMovingShare})
+  --crowd-area N       area (wu²) living enemies spread over (default ${DEFAULT_POWER_MODEL.crowdAreaWu2})
+  --exposure N         incoming damage × (kill time / fight time)^N (default ${DEFAULT_POWER_MODEL.exposure})
   --grace N            seconds after the last spawn to clear a wave (default ${DEFAULT_POWER_MODEL.graceSec})
   --threat N           share of enemy hits that land (default ${DEFAULT_POWER_MODEL.threatScale})
   --steepness N        win-chance curve steepness (default ${DEFAULT_POWER_MODEL.steepness})
@@ -82,12 +86,14 @@ function positive(name: string, v: string | undefined, fallback: number) {
   return n;
 }
 
-function parseWeights(v: string | undefined): {
+function parseWeights(
+  v: string | undefined,
+  d: PowerModel,
+): {
   offenceWeight: number;
   defenceWeight: number;
   wallWeight: number;
 } {
-  const d = DEFAULT_POWER_MODEL;
   if (v === undefined) {
     return {
       offenceWeight: d.offenceWeight,
@@ -101,6 +107,15 @@ function parseWeights(v: string | undefined): {
   }
   const [o, de, w] = parts.map((p) => positive("weights", p.trim(), 0));
   return { offenceWeight: o!, defenceWeight: de!, wallWeight: w! };
+}
+
+/** A fitted model file (`npm run sim:fights -- fit --out`), partial is fine. */
+function loadModelFile(file: string | undefined): PowerModel {
+  if (!file) return DEFAULT_POWER_MODEL;
+  const raw = JSON.parse(readFileSync(file, "utf8")) as {
+    model?: Partial<PowerModel>;
+  } & Partial<PowerModel>;
+  return { ...DEFAULT_POWER_MODEL, ...(raw.model ?? raw) };
 }
 
 export function parseCliArgs(argv: readonly string[]): CliOptions {
@@ -118,7 +133,11 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
       overrides: { type: "string" },
       "no-sell": { type: "boolean" },
       "no-talents": { type: "boolean" },
-      "spell-dps": { type: "string" },
+      model: { type: "string" },
+      "still-share": { type: "string" },
+      "moving-share": { type: "string" },
+      "crowd-area": { type: "string" },
+      exposure: { type: "string" },
       grace: { type: "string" },
       threat: { type: "string" },
       steepness: { type: "string" },
@@ -140,6 +159,7 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
   }
   const winRate = positive("win-rate", values["win-rate"], 0.85);
   if (winRate > 1) throw new Error("--win-rate must be between 0 and 1");
+  const base = loadModelFile(values.model);
   return {
     runs: Math.max(1, Math.floor(positive("runs", values.runs, 1000))),
     seed: Math.floor(positive("seed", values.seed, 1)),
@@ -155,24 +175,27 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
     sellSurplus: !values["no-sell"],
     talents: !values["no-talents"],
     model: {
-      ...DEFAULT_POWER_MODEL,
-      spellBaseDps: positive(
-        "spell-dps",
-        values["spell-dps"],
-        DEFAULT_POWER_MODEL.spellBaseDps,
+      ...base,
+      castStillShare: positive(
+        "still-share",
+        values["still-share"],
+        base.castStillShare,
       ),
-      graceSec: positive("grace", values.grace, DEFAULT_POWER_MODEL.graceSec),
-      threatScale: positive(
-        "threat",
-        values.threat,
-        DEFAULT_POWER_MODEL.threatScale,
+      castMovingShare: positive(
+        "moving-share",
+        values["moving-share"],
+        base.castMovingShare,
       ),
-      steepness: positive(
-        "steepness",
-        values.steepness,
-        DEFAULT_POWER_MODEL.steepness,
+      crowdAreaWu2: positive(
+        "crowd-area",
+        values["crowd-area"],
+        base.crowdAreaWu2,
       ),
-      ...parseWeights(values.weights),
+      exposure: positive("exposure", values.exposure, base.exposure),
+      graceSec: positive("grace", values.grace, base.graceSec),
+      threatScale: positive("threat", values.threat, base.threatScale),
+      steepness: positive("steepness", values.steepness, base.steepness),
+      ...parseWeights(values.weights, base),
     },
     flags: {
       easy: positive("easy", values.easy, 2),

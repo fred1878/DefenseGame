@@ -78,8 +78,10 @@ When the profile's branch has nothing left to learn, it falls back to the
 whole tree. Turn talents off with `--no-talents` to compare. See
 [ECONOMY_SIM.md](./ECONOMY_SIM.md).
 
-The sim only values damage, attack speed, armour, HP, lifesteal, procs, spell
-power and cooldowns. Melee arc, ranged range and slow chance help in real
-combat but count as zero in the sim, so Wide Arc, Long Draw's range and
-Frost Tips are underrated there. Sorcery gains less in the sim because spells
-are a small part of its damage model (`spellBaseDps` 12).
+The sim values damage, attack speed, armour, HP, lifesteal, procs (slow and
+stun as crowd control), spell power and cooldowns. Melee arc and ranged range
+count as zero (real fights showed swings barely multi-hit), so Wide Arc and
+Long Draw's range are underrated there. Spells are valued by replaying the
+auto-cast rotation; frost and lightning spells have cast windups and almost
+never land in real fights, so Deep Winter and Overcharge are worth little in
+the sim and in play (see ECONOMY_SIM.md, "Calibration").

@@ -2,7 +2,7 @@
 
 Night keys match `save.night` when defense starts. Winning a night increments `save.night`.
 
-Counts below are per-night totals (grunt groups summed). Nights **1–2** are a gentler intro (**grunts** and **skirmishers** only). From night **3** onward, the prior campaign ramp applies: skirmishers, sentry cover, and escalating **slow_siege**, **fast_sapper**, **charger**, **lobber**, and **ward** alongside the core grunt/bruiser/archer/javelineer mix through night **12**. Nights **13–20** are the late campaign: bigger versions of the night-12 mix plus reavers and skirmishers, tougher enemies (`hpMul`), harder hits (`damageMul`) and **elite** groups.
+Counts below are per-night totals (grunt groups summed). Nights **1–2** are a gentler intro (**grunts** and **skirmishers** only). From night **3** onward, the prior campaign ramp applies: skirmishers, sentry cover, and escalating **slow_siege**, **fast_sapper**, **charger**, **lobber**, and **ward** alongside the core grunt/bruiser/archer/javelineer mix through night **12**. Nights **13–20** are the late campaign: bigger versions of the night-12 mix plus reavers and skirmishers, tougher enemies (`hpMul`), harder hits (`damageMul`) and **elite** groups. Their multipliers were tuned against real headless fights (`npm run sim:fights`, see [ECONOMY_SIM.md](./ECONOMY_SIM.md)) so a median spender wins about 60–80% of late nights and a no-spend build mostly loses.
 
 | Night | rewardGold | Summary |
 |------:|-----------:|---------|
@@ -18,14 +18,14 @@ Counts below are per-night totals (grunt groups summed). Nights **1–2** are a 
 | 10 | 170 | 28× grunt, 3 bruisers; full specialist ramp + grunt reinforcement (trimmed from 31 grunts / 4 bruisers in the nights 13–20 pass) |
 | 11 | 175 | 26× grunt, 4 bruisers; specialist counts peak before milestone |
 | 12 | 200 | Milestone: 21× grunt, 5 bruisers, 5 archers, 6 javelineers; 3 siege, 4 charger, 3 lobber, 3 ward, 4 sapper |
-| 13 | 215 | 63 enemies, 4,859 HP: night-12 mix + 6 skirmishers, reaver; HP ×0.95, damage ×1.1; 1 elite bruiser |
-| 14 | 230 | 69 enemies, 5,681 HP; HP ×1.0, damage ×1.15; 1 elite bruiser |
-| 15 | 245 | 74 enemies, 6,743 HP; HP ×1.0, damage ×1.25; elite bruisers ×2, elite charger |
-| 16 | 260 | 83 enemies, 7,807 HP; HP ×1.05, damage ×1.35; elite bruisers ×2, elite charger |
-| 17 | 280 | 85 enemies, 8,673 HP; HP ×1.1, damage ×1.45; elite bruisers ×2, chargers ×2, ward |
-| 18 | 300 | 97 enemies, 11,001 HP; HP ×1.15, damage ×1.55; elite bruisers ×3, chargers ×2, ward, siege ×2 |
-| 19 | 320 | 100 enemies, 12,650 HP; HP ×1.25, damage ×1.65; elite bruisers ×3, chargers ×3, wards ×2, siege ×3 |
-| 20 | 360 | Finale: 113 enemies, 18,078 HP in a 19 s spawn window; HP ×1.35, damage ×1.75; 6 elite bruisers (3 at ×3.5 HP), chargers ×3, wards ×2, siege ×4 |
+| 13 | 215 | 63 enemies, 7,266 HP: night-12 mix + 6 skirmishers, reaver; HP ×1.42, damage ×1.69; 1 elite bruiser |
+| 14 | 230 | 69 enemies, 9,598 HP; HP ×1.69, damage ×1.96; 1 elite bruiser |
+| 15 | 245 | 74 enemies, 12,613 HP; HP ×1.87, damage ×2.25; elite bruisers ×2, elite charger |
+| 16 | 260 | 83 enemies, 16,063 HP; HP ×2.16, damage ×2.56; elite bruisers ×2, elite charger |
+| 17 | 280 | 85 enemies, 19,467 HP; HP ×2.47, damage ×2.98; elite bruisers ×2, chargers ×2, ward |
+| 18 | 300 | 97 enemies, 26,699 HP; HP ×2.79, damage ×3.33; elite bruisers ×3, chargers ×2, ward, siege ×2 |
+| 19 | 320 | 100 enemies, 33,091 HP; HP ×3.27, damage ×3.8; elite bruisers ×3, chargers ×3, wards ×2, siege ×3 |
+| 20 | 360 | Finale: 113 enemies, 50,618 HP in a 19 s spawn window; HP ×3.78, damage ×4.2; 6 elite bruisers (3 at ×9.8 HP), chargers ×3, wards ×2, siege ×4 |
 
 **Group multipliers.** A group can set `hpMul` (enemy HP; at ×2 or more the
 enemy is an **elite** and its nameplate reads "Elite …") and `damageMul`

@@ -22,6 +22,7 @@ import {
 import { activeTownUiHost } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { positionDomMirrors } from "./installE2EDom";
+import { combatTally, resetCombatTally } from "./combatTally";
 
 /** `window.__DEFENSEGAME_E2E__.api` implementation (Town + Defense hooks). */
 export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
@@ -170,6 +171,12 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getLivingEnemyPositions() {
       return activeDefense(game)?.e2e.livingEnemyPositions() ?? [];
+    },
+    getCombatTally() {
+      return combatTally();
+    },
+    resetCombatTally() {
+      resetCombatTally();
     },
     getEnemyCount() {
       return activeDefense(game)?.e2e.enemyCount() ?? 0;

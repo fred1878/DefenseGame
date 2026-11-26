@@ -70,6 +70,7 @@ import type {
   DefenseMinimap,
   defenseMinimapLayout,
 } from "../ui/defenseMinimap";
+import { recordCombatDamage } from "../e2e/combatTally";
 import { e2eCampaignWavesFromQuery, isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import {
@@ -1078,6 +1079,7 @@ export class DefenseScene extends Phaser.Scene {
       },
       maskWorldObject: (go) => this.registerWorldDraw(go),
       notifyDamaged: (enemy, amount, flavor) => {
+        if (isE2EEnabled()) recordCombatDamage(flavor, amount);
         this.damageNumbers.floatFromSource(
           enemy.damageable.id,
           enemy.sprite,

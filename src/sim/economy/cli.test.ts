@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { main, parseCliArgs, runSimulation, USAGE } from "./cli";
+import { DEFAULT_POWER_MODEL } from "./power";
 import { STRATEGY_IDS } from "./simulate";
 
 describe("econ sim CLI", () => {
@@ -46,8 +47,14 @@ describe("econ sim CLI", () => {
       "o.json",
       "--no-sell",
       "--no-talents",
-      "--spell-dps",
-      "20",
+      "--still-share",
+      "0.7",
+      "--moving-share",
+      "0.2",
+      "--crowd-area",
+      "9000",
+      "--exposure",
+      "1.5",
       "--grace",
       "5",
       "--threat",
@@ -77,7 +84,10 @@ describe("econ sim CLI", () => {
       sellSurplus: false,
       talents: false,
       model: {
-        spellBaseDps: 20,
+        castStillShare: 0.7,
+        castMovingShare: 0.2,
+        crowdAreaWu2: 9000,
+        exposure: 1.5,
         graceSec: 5,
         threatScale: 0.3,
         steepness: 2,
@@ -92,6 +102,21 @@ describe("econ sim CLI", () => {
     });
   });
 
+  it("reads model knobs from a fitted model file, flags win", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "econ-model-"));
+    const fitted = path.join(dir, "fit.json");
+    writeFileSync(
+      fitted,
+      JSON.stringify({ model: { steepness: 7, exposure: 0.2 } }),
+    );
+    const o = parseCliArgs(["--model", fitted, "--exposure", "0.9"]);
+    expect(o.model.steepness).toBe(7);
+    expect(o.model.exposure).toBe(0.9);
+    const flat = path.join(dir, "flat.json");
+    writeFileSync(flat, JSON.stringify({ threatScale: 0.11 }));
+    expect(parseCliArgs(["--model", flat]).model.threatScale).toBe(0.11);
+  });
+
   it("rejects bad options", () => {
     expect(() => parseCliArgs(["--strategy", "x"])).toThrow(
       /Unknown --strategy/,
@@ -102,7 +127,9 @@ describe("econ sim CLI", () => {
     expect(() => parseCliArgs(["--bogus"])).toThrow();
     expect(() => parseCliArgs(["--weights", "1,2"])).toThrow(/three numbers/);
     expect(() => parseCliArgs(["--weights", "1,x,2"])).toThrow(/non-negative/);
-    expect(parseCliArgs([]).model.defenceWeight).toBe(0.6);
+    expect(parseCliArgs([]).model.defenceWeight).toBe(
+      DEFAULT_POWER_MODEL.defenceWeight,
+    );
   });
 
   it("runs strategies with overrides and builds all files", () => {
