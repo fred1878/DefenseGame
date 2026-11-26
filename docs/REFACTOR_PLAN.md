@@ -29,7 +29,7 @@
 
 Overall: the codebase is in good shape. Typing is strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), coverage is high, CI gates are tight (Biome, knip, coverage floors) and exact duplication is low. The debt that remains is structural, not cosmetic:
 
-1. **Implicit shared state.** Mutable module globals, stringly-typed `registry` keys, "active catalog" singletons, and a 150-line getter/setter "scene host".
+1. **Implicit shared state.** Mutable module globals, stringly-typed `registry` keys, and a 150-line getter/setter "scene host".
 2. **Layering that has drifted.** There are cycles, low layers importing high layers, and E2E or debug concerns inside domain code.
 3. **Per-frame allocation in the defense loop.** Enemy peer lists are O(n²), and `filter`, closures and context objects are rebuilt every frame.
 4. **A behaviour model that is half data-driven.** AI movement uses a registry, but combat dispatch is an `if/else` chain over a free-form `behavior: string` and a flat `behaviorExtra` bag.
@@ -52,7 +52,7 @@ These are the import counts that matter, from a TS-AST scan that skips `import t
 | `combat → e2e` | 2 | `combat/MeleeSwipeFx.ts` calls `publishE2E` / `isE2EEnabled`. |
 | `entities → test` | 1 | `entities/testEnemyInstance.ts` is a test fixture inside production code and imports `src/test/shippedEnemyCombat`. |
 | `entities → ui` | 1 | Enemy nameplates live in `ui/`, but the entity owns them. |
-| `gear / talents / content / sim → public/data/*.json` | 4 / 1 / 1 / 10 | JSON is **statically bundled** *and* fetched at runtime by `DataStore.loadAll`. See §5.2. |
+| `gear / talents / content / sim → public/data/*.json` | 4 / 1 / 1 / 10 | JSON is statically bundled *and* fetched at runtime by `DataStore.loadAll`. **This is intentional** so values can be edited easily; it is not a refactor target (§5.2). |
 
 Target layering. Each layer may import only the layers below it; `debug`, `e2e` and `sim` are leaf consumers that nothing else imports.
 
@@ -299,20 +299,9 @@ Problems with this pattern:
 
 **Direction:** `DataStore.loadAll` builds an immutable `GameTuning` object (`{ player, enemyAi, entityPhysics, spellInput, defenseMap, hitFlash, shadowform }`). Systems receive it through `DefenseServices`, or through one `getTuning()` accessor during the migration. Move the gameplay tuning out of `src/config/` into `src/core/data/tuning/`.
 
-### 5.2 JSON bundled twice and "active catalog" singletons
+### 5.2 Bundled + fetched JSON config (intentional, out of scope)
 
-`content/spells.ts`, `gear/gearCatalog.ts`, `gear/shops.ts`, `gear/consumables.ts`, `gear/loot.ts` and `talents/talentCatalog.ts` `import bundled* from "public/data/*.json"` as a fallback "active catalog". `DataStore.loadAll` *also* fetches the same files at runtime (`DataStore.ts:117–176`). The consequences:
-
-- The data ships twice: once in the JS bundle and once as fetched JSON.
-- Two sources of truth at runtime: whichever was applied last wins.
-- Module-level mutable singletons.
-
-**Direction:** pick one source.
-
-- **Recommended:** keep the runtime fetch, which matches the PWA precache and the DATA_FIELDS contract. Catalogs become fields on `DataStore`, and the bundled imports are deleted.
-- The sim (`sim/economy/simData.ts`) keeps its static imports, because it runs under Node.
-
-Measure the main chunk size before and after (`scripts/assert-phaser-chunk-size.mjs`).
+`content/spells.ts`, `gear/gearCatalog.ts`, `gear/shops.ts`, `gear/consumables.ts`, `gear/loot.ts` and `talents/talentCatalog.ts` import `public/data/*.json` as a bundled fallback, and `DataStore.loadAll` also fetches the same files at runtime (`DataStore.ts:117–176`). **This is by design:** it keeps gameplay values easy to edit in plain JSON. The plan does not change it. Items elsewhere (for example `GameTuning` in §5.1 / P2.1) must keep both paths working and must not remove the bundled imports or the runtime fetch.
 
 ### 5.3 Hard-coded values that should be data
 
@@ -391,16 +380,15 @@ Every phase leaves the game shippable. Effort: **S** is up to half a day, **M** 
 | P1.9 | E2E code becomes a lazy chunk: dynamic `import()` of `installE2E` and `DefenseSceneE2E*` behind the flag; remove the `as unknown as DefenseSceneE2eDelegate` cast | `gameMain.ts`, `scenes/DefenseScene.ts`, `scenes/defense/DefenseSceneE2E*.ts`, `e2e/*` | Med (Playwright relies on synchronous hooks; keep a `ready` promise) | M | P1.8 |
 | P1.10 | Switch the P0.1 allowlist and P0.2 layer rules from report-only to **enforcing** (allowlist should be empty) | config | Low | S | P1.1–P1.9 |
 
-### Phase 2: Data and config as single sources of truth
+### Phase 2: Read-only tuning and data-driven values
 
 | ID | Item | Files | Risk | Effort | Depends on |
 |---|---|---|---|---|---|---|
 | P2.1 | Introduce an immutable `GameTuning` built in `DataStore.loadAll`; keep the old `export let` names as thin getters during migration | `core/DataStore.ts`, `config/{enemy,player,defense,spellInput,hitFlash,shadowformMechanics}.ts`, `entities/entityPhysics.ts` | Med | M | P1.2 |
 | P2.2 | Migrate readers of the 16 globals to `GameTuning` (folder by folder), then delete the Proxy sentinels | `ai/`, `combat/`, `entities/`, `scenes/defense/`, `sim/` | Med | L | P2.1 |
-| P2.3 | Remove bundled JSON fallbacks; catalogs live on `DataStore` (sim keeps its static imports) | `content/spells.ts`, `gear/{gearCatalog,shops,consumables,loot}.ts`, `talents/talentCatalog.ts` | Med (tests that relied on the bundled fallback need fixtures) | M | P2.1 |
-| P2.4 | Move hard-coded tuning to JSON with the same values: ward constants, spell damage defaults, `rewardGold` default (§5.3); update DATA_FIELDS.md | `ai/behaviors/ward.ts`, `combat/SpellEffects.ts`, `public/data/{enemies,spells,waves}.json`, `core/normalize*` | Low–Med (sim diff must be zero) | M | P2.1 |
-| P2.5 | Try Vitest `isolate: false`; keep it if it is stable | `vitest.config.ts` | Low | S | P2.2 |
-| P2.6 | (Optional) schema helper for `normalize*`; generate `dataFieldsDocSpec` from the schemas | `core/data/*` | Med | L | P2.4 |
+| P2.3 | Move hard-coded tuning to JSON with the same values: ward constants, spell damage defaults, `rewardGold` default (§5.3); update DATA_FIELDS.md | `ai/behaviors/ward.ts`, `combat/SpellEffects.ts`, `public/data/{enemies,spells,waves}.json`, `core/normalize*` | Low–Med (sim diff must be zero) | M | P2.1 |
+| P2.4 | Try Vitest `isolate: false`; keep it if it is stable | `vitest.config.ts` | Low | S | P2.2 |
+| P2.5 | (Optional) schema helper for `normalize*`; generate `dataFieldsDocSpec` from the schemas | `core/data/*` | Med | L | P2.3 |
 
 ### Phase 3: Defense loop state and per-frame performance
 
@@ -428,7 +416,7 @@ Every phase leaves the game shippable. Effort: **S** is up to half a day, **M** 
 
 | ID | Item | Files | Risk | Effort | Depends on |
 |---|---|---|---|---|---|---|
-| P5.1 | `SpellMechanicHandler` table; one module per mechanic family (projectile, blast/cone, channel, utility: blink/buff/ice wall/heal) | `scenes/defense/DefenseSpellResolve.ts`, `combat/SpellEffects.ts` | Med | M | P2.4, P3.2 |
+| P5.1 | `SpellMechanicHandler` table; one module per mechanic family (projectile, blast/cone, channel, utility: blink/buff/ice wall/heal) | `scenes/defense/DefenseSpellResolve.ts`, `combat/SpellEffects.ts` | Med | M | P2.3, P3.2 |
 | P5.2 | Split `DefenseSpellDirector` into `SpellQueue`, `SpellAutoCaster`, `SpellChannelRunner`; `SpellFxRegistry` owns the nullable FX handles | `scenes/defense/DefenseSpellDirector.ts`, `DefenseSpellChannel.ts`, `DefenseSpellTelegraphs.ts`, `DefenseSpellWorldTick.ts` | Med | M | P5.1 |
 | P5.3 | Split `combat/` into `combat/rules/` and `combat/fx/` (moves only) | 47 files + imports | Low | S | P1.10 |
 
@@ -489,11 +477,11 @@ Phase 6 can run in parallel with Phases 2–5 because it touches different files
 
 1. **QW1 + QW2 + QW3 + QW4: defense-loop hot path.** Cheap, low risk, and they remove O(n²) per-frame allocation and per-frame URL parsing. They matter most on Android.
 2. **P1.x + P0.1/P0.2: break the 17 runtime cycles and enforce layers.** Every later move gets safer, and the E2E/debug code leaves production paths.
-3. **P2.1–P2.3: one source of truth for data and tuning.** This removes the Proxy globals, the bundled-plus-fetched JSON and the hidden singletons, and it unlocks faster tests.
+3. **P2.1–P2.2: one read-only tuning object.** This removes the 16 Proxy-sentinel globals and unlocks faster tests. (The bundled-plus-fetched JSON config stays as it is, by design.)
 4. **P3.2 + P3.4: `DefenseRunState` / `DefenseServices` and pure night-end rules.** They remove the 149-line host proxy and restore the documented scene/rules invariant.
 5. **P4.1–P4.3: enemy behaviour registry with typed per-behaviour state.** It is the biggest maintainability win for adding enemies, which is the main content-growth path.
 
-**Totals:** 10 quick wins plus 9 phases (P0–P8) with 51 phased items.
+**Totals:** 10 quick wins plus 9 phases (P0–P8) with 50 phased items.
 
 ---
 
