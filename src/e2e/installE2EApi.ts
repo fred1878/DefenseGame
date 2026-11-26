@@ -13,6 +13,8 @@ import {
 } from "../core/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
+import { isAnyTownSetupSceneActive } from "../scenes/town/townSetupSceneLifecycle";
+import { activeTownUiHost } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { positionDomMirrors } from "./installE2EDom";
 
@@ -176,9 +178,8 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getUiTapTargets() {
       const defense = activeDefense(game);
       if (defense) return defense.e2e.getUiTapTargets();
-      const town = game.scene.getScene("Town") as TownScene | null;
-      if (town?.scene.isActive()) return town.e2eGetUiTapTargets();
-      return {};
+      const town = activeTownUiHost(game);
+      return town?.e2eGetUiTapTargets() ?? {};
     },
     getSpellSlotHitRects() {
       return activeDefense(game)?.e2e.getSpellSlotHitRects() ?? [];
@@ -186,7 +187,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     isUiButtonPressed(testId: string) {
       const defense = activeDefense(game);
       if (defense) return defense.e2e.isTouchButtonPressed(testId);
-      const town = game.scene.getScene("Town") as TownScene | null;
+      const town = activeTownUiHost(game) as TownScene | null;
       if (town?.scene.isActive()) return town.e2eIsTouchButtonPressed(testId);
       return false;
     },
@@ -199,8 +200,8 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         positionDomMirrors(defense.e2e.getUiTapTargets());
         return;
       }
-      const town = game.scene.getScene("Town") as TownScene | null;
-      if (town?.scene.isActive()) {
+      const town = activeTownUiHost(game);
+      if (town) {
         positionDomMirrors(town.e2eGetUiTapTargets());
       }
     },
@@ -306,11 +307,13 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getTownBuildingDebugRectCount(): number {
       const town = game.scene.getScene("Town") as TownScene | null;
-      return town?.scene.isActive() ? town.e2eTownBuildingDebugRectCount() : 0;
+      if (!town?.scene.isActive()) return 0;
+      if (isAnyTownSetupSceneActive(game)) return 0;
+      return town.e2eTownBuildingDebugRectCount();
     },
     getTownTouchDebugRectCount(): number {
-      const town = game.scene.getScene("Town") as TownScene | null;
-      return town?.scene.isActive() ? town.e2eTownTouchDebugRectCount() : 0;
+      const town = activeTownUiHost(game) as TownScene | null;
+      return town?.e2eTownTouchDebugRectCount() ?? 0;
     },
     openSpellSortPanel() {
       const town = game.scene.getScene("Town") as TownScene | null;

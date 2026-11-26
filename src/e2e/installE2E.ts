@@ -7,6 +7,7 @@ import { MELEE_FX_ASSETS } from "../content/meleeFxAssets";
 import { SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
+import { activeTownUiHost, e2eReportsTownScene } from "./townUiHost";
 import { isE2EEnabled } from "./e2eMode";
 import { defaultE2EState, publishE2E } from "./e2eGlobal";
 import { buildApi } from "./installE2EApi";
@@ -31,16 +32,26 @@ export function attachE2EGame(game: Phaser.Game): void {
   ensureDomTestActions(api);
 
   const publishScene = (): void => {
-    const active = game.scene.getScenes(true).find((s) => s.scene.isActive());
-    const key = active?.scene.key ?? "unknown";
+    const townScene = game.scene.getScene("Town");
+    const townRunning = townScene?.scene.isActive() === true;
+    const defense = game.scene.getScene("Defense");
+    const defenseActive = defense?.scene.isActive() === true;
+    const townLogical = e2eReportsTownScene(game);
+    const key =
+      defenseActive && !townRunning
+        ? "Defense"
+        : townLogical
+          ? "Town"
+          : (game.scene.getScenes(true).find((s) => s.scene.isActive())?.scene
+              .key ?? "unknown");
     const ready = key === "Town" || key === "Defense";
     const patch: Parameters<typeof publishE2E>[0] = {
       scene: key,
       ready,
     };
     if (key === "Town" && ready) {
-      const town = active as TownScene;
-      positionDomMirrors(town.e2eGetUiTapTargets());
+      const townHost = activeTownUiHost(game) as TownScene;
+      positionDomMirrors(townHost.e2eGetUiTapTargets());
     }
     if (key === "Defense") {
       const defense = game.scene.getScene("Defense") as DefenseScene | null;

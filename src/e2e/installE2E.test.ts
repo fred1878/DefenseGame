@@ -72,14 +72,17 @@ describe("installE2E", () => {
       getUiTapTargets: vi.fn(() => ({ "combat-atk": { x: 1, y: 2 } })),
     };
     const defense = {
-      scene: { isActive: (): boolean => true, key: "Defense" },
+      scene: {
+        isActive: (): boolean => activeKey === "Defense",
+        key: "Defense",
+      },
       e2e: defenseE2e,
     };
+    let activeKey = "Town";
     const town = {
-      scene: { isActive: (): boolean => true, key: "Town" },
+      scene: { isActive: (): boolean => activeKey === "Town", key: "Town" },
       e2eGetUiTapTargets: vi.fn(() => ({ "start-night": { x: 3, y: 4 } })),
     };
-    let activeKey = "Town";
     const game = {
       events: {
         on: vi.fn((event: string, fn: () => void) => {
