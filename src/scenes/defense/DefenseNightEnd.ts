@@ -2,6 +2,7 @@ import type Phaser from "phaser";
 import {
   applyEndlessRunExit,
   applyNightResult,
+  nightGoldEarned,
   persistSave,
 } from "../../core/GameState";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
@@ -203,9 +204,7 @@ export function runDefenseCampaignNightEnd(
   const wallDamage = input.wallHpStart - finalWallHp;
   const result: NightResult = {
     won: input.won,
-    goldEarned: input.won
-      ? input.rewardGold
-      : Math.floor(input.rewardGold * 0.25),
+    goldEarned: nightGoldEarned(input.won, input.rewardGold),
     wallDamage,
     night: input.save.night,
     drops: rollNightDrops(

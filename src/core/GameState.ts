@@ -220,6 +220,16 @@ export function applyEndlessRunExit(
   };
 }
 
+/** Share of a night's `rewardGold` paid when the night is lost. */
+const LOST_NIGHT_GOLD_PCT = 25;
+
+/** Gold paid at campaign night end: full reward on a win, a quarter on a loss. */
+export function nightGoldEarned(won: boolean, rewardGold: number): number {
+  return won
+    ? rewardGold
+    : Math.floor((rewardGold * LOST_NIGHT_GOLD_PCT) / 100);
+}
+
 export function applyNightResult(
   save: SaveGame,
   result: NightResult,

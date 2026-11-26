@@ -24,3 +24,6 @@ android/captures/
 android/*.iml
 android/.idea/
 .capacitor/
+
+# Economy simulator output (npm run sim:economy)
+sim-output/
