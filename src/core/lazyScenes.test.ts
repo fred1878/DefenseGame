@@ -1,8 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ensureDebugMenuScene, resetLazyScenesForTests } from "./lazyScenes";
+import {
+  ensureDebugMenuScene,
+  ensureEndlessModeSetupScene,
+  ensureWavePlannerSetupScene,
+  resetLazyScenesForTests,
+} from "./lazyScenes";
 
 vi.mock("../scenes/DebugMenuScene", () => ({
   DebugMenuScene: class DebugMenuScene {},
+}));
+
+vi.mock("../scenes/EndlessModeSetupScene", () => ({
+  EndlessModeSetupScene: class EndlessModeSetupScene {},
+}));
+
+vi.mock("../scenes/WavePlannerSetupScene", () => ({
+  WavePlannerSetupScene: class WavePlannerSetupScene {},
 }));
 
 describe("ensureDebugMenuScene", () => {
@@ -69,5 +82,55 @@ describe("ensureDefenseScene leftover branches", () => {
     } as unknown as Phaser.Game;
     await ensureDefenseScene(already);
     expect(already.scene.add).not.toHaveBeenCalled();
+  });
+});
+
+describe("ensureEndlessModeSetupScene", () => {
+  beforeEach(() => {
+    resetLazyScenesForTests();
+  });
+
+  it("registers TownEndlessSetup when not yet on the game", async () => {
+    const add = vi.fn();
+    const game = {
+      scene: {
+        getScene: vi.fn(() => null),
+        add,
+      },
+    } as unknown as Phaser.Game;
+
+    await ensureEndlessModeSetupScene(game);
+
+    expect(game.scene.getScene).toHaveBeenCalledWith("TownEndlessSetup");
+    expect(add).toHaveBeenCalledWith(
+      "TownEndlessSetup",
+      expect.any(Function),
+      false,
+    );
+  });
+});
+
+describe("ensureWavePlannerSetupScene", () => {
+  beforeEach(() => {
+    resetLazyScenesForTests();
+  });
+
+  it("registers TownWavePlannerSetup when not yet on the game", async () => {
+    const add = vi.fn();
+    const game = {
+      scene: {
+        getScene: vi.fn(() => null),
+        add,
+      },
+    } as unknown as Phaser.Game;
+
+    await ensureWavePlannerSetupScene(game);
+
+    expect(game.scene.getScene).toHaveBeenCalledWith("TownWavePlannerSetup");
+    expect(add).toHaveBeenCalledWith(
+      "TownWavePlannerSetup",
+      expect.any(Function),
+      false,
+    );
   });
 });

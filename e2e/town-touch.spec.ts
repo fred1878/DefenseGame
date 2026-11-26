@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
-import { dragCanvas, getTapTarget, tapCanvas } from "./helpers/touch";
+import {
+  dragCanvas,
+  getTapTarget,
+  tapCanvas,
+  waitForTapTargets,
+} from "./helpers/touch";
 
 test("drag-off Start night clears pressed visual and stays in Town", async ({
   page,
@@ -77,6 +82,7 @@ test("Haunted Well reopens endless panel after close and campaign night", async 
   await page.evaluate(() =>
     window.__DEFENSEGAME_E2E__?.api?.openEndlessPanel(),
   );
+  await waitForTapTargets(page, ["endless-close"]);
   const close = await getTapTarget(page, "endless-close");
   await tapCanvas(page, close.x, close.y);
   await expect

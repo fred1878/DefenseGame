@@ -8,7 +8,7 @@ globs:
 alwaysApply: false
 ---
 
-- `TownScene` coordinates `town/TownOverlays.ts` (spell sort, endless, wave planner and debug panels), `TownHeader.ts` and `TownTouchDebug.ts`. Put new panel lifecycle code in TownOverlays, not on the scene.
+- `TownScene` coordinates `town/TownOverlays.ts` (spell sort, save menu, debug launch), `TownHeader.ts` and `TownTouchDebug.ts`. Endless roster and wave planner use lazy scenes `TownEndlessSetup` / `TownWavePlannerSetup` (`townSetupSceneLifecycle.ts`) with Town paused.
 - Building actions come from `town_buildings.json` flags (`startsNight`, `upgradeId`, `opensSpellBar`, `opensEndlessMode`, `opensWavePlanner`), routed by `townBuildingMenu.ts`.
 - Defense runs start through `beginDefenseRun` with a run mode (campaign, endless or wave planner). The town applies `NightResult` once, on return.
 - E2E tap targets: `town/TownSceneE2E.ts` (`town-building-<id>`) plus each panel's `e2eTapTargets()`.
