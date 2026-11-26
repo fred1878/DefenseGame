@@ -10,7 +10,7 @@ import {
 
 /**
  * Screenshot checks for the main screens (Town, Endless panel with a
- * scrolled roster, Wave planner, Defense, Blacksmith, Inventory). They catch rendering regressions
+ * scrolled roster, Wave planner, Defense, Blacksmith, Inventory, Talents). They catch rendering regressions
  * that layout/tap-target tests can't, e.g. the roster list losing its clip mask
  * and drawing over the footer.
  *
@@ -201,4 +201,32 @@ test("visual: inventory (equipped slots, bag and detail)", async ({ page }) => {
   await waitFrames(page, 20);
   await freezeGameLoop(page);
   await expect(page).toHaveScreenshot("inventory.png", SHOT);
+});
+
+test("visual: talent tree (blades learned, arcane study selected)", async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.setSave({
+      gold: 260,
+      night: 6,
+      talents: {
+        ranks: {
+          sharpened_edge: 3,
+          heavy_swing: 2,
+          wide_arc: 1,
+          arcane_study: 2,
+        },
+        earned: 10,
+      },
+    });
+  });
+  await waitForTapTargets(page, ["town-talents"]);
+  await tapTarget(page, "town-talents");
+  await waitForTapTargets(page, ["talents-close", "talents-node-arcane_study"]);
+  await tapTarget(page, "talents-node-arcane_study");
+  await waitForTapTargets(page, ["talents-learn"]);
+  await waitFrames(page, 20);
+  await freezeGameLoop(page);
+  await expect(page).toHaveScreenshot("talent-tree.png", SHOT);
 });
