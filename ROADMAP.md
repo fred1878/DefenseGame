@@ -15,10 +15,13 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 |------|--------|
 | **Phaser 4.2.1** | Custom trimmed vendor chunk; Vite 8 / Vitest 5 |
 | **Strict TypeScript** | `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `allowImportingTsExtensions` |
-| **Test coverage** | Around 80% lines; thresholds 75 / 75 / 75, branches 69 |
+| **Test coverage** | Around 98% lines, 96% branches; thresholds 95 / 95 / 95, branches 90 |
 | **Combat targeting fixes** | [#340](https://github.com/fred1878/DefenseGame/pull/340) — chain-lightning first hop, nearest-enemy fallback skips dead enemies, projectile knockback at the impact point |
 | **Installable PWA** | Web app manifest + service worker on GitHub Pages; precaches JS chunks (including Phaser and lazy scenes), data, images and audio. A new deploy activates on the next load |
-| **Damage numbers** | Being implemented separately (dedicated font, styling by damage type). Track it there; do not duplicate the work here |
+| **Damage numbers** | Pixelify Sans popups styled by damage type, pooled and combined per target |
+| **Equipment (Milestone H)** | [#362](https://github.com/fred1878/DefenseGame/pull/362) — 11 slots (melee, ranged, helm, chest, hands, legs, boots, 2 rings, 2 trinkets); `public/data/items.json` with item levels, 5 rarities, random affixes and authored uniques; armour (diminishing), attack speed, spell power, damage, HP, move speed, lifesteal / burn / chain procs, element and named-spell boosts; weapons change attack style |
+| **Inventory and drops (Milestone H)** | [#363](https://github.com/fred1878/DefenseGame/pull/363) — Gear panel (equip, unequip, compare, sort, sell for half price); end-of-night drops scaled by night from `public/data/loot.json`, with a `rollLoot` hook for adventure drops |
+| **Shops and consumables (Milestone H)** | [#364](https://github.com/fred1878/DefenseGame/pull/364) — Trader in the night Market Stall (random stock, rerolls after each night) and Blacksmith at the Moon Brazier (catalogue unlocks by night; replaces the old damage upgrade); potions and bombs from `public/data/consumables.json`, usable in combat via buttons or Q / E |
 
 ---
 
@@ -36,7 +39,7 @@ Spell interactions come next after remaining campaign polish because they sit on
 | **3** | Milestone **B** remaining content (campaign ending after night 12, night polish) | M–L |
 | **4** | Milestone **C** remaining (cone art VFX, **spell interactions**). Damage numbers are in progress separately | M–L |
 | **5** | Milestone **G** — Fully upgradeable town | L |
-| **6** | Milestone **H** — Equipment, shops, and traders | L |
+| **6** | Milestone **H** — Equipment, shops, and traders — core **done** (see Recently landed); follow-ups below | L |
 | **7** | Milestone **I** — Talents | L |
 | **8** | Milestone **J** — Wall defenses (tower-defense maze) | XL |
 | **9** | Milestone **K** — Daytime adventuring and quests | XL |
@@ -85,10 +88,10 @@ Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done)
 | Waves nights 1–10 | M | Yes | Balance pass; docs in `WAVES.md` |
 | 12 enemy types | L | Yes | More behaviors tied to buildings; tuning |
 | Wall win/lose + `NightResult` | M | Yes | Clearer lose UX; endless vs campaign rules |
-| Wall + smith upgrades | M | Yes | More upgrade types — expanded in Milestone **G** |
+| Wall upgrades | M | Yes | More upgrade types — expanded in Milestone **G**. The smith damage upgrade was replaced by gear (Milestone **H**) |
 | Gallows / spell bar buildings | S | Yes | Art and copy |
 | **Campaign after night 12** | M | No | Ending or NG+; stop repeating night 12 wave |
-| **Unwired town buildings** | M | Partial | Haunted Well (endless) and Plague Clinic (wave planner) are wired; both Market Stalls are folded into Milestones **G** and **H** |
+| **Unwired town buildings** | M | Yes | Haunted Well (endless), Plague Clinic (wave planner), Market Stall (night, Trader) and Market Stall (daylit, saves) are all wired |
 | Endless concurrent spawn (if on `main`) | M | Partial | Polish, balance, docs |
 
 ---
@@ -104,7 +107,7 @@ Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done)
 | **Cone / cone-of-fire VFX** | S | Gameplay only | Replace `SpellConeFx.ts` Graphics wedge with art |
 | **Enemy + projectile pooling** | L | Yes | Landed (`projectilePool.ts`, `DefenseEnemySpawner`); profile on low-end phones |
 | **Spell interactions / combos** | L | No | Spells affect each other: freeze + lightning shatters, fire spreads through groups, rain boosts lightning, and similar combos. Reward spell-bar order and timing |
-| **Damage numbers** | M | In progress separately | Popup numbers with a dedicated font, styled by damage type (fire, frost, lightning, physical, holy, etc.). Owned by that separate work |
+| **Damage numbers** | M | Yes | Tuning only (`src/config/damageNumbers.ts`) |
 
 ---
 
@@ -116,9 +119,9 @@ Deepen the existing day phase so the town itself is the long-term progression su
 |------|--------|----------------|----------------|
 | Upgradeable walls | M | Partial | Wall HP upgrades exist; more tiers, visuals, and gates for later wall-defense slots |
 | Economic buildings (income) | L | No | Buildings that generate gold (or materials) between nights; upgrade their yield |
-| Market stalls | M | Visible only | Wire both stalls as upgradeable shops (see also Milestone **H**) |
-| Blacksmith | M | Partial | Expand beyond current smith upgrades; weapon/armour craft or reinforcement |
-| Traders | M | No | Trader buildings or visiting traders with rotating stock |
+| Market stalls | M | Wired | Night stall is the Trader, daylit stall holds saves; make shop tiers upgradeable (bigger stock, better rarities) |
+| Blacksmith | M | Shop | Moon Brazier sells a catalogue unlocking by night; add crafting, reforging affixes or upgrading item level |
+| Traders | M | Partial | One Trader with daily random stock; add visiting traders or themed stock |
 | Town centre | L | No | A central building that unlocks civic upgrades and later features |
 | Upgrade the buildings themselves | L | Partial | Every building has tiers (look, bonuses, unlocks), not only a single purchase |
 
@@ -128,8 +131,12 @@ Deepen the existing day phase so the town itself is the long-term progression su
 
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
-| Gear slots and stats | L | `weaponId` persisted only | Equip armour, weapons, trinkets; stats that affect nights and later daytime runs |
-| Equipment shops / traders | L | Market stalls unwired | Buy, sell, and refresh stock in town; ties to traders in Milestone **G** |
+| Gear slots and stats | L | **Done** ([#362](https://github.com/fred1878/DefenseGame/pull/362), [#363](https://github.com/fred1878/DefenseGame/pull/363)) | Balance pass once more nights exist; more uniques and affixes; gear visuals on the player sprite |
+| Equipment shops / traders | L | **Done** ([#364](https://github.com/fred1878/DefenseGame/pull/364)) | Shop tiers via Milestone **G** upgrades; buy-back of sold items |
+| Consumables | M | Potions and bombs | More types (shields, wall repair kits, scrolls); a consumable belt / slot choice |
+| Adventure drops | M | Hook only (`rollLoot`) | Wire into daytime adventures (Milestone **K**) with their own loot tables |
+| Item sets and crafting | L | No | Set bonuses, salvage into materials, crafting at the blacksmith |
+| Stash | S | No | Storage beyond the 40-slot bag |
 
 ---
 
