@@ -99,7 +99,7 @@ describe("scheduleWave", () => {
         { enemyId: "grunt", count: 1, atMs: 10, intervalMs: 0, hpMul: 2.5 },
         { enemyId: "grunt", count: 1, atMs: 20, intervalMs: 0, damageMul: 2 },
       ],
-    } as WaveDef;
+    } as unknown as WaveDef;
     scheduleWave(
       asScene(scene),
       store({ grunt }),
