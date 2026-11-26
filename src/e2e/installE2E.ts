@@ -33,7 +33,9 @@ export function attachE2EGame(game: Phaser.Game): void {
 
   const publishScene = (): void => {
     const townScene = game.scene.getScene("Town");
-    const townRunning = townScene?.scene.isActive() === true;
+    const townRunning =
+      townScene?.scene.isActive() === true ||
+      townScene?.scene.isPaused?.() === true;
     const defense = game.scene.getScene("Defense");
     const defenseActive = defense?.scene.isActive() === true;
     const townLogical = e2eReportsTownScene(game);

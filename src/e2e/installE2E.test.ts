@@ -80,7 +80,11 @@ describe("installE2E", () => {
     };
     let activeKey = "Town";
     const town = {
-      scene: { isActive: (): boolean => activeKey === "Town", key: "Town" },
+      scene: {
+        isActive: (): boolean => activeKey === "Town",
+        isPaused: (): boolean => false,
+        key: "Town",
+      },
       e2eGetUiTapTargets: vi.fn(() => ({ "start-night": { x: 3, y: 4 } })),
     };
     const game = {

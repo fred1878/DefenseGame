@@ -144,7 +144,7 @@ export class EndlessModeSetupScene extends Phaser.Scene {
   }
 
   e2eIsOpen(): boolean {
-    return this.panel !== null;
+    return this.panel !== null || this.loading !== null;
   }
 
   e2eIsLoading(): boolean {

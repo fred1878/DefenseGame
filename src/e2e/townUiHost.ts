@@ -26,12 +26,13 @@ export function activeTownUiHost(game: Phaser.Game): TownUiE2EHost | null {
   if (wave?.scene.isActive()) return wave;
 
   const town = game.scene.getScene("Town") as TownScene | null;
-  if (town?.scene.isActive()) return town;
+  const townPaused = town?.scene.isPaused?.() === true;
+  if (town && (town.scene.isActive() || townPaused)) return town;
   return null;
 }
 
 export function e2eReportsTownScene(game: Phaser.Game): boolean {
   const town = game.scene.getScene("Town") as TownScene | null;
-  if (town?.scene.isActive()) return true;
+  if (town?.scene.isActive() || town?.scene.isPaused?.() === true) return true;
   return isAnyTownSetupSceneActive(game);
 }
