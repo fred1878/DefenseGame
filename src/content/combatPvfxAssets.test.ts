@@ -48,6 +48,8 @@ describe("combatPvfxAssets", () => {
         PVFX_ANIM.critHit,
         PVFX_ANIM.holyCast,
         PVFX_ANIM.shadowCast,
+        PVFX_ANIM.flameRing,
+        PVFX_ANIM.incinerate,
       ]),
     );
   });

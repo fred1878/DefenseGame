@@ -8,6 +8,8 @@ import {
 } from "./DefenseSpellDirector";
 import type { SpellDefinition } from "../../content/spells";
 import { setSpellCatalog } from "../../content/spells";
+import { PVFX_ANIM, PVFX_FX_ASSETS } from "../../content/combatPvfxAssets";
+import { asScene, fakeScene } from "../../test/fakeScene";
 import bundledSpells from "../../../public/data/spells.json";
 
 const coneOfFire = (): SpellDefinition => {
@@ -17,27 +19,15 @@ const coneOfFire = (): SpellDefinition => {
 };
 
 function makeHost(spellCaster: SpellCastController): DefenseSpellDirectorHost {
-  const gfx = {
-    setDepth: vi.fn(),
-    fillStyle: vi.fn(),
-    lineStyle: vi.fn(),
-    beginPath: vi.fn(),
-    moveTo: vi.fn(),
-    arc: vi.fn(),
-    closePath: vi.fn(),
-    fillPath: vi.fn(),
-    strokePath: vi.fn(),
-    destroy: vi.fn(),
-  };
+  const scene = asScene(
+    fakeScene({
+      textures: PVFX_FX_ASSETS.map((a) => a.key),
+      anims: Object.values(PVFX_ANIM),
+    }),
+  );
+  scene.registry.get = () => 1;
   return {
-    scene: {
-      registry: { get: () => 1 },
-      add: { graphics: () => gfx },
-      time: { delayedCall: vi.fn() },
-      tweens: { add: vi.fn() },
-      cache: { audio: { exists: () => false } },
-      sound: { play: vi.fn() },
-    } as unknown as Phaser.Scene,
+    scene,
     save: { buildings: {} } as unknown as DefenseSpellDirectorHost["save"],
     player: {
       sprite: { x: 0, y: 0, setVelocity: vi.fn() },

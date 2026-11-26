@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SpellDefinition } from "../content/spells";
-import { fireNovaRingDurationMs, showFireNovaRingFx } from "./FireNovaRingFx";
+import {
+  PVFX_ANIM,
+  PVFX_FX_ASSETS,
+  PVFX_TEXTURE,
+} from "../content/combatPvfxAssets";
+import { asScene, fakeScene } from "../test/fakeScene";
+import {
+  fireNovaRingDurationMs,
+  FLAME_RING_PEAK_OUTER_RADIUS_PX,
+  flameRingDisplaySize,
+  showFireNovaRingFx,
+} from "./FireNovaRingFx";
 
 function instantNova(partial: Partial<SpellDefinition> = {}): SpellDefinition {
   return {
@@ -36,75 +47,43 @@ describe("fireNovaRingDurationMs", () => {
   });
 });
 
-describe("showFireNovaRingFx", () => {
-  it("starts an expanding ring tween", () => {
-    const tweenAdd = vi.fn();
-    const gfx = {
-      clear: vi.fn(),
-      fillStyle: vi.fn(),
-      fillCircle: vi.fn(),
-      lineStyle: vi.fn(),
-      strokeCircle: vi.fn(),
-      setDepth: vi.fn(),
-      destroy: vi.fn(),
-    };
-    const scene = {
-      add: { graphics: () => gfx },
-      tweens: { add: tweenAdd },
-    } as unknown as Phaser.Scene;
-    const register = vi.fn();
-
-    showFireNovaRingFx(scene, 50, 60, 100, 320, register);
-
-    expect(register).toHaveBeenCalledWith(gfx);
-    expect(tweenAdd).toHaveBeenCalledOnce();
-    const cfg = tweenAdd.mock.calls[0]![0] as {
-      targets: { t: number };
-      t: number;
-    };
-    expect(cfg.targets.t).toBe(0);
-    expect(cfg.t).toBe(1);
+describe("flameRingDisplaySize", () => {
+  it("scales so peak art radius matches blastRadiusPx", () => {
+    const blastRadiusPx = 104;
+    const { width, height } = flameRingDisplaySize(blastRadiusPx);
+    const scale = blastRadiusPx / FLAME_RING_PEAK_OUTER_RADIUS_PX;
+    expect(width / 112).toBeCloseTo(scale, 5);
+    expect(height / 80).toBeCloseTo(scale, 5);
   });
 });
 
-describe("FireNovaRingFx leftover branches", () => {
-  it("treats missing cast and channel times as an instant nova", () => {
-    expect(fireNovaRingDurationMs({} as never, 80)).toBe(
-      fireNovaRingDurationMs(instantNova({ castMs: 0, channelMs: 0 }), 80),
-    );
+describe("showFireNovaRingFx", () => {
+  it("plays PVFX flame-ring sized to blast radius", () => {
+    const allKeys = PVFX_FX_ASSETS.map((a) => a.key);
+    const scene = fakeScene({
+      textures: allKeys,
+      anims: Object.values(PVFX_ANIM),
+    });
+    const register = vi.fn();
+    const blastRadiusPx = 80;
+
+    showFireNovaRingFx(asScene(scene), 50, 60, blastRadiusPx, register);
+
+    expect(register).toHaveBeenCalledOnce();
+    const sprite = scene.made("sprite")[0]!;
+    expect(sprite.args[2]).toBe(PVFX_TEXTURE.flameRing);
+    const { width, height } = flameRingDisplaySize(blastRadiusPx);
+    expect(sprite.last("setDisplaySize")).toEqual([width, height]);
   });
 
-  it("draws the inner ring once the radius grows past 10", () => {
-    let cfg:
-      | {
-          targets: { t: number };
-          onUpdate?: () => void;
-          onComplete?: () => void;
-        }
-      | undefined;
-    const gfx = {
-      clear: vi.fn(),
-      fillStyle: vi.fn(),
-      fillCircle: vi.fn(),
-      lineStyle: vi.fn(),
-      strokeCircle: vi.fn(),
-      setDepth: vi.fn(),
-      destroy: vi.fn(),
-    };
-    const scene = {
-      add: { graphics: () => gfx },
-      tweens: {
-        add: vi.fn((c: typeof cfg) => {
-          cfg = c;
-          return c;
-        }),
-      },
-    } as unknown as Phaser.Scene;
-    showFireNovaRingFx(scene, 0, 0, 80, 320);
-    if (!cfg) throw new Error("expected a tween");
-    const midCalls = gfx.lineStyle.mock.calls.length;
-    cfg.targets.t = 1;
-    cfg.onUpdate?.();
-    expect(gfx.lineStyle.mock.calls.length).toBeGreaterThan(midCalls);
+  it("throws when flame-ring assets are missing", () => {
+    const scene = fakeScene({
+      textures: PVFX_FX_ASSETS.map((a) => a.key).filter(
+        (k) => k !== PVFX_TEXTURE.flameRing,
+      ),
+    });
+    expect(() => showFireNovaRingFx(asScene(scene), 0, 0, 60)).toThrow(
+      /PVFX texture missing.*fire_nova/,
+    );
   });
 });
