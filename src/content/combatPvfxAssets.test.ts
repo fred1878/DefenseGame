@@ -50,6 +50,8 @@ describe("combatPvfxAssets", () => {
         PVFX_ANIM.shadowCast,
         PVFX_ANIM.flameRing,
         PVFX_ANIM.incinerate,
+        PVFX_ANIM.firePillar,
+        PVFX_ANIM.groundFlamesLoop,
       ]),
     );
   });

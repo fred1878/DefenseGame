@@ -37,6 +37,8 @@ export type SpellGroundZone = {
   lingerDotDps?: number | undefined;
   lingerDotMs?: number | undefined;
   didBurst?: boolean;
+  /** Flamestrike (etc.): tear down PVFX when the linger zone expires. */
+  destroyLingerFx?: (() => void) | undefined;
 };
 
 export function spawnGroundZone(
@@ -145,6 +147,8 @@ export function tickSpellGroundZones(
         }
       }
     }
-    return now < z.expiresAt;
+    const alive = now < z.expiresAt;
+    if (!alive) z.destroyLingerFx?.();
+    return alive;
   });
 }

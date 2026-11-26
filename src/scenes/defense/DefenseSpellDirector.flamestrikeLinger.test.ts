@@ -4,8 +4,10 @@ import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
+import { PVFX_ANIM, PVFX_FX_ASSETS } from "../../content/combatPvfxAssets";
 import { spellById } from "../../content/spells";
 import { spellCastMs } from "../../content/spellTargeting";
+import { asScene, fakeScene } from "../../test/fakeScene";
 
 function flamestrikeHost(
   spellCaster: SpellCastController,
@@ -16,15 +18,6 @@ function flamestrikeHost(
     setWorldPosition: vi.fn(),
     setProgress: vi.fn(),
   };
-  const gfx = {
-    setDepth: vi.fn(),
-    clear: vi.fn(),
-    lineStyle: vi.fn(),
-    fillStyle: vi.fn(),
-    strokeCircle: vi.fn(),
-    fillCircle: vi.fn(),
-    destroy: vi.fn(),
-  };
   const player = {
     sprite: { x: 10, y: 20, setVelocity: vi.fn() },
     getFacingAngle: () => 0,
@@ -32,13 +25,14 @@ function flamestrikeHost(
     setVelocityFromStick: vi.fn(),
     damageable: { hp: 100, maxHp: 100, alive: true },
   };
+  const scene = asScene(
+    fakeScene({
+      textures: PVFX_FX_ASSETS.map((a) => a.key),
+      anims: Object.values(PVFX_ANIM),
+    }),
+  );
   return {
-    scene: {
-      registry: { get: () => undefined },
-      add: { graphics: () => gfx },
-      cache: { audio: { exists: () => false } },
-      sound: { play: vi.fn() },
-    } as unknown as Phaser.Scene,
+    scene,
     save: { buildings: {} } as unknown as DefenseSpellDirectorHost["save"],
     player: player as unknown as DefenseSpellDirectorHost["player"],
     enemies: [],
@@ -95,9 +89,10 @@ describe("DefenseSpellDirector flamestrike", () => {
 
     expect(spellCaster.isChanneling()).toBe(false);
     expect(host.castBar.setVisible).toHaveBeenCalledWith(false);
-    expect(host.lingerAoeTelegraph).not.toBeNull();
+    expect(host.lingerAoeTelegraph).toBeNull();
     expect(host.spellGroundZones).toHaveLength(1);
     expect(host.spellGroundZones[0]?.lingerDotDps).toBeGreaterThan(0);
+    expect(host.spellGroundZones[0]?.destroyLingerFx).toBeTypeOf("function");
   });
 });
 
