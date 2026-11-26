@@ -126,4 +126,39 @@ describe("ShopPanel", () => {
       /Sold out — new stock after the next night/,
     );
   });
+
+  it("sells to trader requests on the Wants tab", () => {
+    const s = panelSave(2, 0, [owned(1, "rusty_sword")]);
+    s.shops.trader = [];
+    s.shops.requests = [
+      { kind: "base", baseId: "rusty_sword" },
+      { kind: "type", itemType: "ring", minRarity: "magic" },
+    ];
+    const h = open("trader", s);
+    expect(h.ids()).toContain("shop-tab-wants");
+    h.tap("shop-tab-wants");
+    let t = h.texts().join("\n");
+    expect(t).toMatch(/TRADER WANTS/i);
+    expect(t).toMatch(/Requests pay 150%/);
+    expect(h.ids()).not.toContain("shop-chip-all");
+    expect(h.ids()).not.toContain("shop-sort");
+    expect(h.ids()).not.toContain("shop-fill");
+    h.tap("shop-card-1"); // no ring in the bag: Sell stays disabled
+    expect(h.ids()).not.toContain("shop-fill");
+    expect(h.texts().join("\n")).toMatch(/Nothing in your bag matches/);
+    h.tap("shop-card-0");
+    h.tap("shop-fill");
+    expect(h.save().gold).toBeGreaterThan(0);
+    expect(h.save().gear.items).toHaveLength(0);
+    expect(h.save().shops.requests).toHaveLength(1);
+    t = h.texts().join("\n");
+    expect(t).toMatch(/Trader paid \d+g/);
+    const none = panelSave(2, 0);
+    none.shops.trader = [];
+    none.shops.requests = [];
+    const e = open("trader", none);
+    e.tap("shop-tab-wants");
+    expect(e.texts().join("\n")).toMatch(/No requests left/);
+    expect(open("blacksmith").ids()).not.toContain("shop-tab-wants");
+  });
 });

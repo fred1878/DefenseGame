@@ -32,6 +32,34 @@ describe("normalizeShops", () => {
     expect(() => normalizeShops(d)).toThrow(/title/);
   });
 
+  it("parses trader buy requests", () => {
+    const cfg = normalizeShops(shopsRaw);
+    expect(cfg.trader.requestCount).toBeGreaterThan(0);
+    expect(cfg.trader.requests.payoutPct).toBe(150);
+    const a = clone();
+    a.trader.requests = { kindWeights: { unique: 2 } };
+    const r = normalizeShops(a).trader.requests;
+    // Kinds missing from kindWeights never roll; other fields default.
+    expect(r.kindWeights).toEqual({ base: 0, type: 0, unique: 2 });
+    expect(r.payoutPct).toBe(150);
+    expect(r.minRarityWeights.magic).toBe(1);
+    const b = clone();
+    b.trader.requests = { kindWeights: { shiny: 1 } };
+    expect(() => normalizeShops(b)).toThrow(/kindWeights/);
+    const c = clone();
+    c.trader.requests = "x";
+    expect(() => normalizeShops(c)).toThrow(/requests/);
+    const d = clone();
+    d.trader.requests = { payoutPct: "x" };
+    expect(() => normalizeShops(d)).toThrow(/payoutPct/);
+    const e = clone();
+    e.trader.requests = { minRarityWeights: { rare: 1 } };
+    expect(normalizeShops(e).trader.requests.minRarityWeights).toMatchObject({
+      rare: 1,
+      magic: 0,
+    });
+  });
+
   it("parses upgrade levels and fills defaults", () => {
     const cfg = normalizeShops(shopsRaw);
     expect(cfg.trader.levels.length).toBeGreaterThan(0);
@@ -40,7 +68,8 @@ describe("normalizeShops", () => {
     // Rarities missing from shop weights never roll.
     expect(cfg.blacksmith.levels[0]!.stockRarityWeights?.common).toBe(0);
     const bare = clone();
-    for (const k of ["levels", "rerollCost"]) delete bare.trader[k];
+    for (const k of ["levels", "rerollCost", "requestCount", "requests"])
+      delete bare.trader[k];
     for (const k of [
       "levels",
       "stockCount",
@@ -58,6 +87,12 @@ describe("normalizeShops", () => {
       levels: [],
     });
     expect(d.blacksmith.stockRarityWeights.magic).toBe(1);
+    // Missing buy requests: none posted, default odds.
+    expect(d.trader.requestCount).toBe(0);
+    expect(d.trader.requests).toMatchObject({
+      payoutPct: 150,
+      kindWeights: { base: 1, type: 1, unique: 1 },
+    });
     const bad = clone();
     bad.trader.levels = [{ itemCount: "x" }];
     expect(() => normalizeShops(bad)).toThrow(/levels\[0\]\.itemCount/);

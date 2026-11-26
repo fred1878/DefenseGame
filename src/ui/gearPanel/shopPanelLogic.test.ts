@@ -28,7 +28,7 @@ describe("shopPanelLogic", () => {
     });
     expect(info.rerollCost).toBe(0);
     expect(info.current).toMatch(/^\d+ items · ilvl night\+0–\d · \d+% prices/);
-    expect(info.next).toMatch(/items.*reroll \d+g$/);
+    expect(info.next).toMatch(/items.*reroll \d+g · \d+ requests$/);
     s.buildings.trader = 3;
     expect(shopUpgradeInfo(up, s)).toMatchObject({ nextCost: null, next: "" });
     expect(shopPerksLine(shippedShopCtx, "blacksmith", 0)).toBe("list prices");

@@ -22,6 +22,8 @@ const E2E_METHODS = [
   "projectileCount",
   "attackMode",
   "livingEnemyHps",
+  "livingEnemyPositions",
+  "setAttackMode",
   "enemyCount",
   "setManualReturn",
   "nightEnded",
@@ -72,6 +74,7 @@ function defenseFns(): Record<(typeof E2E_METHODS)[number], Fn> {
   fns.projectileCount.mockReturnValue(2);
   fns.attackMode.mockReturnValue("melee");
   fns.livingEnemyHps.mockReturnValue([8, 3]);
+  fns.livingEnemyPositions.mockReturnValue([{ x: 1, y: 2, hp: 8 }]);
   fns.enemyCount.mockReturnValue(2);
   fns.nightEnded.mockReturnValue(false);
   fns.hasReturnButton.mockReturnValue(false);
@@ -310,6 +313,8 @@ describe("buildApi", () => {
     expect(api.getProjectileCount()).toBe(0);
     expect(api.getAttackMode()).toBeNull();
     expect(api.getLivingEnemyHps()).toEqual([]);
+    expect(api.getLivingEnemyPositions()).toEqual([]);
+    api.setAttackMode("ranged");
     expect(api.getEnemyCount()).toBe(0);
     expect(api.nightEnded()).toBe(false);
     expect(api.hasReturnButton()).toBe(false);
@@ -429,6 +434,9 @@ describe("buildApi", () => {
     expect(api.getProjectileCount()).toBe(2);
     expect(api.getAttackMode()).toBe("melee");
     expect(api.getLivingEnemyHps()).toEqual([8, 3]);
+    expect(api.getLivingEnemyPositions()).toEqual([{ x: 1, y: 2, hp: 8 }]);
+    api.setAttackMode("ranged");
+    expect(game.defenseMethods.setAttackMode).toHaveBeenCalledWith("ranged");
     expect(api.getEnemyCount()).toBe(2);
     expect(api.nightEnded()).toBe(false);
     expect(api.hasReturnButton()).toBe(false);

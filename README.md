@@ -26,7 +26,7 @@ After merging to `main`, Pages updates automatically (see [docs/CI_RELEASES.md](
 2. **Defense (night)** — Move with the virtual stick, melee/ranged/auto combat, cast spells, use potions/bombs, keep wall HP above zero, clear waves.
 3. **Results** — Win or lose returns a `NightResult`; gold, loot, and wall damage apply in town (campaign shows a loot summary). Progress saves to **`localStorage`**.
 
-**Campaign content today:** nights **1–12** in `public/data/waves.json`. After night 12, wave data **repeats night 12** (`DataStore.getWaveForNight`).
+**Campaign content today:** nights **1–20** in `public/data/waves.json` (13–20 add tougher, harder-hitting and elite groups). After night 20, wave data **repeats night 20** (`DataStore.getWaveForNight`).
 
 ---
 
@@ -39,7 +39,7 @@ Verified against the current codebase (not a wish list):
 | **Scenes** | `BootScene` (load JSON + assets), `TownScene`, `DefenseScene`, `DebugMenuScene` |
 | **Save** | `GameState` persist/restore (autosave); five manual slots from the daylit Market Stall; town reset (tap twice on Town) |
 | **Enemies** | **12 types**, JSON-driven stats/behaviors (`public/data/enemies.json`) |
-| **Waves** | **12 nights** of scheduled groups + gold rewards |
+| **Waves** | **20 nights** of scheduled groups + gold rewards; per-group `hpMul` / `damageMul`, elites |
 | **Town** | Layout from `town_layout.json`; wall upgrades via Witchlight Beacon; **Moon Brazier** opens blacksmith + gear; **night Market Stall** opens trader + gear; daylit beacon opens spell sort panel |
 | **Gear & inventory** | 11 equipment slots, 40-slot bag, compare/sell/equip; night drops from `loot.json`; stats and procs from `items.json` ([#362](https://github.com/fred1878/DefenseGame/pull/362)–[#363](https://github.com/fred1878/DefenseGame/pull/363)) |
 | **Shops & consumables** | Trader (random stock, rerolls each night) and blacksmith catalogue (unlock by night); potions/bombs in combat ([#364](https://github.com/fred1878/DefenseGame/pull/364)) |
@@ -56,7 +56,7 @@ Verified against the current codebase (not a wish list):
 | **PWA** | Installable standalone app; service worker precaches JS (including the Phaser chunk and lazy-loaded scenes), JSON data, images and audio. Updates activate on the next load |
 | **Android app** | Capacitor APK on GitHub Releases; in-town **Check for update** installs a newer APK (native only) |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, **campaign ending after night 12** (wave 12 repeats indefinitely today), iOS / Play Store builds, spell combos, full upgradeable-town economy, talents, wall-defense maze, daytime adventuring. Equipment core **is** in — see [roadmap](./ROADMAP.md) for follow-ups (stash, buy-back, gear visuals, crafting).
+**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, **campaign ending after night 20** (wave 20 repeats indefinitely today), iOS / Play Store builds, spell combos, full upgradeable-town economy, talents, wall-defense maze, daytime adventuring. Equipment core **is** in — see [roadmap](./ROADMAP.md) for follow-ups (stash, buy-back, gear visuals, crafting).
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 

@@ -26,3 +26,14 @@ export function e2eManualReturnFromQuery(): boolean {
   if (typeof window === "undefined") return false;
   return new URL(window.location.href).searchParams.get("manualReturn") === "1";
 }
+
+/**
+ * When set, e2e runs the campaign night's real wave (random spawns) instead of
+ * an empty field — used by the win-model validation bot.
+ */
+export function e2eCampaignWavesFromQuery(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    new URL(window.location.href).searchParams.get("campaignWaves") === "1"
+  );
+}

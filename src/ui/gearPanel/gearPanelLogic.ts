@@ -31,6 +31,7 @@ import type { Rng } from "../../gear/rng";
 import {
   buyOffer,
   ensureShopStock,
+  fillTraderRequest,
   offerPrice,
   rerollTrader,
   shopLevel,
@@ -46,8 +47,11 @@ export const SHOP_CARDS_PER_PAGE_WITH_LOCKED = 10;
 /** Inventory bag grid: 7 × 3 tiles per page. */
 export const BAG_TILES_PER_PAGE = 21;
 
-/** `shop` = Buy tab, `bag` = Sell tab (shops) / the bag grid (inventory). */
-export type GearPanelTab = "bag" | "shop";
+/**
+ * `shop` = Buy tab, `bag` = Sell tab (shops) / the bag grid (inventory),
+ * `requests` = the trader's buy requests ("Wants", trader only).
+ */
+export type GearPanelTab = "bag" | "shop" | "requests";
 /** Inventory tabs. */
 export type GearPanelView = "gear" | "consumables";
 
@@ -64,7 +68,7 @@ export type GearPanelState = {
   tab: GearPanelTab;
   view: GearPanelView;
   filter: GearFilter;
-  /** Selected shop offer index (shop tab). */
+  /** Selected shop offer index (shop tab) or request index (requests tab). */
   selectedOffer: number | null;
   sort: ItemSortMode;
   page: number;
@@ -91,7 +95,8 @@ export type GearPanelCommand =
   | { type: "buy" }
   | { type: "buyEquip" }
   | { type: "upgradeShop" }
-  | { type: "reroll" };
+  | { type: "reroll" }
+  | { type: "fillRequest" };
 
 export type GearPanelContext = {
   catalog: GearCatalog;
@@ -287,6 +292,8 @@ export function listEntries(
   if (!ctx.shop && state.view === "consumables") {
     return carriedConsumables(ctx, save);
   }
+  // Buy requests are listed by requestPanelLogic, not as cards.
+  if (state.tab === "requests") return [];
   const all =
     state.tab === "shop" && ctx.shop
       ? shopEntries(ctx, save)
@@ -520,6 +527,20 @@ export function reduceGearPanel(
           ...state,
           selectedOffer: null,
           page: 0,
+          status: r.message,
+        }),
+      };
+    }
+    case "fillRequest": {
+      if (ctx.shop?.id !== "trader" || state.selectedOffer === null) {
+        return { save, state };
+      }
+      const r = fillTraderRequest(save, ctx.shop.ctx, state.selectedOffer);
+      return {
+        save: r.save,
+        state: clamp(r.save, {
+          ...state,
+          selectedOffer: r.ok ? null : state.selectedOffer,
           status: r.message,
         }),
       };

@@ -49,6 +49,7 @@ export function shopPerksLine(
       `odds ${rarityOdds(t.rarityWeights)}`,
     ];
     if (t.rerollCost > 0) parts.push(`reroll ${t.rerollCost}g`);
+    if (t.requestCount > 0) parts.push(plural(t.requestCount, "request"));
     return parts.join(" · ");
   }
   const b = blacksmithAt(ctx, level);

@@ -19,6 +19,14 @@ export type PowerModel = {
   threatScale: number;
   /** Win-chance steepness: chance = r^k / (1 + r^k), so r = 1 is 50%. */
   steepness: number;
+  /**
+   * Exponents of the offence / defence / wall ratios in the power ratio
+   * (sum 1). Calibrated against real combat runs (docs/ECONOMY_SIM.md,
+   * "Validating the win model").
+   */
+  offenceWeight: number;
+  defenceWeight: number;
+  wallWeight: number;
   /** Enemies a bomb is assumed to hit. */
   bombTargets: number;
   /** Share of lifesteal healing over the fight that counts as extra EHP. */
@@ -29,7 +37,10 @@ export const DEFAULT_POWER_MODEL: PowerModel = {
   spellBaseDps: 12,
   graceSec: 20,
   threatScale: 0.5,
-  steepness: 3,
+  steepness: 4,
+  offenceWeight: 0.2,
+  defenceWeight: 0.6,
+  wallWeight: 0.2,
   bombTargets: 3,
   lifestealUptime: 0.25,
 };
@@ -136,7 +147,7 @@ export type NightPressure = {
   offenceRatio: number;
   defenceRatio: number;
   wallRatio: number;
-  /** offence^0.5 × defence^0.25 × wall^0.25 (1 = even fight). */
+  /** offence^wo × defence^wd × wall^ww (model weights; 1 = even fight). */
   powerRatio: number;
   winChance: number;
 };
@@ -170,7 +181,9 @@ export function nightPressure(
   const defenceRatio = ratio(ehp, night.totalDamage * model.threatScale);
   const wallRatio = ratio(wallHpMax, night.totalWallDamage * model.threatScale);
   const powerRatio =
-    offenceRatio ** 0.5 * defenceRatio ** 0.25 * wallRatio ** 0.25;
+    offenceRatio ** model.offenceWeight *
+    defenceRatio ** model.defenceWeight *
+    wallRatio ** model.wallWeight;
   return {
     requiredDps,
     offenceRatio,

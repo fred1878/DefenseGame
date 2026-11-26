@@ -10,6 +10,8 @@ export const WAVES_DOC_KEYS = [
   "enemyId",
   "count",
   "intervalMs",
+  "hpMul",
+  "damageMul",
 ] as const;
 
 export const BUILDINGS_DOC_KEYS = [

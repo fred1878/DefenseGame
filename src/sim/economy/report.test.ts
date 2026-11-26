@@ -74,7 +74,9 @@ describe("report", () => {
     const lines = runsCsv(byStrategy).trim().split("\n");
     expect(lines[0]).toMatch(/^strategy,seed,finished/);
     expect(lines).toHaveLength(1 + runs.length + 1);
-    expect(lines.at(-1)).toBe("no-spend,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+    expect(lines.at(-1)).toBe(
+      "no-spend,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+    );
   });
 
   it("quotes CSV cells that need it", () => {

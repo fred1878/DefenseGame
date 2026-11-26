@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { PLAYER_TUNING, SPELL_BAR } from "../config";
+import { PLAYER_TUNING, SPELL_BAR, type AttackMode } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import type { SaveGame } from "../core/saveTypes";
@@ -164,6 +164,12 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getLivingEnemyHps() {
       return activeDefense(game)?.e2e.livingEnemyHps() ?? [];
+    },
+    setAttackMode(mode: AttackMode) {
+      activeDefense(game)?.e2e.setAttackMode(mode);
+    },
+    getLivingEnemyPositions() {
+      return activeDefense(game)?.e2e.livingEnemyPositions() ?? [];
     },
     getEnemyCount() {
       return activeDefense(game)?.e2e.enemyCount() ?? 0;

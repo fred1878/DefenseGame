@@ -5,11 +5,16 @@ import { addItem, bagItems } from "./inventory";
 import { rollItem, type ItemDraft, type RarityWeights } from "./itemGen";
 import { resolveItem, sellValue } from "./itemStats";
 import type { GearCatalog, RarityId } from "./gearTypes";
-import { randInt, type Rng } from "./rng";
+import { pickWeighted, randInt, type Rng } from "./rng";
 
 export type LootTable = {
   minRolls: number;
   maxRolls: number;
+  /**
+   * Optional weight for each roll count from `minRolls` to `maxRolls`
+   * (e.g. `[80, 20]` = one item 80%, two 20%); missing = all counts equal.
+   */
+  rollWeights?: number[];
   minItemLevelOffset: number;
   maxItemLevelOffset: number;
   rarityByLevel: {
@@ -58,6 +63,14 @@ export function rarityWeightsAt(
   };
 }
 
+/** How many items a table drops: weighted by `rollWeights`, else uniform. */
+export function rollCount(table: LootTable, rng: Rng): number {
+  const weights = table.rollWeights;
+  if (!weights) return randInt(rng, table.minRolls, table.maxRolls);
+  const counts = weights.map((_, i) => table.minRolls + i);
+  return pickWeighted(rng, counts, (n) => weights[n - table.minRolls]!) ?? 0;
+}
+
 /**
  * Roll a loot table at `level` (night number today; adventure areas later).
  * Returns item drafts; add them with `addLootToSave`.
@@ -69,7 +82,7 @@ export function rollLoot(
   rng: Rng,
 ): ItemDraft[] {
   const out: ItemDraft[] = [];
-  const rolls = randInt(rng, table.minRolls, table.maxRolls);
+  const rolls = rollCount(table, rng);
   for (let i = 0; i < rolls; i++) {
     const itemLevel = Math.max(
       1,

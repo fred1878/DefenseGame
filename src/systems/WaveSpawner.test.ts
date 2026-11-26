@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DataStore, EnemyDef, WaveDef } from "../core/DataStore";
 import { asScene, fakeScene } from "../test/fakeScene";
-import { scheduleWave } from "./WaveSpawner";
+import {
+  ELITE_HP_MUL,
+  groupDamageMul,
+  groupHpMul,
+  scaledEnemyDef,
+  scheduleWave,
+} from "./WaveSpawner";
 
 const grunt: EnemyDef = {
   hp: 10,
@@ -82,5 +88,87 @@ describe("scheduleWave", () => {
     const [x, y] = spawnEnemy.mock.calls[0]!;
     expect(typeof x).toBe("number");
     expect(typeof y).toBe("number");
+  });
+
+  it("spawns hpMul groups with scaled HP, Elite-labelled at 2× and up", () => {
+    const scene = fakeScene();
+    const spawnEnemy = vi.fn();
+    const wave: WaveDef = {
+      groups: [
+        { enemyId: "grunt", count: 1, atMs: 0, intervalMs: 0, hpMul: 1.25 },
+        { enemyId: "grunt", count: 1, atMs: 10, intervalMs: 0, hpMul: 2.5 },
+        { enemyId: "grunt", count: 1, atMs: 20, intervalMs: 0, damageMul: 2 },
+      ],
+    } as unknown as WaveDef;
+    scheduleWave(
+      asScene(scene),
+      store({ grunt }),
+      wave,
+      { spawnEnemy, markSpawnPlanComplete: vi.fn() },
+      true,
+    );
+    scene.delayed[0]!.fn();
+    scene.delayed[1]!.fn();
+    scene.delayed[2]!.fn();
+    expect(spawnEnemy.mock.calls[0]![2]).toMatchObject({
+      hp: 13,
+      displayName: "Grunt",
+      damage: 3,
+    });
+    expect(spawnEnemy.mock.calls[2]![2]).toMatchObject({ hp: 10, damage: 6 });
+    expect(spawnEnemy.mock.calls[1]![2]).toMatchObject({
+      hp: 25,
+      displayName: "Elite Grunt",
+    });
+  });
+});
+
+describe("wave hpMul helpers", () => {
+  const g = (hpMul?: number) => ({
+    enemyId: "grunt",
+    count: 1,
+    atMs: 0,
+    intervalMs: 0,
+    ...(hpMul === undefined ? {} : { hpMul }),
+  });
+
+  it("treats missing or invalid multipliers as 1", () => {
+    expect(groupHpMul(g())).toBe(1);
+    expect(groupHpMul(g(0))).toBe(1);
+    expect(groupHpMul(g(-2))).toBe(1);
+    expect(groupHpMul(g(Number.NaN))).toBe(1);
+    expect(groupHpMul(g(1.5))).toBe(1.5);
+    expect(groupDamageMul(g())).toBe(1);
+    expect(groupDamageMul({ ...g(), damageMul: 0 })).toBe(1);
+    expect(groupDamageMul({ ...g(), damageMul: 1.4 })).toBe(1.4);
+  });
+
+  it("scales damage and nested combat damage keys, not other numbers", () => {
+    const brute = {
+      ...grunt,
+      combat: {
+        melee: { damage: 4, cooldownMs: 900 },
+        wall: { wallDamage: 10, playerDamageScale: 0.5 },
+        attacks: [{ damage: 1 }, "x"],
+        tag: null,
+      },
+    } as unknown as EnemyDef;
+    const s = scaledEnemyDef(brute, 1, 1.5);
+    expect(s).toMatchObject({ hp: 10, damage: 5, displayName: "Grunt" });
+    expect(s.combat).toEqual({
+      melee: { damage: 6, cooldownMs: 900 },
+      wall: { wallDamage: 15, playerDamageScale: 0.5 },
+      attacks: [{ damage: 2 }, "x"],
+      tag: null,
+    });
+    expect(scaledEnemyDef(brute, 1, 0.01).damage).toBe(1);
+    expect(brute.damage).toBe(3);
+  });
+
+  it("returns the same def at 1× and never drops below 1 HP", () => {
+    expect(scaledEnemyDef(grunt, 1)).toBe(grunt);
+    expect(scaledEnemyDef(grunt, 0.01).hp).toBe(1);
+    expect(scaledEnemyDef(grunt, ELITE_HP_MUL).displayName).toBe("Elite Grunt");
+    expect(grunt.hp).toBe(10);
   });
 });

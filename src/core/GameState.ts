@@ -44,7 +44,7 @@ export function createNewSave(): SaveGame {
     },
     gear: createEmptyGear(),
     consumables: {},
-    shops: { trader: null, blacksmith: null },
+    shops: { trader: null, blacksmith: null, requests: null },
     talents: createEmptyTalents(getTalentCatalog()),
     spellBar: {
       slots: createDefaultSpellBarSlots(),
@@ -252,7 +252,7 @@ export function applyNightResultDetailed(
   const next = {
     ...save,
     night: save.night + (result.won ? 1 : 0),
-    shops: { trader: null, blacksmith: null },
+    shops: { trader: null, blacksmith: null, requests: null },
     talents: awardNightTalentPoints(
       getTalentCatalog(),
       save.talents,

@@ -16,9 +16,11 @@ import { resolveItem, sellValue } from "../../gear/itemStats";
 import { rollNightDrops } from "../../gear/loot";
 import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, type Rng } from "../../gear/rng";
+import { requestMatchesInBag } from "../../gear/buyRequests";
 import {
   buyOffer,
   ensureShopStock,
+  fillTraderRequest,
   offerPrice,
   rerollTrader,
   SHOP_IDS,
@@ -176,6 +178,11 @@ export type SimOptions = {
   /** Spend talent points each town phase (false = never learn talents). */
   talents: boolean;
   model: PowerModel;
+  /**
+   * Called before each night is resolved with the save the night starts from
+   * (win-model validation exports these and replays them in the real game).
+   */
+  onNightStart?: (save: SaveGame, pressure: NightPressure) => void;
 };
 
 export function defaultSimOptions(data: SimData): SimOptions {
@@ -213,6 +220,11 @@ export type NightRecord = {
   spentShops: number;
   spentRerolls: number;
   rerolls: number;
+  /** Gold from trader buy requests filled this night (150% sales). */
+  requestGold: number;
+  requestsFilled: number;
+  /** Buy requests posted this night. */
+  requestsPosted: number;
   traderLevel: number;
   blacksmithLevel: number;
   /** Gold left after the town phase. */
@@ -270,6 +282,8 @@ class Run {
   spent = emptySpend();
   rerolls = 0;
   salesGold = 0;
+  requestGold = 0;
+  requestsFilled = 0;
 
   constructor(
     readonly data: SimData,
@@ -390,7 +404,27 @@ class Run {
     }
   }
 
+  /** Sell matching bag items to the trader's buy requests (best payout). */
+  fillRequests(): void {
+    const count = this.save.shops.requests?.length ?? 0;
+    for (let i = count - 1; i >= 0; i--) {
+      const request = this.save.shops.requests![i]!;
+      const best = requestMatchesInBag(
+        this.save,
+        this.data.catalog,
+        request,
+      )[0];
+      if (!best) continue;
+      const r = fillTraderRequest(this.save, this.shopCtx, i);
+      this.origin.delete(best.item.uid);
+      this.save = r.save;
+      this.requestGold += r.gold;
+      this.requestsFilled += 1;
+    }
+  }
+
   sellBag(): void {
+    this.fillRequests();
     for (const item of bagItems(this.save.gear)) {
       const r = resolveItem(this.data.catalog, item)!;
       const gold = sellValue(r.price, this.data.loot.sellBackPct);
@@ -569,7 +603,7 @@ class Run {
 
   /** Reroll trader stock (if worth it) and shop again, up to the daily cap. */
   rerollLoop(): void {
-    for (let i = 0; i < MAX_REROLLS_PER_DAY; i++) {
+    while (this.rerolls < MAX_REROLLS_PER_DAY) {
       const cost = traderAt(this.shopCtx, this.level("trader")).rerollCost;
       if (cost <= 0 || this.save.gold < cost * 2) return;
       const r = rerollTrader(this.save, this.shopCtx, this.rng);
@@ -682,6 +716,7 @@ export function simulateRun(
       run.save.townWallHpMax,
       opts.model,
     );
+    opts.onNightStart?.(run.save, pressure);
     let consumablesUsed = 0;
     if (
       pressure.winChance < opts.consumableUseBelow &&
@@ -729,10 +764,13 @@ export function simulateRun(
     run.spent = emptySpend();
     run.rerolls = 0;
     run.salesGold = added.soldGold;
+    run.requestGold = 0;
+    run.requestsFilled = 0;
 
     // Town phase.
     run.allocateTalents();
     run.save = ensureShopStock(run.save, run.shopCtx, rng);
+    const requestsPosted = run.save.shops.requests?.length ?? 0;
     const goldInTown = run.save.gold;
     const offers = run.gearOffers();
     const traderPrices = offers
@@ -765,6 +803,9 @@ export function simulateRun(
       spentShops: run.spent.shops,
       spentRerolls: run.spent.rerolls,
       rerolls: run.rerolls,
+      requestGold: run.requestGold,
+      requestsFilled: run.requestsFilled,
+      requestsPosted,
       traderLevel: run.level("trader"),
       blacksmithLevel: run.level("blacksmith"),
       goldBanked: run.save.gold,

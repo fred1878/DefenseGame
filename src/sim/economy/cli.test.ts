@@ -54,6 +54,8 @@ describe("econ sim CLI", () => {
       "0.3",
       "--steepness",
       "2",
+      "--weights",
+      "0.5, 0.25,0.25",
       "--easy",
       "3",
       "--hard",
@@ -74,7 +76,15 @@ describe("econ sim CLI", () => {
       overridesFile: "o.json",
       sellSurplus: false,
       talents: false,
-      model: { spellBaseDps: 20, graceSec: 5, threatScale: 0.3, steepness: 2 },
+      model: {
+        spellBaseDps: 20,
+        graceSec: 5,
+        threatScale: 0.3,
+        steepness: 2,
+        offenceWeight: 0.5,
+        defenceWeight: 0.25,
+        wallWeight: 0.25,
+      },
       flags: { easy: 3, hard: 0.8 },
       outDir: "x",
       quiet: true,
@@ -90,6 +100,9 @@ describe("econ sim CLI", () => {
     expect(() => parseCliArgs(["--win-rate", "2"])).toThrow(/between 0 and 1/);
     expect(() => parseCliArgs(["--runs=-1"])).toThrow(/non-negative/);
     expect(() => parseCliArgs(["--bogus"])).toThrow();
+    expect(() => parseCliArgs(["--weights", "1,2"])).toThrow(/three numbers/);
+    expect(() => parseCliArgs(["--weights", "1,x,2"])).toThrow(/non-negative/);
+    expect(parseCliArgs([]).model.defenceWeight).toBe(0.6);
   });
 
   it("runs strategies with overrides and builds all files", () => {

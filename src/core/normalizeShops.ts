@@ -1,3 +1,8 @@
+import {
+  BUY_REQUEST_KINDS,
+  type BuyRequestKind,
+  type BuyRequestsConfig,
+} from "../gear/buyRequests";
 import { RARITY_IDS, type RarityId } from "../gear/gearTypes";
 import type {
   BlacksmithConfig,
@@ -28,6 +33,11 @@ export const SHOPS_TRADER_BOOT_KEYS = [
   "qty",
   "chancePct",
   "levels",
+  "requestCount",
+  "requests",
+  "payoutPct",
+  "kindWeights",
+  "minRarityWeights",
 ] as const;
 export const SHOPS_BLACKSMITH_BOOT_KEYS = [
   "items",
@@ -45,6 +55,7 @@ const TRADER_NUMBER_FIELDS = [
   "maxItemLevelOffset",
   "priceMulPct",
   "rerollCost",
+  "requestCount",
 ] as const;
 const BLACKSMITH_NUMBER_FIELDS = [
   "priceMulPct",
@@ -100,6 +111,41 @@ function levels<T extends object>(
   );
 }
 
+const DEFAULT_REQUESTS: BuyRequestsConfig = {
+  payoutPct: 150,
+  kindWeights: { base: 1, type: 1, unique: 1 },
+  minRarityWeights: { common: 0, magic: 1, rare: 0, epic: 0, legendary: 0 },
+};
+
+function normalizeRequests(raw: unknown, path: string): BuyRequestsConfig {
+  if (raw === undefined) return structuredClone(DEFAULT_REQUESTS);
+  const r = requireRecord(raw, path);
+  const kindWeights = { ...DEFAULT_REQUESTS.kindWeights };
+  if (r.kindWeights !== undefined) {
+    const w = requireRecord(r.kindWeights, `${path}.kindWeights`);
+    // Kinds missing from the weights never roll.
+    for (const k of BUY_REQUEST_KINDS) kindWeights[k] = 0;
+    for (const [k, v] of Object.entries(w)) {
+      const kind: BuyRequestKind = requireOneOf(
+        k,
+        BUY_REQUEST_KINDS,
+        `${path}.kindWeights`,
+      );
+      kindWeights[kind] = requireFiniteNumber(v, `${path}.kindWeights.${k}`);
+    }
+  }
+  return {
+    payoutPct:
+      optionalFiniteNumber(r.payoutPct, `${path}.payoutPct`) ??
+      DEFAULT_REQUESTS.payoutPct,
+    kindWeights,
+    minRarityWeights:
+      r.minRarityWeights === undefined
+        ? { ...DEFAULT_REQUESTS.minRarityWeights }
+        : rarityWeights(r.minRarityWeights, `${path}.minRarityWeights`),
+  };
+}
+
 function normalizeTrader(raw: unknown): TraderConfig {
   const path = "shops.trader";
   const row = requireRecord(raw, path);
@@ -115,6 +161,9 @@ function normalizeTrader(raw: unknown): TraderConfig {
     title: requireString(row.title, `${path}.title`),
     ...nums,
     rerollCost: optionalFiniteNumber(row.rerollCost, `${path}.rerollCost`) ?? 0,
+    requestCount:
+      optionalFiniteNumber(row.requestCount, `${path}.requestCount`) ?? 0,
+    requests: normalizeRequests(row.requests, `${path}.requests`),
     rarityWeights: rarityWeights(row.rarityWeights, `${path}.rarityWeights`),
     consumables: requireArray(row.consumables, `${path}.consumables`).map(
       (c, i) => {

@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import type { SaveGame } from "../core/saveTypes";
 import type { ModalInputLease } from "../input/modalBackdrop";
 import { DG_THEME } from "./theme/dgTheme";
-import type { DgKit, Tap } from "./gearPanel/dgPanelKit";
+import type { Box, DgKit, Tap } from "./gearPanel/dgPanelKit";
 import {
   createActionBar,
   createCard,
@@ -23,6 +23,12 @@ import {
   type GearPanelContext,
   type GearPanelState,
 } from "./gearPanel/gearPanelLogic";
+import {
+  requestActions,
+  requestCards,
+  requestDetail,
+  traderRequests,
+} from "./gearPanel/requestPanelLogic";
 import {
   filterChips,
   lockedCards,
@@ -64,6 +70,8 @@ export class ShopPanel {
   private readonly tabs: ReturnType<DgKit["tabs"]>;
   private readonly chips: Chip[] = [];
   private readonly sortTap: Tap;
+  private readonly sortBox: Box;
+  private readonly sortIcon: Phaser.GameObjects.Image | null;
   private readonly stockLabel: ReturnType<DgKit["section"]>;
   private readonly soonLabel: ReturnType<DgKit["section"]>;
   private readonly pager: ReturnType<DgKit["pager"]>;
@@ -108,6 +116,16 @@ export class ShopPanel {
         icon: "coins",
         onTap: () => this.dispatch({ type: "tab", tab: "bag" }),
       },
+      // The trader also posts nightly buy requests ("Wants").
+      ...(ctx.shop.id === "trader"
+        ? [
+            {
+              label: "Wants",
+              icon: "star" as const,
+              onTap: () => this.dispatch({ type: "tab", tab: "requests" }),
+            },
+          ]
+        : []),
     ]);
 
     for (let i = 0; i < 5; i++) {
@@ -126,12 +144,12 @@ export class ShopPanel {
       };
       this.chips.push(chip);
     }
-    kit.box(476, 176, 48, 32, {
+    this.sortBox = kit.box(476, 176, 48, 32, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       radius: 10,
     });
-    kit.icon(500, 192, "sort", 18);
+    this.sortIcon = kit.icon(500, 192, "sort", 18);
     this.sortTap = kit.tap(470, 170, 60, 44, () =>
       this.dispatch({ type: "sort" }),
     );
@@ -148,9 +166,9 @@ export class ShopPanel {
         createCard(kit, x, y, (card) => {
           if (card.key === null) return;
           this.dispatch(
-            this.state.tab === "shop"
-              ? { type: "selectOffer", index: card.key }
-              : { type: "select", uid: card.key },
+            this.state.tab === "bag"
+              ? { type: "select", uid: card.key }
+              : { type: "selectOffer", index: card.key },
           );
         }),
       );
@@ -183,6 +201,7 @@ export class ShopPanel {
       unequip: { type: "unequip" },
       upgrade: { type: "upgradeShop" },
       reroll: { type: "reroll" },
+      fill: { type: "fillRequest" },
     };
     this.dispatch(cmd[id]);
   }
@@ -208,10 +227,18 @@ export class ShopPanel {
     const head = shopHeader(ctx, save);
     this.subtitle.setText(head.subtitle);
     this.goldText.setText(head.gold);
-    this.tabs.set(st.tab === "shop" ? 0 : 1, [head.buyCount, head.sellCount]);
+    const wants = st.tab === "requests";
+    this.tabs.set(st.tab === "shop" ? 0 : wants ? 2 : 1, [
+      head.buyCount,
+      head.sellCount,
+      String(traderRequests(ctx, save).length),
+    ]);
 
-    // Chips: lay out left to right from their label widths.
-    const chips = filterChips(ctx, save, st);
+    // Chips: lay out left to right from their label widths (none on Wants).
+    const chips = wants ? [] : filterChips(ctx, save, st);
+    this.sortBox.g.setVisible(!wants);
+    this.sortIcon?.setVisible(!wants);
+    this.sortTap.setEnabled(!wants);
     let cx = 16;
     this.chips.forEach((chip, i) => {
       const v = chips[i];
@@ -240,9 +267,9 @@ export class ShopPanel {
       cx += w + 8;
     });
 
-    const locked = lockedCards(ctx, save, st);
+    const locked = wants ? [] : lockedCards(ctx, save, st);
     this.perPage = pageSize(ctx, locked.length > 0);
-    const all = shopCards(ctx, save, st);
+    const all = wants ? requestCards(ctx, save, st) : shopCards(ctx, save, st);
     const pages = pageCount(all.length, this.perPage);
     const page = Math.min(st.page, pages - 1);
     const shown = visibleRows(all, page, this.perPage);
@@ -250,7 +277,12 @@ export class ShopPanel {
       card.show(i < this.perPage ? (shown[i] ?? null) : null);
     });
 
-    const sec = shopSections(ctx, save, st, all.length);
+    const sec = wants
+      ? {
+          stock: { left: "Trader wants", right: `${all.length} today` },
+          soon: { left: "", right: "" },
+        }
+      : shopSections(ctx, save, st, all.length);
     const sortNote = st.sort === "slot" ? "" : ` · by ${st.sort}`;
     this.stockLabel.left.setText(sec.stock.left.toUpperCase());
     const paged = pages > 1;
@@ -266,7 +298,9 @@ export class ShopPanel {
       this.stockLabel.right.setText(
         st.tab === "bag"
           ? "Bag is empty — win nights to find gear"
-          : "Sold out — new stock after the next night",
+          : wants
+            ? "No requests left — new ones after the next night"
+            : "Sold out — new stock after the next night",
       );
     }
 
@@ -277,8 +311,13 @@ export class ShopPanel {
       card.show(showSoon ? (locked[i] ?? null) : null);
     });
 
-    this.detail.show(shopDetail(ctx, save, st), "");
-    this.actionBar.show(shopActions(ctx, save, st));
+    this.detail.show(
+      wants ? requestDetail(ctx, save, st) : shopDetail(ctx, save, st),
+      "",
+    );
+    this.actionBar.show(
+      wants ? requestActions(ctx, save, st) : shopActions(ctx, save, st),
+    );
     const foot = shopFootnote(ctx, st);
     this.footnote.setText(foot.text).setColor(foot.color);
   }
@@ -300,6 +339,7 @@ export class ShopPanel {
     add("shop-close", this.closeTap);
     add("shop-tab-buy", this.tabs.taps[0]!);
     add("shop-tab-sell", this.tabs.taps[1]!);
+    if (this.tabs.taps[2]) add("shop-tab-wants", this.tabs.taps[2]);
     add("shop-sort", this.sortTap);
     add("shop-prev", this.pager.prev);
     add("shop-next", this.pager.next);

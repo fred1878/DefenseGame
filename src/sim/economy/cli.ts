@@ -48,6 +48,7 @@ npm run sim:economy -- [options]
   --grace N            seconds after the last spawn to clear a wave (default ${DEFAULT_POWER_MODEL.graceSec})
   --threat N           share of enemy hits that land (default ${DEFAULT_POWER_MODEL.threatScale})
   --steepness N        win-chance curve steepness (default ${DEFAULT_POWER_MODEL.steepness})
+  --weights O,D,W      offence,defence,wall exponents (default ${DEFAULT_POWER_MODEL.offenceWeight},${DEFAULT_POWER_MODEL.defenceWeight},${DEFAULT_POWER_MODEL.wallWeight}; pre-validation model: 0.5,0.25,0.25 with --steepness 3)
   --easy N / --hard N  power-ratio flags (default 2 / 1)
   --out DIR            output folder (default sim-output)
   --quiet              skip the console tables
@@ -81,6 +82,27 @@ function positive(name: string, v: string | undefined, fallback: number) {
   return n;
 }
 
+function parseWeights(v: string | undefined): {
+  offenceWeight: number;
+  defenceWeight: number;
+  wallWeight: number;
+} {
+  const d = DEFAULT_POWER_MODEL;
+  if (v === undefined) {
+    return {
+      offenceWeight: d.offenceWeight,
+      defenceWeight: d.defenceWeight,
+      wallWeight: d.wallWeight,
+    };
+  }
+  const parts = v.split(",");
+  if (parts.length !== 3) {
+    throw new Error(`--weights needs three numbers O,D,W (got "${v}")`);
+  }
+  const [o, de, w] = parts.map((p) => positive("weights", p.trim(), 0));
+  return { offenceWeight: o!, defenceWeight: de!, wallWeight: w! };
+}
+
 export function parseCliArgs(argv: readonly string[]): CliOptions {
   const { values } = parseArgs({
     args: [...argv],
@@ -100,6 +122,7 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
       grace: { type: "string" },
       threat: { type: "string" },
       steepness: { type: "string" },
+      weights: { type: "string" },
       easy: { type: "string" },
       hard: { type: "string" },
       out: { type: "string" },
@@ -149,6 +172,7 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
         values.steepness,
         DEFAULT_POWER_MODEL.steepness,
       ),
+      ...parseWeights(values.weights),
     },
     flags: {
       easy: positive("easy", values.easy, 2),

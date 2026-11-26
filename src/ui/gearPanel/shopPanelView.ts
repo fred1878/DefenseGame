@@ -331,7 +331,7 @@ export type DetailView = {
   info: string[];
 };
 
-const emptyDetail = (): DetailView => ({
+export const emptyDetail = (): DetailView => ({
   tile: null,
   name: "",
   nameColor: DG_THEME.textPrimary,
@@ -435,7 +435,15 @@ export function shopDetail(
 export type ActionStyle = "buy" | "equip" | "sell" | "neutral";
 
 export type ActionView = {
-  id: "buy" | "buyEquip" | "sell" | "equip" | "unequip" | "upgrade" | "reroll";
+  id:
+    | "buy"
+    | "buyEquip"
+    | "sell"
+    | "equip"
+    | "unequip"
+    | "upgrade"
+    | "reroll"
+    | "fill";
   label: string;
   icon: UiIconName;
   style: ActionStyle;
@@ -527,6 +535,13 @@ export function shopFootnote(
   if (state.status)
     return { text: state.status, color: DG_THEME.accentGoldBright };
   const pct = ctx.loot.sellBackPct;
+  if (state.tab === "requests" && ctx.shop) {
+    const pays = ctx.shop.ctx.shops.trader.requests.payoutPct;
+    return {
+      text: `Requests pay ${pays}% (normal selling pays ${pct}%).`,
+      color: DG_THEME.textMuted,
+    };
+  }
   return {
     text:
       state.tab === "shop"

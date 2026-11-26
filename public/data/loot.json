@@ -5,13 +5,15 @@
     "nightWon": {
       "minRolls": 1,
       "maxRolls": 2,
-      "minItemLevelOffset": 0,
-      "maxItemLevelOffset": 1,
+      "rollWeights": [80, 20],
+      "minItemLevelOffset": -1,
+      "maxItemLevelOffset": 0,
       "rarityByLevel": [
-        { "fromLevel": 1, "weights": { "common": 70, "magic": 30 } },
-        { "fromLevel": 3, "weights": { "common": 50, "magic": 38, "rare": 12 } },
-        { "fromLevel": 6, "weights": { "common": 35, "magic": 40, "rare": 20, "epic": 5 } },
-        { "fromLevel": 9, "weights": { "common": 25, "magic": 40, "rare": 25, "epic": 8, "legendary": 2 } }
+        { "fromLevel": 1, "weights": { "common": 80, "magic": 20 } },
+        { "fromLevel": 3, "weights": { "common": 65, "magic": 28, "rare": 7 } },
+        { "fromLevel": 6, "weights": { "common": 50, "magic": 35, "rare": 12, "epic": 3 } },
+        { "fromLevel": 9, "weights": { "common": 42, "magic": 38, "rare": 15, "epic": 4, "legendary": 1 } },
+        { "fromLevel": 14, "weights": { "common": 36, "magic": 39, "rare": 18, "epic": 5.5, "legendary": 1.5 } }
       ]
     },
     "nightLost": {
