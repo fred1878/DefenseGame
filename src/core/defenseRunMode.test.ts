@@ -4,6 +4,7 @@ import {
   resolveEndlessRunSelections,
   resolveWavePlannerGroups,
   setEndlessDefenseRun,
+  setNightDefenseRun,
   setWavePlannerDefenseRun,
   DEFENSE_RUN_MODE_KEY,
 } from "./defenseRunMode";
@@ -224,6 +225,20 @@ describe("readDefenseRunMode leftover branches", () => {
     const registry = {
       get: () => ({ kind: "endless" }),
     } as unknown as Phaser.Data.DataManager;
+    expect(readDefenseRunMode(registry)).toEqual({ kind: "night" });
+  });
+});
+
+describe("setNightDefenseRun", () => {
+  it("writes a night run payload", () => {
+    const data: Record<string, unknown> = {};
+    const registry = {
+      set: (k: string, v: unknown) => {
+        data[k] = v;
+      },
+      get: (k: string) => data[k],
+    } as Phaser.Data.DataManager;
+    setNightDefenseRun(registry);
     expect(readDefenseRunMode(registry)).toEqual({ kind: "night" });
   });
 });

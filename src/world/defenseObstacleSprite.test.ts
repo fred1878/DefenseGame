@@ -11,7 +11,9 @@ import {
   OBSTACLE_COLLIDER_SIZE_SCALE,
   DEFENSE_FIELD_TILES,
   defenseObstacleColliderFromPlacement,
+  DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET,
   defenseObstacleSpriteAnchor,
+  defenseObstacleSpriteDisplayPosition,
   defenseTileCenter,
   obstacleColliderSize,
   obstacleDisplaySize,
@@ -73,5 +75,28 @@ describe("defense obstacle art", () => {
       expect(anchor.x).toBeCloseTo(tile.x, 5);
       expect(anchor.y + layout.displayH / 2).toBeCloseTo(tile.y, 5);
     }
+  });
+});
+
+describe("defenseObstacleSpriteDisplayPosition", () => {
+  it("offsets the sprite from its physics anchor", () => {
+    const placement = DEFENSE_OBSTACLE_PLACEMENTS[0];
+    if (!placement) throw new Error("expected a placement");
+    const anchor = defenseObstacleSpriteAnchor(placement);
+    const shown = defenseObstacleSpriteDisplayPosition(placement);
+    expect(shown.x).toBe(anchor.x);
+    expect(shown.y).toBe(anchor.y + DEFENSE_OBSTACLE_SPRITE_VISUAL_Y_OFFSET);
+  });
+
+  it("scales the visual offset when a registry is provided", () => {
+    const placement = DEFENSE_OBSTACLE_PLACEMENTS[0];
+    if (!placement) throw new Error("expected a placement");
+    const registry = {
+      get: () => undefined,
+    } as unknown as Phaser.Data.DataManager;
+    const shown = defenseObstacleSpriteDisplayPosition(placement, registry);
+    const anchor = defenseObstacleSpriteAnchor(placement, registry);
+    expect(shown.x).toBe(anchor.x);
+    expect(shown.y).toBeGreaterThan(anchor.y);
   });
 });

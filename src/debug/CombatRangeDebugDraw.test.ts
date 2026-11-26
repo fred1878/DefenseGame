@@ -42,4 +42,17 @@ describe("CombatRangeDebugDraw", () => {
     drawer.destroy();
     expect(g.destroy).toHaveBeenCalled();
   });
+
+  it("exposes the underlying graphics object", () => {
+    const g = mockGraphics();
+    const scene = {
+      add: {
+        graphics: () => ({
+          setDepth: () => g,
+        }),
+      },
+    } as unknown as Phaser.Scene;
+    const drawer = new CombatRangeDebugDraw(scene);
+    expect(drawer.graphics()).toBe(g);
+  });
 });

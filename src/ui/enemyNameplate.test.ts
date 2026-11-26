@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  destroyEnemyNameplate,
   prepareEnemyNameplateForRespawn,
   recycleEnemyNameplateAfterDeath,
   stashEnemyNameplateForPool,
@@ -11,6 +12,7 @@ function mockPlate(): EnemyNameplate {
     setAlpha: vi.fn().mockReturnThis(),
     setVisible: vi.fn().mockReturnThis(),
     setPosition: vi.fn().mockReturnThis(),
+    destroy: vi.fn(),
   };
   return {
     container: container as unknown as EnemyNameplate["container"],
@@ -70,5 +72,14 @@ describe("enemy nameplate pooling", () => {
     expect(plate.dying).toBe(false);
     expect(plate.container.setVisible).toHaveBeenCalledWith(true);
     expect(plate.container.setAlpha).toHaveBeenCalledWith(1);
+  });
+});
+
+describe("destroyEnemyNameplate", () => {
+  it("destroys a plate and ignores a missing one", () => {
+    destroyEnemyNameplate(undefined);
+    const plate = mockPlate();
+    destroyEnemyNameplate(plate);
+    expect(plate.container.destroy).toHaveBeenCalledWith(true);
   });
 });

@@ -80,4 +80,14 @@ describe("pickAutoCastCombatEnemy", () => {
     );
     expect(pick).toBeNull();
   });
+
+  it("ignores a focused id that is missing or dead", () => {
+    const dead = [{ id: "dead", x: 10, y: 0, radius: 10, alive: false }];
+    expect(
+      pickAutoCastCombatEnemy(0, 0, "ghost", [], "melee", 200, 200, 200),
+    ).toBeNull();
+    expect(
+      pickAutoCastCombatEnemy(0, 0, "dead", dead, "melee", 200, 200, 200),
+    ).toBeNull();
+  });
 });
