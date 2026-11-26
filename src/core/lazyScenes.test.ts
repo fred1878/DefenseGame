@@ -134,3 +134,54 @@ describe("ensureWavePlannerSetupScene", () => {
     );
   });
 });
+
+describe("lazy setup scene leftover branches", () => {
+  beforeEach(() => {
+    resetLazyScenesForTests();
+  });
+
+  it("no-ops when TownEndlessSetup is already registered and reuses an in-flight import", async () => {
+    const add = vi.fn();
+    const missing = {
+      scene: { getScene: vi.fn(() => null), add },
+    } as unknown as Phaser.Game;
+    const first = ensureEndlessModeSetupScene(missing);
+    const second = ensureEndlessModeSetupScene(missing);
+    await Promise.all([first, second]);
+    expect(add).toHaveBeenCalledOnce();
+
+    const already = {
+      scene: { getScene: vi.fn(() => ({})), add: vi.fn() },
+    } as unknown as Phaser.Game;
+    await ensureEndlessModeSetupScene(already);
+    expect(already.scene.add).not.toHaveBeenCalled();
+  });
+
+  it("no-ops when TownWavePlannerSetup is already registered and reuses an in-flight import", async () => {
+    const add = vi.fn();
+    const missing = {
+      scene: { getScene: vi.fn(() => null), add },
+    } as unknown as Phaser.Game;
+    const first = ensureWavePlannerSetupScene(missing);
+    const second = ensureWavePlannerSetupScene(missing);
+    await Promise.all([first, second]);
+    expect(add).toHaveBeenCalledOnce();
+
+    const already = {
+      scene: { getScene: vi.fn(() => ({})), add: vi.fn() },
+    } as unknown as Phaser.Game;
+    await ensureWavePlannerSetupScene(already);
+    expect(already.scene.add).not.toHaveBeenCalled();
+  });
+
+  it("reuses an in-flight DebugMenu import", async () => {
+    const add = vi.fn();
+    const game = {
+      scene: { getScene: vi.fn(() => null), add },
+    } as unknown as Phaser.Game;
+    const first = ensureDebugMenuScene(game);
+    const second = ensureDebugMenuScene(game);
+    await Promise.all([first, second]);
+    expect(add).toHaveBeenCalledOnce();
+  });
+});
