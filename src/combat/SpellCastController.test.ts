@@ -309,3 +309,69 @@ describe("SpellCastController input mode and cancel", () => {
     expect(c.getCastInputMode()).toBe("auto");
   });
 });
+
+describe("SpellCastController leftover complete paths", () => {
+  it("completes a windup-only cast as idle when the spell disappears", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("flash_heal", "manual", 0, 0)).not.toBe(false);
+    const box = c as unknown as { activeSpellId: string | null };
+    box.activeSpellId = "missing-spell";
+    const result = c.updateChannel(10_000, 0, 0);
+    expect(result.type).toBe("idle");
+  });
+
+  it("enters a channel without arming cooldown when the spell is missing", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("blizzard", "manual", 0, 0)).toBe("windup");
+    const box = c as unknown as { activeSpellId: string | null };
+    box.activeSpellId = "missing-spell";
+    const mid = c.updateChannel(10_000, 0, 0);
+    expect(mid.type === "channeling" || mid.type === "idle").toBe(true);
+    expect(c.getCooldownRemaining("blizzard")).toBe(0);
+    expect(c.getCooldownRemaining("missing-spell" as never)).toBe(0);
+  });
+
+  it("completes a channel as idle when the spell disappears mid-channel", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("heal", "manual", 0, 0)).toBe("channel");
+    const box = c as unknown as { activeSpellId: string | null };
+    box.activeSpellId = "missing-spell";
+    expect(c.updateChannel(10_000, 0, 0).type).toBe("idle");
+  });
+
+  it("arms cooldown at channel end when the spell has no channelMs", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("flash_heal", "manual", 0, 0)).not.toBe(false);
+    const box = c as unknown as {
+      inChannel: boolean;
+      channelDurationMs: number;
+      windupDurationMs: number;
+      windupElapsedMs: number;
+    };
+    box.inChannel = true;
+    box.channelDurationMs = 40;
+    box.windupDurationMs = 0;
+    box.windupElapsedMs = 0;
+    const result = c.updateChannel(80, 0, 0);
+    expect(result.type).toBe("completed");
+    expect(c.getCooldownRemaining("flash_heal")).toBeGreaterThan(0);
+  });
+
+  it("does not arm cooldown when entering a channel whose def has no channelMs", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("flash_heal", "manual", 0, 0)).not.toBe(false);
+    const box = c as unknown as {
+      inChannel: boolean;
+      channelDurationMs: number;
+      windupDurationMs: number;
+      windupElapsedMs: number;
+    };
+    box.inChannel = false;
+    box.windupDurationMs = 20;
+    box.windupElapsedMs = 0;
+    box.channelDurationMs = 80;
+    c.updateChannel(40, 0, 0);
+    // flash_heal.channelMs is 0, so armChannelStartCooldown is a no-op
+    expect(c.getCooldownRemaining("flash_heal")).toBe(0);
+  });
+});

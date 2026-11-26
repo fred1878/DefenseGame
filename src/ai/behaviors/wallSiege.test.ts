@@ -73,4 +73,42 @@ describe("wallSiegeBehavior", () => {
       testWallSiegeCombat.playerAggroRadiusWu,
     );
   });
+
+  it("uses the default aggro radius and follows an existing path", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "wallSiege",
+      sprite: {
+        x: 0,
+        y: 0,
+        setVelocity: vi.fn(),
+        scene: { registry: { get: () => undefined } },
+      } as never,
+    });
+    const { playerAggroRadiusWu: _omit, ...rest } = testWallSiegeCombat;
+    void _omit;
+    enemy.combatTuning.wallSiege = rest as typeof testWallSiegeCombat;
+    enemy.nav = {
+      ...createEnemyNav(),
+      targetKind: "wall",
+      path: [
+        { x: 0, y: 0 },
+        { x: 80, y: 0 },
+      ],
+      pathIndex: 0,
+      replanMs: 1000,
+    };
+    wallSiegeBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: openGrid,
+      playerX: 400,
+      playerY: 400,
+      deltaMs: 16,
+    });
+    expect(enemy.nav.pathIndex).toBe(1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+  });
 });
