@@ -98,6 +98,20 @@ Every row needs `combat.wall`. Other sections depend on `behavior`:
 
 **Do not** add `combat.melee` on `arrowRainArcher`, `javelineer`, `stationaryRanged`, `lobber`.
 
+#### `attackMovement` (`combat.melee`, `combat.arrowRain`, `combat.javelineer`, `combat.stationaryRanged`, `combat.lobber`)
+
+Per-attack-kit walk-speed multipliers during that kit's combat phases. The block on the attack currently executing is used — for example a reaver uses `combat.melee.attackMovement` during a melee swing and `combat.stationaryRanged.attackMovement` during a volley. `0` holds the enemy still (knockback still applies). `1` is full walk speed. Values are required and must be `>= 0`.
+
+Shipped rows keep current on-screen movement: bruiser melee is `0.5` in every phase, and every other kit is `0` in every phase (stand still while attacking). The older shared chase helper had an unreachable `0.35` scale on the `active` phase; set `activeMul` to `0.35` on a kit to opt into that slow-close during hit frames. Javelineer movement previously special-cased a `1` scale in the chase helper, but the combat tick still zeroed velocity mid-throw; set all three multipliers to `1` on `combat.javelineer.attackMovement` if you want them to keep orbiting while throwing.
+
+Wall melee standoff holds still independently when the enemy is inside the wall trigger during a swing.
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `windupMul` | dimensionless | Walk-speed multiplier during windup. `0` holds still. |
+| `activeMul` | dimensionless | Walk-speed multiplier during the active/hit frames. The previously unused shared-chase value was `0.35`. |
+| `recoveryMul` | dimensionless | Walk-speed multiplier during recovery. `0` holds still. |
+
 #### `combat.wall` (all behaviors)
 
 North wall objective attacks (`EnemyCombat` wall FSM).
@@ -214,6 +228,7 @@ Telegraphed ground zone ticks.
 | `blastRadiusWu` | px | Px blast radius on lob impact. |
 | `blastDamageScale` | dimensionless | Dimensionless lob blast damage scale. |
 | `impactVfxBlastMul` | dimensionless | Smoke B impact sprite size as `blastRadiusWu × mul` in world pixels (matches blast read). |
+| `attackCreepSpeedMul` | dimensionless | Mid-attack in-range creep toward the target. `0` stays still (shipped default). `0.35` is the previously unreachable creep speed. Not stacked with `attackMovement`. Lobbers do not retreat or chase mid-throw; if knocked out of attack range they hold still until the attack ends. |
 
 #### `combat.ward` (`ward`)
 

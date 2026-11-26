@@ -7,13 +7,9 @@ import {
 } from "../../combat/ArrowRainTelegraph";
 import { worldUnit } from "../../core/worldPixelScale";
 import type { EnemyInstance } from "../Enemy";
-import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
+import type { EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";
-import {
-  advanceCombatPhase,
-  freezeWindupRecovery,
-  tickCooldownAndFaceTarget,
-} from "./combatPhase";
+import { advanceCombatPhase, tickCooldownAndFaceTarget } from "./combatPhase";
 import type { LobberCombatState, LobSpawnRequest } from "./types";
 
 export function clearLobberAirborneTelegraph(enemy: EnemyInstance): void {
@@ -115,9 +111,5 @@ export function updateLobberCombat(
     extra.telegraph = undefined;
   }
 
-  if (enemyIsAttacking(c)) {
-    enemy.sprite.setVelocity(0, 0);
-  }
-  freezeWindupRecovery(enemy, c.phase, target.kind);
   return { spawnLob };
 }

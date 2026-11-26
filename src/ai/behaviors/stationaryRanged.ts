@@ -1,8 +1,7 @@
 import { northWallAttackY } from "../../config";
 import { worldUnit } from "../../core/worldPixelScale";
-import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import type { EnemyBehavior } from "./types";
-import { applyChaseVelocity, setEnemyChaseVelocity } from "./movement";
+import { applyChaseVelocity } from "./movement";
 import {
   applyKiteBand,
   beginBehaviorFrame,
@@ -19,11 +18,6 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
   if (!tune) {
     replanPathIfDue(ctx, frame);
     applyChaseVelocity(enemy, goal.x, goal.y, 1, { nav, deltaMs });
-    return frameResult(frame);
-  }
-
-  if (enemyIsAttacking(enemy.combat)) {
-    setEnemyChaseVelocity(enemy, 0, 0);
     return frameResult(frame);
   }
 

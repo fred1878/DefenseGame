@@ -17,6 +17,13 @@ import {
   requireEnemyWardCombat,
 } from "./normalizeEnemyCombat";
 
+/** Movement speed multipliers during an attack kit's combat phases. `0` holds still. */
+export type EnemyAttackMovement = {
+  windupMul: number;
+  activeMul: number;
+  recoveryMul: number;
+};
+
 /** Partial combat stats as authored in `public/data/enemies.json` (`combat` object). */
 export type EnemyCombatPartial = {
   /** Wall objective attacks (all behaviors). */
@@ -46,6 +53,12 @@ export type EnemyCombatPartial = {
     vfxDisplayH?: number;
     /** Spawn offset along attack facing from attacker center (WU). */
     vfxOffsetWu?: number;
+    /** Speed multipliers while this melee attack is in windup/active/recovery. */
+    attackMovement?: {
+      windupMul?: number;
+      activeMul?: number;
+      recoveryMul?: number;
+    };
   };
   /** Floor AoE (`arrowRainArcher` behavior). */
   arrowRain?: {
@@ -61,6 +74,12 @@ export type EnemyCombatPartial = {
     tickIntervalMs?: number;
     tickDamageScale?: number;
     maxTicks?: number;
+    /** Speed multipliers while this volley is in windup/active/recovery. */
+    attackMovement?: {
+      windupMul?: number;
+      activeMul?: number;
+      recoveryMul?: number;
+    };
   };
   /** Kite + javelin toss (`javelineer` behavior). */
   javelineer?: {
@@ -76,6 +95,12 @@ export type EnemyCombatPartial = {
     cooldownMs?: number;
     projectileSpeedWu?: number;
     projectileMaxTravelWu?: number;
+    /** Speed multipliers while this javelin throw is in windup/active/recovery. */
+    attackMovement?: {
+      windupMul?: number;
+      activeMul?: number;
+      recoveryMul?: number;
+    };
   };
   /** Hold position + straight bolt (`stationaryRanged` behavior). */
   stationaryRanged?: {
@@ -89,6 +114,12 @@ export type EnemyCombatPartial = {
     cooldownMs?: number;
     projectileSpeedWu?: number;
     projectileMaxTravelWu?: number;
+    /** Speed multipliers while this bolt is in windup/active/recovery. */
+    attackMovement?: {
+      windupMul?: number;
+      activeMul?: number;
+      recoveryMul?: number;
+    };
   };
   /** North-wall priority (`wallSiege` behavior). */
   wallSiege?: {
@@ -120,6 +151,14 @@ export type EnemyCombatPartial = {
     blastDamageScale?: number;
     /** Smoke / blast VFX diameter multiplier on `blastRadiusWu` at impact (dimensionless). */
     impactVfxBlastMul?: number;
+    /** In-range mid-attack creep toward the target. `0` stays still. */
+    attackCreepSpeedMul?: number;
+    /** Speed multipliers for shared chase/path helpers during this lob (not stacked on creep). */
+    attackMovement?: {
+      windupMul?: number;
+      activeMul?: number;
+      recoveryMul?: number;
+    };
   };
   /** Bodyguard screening (`ward` behavior). */
   ward?: {
@@ -165,6 +204,7 @@ export type EnemyMeleeCombat = {
   vfxOffsetWu: number;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
+  attackMovement: EnemyAttackMovement;
 };
 
 /** Behaviors that must author `combat.melee.meleeChaseStandoffWu` on each enemy row. */
@@ -202,6 +242,7 @@ export type EnemyArrowRainCombat = {
   tickIntervalMs: number;
   tickDamageScale: number;
   maxTicks: number;
+  attackMovement: EnemyAttackMovement;
 };
 
 export type EnemyJavelineerCombat = {
@@ -217,6 +258,7 @@ export type EnemyJavelineerCombat = {
   cooldownMs: number;
   projectileSpeedWu: number;
   projectileMaxTravelWu: number;
+  attackMovement: EnemyAttackMovement;
 };
 
 export type EnemyStationaryRangedCombat = {
@@ -230,6 +272,7 @@ export type EnemyStationaryRangedCombat = {
   cooldownMs: number;
   projectileSpeedWu: number;
   projectileMaxTravelWu: number;
+  attackMovement: EnemyAttackMovement;
 };
 
 export type EnemyWallSiegeCombat = {
@@ -260,6 +303,8 @@ export type EnemyLobberCombat = {
   blastRadiusWu: number;
   blastDamageScale: number;
   impactVfxBlastMul: number;
+  attackCreepSpeedMul: number;
+  attackMovement: EnemyAttackMovement;
 };
 
 export type EnemyWardCombat = {

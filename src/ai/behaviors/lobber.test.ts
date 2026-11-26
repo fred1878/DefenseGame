@@ -131,4 +131,90 @@ describe("lobberBehavior", () => {
     });
     expect(enemy.sprite.setVelocity).toHaveBeenCalled();
   });
+
+  it("creeps toward the target at the configured mul while attacking in range", () => {
+    const enemy = mockLobber(0, 0);
+    enemy.speedWu = 100;
+    enemy.combatTuning.lobber = {
+      ...enemy.combatTuning.lobber!,
+      attackCreepSpeedMul: 0.35,
+    };
+    enemy.combat.phase = "windup";
+    const inRange = preferred;
+    lobberBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: inRange,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx, vy] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeCloseTo(35, 1);
+    expect(vy).toBeCloseTo(0, 1);
+  });
+
+  it("stays still mid-attack when attackCreepSpeedMul is 0", () => {
+    const enemy = mockLobber(0, 0);
+    enemy.speedWu = 100;
+    enemy.combatTuning.lobber = {
+      ...enemy.combatTuning.lobber!,
+      attackCreepSpeedMul: 0,
+    };
+    enemy.combat.phase = "active";
+    lobberBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: preferred,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("does not retreat mid-throw even when inside the kite band", () => {
+    const enemy = mockLobber(0, 0);
+    enemy.speedWu = 100;
+    enemy.combatTuning.lobber = {
+      ...enemy.combatTuning.lobber!,
+      attackCreepSpeedMul: 0.35,
+    };
+    enemy.combat.phase = "recovery";
+    const tooClose = preferred - slack - 20;
+    expect(tooClose).toBeGreaterThan(0);
+    expect(tooClose).toBeLessThan(attackMax);
+    lobberBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: tooClose,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    // Creep toward the target (positive x), never a retreat.
+    expect(vx).toBeCloseTo(35, 1);
+  });
+
+  it("holds still mid-throw when knocked beyond attack range", () => {
+    const enemy = mockLobber(0, 0);
+    enemy.speedWu = 100;
+    enemy.combatTuning.lobber = {
+      ...enemy.combatTuning.lobber!,
+      attackCreepSpeedMul: 0.35,
+    };
+    enemy.combat.phase = "windup";
+    lobberBehavior({
+      enemy,
+      nav: enemy.nav,
+      grid: navGrid,
+      playerX: attackMax + 200,
+      playerY: 0,
+      deltaMs: 16,
+    });
+    expect(enemy.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
+  });
 });
