@@ -22,9 +22,9 @@ After merging to `main`, Pages updates automatically (see [docs/CI_RELEASES.md](
 
 ## What you do in the game
 
-1. **Town (day)** — Spend gold on wall and blacksmith upgrades, arrange spells on the 8-slot bar, then start the night from **Gallows Square**.
-2. **Defense (night)** — Move with the virtual stick, melee/ranged/auto combat, cast spells, keep wall HP above zero, clear waves.
-3. **Results** — Win or lose returns a `NightResult`; gold and wall damage apply in town. Progress saves to **`localStorage`**.
+1. **Town (day)** — Spend gold on wall upgrades; shop at the **Moon Brazier** (blacksmith gear) and **Market Stall** (trader, night); arrange spells on the 8-slot bar; manage gear in the bag; then start the night from **Gallows Square**.
+2. **Defense (night)** — Move with the virtual stick, melee/ranged/auto combat, cast spells, use potions/bombs, keep wall HP above zero, clear waves.
+3. **Results** — Win or lose returns a `NightResult`; gold, loot, and wall damage apply in town (campaign shows a loot summary). Progress saves to **`localStorage`**.
 
 **Campaign content today:** nights **1–12** in `public/data/waves.json`. After night 12, wave data **repeats night 12** (`DataStore.getWaveForNight`).
 
@@ -40,10 +40,12 @@ Verified against the current codebase (not a wish list):
 | **Save** | `GameState` persist/restore (autosave); five manual slots from the daylit Market Stall; town reset (tap twice on Town) |
 | **Enemies** | **12 types**, JSON-driven stats/behaviors (`public/data/enemies.json`) |
 | **Waves** | **12 nights** of scheduled groups + gold rewards |
-| **Town** | Layout from `town_layout.json`; upgrades for **wall** and **blacksmith** via Moon Brazier / Witchlight Beacon; spell sort panel from daylit beacon |
+| **Town** | Layout from `town_layout.json`; wall upgrades via Witchlight Beacon; **Moon Brazier** opens blacksmith + gear; **night Market Stall** opens trader + gear; daylit beacon opens spell sort panel |
+| **Gear & inventory** | 11 equipment slots, 40-slot bag, compare/sell/equip; night drops from `loot.json`; stats and procs from `items.json` ([#362](https://github.com/fred1878/DefenseGame/pull/362)–[#363](https://github.com/fred1878/DefenseGame/pull/363)) |
+| **Shops & consumables** | Trader (random stock, rerolls each night) and blacksmith catalogue (unlock by night); potions/bombs in combat ([#364](https://github.com/fred1878/DefenseGame/pull/364)) |
 | **Endless / wave planner** | Haunted Well opens endless training (pick enemies + caps); Plague Clinic opens the wave planner (build a custom night) |
-| **Save menu** | Daylit Market Stall opens five manual slots (save / load / delete). A slot whose schema version differs from the current save is deleted, not migrated. The night-side Market Stall is still unwired. |
-| **Unwired buildings** | Market Stall (Night) — visible, labeled “Not available yet” |
+| **Save menu** | Daylit Market Stall opens five manual slots (save / load / delete). A slot whose schema version differs from `SAVE_VERSION` is deleted, not migrated. |
+| **Night loot summary** | Campaign end-of-night overlay: result, gold, rarity-coloured drops, wall HP ([#366](https://github.com/fred1878/DefenseGame/pull/366)) |
 | **Audio** | SFX for melee slashes, fire whoosh and coin gain/spend (`src/audio/`, `public/assets/audio/sfx/`) |
 | **Performance** | Enemy and projectile pooling in Defense |
 | **Combat** | Melee arcs, ranged shots, enemy melee/ranged/lob/arrow-rain behaviors, A* pathing, knockback, focus target |
@@ -54,7 +56,7 @@ Verified against the current codebase (not a wish list):
 | **PWA** | Installable standalone app; service worker precaches JS (including the Phaser chunk and lazy-loaded scenes), JSON data, images and audio. Updates activate on the next load |
 | **Android app** | Capacitor APK on GitHub Releases; in-town **Check for update** installs a newer APK (native only) |
 
-**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, campaign ending after night 12, iOS / Play Store builds. Larger gameplay features (upgradeable town, equipment, talents, wall-defense maze, daytime adventuring, spell combos) are on the [roadmap](./ROADMAP.md).
+**Not implemented yet:** title/settings/pause menus, tutorial, music (SFX are partial), walk-cycle animation, **campaign ending after night 12** (wave 12 repeats indefinitely today), iOS / Play Store builds, spell combos, full upgradeable-town economy, talents, wall-defense maze, daytime adventuring. Equipment core **is** in — see [roadmap](./ROADMAP.md) for follow-ups (stash, buy-back, gear visuals, crafting).
 
 See [ROADMAP.md](./ROADMAP.md) for checklist milestones.
 
@@ -100,6 +102,7 @@ npm run dev          # Vite dev server
 npm run build        # tsc + production bundle → dist/
 npm run preview      # serve dist locally
 npm run verify       # typecheck + Biome lint + knip + Vitest (default check)
+npm run sim:economy  # headless balance sim → sim-output/ (see docs/ECONOMY_SIM.md)
 npm run typecheck    # src, e2e, configs
 npm run lint         # Biome lint + format check; any warning fails
 npm run format       # apply Biome formatting
@@ -120,15 +123,18 @@ npm run android:sync   # build:android + cap sync android
 
 ```text
 src/
-  main.ts              # Phaser config, scene list, viewport binding
-  config/              # Tunable constants (map, player, spell bar layout, …)
+  bootstrap.ts         # Dynamic import of gameMain (production entry)
+  gameMain.ts          # Phaser.Game, scene list, viewport binding
+  config/              # Layout/engine constants (not gameplay numbers)
   content/             # Asset manifests, spell catalog wiring
   core/                # GameState, DataStore, save types, display scale
+  gear/                # Items, inventory, shops, loot, night summary
+  sim/                 # Economy simulator (npm run sim:economy)
   combat/              # Damage, spells, hitboxes, FX
   entities/            # Player, Enemy, Projectiles
   ai/                  # EnemyBrain + behaviors
   pathfinding/         # Nav grid, A*
-  scenes/              # Boot, Town, Defense, DebugMenu (+ defenseNightLogic)
+  scenes/              # Boot, Town, Defense, DebugMenu (+ scenes/defense/*)
   systems/             # Town buildings, wave spawner, endless roster/scheduler
   audio/               # SFX helpers
   ui/                  # Spell bar, touch controls, HUD chrome, minimap
@@ -136,7 +142,7 @@ src/
   e2e/                 # Test hooks (VITE_E2E / ?e2e=1)
 public/data/           # Runtime JSON (see below)
 e2e/                   # Playwright specs
-docs/                  # AGENTS, DATA_FIELDS, testing, CI, waves
+docs/                  # AGENTS, DATA_FIELDS, ITEMS, ECONOMY_SIM, testing, CI, waves
 ```
 
 ---
@@ -154,8 +160,12 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffPx`) |
 | `enemies.json` | HP, speed, damage, `behavior`, required explicit `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
+| `items.json` | Gear templates: slots, rarities, affixes, uniques |
+| `loot.json` | Night-end drop tables scaled by campaign night |
+| `consumables.json` | Potions, bombs (charges, combat use) |
+| `shops.json` | Trader stock tiers and blacksmith catalogue unlock nights |
 | `buildings.json` | Upgrade defs: `wall`, `blacksmith` (`costByLevel`, effects) |
-| `town_buildings.json` | Town menu labels, textures, `upgradeId` / `startsNight` / `opensSpellBar` / `opensEndlessMode` / `opensWavePlanner` |
+| `town_buildings.json` | Town menu labels, textures, `upgradeId` / `startsNight` / `opensSpellBar` / `opensShop` / `opensEndlessMode` / `opensWavePlanner` |
 | `town_layout.json` | Building slot positions on the town screen |
 | `spells.json` | Full spell catalog (damage, channeling, targeting, per-spell geometry/timing, knockback, icons) |
 
@@ -181,6 +191,8 @@ Details: [docs/TESTING.md](./docs/TESTING.md), [docs/CI_RELEASES.md](./docs/CI_R
 | Doc | Description |
 |-----|-------------|
 | [docs/AGENTS.md](./docs/AGENTS.md) | Architecture, data formats, commands, agent workflow |
+| [docs/ITEMS.md](./docs/ITEMS.md) | Rarity, item level, affix rules (gear) |
+| [docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md) | Headless progression / balance simulator |
 | [docs/DATA_FIELDS.md](./docs/DATA_FIELDS.md) | Every boot-required JSON field (checked by `dataFieldsDoc.test.ts`) |
 | [docs/TESTING.md](./docs/TESTING.md) | Unit/e2e test map and CI gates |
 | [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) | Completed Nov 2026 file-split plan (historical; line counts are stale) |

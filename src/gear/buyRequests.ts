@@ -100,7 +100,9 @@ export function rollBuyRequests(
     let pick = rollOne(catalog, config, rng);
     for (
       let retry = 0;
-      pick && retry < DUPLICATE_RETRIES && out.some((r) => sameRequest(r, pick!));
+      pick &&
+      retry < DUPLICATE_RETRIES &&
+      out.some((r) => sameRequest(r, pick!));
       retry++
     ) {
       pick = rollOne(catalog, config, rng);

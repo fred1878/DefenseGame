@@ -229,8 +229,7 @@ export function ensureShopStock(
           rng,
         ),
       trader:
-        save.shops.trader ??
-        rollTraderStock(ctx, save.night, rng, traderLevel),
+        save.shops.trader ?? rollTraderStock(ctx, save.night, rng, traderLevel),
       blacksmith:
         save.shops.blacksmith ??
         rollBlacksmithStock(

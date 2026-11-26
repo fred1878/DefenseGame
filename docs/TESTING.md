@@ -113,6 +113,8 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `endless-mode.spec.ts`, `endless-mode-panel-layout.spec.ts`, `endless-respawn-targeting.spec.ts` | Endless training flow, panel behavior, respawn targeting |
 | `town-touch.spec.ts` | Start night, Haunted Well / endless, drag-off (building debug overlay is `@manual`) |
 | `save-menu.spec.ts` | Daylit Market Stall opens the save menu; close and reopen |
+| `gear.spec.ts` | Inventory screen (town Gear): equip, sell, consumables tab; loot drops |
+| `shops.spec.ts` | Trader and blacksmith shop panels: buy, Buy & Equip, sell tab, upgrade + reroll |
 | `town-spell-panel-tap-toggle.spec.ts` | Town spell pool tap add/remove |
 | `defense-hud-layout.spec.ts` | Core HUD chrome + combat anchor layout (minimap / play-band projection probes are `@manual`) |
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
@@ -172,10 +174,17 @@ Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `
 
 ## Coverage notes
 
-Vitest thresholds apply to included `src/**` modules (scenes and Phaser boot stay excluded). `npm run test:coverage` enforces modest line/branch floors in CI.
+`npm run test:coverage` (CI `verify` job) enforces thresholds in `vitest.config.ts`:
+
+| Metric | Floor | Typical actual |
+|--------|------:|---------------:|
+| lines / functions / statements | 95% | ~98% |
+| branches | 90% | ~96% |
+
+**Excluded from coverage:** `src/scenes/**`, `src/world/**`, `src/main.ts`, Capacitor update stubs — scene behavior is covered by Playwright and extraction modules under `scenes/defense/*.test.ts`. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 ## Visual checks (screenshot baselines)
 
-`e2e/visual-screens.spec.ts` compares four screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):
+`e2e/visual-screens.spec.ts` compares screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):
 
 | Screenshot | State |
 |---|---|
@@ -183,6 +192,9 @@ Vitest thresholds apply to included `src/**` modules (scenes and Phaser boot sta
 | `endless-panel-scrolled` | Endless panel with the roster scrolled 130 px (rows cut off at both list edges, so a missing clip mask shows) |
 | `wave-planner` | Wave planner opened from the Plague Clinic |
 | `defense-night-won` | Defense after the night is won (no enemies, HUD + return button) |
+| `defense-night-lost` | Defense after the player dies (summary panel) |
+| `blacksmith` | Blacksmith shop (Moon Brazier), night 2, 140g, first card selected with compare |
+| `inventory` | Inventory (town Gear), night 4, two equipped items, bag item selected |
 
 Determinism (`e2e/helpers/visual.ts`): `Math.random` is a fixed-seed PRNG, Phaser's `requestAnimationFrame` loop is frozen before capture (e2e builds use `preserveDrawingBuffer`), and CSS animations are disabled. Fonts are pinned for this spec only: its browser gets `FONTCONFIG_FILE=e2e/fonts/fonts.conf`, which maps every family (the UI stack starts with `system-ui`) to the bundled DejaVu Sans, so text renders identically on any Linux machine. The e2e build id must be `e2e-local` (used by `npm run build:e2e` and CI) because the Town header prints it. Tolerance: per-pixel `threshold` 0.2 and at most 0.2% differing pixels; a roster-mask regression changes ~14%.
 

@@ -64,9 +64,13 @@ describe("normalizeLoot", () => {
       bad((t) => (t.rarityByLevel = [{ fromLevel: 1, weights: { shiny: 1 } }])),
     ).toThrow(/Unknown rarity/);
     expect(() => normalizeLoot({ ...lootRaw(), sellBackPct: "x" })).toThrow();
-    expect(bad((t) => (t.rollWeights = [1, 2]))).toThrow(/rollWeights must list 1/);
+    expect(bad((t) => (t.rollWeights = [1, 2]))).toThrow(
+      /rollWeights must list 1/,
+    );
     expect(bad((t) => (t.rollWeights = "x"))).toThrow(/rollWeights/);
-    expect(bad((t) => (t.rollWeights = [-1]))).toThrow(/rollWeights\[0\] must be >= 0/);
+    expect(bad((t) => (t.rollWeights = [-1]))).toThrow(
+      /rollWeights\[0\] must be >= 0/,
+    );
     expect(bad((t) => (t.rollWeights = ["x"]))).toThrow(/rollWeights\[0\]/);
   });
 
@@ -105,7 +109,12 @@ describe("loot rolls", () => {
   });
 
   it("weights the roll count when rollWeights is set", () => {
-    const weighted = { ...table, minRolls: 1, maxRolls: 3, rollWeights: [0, 1, 0] };
+    const weighted = {
+      ...table,
+      minRolls: 1,
+      maxRolls: 3,
+      rollWeights: [0, 1, 0],
+    };
     const rng = createRng(5);
     for (let i = 0; i < 20; i++) expect(rollCount(weighted, rng)).toBe(2);
     const counts = new Set<number>();

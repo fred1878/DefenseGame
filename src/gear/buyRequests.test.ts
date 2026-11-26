@@ -60,7 +60,8 @@ describe("buyRequests", () => {
     );
     for (const r of a) {
       if (r.kind === "base") expect(catalog.bases[r.baseId]).toBeDefined();
-      if (r.kind === "unique") expect(catalog.uniques[r.uniqueId]).toBeDefined();
+      if (r.kind === "unique")
+        expect(catalog.uniques[r.uniqueId]).toBeDefined();
       if (r.kind === "type") expect(["magic", "rare"]).toContain(r.minRarity);
     }
   });
@@ -94,7 +95,11 @@ describe("buyRequests", () => {
       createRng(1),
     );
     expect(typed).toEqual([
-      { kind: "type", itemType: tiny.bases.rusty_sword!.type, minRarity: "magic" },
+      {
+        kind: "type",
+        itemType: tiny.bases.rusty_sword!.type,
+        minRarity: "magic",
+      },
     ]);
     const empty: GearCatalog = { ...catalog, bases: {}, uniques: {} };
     expect(rollBuyRequests(empty, config, 2, createRng(1))).toEqual([]);
@@ -111,7 +116,10 @@ describe("buyRequests", () => {
     const ring = resolved(item(2, "copper_ring", "magic"));
     const type = catalog.bases.copper_ring!.type;
     expect(
-      requestMatches({ kind: "type", itemType: type, minRarity: "magic" }, ring),
+      requestMatches(
+        { kind: "type", itemType: type, minRarity: "magic" },
+        ring,
+      ),
     ).toBe(true);
     expect(
       requestMatches({ kind: "type", itemType: type, minRarity: "rare" }, ring),
@@ -126,12 +134,12 @@ describe("buyRequests", () => {
   });
 
   it("describes requests with rarity labels", () => {
-    expect(describeRequest(catalog, { kind: "base", baseId: "rusty_sword" }).name).toBe(
-      catalog.bases.rusty_sword!.name,
-    );
-    expect(describeRequest(catalog, { kind: "base", baseId: "nope" }).name).toBe(
-      "Unknown item",
-    );
+    expect(
+      describeRequest(catalog, { kind: "base", baseId: "rusty_sword" }).name,
+    ).toBe(catalog.bases.rusty_sword!.name);
+    expect(
+      describeRequest(catalog, { kind: "base", baseId: "nope" }).name,
+    ).toBe("Unknown item");
     const uniqueId = Object.keys(catalog.uniques)[0]!;
     expect(describeRequest(catalog, { kind: "unique", uniqueId })).toEqual({
       name: catalog.uniques[uniqueId]!.name,
@@ -172,9 +180,7 @@ describe("buyRequests", () => {
     const r = fillBuyRequest(save, catalog, config, 0);
     const gold = requestPayout(resolved(pricey), config);
     expect(r).toMatchObject({ ok: true, gold });
-    expect(r.message).toBe(
-      `Trader paid ${gold}g for ${resolved(pricey).name}`,
-    );
+    expect(r.message).toBe(`Trader paid ${gold}g for ${resolved(pricey).name}`);
     expect(r.save.gold).toBe(10 + gold);
     expect(r.save.gear.items.map((i) => i.uid)).toEqual([1, 3]);
     expect(r.save.shops.requests).toEqual([requests[1]]);

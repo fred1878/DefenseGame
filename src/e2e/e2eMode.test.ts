@@ -31,7 +31,9 @@ describe("e2eMode", () => {
   it("reads e2e and manualReturn from the query string", () => {
     vi.stubEnv("VITE_E2E", "false");
     vi.stubGlobal("window", {
-      location: { href: "http://localhost/?e2e=1&manualReturn=1&campaignWaves=1" },
+      location: {
+        href: "http://localhost/?e2e=1&manualReturn=1&campaignWaves=1",
+      },
     });
     expect(isE2EEnabled()).toBe(true);
     expect(e2eManualReturnFromQuery()).toBe(true);
@@ -41,7 +43,9 @@ describe("e2eMode", () => {
   it("ignores other query values", () => {
     vi.stubEnv("VITE_E2E", "false");
     vi.stubGlobal("window", {
-      location: { href: "http://localhost/?e2e=0&manualReturn=0&campaignWaves=0" },
+      location: {
+        href: "http://localhost/?e2e=0&manualReturn=0&campaignWaves=0",
+      },
     });
     expect(isE2EEnabled()).toBe(false);
     expect(e2eManualReturnFromQuery()).toBe(false);

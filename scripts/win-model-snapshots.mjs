@@ -38,9 +38,10 @@ const flag = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : fallback;
 };
-const out = args[0] && !args[0].startsWith("--")
-  ? args[0]
-  : path.join(root, "sim-output/win-model-snapshots.json");
+const out =
+  args[0] && !args[0].startsWith("--")
+    ? args[0]
+    : path.join(root, "sim-output/win-model-snapshots.json");
 const nights = flag("--nights", "5,8,10,12,15,18,20").split(",").map(Number);
 const runs = Number(flag("--runs", "200"));
 
@@ -85,7 +86,11 @@ const forReplay = (save) => ({
     spellBar: { ...save.spellBar, autoCastSpellIds: [...save.spellBar.slots] },
   },
   mode: (() => {
-    const p = power.playerPower(data.catalog, save.gear, power.DEFAULT_POWER_MODEL);
+    const p = power.playerPower(
+      data.catalog,
+      save.gear,
+      power.DEFAULT_POWER_MODEL,
+    );
     return p.meleeDps >= p.rangedDps ? "melee" : "ranged";
   })(),
 });
@@ -96,10 +101,22 @@ for (const night of nights) {
     (a, b) => a.pressure.powerRatio - b.pressure.powerRatio,
   );
   if (!list.length) continue;
-  const pick = (q) => list[Math.min(list.length - 1, Math.floor(q * list.length))];
-  for (const [tier, q] of [["p10", 0.1], ["p50", 0.5], ["p90", 0.9]]) {
+  const pick = (q) =>
+    list[Math.min(list.length - 1, Math.floor(q * list.length))];
+  for (const [tier, q] of [
+    ["p10", 0.1],
+    ["p50", 0.5],
+    ["p90", 0.9],
+  ]) {
     const s = pick(q);
-    snapshots.push({ id: `n${night}-${tier}`, night, tier, seed: s.seed, ...forReplay(s.save), pressure: s.pressure });
+    snapshots.push({
+      id: `n${night}-${tier}`,
+      night,
+      tier,
+      seed: s.seed,
+      ...forReplay(s.save),
+      pressure: s.pressure,
+    });
   }
   const earlier = (byNight.get(night - 3) ?? []).sort(
     (a, b) => a.pressure.powerRatio - b.pressure.powerRatio,
@@ -107,7 +124,14 @@ for (const night of nights) {
   if (earlier.length) {
     const s = earlier[Math.floor(earlier.length / 2)];
     const save = { ...structuredClone(s.save), night };
-    snapshots.push({ id: `n${night}-behind`, night, tier: "behind", seed: s.seed, ...forReplay(save), pressure: predict(save, night) });
+    snapshots.push({
+      id: `n${night}-behind`,
+      night,
+      tier: "behind",
+      seed: s.seed,
+      ...forReplay(save),
+      pressure: predict(save, night),
+    });
   }
 }
 fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -117,4 +141,6 @@ for (const s of snapshots) {
     `${s.id.padEnd(12)} ${s.mode.padEnd(6)} power ${s.pressure.powerRatio.toFixed(2)}  win ${(s.pressure.winChance * 100).toFixed(0)}%  wall ${s.save.townWallHpMax}`,
   );
 }
-console.log(`wrote ${snapshots.length} snapshots to ${path.relative(root, out)}`);
+console.log(
+  `wrote ${snapshots.length} snapshots to ${path.relative(root, out)}`,
+);

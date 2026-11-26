@@ -333,7 +333,11 @@ class Run {
     const count = this.save.shops.requests?.length ?? 0;
     for (let i = count - 1; i >= 0; i--) {
       const request = this.save.shops.requests![i]!;
-      const best = requestMatchesInBag(this.save, this.data.catalog, request)[0];
+      const best = requestMatchesInBag(
+        this.save,
+        this.data.catalog,
+        request,
+      )[0];
       if (!best) continue;
       const r = fillTraderRequest(this.save, this.shopCtx, i);
       this.origin.delete(best.item.uid);

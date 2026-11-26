@@ -228,7 +228,13 @@ describe("shops", () => {
     const save = richSave(3);
     save.gear = {
       items: [
-        { uid: 1, baseId: "rusty_sword", rarity: "common", itemLevel: 1, affixes: [] },
+        {
+          uid: 1,
+          baseId: "rusty_sword",
+          rarity: "common",
+          itemLevel: 1,
+          affixes: [],
+        },
       ],
       equipped: {},
       nextUid: 2,

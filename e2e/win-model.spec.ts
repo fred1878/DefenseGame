@@ -27,7 +27,8 @@ const root = process.cwd();
 const snapshotFile =
   process.env.WIN_MODEL_SNAPSHOTS ??
   path.join(root, "sim-output/win-model-snapshots.json");
-const resultsFile = process.env.WIN_MODEL_RESULTS ??
+const resultsFile =
+  process.env.WIN_MODEL_RESULTS ??
   path.join(root, "sim-output/win-model-results.jsonl");
 const snapshots: Snapshot[] = fs.existsSync(snapshotFile)
   ? (JSON.parse(fs.readFileSync(snapshotFile, "utf8")) as Snapshot[])
@@ -103,7 +104,8 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
         if (e.y < target.y) target = e;
         if (dist(e) < dist(nearest)) nearest = e;
       }
-      const hpFrac = api.getPlayerHp() / Math.max(1, api.getSave()?.player.hpMax ?? 100);
+      const hpFrac =
+        api.getPlayerHp() / Math.max(1, api.getSave()?.player.hpMax ?? 100);
       if (hpFrac < 0.35 && dist(nearest) < 160) {
         steer(me.x - nearest.x, me.y - nearest.y - 60);
         return;
