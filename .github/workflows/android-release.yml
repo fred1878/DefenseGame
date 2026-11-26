@@ -1,0 +1,140 @@
+name: Android release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version name without the leading v (defaults to package.json)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Resolve version
+        id: ver
+        env:
+          DISPATCH_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            RAW="${GITHUB_REF_NAME}"
+          elif [[ -n "${DISPATCH_VERSION}" ]]; then
+            RAW="${DISPATCH_VERSION}"
+          else
+            RAW="v${PKG_VERSION}"
+          fi
+          NAME="${RAW#v}"
+          {
+            echo "version_name=${NAME}"
+            echo "tag_name=v${NAME}"
+            echo "version_code=${GITHUB_RUN_NUMBER}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Decode release keystore
+        id: sign
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANDROID_KEYSTORE_BASE64}" || -z "${ANDROID_KEYSTORE_PASSWORD}" || -z "${ANDROID_KEY_ALIAS}" || -z "${ANDROID_KEY_PASSWORD}" ]]; then
+            echo "has_signing=false" >> "${GITHUB_OUTPUT}"
+            echo "Signing secrets are not set; a debug APK will be built instead."
+            exit 0
+          fi
+          mkdir -p "${RUNNER_TEMP}/android-signing"
+          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 -d > "${RUNNER_TEMP}/android-signing/release.keystore"
+          echo "has_signing=true" >> "${GITHUB_OUTPUT}"
+          echo "keystore_path=${RUNNER_TEMP}/android-signing/release.keystore" >> "${GITHUB_OUTPUT}"
+
+      - name: Build web assets for Capacitor
+        run: npm run build:android
+        env:
+          VITE_BUILD_ID: ${{ github.sha }}
+          VITE_APP_VERSION: ${{ steps.ver.outputs.version_name }}
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build signed release APK
+        if: steps.sign.outputs.has_signing == 'true'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ steps.sign.outputs.keystore_path }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon \
+            -PVERSION_CODE=${{ steps.ver.outputs.version_code }} \
+            -PVERSION_NAME=${{ steps.ver.outputs.version_name }}
+
+      - name: Build debug APK (no signing secrets)
+        if: steps.sign.outputs.has_signing != 'true'
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon \
+            -PVERSION_CODE=${{ steps.ver.outputs.version_code }} \
+            -PVERSION_NAME=${{ steps.ver.outputs.version_name }}
+
+      - name: Stage APK
+        id: apk
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          if [[ -f android/app/build/outputs/apk/release/app-release.apk ]]; then
+            SRC=android/app/build/outputs/apk/release/app-release.apk
+            NAME="defensegame-${{ steps.ver.outputs.version_name }}.apk"
+          elif [[ -f android/app/build/outputs/apk/debug/app-debug.apk ]]; then
+            SRC=android/app/build/outputs/apk/debug/app-debug.apk
+            NAME="defensegame-${{ steps.ver.outputs.version_name }}-debug.apk"
+          else
+            echo "No APK found under android/app/build/outputs/apk/"
+            find android/app/build/outputs -type f -name '*.apk' || true
+            exit 1
+          fi
+          cp "${SRC}" "artifacts/${NAME}"
+          echo "file=artifacts/${NAME}" >> "${GITHUB_OUTPUT}"
+          echo "name=${NAME}" >> "${GITHUB_OUTPUT}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: ${{ steps.apk.outputs.file }}
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag_name }}
+          name: ${{ steps.ver.outputs.tag_name }}
+          generate_release_notes: true
+          files: ${{ steps.apk.outputs.file }}

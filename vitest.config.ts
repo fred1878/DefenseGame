@@ -21,6 +21,8 @@ export default defineConfig({
         "src/main.ts",
         "src/scenes/**",
         "src/world/**",
+        "src/appUpdate/apkInstallerPlugin.ts",
+        "src/appUpdate/runCheckForUpdate.ts",
       ],
       // Actual coverage is higher (lines/statements/functions ~98%,
       // branches ~96%). These floors leave a little room without going back

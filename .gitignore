@@ -11,3 +11,16 @@ test-results/
 !.env.example
 __pycache__/
 *.pyc
+*.keystore
+*.jks
+
+# Capacitor / Android build output (the android/ project itself is committed)
+android/app/build/
+android/app/release/
+android/build/
+android/.gradle/
+android/local.properties
+android/captures/
+android/*.iml
+android/.idea/
+.capacitor/

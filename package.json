@@ -24,13 +24,19 @@
     "e2e:manual": "npm run build:e2e && playwright test",
     "test:e2e": "playwright test",
     "test:e2e:ci": "CI=1 playwright test --project=chromium",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "build:android": "node scripts/install-phaser-defense.mjs && vite build --mode android && node scripts/assert-phaser-chunk-size.mjs && node scripts/write-version.mjs",
+    "cap:sync": "cap sync android",
+    "android:sync": "npm run build:android && cap sync android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "phaser": "^4.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.9",
+    "@capacitor/cli": "^8.6.0",
     "@playwright/test": "^1.49.1",
     "@types/node": "^24.19.2",
     "@vitest/coverage-v8": "^5.1.2",
