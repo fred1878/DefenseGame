@@ -22,6 +22,7 @@ import { InventoryPanel } from "../../ui/InventoryPanel";
 import { ShopPanel } from "../../ui/ShopPanel";
 import type { GearPanelContext } from "../../ui/gearPanel/gearPanelLogic";
 import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
+import { TalentPanel } from "../../ui/TalentPanel";
 import type { ScreenRect } from "../../ui/screenLayout";
 import {
   isEndlessModeSetupActive,
@@ -39,7 +40,7 @@ export type TownOverlaysHost = {
   onStartWavePlanner(groups: WaveGroup[]): void;
   /** Persist the slot and restart Town with the loaded save. */
   onLoadSaveSlot(save: SaveGame): void;
-  /** Persist gear / gold changes from the Gear panel. */
+  /** Persist gear / gold / talent changes from the Gear and Talents panels. */
   onGearChanged(save: SaveGame): void;
 };
 
@@ -51,6 +52,7 @@ export class TownOverlays {
   spellSortPanel: SpellBarSortPanel | null = null;
   saveMenuPanel: SaveMenuPanel | null = null;
   gearPanel: ShopPanel | InventoryPanel | null = null;
+  talentPanel: TalentPanel | null = null;
   private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
 
   constructor(
@@ -136,6 +138,19 @@ export class TownOverlays {
     );
   }
 
+  /** Talent tree; learn / reset persist through `onGearChanged` (stats re-apply). */
+  openTalentPanel(): void {
+    if (this.talentPanel) return;
+    this.talentPanel = new TalentPanel(
+      this.scene,
+      () => this.host.getSave(),
+      (save) => this.host.onGearChanged(save),
+      () => {
+        this.talentPanel = null;
+      },
+    );
+  }
+
   openEndlessPanel(): void {
     if (isEndlessModeSetupActive(this.scene.game)) return;
     openEndlessModeSetupScene(this.scene, {
@@ -157,6 +172,8 @@ export class TownOverlays {
   teardown(): void {
     this.gearPanel?.destroy();
     this.gearPanel = null;
+    this.talentPanel?.destroy();
+    this.talentPanel = null;
     this.saveMenuPanel?.destroy();
     this.saveMenuPanel = null;
     this.spellSortPanel?.destroy();
@@ -208,6 +225,9 @@ export class TownOverlays {
     }
     if (this.gearPanel) {
       Object.assign(out, this.gearPanel.e2eTapTargets());
+    }
+    if (this.talentPanel) {
+      Object.assign(out, this.talentPanel.e2eTapTargets());
     }
   }
 }

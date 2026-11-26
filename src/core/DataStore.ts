@@ -44,6 +44,9 @@ import {
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 import { normalizeItems } from "./normalizeItems";
 import { setGearCatalog } from "../gear/gearCatalog";
+import { setTalentCatalog } from "../talents/talentCatalog";
+import type { TalentCatalog } from "../talents/talentTypes";
+import { normalizeTalents } from "./normalizeTalents";
 import { setLootConfig, type LootConfig } from "../gear/loot";
 import { normalizeLoot } from "./normalizeLoot";
 import { setConsumablesConfig } from "../gear/consumables";
@@ -104,12 +107,16 @@ export class DataStore {
   player!: PlayerConfig;
   items!: GearCatalog;
   loot!: LootConfig;
+  talents!: TalentCatalog;
 
   defenseDataReady = false;
   private defenseDataPromise: Promise<void> | null = null;
 
   async loadTownBoot(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
+    const talentsFile = fetchJson<unknown>(`${prefix}data/talents.json`);
+    // Handled below; avoid an unhandled rejection if the batch fails first.
+    talentsFile.catch(() => undefined);
     const [
       buildings,
       townBuildings,
@@ -143,6 +150,8 @@ export class DataStore {
     setLootConfig(this.loot);
     setConsumablesConfig(normalizeConsumables(consumablesFile));
     setShopsConfig(normalizeShops(shopsFile));
+    this.talents = normalizeTalents(await talentsFile);
+    setTalentCatalog(this.talents);
   }
 
   async loadDefenseData(baseUrl = ""): Promise<void> {

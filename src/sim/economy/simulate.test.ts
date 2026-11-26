@@ -285,4 +285,30 @@ describe("simulate", () => {
     expect(run.records.every((r) => r.traderLevel === 0)).toBe(true);
     loadSimData(defaultRawData());
   });
+
+  it("spends talent points along each profile's branch", () => {
+    const picks = (strategy: SimOptions["strategy"]) =>
+      simulateRun(data, opts({ strategy }), 3).talents!;
+    const ranged = picks("ranged");
+    expect(ranged.earned).toBeGreaterThan(1);
+    expect(ranged.ranks.steady_aim).toBeGreaterThan(0);
+    const caster = picks("spell-caster");
+    expect(caster.ranks.arcane_study).toBeGreaterThan(0);
+    const melee = picks("melee-dps");
+    expect(melee.ranks.sharpened_edge).toBeGreaterThan(0);
+    const spentAll = (t: typeof ranged) =>
+      Object.values(t.ranks).reduce((a, b) => a + b, 0);
+    expect(spentAll(picks("gear-first"))).toBe(picks("gear-first").earned);
+  });
+
+  it("never learns talents with talents off, and loses more power", () => {
+    const off = simulateRun(data, opts({ talents: false }), 4);
+    expect(off.talents!.ranks).toEqual({});
+    expect(off.talents!.earned).toBeGreaterThan(0);
+    const on = simulateRun(data, opts(), 4);
+    const last = (r: typeof on) => r.records[r.records.length - 1]!;
+    expect(last(on).powerAfter.weaponDps).toBeGreaterThan(
+      last(off).powerAfter.weaponDps,
+    );
+  });
 });

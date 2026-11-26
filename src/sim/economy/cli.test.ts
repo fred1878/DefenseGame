@@ -45,6 +45,7 @@ describe("econ sim CLI", () => {
       "--overrides",
       "o.json",
       "--no-sell",
+      "--no-talents",
       "--spell-dps",
       "20",
       "--grace",
@@ -74,6 +75,7 @@ describe("econ sim CLI", () => {
       sets: ["loot.sellBackPct=25", "waves.1.rewardGold=1"],
       overridesFile: "o.json",
       sellSurplus: false,
+      talents: false,
       model: {
         spellBaseDps: 20,
         graceSec: 5,

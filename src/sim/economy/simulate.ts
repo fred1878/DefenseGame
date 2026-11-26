@@ -44,6 +44,13 @@ import {
   type PowerModel,
 } from "./power";
 import type { NightDifficulty, SimData } from "./simData";
+import {
+  canLearn,
+  learnTalent,
+  pointsAvailable,
+  talentBonus,
+} from "../../talents/talentLogic";
+import type { SaveTalents } from "../../talents/talentTypes";
 
 export const STRATEGY_IDS = [
   "walls-first",
@@ -97,6 +104,11 @@ type Profile = {
   focus?: (p: PlayerPower) => number;
   /** Put gold left after the plan into shop upgrades. */
   spareToShops: boolean;
+  /**
+   * Talent branch ids to fill in order (best-scoring learnable node inside the
+   * first branch with one); unset = best-scoring node anywhere in the tree.
+   */
+  talentBranches?: string[];
 };
 
 const PROFILES: Record<StrategyId, Profile> = {
@@ -109,23 +121,37 @@ const PROFILES: Record<StrategyId, Profile> = {
     plan: "balanced",
     focus: (p) => p.meleeDps,
     spareToShops: true,
+    talentBranches: ["blade"],
   },
-  ranged: { plan: "balanced", focus: (p) => p.rangedDps, spareToShops: true },
+  ranged: {
+    plan: "balanced",
+    focus: (p) => p.rangedDps,
+    spareToShops: true,
+    talentBranches: ["marksman"],
+  },
   "spell-caster": {
     plan: "balanced",
     focus: (p) => p.spellMult,
     spareToShops: true,
+    talentBranches: ["sorcery"],
   },
-  tank: { plan: "balanced", focus: (p) => p.ehp, spareToShops: true },
+  tank: {
+    plan: "balanced",
+    focus: (p) => p.ehp,
+    spareToShops: true,
+    talentBranches: ["blade"],
+  },
   sustain: {
     plan: "balanced",
     focus: (p) => 1 + p.lifestealPct / 10,
     spareToShops: true,
+    talentBranches: ["blade"],
   },
   "wall-turtle": {
     plan: "walls-first",
     focus: (p) => p.ehp,
     spareToShops: false,
+    talentBranches: ["blade"],
   },
   "shop-investor": { plan: "investor", spareToShops: true },
   reroller: { plan: "reroller", spareToShops: true },
@@ -149,6 +175,8 @@ export type SimOptions = {
   sellSurplus: boolean;
   /** Spend carried consumables when the night's win chance is below this. */
   consumableUseBelow: number;
+  /** Spend talent points each town phase (false = never learn talents). */
+  talents: boolean;
   model: PowerModel;
   /**
    * Called before each night is resolved with the save the night starts from
@@ -166,6 +194,7 @@ export function defaultSimOptions(data: SimData): SimOptions {
     maxAttempts: data.nights.length * 4,
     sellSurplus: true,
     consumableUseBelow: 0.75,
+    talents: true,
     model: DEFAULT_POWER_MODEL,
   };
 }
@@ -226,6 +255,8 @@ export type RunResult = {
   seed: number;
   finished: boolean;
   records: NightRecord[];
+  /** Talent ranks learned by the end of the run. */
+  talents?: SaveTalents;
 };
 
 export function emptyRarityCounts(): RarityCounts {
@@ -278,13 +309,25 @@ class Run {
     return nights[Math.max(0, idx)]!;
   }
 
-  power(gear: SaveGear = this.save.gear): PlayerPower {
-    return playerPower(this.data.catalog, gear, this.opts.model);
+  power(
+    gear: SaveGear = this.save.gear,
+    talents: SaveTalents = this.save.talents,
+  ): PlayerPower {
+    return playerPower(
+      this.data.catalog,
+      gear,
+      this.opts.model,
+      talentBonus(this.data.talents, talents),
+    );
   }
 
   /** Gear / wall choice score: power ratio, tilted toward the profile's focus stat. */
-  score(gear: SaveGear, wallHpMax = this.save.townWallHpMax): number {
-    const power = this.power(gear);
+  score(
+    gear: SaveGear,
+    wallHpMax = this.save.townWallHpMax,
+    talents: SaveTalents = this.save.talents,
+  ): number {
+    const power = this.power(gear, talents);
     const ratio = nightPressure(
       power,
       this.difficulty(),
@@ -294,6 +337,39 @@ class Run {
     const focus = this.profile.focus;
     if (!focus) return ratio;
     return ratio * (Math.max(0, focus(power)) / this.focusBase);
+  }
+
+  /** Learnable talent ids, limited to the profile's first open branch. */
+  talentCandidates(): string[] {
+    const tree = this.data.talents;
+    const t = this.save.talents;
+    const open = (ids: string[]) => ids.filter((id) => canLearn(tree, t, id));
+    const idsIn = (branchId?: string) =>
+      tree.branches
+        .filter((b) => branchId === undefined || b.id === branchId)
+        .flatMap((b) => b.tiers.flatMap((tier) => tier.nodes.map((n) => n.id)));
+    for (const branchId of this.profile.talentBranches ?? []) {
+      const ids = open(idsIn(branchId));
+      if (ids.length) return ids;
+    }
+    return open(idsIn());
+  }
+
+  /** Spend every talent point, one rank at a time, on the best-scoring node. */
+  allocateTalents(): void {
+    if (!this.opts.talents) return;
+    for (let guard = 0; guard < 200; guard++) {
+      if (pointsAvailable(this.save.talents) < 1) return;
+      const candidates = this.talentCandidates();
+      let best: { talents: SaveTalents; score: number } | null = null;
+      for (const id of candidates) {
+        const talents = learnTalent(this.data.talents, this.save.talents, id);
+        const score = this.score(this.save.gear, undefined, talents);
+        if (!best || score > best.score + 1e-9) best = { talents, score };
+      }
+      if (!best) return;
+      this.save = { ...this.save, talents: best.talents };
+    }
   }
 
   level(shop: ShopId): number {
@@ -626,6 +702,7 @@ export function simulateRun(
 ): RunResult {
   const rng = createRng(seed);
   const run = new Run(data, opts, rng);
+  run.allocateTalents();
   const records: NightRecord[] = [];
   let finished = false;
   for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {
@@ -691,6 +768,7 @@ export function simulateRun(
     run.requestsFilled = 0;
 
     // Town phase.
+    run.allocateTalents();
     run.save = ensureShopStock(run.save, run.shopCtx, rng);
     const requestsPosted = run.save.shops.requests?.length ?? 0;
     const goldInTown = run.save.gold;
@@ -763,7 +841,7 @@ export function simulateRun(
       break;
     }
   }
-  return { seed, finished, records };
+  return { seed, finished, records, talents: run.save.talents };
 }
 
 /** Run `runs` campaigns with seeds `seed, seed+1, …`. */

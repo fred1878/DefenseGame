@@ -31,6 +31,9 @@ const STAT_LABELS: Record<FlatStatId, { label: string; pct: boolean }> = {
   moveSpeedPct: { label: "Move speed", pct: true },
   spellPowerPct: { label: "Spell power", pct: true },
   lifestealPct: { label: "Lifesteal", pct: true },
+  meleeArcPct: { label: "Melee arc", pct: true },
+  rangedRangePct: { label: "Ranged range", pct: true },
+  cooldownPct: { label: "Spell cooldowns", pct: true },
 };
 
 const TYPE_LABELS: Record<ItemType, string> = {
@@ -91,6 +94,9 @@ export function modifierLabel(m: StatModifier): string {
   }
   if (m.stat === "spellCooldownPct") {
     return `${signed(-m.value)}% ${spellLabel(m.spell)} cooldown`;
+  }
+  if (m.stat === "cooldownPct") {
+    return `${signed(-m.value)}% Spell cooldowns`;
   }
   const meta = STAT_LABELS[m.stat];
   return `${signed(m.value)}${meta.pct ? "%" : ""} ${meta.label}`;

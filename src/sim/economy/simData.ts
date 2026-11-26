@@ -6,6 +6,7 @@ import lootJson from "../../../public/data/loot.json";
 import playerJson from "../../../public/data/player.json";
 import shopsJson from "../../../public/data/shops.json";
 import spellsJson from "../../../public/data/spells.json";
+import talentsJson from "../../../public/data/talents.json";
 import wavesJson from "../../../public/data/waves.json";
 import { applyPlayerTuning } from "../../config/player";
 import { setSpellCatalog, type SpellDefinition } from "../../content/spells";
@@ -16,6 +17,9 @@ import { normalizeLoot } from "../../core/normalizeLoot";
 import { normalizePlayerConfig } from "../../core/normalizePlayer";
 import { normalizeShops } from "../../core/normalizeShops";
 import { normalizeSpellCatalog } from "../../core/normalizeSpells";
+import { normalizeTalents } from "../../core/normalizeTalents";
+import { setTalentCatalog } from "../../talents/talentCatalog";
+import type { TalentCatalog } from "../../talents/talentTypes";
 import {
   setConsumablesConfig,
   type ConsumablesConfig,
@@ -36,6 +40,7 @@ export const SIM_FILE_IDS = [
   "player",
   "enemies",
   "spells",
+  "talents",
 ] as const;
 export type SimFileId = (typeof SIM_FILE_IDS)[number];
 export type SimRawData = Record<SimFileId, unknown>;
@@ -52,6 +57,7 @@ export function defaultRawData(): SimRawData {
     player: playerJson,
     enemies: enemiesJson,
     spells: spellsJson,
+    talents: talentsJson,
   });
 }
 
@@ -200,6 +206,7 @@ export type SimData = {
   buildings: Record<string, BuildingDef>;
   nights: NightDifficulty[];
   spells: SpellDefinition[];
+  talents: TalentCatalog;
 };
 
 /**
@@ -211,6 +218,7 @@ export function loadSimData(raw: SimRawData): SimData {
   const loot = normalizeLoot(raw.loot);
   const shops = normalizeShops(raw.shops);
   const consumables = normalizeConsumables(raw.consumables);
+  const talents = normalizeTalents(raw.talents);
   const { endlessPanelDefaultConcurrent: _ui, ...tuning } =
     normalizePlayerConfig(
       raw.player as Parameters<typeof normalizePlayerConfig>[0],
@@ -227,6 +235,7 @@ export function loadSimData(raw: SimRawData): SimData {
   setConsumablesConfig(consumables);
   applyPlayerTuning(tuning);
   setSpellCatalog(spells);
+  setTalentCatalog(talents);
   return {
     catalog,
     loot,
@@ -235,5 +244,6 @@ export function loadSimData(raw: SimRawData): SimData {
     buildings,
     nights: waveDifficulties(raw.waves, raw.enemies),
     spells,
+    talents,
   };
 }

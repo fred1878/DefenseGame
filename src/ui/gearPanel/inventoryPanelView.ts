@@ -9,6 +9,7 @@ import {
   type ItemSortMode,
 } from "../../gear/inventory";
 import { resolveItem, sellValue } from "../../gear/itemStats";
+import { saveTalentBonus } from "../../talents/talentRuntime";
 import { iconForSlot, type UiIconName } from "../icons/uiIcons";
 import { DG_THEME } from "../theme/dgTheme";
 import {
@@ -224,7 +225,7 @@ export function inventoryView(
     consumableCount: String(carried),
     slots: slotViews(ctx, save, state),
     heroCaption: `Hero · Night ${save.night}`,
-    stats: totalStatRows(ctx.catalog, save.gear),
+    stats: totalStatRows(ctx.catalog, save.gear, 8, saveTalentBonus(save)),
     bagLabel: consumables ? "Potions & bombs" : `Bag · ${bag}/${cap}`,
     sortLabel: SORT_LABELS[state.sort],
     page,

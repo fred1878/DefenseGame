@@ -26,6 +26,7 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 | **Campaign night loot summary** | [#366](https://github.com/fred1878/DefenseGame/pull/366) — End-of-night overlay (result, gold, rarity-coloured drops, auto-sold items, wall HP) via `resolveCampaignNightEnd` / `NightLootSummaryPanel` |
 | **Economy / progression sim** | [#367](https://github.com/fred1878/DefenseGame/pull/367) — `npm run sim:economy` Monte Carlo over real gear/loot/shop code; [docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md) and [docs/ITEMS.md](./docs/ITEMS.md) |
 | **Economy rebalance + shop upgrades** | [#371](https://github.com/fred1878/DefenseGame/pull/371) — Sell-back 30%, lost nights pay 15% and drop nothing, night 10 reward 170, cheaper late blacksmith items, stronger potions / bombs; Trader and Blacksmith upgrade 3 levels each in their shop panel (more / better stock, lower prices, masterwork items, paid trader reroll); 8 more sim profiles |
+| **Talents (Milestone I)** | [#374](https://github.com/fred1878/DefenseGame/pull/374) — Talents screen from town: three branches (Blade, Marksman, Sorcery), 5 tiers opened by points spent in the branch, pick-one tier III, ranks with per-rank stat modifiers and procs that stack into gear stats (combat, Gear totals, economy sim), 1 point per night won, reset for 50g; data in `public/data/talents.json` ([docs/TALENTS.md](./docs/TALENTS.md)) |
 
 ---
 
@@ -44,7 +45,7 @@ Spell interactions come next after remaining campaign polish because they sit on
 | **4** | Milestone **C** remaining (cone art VFX, **spell interactions**; damage numbers — tuning only) | M–L |
 | **5** | Milestone **G** — Fully upgradeable town | L |
 | **6** | Milestone **H** — Equipment, shops, and traders — core **done** (see Recently landed); follow-ups below | L |
-| **7** | Milestone **I** — Talents | L |
+| **7** | Milestone **I** — Talents — core **done** (see Recently landed); follow-ups below | L |
 | **8** | Milestone **J** — Wall defenses (tower-defense maze) | XL |
 | **9** | Milestone **K** — Daytime adventuring and quests | XL |
 | **10** | Milestone **D** — UX, audio, meta | L–XL |
@@ -148,7 +149,9 @@ Deepen the existing day phase so the town itself is the long-term progression su
 
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
-| Talent tree / points | L | No | Spend talent points (nights survived, quests, or level) on a tree of combat and town perks |
+| Talent tree / points | L | **Done** — Blade / Marksman / Sorcery, 5 tiers, pick-one tier III, reset for gold ([docs/TALENTS.md](./docs/TALENTS.md)) | Values are placeholders waiting for sign-off (points per night, reset cost, tier thresholds, effects) |
+| Town perks | M | No | Talents for shops, walls and gold (needs town stats in the bonus sum) |
+| More point sources | S | Nights won only | Quests and adventures (Milestone **K**); show "+1 talent point" on the night summary |
 
 ---
 

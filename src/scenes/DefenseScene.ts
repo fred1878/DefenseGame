@@ -6,7 +6,7 @@ import { resetShadowformRuntimeMults } from "../config/shadowformRuntime";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore, EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
-import { applyGearLoadout } from "../gear/gearRuntime";
+import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
 import { worldUnit } from "../core/worldPixelScale";
 import {
@@ -352,7 +352,7 @@ export class DefenseScene extends Phaser.Scene {
     configureSceneInput(this);
     this.save = { ...(this.registry.get("save") as SaveGame) };
     ensureDefenseSaveSpellBar(this.save);
-    applyGearLoadout(this.save.gear);
+    applySaveLoadout(this.save);
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
     this.wallHpStart = this.wallHp;

@@ -69,7 +69,7 @@ Prefer a new JSON row + a small behavior module over growing scene files.
 |-------|------|--------|
 | Tuning | `src/config/` | Canvas/layout, HUD px, render depths. **No gameplay numbers.** |
 | Code content | `src/content/` | Texture keys/paths (`assets.ts`), spell ids (`spells.ts`) |
-| Runtime JSON | `public/data/` | enemies, enemy-ai, player, defense-maps, spell_input, spells, entity-physics, waves, buildings, items, loot, consumables, shops… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). |
+| Runtime JSON | `public/data/` | enemies, enemy-ai, player, defense-maps, spell_input, spells, entity-physics, waves, buildings, items, loot, consumables, shops, talents… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). Talents: [TALENTS.md](./TALENTS.md). |
 
 Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`).
 
@@ -87,4 +87,4 @@ Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`)
 
 ## Related docs
 
-[DATA_FIELDS.md](./DATA_FIELDS.md) · [ITEMS.md](./ITEMS.md) · [ECONOMY_SIM.md](./ECONOMY_SIM.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)
+[DATA_FIELDS.md](./DATA_FIELDS.md) · [ITEMS.md](./ITEMS.md) · [TALENTS.md](./TALENTS.md) · [ECONOMY_SIM.md](./ECONOMY_SIM.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)

@@ -9,7 +9,7 @@ import {
   syncPlayerHpMax,
 } from "../core/GameState";
 import { showTouchInput } from "../debug/DebugState";
-import { applyGearLoadout } from "../gear/gearRuntime";
+import { applySaveLoadout } from "../talents/talentRuntime";
 import {
   DEBUG_MENU_CLOSE,
   resumeFromDebugMenu,
@@ -80,6 +80,7 @@ export class TownScene extends Phaser.Scene {
   private resetButton!: ReturnType<typeof createTouchButton>;
   private debugButton!: ReturnType<typeof createTouchButton>;
   private gearButton!: ReturnType<typeof createTouchButton>;
+  private talentsButton!: ReturnType<typeof createTouchButton>;
   private fullscreenButton!: ReturnType<typeof createTouchButton>;
   private updateButton: ReturnType<typeof createTouchButton> | undefined;
   private buildingControls = new Map<string, TownBuildingControl>();
@@ -122,7 +123,7 @@ export class TownScene extends Phaser.Scene {
       this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
     }
     const store = this.registry.get("dataStore") as DataStore;
-    applyGearLoadout(this.save.gear);
+    applySaveLoadout(this.save);
 
     this.statusText = createTownHeader(this);
     this.refreshStatus(store);
@@ -152,10 +153,15 @@ export class TownScene extends Phaser.Scene {
         this.save = this.registry.get("save") as SaveGame;
         this.overlays.openGearPanel();
       },
+      onTalents: () => {
+        this.save = this.registry.get("save") as SaveGame;
+        this.overlays.openTalentPanel();
+      },
       onReset: () => this.onResetTap(),
     });
     this.debugButton = buttons.debugButton;
     this.gearButton = buttons.gearButton;
+    this.talentsButton = buttons.talentsButton;
     this.fullscreenButton = buttons.fullscreenButton;
     this.resetButton = buttons.resetButton;
     this.updateButton = buttons.updateButton;
@@ -217,12 +223,15 @@ export class TownScene extends Phaser.Scene {
       this.buildingControls,
       this.overlays,
     );
-    const gear = interactiveObjectScreenRect(this.gearButton.container);
-    if (gear && !blocksBaseLayerInput(this)) {
-      out["town-gear"] = {
-        x: gear.x + gear.width / 2,
-        y: gear.y + gear.height / 2,
-      };
+    const header: Array<[string, ReturnType<typeof createTouchButton>]> = [
+      ["town-gear", this.gearButton],
+      ["town-talents", this.talentsButton],
+    ];
+    for (const [id, btn] of header) {
+      const r = interactiveObjectScreenRect(btn.container);
+      if (r && !blocksBaseLayerInput(this)) {
+        out[id] = { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      }
     }
     return out;
   }
@@ -385,18 +394,19 @@ export class TownScene extends Phaser.Scene {
     setContainerInputEnabled(this.resetButton.container, enabled);
     setContainerInputEnabled(this.debugButton.container, enabled);
     setContainerInputEnabled(this.gearButton.container, enabled);
+    setContainerInputEnabled(this.talentsButton.container, enabled);
     setContainerInputEnabled(this.fullscreenButton.container, enabled);
     if (this.updateButton) {
       setContainerInputEnabled(this.updateButton.container, enabled);
     }
   }
 
-  /** Gear panel equip / sell: persist, re-apply gear stats and refresh the header. */
+  /** Gear / talent changes: persist, re-apply gear + talent stats and refresh the header. */
   private applyGearChange(save: SaveGame): void {
     this.save = syncPlayerHpMax(save);
     persistSave(this.save);
     this.registry.set("save", this.save);
-    applyGearLoadout(this.save.gear);
+    applySaveLoadout(this.save);
     this.refreshStatus(this.registry.get("dataStore") as DataStore);
   }
 
