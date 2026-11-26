@@ -81,6 +81,23 @@ export function isAnyTownSetupSceneActive(game: Phaser.Game): boolean {
   return isEndlessModeSetupActive(game) || isWavePlannerSetupActive(game);
 }
 
+/** Stop setup overlays before campaign defense or when abandoning roster UI. */
+export function dismissTownSetupScenes(game: Phaser.Game): void {
+  for (const key of [
+    TOWN_ENDLESS_SETUP_SCENE_KEY,
+    TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
+  ]) {
+    const scene = game.scene.getScene(key);
+    if (scene?.scene.isActive()) {
+      game.scene.stop(key);
+    }
+  }
+  const town = game.scene.getScene("Town");
+  if (town) {
+    resumeTownFromSetup(town);
+  }
+}
+
 /** Tear down a setup scene and return Town to the interactive stack. */
 export function closeTownSetupScene(
   setup: Phaser.Scene,

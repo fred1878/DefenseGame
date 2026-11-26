@@ -58,6 +58,7 @@ import {
   formatTownStatus,
 } from "./town/TownHeader";
 import { TownOverlays } from "./town/TownOverlays";
+import { dismissTownSetupScenes } from "./town/townSetupSceneLifecycle";
 import {
   collectTownUiTapTargets,
   isTownTouchButtonPressed,
@@ -385,6 +386,7 @@ export class TownScene extends Phaser.Scene {
 
   /** Prepare + persist the night save, set the run mode, start Defense. */
   private beginDefenseRun(setRunMode: () => void): void {
+    dismissTownSetupScenes(this.game);
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
     this.registry.set("save", this.save);

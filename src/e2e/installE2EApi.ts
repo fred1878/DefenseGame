@@ -14,6 +14,7 @@ import {
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
 import {
+  dismissTownSetupScenes,
   isAnyTownSetupSceneActive,
   TOWN_ENDLESS_SETUP_SCENE_KEY,
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
@@ -26,8 +27,9 @@ import { positionDomMirrors } from "./installE2EDom";
 export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
   return {
     startNight() {
-      const town = game.scene.getScene("Town") as TownScene | null;
-      if (town?.scene.isActive()) {
+      dismissTownSetupScenes(game);
+      const town = townForE2E(game);
+      if (town && (town.scene.isActive() || town.scene.isPaused?.() === true)) {
         town.e2eStartNight();
         return;
       }
