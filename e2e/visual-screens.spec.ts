@@ -230,3 +230,42 @@ test("visual: talent tree (blades learned, arcane study selected)", async ({
   await freezeGameLoop(page);
   await expect(page).toHaveScreenshot("talent-tree.png", SHOT);
 });
+
+test.describe("narrow viewport", () => {
+  test.use({
+    viewport: { width: 390, height: 867 },
+    deviceScaleFactor: 2,
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await installVisualDeterminism(page);
+    await gotoE2E(page);
+  });
+
+  test("visual: talent tree fits branch labels (390px, DPR 2)", async ({
+    page,
+  }) => {
+    await page.evaluate(() => {
+      window.__DEFENSEGAME_E2E__?.api?.setSave({
+        gold: 260,
+        night: 6,
+        talents: {
+          ranks: {
+            sharpened_edge: 3,
+            heavy_swing: 2,
+            wide_arc: 1,
+            arcane_study: 2,
+          },
+          earned: 10,
+        },
+      });
+    });
+    await waitForTapTargets(page, ["town-talents"]);
+    await tapTarget(page, "town-talents");
+    await waitForTapTargets(page, ["talents-node-arcane_study"]);
+    await tapTarget(page, "talents-node-arcane_study");
+    await waitFrames(page, 20);
+    await freezeGameLoop(page);
+    await expect(page).toHaveScreenshot("talent-tree-390-dpr2.png", SHOT);
+  });
+});

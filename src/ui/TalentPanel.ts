@@ -47,6 +47,7 @@ import {
   TALENT_LAYOUT as L,
   type TalentTreeLayout,
 } from "./talentPanel/talentPanelLayout";
+import { fitText } from "./gearPanel/dgPanelKit";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { UI_FONT_FAMILY, uiTextStyle } from "./uiTextStyle";
 
@@ -251,27 +252,24 @@ export class TalentPanel {
     catalog.branches.forEach((b, i) => {
       const cx = this.layout.branchCenters[i]!;
       const branchIcon = uiIconFrame(scene, b.icon as UiIconName, 16);
-      const iconY = headY + 20;
       let icon: Phaser.GameObjects.Image | null = null;
       if (branchIcon) {
         icon = scene.add
-          .image(cx - 24, iconY, branchIcon.key, branchIcon.frame)
+          .image(0, 0, branchIcon.key, branchIcon.frame)
           .setDisplaySize(16, 16)
           .setTint(0xe9dfcb);
         root.add(icon);
       }
-      this.branches.push({
+      const view: BranchView = {
         icon,
-        name: this.text(
-          cx - 6,
-          headY + 17,
-          b.name,
-          16,
-          DG.text,
-          true,
-        ).setOrigin(0, 0.5),
+        name: this.text(0, headY + 17, b.name, 16, DG.text, true).setOrigin(
+          0,
+          0.5,
+        ),
         spent: this.text(cx, headY + 37, "", 10, DG.goldText).setOrigin(0.5),
-      });
+      };
+      this.layoutBranchHeader(view, cx, headY, b.name, "");
+      this.branches.push(view);
     });
 
     // Tier labels.
@@ -614,9 +612,9 @@ export class TalentPanel {
       g.strokeRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
       const view = this.branches[i]!;
       view.name.setColor(spent ? DG.text : DG.textSecondary);
-      view.spent
-        .setText(`${spent} pts spent`)
-        .setColor(spent ? DG.goldText : DG.textMuted);
+      const spentLabel = `${spent} pts spent`;
+      view.spent.setColor(spent ? DG.goldText : DG.textMuted);
+      this.layoutBranchHeader(view, cx, headY, b.name, spentLabel);
     });
     // Iron first, gold on top, so shared segments read as learned.
     const learned = (id: string) => talentRank(talents, id) > 0;
@@ -677,17 +675,51 @@ export class TalentPanel {
     this.refreshDetail(save);
   }
 
+  /** Keep branch title row + “pts spent” inside the column card (icon + label). */
+  private layoutBranchHeader(
+    view: BranchView,
+    cx: number,
+    headY: number,
+    branchName: string,
+    spentLabel: string,
+  ): void {
+    const pad = 6;
+    const iconW = 16;
+    const gap = 4;
+    const left = cx - L.cellW / 2;
+    const nameMaxW = L.cellW - pad * 2 - iconW - gap;
+    const iconX = left + pad + iconW / 2;
+    const nameX = left + pad + iconW + gap;
+    view.icon?.setPosition(iconX, headY + 20);
+    view.name.setPosition(nameX, headY + 17).setOrigin(0, 0.5);
+    fitText(view.name, branchName, nameMaxW);
+    view.spent.setPosition(cx, headY + 37).setOrigin(0.5, 0.5);
+    if (spentLabel) fitText(view.spent, spentLabel, L.cellW - pad * 2);
+  }
+
   private refreshDetail(save: SaveGame): void {
     const talents = save.talents;
     const loc = findTalent(this.catalog, this.selectedId)!;
     const rank = talentRank(talents, loc.node.id);
-    this.detailName.setText(loc.node.name);
     const rankText = rankLabel(talents, loc);
-    this.detailRank.setText(rankText);
-    const rankPad = 20;
-    const rankW = Math.max(78, rankText.length * 7 + rankPad);
-    const rankX = GAME.width - L.pad - 16 - rankW;
+    const titleX = L.pad + 16;
+    const rankRight = GAME.width - L.pad - 16;
+    const rankPadH = 12;
     const rankY = this.layout.detailY + 14;
+    const rankMidY = rankY + 12;
+    this.detailRank.setText(rankText);
+    let rankInnerW = Math.ceil(this.detailRank.width);
+    let rankW = rankInnerW + rankPadH * 2;
+    let rankX = rankRight - rankW;
+    let titleMax = Math.max(72, rankX - titleX - 8);
+    fitText(this.detailName, loc.node.name, titleMax);
+    const rankMax =
+      rankRight - rankPadH - titleX - Math.ceil(this.detailName.width) - 8;
+    fitText(this.detailRank, rankText, Math.max(52, rankMax));
+    rankInnerW = Math.ceil(this.detailRank.width);
+    rankW = rankInnerW + rankPadH * 2;
+    rankX = rankRight - rankW;
+    this.detailRank.setPosition(rankRight - rankPadH, rankMidY);
     this.detailRankBg.clear();
     this.detailRankBg
       .fillStyle(DG.abyss, 1)
