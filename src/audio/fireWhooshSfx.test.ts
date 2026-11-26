@@ -71,3 +71,16 @@ describe("playFireWhooshSfx", () => {
     expect(play).not.toHaveBeenCalled();
   });
 });
+
+describe("spellPlaysFireWhooshOnChannelLinger leftover branches", () => {
+  it("is false for fire spells that omit lingerMs", () => {
+    const fire = {
+      id: "fire_bolt",
+      name: "Fire Bolt",
+      mechanicType: "projectile",
+      castableInDefense: true,
+      damageFlavor: "fire",
+    } as SpellDefinition;
+    expect(spellPlaysFireWhooshOnChannelLinger(fire)).toBe(false);
+  });
+});

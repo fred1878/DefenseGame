@@ -295,3 +295,17 @@ describe("SpellCastController duration edge cases", () => {
     expect(c.getCastPhase()).toBeNull();
   });
 });
+
+describe("SpellCastController input mode and cancel", () => {
+  it("starts in auto mode and reports the mode used to begin a cast", () => {
+    const c = new SpellCastController();
+    expect(c.getCastInputMode()).toBe("auto");
+    expect(c.tryBeginCast("heal", "manual", 0, 0)).toBe("channel");
+    expect(c.getCastInputMode()).toBe("manual");
+    expect(c.isChanneling()).toBe(true);
+    c.cancelChannel();
+    expect(c.isChanneling()).toBe(false);
+    expect(c.getActiveSpellId()).toBeNull();
+    expect(c.getCastInputMode()).toBe("auto");
+  });
+});

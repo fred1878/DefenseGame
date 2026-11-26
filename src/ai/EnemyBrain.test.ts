@@ -10,6 +10,7 @@ import {
   northWallApproachY,
   northWallAttackY,
 } from "../config/defense";
+import { playerPathClearancePx } from "../entities/entityPhysics";
 import {
   buildNavGrid,
   cellBlocked,
@@ -23,6 +24,8 @@ import {
   pickEnemyTarget,
   replanEnemyPath,
   resolveEnemyTarget,
+  wallCombatPoint,
+  wallPathingPlayerClearancePx,
   wallTargetPoint,
 } from "./EnemyBrain";
 
@@ -169,5 +172,21 @@ describe("replanEnemyPath", () => {
     const nav = createEnemyNav();
     replanEnemyPath(nav, grid, 0, 400, 0, -500);
     expect(nav.path.length).toBeGreaterThan(0);
+  });
+});
+
+describe("wallCombatPoint", () => {
+  it("aims at the wall attack line at the enemy x", () => {
+    const pt = wallCombatPoint(80);
+    expect(pt.x).toBe(80);
+    expect(pt.y).toBe(northWallAttackY());
+  });
+});
+
+describe("wallPathingPlayerClearancePx", () => {
+  it("uses the unscaled clearance when no registry is given", () => {
+    expect(wallPathingPlayerClearancePx(undefined)).toBe(
+      playerPathClearancePx(),
+    );
   });
 });

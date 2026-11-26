@@ -116,4 +116,10 @@ describe("spellBarAutoCast leftover branches", () => {
       "meteor",
     ]);
   });
+
+  it("treats a missing slot id as empty when reading legacy flags", () => {
+    const slots = [] as string[];
+    slots.length = 1;
+    expect(normalizeAutoCastSpellIds(slots, { autoCast: [true] })).toEqual([]);
+  });
 });

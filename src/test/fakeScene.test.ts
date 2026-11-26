@@ -63,3 +63,36 @@ describe("fakeScene helpers", () => {
     expect(img.y).toBe(2);
   });
 });
+
+describe("fakeScene leftover helpers", () => {
+  it("covers mask, body reset, off, anim get, and camera helpers", () => {
+    const scene = fakeScene({
+      textures: ["tex"],
+      anims: ["walk"],
+      audio: ["sfx"],
+    });
+    const addImage = scene.add.image;
+    if (!addImage) throw new Error("expected scene.add.image");
+    const img = addImage(1, 2, "tex") as unknown as {
+      filters: {
+        external: { addMask: (src: unknown) => { kind: string } };
+      };
+      body: { reset: () => void };
+      off: (event: string) => unknown;
+      on: (event: string, fn: () => void) => unknown;
+    };
+    const mask = img.filters.external.addMask("src");
+    expect(mask.kind).toBe("mask");
+    img.body.reset();
+    let fired = 0;
+    img.on("pointerdown", () => {
+      fired += 1;
+    });
+    img.off("pointerdown");
+    expect(scene.anims.get("walk")).toEqual({ key: "walk", duration: 0 });
+    expect(scene.anims.get("missing")).toBeUndefined();
+    expect(scene.cameras.main.getWorldPoint(3, 4)).toEqual({ x: 3, y: 4 });
+    expect(scene.sys.isActive()).toBe(true);
+    expect(fired).toBe(0);
+  });
+});
