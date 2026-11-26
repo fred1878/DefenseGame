@@ -3,7 +3,7 @@ import type { SpellDefinition } from "./spells";
 import { spellById } from "./spells";
 import { spellUsesManualGroundAim } from "./spellTargeting";
 
-/** Targeted ground AoE: short spell-bar tap auto-aims; press-drag keeps manual aim. */
+/** Targeted ground AoE: short spell-bar tap auto-aims at the nearest enemy; press-drag places at release, including empty ground. */
 export function spellGroundTapAutoCastsForDef(def: SpellDefinition): boolean {
   return spellUsesManualGroundAim(def);
 }

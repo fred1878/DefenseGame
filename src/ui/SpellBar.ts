@@ -29,6 +29,12 @@ type SlotChrome = {
   button: ReturnType<typeof createTouchButton>;
 };
 
+/**
+ * Ground-aimed spells: a short slot tap auto-aims at the nearest enemy and
+ * casts. Press-and-drag arms the reticle without casting and places the spell
+ * where the pointer is released, including on empty ground. Releasing back on
+ * the bar, or a long-press, cancels the arm.
+ */
 export class SpellBar {
   private readonly caster: SpellCastController;
   private readonly slots: SpellId[];
@@ -109,6 +115,10 @@ export class SpellBar {
           onTap: () => {
             const id = this.slots[slotIndex] ?? "";
             if (!id) return;
+            const def = spellById(id);
+            if (def && spellUsesManualGroundAim(def)) {
+              this.onGroundCastCancel();
+            }
             this.onCastRequest(id, slotIndex);
           },
           onLongPress: () => {
