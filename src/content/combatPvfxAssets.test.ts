@@ -52,6 +52,7 @@ describe("combatPvfxAssets", () => {
         PVFX_ANIM.incinerate,
         PVFX_ANIM.firePillar,
         PVFX_ANIM.groundFlamesLoop,
+        PVFX_ANIM.regenAuraLoop,
       ]),
     );
   });
@@ -118,6 +119,7 @@ describe("combatPvfxAssets scene helpers", () => {
     expect(byKey.get(PVFX_ANIM.iceShatterRelease)!.frames).toHaveLength(20);
     expect(byKey.get(PVFX_ANIM.critHit)).toMatchObject({ repeat: 0 });
     expect(byKey.get(PVFX_ANIM.fireballFlight)).toMatchObject({ repeat: -1 });
+    expect(byKey.get(PVFX_ANIM.regenAuraLoop)).toMatchObject({ repeat: -1 });
     // Idempotent.
     registerCombatPvfxAnimations(asScene(scene));
     expect(scene.anims.create).toHaveBeenCalledTimes(byKey.size);
