@@ -108,4 +108,25 @@ describe("HitFlash", () => {
     );
     expect(sprite.setAlpha).toHaveBeenCalledWith(0.5);
   });
+
+  it("reapplies nothing without a flavor and clears a zero-strength flash", () => {
+    const blank = mockFlashSprite();
+    reapplySpriteHitFlashIfActive(
+      blank as unknown as Phaser.GameObjects.Sprite,
+    );
+    expect(blank.setTint).not.toHaveBeenCalled();
+
+    const fading = mockFlashSprite();
+    fading._data.set("hitFlashFlavor", "fire");
+    fading._data.set("hitFlashStrength", 0);
+    reapplySpriteHitFlashIfActive(
+      fading as unknown as Phaser.GameObjects.Sprite,
+    );
+    expect(fading.clearTint).toHaveBeenCalled();
+
+    const full = mockFlashSprite();
+    full._data.set("hitFlashFlavor", "physical");
+    reapplySpriteHitFlashIfActive(full as unknown as Phaser.GameObjects.Sprite);
+    expect(full.setTint).toHaveBeenCalled();
+  });
 });

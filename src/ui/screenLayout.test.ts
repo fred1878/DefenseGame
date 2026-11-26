@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { GAME } from "../config";
 import {
   combatChromeLayout,
@@ -6,6 +6,7 @@ import {
   fpsDebugOverlayPosition,
   DEFENSE_BOTTOM_HUD_SHIFT_PX,
   DEFENSE_TOP_CHROME_TRIM_PX,
+  bindViewportToScale,
   hudBandHeight,
   hudTextPosition,
   nightReturnButtonPosition,
@@ -205,5 +206,70 @@ describe("screenLayout", () => {
     expect(townBuildingGridClearsStatus(3, 112)).toBe(true);
     const mid = (townBuildingGridFootY(0) + townBuildingGridFootY(3)) / 2;
     expect(mid).toBeGreaterThan(GAME.height * 0.45);
+  });
+});
+
+describe("bindViewportToScale", () => {
+  it("falls back to window size when no visual viewport exists", () => {
+    const game = {
+      config: { parent: "game" },
+      scale: {
+        setParentSize: vi.fn(),
+        updateBounds: vi.fn(),
+      },
+    } as unknown as Phaser.Game;
+    const listeners: Array<[string, () => void]> = [];
+    vi.stubGlobal("window", {
+      innerWidth: 400,
+      innerHeight: 800,
+      addEventListener: (type: string, fn: () => void) => {
+        listeners.push([type, fn]);
+      },
+      removeEventListener: vi.fn(),
+    });
+    const unbind = bindViewportToScale(game);
+    expect(game.scale.setParentSize).toHaveBeenCalledWith(400, 800);
+    unbind();
+    vi.unstubAllGlobals();
+  });
+
+  it("pins the parent element to the visual viewport and unbinds listeners", () => {
+    const parentEl = { style: {} as Record<string, string> };
+    const vvListeners: Array<[string, () => void]> = [];
+    const vv = {
+      width: 360,
+      height: 640,
+      offsetLeft: 2,
+      offsetTop: 4,
+      addEventListener: (type: string, fn: () => void) => {
+        vvListeners.push([type, fn]);
+      },
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal("document", {
+      getElementById: (id: string) => (id === "game" ? parentEl : null),
+    });
+    vi.stubGlobal("window", {
+      innerWidth: 1,
+      innerHeight: 1,
+      visualViewport: vv,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+    const game = {
+      config: { parent: "missing" },
+      scale: {
+        setParentSize: vi.fn(),
+        updateBounds: vi.fn(),
+      },
+    } as unknown as Phaser.Game;
+    const unbind = bindViewportToScale(game);
+    expect(game.scale.setParentSize).toHaveBeenCalledWith(360, 640);
+    expect(parentEl.style.left).toBe("2px");
+    expect(parentEl.style.top).toBe("4px");
+    expect(vvListeners.map((l) => l[0])).toEqual(["resize", "scroll"]);
+    unbind();
+    expect(vv.removeEventListener).toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });

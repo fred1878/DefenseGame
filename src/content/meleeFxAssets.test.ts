@@ -134,3 +134,40 @@ it("skips registration when textures are missing or the anim already exists", ()
   registerMeleeFxAnimations(already);
   expect(create).not.toHaveBeenCalled();
 });
+
+describe("meleeFxAssets leftover branches", () => {
+  it("returns no duration for an unknown clip", () => {
+    expect(meleeFxAnimDurationMs("missing_clip" as never)).toBe(0);
+  });
+
+  it("skips assets that have no animation key", () => {
+    const extra = {
+      key: "fx_melee_not_a_clip",
+      file: "x.png",
+      frameWidth: 8,
+      frameHeight: 8,
+      frameCount: 1,
+      frameRate: 8,
+    };
+    const assets = MELEE_FX_ASSETS as unknown as Array<typeof extra>;
+    assets.push(extra);
+    const create = vi.fn();
+    const scene = {
+      textures: { exists: () => true },
+      anims: {
+        exists: () => false,
+        create,
+        generateFrameNumbers: vi.fn(() => []),
+      },
+    } as unknown as Phaser.Scene;
+    try {
+      registerMeleeFxAnimations(scene);
+      expect(
+        create.mock.calls.some((c) => c[0].key === "fx_melee_not_a_clip"),
+      ).toBe(false);
+    } finally {
+      const idx = assets.indexOf(extra);
+      if (idx >= 0) assets.splice(idx, 1);
+    }
+  });
+});

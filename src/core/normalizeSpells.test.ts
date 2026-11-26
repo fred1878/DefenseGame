@@ -291,4 +291,42 @@ describe("normalizeSpellCatalog", () => {
     });
     expect(rows).toHaveLength(5);
   });
+
+  it("accepts a non-shadowform buff, a channeled area, and burst splash", () => {
+    const catalog = {
+      spells: [
+        ...KNOCKBACK_FIXTURE_CATALOG.spells,
+        spellRow({
+          id: "inner_focus",
+          mechanicType: "buff",
+          shadowformDurationMs: 1000,
+        }),
+        spellRow({
+          id: "blizzard_test",
+          mechanicType: "channeled_area",
+          blastRadiusWu: 80,
+          channelMs: 2000,
+        }),
+        spellRow({
+          id: "flash_burst",
+          mechanicType: "instant_targeted",
+          knockbackWu: 10,
+          burstDamage: 25,
+          blastKnockbackWu: 20,
+        }),
+      ],
+    };
+    const spells = normalizeSpellCatalog(catalog);
+    expect(spells.some((s) => s.id === "inner_focus")).toBe(true);
+    expect(spells.some((s) => s.id === "blizzard_test")).toBe(true);
+    expect(spells.some((s) => s.id === "flash_burst")).toBe(true);
+  });
+
+  it("reports a missing spell id in the error path", () => {
+    expect(() =>
+      normalizeSpellCatalog({
+        spells: [{ mechanicType: "blast", blastRadiusWu: 10 } as never],
+      }),
+    ).toThrow(/\[.0\]|\?/);
+  });
 });

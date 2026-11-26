@@ -57,27 +57,41 @@ vi.mock("./touchButton", () => ({
   ) => {
     bound.push(cb);
   },
-  interactiveObjectScreenRect: (o: FakeObj) => ({
-    x: o.x - 30,
-    y: o.y - 30,
-    width: 60,
-    height: 60,
-  }),
+  interactiveObjectScreenRect: (o: FakeObj) => {
+    if ((o as { skipRect?: boolean }).skipRect) return null;
+    return {
+      x: o.x - 30,
+      y: o.y - 30,
+      width: 60,
+      height: 60,
+    };
+  },
 }));
 
 const { SpellBar } = await import("./SpellBar");
 
-function fakeScene() {
+function fakeScene(existsIcon = false) {
   const rects: FakeObj[] = [];
+  const images: FakeObj[] = [];
+  const texture = { setFilter: vi.fn() };
   return {
     rects,
+    images,
     scene: {
-      textures: { exists: () => false },
+      textures: {
+        exists: () => existsIcon,
+        get: () => texture,
+      },
       add: {
         rectangle: vi.fn((x: number, y: number) => {
           const r = chainable(x, y);
           rects.push(r);
           return r;
+        }),
+        image: vi.fn(() => {
+          const img = chainable();
+          images.push(img);
+          return img;
         }),
       },
     } as unknown as Phaser.Scene,
@@ -91,7 +105,12 @@ const groundTap = catalog.find(
 )!;
 const cooldownSpell = catalog.find((d) => d.cooldownMs > 0)!;
 
-function make(slots: string[], auto: string[] = [], cooldown = () => 0) {
+function make(
+  slots: string[],
+  auto: string[] = [],
+  cooldown = () => 0,
+  options: { existsIcon?: boolean } = {},
+) {
   const callbacks = {
     onCastRequest: vi.fn(),
     onAutoCastToggle: vi.fn(),
@@ -99,9 +118,9 @@ function make(slots: string[], auto: string[] = [], cooldown = () => 0) {
     onGroundCastCancel: vi.fn(),
   };
   const caster = { getCooldownRemaining: vi.fn(cooldown) };
-  const { scene, rects } = fakeScene();
+  const { scene, rects, images } = fakeScene(options.existsIcon);
   const bar = new SpellBar(scene, slots, auto, caster as never, callbacks);
-  return { bar, callbacks, rects, caster };
+  return { bar, callbacks, rects, images, caster };
 }
 
 beforeEach(() => {
@@ -200,5 +219,41 @@ describe("SpellBar", () => {
     const { bar, rects } = make([instant.id]);
     bar.destroy();
     for (const r of rects) expect(r.destroy).toHaveBeenCalled();
+  });
+
+  it("renders an icon when the spell texture exists", () => {
+    const { images } = make([instant.id], [], () => 0, { existsIcon: true });
+    expect(images.length).toBeGreaterThan(0);
+    expect(images[0]!.setDisplaySize).toHaveBeenCalled();
+  });
+
+  it("skips ground-arm and cooldown visuals when a slot is empty or missing", () => {
+    const { bar, callbacks } = make([instant.id]);
+    bound[1]!.onPressStart!({ id: 1, x: 0, y: 0 } as never);
+    expect(callbacks.onGroundCastArm).not.toHaveBeenCalled();
+
+    const privateBar = bar as unknown as {
+      slots: Array<string | undefined>;
+      slotChrome: Array<{ button?: unknown } | undefined>;
+      cooldownVisuals: Array<unknown | undefined>;
+    };
+    privateBar.slots[0] = undefined;
+    bound[0]!.onTap();
+    bound[0]!.onPressStart!({ id: 2, x: 0, y: 0 } as never);
+    expect(callbacks.onCastRequest).not.toHaveBeenCalled();
+
+    privateBar.slotChrome[0] = {};
+    privateBar.cooldownVisuals[0] = undefined;
+    expect(() => bar.refreshCooldownOverlays()).not.toThrow();
+  });
+
+  it("returns an empty screen rect when no slot reports a hit area", () => {
+    const { bar } = make([instant.id]);
+    for (const btn of buttons) {
+      (btn as { skipRect?: boolean }).skipRect = true;
+    }
+    expect(bar.getScreenRect()).toEqual({ x: 0, y: 0, width: 0, height: 0 });
+    expect(bar.e2eSlotTapCenters()).toEqual([]);
+    expect(bar.e2eSlotHitRects()).toEqual([]);
   });
 });

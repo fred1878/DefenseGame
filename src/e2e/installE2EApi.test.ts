@@ -614,4 +614,35 @@ describe("buildApi", () => {
     api.setEndlessEnemyCap("grunt", 1);
     expect(game.townMethods.e2eOpenSpellSortPanel).toHaveBeenCalled();
   });
+
+  it("covers setStick, save, and hp fallbacks", async () => {
+    const game = makeGame({ defenseActive: true, save: createNewSave() });
+    const api = buildApi(game as never);
+    await api.setStick(1, 0, 0);
+    expect(game.defenseMethods.setStick).toHaveBeenCalledWith(1, 0);
+    expect(game.defenseMethods.setStick).toHaveBeenCalledTimes(1);
+
+    api.setSave({ gold: 12 });
+    const merged = game.registryMap.get("save") as ReturnType<
+      typeof createNewSave
+    >;
+    expect(merged.gold).toBe(12);
+    expect(merged.spellBar.slots.length).toBeGreaterThan(0);
+
+    const noSave = makeGame({ townActive: true });
+    const townApi = buildApi(noSave as never);
+    expect(townApi.getPlayerHp()).toBe(0);
+    expect(
+      townApi.auditSpellBarTextures().every((row) => row.spellId === ""),
+    ).toBe(true);
+
+    const late = makeGame({ defenseActive: true });
+    const lateApi = buildApi(late as never);
+    const pending = lateApi.setStick(0, 1, 40);
+    late.emitStep();
+    late.loop.time = 40;
+    late.emitStep();
+    await pending;
+    expect(late.defenseMethods.setStick).toHaveBeenLastCalledWith(0, 0);
+  });
 });

@@ -51,4 +51,15 @@ describe("EnemySpellStatusMap", () => {
     expect(onDamaged).toHaveBeenCalledTimes(1);
     expect(onDamaged).toHaveBeenCalledWith(5, "fire");
   });
+
+  it("clears a finished DOT after the last tick", () => {
+    const m = new EnemySpellStatusMap();
+    m.applyDot("e1", 20, 200, "fire");
+    const hits: number[] = [];
+    m.tick(250, (_id, amount) => {
+      hits.push(amount);
+    });
+    expect(hits.length).toBeGreaterThan(0);
+    expect(m.moveSpeedMultiplier("e1")).toBe(1);
+  });
 });

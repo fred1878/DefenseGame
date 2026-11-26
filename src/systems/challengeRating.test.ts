@@ -17,4 +17,16 @@ describe("sumChallengeRating", () => {
       ]),
     ).toBe(13);
   });
+
+  it("skips zero or negative counts", () => {
+    const store = {
+      enemies: { grunt: { challengeRating: 2 } },
+    } as unknown as DataStore;
+    expect(
+      sumChallengeRating(store, [
+        { enemyId: "grunt", count: 0 },
+        { enemyId: "grunt", count: -3 },
+      ]),
+    ).toBe(0);
+  });
 });

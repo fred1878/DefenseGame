@@ -259,3 +259,39 @@ describe("SpellCastController idle and reject paths", () => {
     expect(other.getCooldownRemaining("never-cast" as never)).toBe(0);
   });
 });
+
+describe("SpellCastController duration edge cases", () => {
+  it("reports zero windup progress and a finished channel when durations are zero", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("heal", "manual", 0, 0)).toBe("channel");
+    const box = c as unknown as {
+      inChannel: boolean;
+      windupDurationMs: number;
+      channelDurationMs: number;
+      activeSpellId: string | null;
+    };
+    box.inChannel = false;
+    box.windupDurationMs = 0;
+    expect(c.getChannelProgress()).toBe(0);
+    expect(c.getCastPhase()).toBe("channeling");
+
+    box.inChannel = true;
+    box.channelDurationMs = 0;
+    expect(c.getChannelProgress()).toBe(1);
+    expect(c.getCastPhase()).toBe("channeling");
+  });
+
+  it("returns a null phase when an active spell has no windup or channel duration", () => {
+    const c = new SpellCastController();
+    expect(c.tryBeginCast("heal", "manual", 0, 0)).toBe("channel");
+    const box = c as unknown as {
+      inChannel: boolean;
+      windupDurationMs: number;
+      channelDurationMs: number;
+    };
+    box.inChannel = false;
+    box.windupDurationMs = 0;
+    box.channelDurationMs = 0;
+    expect(c.getCastPhase()).toBeNull();
+  });
+});
