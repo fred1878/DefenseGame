@@ -3,8 +3,8 @@
 A headless Monte Carlo sim of the night → town → night campaign, used to tune
 prices, rewards, drop rates and wave difficulty. It imports the real game code
 (`src/gear/*` item generation, loot, shops, pricing and stats; wall upgrades
-via `handleTownBuildingTap`; `createNewSave`/`applyNightResult`;
-`nightGoldEarned`) and the bundled JSON in `public/data/`, so formulas are not
+via `handleTownBuildingTap`; `createNewSave`; the night-end path
+`resolveCampaignNightEnd`) and the bundled JSON in `public/data/`, so formulas are not
 duplicated. Code: `src/sim/economy/`.
 
 For how rarity and item level work, see [ITEMS.md](ITEMS.md) (also embedded
@@ -56,10 +56,11 @@ Per night attempt:
 
 1. **Fight.** Win chance from the win model (below). If the chance is under
    75% the strategy uses all its potions and bombs first.
-2. **Result** via the game's own `applyNightResult`: a win pays
+2. **Result** via the game's own `resolveCampaignNightEnd` (same as the real night end): a win pays
    `rewardGold` and advances; a loss pays 25% and repeats the night (capped at
    nights × 4 attempts, then the run is "unfinished"). Drops come from
    `rollNightDrops` (won / lost table) into the bag; full bag ⇒ auto-sold.
+   A win wears the wall by 2 HP; a loss knocks it down (rebuilt next night).
 3. **Town.** Trader restocks (`ensureTraderStock`), blacksmith unlocks by
    night. The strategy equips upgrades, sells surplus at `sellBackPct`, and
    spends gold.

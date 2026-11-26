@@ -7,8 +7,10 @@ import { getGearCatalog, setGearCatalog } from "../gear/gearCatalog";
 import { applyGearLoadout } from "../gear/gearRuntime";
 import { createEmptyGear } from "../gear/saveGear";
 import { gearFixture } from "../test/gearFixture";
+import { getLootConfig, setLootConfig, type LootConfig } from "../gear/loot";
 import {
   applyNightResult,
+  applyNightResultDetailed,
   createNewSave,
   normalizeSave,
   syncPlayerHpMax,
@@ -133,5 +135,40 @@ describe("applyNightResult drops", () => {
       drops: [],
     });
     expect(none.gear.items).toEqual([]);
+  });
+
+  it("reports overflow sales when the bag is full", () => {
+    setGearCatalog(fixture);
+    const previous = getLootConfig();
+    const tight: LootConfig = {
+      ...previous,
+      inventoryCapacity: 0,
+      sellBackPct: 50,
+    };
+    setLootConfig(tight);
+    try {
+      const save = createNewSave();
+      save.gold = 3;
+      const applied = applyNightResultDetailed(
+        save,
+        {
+          won: true,
+          goldEarned: 5,
+          wallDamage: 0,
+          night: 1,
+          drops: [
+            { baseId: "cap", rarity: "common", itemLevel: 1, affixes: [] },
+          ],
+        },
+        fixture,
+        tight,
+      );
+      expect(applied.save.gear.items).toEqual([]);
+      expect(applied.soldCount).toBe(1);
+      expect(applied.soldGold).toBeGreaterThan(0);
+      expect(applied.save.gold).toBe(3 + 5 + applied.soldGold);
+    } finally {
+      setLootConfig(previous);
+    }
   });
 });

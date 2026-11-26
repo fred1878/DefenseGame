@@ -12,7 +12,6 @@ import {
   applyNightResult,
   createNewSave,
   loadSave,
-  nightGoldEarned,
   prepareDefenseNight,
   persistSave,
   resetSaveAndReload,
@@ -311,12 +310,5 @@ describe("GameState leftover branches", () => {
 
   it("treats a missing wall building as level zero", () => {
     expect(wallHpBonusFromBuildings({})).toBe(0);
-  });
-});
-
-describe("nightGoldEarned", () => {
-  it("pays the full reward on a win and a quarter (rounded down) on a loss", () => {
-    expect(nightGoldEarned(true, 130)).toBe(130);
-    expect(nightGoldEarned(false, 130)).toBe(32);
   });
 });

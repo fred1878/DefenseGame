@@ -88,4 +88,37 @@ test.describe("night end UX", () => {
     );
     expect(night).toBeGreaterThan(1);
   });
+
+  test("Enter or Space on the summary returns to town", async ({ page }) => {
+    await gotoManualReturn(page);
+    await page.evaluate(() => {
+      const api = window.__DEFENSEGAME_E2E__?.api;
+      api?.setManualReturnToTown(true);
+      api?.setSpawnPlanComplete();
+      api?.forceWinNight();
+    });
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () =>
+              window.__DEFENSEGAME_E2E__?.api?.nightEnded() === true &&
+              window.__DEFENSEGAME_E2E__?.api?.hasReturnButton() === true,
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+
+    await waitForTapTargets(page, ["defense-return-to-town"]);
+    await page.keyboard.press("Enter");
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => window.__DEFENSEGAME_E2E__?.scene === "Town"),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+  });
 });

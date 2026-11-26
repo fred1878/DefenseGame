@@ -1,10 +1,5 @@
 import type { DataStore } from "../../core/DataStore";
-import {
-  applyNightResult,
-  createNewSave,
-  nightGoldEarned,
-  prepareDefenseNight,
-} from "../../core/GameState";
+import { createNewSave, prepareDefenseNight } from "../../core/GameState";
 import type { SaveGame } from "../../core/saveTypes";
 import type { TownBuildingDef } from "../../core/townBuildingTypes";
 import { consumableCount } from "../../gear/consumables";
@@ -18,7 +13,8 @@ import {
 import { bagItems, equipItem, removeItem } from "../../gear/inventory";
 import { equipSlotsForType, type ItemDraft } from "../../gear/itemGen";
 import { resolveItem, sellValue } from "../../gear/itemStats";
-import { addLootToSave, rollNightDrops } from "../../gear/loot";
+import { rollNightDrops } from "../../gear/loot";
+import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, type Rng } from "../../gear/rng";
 import {
   buyOffer,
@@ -462,16 +458,21 @@ export function simulateRun(
       rng,
       data.loot,
     );
-    const goldEarned = nightGoldEarned(won, difficulty.rewardGold);
-    const afterNight = applyNightResult(run.save, {
+    // Same night-end path as DefenseNightEnd: gold, wall, night advance, drops
+    // into the bag (overflow auto-sold).
+    const uidBefore = run.save.gear.nextUid;
+    const added = resolveCampaignNightEnd({
       won,
-      goldEarned,
-      // The wall is rebuilt to full after a loss (prepareDefenseNight); wins keep it intact.
-      wallDamage: won ? 0 : run.save.townWallHp,
-      night,
+      // A loss means the wall fell (rebuilt to full by prepareDefenseNight).
+      wallHp: won ? run.save.townWallHp : 0,
+      wallHpStart: run.save.townWallHp,
+      rewardGold: difficulty.rewardGold,
+      save: run.save,
+      drops,
+      catalog: data.catalog,
+      loot: data.loot,
     });
-    const uidBefore = afterNight.gear.nextUid;
-    const added = addLootToSave(afterNight, drops, data.catalog, data.loot);
+    const goldEarned = added.result.goldEarned;
     run.save = added.save;
     for (let uid = uidBefore; uid < run.save.gear.nextUid; uid++) {
       run.origin.set(uid, "drop");

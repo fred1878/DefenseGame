@@ -1,12 +1,7 @@
 import type Phaser from "phaser";
-import {
-  applyEndlessRunExit,
-  applyNightResult,
-  nightGoldEarned,
-  persistSave,
-} from "../../core/GameState";
+import { applyEndlessRunExit, persistSave } from "../../core/GameState";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
-import type { NightResult, SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/saveTypes";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { publishE2E } from "../../e2e/e2eGlobal";
 import type { Player } from "../../entities/Player";
@@ -18,9 +13,10 @@ import type { SafeInsets } from "../../ui/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
 import { evaluateEndlessEnd, evaluateNightEnd } from "../defenseNightLogic";
 import { getGearCatalog } from "../../gear/gearCatalog";
-import { nightDropLines } from "../../gear/gearText";
 import { rollNightDrops } from "../../gear/loot";
+import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, randomSeed } from "../../gear/rng";
+import { NightLootSummaryPanel } from "../../ui/NightLootSummaryPanel";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -199,31 +195,30 @@ export function runDefenseCampaignNightEnd(
   ctx.markNightEnded();
   clearDefenseRunMode(ctx.registry);
 
-  const endPenalty = input.won ? 2 : 0;
-  const finalWallHp = Math.max(0, input.wallHp - endPenalty);
-  const wallDamage = input.wallHpStart - finalWallHp;
-  const result: NightResult = {
+  const catalog = getGearCatalog();
+  const resolved = resolveCampaignNightEnd({
     won: input.won,
-    goldEarned: nightGoldEarned(input.won, input.rewardGold),
-    wallDamage,
-    night: input.save.night,
+    wallHp: input.wallHp,
+    wallHpStart: input.wallHpStart,
+    rewardGold: input.rewardGold,
+    save: input.save,
     drops: rollNightDrops(
-      getGearCatalog(),
+      catalog,
       input.won,
       input.save.night,
       // Fixed seed under e2e so the night-end screenshot is stable.
       createRng(isE2EEnabled() ? 1000 + input.save.night : randomSeed()),
     ),
-  };
+    catalog,
+  });
   const goldBefore = input.save.gold;
-  const next = applyNightResult(input.save, result);
-  if (result.goldEarned > 0) {
+  const next = resolved.save;
+  if (resolved.result.goldEarned > 0 || resolved.soldGold > 0) {
     playCoinDeltaSfx(ctx.scene, goldBefore, next.gold);
   }
   const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
   ctx.save.player.hp = survivedHp;
   next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
-  next.townWallHp = finalWallHp;
   persistSave(next);
   ctx.registry.set("save", next);
 
@@ -233,43 +228,16 @@ export function runDefenseCampaignNightEnd(
     return;
   }
 
-  const headline = input.won ? "Night defended!" : "You fell — night lost";
-  ctx.hudText.setText(
-    [
-      headline,
-      `Night ${result.night} · +${result.goldEarned} gold`,
-      `Wall damage ${result.wallDamage} · Wall ${next.townWallHp} HP`,
-      input.won
-        ? "Dawn breaks over the settlement."
-        : "Scouts recover what they can.",
-      ...nightDropLines(
-        getGearCatalog(),
-        result.drops ?? [],
-        next.gold - goldBefore - result.goldEarned,
-      ),
-    ].join("\n"),
-  );
-  ctx.hudText.setColor(input.won ? "#fbbf24" : "#fca5a5");
-
-  const btn = nightReturnButtonPosition(ctx.scene, ctx.safe);
-  const returnBtn = createTouchButton(
+  // The summary panel replaces the old HUD banner + floating return button.
+  ctx.hudText.setVisible(false);
+  const panel = new NightLootSummaryPanel(
     ctx.scene,
-    btn.x,
-    btn.y,
-    "Return to town",
+    resolved.summary,
     ctx.onReturnToTown,
-    {
-      width: btn.width,
-      height: btn.height,
-      depth: 260,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x15803d,
-      strokeColor: 0x4ade80,
-    },
   );
-  returnBtn.container.setData("testid", "defense-return-to-town");
-  ctx.registerUiDraw(returnBtn.container);
-  ctx.setReturnToTownBtn(returnBtn);
+  ctx.registerUiDraw(panel.root);
+  ctx.registerUiDraw(panel.returnBtn.container);
+  ctx.setReturnToTownBtn(panel.returnBtn);
   if (isE2EEnabled()) {
     publishE2E({
       flags: { nightEnded: true, hasReturnButton: true },

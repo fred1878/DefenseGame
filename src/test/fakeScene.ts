@@ -313,6 +313,9 @@ export function fakeScene(
       set: (key: string, value: unknown) => {
         registryData.set(key, value);
       },
+      remove: (key: string) => {
+        registryData.delete(key);
+      },
     },
     created,
     tweenConfigs,
