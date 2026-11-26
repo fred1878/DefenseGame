@@ -860,13 +860,15 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   onSpellCastRequest(spellId: string): void {
+    // A short spell-bar tap arms on press; clear that arm before auto-casting.
+    if (this.pendingGroundCast) this.cancelPendingGroundCast();
     const dir = this.stick.getDirection();
     this.spellDirector.onSpellCastRequest(spellId, dir.x, dir.y);
   }
 
-  /** Spell-bar press on a manual ground spell: arm reticle and track this pointer. */
+  /** Press on a ground spell: arm the reticle and track this pointer. Does not cast. */
   onGroundCastArm(spellId: string, pointer: Phaser.Input.Pointer): void {
-    this.onSpellCastRequest(spellId);
+    this.spellDirector.armGroundCast(spellId);
     if (this.pendingGroundCast !== spellId) return;
     this.groundAimCtl.onPointerDown(pointer);
   }
@@ -901,7 +903,9 @@ export class DefenseScene extends Phaser.Scene {
       this.stick.tryConsumeTap(pointer);
       if (!aimGesture && this.targeting.isPointerOverUi(pointer)) return;
       if (!aimGesture) return;
-      this.groundAimCtl.confirm(pointer);
+      const action = this.groundAimCtl.resolveRelease(pointer);
+      if (action === "confirm") this.groundAimCtl.confirm(pointer);
+      else if (action === "cancel") this.cancelPendingGroundCast();
       return;
     }
     const tapResult = this.stick.tryConsumeTap(pointer);

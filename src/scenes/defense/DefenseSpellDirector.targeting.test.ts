@@ -9,6 +9,7 @@ import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
+import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
 
 applySpellInputTuning(
   normalizeSpellInput({
@@ -160,5 +161,38 @@ describe("DefenseSpellDirector manual targeting", () => {
     director.onSpellCastRequest("fire_blast");
     expect(h.pendingGroundCast).toBeNull();
     expect(h.groundAim).not.toBeNull();
+  });
+});
+
+describe("DefenseSpellDirector.armGroundCast", () => {
+  it("arms a ground spell without casting", () => {
+    vi.spyOn(GroundTargetReticle, "radiusForSpell").mockReturnValue(50);
+    const h = makeHost();
+    const director = new DefenseSpellDirector(h);
+    vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    director.armGroundCast("meteor");
+    expect(h.pendingGroundCast).toBe("meteor");
+    expect(h.groundAim).not.toBeNull();
+    expect(h.groundReticle.showAt).toHaveBeenCalled();
+    expect(director.beginSpellCast).not.toHaveBeenCalled();
+  });
+
+  it("arms on empty ground when no enemy is nearby", () => {
+    vi.spyOn(GroundTargetReticle, "radiusForSpell").mockReturnValue(50);
+    const h = makeHost({ enemies: [], enemyTargets: () => [] });
+    const director = new DefenseSpellDirector(h);
+    vi.spyOn(director, "beginSpellCast").mockImplementation(() => {});
+    director.armGroundCast("meteor");
+    expect(h.pendingGroundCast).toBe("meteor");
+    expect(h.groundAim).not.toBeNull();
+    expect(director.beginSpellCast).not.toHaveBeenCalled();
+  });
+
+  it("ignores instant spells", () => {
+    const h = makeHost();
+    const director = new DefenseSpellDirector(h);
+    director.armGroundCast("fire_bolt");
+    expect(h.pendingGroundCast).toBeNull();
+    expect(h.groundReticle.showAt).not.toHaveBeenCalled();
   });
 });

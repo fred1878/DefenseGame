@@ -14,9 +14,14 @@ import {
   defensePlayAreaLayout,
   type SafeInsets,
 } from "../../ui/screenLayout";
+import { scaleUiX } from "../../core/displayScale";
+import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../../input/inputTuning";
+import { pressDragExceedsThreshold } from "../../ui/touchButtonGesture";
 import {
   groundAimFromWorldPoint,
   pointerInDefensePlayArea,
+  resolveArmedGroundPointerUp,
+  type ArmedGroundPointerUp,
 } from "./defenseGroundAimInput";
 
 /** Live scene state for manual ground-spell aiming (getters/setters keep it in sync). */
@@ -36,12 +41,14 @@ export type DefenseGroundAimHost = {
 export class DefenseGroundAim {
   private pointerId: number | null = null;
   private fromUiBand = false;
+  private startX = 0;
+  private startY = 0;
+  private dragExceeded = false;
 
   constructor(private readonly host: DefenseGroundAimHost) {}
 
   resetForNewRun(): void {
-    this.pointerId = null;
-    this.fromUiBand = false;
+    this.clearGesture();
   }
 
   /** True when `pointer` is the one that armed / is dragging the ground reticle. */
@@ -52,6 +59,9 @@ export class DefenseGroundAim {
   clearGesture(): void {
     this.pointerId = null;
     this.fromUiBand = false;
+    this.startX = 0;
+    this.startY = 0;
+    this.dragExceeded = false;
     this.host.stick?.setExternalBlock(null);
   }
 
@@ -68,10 +78,14 @@ export class DefenseGroundAim {
   onPointerDown(pointer: Phaser.Input.Pointer): void {
     if (!this.host.pendingGroundCast) return;
     this.pointerId = pointer.id;
+    this.startX = pointer.x;
+    this.startY = pointer.y;
+    this.dragExceeded = false;
     const play = defensePlayAreaLayout(this.host.scene, this.host.safe);
     this.fromUiBand = !pointerInDefensePlayArea(pointer.x, pointer.y, play);
     this.syncStickBlock();
-    this.updateFromPointer(pointer);
+    // Keep the arm-time preview until the press becomes a drag.
+    if (!this.fromUiBand) this.updateFromPointer(pointer);
   }
 
   onPointerMove(pointer: Phaser.Input.Pointer): void {
@@ -79,7 +93,33 @@ export class DefenseGroundAim {
     if (this.pointerId !== null && pointer.id !== this.pointerId) {
       return;
     }
+    if (!this.dragExceeded) {
+      const thresholdPx = scaleUiX(VIRTUAL_STICK_DRAG_THRESHOLD_PX);
+      if (
+        !pressDragExceedsThreshold(
+          this.startX,
+          this.startY,
+          pointer.x,
+          pointer.y,
+          thresholdPx,
+        )
+      ) {
+        return;
+      }
+      this.dragExceeded = true;
+    }
     this.updateFromPointer(pointer);
+  }
+
+  /** Pointer-up action for the armed gesture. */
+  resolveRelease(pointer: Phaser.Input.Pointer): ArmedGroundPointerUp {
+    const play = defensePlayAreaLayout(this.host.scene, this.host.safe);
+    return resolveArmedGroundPointerUp({
+      isAimGesture: this.isAimGesture(pointer),
+      fromUiBand: this.fromUiBand,
+      dragExceeded: this.dragExceeded,
+      releaseInPlayArea: pointerInDefensePlayArea(pointer.x, pointer.y, play),
+    });
   }
 
   private updateFromPointer(pointer: Phaser.Input.Pointer): void {

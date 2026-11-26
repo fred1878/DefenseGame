@@ -31,6 +31,7 @@ import {
   spellCastUsesEnemyAim,
   spellRequiresManualTarget,
   spellTargetMode,
+  spellUsesManualGroundAim,
 } from "../../content/spellTargeting";
 import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
 import {
@@ -189,6 +190,24 @@ export class DefenseSpellDirector {
       }
     }
     this.beginSpellCast(pick.spellId, "auto", stickX, stickY);
+  }
+
+  /**
+   * Arm a ground-aimed spell for press-drag placement without casting.
+   * Short taps still go through {@link onSpellCastRequest} to auto-aim.
+   */
+  armGroundCast(spellId: string): void {
+    const def = spellById(spellId);
+    if (!def || !spellUsesManualGroundAim(def)) return;
+    this.host.pendingGroundCast = spellId;
+    const aim = this.defaultGroundTarget(def);
+    this.host.groundAim = aim;
+    this.host.groundReticle.showAt(
+      aim.x,
+      aim.y,
+      GroundTargetReticle.radiusForSpell(this.host.scene, def.blastRadiusWu!),
+      GroundTargetReticle.styleForSpellId(spellId),
+    );
   }
 
   onSpellCastRequest(spellId: string, stickX = 0, stickY = 0): void {

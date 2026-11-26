@@ -160,6 +160,7 @@ describe("SpellBar", () => {
       pointer,
     );
     bound[0]!.onTap();
+    expect(callbacks.onGroundCastCancel).toHaveBeenCalled();
     expect(callbacks.onCastRequest).toHaveBeenCalledWith(groundTap.id, 0);
   });
 
