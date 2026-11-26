@@ -6,13 +6,19 @@ import {
 } from "./registerServiceWorker";
 
 describe("shouldRegisterServiceWorker", () => {
-  it("registers only in production, outside e2e", () => {
+  it("registers only in production, outside e2e, and not in the native app", () => {
     expect(shouldRegisterServiceWorker({ prod: true, e2e: false })).toBe(true);
     expect(shouldRegisterServiceWorker({ prod: true, e2e: true })).toBe(false);
     expect(shouldRegisterServiceWorker({ prod: false, e2e: false })).toBe(
       false,
     );
     expect(shouldRegisterServiceWorker({ prod: false, e2e: true })).toBe(false);
+    expect(
+      shouldRegisterServiceWorker({ prod: true, e2e: false, native: true }),
+    ).toBe(false);
+    expect(
+      shouldRegisterServiceWorker({ prod: true, e2e: false, native: false }),
+    ).toBe(true);
   });
 });
 

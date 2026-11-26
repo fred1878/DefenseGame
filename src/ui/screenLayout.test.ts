@@ -20,6 +20,7 @@ import {
   townBuildingGridFootY,
   townFullscreenButtonPosition,
   townResetSaveButtonPosition,
+  townUpdateButtonPosition,
   townStatusTextTopY,
   townTitleY,
 } from "./screenLayout";
@@ -194,6 +195,24 @@ describe("screenLayout", () => {
     expect(reset.y - fsH / 2).toBeCloseTo(safe.top, 0);
     expect(townStatusTextTopY()).toBeGreaterThan(townTitleY());
     expect(townStatusTextTopY()).toBeLessThan(scaleUiY(128));
+  });
+
+  it("stacks the native update button under the fullscreen control", () => {
+    const fsW = scaleUiX(168);
+    const fsH = scaleUiX(36);
+    const updateH = scaleUiX(36);
+    const fs = townFullscreenButtonPosition(scene, safe, fsW, fsH);
+    const update = townUpdateButtonPosition(
+      scene,
+      safe,
+      fsW,
+      updateH,
+      fsW,
+      fsH,
+    );
+    expect(update.x).toBeCloseTo(fs.x, 0);
+    expect(update.y).toBeGreaterThan(fs.y + fsH / 2);
+    expect(update.y - updateH / 2).toBeCloseTo(fs.y + fsH / 2 + scaleUiY(8), 0);
   });
 
   it("town building grid fills band between status and bottom", () => {
