@@ -2,7 +2,8 @@ import { SPELL_BAR } from "../config";
 import { basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "../gear/gearCatalog";
 import { gearStatsFor } from "../gear/itemStats";
-import { addLootToSave } from "../gear/loot";
+import { addLootToSave, type LootConfig } from "../gear/loot";
+import type { GearCatalog } from "../gear/gearTypes";
 import { normalizeSaveShops } from "../gear/shops";
 import { createEmptyGear, normalizeSaveGear } from "../gear/saveGear";
 import {
@@ -220,10 +221,19 @@ export function applyEndlessRunExit(
   };
 }
 
-export function applyNightResult(
+export type NightResultApplication = {
+  save: SaveGame;
+  soldGold: number;
+  soldCount: number;
+};
+
+/** Apply gold, wall damage, night advance and bag drops; keep overflow-sale totals. */
+export function applyNightResultDetailed(
   save: SaveGame,
   result: NightResult,
-): SaveGame {
+  catalog: GearCatalog = getGearCatalog(),
+  loot?: LootConfig,
+): NightResultApplication {
   // New day in town: the trader restocks on the next visit.
   const next = {
     ...save,
@@ -239,9 +249,21 @@ export function applyNightResult(
     };
   }
   if (result.drops?.length) {
-    return addLootToSave(next, result.drops, getGearCatalog()).save;
+    const added = addLootToSave(next, result.drops, catalog, loot);
+    return {
+      save: added.save,
+      soldGold: added.soldGold,
+      soldCount: added.soldCount,
+    };
   }
-  return next;
+  return { save: next, soldGold: 0, soldCount: 0 };
+}
+
+export function applyNightResult(
+  save: SaveGame,
+  result: NightResult,
+): SaveGame {
+  return applyNightResultDetailed(save, result).save;
 }
 
 export function wallHpBonusFromBuildings(

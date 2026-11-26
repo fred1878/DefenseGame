@@ -116,8 +116,30 @@ test("visual: defense (night won, HUD + world)", async ({ page }) => {
       { timeout: 30_000 },
     )
     .toBe(true);
-  // Let the night-end banner / camera settle before freezing.
+  // Let the night-end summary / camera settle before freezing.
   await waitFrames(page, 40);
   await freezeGameLoop(page);
   await expect(page).toHaveScreenshot("defense-night-won.png", SHOT);
+});
+
+test("visual: defense (night lost, summary panel)", async ({ page }) => {
+  await startDefense(page);
+  await page.evaluate(() => {
+    const api = window.__DEFENSEGAME_E2E__?.api;
+    api?.setManualReturnToTown(true);
+    api?.damagePlayer(9999);
+  });
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const api = window.__DEFENSEGAME_E2E__?.api;
+          return Boolean(api?.nightEnded() && api.hasReturnButton());
+        }),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+  await waitFrames(page, 40);
+  await freezeGameLoop(page);
+  await expect(page).toHaveScreenshot("defense-night-lost.png", SHOT);
 });
