@@ -1,7 +1,7 @@
 import { basePlayerTuning } from "../../config/player";
 import { createDefaultSpellBarSlots, spellById } from "../../content/spells";
 import { applyGearLoadout, gearSpellDamageMult } from "../../gear/gearRuntime";
-import type { GearCatalog, SaveGear } from "../../gear/gearTypes";
+import type { GearCatalog, SaveGear, StatBonus } from "../../gear/gearTypes";
 import {
   armourReduction,
   effectivePlayerTuning,
@@ -70,13 +70,17 @@ function expectedProcDps(stats: GearStats, hitsPerSec: number): number {
   return dps;
 }
 
-/** Player combat power with `gear` equipped, using the game's own stat code. */
+/**
+ * Player combat power with `gear` equipped (plus `bonus`, e.g. learned
+ * talents), using the game's own stat code.
+ */
 export function playerPower(
   catalog: GearCatalog,
   gear: SaveGear,
   model: PowerModel = DEFAULT_POWER_MODEL,
+  bonus?: StatBonus,
 ): PlayerPower {
-  const stats = applyGearLoadout(gear, catalog);
+  const stats = applyGearLoadout(gear, catalog, bonus);
   const t = effectivePlayerTuning(basePlayerTuning(), stats);
   const meleeCycle = cycleSec(
     t.meleeWindupMs,
@@ -103,7 +107,10 @@ export function playerPower(
   const spellMult = spellMults.length
     ? spellMults.reduce((a, b) => a + b, 0) / spellMults.length
     : 1;
-  const spellDps = model.spellBaseDps * spellMult;
+  // Global cooldown reduction casts the bar proportionally more often.
+  const cdCap = catalog.statCaps.spellCooldownPct ?? 100;
+  const cdPct = Math.min(cdCap, Math.max(0, stats.flat.cooldownPct));
+  const spellDps = (model.spellBaseDps * spellMult) / (1 - cdPct / 100);
   const damageReduction = armourReduction(catalog, stats.flat.armour);
   return {
     meleeDps,

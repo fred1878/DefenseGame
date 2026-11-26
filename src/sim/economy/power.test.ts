@@ -92,6 +92,35 @@ describe("power", () => {
     expect(p.procDps).toBeGreaterThan(0);
   });
 
+  it("adds talent bonuses and shortens spell cooldowns", () => {
+    const base = playerPower(data.catalog, createEmptyGear());
+    const p = playerPower(
+      data.catalog,
+      createEmptyGear(),
+      DEFAULT_POWER_MODEL,
+      {
+        modifiers: [
+          { stat: "meleeDamage", value: 3 },
+          { stat: "cooldownPct", value: 20 },
+        ],
+        procs: [],
+      },
+    );
+    expect(p.meleeDps).toBeGreaterThan(base.meleeDps);
+    expect(p.spellDps).toBeCloseTo(base.spellDps / 0.8);
+    const capped = playerPower(
+      data.catalog,
+      createEmptyGear(),
+      DEFAULT_POWER_MODEL,
+      {
+        modifiers: [{ stat: "cooldownPct", value: 500 }],
+        procs: [],
+      },
+    );
+    expect(Number.isFinite(capped.spellDps)).toBe(true);
+    expect(capped.spellDps).toBeGreaterThan(p.spellDps);
+  });
+
   it("uses the ranged weapon's procs when ranged is stronger", () => {
     const gear = gearWith(
       [

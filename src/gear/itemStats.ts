@@ -13,6 +13,7 @@ import {
   type RarityDef,
   type RolledAffix,
   type SaveGear,
+  type StatBonus,
   type StatModifier,
   type UniqueDef,
 } from "./gearTypes";
@@ -163,10 +164,14 @@ function addModifier(stats: GearStats, m: StatModifier): void {
   }
 }
 
-/** Sum the stats of a list of resolved items, then apply `statCaps`. */
+/**
+ * Sum the stats of a list of resolved items plus optional extra sources
+ * (talents), then apply `statCaps`.
+ */
 export function sumItemStats(
   catalog: GearCatalog,
   items: readonly ResolvedItem[],
+  bonus?: StatBonus,
 ): GearStats {
   const stats = emptyGearStats();
   for (const r of items) {
@@ -174,6 +179,10 @@ export function sumItemStats(
     stats.procs.push(...r.procs);
     if (r.base.melee) stats.melee = r.base.melee;
     if (r.base.ranged) stats.ranged = r.base.ranged;
+  }
+  if (bonus) {
+    for (const m of bonus.modifiers) addModifier(stats, m);
+    stats.procs.push(...bonus.procs);
   }
   for (const id of FLAT_STAT_IDS) {
     const cap = catalog.statCaps[id];
@@ -202,8 +211,13 @@ export function equippedItems(
   return out;
 }
 
-export function gearStatsFor(catalog: GearCatalog, gear: SaveGear): GearStats {
-  return sumItemStats(catalog, equippedItems(catalog, gear));
+/** Equipped gear stats, plus `bonus` (talents) when given. */
+export function gearStatsFor(
+  catalog: GearCatalog,
+  gear: SaveGear,
+  bonus?: StatBonus,
+): GearStats {
+  return sumItemStats(catalog, equippedItems(catalog, gear), bonus);
 }
 
 /** Damage reduction fraction (0..max) from armour: armour / (armour + halfReductionAt). */
@@ -237,7 +251,9 @@ export function effectivePlayerTuning(
   const meleeWindupMs = (melee?.windupMs ?? base.meleeWindupMs) / speed;
   const meleeActiveMs = (melee?.activeMs ?? base.meleeActiveMs) / speed;
   const meleeStrikeRangeWu = melee?.rangeWu ?? base.meleeStrikeRangeWu;
-  const rangedMaxRangeWu = ranged?.rangeWu ?? base.rangedMaxRangeWu;
+  const rangedMaxRangeWu =
+    (ranged?.rangeWu ?? base.rangedMaxRangeWu) *
+    Math.max(0, 1 + f.rangedRangePct / 100);
 
   const out: PlayerTuning = {
     ...base,
@@ -253,7 +269,11 @@ export function effectivePlayerTuning(
       meleeWindupMs,
     ),
     meleeStrikeRangeWu,
-    meleeArcDeg: melee?.arcDeg ?? base.meleeArcDeg,
+    meleeArcDeg: Math.min(
+      360,
+      (melee?.arcDeg ?? base.meleeArcDeg) *
+        Math.max(0, 1 + f.meleeArcPct / 100),
+    ),
     meleeDamage: Math.max(
       1,
       ((melee?.damage ?? base.meleeDamage) + f.meleeDamage) * dmgMul,

@@ -52,6 +52,7 @@ export const SHIPPED_DATA_JSON_FILES = [
   "loot.json",
   "consumables.json",
   "shops.json",
+  "talents.json",
   "player.json",
   "spell_input.json",
   "spells.json",

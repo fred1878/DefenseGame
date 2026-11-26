@@ -20,6 +20,7 @@ import { getLootConfig } from "../gear/loot";
 import { EQUIP_SLOTS, type EquipSlot } from "../gear/gearTypes";
 import { nextBlacksmithUnlock, shopLevel, shopTitle } from "../gear/shops";
 import { INPUT_MODALITY } from "../input/inputModality";
+import { saveTalentBonus } from "../talents/talentRuntime";
 import {
   acquireModalInput,
   bindModalDimBackdrop,
@@ -530,7 +531,7 @@ export class GearPanel {
   private refresh(): void {
     const { catalog, loot } = this.ctx;
     const save = this.getSave();
-    const stats = gearStatsFor(catalog, save.gear);
+    const stats = gearStatsFor(catalog, save.gear, saveTalentBonus(save));
     const tuning = effectivePlayerTuning(basePlayerTuning(), stats);
     this.goldText.setText(`${save.gold}g`);
     const upgrade = shopUpgradeInfo(this.ctx, save);

@@ -85,6 +85,7 @@ export const INPUT_MODALITY = {
   townWavePlanner: { id: "town:wave-planner", layer: "modal" as const },
   townSaves: { id: "town:saves", layer: "modal" as const },
   townGear: { id: "town:gear", layer: "modal" as const },
+  townTalents: { id: "town:talents", layer: "modal" as const },
   townDefenseLoading: { id: "town:defense-loading", layer: "modal" as const },
   debugMenu: { id: "debug-menu", layer: "modal" as const },
   defenseGroundAim: { id: "defense:ground-aim", layer: "transient" as const },

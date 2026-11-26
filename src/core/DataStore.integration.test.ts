@@ -390,6 +390,11 @@ describe("DataStore.loadTownBoot", () => {
     await store.loadTownBoot("https://example.test/");
     expect(store.buildings.wall).toBeDefined();
     expect(store.townBuildings).toBeTruthy();
+    expect(store.talents.branches.map((b) => b.id)).toEqual([
+      "blade",
+      "marksman",
+      "sorcery",
+    ]);
     expect(store.defenseDataReady).toBe(false);
     expect(Object.keys(store.enemies)).toHaveLength(0);
     vi.unstubAllGlobals();

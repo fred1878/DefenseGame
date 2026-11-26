@@ -1,7 +1,7 @@
 import type { DamageFlavor } from "../combat/DamageSystem";
 import { applyEffectivePlayerTuning, basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "./gearCatalog";
-import type { GearCatalog, OnHitProc, SaveGear } from "./gearTypes";
+import type { GearCatalog, OnHitProc, SaveGear, StatBonus } from "./gearTypes";
 import {
   armourReduction,
   effectivePlayerTuning,
@@ -14,25 +14,34 @@ import {
 type GearRuntime = {
   stats: GearStats;
   damageTakenMult: number;
+  /** Max total cooldown reduction percent (`statCaps.spellCooldownPct`). */
+  cooldownCapPct: number;
 };
 
-let runtime: GearRuntime = { stats: emptyGearStats(), damageTakenMult: 1 };
+let runtime: GearRuntime = {
+  stats: emptyGearStats(),
+  damageTakenMult: 1,
+  cooldownCapPct: 100,
+};
 /** Fractional lifesteal carried between hits so small heals still add up. */
 let lifestealCarry = 0;
 
 /**
- * Apply equipped gear: player tuning (weapons, attack speed, HP, move speed)
- * plus the combat hooks below. Call when a run starts and after equipment changes.
+ * Apply equipped gear (plus `bonus`, e.g. learned talents): player tuning
+ * (weapons, attack speed, HP, move speed) plus the combat hooks below. Call
+ * when a run starts and after equipment or talent changes.
  */
 export function applyGearLoadout(
   gear: SaveGear,
   catalog: GearCatalog = getGearCatalog(),
+  bonus?: StatBonus,
 ): GearStats {
-  const stats = gearStatsFor(catalog, gear);
+  const stats = gearStatsFor(catalog, gear, bonus);
   applyEffectivePlayerTuning(effectivePlayerTuning(basePlayerTuning(), stats));
   runtime = {
     stats,
     damageTakenMult: 1 - armourReduction(catalog, stats.flat.armour),
+    cooldownCapPct: catalog.statCaps.spellCooldownPct ?? 100,
   };
   lifestealCarry = 0;
   return stats;
@@ -57,9 +66,14 @@ export function gearSpellDamageMult(def?: {
   return Math.max(0, mult);
 }
 
-/** Cooldown multiplier for a spell (0.8 = 20% shorter). */
+/** Cooldown multiplier for a spell (0.8 = 20% shorter); named + global, capped. */
 export function gearSpellCooldownMul(spellId: string): number {
-  return Math.max(0, 1 - (runtime.stats.spellCooldownPct[spellId] ?? 0) / 100);
+  const s = runtime.stats;
+  const pct = Math.min(
+    runtime.cooldownCapPct,
+    (s.spellCooldownPct[spellId] ?? 0) + s.flat.cooldownPct,
+  );
+  return Math.max(0, 1 - pct / 100);
 }
 
 export function gearWeaponProcs(): readonly OnHitProc[] {

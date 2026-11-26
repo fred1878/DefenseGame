@@ -35,6 +35,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `loot.json` | yes (`normalizeLoot`) |
 | `consumables.json` | yes (`normalizeConsumables`) |
 | `shops.json` | yes (`normalizeShops`) |
+| `talents.json` | yes (`normalizeTalents`) |
 | `player.json` | yes (`normalizePlayerConfig`) |
 | `spell_input.json` | yes (`normalizeSpellInput`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
@@ -406,7 +407,7 @@ Modifiers and procs:
 
 | Field | Meaning |
 |-------|---------|
-| `stat` | meleeDamage, rangedDamage, damagePct, attackSpeedPct, maxHp, armour, moveSpeedPct, spellPowerPct, lifestealPct, elementDamagePct, spellDamagePct or spellCooldownPct. |
+| `stat` | meleeDamage, rangedDamage, damagePct, attackSpeedPct, maxHp, armour, moveSpeedPct, spellPowerPct, lifestealPct, meleeArcPct (wider swing arc), rangedRangePct (longer ranged range), cooldownPct (every spell), elementDamagePct, spellDamagePct or spellCooldownPct. |
 | `value` | Amount added; flat for damage, HP and armour, percent for every *Pct stat. |
 | `element` | Damage flavor for elementDamagePct (fire, frost, lightning, water, physical); boosts spells of that flavor. |
 | `spell` | Spell id for spellDamagePct (more damage) or spellCooldownPct (shorter cooldown). |
@@ -523,6 +524,60 @@ Blacksmith (`consumables` rows here are `{ id, unlockNight }` and always in stoc
 | `stockItemLevelOffset` | Offset added to the current night for masterwork item levels. |
 | `stockRarityWeights` | Rarity id → relative weight for masterwork items (rarity `minItemLevel` still applies; missing rarities never roll). |
 | `unlockNightsEarly` | Catalogue rows (`items`, `consumables`) unlock this many nights before their `unlockNight`. |
+
+---
+
+## talents.json
+
+**TypeScript:** [TalentCatalog](../src/talents/talentTypes.ts) — [normalizeTalents.ts](../src/core/normalizeTalents.ts), [talentLogic.ts](../src/talents/talentLogic.ts), [talentRuntime.ts](../src/talents/talentRuntime.ts). Design notes: [TALENTS.md](./TALENTS.md).
+
+Talent tree: branches of tiers of nodes. Each learned rank adds the node's `perRank` stat modifiers and procs (same format as items.json Modifiers) into the gear stat sum, so combat, the Gear panel totals and the economy sim all see them. Saves store only `{ ranks: { id: rank }, earned }`; ranks that no longer fit the tree after an edit are refunded on load.
+
+**Placeholders awaiting confirmation:** `pointsPerNightWon`, `pointsPerNightLost`, `startingPoints`, `resetCostGold` and `tierThresholds` were picked for balance, not signed off (see TALENTS.md).
+
+Top level:
+
+| Field | Meaning |
+|-------|---------|
+| `config` | Object with talent point income, reset cost and tier thresholds (below). |
+| `branches` | Array of branch objects shown as columns, left to right. |
+
+`config`:
+
+| Field | Meaning |
+|-------|---------|
+| `pointsPerNightWon` | Talent points earned for each campaign night won (integer ≥ 0). |
+| `pointsPerNightLost` | Talent points earned for each campaign night lost (integer ≥ 0). |
+| `startingPoints` | Talent points a new save starts with (old saves get this plus nights won × pointsPerNightWon). |
+| `resetCostGold` | Gold charged to refund every spent point (Reset button). |
+| `tierThresholds` | Array, one per tier: points spent in the same branch needed to open that tier (tier I first). |
+
+Each branch (`id`, `name`, `icon` are also used by nodes):
+
+| Field | Meaning |
+|-------|---------|
+| `id` | Unique string id (branch id or talent id stored in saves). |
+| `name` | Display name of the branch column or talent node. |
+| `icon` | Line icon name: sword, hammer, wind, droplet, shield, star, bow, target, snowflake, arrowUp, sparkles, flame, zap, refresh. |
+| `tiers` | Array of tier objects, tier I first (at most one per tierThresholds entry). |
+
+Each tier:
+
+| Field | Meaning |
+|-------|---------|
+| `exclusive` | Optional boolean; true makes the tier pick-one (learning a node locks the others). |
+| `nodes` | Array of talent nodes drawn side by side in the tier row. |
+
+Each node:
+
+| Field | Meaning |
+|-------|---------|
+| `maxRank` | Highest rank (integer ≥ 1); each rank costs one point. |
+| `requires` | Optional array of talent ids; any one at rank ≥ 1 unlocks this node (draws the connectors). |
+| `description` | Short sentence shown in the detail panel. |
+| `perRank` | Object with what one rank adds; values multiply by the rank (proc chance multiplies too). |
+| `modifiers` | Optional array of stat modifiers inside perRank (items.json Modifiers format). |
+| `procs` | Optional array of on-hit procs inside perRank (items.json Modifiers format). |
 
 ---
 

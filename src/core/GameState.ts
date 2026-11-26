@@ -18,6 +18,13 @@ import {
   type SaveSpellBar,
 } from "./saveTypes";
 import { saveStorageKey } from "../e2e/e2eMode";
+import { getTalentCatalog } from "../talents/talentCatalog";
+import {
+  awardNightTalentPoints,
+  createEmptyTalents,
+  normalizeSaveTalents,
+} from "../talents/talentLogic";
+import { saveTalentBonus } from "../talents/talentRuntime";
 
 function storageKey(): string {
   return saveStorageKey();
@@ -38,6 +45,7 @@ export function createNewSave(): SaveGame {
     gear: createEmptyGear(),
     consumables: {},
     shops: { trader: null, blacksmith: null },
+    talents: createEmptyTalents(getTalentCatalog()),
     spellBar: {
       slots: createDefaultSpellBarSlots(),
       autoCastSpellIds: createDefaultAutoCastSpellIds(),
@@ -134,6 +142,11 @@ function migrateSave(
     gear: normalizeSaveGear(save.gear, getGearCatalog()),
     consumables: normalizeSaveConsumables(save.consumables),
     shops: normalizeSaveShops(save.shops),
+    talents: normalizeSaveTalents(
+      save.talents,
+      getTalentCatalog(),
+      (save.night ?? 1) - 1,
+    ),
     buildings: { ...base.buildings, ...save.buildings },
     spellBar,
   });
@@ -151,14 +164,15 @@ function normalizeSaveConsumables(raw: unknown): Record<string, number> {
 }
 
 /**
- * Max HP = `player.json` maxHp + equipped gear. A higher cap adds the gain to
+ * Max HP = `player.json` maxHp + equipped gear + talents. A higher cap adds the gain to
  * current HP (like the wall upgrade); a lower cap clamps it.
  */
 export function syncPlayerHpMax(save: SaveGame): SaveGame {
   const hpMax = Math.max(
     1,
     basePlayerTuning().maxHp +
-      gearStatsFor(getGearCatalog(), save.gear).flat.maxHp,
+      gearStatsFor(getGearCatalog(), save.gear, saveTalentBonus(save)).flat
+        .maxHp,
   );
   const prevMax = save.player.hpMax;
   if (hpMax === prevMax) return save;
@@ -239,6 +253,11 @@ export function applyNightResultDetailed(
     ...save,
     night: save.night + (result.won ? 1 : 0),
     shops: { trader: null, blacksmith: null },
+    talents: awardNightTalentPoints(
+      getTalentCatalog(),
+      save.talents,
+      result.won,
+    ),
   };
   next.gold = save.gold + result.goldEarned;
   next.townWallHp = Math.max(0, save.townWallHp - result.wallDamage);

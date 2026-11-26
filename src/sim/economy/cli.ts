@@ -43,6 +43,7 @@ npm run sim:economy -- [options]
   --set file.path=v    data override, repeatable (e.g. loot.tables.nightWon.maxRolls=3)
   --overrides FILE     JSON overrides shaped like {"loot": {...}, "waves": {...}}
   --no-sell            keep non-upgrades in the bag (bag fills, drops auto-sell)
+  --no-talents         never spend talent points (compare against talent builds)
   --spell-dps N        base spell DPS before spell power (default ${DEFAULT_POWER_MODEL.spellBaseDps})
   --grace N            seconds after the last spawn to clear a wave (default ${DEFAULT_POWER_MODEL.graceSec})
   --threat N           share of enemy hits that land (default ${DEFAULT_POWER_MODEL.threatScale})
@@ -63,6 +64,7 @@ export type CliOptions = {
   sets: string[];
   overridesFile: string | null;
   sellSurplus: boolean;
+  talents: boolean;
   model: PowerModel;
   flags: FlagThresholds;
   outDir: string;
@@ -93,6 +95,7 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
       set: { type: "string", multiple: true },
       overrides: { type: "string" },
       "no-sell": { type: "boolean" },
+      "no-talents": { type: "boolean" },
       "spell-dps": { type: "string" },
       grace: { type: "string" },
       threat: { type: "string" },
@@ -127,6 +130,7 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
     sets: values.set ?? [],
     overridesFile: values.overrides ?? null,
     sellSurplus: !values["no-sell"],
+    talents: !values["no-talents"],
     model: {
       ...DEFAULT_POWER_MODEL,
       spellBaseDps: positive(
@@ -193,6 +197,7 @@ export function runSimulation(opts: CliOptions, now = new Date()): SimOutput {
         nights,
         maxAttempts: nights * 4,
         sellSurplus: opts.sellSurplus,
+        talents: opts.talents,
         model: opts.model,
       },
       opts.seed,
@@ -210,6 +215,7 @@ export function runSimulation(opts: CliOptions, now = new Date()): SimOutput {
     overrides: [
       ...(opts.overridesFile ? [`file:${opts.overridesFile}`] : []),
       ...opts.sets,
+      ...(opts.talents ? [] : ["--no-talents"]),
     ],
     flags: opts.flags,
     generatedAt: now.toISOString(),

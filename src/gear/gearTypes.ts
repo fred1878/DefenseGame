@@ -50,6 +50,12 @@ export const FLAT_STAT_IDS = [
   "moveSpeedPct",
   "spellPowerPct",
   "lifestealPct",
+  /** Weapon style: wider melee swing arc (percent of the weapon's arc). */
+  "meleeArcPct",
+  /** Weapon style: longer ranged weapon range (percent). */
+  "rangedRangePct",
+  /** Shorter cooldown on every spell (percent; stacks with spellCooldownPct). */
+  "cooldownPct",
 ] as const;
 export type FlatStatId = (typeof FLAT_STAT_IDS)[number];
 
@@ -179,6 +185,12 @@ export type ItemInstance = {
   itemLevel: number;
   uniqueId?: string;
   affixes: RolledAffix[];
+};
+
+/** Extra stat sources stacked on top of equipped gear (talents). */
+export type StatBonus = {
+  modifiers: readonly StatModifier[];
+  procs: readonly OnHitProc[];
 };
 
 export type SaveGear = {
