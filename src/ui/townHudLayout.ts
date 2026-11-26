@@ -80,6 +80,17 @@ export function debugButtonPosition(
     y: scene.scale.height - margin - safe.bottom - scaleUiY(12),
   };
 }
+/** Town: bottom-right Gear button (mirrors Debug). */
+export function townGearButtonPosition(
+  scene: Phaser.Scene,
+  safe: SafeInsets,
+): { x: number; y: number } {
+  const margin = scaleUiX(12);
+  return {
+    x: scene.scale.width - margin - safe.right - scaleUiX(44),
+    y: scene.scale.height - margin - safe.bottom - scaleUiY(12),
+  };
+}
 /** Town actions stacked from the bottom (0 = start night, then building rows, then spell bar). */
 export function townActionButtonY(
   scene: Phaser.Scene,

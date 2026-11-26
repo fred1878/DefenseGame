@@ -13,6 +13,7 @@ import { scaleUiX } from "../../core/displayScale";
 import { toggleFullscreen, fullscreenButtonLabel } from "../../ui/fullscreen";
 import {
   debugButtonPosition,
+  townGearButtonPosition,
   readSafeInsets,
   townFullscreenButtonPosition,
   townResetSaveButtonPosition,
@@ -59,15 +60,16 @@ export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
 
 export type TownHeaderButtons = {
   debugButton: TouchButton;
+  gearButton: TouchButton;
   fullscreenButton: TouchButton;
   resetButton: TouchButton;
   updateButton?: TouchButton;
 };
 
-/** Debug, fullscreen and reset-save buttons (created in that order). */
+/** Debug, gear, fullscreen and reset-save buttons (created in that order). */
 export function createTownHeaderButtons(
   scene: Phaser.Scene,
-  handlers: { onDebug: () => void; onReset: () => void },
+  handlers: { onDebug: () => void; onGear: () => void; onReset: () => void },
 ): TownHeaderButtons {
   const safe = readSafeInsets();
   const dbgPos = debugButtonPosition(scene, safe);
@@ -88,6 +90,24 @@ export function createTownHeaderButtons(
       strokeColor: 0xa1a1aa,
     },
   );
+
+  const gearPos = townGearButtonPosition(scene, safe);
+  const gearButton = createTouchButton(
+    scene,
+    gearPos.x,
+    gearPos.y,
+    "Gear",
+    () => handlers.onGear(),
+    {
+      width: scaleUiX(88),
+      height: scaleUiX(36),
+      depth: 200,
+      fontSize: `${scaleUiX(14)}px`,
+      fillColor: 0x713f12,
+      strokeColor: 0xfbbf24,
+    },
+  );
+  gearButton.container.setData("testid", "town-gear");
 
   const fsWidth = scaleUiX(168);
   const fsHeight = scaleUiX(36);
@@ -140,6 +160,7 @@ export function createTownHeaderButtons(
 
   return {
     debugButton,
+    gearButton,
     fullscreenButton,
     resetButton,
     ...nativeButtons,

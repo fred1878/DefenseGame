@@ -16,6 +16,10 @@ import { scaleUiX } from "../../core/displayScale";
 import type { SafeInsets } from "../../ui/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
 import { evaluateEndlessEnd, evaluateNightEnd } from "../defenseNightLogic";
+import { getGearCatalog } from "../../gear/gearCatalog";
+import { nightDropLines } from "../../gear/gearText";
+import { rollNightDrops } from "../../gear/loot";
+import { createRng, randomSeed } from "../../gear/rng";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -204,6 +208,13 @@ export function runDefenseCampaignNightEnd(
       : Math.floor(input.rewardGold * 0.25),
     wallDamage,
     night: input.save.night,
+    drops: rollNightDrops(
+      getGearCatalog(),
+      input.won,
+      input.save.night,
+      // Fixed seed under e2e so the night-end screenshot is stable.
+      createRng(isE2EEnabled() ? 1000 + input.save.night : randomSeed()),
+    ),
   };
   const goldBefore = input.save.gold;
   const next = applyNightResult(input.save, result);
@@ -232,6 +243,11 @@ export function runDefenseCampaignNightEnd(
       input.won
         ? "Dawn breaks over the settlement."
         : "Scouts recover what they can.",
+      ...nightDropLines(
+        getGearCatalog(),
+        result.drops ?? [],
+        next.gold - goldBefore - result.goldEarned,
+      ),
     ].join("\n"),
   );
   ctx.hudText.setColor(input.won ? "#fbbf24" : "#fca5a5");

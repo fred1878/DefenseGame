@@ -32,6 +32,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `entity-physics.json` | yes (`normalizeEntityPhysics`) |
 | `hit-flash.json` | yes (`normalizeHitFlash`) |
 | `items.json` | yes (`normalizeItems`) |
+| `loot.json` | yes (`normalizeLoot`) |
 | `player.json` | yes (`normalizePlayerConfig`) |
 | `spell_input.json` | yes (`normalizeSpellInput`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
@@ -50,6 +51,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
 | `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
 | `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
+| `loot.json` | — | [LootConfig](../src/gear/loot.ts) | [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts) |
 | `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
 | `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
 | `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
@@ -410,6 +412,32 @@ Modifiers and procs:
 | `dps` | Damage per second of a dot proc. |
 | `ms` | Duration of the proc effect in ms. |
 | `slowPct` | Percent movement slow of a slow proc. |
+
+---
+
+## loot.json
+
+**TypeScript:** [LootConfig](../src/gear/loot.ts) — [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts).
+
+Bag size, sell-back rate and gear drop tables. `nightWon` / `nightLost` roll at the end of a campaign night with the night number as the level; add more tables (e.g. per adventure area) and roll them with `rollLoot`.
+
+| Field | Meaning |
+|-------|---------|
+| `inventoryCapacity` | Max unequipped items in the bag; drops beyond it are sold automatically. |
+| `sellBackPct` | Percent of an item's price paid when selling it (50 = half price). |
+| `tables` | Object keyed by table id (`nightWon`, `nightLost`; more can be added for adventures). |
+
+Each table:
+
+| Field | Meaning |
+|-------|---------|
+| `minRolls` | Fewest items rolled per drop (integer, can be 0). |
+| `maxRolls` | Most items rolled per drop (integer, ≥ minRolls). |
+| `minItemLevelOffset` | Lowest offset added to the level (night) for each item's item level. |
+| `maxItemLevelOffset` | Highest offset added to the level for each item's item level. |
+| `rarityByLevel` | Array of `{ fromLevel, weights }` bands; the highest band at or below the item level applies. |
+| `fromLevel` | Item level at which a band starts. |
+| `weights` | Object of rarity id → relative weight; rarities left out never roll (rarity `minItemLevel` still applies). |
 
 ---
 

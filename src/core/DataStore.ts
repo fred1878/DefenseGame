@@ -44,6 +44,8 @@ import {
 import type { TownBuildingDef, TownLayoutDef } from "./townBuildingTypes";
 import { normalizeItems } from "./normalizeItems";
 import { setGearCatalog } from "../gear/gearCatalog";
+import { setLootConfig, type LootConfig } from "../gear/loot";
+import { normalizeLoot } from "./normalizeLoot";
 import type { GearCatalog } from "../gear/gearTypes";
 
 export type EnemyDef = {
@@ -87,22 +89,30 @@ export class DataStore {
   shadowformMechanics!: ShadowformMechanics;
   player!: PlayerConfig;
   items!: GearCatalog;
+  loot!: LootConfig;
 
   defenseDataReady = false;
   private defenseDataPromise: Promise<void> | null = null;
 
   async loadTownBoot(baseUrl = ""): Promise<void> {
     const prefix = baseUrl.replace(/\/?$/, "/");
-    const [buildings, townBuildings, townLayout, playerFile, itemsFile] =
-      await Promise.all([
-        fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
-        fetchJson<Record<string, TownBuildingDef>>(
-          `${prefix}data/town_buildings.json`,
-        ),
-        fetchJson<TownLayoutInput>(`${prefix}data/town_layout.json`),
-        fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
-        fetchJson<unknown>(`${prefix}data/items.json`),
-      ]);
+    const [
+      buildings,
+      townBuildings,
+      townLayout,
+      playerFile,
+      itemsFile,
+      lootFile,
+    ] = await Promise.all([
+      fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
+      fetchJson<Record<string, TownBuildingDef>>(
+        `${prefix}data/town_buildings.json`,
+      ),
+      fetchJson<TownLayoutInput>(`${prefix}data/town_layout.json`),
+      fetchJson<PlayerConfigInput>(`${prefix}data/player.json`),
+      fetchJson<unknown>(`${prefix}data/items.json`),
+      fetchJson<unknown>(`${prefix}data/loot.json`),
+    ]);
     this.buildings = buildings;
     this.townBuildings = townBuildings;
     this.townLayout = normalizeTownLayout(townLayout);
@@ -111,6 +121,8 @@ export class DataStore {
     applyPlayerTuning(playerTuning);
     this.items = normalizeItems(itemsFile);
     setGearCatalog(this.items);
+    this.loot = normalizeLoot(lootFile);
+    setLootConfig(this.loot);
   }
 
   async loadDefenseData(baseUrl = ""): Promise<void> {

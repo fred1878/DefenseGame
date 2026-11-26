@@ -7,7 +7,12 @@ import { getGearCatalog, setGearCatalog } from "../gear/gearCatalog";
 import { applyGearLoadout } from "../gear/gearRuntime";
 import { createEmptyGear } from "../gear/saveGear";
 import { gearFixture } from "../test/gearFixture";
-import { createNewSave, normalizeSave, syncPlayerHpMax } from "./GameState";
+import {
+  applyNightResult,
+  createNewSave,
+  normalizeSave,
+  syncPlayerHpMax,
+} from "./GameState";
 import type { SaveGame } from "./saveTypes";
 
 const fixture = gearFixture();
@@ -100,5 +105,33 @@ describe("GameState gear", () => {
     const c = new SpellCastController();
     expect(c.tryBeginCast(def.id)).toBe(def);
     expect(c.getCooldownRemaining(def.id)).toBeCloseTo(def.cooldownMs * 0.75);
+  });
+});
+
+describe("applyNightResult drops", () => {
+  afterEach(() => setGearCatalog(bundled));
+
+  it("adds night-end drops to the bag", () => {
+    setGearCatalog(fixture);
+    const save = createNewSave();
+    const next = applyNightResult(save, {
+      won: true,
+      goldEarned: 5,
+      wallDamage: 0,
+      night: 1,
+      drops: [{ baseId: "cap", rarity: "magic", itemLevel: 2, affixes: [] }],
+    });
+    expect(next.gear.items).toEqual([
+      { uid: 1, baseId: "cap", rarity: "magic", itemLevel: 2, affixes: [] },
+    ]);
+    expect(next.gold).toBe(save.gold + 5);
+    const none = applyNightResult(save, {
+      won: false,
+      goldEarned: 0,
+      wallDamage: 0,
+      night: 1,
+      drops: [],
+    });
+    expect(none.gear.items).toEqual([]);
   });
 });
