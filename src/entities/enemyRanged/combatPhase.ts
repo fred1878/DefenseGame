@@ -1,11 +1,5 @@
-import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import type { EnemyInstance } from "../Enemy";
-import {
-  enemyIsAttacking,
-  type EnemyAttackPhase,
-  type EnemyAttackTarget,
-  type EnemyCombatState,
-} from "../EnemyCombat";
+import type { EnemyAttackTarget, EnemyCombatState } from "../EnemyCombat";
 import { clearEnemyAttackCommit } from "./attackCommit";
 import type { JavelinSpawnRequest } from "./types";
 
@@ -30,17 +24,6 @@ export function advanceCombatPhase(
     c.phaseMs = 0;
     c.cooldownMs = cooldownMs;
     clearEnemyAttackCommit(c);
-  }
-}
-
-export function freezeWindupRecovery(
-  enemy: EnemyInstance,
-  _phase: EnemyAttackPhase,
-  _targetKind: EnemyAttackTarget["kind"],
-): void {
-  const hold = enemyIsAttacking(enemy.combat);
-  if (hold) {
-    setEnemyChaseVelocity(enemy, 0, 0);
   }
 }
 

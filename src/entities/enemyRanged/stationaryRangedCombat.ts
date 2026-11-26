@@ -1,6 +1,5 @@
-import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import type { EnemyInstance } from "../Enemy";
-import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
+import type { EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";
 import {
   advanceCombatPhase,
@@ -56,10 +55,6 @@ export function updateStationaryRangedCombat(
       c.hitThisSwing = true;
       onWallHit?.();
     }
-  }
-
-  if (enemyIsAttacking(c)) {
-    setEnemyChaseVelocity(enemy, 0, 0);
   }
 
   return { spawnBolt };
