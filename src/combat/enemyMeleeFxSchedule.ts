@@ -24,7 +24,6 @@ export function enemyShouldShowMeleeSwipeFx(enemy: EnemyInstance): boolean {
       return false;
     }
   }
-  if (enemy.behavior === "lobber") return false;
   return true;
 }
 

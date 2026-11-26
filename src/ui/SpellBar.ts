@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import { DEFENSE_SPELL_BAR, defenseSpellBarIconDisplayPx } from "../config";
 import { autoCastFlagsForSlots } from "../content/spellBarAutoCast";
 import { spellById, type SpellId } from "../content/spells";
-import { spellGroundTapAutoCasts } from "../content/spellGroundTapCast";
 import { spellUsesManualGroundAim } from "../content/spellTargeting";
 import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../core/displayScale";
@@ -110,14 +109,6 @@ export class SpellBar {
           onTap: () => {
             const id = this.slots[slotIndex] ?? "";
             if (!id) return;
-            const def = spellById(id);
-            if (
-              def &&
-              spellUsesManualGroundAim(def) &&
-              !spellGroundTapAutoCasts(def.id)
-            ) {
-              return;
-            }
             this.onCastRequest(id, slotIndex);
           },
           onLongPress: () => {

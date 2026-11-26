@@ -22,7 +22,6 @@ export function channeledGroundZonePerTickDamage(
 ): number {
   const maxTicks = channeledGroundZoneMaxTicks(def);
   const total = channeledGroundZoneTotalDamage(def, damageMult);
-  if (maxTicks <= 0) return total;
   return Math.floor(total / maxTicks);
 }
 

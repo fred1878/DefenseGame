@@ -58,8 +58,7 @@ export function isImageBg(
   return bg instanceof Phaser.GameObjects.Image;
 }
 
-function applyBgTint(bg: BgVisual | undefined, tint: number): void {
-  if (!bg) return;
+function applyBgTint(bg: BgVisual, tint: number): void {
   if (isImageBg(bg)) {
     bg.setTint(tint);
     return;
@@ -195,7 +194,7 @@ export function bindPress(
   };
 
   const tryActivate = (pointer: Phaser.Input.Pointer) => {
-    if (activePointerId !== null && pointer.id !== activePointerId) return;
+    // onScenePointerUp already ignores a mismatched or missing pointer id.
     if (!pointerHitsGameObject(scene, obj, pointer, slopPx)) return;
     onPress();
   };

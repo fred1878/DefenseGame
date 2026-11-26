@@ -124,9 +124,15 @@ export function updateEnemyCombat(
     cancelEnemyMeleeFxTimer(c);
     c.slashFxShown = false;
     scheduleEnemyMeleeFx(enemy);
-    const aimX = target.kind === "player" ? target.x : target.x;
-    const aimY = target.kind === "player" ? target.y : target.y;
-    commitEnemyAttack(c, enemy.sprite.x, enemy.sprite.y, target, aimX, aimY);
+    // Wall targets already use wallCombatPoint (enemy x, wall attack-plane y).
+    commitEnemyAttack(
+      c,
+      enemy.sprite.x,
+      enemy.sprite.y,
+      target,
+      target.x,
+      target.y,
+    );
   }
 
   if (c.phase === "idle") return false;
