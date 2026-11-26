@@ -271,18 +271,6 @@ export const OBSTACLE_TEXTURE = {
 export type ObstacleTextureKey =
   (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE];
 
-/** Native PNG dimensions (includes transparent margins). Colliders use `OBSTACLE_SPRITE_CROP`. */
-export const OBSTACLE_SOURCE_FRAME: Record<
-  (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],
-  { w: number; h: number }
-> = {
-  obstacle_wide_slab: { w: 90, h: 54 },
-  obstacle_tall_rock: { w: 70, h: 90 },
-  obstacle_boulder_med: { w: 60, h: 60 },
-  obstacle_rubble_low: { w: 100, h: 50 },
-  obstacle_boulder_sm: { w: 56, h: 56 },
-};
-
 /** Opaque art bounds in source pixels — sprite display crop (1:1 world px). */
 export const OBSTACLE_SPRITE_CROP: Record<
   (typeof OBSTACLE_TEXTURE)[keyof typeof OBSTACLE_TEXTURE],

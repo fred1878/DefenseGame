@@ -17,6 +17,13 @@ import { rollNightDrops } from "../../gear/loot";
 import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, randomSeed } from "../../gear/rng";
 import { NightLootSummaryPanel } from "../../ui/NightLootSummaryPanel";
+import type { CampaignNightLossReason } from "./nightEndMessaging";
+import {
+  simulatedNightEndHeadline,
+  simulatedNightEndHudLines,
+  trainingEndHeadline,
+  trainingEndHudLines,
+} from "./nightEndMessaging";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -87,15 +94,12 @@ export function runDefenseSimulatedNightEnd(
     return;
   }
 
-  const headline = input.quit
-    ? "Simulation ended"
-    : input.won
-      ? "Wave cleared — simulation complete"
-      : "Simulation failed";
+  const headline = simulatedNightEndHeadline(input.won, input.quit === true);
+  const [scopeLine, economyLine] = simulatedNightEndHudLines();
   ctx.hudText.setText(
     [
       headline,
-      "No gold earned · night unchanged",
+      `${scopeLine} · ${economyLine}`,
       `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
     ].join("\n"),
   );
@@ -144,16 +148,12 @@ export function runDefenseEndlessNightEnd(
     return;
   }
 
-  const headline =
-    reason === "quit"
-      ? "Training ended"
-      : reason === "wall"
-        ? "Wall breached — training over"
-        : "You fell — training over";
+  const headline = trainingEndHeadline(reason);
+  const [scopeLine, economyLine] = trainingEndHudLines(reason);
   ctx.hudText.setText(
     [
       headline,
-      "No gold earned · night unchanged",
+      `${scopeLine} · ${economyLine}`,
       `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
     ].join("\n"),
   );
@@ -182,6 +182,7 @@ export function runDefenseEndlessNightEnd(
 
 export type DefenseCampaignNightEndInput = {
   won: boolean;
+  lossReason?: CampaignNightLossReason;
   wallHp: number;
   wallHpStart: number;
   rewardGold: number;
@@ -198,6 +199,7 @@ export function runDefenseCampaignNightEnd(
   const catalog = getGearCatalog();
   const resolved = resolveCampaignNightEnd({
     won: input.won,
+    ...(input.lossReason !== undefined ? { lossReason: input.lossReason } : {}),
     wallHp: input.wallHp,
     wallHpStart: input.wallHpStart,
     rewardGold: input.rewardGold,
@@ -254,7 +256,7 @@ export type DefenseRunEndCheck = {
   spawnPlanComplete: boolean;
   livingEnemies: number;
   onEndlessEnd: (reason: "player") => void;
-  onNightEnd: (won: boolean) => void;
+  onNightEnd: (won: boolean, lossReason?: CampaignNightLossReason) => void;
 };
 
 /** Per-frame end check: endless runs end on player death, campaign nights on win/loss. */
@@ -275,5 +277,7 @@ export function checkDefenseRunEnd(input: DefenseRunEndCheck): void {
     spawnPlanComplete: input.spawnPlanComplete,
     livingEnemies: input.livingEnemies,
   });
-  if (nightEnd) input.onNightEnd(nightEnd.won);
+  if (!nightEnd) return;
+  if (nightEnd.won) input.onNightEnd(true);
+  else input.onNightEnd(false, nightEnd.lossReason);
 }

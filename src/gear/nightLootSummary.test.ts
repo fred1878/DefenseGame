@@ -144,6 +144,7 @@ describe("assembleNightLootSummary", () => {
     });
     expect(summary.headline).toBe("Night 2 lost");
     expect(summary.flavor).toBe("Scouts recover what they can.");
+    expect(summary.progressNote).toContain("stays on night 2");
     expect(summary.emptyLootText).toBeNull();
     expect(summary.soldNote).toBe(
       "2 items auto-sold because the bag was full (8 gold)",
@@ -212,6 +213,23 @@ describe("resolveCampaignNightEnd", () => {
     expect(resolved.summary.wallText).toBe("78 / 100 HP");
     expect(resolved.summary.items[0]?.name).toBe("Cap");
     expect(resolved.summary.items[0]?.sold).toBe(false);
+  });
+
+  it("uses wall-loss copy when lossReason is wall", () => {
+    const save = createNewSave();
+    const resolved = resolveCampaignNightEnd({
+      won: false,
+      lossReason: "wall",
+      wallHp: 0,
+      wallHpStart: 100,
+      rewardGold: 40,
+      save,
+      drops: [],
+      catalog,
+      loot: loot(4),
+    });
+    expect(resolved.summary.headline).toContain("wall breached");
+    expect(resolved.summary.progressNote).toContain("stays on night");
   });
 
   it("pays a loss quarter-reward, keeps the night, and records auto-sold loot", () => {

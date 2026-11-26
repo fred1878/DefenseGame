@@ -144,6 +144,14 @@ function buildNightLootSummary(
   }).setOrigin(0.5, 0);
   y += scaleUiY(36);
 
+  if (summary.progressNote) {
+    addLabel(scene, content, centerX, y, summary.progressNote, 13, "#a1a1aa", {
+      align: "center",
+      wordWrap: { width: innerW },
+    }).setOrigin(0.5, 0);
+    y += scaleUiY(40);
+  }
+
   const addRow = (label: string, value: string, valueColor: string) => {
     addLabel(scene, content, innerLeft, y, label, 15, "#d4d4d8");
     addLabel(scene, content, innerRight, y, value, 15, valueColor).setOrigin(

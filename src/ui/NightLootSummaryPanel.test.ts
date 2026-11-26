@@ -71,6 +71,7 @@ describe("NightLootSummaryPanel", () => {
     const labels = textsOf(scene);
     expect(labels).toContain("Night 3 defended!");
     expect(labels).toContain("Dawn breaks over the settlement.");
+    expect(labels.some((t) => t.includes("Campaign advances"))).toBe(true);
     expect(labels).toContain("+40 gold");
     expect(labels).toContain("90 gold");
     expect(labels).toContain("• Cap");

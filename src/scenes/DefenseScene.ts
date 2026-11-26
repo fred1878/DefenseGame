@@ -88,6 +88,7 @@ import {
   runDefenseSimulatedNightEnd,
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
+import type { CampaignNightLossReason } from "./defense/nightEndMessaging";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
 import {
   createDefenseHudController,
@@ -668,7 +669,7 @@ export class DefenseScene extends Phaser.Scene {
       spawnPlanComplete: this.spawnPlanComplete,
       livingEnemies: living,
       onEndlessEnd: (reason) => this.endEndlessRun(reason),
-      onNightEnd: (won) => this.endNight(won),
+      onNightEnd: (won, lossReason) => this.endNight(won, lossReason),
     });
 
     if (isE2EEnabled()) {
@@ -1108,7 +1109,7 @@ export class DefenseScene extends Phaser.Scene {
     runDefenseEndlessNightEnd(this.nightEndContext(), reason);
   }
 
-  endNight(won: boolean): void {
+  endNight(won: boolean, lossReason?: CampaignNightLossReason): void {
     if (this.nightEnded) return;
     if (this.isWavePlannerMode()) {
       runDefenseSimulatedNightEnd(this.nightEndContext(), { won });
@@ -1116,6 +1117,7 @@ export class DefenseScene extends Phaser.Scene {
     }
     runDefenseCampaignNightEnd(this.nightEndContext(), {
       won,
+      ...(!won && lossReason !== undefined ? { lossReason } : {}),
       wallHp: this.wallHp,
       wallHpStart: this.wallHpStart,
       rewardGold: this.rewardGold,
