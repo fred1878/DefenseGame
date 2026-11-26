@@ -2,7 +2,6 @@ import type Phaser from "phaser";
 import { DG_THEME as SHARED_THEME, themeInt } from "./theme/dgTheme";
 import { GAME } from "../config";
 import { DAMAGE_NUMBER_FONT_FAMILY } from "../config/damageNumbers";
-import { UI_TEXTURE } from "../content/assets";
 import type { SaveGame } from "../core/saveTypes";
 import { INPUT_MODALITY } from "../input/inputModality";
 import {
@@ -41,6 +40,7 @@ import type {
   TalentCatalog,
   TalentNodeState,
 } from "../talents/talentTypes";
+import { uiIconFrame, type UiIconName } from "./icons/uiIcons";
 import { ensureTalentIcons, talentIconKey } from "./talentPanel/talentIcons";
 import {
   layoutTalentTree,
@@ -92,6 +92,7 @@ type NodeView = {
 };
 
 type BranchView = {
+  icon: Phaser.GameObjects.Image | null;
   name: Phaser.GameObjects.Text;
   spent: Phaser.GameObjects.Text;
 };
@@ -128,6 +129,7 @@ export class TalentPanel {
   private readonly branches: BranchView[] = [];
   private readonly detailName: Phaser.GameObjects.Text;
   private readonly detailRank: Phaser.GameObjects.Text;
+  private readonly detailRankBg: Phaser.GameObjects.Graphics;
   private readonly detailDesc: Phaser.GameObjects.Text;
   private readonly diffs: DiffView[] = [];
   private readonly procText: Phaser.GameObjects.Text;
@@ -173,14 +175,17 @@ export class TalentPanel {
 
     const W = GAME.width;
     const headerMid = L.headerY + L.headerH / 2;
-    if (scene.textures.exists(UI_TEXTURE.atkCircle)) {
+    const emblemX = L.pad + 42;
+    const emblemKey = uiIconFrame(scene, "star", 26);
+    if (emblemKey) {
       root.add(
         scene.add
-          .image(L.pad + 16 + 26, headerMid, UI_TEXTURE.atkCircle)
-          .setDisplaySize(52, 52),
+          .image(emblemX, headerMid, emblemKey.key, emblemKey.frame)
+          .setDisplaySize(26, 26)
+          .setTint(0xe9dfcb),
       );
     }
-    this.text(L.pad + 84, headerMid - 14, "Talents", 26, DG.text, true)
+    this.text(L.pad + 84, headerMid - 14, "Talents", 30, DG.text, true)
       .setOrigin(0, 0.5)
       .setFontStyle("bold");
     this.text(
@@ -245,10 +250,26 @@ export class TalentPanel {
     const headY = L.treeY + L.treePad;
     catalog.branches.forEach((b, i) => {
       const cx = this.layout.branchCenters[i]!;
+      const branchIcon = uiIconFrame(scene, b.icon as UiIconName, 16);
+      const iconY = headY + 20;
+      let icon: Phaser.GameObjects.Image | null = null;
+      if (branchIcon) {
+        icon = scene.add
+          .image(cx - 24, iconY, branchIcon.key, branchIcon.frame)
+          .setDisplaySize(16, 16)
+          .setTint(0xe9dfcb);
+        root.add(icon);
+      }
       this.branches.push({
-        name: this.text(cx, headY + 17, b.name, 16, DG.text, true).setOrigin(
-          0.5,
-        ),
+        icon,
+        name: this.text(
+          cx - 6,
+          headY + 17,
+          b.name,
+          16,
+          DG.text,
+          true,
+        ).setOrigin(0, 0.5),
         spent: this.text(cx, headY + 37, "", 10, DG.goldText).setOrigin(0.5),
       });
     });
@@ -310,9 +331,11 @@ export class TalentPanel {
     this.detailName = this.text(dx, dy, "", 22, DG.text, true)
       .setOrigin(0, 0)
       .setFontStyle("bold");
+    this.detailRankBg = scene.add.graphics();
+    root.add(this.detailRankBg);
     this.detailRank = this.text(
-      W - L.pad - 26,
-      dy + 13,
+      W - L.pad - 16,
+      dy + 14,
       "",
       13,
       DG.goldBrightText,
@@ -456,11 +479,9 @@ export class TalentPanel {
     };
     const inner = W - 2 * L.pad;
     panel(L.pad, L.headerY, inner, L.headerH, 14, DG.panel, DG.gold);
-    if (!this.scene.textures.exists(UI_TEXTURE.atkCircle)) {
-      const cy = L.headerY + L.headerH / 2;
-      g.fillStyle(DG.crimson, 1).fillCircle(L.pad + 42, cy, 26);
-      g.lineStyle(2, DG.gold, 1).strokeCircle(L.pad + 42, cy, 26);
-    }
+    const cy = L.headerY + L.headerH / 2;
+    g.fillStyle(DG.crimson, 1).fillCircle(L.pad + 42, cy, 26);
+    g.lineStyle(2, DG.gold, 1).strokeCircle(L.pad + 42, cy, 26);
     // Points pill (header).
     const pillCx = W - L.pad - 16 - 40 - 12 - 48;
     const pillCy = L.headerY + L.headerH / 2;
@@ -661,7 +682,19 @@ export class TalentPanel {
     const loc = findTalent(this.catalog, this.selectedId)!;
     const rank = talentRank(talents, loc.node.id);
     this.detailName.setText(loc.node.name);
-    this.detailRank.setText(rankLabel(talents, loc));
+    const rankText = rankLabel(talents, loc);
+    this.detailRank.setText(rankText);
+    const rankPad = 20;
+    const rankW = Math.max(78, rankText.length * 7 + rankPad);
+    const rankX = GAME.width - L.pad - 16 - rankW;
+    const rankY = this.layout.detailY + 14;
+    this.detailRankBg.clear();
+    this.detailRankBg
+      .fillStyle(DG.abyss, 1)
+      .fillRoundedRect(rankX, rankY, rankW, 24, 10);
+    this.detailRankBg
+      .lineStyle(1, DG.gold, 1)
+      .strokeRoundedRect(rankX, rankY, rankW, 24, 10);
     this.detailDesc.setText(talentDescription(loc));
     const rows = talentDiffRows(loc, rank);
     this.diffs.forEach((v, i) => {

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createNewSave } from "../core/GameState";
 import type { SaveGame } from "../core/saveTypes";
-import { UI_TEXTURE } from "../content/assets";
 import { fakeEventData, fakePointer } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
 import { talentFixture } from "../test/talentFixture";
@@ -139,9 +138,8 @@ describe("TalentPanel", () => {
     expect(textOf(p.ui.statusText)).toBe("Reset costs 40g");
   });
 
-  it("adds icons once their textures load and uses the crimson emblem", () => {
-    const loaded = new Set<string>([UI_TEXTURE.atkCircle]);
-    const p = openPanel({}, { textures: [...loaded] });
+  it("adds icons once their textures load", () => {
+    const p = openPanel({}, { textures: [] });
     expect(p.added).toContain(talentIconKey("sword"));
     expect(talentIconKey("nope")).toBe("talent_icon_star");
     expect(p.node("a1").icon).toBeNull();
