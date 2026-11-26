@@ -8,6 +8,7 @@ import type { DataStore, EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
+import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
 import { worldUnit } from "../core/worldPixelScale";
 import {
   shadowformActive,
@@ -352,6 +353,7 @@ export class DefenseScene extends Phaser.Scene {
 
   create(): void {
     configureSceneInput(this);
+    applyPixelRenderDebugSettings(this.game);
     this.save = { ...(this.registry.get("save") as SaveGame) };
     ensureDefenseSaveSpellBar(this.save);
     applySaveLoadout(this.save);

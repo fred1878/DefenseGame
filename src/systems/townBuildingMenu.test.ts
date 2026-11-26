@@ -197,6 +197,27 @@ describe("townBuildingMenu", () => {
     expect(result.message).toContain("Need 50g");
   });
 
+  it("allows upgrade when debug infinite gold is on", () => {
+    const def: TownBuildingDef = {
+      label: "Witchlight Beacon (Night)",
+      textureKey: "town_special_witchlight_beacon",
+      width: 80,
+      height: 112,
+      upgradeId: "wall",
+    };
+    const save = createNewSave();
+    save.gold = 10;
+    const storeReg: Record<string, unknown> = { debugInfiniteGold: true };
+    const registry = {
+      get: (k: string) => storeReg[k],
+      set: (k: string, v: unknown) => {
+        storeReg[k] = v;
+      },
+    } as Phaser.Data.DataManager;
+    const { result } = handleTownBuildingTap(store, save, def, registry);
+    expect(result.kind).toBe("upgraded");
+  });
+
   it("covers max-level, missing hook, and generic upgrade copy", () => {
     store.buildings.workshop = {
       maxLevel: 1,

@@ -3,6 +3,7 @@ import type { SaveGame } from "../core/saveTypes";
 import type { TownBuildingDef } from "../core/townBuildingTypes";
 import { wallHpBonusFromBuildings } from "../core/GameState";
 import type { BuildingDef } from "../core/DataStore";
+import { hasEnoughGold } from "../debug/debugEconomy";
 
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
 const START_NIGHT_SUBTITLE = "— Start night";
@@ -83,6 +84,7 @@ export function handleTownBuildingTap(
   store: DataStore,
   save: SaveGame,
   def: TownBuildingDef,
+  registry?: Phaser.Data.DataManager,
 ): { save: SaveGame; result: TownBuildingTapResult } {
   if (def.startsNight) {
     return { save, result: { kind: "startNight", message: "" } };
@@ -125,7 +127,7 @@ export function handleTownBuildingTap(
     };
   }
 
-  const attempt = tryApplyBuildingUpgrade(save, up, upgradeId);
+  const attempt = tryApplyBuildingUpgrade(save, up, upgradeId, registry);
   return attempt;
 }
 
@@ -137,6 +139,7 @@ export function upgradeShop(
   buildings: Readonly<Record<string, BuildingDef>>,
   save: SaveGame,
   shop: "trader" | "blacksmith",
+  registry?: Phaser.Data.DataManager,
 ): { save: SaveGame; result: TownBuildingTapResult } {
   const up = buildings[shop];
   if (!up) {
@@ -145,7 +148,7 @@ export function upgradeShop(
       result: { kind: "blocked", message: "Upgrade unavailable" },
     };
   }
-  const attempt = tryApplyBuildingUpgrade(save, up, shop);
+  const attempt = tryApplyBuildingUpgrade(save, up, shop, registry);
   if (attempt.result.kind !== "upgraded") return attempt;
   return {
     save: {
@@ -160,6 +163,7 @@ function tryApplyBuildingUpgrade(
   save: SaveGame,
   def: BuildingDef,
   id: string,
+  registry?: Phaser.Data.DataManager,
 ): { save: SaveGame; result: TownBuildingTapResult } {
   const level = save.buildings[id] ?? 0;
   if (level >= def.maxLevel) {
@@ -178,7 +182,7 @@ function tryApplyBuildingUpgrade(
       result: { kind: "blocked", message: "Upgrade unavailable" },
     };
   }
-  if (save.gold < cost) {
+  if (!hasEnoughGold(save, cost, registry)) {
     return {
       save,
       result: {

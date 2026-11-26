@@ -101,6 +101,8 @@ export type GearPanelCommand =
 export type GearPanelContext = {
   catalog: GearCatalog;
   loot: LootConfig;
+  /** Session debug flags (infinite gold, etc.) from the host scene. */
+  registry?: Phaser.Data.DataManager;
   /**
    * When set the panel is a shop (Buy + Sell tabs). `buildings` holds the
    * shop upgrade costs (buildings.json); `rng` rolls restocks and rerolls.
@@ -480,7 +482,13 @@ export function reduceGearPanel(
       const offer = shopOffers(save, ctx.shop.ctx, ctx.shop.id)[
         state.selectedOffer
       ];
-      const r = buyOffer(save, ctx.shop.ctx, ctx.shop.id, state.selectedOffer);
+      const r = buyOffer(
+        save,
+        ctx.shop.ctx,
+        ctx.shop.id,
+        state.selectedOffer,
+        ctx.registry,
+      );
       let next = r.save;
       let status = r.message;
       if (r.ok && cmd.type === "buyEquip" && offer?.kind === "item") {
@@ -504,7 +512,12 @@ export function reduceGearPanel(
     }
     case "upgradeShop": {
       if (!ctx.shop?.buildings) return { save, state };
-      const r = upgradeShop(ctx.shop.buildings, save, ctx.shop.id);
+      const r = upgradeShop(
+        ctx.shop.buildings,
+        save,
+        ctx.shop.id,
+        ctx.registry,
+      );
       const next =
         r.result.kind === "upgraded"
           ? ensureShopStock(r.save, ctx.shop.ctx, ctx.shop.rng ?? Math.random)
@@ -520,7 +533,12 @@ export function reduceGearPanel(
     }
     case "reroll": {
       if (ctx.shop?.id !== "trader") return { save, state };
-      const r = rerollTrader(save, ctx.shop.ctx, ctx.shop.rng ?? Math.random);
+      const r = rerollTrader(
+        save,
+        ctx.shop.ctx,
+        ctx.shop.rng ?? Math.random,
+        ctx.registry,
+      );
       return {
         save: r.save,
         state: clamp(r.save, {

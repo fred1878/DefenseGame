@@ -1,3 +1,4 @@
+import { hasEnoughGold } from "../debug/debugEconomy";
 import bundledShops from "../../public/data/shops.json";
 import { normalizeShops } from "../core/normalizeShops";
 import type { SaveGame } from "../core/saveTypes";
@@ -256,13 +257,14 @@ export function rerollTrader(
   save: SaveGame,
   ctx: ShopContext,
   rng: Rng,
+  registry?: Phaser.Data.DataManager,
 ): BuyResult {
   const level = shopLevel(save, ctx, "trader");
   const cost = traderAt(ctx, level).rerollCost;
   if (cost <= 0) {
     return { save, ok: false, message: "Upgrade the trader to reroll" };
   }
-  if (save.gold < cost) {
+  if (!hasEnoughGold(save, cost, registry)) {
     return { save, ok: false, message: `Need ${cost}g (have ${save.gold}g)` };
   }
   return {
@@ -366,6 +368,7 @@ export function buyOffer(
   ctx: ShopContext,
   shop: ShopId,
   index: number,
+  registry?: Phaser.Data.DataManager,
 ): BuyResult {
   const offers = shopOffers(save, ctx, shop);
   const offer = offers[index];
@@ -375,7 +378,7 @@ export function buyOffer(
   const price = offerPrice(ctx, shop, offer, shopLevel(save, ctx, shop));
   if (price === null)
     return { save, ok: false, message: "No longer available" };
-  if (save.gold < price) {
+  if (!hasEnoughGold(save, price, registry)) {
     return { save, ok: false, message: `Need ${price}g (have ${save.gold}g)` };
   }
   let next: SaveGame;
