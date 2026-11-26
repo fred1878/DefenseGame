@@ -4,7 +4,6 @@
  * tiles and the shared header. Coordinates are absolute in the 540×1200 canvas.
  */
 import type Phaser from "phaser";
-import { UI_TEXTURE } from "../../content/assets";
 import { uiIconFrame, type UiIconName } from "../icons/uiIcons";
 import { uiTextStyle, UI_FONT_FAMILY } from "../uiTextStyle";
 import {
@@ -354,10 +353,22 @@ export class DgKit {
     return tile;
   }
 
+  /** Crimson disc + gold ring + line icon (mockup header emblem). */
+  private drawEmblem(cx: number, cy: number, icon: UiIconName): void {
+    const g = this.scene.add.graphics({ x: 0, y: 0 });
+    g.fillStyle(hexToInt(DG_THEME.accentCrimson), 1);
+    g.fillCircle(cx, cy, 26);
+    g.lineStyle(2, hexToInt(DG_THEME.accentGold), 1);
+    g.strokeCircle(cx, cy, 25);
+    this.root.add(g);
+    this.icon(cx, cy, icon, 26, DG_ICON_TINT);
+  }
+
   /** Header card: crimson emblem, Pixelify title, subtitle, gold pill, close (×). */
   header(
     title: string,
     onClose: () => void,
+    emblem: UiIconName,
   ): {
     title: Phaser.GameObjects.Text;
     subtitle: Phaser.GameObjects.Text;
@@ -370,19 +381,7 @@ export class DgKit {
       strokeWidth: 1.5,
       radius: 14,
     });
-    if (this.scene.textures.exists(UI_TEXTURE.atkCircle)) {
-      const emblem = this.scene.add
-        .image(58, 60, UI_TEXTURE.atkCircle)
-        .setDisplaySize(52, 52);
-      this.root.add(emblem);
-    } else {
-      const g = this.scene.add.graphics({ x: 0, y: 0 });
-      g.fillStyle(hexToInt(DG_THEME.accentCrimson), 1);
-      g.fillCircle(58, 60, 26);
-      g.lineStyle(2, hexToInt(DG_THEME.accentGold), 1);
-      g.strokeCircle(58, 60, 25);
-      this.root.add(g);
-    }
+    this.drawEmblem(58, 60, emblem);
     const titleText = this.text(96, 30, title, { size: 30, title: true });
     const subtitle = this.text(97, 72, "", {
       size: 13,

@@ -166,6 +166,18 @@ describe("shopPanelView", () => {
     );
 
     const cards = shopCards(smith, s, buy());
+    const armourCard = cards.find(
+      (c) => !c.locked && (c.stat.includes("Armour") || c.stat.includes("HP")),
+    );
+    expect(armourCard).toBeDefined();
+    const armDetail = shopDetail(
+      smith,
+      s,
+      buy({ selectedOffer: armourCard!.key }),
+    );
+    expect(armDetail.pills.length).toBeGreaterThan(0);
+    expect(armDetail.lines).toHaveLength(0);
+
     const sword = cards.find((c) => c.meta.startsWith("Melee"))!;
     const d = shopDetail(smith, s, buy({ selectedOffer: sword.key }));
     expect(d.compareTitle).toBe("Compared with equipped");

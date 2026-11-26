@@ -93,6 +93,11 @@ export type DetailLine = {
   tag: string;
 };
 
+export type DetailPill = {
+  icon: UiIconName;
+  text: string;
+};
+
 const FLAVOR_ICON: Record<string, UiIconName> = {
   fire: "flame",
   frost: "snowflake",
@@ -150,6 +155,15 @@ function procLine(p: OnHitProc, tag: string): DetailLine {
       ? (FLAVOR_COLOR[p.flavor] ?? DG_THEME.textPrimary)
       : DG_THEME.textPrimary;
   return { icon, text: procLabel(p), color, tag };
+}
+
+/** Base stat chips for shop-style detail (armour, HP, etc.). */
+export function itemStatPills(r: ResolvedItem): DetailPill[] {
+  const base = r.base.modifiers.length + (r.unique?.modifiers.length ?? 0);
+  return r.modifiers.slice(0, base).map((m) => {
+    const line = modifierLine(m, "");
+    return { icon: line.icon, text: line.text };
+  });
 }
 
 /** Stat / affix / proc lines for an item, tagged with the affix that gave them. */

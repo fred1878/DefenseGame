@@ -2,7 +2,6 @@ import type Phaser from "phaser";
 import { DG_THEME as SHARED_THEME, themeInt } from "./theme/dgTheme";
 import { GAME } from "../config";
 import { DAMAGE_NUMBER_FONT_FAMILY } from "../config/damageNumbers";
-import { UI_TEXTURE } from "../content/assets";
 import type { SaveGame } from "../core/saveTypes";
 import { INPUT_MODALITY } from "../input/inputModality";
 import {
@@ -41,12 +40,14 @@ import type {
   TalentCatalog,
   TalentNodeState,
 } from "../talents/talentTypes";
+import { uiIconFrame, type UiIconName } from "./icons/uiIcons";
 import { ensureTalentIcons, talentIconKey } from "./talentPanel/talentIcons";
 import {
   layoutTalentTree,
   TALENT_LAYOUT as L,
   type TalentTreeLayout,
 } from "./talentPanel/talentPanelLayout";
+import { fitText } from "./gearPanel/dgPanelKit";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { UI_FONT_FAMILY, uiTextStyle } from "./uiTextStyle";
 
@@ -92,6 +93,7 @@ type NodeView = {
 };
 
 type BranchView = {
+  icon: Phaser.GameObjects.Image | null;
   name: Phaser.GameObjects.Text;
   spent: Phaser.GameObjects.Text;
 };
@@ -128,6 +130,7 @@ export class TalentPanel {
   private readonly branches: BranchView[] = [];
   private readonly detailName: Phaser.GameObjects.Text;
   private readonly detailRank: Phaser.GameObjects.Text;
+  private readonly detailRankBg: Phaser.GameObjects.Graphics;
   private readonly detailDesc: Phaser.GameObjects.Text;
   private readonly diffs: DiffView[] = [];
   private readonly procText: Phaser.GameObjects.Text;
@@ -173,14 +176,17 @@ export class TalentPanel {
 
     const W = GAME.width;
     const headerMid = L.headerY + L.headerH / 2;
-    if (scene.textures.exists(UI_TEXTURE.atkCircle)) {
+    const emblemX = L.pad + 42;
+    const emblemKey = uiIconFrame(scene, "star", 26);
+    if (emblemKey) {
       root.add(
         scene.add
-          .image(L.pad + 16 + 26, headerMid, UI_TEXTURE.atkCircle)
-          .setDisplaySize(52, 52),
+          .image(emblemX, headerMid, emblemKey.key, emblemKey.frame)
+          .setDisplaySize(26, 26)
+          .setTint(0xe9dfcb),
       );
     }
-    this.text(L.pad + 84, headerMid - 14, "Talents", 26, DG.text, true)
+    this.text(L.pad + 84, headerMid - 14, "Talents", 30, DG.text, true)
       .setOrigin(0, 0.5)
       .setFontStyle("bold");
     this.text(
@@ -245,12 +251,25 @@ export class TalentPanel {
     const headY = L.treeY + L.treePad;
     catalog.branches.forEach((b, i) => {
       const cx = this.layout.branchCenters[i]!;
-      this.branches.push({
-        name: this.text(cx, headY + 17, b.name, 16, DG.text, true).setOrigin(
+      const branchIcon = uiIconFrame(scene, b.icon as UiIconName, 16);
+      let icon: Phaser.GameObjects.Image | null = null;
+      if (branchIcon) {
+        icon = scene.add
+          .image(0, 0, branchIcon.key, branchIcon.frame)
+          .setDisplaySize(16, 16)
+          .setTint(0xe9dfcb);
+        root.add(icon);
+      }
+      const view: BranchView = {
+        icon,
+        name: this.text(0, headY + 17, b.name, 16, DG.text, true).setOrigin(
+          0,
           0.5,
         ),
         spent: this.text(cx, headY + 37, "", 10, DG.goldText).setOrigin(0.5),
-      });
+      };
+      this.layoutBranchHeader(view, cx, headY, b.name, "");
+      this.branches.push(view);
     });
 
     // Tier labels.
@@ -310,9 +329,11 @@ export class TalentPanel {
     this.detailName = this.text(dx, dy, "", 22, DG.text, true)
       .setOrigin(0, 0)
       .setFontStyle("bold");
+    this.detailRankBg = scene.add.graphics();
+    root.add(this.detailRankBg);
     this.detailRank = this.text(
-      W - L.pad - 26,
-      dy + 13,
+      W - L.pad - 16,
+      dy + 14,
       "",
       13,
       DG.goldBrightText,
@@ -456,11 +477,9 @@ export class TalentPanel {
     };
     const inner = W - 2 * L.pad;
     panel(L.pad, L.headerY, inner, L.headerH, 14, DG.panel, DG.gold);
-    if (!this.scene.textures.exists(UI_TEXTURE.atkCircle)) {
-      const cy = L.headerY + L.headerH / 2;
-      g.fillStyle(DG.crimson, 1).fillCircle(L.pad + 42, cy, 26);
-      g.lineStyle(2, DG.gold, 1).strokeCircle(L.pad + 42, cy, 26);
-    }
+    const cy = L.headerY + L.headerH / 2;
+    g.fillStyle(DG.crimson, 1).fillCircle(L.pad + 42, cy, 26);
+    g.lineStyle(2, DG.gold, 1).strokeCircle(L.pad + 42, cy, 26);
     // Points pill (header).
     const pillCx = W - L.pad - 16 - 40 - 12 - 48;
     const pillCy = L.headerY + L.headerH / 2;
@@ -593,9 +612,9 @@ export class TalentPanel {
       g.strokeRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
       const view = this.branches[i]!;
       view.name.setColor(spent ? DG.text : DG.textSecondary);
-      view.spent
-        .setText(`${spent} pts spent`)
-        .setColor(spent ? DG.goldText : DG.textMuted);
+      const spentLabel = `${spent} pts spent`;
+      view.spent.setColor(spent ? DG.goldText : DG.textMuted);
+      this.layoutBranchHeader(view, cx, headY, b.name, spentLabel);
     });
     // Iron first, gold on top, so shared segments read as learned.
     const learned = (id: string) => talentRank(talents, id) > 0;
@@ -656,12 +675,58 @@ export class TalentPanel {
     this.refreshDetail(save);
   }
 
+  /** Keep branch title row + “pts spent” inside the column card (icon + label). */
+  private layoutBranchHeader(
+    view: BranchView,
+    cx: number,
+    headY: number,
+    branchName: string,
+    spentLabel: string,
+  ): void {
+    const pad = 6;
+    const iconW = 16;
+    const gap = 4;
+    const left = cx - L.cellW / 2;
+    const nameMaxW = L.cellW - pad * 2 - iconW - gap;
+    const iconX = left + pad + iconW / 2;
+    const nameX = left + pad + iconW + gap;
+    view.icon?.setPosition(iconX, headY + 20);
+    view.name.setPosition(nameX, headY + 17).setOrigin(0, 0.5);
+    fitText(view.name, branchName, nameMaxW);
+    view.spent.setPosition(cx, headY + 37).setOrigin(0.5, 0.5);
+    if (spentLabel) fitText(view.spent, spentLabel, L.cellW - pad * 2);
+  }
+
   private refreshDetail(save: SaveGame): void {
     const talents = save.talents;
     const loc = findTalent(this.catalog, this.selectedId)!;
     const rank = talentRank(talents, loc.node.id);
-    this.detailName.setText(loc.node.name);
-    this.detailRank.setText(rankLabel(talents, loc));
+    const rankText = rankLabel(talents, loc);
+    const titleX = L.pad + 16;
+    const rankRight = GAME.width - L.pad - 16;
+    const rankPadH = 12;
+    const rankY = this.layout.detailY + 14;
+    const rankMidY = rankY + 12;
+    this.detailRank.setText(rankText);
+    let rankInnerW = Math.ceil(this.detailRank.width);
+    let rankW = rankInnerW + rankPadH * 2;
+    let rankX = rankRight - rankW;
+    const titleMax = Math.max(72, rankX - titleX - 8);
+    fitText(this.detailName, loc.node.name, titleMax);
+    const rankMax =
+      rankRight - rankPadH - titleX - Math.ceil(this.detailName.width) - 8;
+    fitText(this.detailRank, rankText, Math.max(52, rankMax));
+    rankInnerW = Math.ceil(this.detailRank.width);
+    rankW = rankInnerW + rankPadH * 2;
+    rankX = rankRight - rankW;
+    this.detailRank.setPosition(rankRight - rankPadH, rankMidY);
+    this.detailRankBg.clear();
+    this.detailRankBg
+      .fillStyle(DG.abyss, 1)
+      .fillRoundedRect(rankX, rankY, rankW, 24, 10);
+    this.detailRankBg
+      .lineStyle(1, DG.gold, 1)
+      .strokeRoundedRect(rankX, rankY, rankW, 24, 10);
     this.detailDesc.setText(talentDescription(loc));
     const rows = talentDiffRows(loc, rank);
     this.diffs.forEach((v, i) => {

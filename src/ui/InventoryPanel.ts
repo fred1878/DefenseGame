@@ -87,7 +87,7 @@ export class InventoryPanel {
     this.lease = o.lease;
     const kit = this.kit;
 
-    const head = kit.header("Inventory", () => this.destroy());
+    const head = kit.header("Inventory", () => this.destroy(), "user");
     this.subtitle = head.subtitle;
     this.goldText = head.gold;
     this.closeTap = head.close;
