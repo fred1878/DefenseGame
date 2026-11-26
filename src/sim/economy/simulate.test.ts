@@ -306,9 +306,17 @@ describe("simulate", () => {
     expect(off.talents!.ranks).toEqual({});
     expect(off.talents!.earned).toBeGreaterThan(0);
     const on = simulateRun(data, opts(), 4);
-    const last = (r: typeof on) => r.records[r.records.length - 1]!;
-    expect(last(on).powerAfter.weaponDps).toBeGreaterThan(
-      last(off).powerAfter.weaponDps,
+    // Compare at the last night both runs reached (talent points buy
+    // armour and spell power on top of the same kind of gear).
+    const night = Math.min(
+      on.records[on.records.length - 1]!.night,
+      off.records[off.records.length - 1]!.night,
+    );
+    const at = (r: typeof on) =>
+      r.records.filter((x) => x.night === night).at(-1)!;
+    expect(at(on).powerAfter.ehp).toBeGreaterThan(at(off).powerAfter.ehp);
+    expect(at(on).powerAfter.spellDps).toBeGreaterThan(
+      at(off).powerAfter.spellDps,
     );
   });
 });

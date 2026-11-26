@@ -4,14 +4,16 @@ import { expect, test, type Page } from "@playwright/test";
 import type { SaveGame } from "../src/core/saveTypes";
 
 /**
- * Win-model validation (@manual, see docs/ECONOMY_SIM.md): replays sim
- * starting saves from `node scripts/win-model-snapshots.mjs` in the real game
- * with the campaign wave running (`campaignWaves=1`) and a simple bot that
- * walks auto-attack + auto-cast toward the enemy nearest the wall. Results go
- * to sim-output/win-model-results.jsonl for comparison with the predicted
- * win chance.
+ * Real-fight harness (@manual, driven by `npm run sim:fights`, see
+ * docs/ECONOMY_SIM.md): replays sim starting saves in the real game with the
+ * campaign wave running (`campaignWaves=1`) and a simple bot (auto-attack,
+ * auto-cast, potions and bombs). Results are appended as JSON lines for
+ * comparison with the power model's predicted win chance.
  *
- *   WIN_MODEL_REPEATS=3 npx playwright test e2e/win-model.spec.ts --workers 8
+ * Env: WIN_MODEL_SNAPSHOTS (snapshots JSON), WIN_MODEL_RESULTS (output
+ * .jsonl), WIN_MODEL_REPEATS (fights per snapshot), WIN_MODEL_DATA_DIR
+ * (optional folder of data JSON files served instead of /data/<name>.json,
+ * e.g. candidate waves).
  */
 
 type Snapshot = {
@@ -20,7 +22,7 @@ type Snapshot = {
   tier: string;
   save: SaveGame;
   mode: "melee" | "ranged";
-  pressure: { powerRatio: number; winChance: number };
+  strategy?: string;
 };
 
 const root = process.cwd();
@@ -34,6 +36,19 @@ const snapshots: Snapshot[] = fs.existsSync(snapshotFile)
   ? (JSON.parse(fs.readFileSync(snapshotFile, "utf8")) as Snapshot[])
   : [];
 const repeats = Number(process.env.WIN_MODEL_REPEATS ?? "1");
+const dataDir = process.env.WIN_MODEL_DATA_DIR ?? "";
+
+/** Serve override data files (e.g. candidate waves.json) from `dataDir`. */
+async function routeDataOverrides(page: Page): Promise<void> {
+  if (!dataDir || !fs.existsSync(dataDir)) return;
+  for (const file of fs.readdirSync(dataDir)) {
+    if (!file.endsWith(".json")) continue;
+    const body = fs.readFileSync(path.join(dataDir, file), "utf8");
+    await page.route(`**/data/${file}*`, (route) =>
+      route.fulfill({ body, contentType: "application/json" }),
+    );
+  }
+}
 
 async function waitForTown(page: Page): Promise<void> {
   await expect
@@ -51,6 +66,7 @@ async function waitForTown(page: Page): Promise<void> {
 }
 
 async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
+  await routeDataOverrides(page);
   await page.goto("/?e2e=1&campaignWaves=1", { waitUntil: "networkidle" });
   await waitForTown(page);
   // Town keeps its own save copy, so persist the snapshot and reload.
@@ -69,13 +85,17 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
       { timeout: 30_000 },
     )
     .toBe(true);
+  await page.evaluate(() =>
+    window.__DEFENSEGAME_E2E__?.api?.resetCombatTally(),
+  );
 }
 
 /**
  * In-page bot, every 150ms: target the living enemy nearest the north wall.
  * Melee walks into it; ranged kites at 120–200px, stepping back north when
  * anything gets closer. Below 35% HP both back off toward the wall so the
- * auto-cast heals can land.
+ * auto-cast heals can land. Drinks a potion (Q) under 45% HP and throws a
+ * bomb (E) when 5+ enemies are within 160px.
  */
 async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
   await page.evaluate((attackMode) => {
@@ -106,6 +126,10 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
       }
       const hpFrac =
         api.getPlayerHp() / Math.max(1, api.getSave()?.player.hpMax ?? 100);
+      const press = (key: string) =>
+        window.dispatchEvent(new KeyboardEvent("keydown", { key }));
+      if (hpFrac < 0.45) press("q");
+      if (enemies.filter((e) => dist(e) < 160).length >= 5) press("e");
       if (hpFrac < 0.35 && dist(nearest) < 160) {
         steer(me.x - nearest.x, me.y - nearest.y - 60);
         return;
@@ -157,6 +181,9 @@ test.describe("win model validation @manual", () => {
         const after = await page.evaluate(
           () => window.__DEFENSEGAME_E2E__?.api?.getSave() ?? null,
         );
+        const tally = await page.evaluate(
+          () => window.__DEFENSEGAME_E2E__?.api?.getCombatTally() ?? {},
+        );
         const won = (after?.night ?? 0) > snap.night;
         const row = {
           id: snap.id,
@@ -164,12 +191,12 @@ test.describe("win model validation @manual", () => {
           tier: snap.tier,
           mode: snap.mode,
           rep,
-          predicted: snap.pressure.winChance,
-          powerRatio: snap.pressure.powerRatio,
           won,
           lastWallHp: last.wall,
           lastPlayerHp: last.hp,
           lastEnemies: last.enemies,
+          tally,
+          strategy: snap.strategy ?? "balanced",
           seconds: Math.round((Date.now() - start) / 1000),
           trace,
         };
