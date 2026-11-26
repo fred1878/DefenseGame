@@ -31,6 +31,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `enemy-ai.json` | yes (`normalizeEnemyAi`) |
 | `entity-physics.json` | yes (`normalizeEntityPhysics`) |
 | `hit-flash.json` | yes (`normalizeHitFlash`) |
+| `items.json` | yes (`normalizeItems`) |
 | `player.json` | yes (`normalizePlayerConfig`) |
 | `spell_input.json` | yes (`normalizeSpellInput`) |
 | `spells.json` | yes (`normalizeSpellCatalog`) |
@@ -48,6 +49,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `enemy-ai.json` | [EnemyAiInput](../src/core/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
 | `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
 | `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
+| `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
 | `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
 | `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
 | `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
@@ -309,6 +311,105 @@ Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitF
 | `peakAlpha` | dimensionless | Sprite alpha ceiling at strength 1 when `alphaFade` is true (`peakAlpha * strength` each frame). |
 | `colorFade` | boolean | When true on `multiply`, tween tint from flavor color toward white as strength drops; `fill` always uses full tint. |
 | `alphaFade` | boolean | When true, scales sprite alpha with strength; when false alpha stays 1 for the whole flash. |
+
+---
+
+## items.json
+
+**TypeScript:** [GearCatalog](../src/gear/gearTypes.ts) — [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts), [gearRuntime.ts](../src/gear/gearRuntime.ts).
+
+Equipment: item bases, random affixes, rarities and authored uniques. Saves store only `baseId`, `rarity`, `itemLevel`, `uniqueId` and rolled affix values, so editing a base or unique here changes items players already own. Items whose base or unique is removed are dropped from saves on load.
+
+Top level:
+
+| Field | Meaning |
+|-------|---------|
+| `armour` | Object with the armour damage-reduction curve (`halfReductionAt`, `maxReductionPct`). |
+| `halfReductionAt` | Armour value that gives 50% reduction; reduction = armour / (armour + halfReductionAt). |
+| `maxReductionPct` | Hard cap on armour damage reduction, in percent (0–100). |
+| `itemLevelPriceStepPct` | Price grows by this percent per item level above the base's `minItemLevel`. |
+| `statCaps` | Object of per-stat caps applied after summing gear (any flat stat id or `spellCooldownPct`). |
+| `rarities` | Object keyed by `common`, `magic`, `rare`, `epic`, `legendary` (all five required). |
+| `bases` | Object keyed by base id: the item types players can own (weapons, armour, rings, trinkets). |
+| `affixes` | Object keyed by affix id: random prefix / suffix pool rolled onto magic, rare and epic items. |
+| `uniques` | Object keyed by unique id: authored legendary items with fixed stats and procs. |
+
+Each rarity:
+
+| Field | Meaning |
+|-------|---------|
+| `label` | Display name of the rarity in item tooltips and lists. |
+| `color` | `#rrggbb` text colour used for item names of this rarity. |
+| `minAffixes` | Fewest random affixes an item of this rarity rolls (integer). |
+| `maxAffixes` | Most random affixes an item of this rarity rolls (integer, ≥ minAffixes; max 2 prefixes + 2 suffixes). |
+| `priceMul` | Price multiplier over the base price for generated items of this rarity. |
+| `minItemLevel` | Lowest item level at which this rarity can roll (drops, trader). |
+| `weight` | Default relative roll weight; shops and drops can override per source. |
+| `uniquesOnly` | Optional boolean; when true the rarity rolls an authored unique instead of a base + affixes. |
+
+Each base (`minItemLevel` and `price` are also used here):
+
+| Field | Meaning |
+|-------|---------|
+| `name` | Display name of the base item (affix labels wrap around it). |
+| `type` | Item type: meleeWeapon, rangedWeapon, helm, chest, hands, legs, boots, ring or trinket. |
+| `price` | Gold price of a common copy at its `minItemLevel` (rarity and level scale it). |
+| `modifiers` | Optional array of implicit stat modifiers (see Modifiers below). |
+| `melee` | Required for meleeWeapon: attack profile that replaces player.json melee values. |
+| `ranged` | Required for rangedWeapon: attack profile that replaces player.json ranged values. |
+
+Weapon profiles (`melee` and `ranged`; attack speed divides the three timings):
+
+| Field | Meaning |
+|-------|---------|
+| `style` | Free-text weapon family shown in tooltips (sword, axe, spear, hammer, bow…). |
+| `damage` | Base hit damage before flat damage and damagePct bonuses. |
+| `windupMs` | ms before the hit lands (melee swing or shot release). |
+| `activeMs` | ms of the active hit window. |
+| `recoveryMs` | ms after the hit before the next attack can start. |
+| `rangeWu` | WU; melee strike reach, or ranged max travel distance. |
+| `arcDeg` | deg; melee only — width of the swing arc. |
+| `knockbackWu` | WU; knockback applied to enemies hit. |
+| `projectileSpeedWu` | Ranged only — shot speed in px/s. |
+| `projectile` | Ranged only — COMBAT_FX_TEXTURE key for the shot sprite (e.g. stoneThrow, fireBolt). |
+| `projectileTint` | Ranged only, optional — `#rrggbb` tint for the shot sprite. |
+
+Each affix (`label`, `weight` and `minItemLevel` are also used here):
+
+| Field | Meaning |
+|-------|---------|
+| `position` | prefix or suffix; an item gets at most two of each, and its name uses the first of each. |
+| `types` | Array of item types this affix can roll on. |
+| `effect` | What the affix adds: `{ stat }`, `{ stat: elementDamagePct, element }`, `{ stat, spells }` or `{ proc, … }`. |
+| `tiers` | Array of `{ minItemLevel, min, max }`; the highest unlocked tier rolls an integer in [min, max]. |
+| `min` | Lowest rolled value of a tier (stat value, or the proc's power: dot dps, slowPct, stun ms). |
+| `max` | Highest rolled value of a tier (inclusive). |
+| `proc` | Effect kind for on-hit affixes: dot, slow or stun (the rolled value fills dps, slowPct or ms). |
+| `spells` | For spellDamagePct / spellCooldownPct effects: spell ids, one picked at roll time. |
+
+Each unique (`name`, `price`, `modifiers` are also used here):
+
+| Field | Meaning |
+|-------|---------|
+| `baseId` | Base item this unique is built on (sets its type and weapon profile). |
+| `itemLevel` | Item level of the unique; it can drop from this level up. |
+| `procs` | Array of on-hit procs (see Modifiers below); empty array for none. |
+| `note` | Short flavour line shown in the item detail. |
+
+Modifiers and procs:
+
+| Field | Meaning |
+|-------|---------|
+| `stat` | meleeDamage, rangedDamage, damagePct, attackSpeedPct, maxHp, armour, moveSpeedPct, spellPowerPct, lifestealPct, elementDamagePct, spellDamagePct or spellCooldownPct. |
+| `value` | Amount added; flat for damage, HP and armour, percent for every *Pct stat. |
+| `element` | Damage flavor for elementDamagePct (fire, frost, lightning, water, physical); boosts spells of that flavor. |
+| `spell` | Spell id for spellDamagePct (more damage) or spellCooldownPct (shorter cooldown). |
+| `kind` | Proc kind on weapon hits: dot (damage over time), slow or stun. |
+| `flavor` | Damage flavor of a dot proc (sets its damage-number colour). |
+| `chancePct` | Percent chance per weapon hit that the proc triggers. |
+| `dps` | Damage per second of a dot proc. |
+| `ms` | Duration of the proc effect in ms. |
+| `slowPct` | Percent movement slow of a slow proc. |
 
 ---
 

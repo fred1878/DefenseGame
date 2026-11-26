@@ -86,8 +86,11 @@ describe("Player melee swing hitbox", () => {
     const south = mockEnemyAt(0, 60);
     const onDamaged = vi.fn();
     east.damageable.onDamaged = onDamaged;
-    player.damageEnemiesInArc([east, south], 10, 0);
+    const onHit = vi.fn();
+    player.damageEnemiesInArc([east, south], 10, 0, onHit);
 
+    expect(onHit).toHaveBeenCalledWith(east, 10);
+    expect(onHit).toHaveBeenCalledTimes(1);
     expect(east.damageable.hp).toBeLessThan(100);
     expect(onDamaged).toHaveBeenCalledWith(10, "physical");
     expect(south.damageable.hp).toBe(100);

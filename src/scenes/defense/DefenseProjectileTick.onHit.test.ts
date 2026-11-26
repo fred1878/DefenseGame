@@ -108,8 +108,10 @@ describe("tickDefenseProjectiles onHit", () => {
     };
     base.projectiles = [projectile];
 
+    const onWeaponHit = vi.fn();
     const host: DefenseProjectileTickHost = {
       ...base,
+      onWeaponHit,
       enemyTargets: () => [
         {
           ...base.enemyTargets()[0]!,
@@ -120,6 +122,7 @@ describe("tickDefenseProjectiles onHit", () => {
 
     tickDefenseProjectiles(host, 16);
     expect(Math.abs(enemyKnock.knockbackVx)).toBeGreaterThan(0);
+    expect(onWeaponHit).toHaveBeenCalledWith("grunt", 12);
     expect(setActive).toHaveBeenCalledWith(false);
     expect(setVisible).toHaveBeenCalledWith(false);
   });

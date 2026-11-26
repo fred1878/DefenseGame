@@ -1,3 +1,5 @@
+import { gearDamageTakenMult } from "../gear/gearRuntime";
+
 /** Per-defense-tick multipliers while Shadowform (or future buffs) are active. */
 
 let aggroRadiusMult = 1;
@@ -20,6 +22,7 @@ export function playerAggroRadiusWu(baseRadiusWu: number): number {
   return baseRadiusWu * aggroRadiusMult;
 }
 
+/** Shadowform (or other buff) multiplier times gear armour reduction. */
 export function playerIncomingDamageMult(): number {
-  return damageTakenMult;
+  return damageTakenMult * gearDamageTakenMult();
 }

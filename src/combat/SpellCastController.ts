@@ -1,3 +1,4 @@
+import { gearSpellCooldownMul } from "../gear/gearRuntime";
 import {
   spellById,
   type SpellDefinition,
@@ -20,6 +21,11 @@ export type ChannelUpdateResult =
 
 /** Movement during windup/channel cancels the cast (auto or manual). */
 export type SpellCastInputMode = "manual" | "auto";
+
+/** Spell cooldown after gear cooldown reduction for that spell. */
+function gearCooldownMs(def: SpellDefinition): number {
+  return def.cooldownMs * gearSpellCooldownMul(def.id);
+}
 
 export class SpellCastController {
   private activeSpellId: SpellId | null = null;
@@ -93,7 +99,7 @@ export class SpellCastController {
     const hasChannel = def.channelMs > 0;
 
     if (castMs <= 0 && !hasChannel) {
-      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+      this.cooldownRemainingMs.set(spellId, gearCooldownMs(def));
       return def;
     }
 
@@ -151,7 +157,7 @@ export class SpellCastController {
         const inputMode = this.castInputMode;
         this.clearCast();
         if (!def) return { type: "idle" };
-        this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+        this.cooldownRemainingMs.set(spellId, gearCooldownMs(def));
         return { type: "completed", spellId, def, inputMode };
       }
     }
@@ -172,7 +178,7 @@ export class SpellCastController {
     this.clearCast();
     if (!def) return { type: "idle" };
     if (!this.cooldownArmedDuringChannel(spellId, def)) {
-      this.cooldownRemainingMs.set(spellId, def.cooldownMs);
+      this.cooldownRemainingMs.set(spellId, gearCooldownMs(def));
     }
     return { type: "completed", spellId, def, inputMode };
   }
@@ -187,7 +193,7 @@ export class SpellCastController {
     def: SpellDefinition,
   ): void {
     if (def.channelMs > 0) {
-      this.cooldownRemainingMs.set(_spellId, def.cooldownMs);
+      this.cooldownRemainingMs.set(_spellId, gearCooldownMs(def));
     }
   }
 

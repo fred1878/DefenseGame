@@ -220,6 +220,7 @@ export class Player {
     enemies: EnemyInstance[],
     damage: number,
     knockback: number,
+    onHit?: (enemy: EnemyInstance, damage: number) => void,
   ): void {
     if (this.strikeMode() !== "melee" || this.attackPhase !== "active") return;
     const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
@@ -242,6 +243,7 @@ export class Player {
         this.hitEnemyIds.add(e.id);
         applyDamage(e.damageable, damage, MELEE_HIT_FLAVOR);
         applyEnemyKnockbackFrom(e, this.sprite.x, this.sprite.y, knockback);
+        onHit?.(e, damage);
       }
     }
   }

@@ -50,7 +50,7 @@ export class DefenseSpellChannelTicks {
 
   constructor(
     private readonly host: DefenseSpellDirectorHost,
-    private readonly spellDamageMult: () => number,
+    private readonly spellDamageMult: (def?: SpellDefinition) => number,
   ) {}
 
   reset(): void {
@@ -102,7 +102,7 @@ export class DefenseSpellChannelTicks {
 
   private fireCone(def: SpellDefinition, ticksFired: number): void {
     const host = this.host;
-    const mult = this.spellDamageMult();
+    const mult = this.spellDamageMult(def);
     const px = host.player.sprite.x;
     const py = host.player.sprite.y;
     const angle = host.player.getFacingAngle();

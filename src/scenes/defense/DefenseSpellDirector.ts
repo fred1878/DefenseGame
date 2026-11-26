@@ -1,3 +1,4 @@
+import { gearSpellDamageMult } from "../../gear/gearRuntime";
 import type Phaser from "phaser";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
 import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
@@ -125,8 +126,8 @@ export class DefenseSpellDirector {
   readonly channelTicks: DefenseSpellChannelTicks;
 
   constructor(private readonly host: DefenseSpellDirectorHost) {
-    this.channelTicks = new DefenseSpellChannelTicks(host, () =>
-      this.spellDamageMult(),
+    this.channelTicks = new DefenseSpellChannelTicks(host, (def) =>
+      this.spellDamageMult(def),
     );
   }
 
@@ -477,21 +478,27 @@ export class DefenseSpellDirector {
   }
 
   startChanneledGroundZone(def: SpellDefinition): void {
-    startDefenseChanneledGroundZone(this.host, def, this.spellDamageMult());
+    startDefenseChanneledGroundZone(this.host, def, this.spellDamageMult(def));
   }
 
   spawnPostChannelLinger(def: SpellDefinition): void {
-    spawnDefensePostChannelLinger(this.host, def, this.spellDamageMult(), () =>
-      this.clearLingerAoeTelegraph(),
+    spawnDefensePostChannelLinger(
+      this.host,
+      def,
+      this.spellDamageMult(def),
+      () => this.clearLingerAoeTelegraph(),
     );
   }
 
-  spellDamageMult(): number {
-    return playerDamageMult(this.host.save.buildings);
+  /** Blacksmith upgrade × gear spell power (plus element / named-spell bonus when `def` is known). */
+  spellDamageMult(def?: SpellDefinition): number {
+    return (
+      playerDamageMult(this.host.save.buildings) * gearSpellDamageMult(def)
+    );
   }
 
   resolveSpellEffect(def: SpellDefinition): void {
-    resolveDefenseSpellEffect(this.host, def, this.spellDamageMult());
+    resolveDefenseSpellEffect(this.host, def, this.spellDamageMult(def));
   }
 
   /** Motion velocity when moving; otherwise caster facing (blink aim). */

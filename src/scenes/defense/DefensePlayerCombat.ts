@@ -1,3 +1,4 @@
+import { gearRangedProjectile } from "../../gear/gearRuntime";
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH, PLAYER_TUNING } from "../../config";
 import { MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
@@ -187,6 +188,7 @@ export class DefensePlayerCombat {
     const { player } = this.host;
     const angle = player.getFacingAngle();
     const id = this.host.nextPlayerProjectileId();
+    const shot = gearRangedProjectile();
     const p = spawnPlayerProjectile(
       this.host.scene,
       player.sprite.x,
@@ -196,9 +198,10 @@ export class DefensePlayerCombat {
       damage,
       this.host.wu(PLAYER_TUNING.rangedMaxRangeWu),
       id,
-      COMBAT_FX_TEXTURE.stoneThrow,
+      shot?.textureKey ?? COMBAT_FX_TEXTURE.stoneThrow,
       MELEE_HIT_FLAVOR,
     );
+    if (shot?.tint !== undefined) p.sprite.setTint(shot.tint);
     this.host.registerWorldDraw(p.sprite);
     this.host.projectiles.push(p);
   }

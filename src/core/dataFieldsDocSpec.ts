@@ -26,6 +26,17 @@ import {
   HIT_FLASH_BOOT_KEYS,
   HIT_FLASH_FLAVOR_BOOT_KEYS,
 } from "./normalizeHitFlash";
+import {
+  ITEMS_AFFIX_BOOT_KEYS,
+  ITEMS_BASE_BOOT_KEYS,
+  ITEMS_FILE_BOOT_KEYS,
+  ITEMS_MELEE_BOOT_KEYS,
+  ITEMS_MODIFIER_BOOT_KEYS,
+  ITEMS_RANGED_BOOT_KEYS,
+  ITEMS_RARITY_BOOT_KEYS,
+  ITEMS_UNIQUE_BOOT_KEYS,
+  ITEMS_WEAPON_EXTRA_KEYS,
+} from "./normalizeItems";
 import { PLAYER_BOOT_KEYS } from "./normalizePlayer";
 import { SPELL_INPUT_BOOT_KEYS } from "./normalizeSpellInput";
 import {
@@ -59,6 +70,17 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
   "hit-flash.json": uniqueSorted([
     ...HIT_FLASH_BOOT_KEYS,
     ...HIT_FLASH_FLAVOR_BOOT_KEYS,
+  ]),
+  "items.json": uniqueSorted([
+    ...ITEMS_FILE_BOOT_KEYS,
+    ...ITEMS_RARITY_BOOT_KEYS,
+    ...ITEMS_BASE_BOOT_KEYS,
+    ...ITEMS_MELEE_BOOT_KEYS,
+    ...ITEMS_RANGED_BOOT_KEYS,
+    ...ITEMS_WEAPON_EXTRA_KEYS,
+    ...ITEMS_AFFIX_BOOT_KEYS,
+    ...ITEMS_UNIQUE_BOOT_KEYS,
+    ...ITEMS_MODIFIER_BOOT_KEYS,
   ]),
   "player.json": [...PLAYER_BOOT_KEYS, "autoAttackMeleeRange"],
   "defense-maps.json": uniqueSorted([

@@ -1,6 +1,8 @@
 import type { SpellId } from "../content/spells";
+import type { SaveGear } from "../gear/gearTypes";
 
-export const SAVE_VERSION = 1;
+/** v2: gear (items + equipped slots) added; `player.weaponId` removed. */
+export const SAVE_VERSION = 2;
 
 export type SaveSpellBar = {
   /** One spell id per slot; empty string = unassigned (8 slots, 4×2 grid) */
@@ -19,9 +21,10 @@ export type SaveGame = {
   townWallHpMax: number;
   player: {
     hp: number;
+    /** Base max HP plus gear `maxHp` (kept in sync by `syncPlayerHpMax`). */
     hpMax: number;
-    weaponId: string;
   };
+  gear: SaveGear;
   spellBar: SaveSpellBar;
   flags: string[];
 };
