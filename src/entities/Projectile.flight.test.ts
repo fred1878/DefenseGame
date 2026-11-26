@@ -335,3 +335,78 @@ describe("updateEnemyProjectile", () => {
     expect(updateEnemyProjectile(p, 16, pl, 0)).toBe(false);
   });
 });
+
+describe("projectile leftover branches", () => {
+  it("skips a dead enemy and prefers the first of two overlapping hits", () => {
+    const p = spawn(fakeScene());
+    const dead = enemyAt("dead", 20, 0);
+    dead.damageable.alive = false;
+    const near = enemyAt("near", 20, 0);
+    const far = enemyAt("far", 40, 0);
+    moveTo(p, 15, 0);
+    const res = updateProjectile(p, 16, [dead, near, far], 0);
+    expect(res.hitEnemyId).toBe("near");
+    expect(dead.damageable.hp).toBe(50);
+    expect(far.damageable.hp).toBe(50);
+  });
+
+  it("does not re-damage an enemy already recorded on the projectile", () => {
+    const p = spawn(fakeScene());
+    p.spellBehavior = "pierce";
+    const e = enemyAt("e", 20, 0);
+    p.damagedEnemyIds = new Set(["e"]);
+    moveTo(p, 25, 0);
+    const res = updateProjectile(p, 16, [e], 100);
+    expect(res.alive).toBe(true);
+    expect(res.hitEnemyId).toBeUndefined();
+    expect(e.damageable.hp).toBe(50);
+    expect(e.enemy.knockbackVx).toBe(0);
+  });
+
+  it("does not steer a tracking shot whose target is dead or missing", () => {
+    const p = spawn(fakeScene(), 0, 0);
+    p.spellBehavior = "tracking";
+    p.trackEnemyId = "t";
+    const body = p.sprite.body as unknown as {
+      velocity: { x: number; y: number };
+    };
+    body.velocity.x = 0;
+    body.velocity.y = 0;
+    const dead = enemyAt("t", 0, 80);
+    dead.damageable.alive = false;
+    updateSpellProjectile(p, {
+      deltaMs: 16,
+      enemies: [],
+      knockbackFor: () => 0,
+      findEnemy: () => dead,
+    });
+    expect(body.velocity).toMatchObject({ x: 0, y: 0 });
+    updateSpellProjectile(p, {
+      deltaMs: 16,
+      enemies: [],
+      knockbackFor: () => 0,
+      findEnemy: () => undefined,
+    });
+    expect(body.velocity).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it("despawns a regular enemy shot at max travel without detonating", () => {
+    const p = spawn(fakeScene(), 0, 1000);
+    const pl = {
+      x: 500,
+      y: 0,
+      radius: 10,
+      damageable: {
+        id: "player",
+        hp: 100,
+        maxHp: 100,
+        alive: true,
+        team: "player" as const,
+      },
+      sprite: fakeGameObject("physics.sprite", [500, 0]) as never,
+    };
+    moveTo(p, 200, 0);
+    expect(updateEnemyProjectile(p, 200, pl, 0)).toBe(false);
+    expect(p.pendingDetonation).toBeUndefined();
+  });
+});

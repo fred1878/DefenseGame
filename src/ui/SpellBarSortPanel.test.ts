@@ -266,3 +266,51 @@ describe("SpellBarSortPanel leftover branches", () => {
     expect(box.slots).toContain(A);
   });
 });
+
+describe("SpellBarSortPanel remaining leftover branches", () => {
+  it("does nothing when dropping on an empty slot with no drag", () => {
+    const { panel } = open(["", ""]);
+    const box = panel as unknown as {
+      slots: string[];
+      dragCtl: { takeDraggedSpell: () => string | null };
+      onDropOnSlot: (i: number) => void;
+    };
+    const before = [...box.slots];
+    box.dragCtl = { takeDraggedSpell: () => null };
+    box.onDropOnSlot(0);
+    expect(box.slots).toEqual(before);
+  });
+
+  it("drops a displaced spell when the bar has no empty slot", () => {
+    const filled = selectable.slice(0, 8);
+    if (filled.length < 4 || !C) return;
+    const { panel } = open(filled);
+    const box = panel as unknown as {
+      slots: string[];
+      dragCtl: { takeDraggedSpell: () => string | null };
+      onDropOnSlot: (i: number) => void;
+    };
+    const incoming = filled[1]!;
+    const displaced = box.slots[0];
+    box.dragCtl = { takeDraggedSpell: () => incoming };
+    box.onDropOnSlot(0);
+    expect(box.slots[0]).toBe(incoming);
+    expect(box.slots.filter((id) => id === displaced).length).toBeLessThan(2);
+  });
+
+  it("falls back to the spell name when a short label is missing", () => {
+    const { panel, views } = open([A]);
+    const box = panel as unknown as { refreshSlotDisplay: () => void };
+    const catalog = getSpellCatalog();
+    const def = catalog.find((d) => d.id === A);
+    if (!def) return;
+    const prev = def.shortLabel;
+    (def as { shortLabel?: string }).shortLabel = "";
+    try {
+      box.refreshSlotDisplay();
+      expect(views.slotViews[0]!.nameLabel.last("setText")?.[0]).toBe(def.name);
+    } finally {
+      def.shortLabel = prev;
+    }
+  });
+});
