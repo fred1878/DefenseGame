@@ -147,3 +147,15 @@ describe("spellGroundAoePalette and telegraph eligibility", () => {
     ).toBe(false);
   });
 });
+
+describe("spellNeedsGroundAoeTelegraph leftover branches", () => {
+  it("rejects a ground spell with no blast radius or channel", () => {
+    const bare = def({ targetMode: "ground" });
+    delete (bare as { blastRadiusWu?: number }).blastRadiusWu;
+    delete (bare as { channelMs?: number }).channelMs;
+    delete (bare as { castMs?: number }).castMs;
+    expect(spellNeedsGroundAoeTelegraph(bare)).toBe(false);
+    bare.blastRadiusWu = 80;
+    expect(spellNeedsGroundAoeTelegraph(bare)).toBe(false);
+  });
+});

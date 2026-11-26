@@ -1,11 +1,19 @@
 import type {
   EnemyArrowRainCombat,
+  EnemyAttackMovement,
   EnemyChargerCombat,
   EnemyJavelineerCombat,
   EnemyStationaryRangedCombat,
   EnemyWallCombat,
   EnemyWallSiegeCombat,
 } from "../../core/enemyTuning";
+
+/** Shipped default for most kits: hold still while the attack plays. */
+export const stillAttackMovement: EnemyAttackMovement = {
+  windupMul: 0,
+  activeMul: 0,
+  recoveryMul: 0,
+};
 
 /** Minimal inline combat blocks for behavior tests (not shipped tuning). */
 export const testWallCombat: EnemyWallCombat = {
@@ -40,6 +48,7 @@ export const testStationaryRangedCombat: EnemyStationaryRangedCombat = {
   cooldownMs: 1200,
   projectileSpeedWu: 300,
   projectileMaxTravelWu: 200,
+  attackMovement: stillAttackMovement,
 };
 
 export const testArrowRainCombat: EnemyArrowRainCombat = {
@@ -55,6 +64,7 @@ export const testArrowRainCombat: EnemyArrowRainCombat = {
   tickIntervalMs: 250,
   tickDamageScale: 0.5,
   maxTicks: 4,
+  attackMovement: stillAttackMovement,
 };
 
 export const testJavelineerCombat: EnemyJavelineerCombat = {
@@ -70,4 +80,5 @@ export const testJavelineerCombat: EnemyJavelineerCombat = {
   cooldownMs: 1000,
   projectileSpeedWu: 320,
   projectileMaxTravelWu: 220,
+  attackMovement: stillAttackMovement,
 };

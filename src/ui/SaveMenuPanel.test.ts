@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createNewSave } from "../core/GameState";
-import { writeSaveSlot } from "../core/saveSlots";
+import { deleteSaveSlot, writeSaveSlot } from "../core/saveSlots";
 import { fakePointer, fakeEventData } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
 import { SaveMenuPanel } from "./SaveMenuPanel";
@@ -14,6 +14,7 @@ type Internals = {
   cancelBtn: { container: FakeGameObject };
   closeBtn: { container: FakeGameObject };
   rows: Array<{ index: number; bg: FakeGameObject; meta: FakeGameObject }>;
+  root: FakeGameObject;
 };
 
 function stubStorage(): void {
@@ -116,5 +117,49 @@ describe("SaveMenuPanel", () => {
     expect(ui.state.status).toBe("Deleted Slot 1");
     tapButton(ui.closeBtn.container);
     expect(onDismiss).toHaveBeenCalledOnce();
+  });
+});
+
+describe("SaveMenuPanel leftover branches", () => {
+  it("reports an empty meta line for a missing slot index", () => {
+    stubStorage();
+    const { panel } = openPanel();
+    expect(panel.e2eSlotMeta(99)).toBe("");
+  });
+
+  it("refreshes with a warning when a slot vanishes mid-load", () => {
+    stubStorage();
+    writeSaveSlot(0, Object.assign(createNewSave(), { night: 4, gold: 7 }), 1);
+    const { panel, ui, onLoad, tapButton } = openPanel();
+    tapButton(ui.loadBtn.container);
+    expect(ui.state.confirm).toBe("load");
+    deleteSaveSlot(0);
+    tapButton(ui.confirmBtn.container);
+    expect(onLoad).not.toHaveBeenCalled();
+    expect(ui.state.status).toBe("That save is no longer available.");
+    expect(panel.e2eSlotMeta(0)).toBe("Empty");
+  });
+
+  it("destroy skips an inactive root and is a no-op the second time", () => {
+    stubStorage();
+    const { panel, ui, onDismiss } = openPanel();
+    ui.root.active = false;
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    panel.destroy();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("SaveMenuPanel refresh leftover branches", () => {
+  it("skips a row whose slot is missing from the current state", () => {
+    stubStorage();
+    const { ui } = openPanel();
+    const box = ui as unknown as {
+      state: { slots: unknown[] };
+      refresh: () => void;
+    };
+    box.state.slots = [];
+    box.refresh();
   });
 });

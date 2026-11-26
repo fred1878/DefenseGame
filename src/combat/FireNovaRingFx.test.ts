@@ -66,3 +66,45 @@ describe("showFireNovaRingFx", () => {
     expect(cfg.t).toBe(1);
   });
 });
+
+describe("FireNovaRingFx leftover branches", () => {
+  it("treats missing cast and channel times as an instant nova", () => {
+    expect(fireNovaRingDurationMs({} as never, 80)).toBe(
+      fireNovaRingDurationMs(instantNova({ castMs: 0, channelMs: 0 }), 80),
+    );
+  });
+
+  it("draws the inner ring once the radius grows past 10", () => {
+    let cfg:
+      | {
+          targets: { t: number };
+          onUpdate?: () => void;
+          onComplete?: () => void;
+        }
+      | undefined;
+    const gfx = {
+      clear: vi.fn(),
+      fillStyle: vi.fn(),
+      fillCircle: vi.fn(),
+      lineStyle: vi.fn(),
+      strokeCircle: vi.fn(),
+      setDepth: vi.fn(),
+      destroy: vi.fn(),
+    };
+    const scene = {
+      add: { graphics: () => gfx },
+      tweens: {
+        add: vi.fn((c: typeof cfg) => {
+          cfg = c;
+          return c;
+        }),
+      },
+    } as unknown as Phaser.Scene;
+    showFireNovaRingFx(scene, 0, 0, 80, 320);
+    if (!cfg) throw new Error("expected a tween");
+    const midCalls = gfx.lineStyle.mock.calls.length;
+    cfg.targets.t = 1;
+    cfg.onUpdate?.();
+    expect(gfx.lineStyle.mock.calls.length).toBeGreaterThan(midCalls);
+  });
+});

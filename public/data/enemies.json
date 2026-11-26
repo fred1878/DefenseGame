@@ -25,7 +25,12 @@
         "fxDurationMs": 450,
         "vfxDisplayW": 112,
         "vfxDisplayH": 112,
-        "vfxOffsetWu": 24
+        "vfxOffsetWu": 24,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       }
     },
     "weight": 100,
@@ -58,7 +63,12 @@
         "fxDurationMs": 720,
         "vfxDisplayW": 72,
         "vfxDisplayH": 58,
-        "vfxOffsetWu": 27
+        "vfxOffsetWu": 27,
+        "attackMovement": {
+          "windupMul": 0.5,
+          "activeMul": 0.5,
+          "recoveryMul": 0.5
+        }
       }
     },
     "weight": 170,
@@ -90,7 +100,12 @@
         "zoneRadiusWu": 72,
         "tickIntervalMs": 300,
         "tickDamageScale": 0.55,
-        "maxTicks": 4
+        "maxTicks": 4,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       }
     },
     "weight": 80,
@@ -123,7 +138,12 @@
         "fxDurationMs": 300,
         "vfxDisplayW": 78,
         "vfxDisplayH": 28,
-        "vfxOffsetWu": 26
+        "vfxOffsetWu": 26,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       }
     },
     "weight": 70,
@@ -153,7 +173,12 @@
         "recoveryMs": 500,
         "cooldownMs": 1500,
         "projectileSpeedWu": 500,
-        "projectileMaxTravelWu": 490
+        "projectileMaxTravelWu": 490,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       }
     },
     "weight": 100,
@@ -185,7 +210,12 @@
         "recoveryMs": 420,
         "cooldownMs": 1100,
         "projectileSpeedWu": 340,
-        "projectileMaxTravelWu": 350
+        "projectileMaxTravelWu": 350,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       }
     },
     "weight": 80,
@@ -218,7 +248,12 @@
         "fxDurationMs": 900,
         "vfxDisplayW": 50,
         "vfxDisplayH": 34,
-        "vfxOffsetWu": 16
+        "vfxOffsetWu": 16,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       },
       "wallSiege": {
         "playerAggroRadiusWu": 90
@@ -254,7 +289,12 @@
         "fxDurationMs": 417,
         "vfxDisplayW": 48,
         "vfxDisplayH": 48,
-        "vfxOffsetWu": 18
+        "vfxOffsetWu": 18,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       },
       "wallSiege": {
         "playerAggroRadiusWu": 90
@@ -290,7 +330,12 @@
         "fxDurationMs": 420,
         "vfxDisplayW": 120,
         "vfxDisplayH": 72,
-        "vfxOffsetWu": 40
+        "vfxOffsetWu": 40,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       },
       "charger": {
         "chargeDamage": 22,
@@ -332,7 +377,13 @@
         "projectileSpeedWu": 160,
         "blastRadiusWu": 100,
         "blastDamageScale": 0.92,
-        "impactVfxBlastMul": 3
+        "impactVfxBlastMul": 3,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        },
+        "attackCreepSpeedMul": 0
       }
     },
     "weight": 110,
@@ -365,7 +416,12 @@
         "fxDurationMs": 280,
         "vfxDisplayW": 52,
         "vfxDisplayH": 50,
-        "vfxOffsetWu": 10
+        "vfxOffsetWu": 10,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       },
       "stationaryRanged": {
         "damage": 10,
@@ -377,7 +433,12 @@
         "recoveryMs": 300,
         "cooldownMs": 600,
         "projectileSpeedWu": 360,
-        "projectileMaxTravelWu": 250
+        "projectileMaxTravelWu": 250,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       },
       "hybrid": {
         "closeMeleeRadiusWu": 84,
@@ -416,7 +477,12 @@
         "fxDurationMs": 640,
         "vfxDisplayW": 44,
         "vfxDisplayH": 32,
-        "vfxOffsetWu": 16
+        "vfxOffsetWu": 16,
+        "attackMovement": {
+          "windupMul": 0,
+          "activeMul": 0,
+          "recoveryMul": 0
+        }
       },
       "ward": {
         "protectRadiusWu": 230,

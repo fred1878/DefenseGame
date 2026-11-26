@@ -125,3 +125,22 @@ describe("SpellInputQueue", () => {
     });
   });
 });
+
+describe("SpellInputQueue.clear", () => {
+  it("drops a queued spell", () => {
+    const q = new SpellInputQueue();
+    q.enqueue("fire_bolt");
+    q.clear();
+    expect(q.peek()).toBeNull();
+  });
+});
+
+describe("SpellInputQueue leftover branches", () => {
+  it("consumes nothing when empty or the spell is unknown", () => {
+    const q = new SpellInputQueue();
+    expect(q.consumeIfReady(0, 0, spellById)).toBeNull();
+    q.enqueue("missing_spell" as never);
+    expect(q.consumeIfReady(0, 0, spellById)).toBeNull();
+    expect(q.peek()).toBeNull();
+  });
+});

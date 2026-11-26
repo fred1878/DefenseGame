@@ -57,7 +57,6 @@ describe("updateJavelineerCombat", () => {
     );
     expect(enemy.combat.phase).toBe("windup");
     expect(result.spawnJavelin).toBeUndefined();
-    expect(enemy.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
   });
 
   it("fires at the wall and reports the hit once the shot goes active", () => {

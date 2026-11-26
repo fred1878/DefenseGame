@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { arcHitboxHitsTarget, circlesOverlap } from "./Hitbox";
+import {
+  arcHitboxHitsTarget,
+  circlesOverlap,
+  segmentFirstCircleHitT,
+} from "./Hitbox";
 
 describe("circlesOverlap", () => {
   it("detects overlapping circles", () => {
@@ -35,5 +39,12 @@ describe("arcHitboxHitsTarget", () => {
   it("misses when beyond range", () => {
     const hit = arcHitboxHitsTarget(0, 0, 0, 40, Math.PI / 2, 200, 0, 12);
     expect(hit).toBe(false);
+  });
+});
+
+describe("segmentFirstCircleHitT", () => {
+  it("treats a zero-length segment as a point test", () => {
+    expect(segmentFirstCircleHitT(0, 0, 0, 0, 0, 0, 10)).toBe(0);
+    expect(segmentFirstCircleHitT(20, 0, 20, 0, 0, 0, 10)).toBeNull();
   });
 });

@@ -66,4 +66,96 @@ describe("resolveEnemyCombat explicit authoring", () => {
     );
     expect(arrow.arrowRain!.maxTicks).toBeGreaterThan(0);
   });
+
+  it("resolves shipped attackMovement defaults that match prior on-screen behavior", () => {
+    const still = { windupMul: 0, activeMul: 0, recoveryMul: 0 };
+    const bruiser = resolveEnemyCombat(
+      "bruiser",
+      shippedEnemyCombat("bruiser"),
+      "bruiser",
+    );
+    expect(bruiser.melee!.attackMovement).toEqual({
+      windupMul: 0.5,
+      activeMul: 0.5,
+      recoveryMul: 0.5,
+    });
+    const grunt = resolveEnemyCombat(
+      "meleeChaser",
+      shippedEnemyCombat("grunt"),
+      "grunt",
+    );
+    expect(grunt.melee!.attackMovement).toEqual(still);
+    const jav = resolveEnemyCombat(
+      "javelineer",
+      shippedEnemyCombat("javelineer"),
+      "javelineer",
+    );
+    expect(jav.javelineer!.attackMovement).toEqual(still);
+    const lobber = resolveEnemyCombat(
+      "lobber",
+      shippedEnemyCombat("lobber"),
+      "lobber",
+    );
+    expect(lobber.lobber!.attackMovement).toEqual(still);
+    expect(lobber.lobber!.attackCreepSpeedMul).toBe(0);
+    const reaver = resolveEnemyCombat(
+      "rangedHybrid",
+      shippedEnemyCombat("reaver"),
+      "reaver",
+    );
+    expect(reaver.melee!.attackMovement).toEqual(still);
+    expect(reaver.stationaryRanged!.attackMovement).toEqual(still);
+  });
+
+  it("requires attackMovement on phased attack kits", () => {
+    const combat = shippedEnemyCombat("grunt");
+    const { attackMovement: _ignored, ...melee } = combat.melee!;
+    expect(() =>
+      resolveEnemyCombat("meleeChaser", { ...combat, melee }, "grunt"),
+    ).toThrow(ConfigLoadError);
+  });
+
+  it("rejects negative attackMovement multipliers", () => {
+    const combat = shippedEnemyCombat("grunt");
+    const melee = {
+      ...combat.melee!,
+      attackMovement: { windupMul: -0.1, activeMul: 0, recoveryMul: 0 },
+    };
+    expect(() =>
+      resolveEnemyCombat("meleeChaser", { ...combat, melee }, "grunt"),
+    ).toThrow(/must be >= 0/);
+  });
+
+  it("rejects a partial attackMovement object", () => {
+    const combat = shippedEnemyCombat("sentry_archer");
+    const stationaryRanged = {
+      ...combat.stationaryRanged!,
+      attackMovement: { windupMul: 1, recoveryMul: 1 },
+    };
+    expect(() =>
+      resolveEnemyCombat(
+        "stationaryRanged",
+        { ...combat, stationaryRanged },
+        "sentry_archer",
+      ),
+    ).toThrow(ConfigLoadError);
+  });
+
+  it("requires a non-negative attackCreepSpeedMul on lobbers", () => {
+    const combat = shippedEnemyCombat("lobber");
+    const { attackCreepSpeedMul: _ignored, ...lobber } = combat.lobber!;
+    expect(() =>
+      resolveEnemyCombat("lobber", { ...combat, lobber }, "lobber"),
+    ).toThrow(ConfigLoadError);
+    expect(() =>
+      resolveEnemyCombat(
+        "lobber",
+        {
+          ...combat,
+          lobber: { ...combat.lobber!, attackCreepSpeedMul: -1 },
+        },
+        "lobber",
+      ),
+    ).toThrow(/attackCreepSpeedMul must be >= 0/);
+  });
 });

@@ -36,4 +36,19 @@ describe("normalizeTownLayout", () => {
       normalizeTownLayout({ buildingDisplayScale: 1, slots: {} as never }),
     ).toThrow(/town_layout\.slots/);
   });
+
+  it("rejects a missing or empty building id", () => {
+    expect(() =>
+      normalizeTownLayout({
+        buildingDisplayScale: 1,
+        slots: [{ ...minimalSlot, buildingId: "" }],
+      }),
+    ).toThrow(ConfigLoadError);
+    expect(() =>
+      normalizeTownLayout({
+        buildingDisplayScale: 1,
+        slots: [{ ...minimalSlot, buildingId: 12 as never }],
+      }),
+    ).toThrow(ConfigLoadError);
+  });
 });

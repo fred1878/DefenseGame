@@ -4,6 +4,8 @@ import {
   channeledHealCompletionRemainder,
   channeledHealMaxTicks,
   channeledHealPerTickAmount,
+  channeledHealTickHealAmount,
+  channeledHealTotalAmount,
   createChanneledHealTickState,
 } from "./channeledHealChannel";
 import type { SpellDefinition } from "../content/spells";
@@ -43,5 +45,38 @@ describe("channeledHealChannel", () => {
     }
     expect(state.ticksDone).toBe(6);
     expect(advanceChanneledHealTicks(state, def, 500)).toBe(0);
+  });
+});
+
+describe("channeledHealTickHealAmount", () => {
+  it("multiplies per-tick heal by the number of ticks fired", () => {
+    const def = channeledHealDef();
+    expect(channeledHealTickHealAmount(def, 0)).toBe(0);
+    expect(channeledHealTickHealAmount(def, 3)).toBe(
+      channeledHealPerTickAmount(def) * 3,
+    );
+  });
+});
+
+describe("channeledHealChannel leftover branches", () => {
+  it("treats a non-channeled spell as zero ticks", () => {
+    const bolt = {
+      ...channeledHealDef(),
+      id: "flash_heal",
+      mechanicType: "heal",
+      channelMs: 0,
+      healAmount: 30,
+    } as SpellDefinition;
+    expect(channeledHealMaxTicks(bolt)).toBe(0);
+    expect(channeledHealPerTickAmount(bolt)).toBe(30);
+    expect(
+      advanceChanneledHealTicks(createChanneledHealTickState(), bolt, 500),
+    ).toBe(0);
+  });
+
+  it("defaults a missing heal amount to 20", () => {
+    const def = { ...channeledHealDef() };
+    delete (def as { healAmount?: number }).healAmount;
+    expect(channeledHealTotalAmount(def)).toBe(20);
   });
 });

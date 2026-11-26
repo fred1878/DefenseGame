@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { GAME } from "../config";
 import {
+  DefenseMinimap,
   defenseMinimapLayout,
+  defenseMinimapScreenRect,
   worldToMinimapPoint,
   type DefenseMinimapLayout,
 } from "./defenseMinimap";
+import type { EnemyInstance } from "../entities/Enemy";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 
 function mockScene(): Phaser.Scene {
@@ -49,5 +52,72 @@ describe("defenseMinimap", () => {
     expect(pt.x).toBeLessThan(layout.x + layout.width);
     expect(pt.y).toBeGreaterThan(layout.y);
     expect(pt.y).toBeLessThan(layout.y + layout.height);
+  });
+});
+
+describe("DefenseMinimap", () => {
+  const safe = { top: 0, right: 0, bottom: 0, left: 0 };
+
+  function mockGfx() {
+    return {
+      setScrollFactor: vi.fn().mockReturnThis(),
+      setDepth: vi.fn().mockReturnThis(),
+      clear: vi.fn(),
+      destroy: vi.fn(),
+      setVisible: vi.fn(),
+      lineStyle: vi.fn(),
+      strokeRect: vi.fn(),
+      fillStyle: vi.fn(),
+      fillCircle: vi.fn(),
+    };
+  }
+
+  it("matches the layout as a screen rect", () => {
+    const scene = mockScene();
+    const layout = defenseMinimapLayout(scene, safe);
+    expect(defenseMinimapScreenRect(scene, safe)).toEqual({
+      x: layout.x,
+      y: layout.y,
+      width: layout.width,
+      height: layout.height,
+    });
+  });
+
+  it("draws the player and living enemies, then hides and destroys", () => {
+    const g = mockGfx();
+    const registered: unknown[] = [];
+    const scene = {
+      registry: { get: () => undefined },
+      add: { graphics: () => g },
+      scale: { width: GAME.width, height: GAME.height },
+    } as unknown as Phaser.Scene;
+    const map = new DefenseMinimap(scene, (go) => {
+      registered.push(go);
+    });
+    expect(registered).toEqual([g]);
+    const layout: DefenseMinimapLayout = {
+      x: 10,
+      y: 20,
+      width: 80,
+      height: 120,
+    };
+    map.draw(layout, 0, 0, [
+      {
+        damageable: { alive: true },
+        sprite: { x: 10, y: 10 },
+      },
+      {
+        damageable: { alive: false },
+        sprite: { x: 20, y: 20 },
+      },
+    ] as EnemyInstance[]);
+    // player + one living enemy
+    expect(g.fillCircle).toHaveBeenCalledTimes(2);
+    map.setVisible(false);
+    expect(g.setVisible).toHaveBeenCalledWith(false);
+    map.clear();
+    expect(g.clear).toHaveBeenCalled();
+    map.destroy();
+    expect(g.destroy).toHaveBeenCalled();
   });
 });

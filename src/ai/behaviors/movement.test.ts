@@ -8,6 +8,7 @@ import type { EnemyDefInput } from "../../core/normalizeEnemy";
 import { normalizeEnemyRow } from "../../core/normalizeEnemy";
 import { applyEnemyBodyRadii } from "../../entities/entityPhysics";
 import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createRangedHybridCombatState } from "../../entities/EnemyRangedCombat";
 
 const enemiesRaw = JSON.parse(
   readFileSync(resolve("public/data/enemies.json"), "utf8"),
@@ -22,6 +23,7 @@ import { createEnemyNav } from "../EnemyBrain";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
+  attackMovementScale,
   applyWallMeleeHold,
   commitPlayerChasePathGoal,
   meleePackPlayerAnchor,
@@ -434,5 +436,153 @@ describe("movement remaining branches", () => {
     });
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+});
+
+describe("data-driven attack movement", () => {
+  function lastVx(enemy: ReturnType<typeof mockEnemyInstance>): number {
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    const call = setVelocity.mock.calls.at(-1);
+    if (!call) throw new Error("setVelocity not called");
+    return call[0] as number;
+  }
+
+  it("keeps shipped melee defaults: chasers still, bruisers at half speed", () => {
+    const chaser = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    chaser.combat.phase = "windup";
+    expect(attackMovementScale(chaser)).toBe(0);
+    applyChaseVelocity(chaser, 100, 0, 1);
+    expect(lastVx(chaser)).toBe(0);
+
+    const bruiser = mockEnemyInstance({ behavior: "bruiser", speedWu: 100 });
+    bruiser.combat.phase = "recovery";
+    expect(attackMovementScale(bruiser)).toBe(0.5);
+    applyChaseVelocity(bruiser, 100, 0, 1);
+    expect(lastVx(bruiser)).toBeCloseTo(50, 1);
+  });
+
+  it("applies per-phase multipliers from the executing melee kit", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    enemy.combatTuning.melee = {
+      ...enemy.combatTuning.melee!,
+      attackMovement: { windupMul: 0.2, activeMul: 0.35, recoveryMul: 0.8 },
+    };
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+
+    enemy.combat.phase = "idle";
+    expect(attackMovementScale(enemy)).toBe(1);
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(100, 1);
+
+    enemy.combat.phase = "windup";
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(20, 1);
+
+    enemy.combat.phase = "active";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(35, 1);
+
+    enemy.combat.phase = "recovery";
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(80, 1);
+  });
+
+  it("uses the hybrid kit for the mode currently executing", () => {
+    const enemy = mockEnemyInstance({
+      behavior: "rangedHybrid",
+      defId: "reaver",
+      speedWu: 100,
+    });
+    enemy.rangedHybrid = createRangedHybridCombatState();
+    enemy.combatTuning.melee = {
+      ...enemy.combatTuning.melee!,
+      attackMovement: { windupMul: 0.25, activeMul: 0.25, recoveryMul: 0.25 },
+    };
+    enemy.combatTuning.stationaryRanged = {
+      ...enemy.combatTuning.stationaryRanged!,
+      attackMovement: { windupMul: 0.6, activeMul: 0.6, recoveryMul: 0.6 },
+    };
+    enemy.combat.phase = "windup";
+    enemy.rangedHybrid.mode = "melee";
+    expect(attackMovementScale(enemy)).toBe(0.25);
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(25, 1);
+
+    enemy.rangedHybrid.mode = "ranged";
+    expect(attackMovementScale(enemy)).toBe(0.6);
+    applyChaseVelocity(enemy, 100, 0, 1);
+    expect(lastVx(enemy)).toBeCloseTo(60, 1);
+  });
+
+  it("treats a missing attackMovement block as a full hold while attacking", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy.combatTuning.melee as { attackMovement?: unknown })
+      .attackMovement;
+    enemy.combat.phase = "active";
+    expect(attackMovementScale(enemy)).toBe(0);
+    applyDirectVelocity(enemy, 1, 0, 1);
+    expect(lastVx(enemy)).toBe(0);
+  });
+
+  it("reads attackMovement from the ranged kit that is attacking", () => {
+    const cases = [
+      {
+        behavior: "arrowRainArcher" as const,
+        defId: "arrow_rain_archer",
+        kit: "arrowRain" as const,
+      },
+      {
+        behavior: "javelineer" as const,
+        defId: "javelineer",
+        kit: "javelineer" as const,
+      },
+      {
+        behavior: "stationaryRanged" as const,
+        defId: "sentry_archer",
+        kit: "stationaryRanged" as const,
+      },
+      {
+        behavior: "lobber" as const,
+        defId: "lobber",
+        kit: "lobber" as const,
+      },
+    ];
+    for (const { behavior, defId, kit } of cases) {
+      const enemy = mockEnemyInstance({ behavior, defId, speedWu: 100 });
+      const block = enemy.combatTuning[kit];
+      if (!block || !("attackMovement" in block)) {
+        throw new Error(`expected ${kit} attackMovement`);
+      }
+      block.attackMovement = {
+        windupMul: 0.4,
+        activeMul: 0.4,
+        recoveryMul: 0.4,
+      };
+      enemy.combat.phase = "active";
+      expect(attackMovementScale(enemy), behavior).toBe(0.4);
+      applyDirectVelocity(enemy, 1, 0, 1);
+      expect(lastVx(enemy), behavior).toBeCloseTo(40, 1);
+    }
+  });
+
+  it("allows a caller to override the phase scale", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    enemy.combat.phase = "windup";
+    applyDirectVelocity(enemy, 1, 0, 0.5, { phaseScale: 1 });
+    expect(lastVx(enemy)).toBeCloseTo(50, 1);
+  });
+});
+
+describe("applyDirectVelocity leftover branches", () => {
+  it("uses a status speed of 1 when none is set", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy as { statusSpeedMul?: number }).statusSpeedMul;
+    enemy.combat.phase = "idle";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
   });
 });

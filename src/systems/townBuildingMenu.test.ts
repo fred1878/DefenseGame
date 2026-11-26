@@ -350,3 +350,44 @@ describe("townBuildingMenu", () => {
     smith.costByLevel = smithCosts;
   });
 });
+
+describe("townBuildingSubtitle upgrade labels", () => {
+  it("labels a maxed generic upgrade by its effect", () => {
+    const menuStore = new DataStore();
+    menuStore.buildings = {
+      market: {
+        maxLevel: 1,
+        costByLevel: [10],
+        effect: "playerDamage",
+      },
+      shrine: {
+        maxLevel: 1,
+        costByLevel: [10],
+        effect: "luck",
+      },
+    };
+    const market: TownBuildingDef = {
+      label: "Market",
+      textureKey: "town_market",
+      width: 80,
+      height: 80,
+      upgradeId: "market",
+    };
+    const shrine: TownBuildingDef = {
+      label: "Shrine",
+      textureKey: "town_shrine",
+      width: 80,
+      height: 80,
+      upgradeId: "shrine",
+    };
+    const save = createNewSave();
+    save.buildings.market = 1;
+    save.buildings.shrine = 1;
+    expect(townBuildingSubtitle(menuStore, save, market)).toBe(
+      "— Player damage · max level",
+    );
+    expect(townBuildingSubtitle(menuStore, save, shrine)).toBe(
+      "— luck · max level",
+    );
+  });
+});

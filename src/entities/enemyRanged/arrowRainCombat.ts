@@ -7,9 +7,9 @@ import {
 } from "../../combat/ArrowRainTelegraph";
 import { worldUnit } from "../../core/worldPixelScale";
 import type { EnemyInstance } from "../Enemy";
-import { enemyIsAttacking, type EnemyAttackTarget } from "../EnemyCombat";
+import type { EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";
-import { advanceCombatPhase, freezeWindupRecovery } from "./combatPhase";
+import { advanceCombatPhase } from "./combatPhase";
 import type { ArrowRainCombatState } from "./types";
 
 export function updateArrowRainCombat(
@@ -121,9 +121,5 @@ export function updateArrowRainCombat(
     extra.telegraph = undefined;
   }
 
-  if (enemyIsAttacking(c)) {
-    enemy.sprite.setVelocity(0, 0);
-  }
-  freezeWindupRecovery(enemy, c.phase, target.kind);
   return { hitPlayer, damage };
 }
