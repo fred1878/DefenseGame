@@ -9,7 +9,7 @@ and `shops.json`. The economy sim's HTML report embeds the same summary
 
 | Source | Item level | Rarity weights | Price paid |
 |---|---|---|---|
-| Night won | night + 0..1 (`nightWon.min/maxItemLevelOffset`), 1–2 items | `nightWon.rarityByLevel` | – |
+| Night won | night − 1..0 (`nightWon.min/maxItemLevelOffset`, min 1), 1 item (80%) or 2 (20%, `rollWeights`) | `nightWon.rarityByLevel` | – |
 | Night lost | night − 1..0 (min 1), **0 items** (`nightLost.maxRolls` 0) | `nightLost.rarityByLevel` | – |
 | Trader | night + 0..2, 6 items per restock (L3: night + 0..3, 9 items) | `shops.trader.rarityWeights` (15/52/25/7/1; better per level) | 125% (L2 115%, L3 105%) |
 | Blacksmith | the base's own `minItemLevel` (always common, no affixes), unlocked by `unlockNight` | – | 100% (L1 90%, L2 85%, L3 80%) |
@@ -32,13 +32,26 @@ allowed, and how strong affix values are. It also raises the price.
    picked uniformly from uniques whose `itemLevel` ≤ the ilvl. If none fits it
    falls back to epic.
 
-Current drop bands (`loot.json`, won night): ilvl 1+ 70/30 common/magic;
-3+ adds 12% rare; 6+ 35/40/20/5 with epic; 9+ 25/40/25/8/2 with legendary.
-Lost nights: ilvl 1+ 80/20, 4+ 60/32/8.
+Current drop bands (`loot.json`, won night, common/magic/rare/epic/legendary):
+
+| From ilvl | Now | Before the nights 13–20 pass |
+|---|---|---|
+| 1 | 80/20 | 70/30 |
+| 3 | 65/28/7 | 50/38/12 |
+| 6 | 50/35/12/3 | 35/40/20/5 |
+| 9 | 42/38/15/4/1 | 25/40/25/8/2 |
+| 14 | 36/39/18/5.5/1.5 | – |
+
+Won nights also used to roll 1 or 2 items evenly at night + 0..1; now it is
+80% one item, 20% two, at night − 1..0. So drops are fewer, lower level and
+less rare, and gear mostly comes from the shops. Lost nights (unchanged):
+ilvl 1+ 80/20, 4+ 60/32/8, but they drop nothing (`maxRolls` 0).
 
 ## 3. Base item
 
-Uniform among bases with `minItemLevel` ≤ ilvl. Bases 5 or more levels
+Uniform among bases with `minItemLevel` ≤ ilvl (bases now go up to
+ilvl 17: e.g. great axe, halberd, titan maul, war bow, arbalest, mithril
+cuirass, war relic). Bases 5 or more levels
 below the ilvl are "outdated" and get weight 0.35, so higher ilvl favours
 newer bases without removing old ones.
 
@@ -56,8 +69,8 @@ newer bases without removing old ones.
   `weight` among affixes allowed on the slot.
 - **Value:** each affix has tiers with a `minItemLevel`. The item uses the
   **highest tier unlocked at its ilvl** and rolls a whole number in that
-  tier's range. Most affixes unlock tiers at ilvl 1/4/7/10; elemental and
-  on-hit proc affixes at 2/5/8. So *rarity decides how many affixes, item
+  tier's range. Most affixes unlock tiers at ilvl 1/4/7/10/13/16/19;
+  elemental and on-hit proc affixes at 2/5/8/11/15/19 or similar. So *rarity decides how many affixes, item
   level decides how big they are.*
 - If a magic+ item can't roll any affix it is downgraded to common.
 - Spell affixes (e.g. "+% damage to a spell") pick a random spell from
@@ -73,7 +86,7 @@ speed 40%, lifesteal 25%, spell cooldown 60%. Armour gives
 
 ```
 price = round(basePrice × rarity.priceMul × (1 + itemLevelPriceStepPct/100 × (ilvl − base.minItemLevel)))   (min 1)
-uniques: their fixed price (400–480g)
+uniques: their fixed price (400–620g)
 shop price = round(price × shop.priceMulPct / 100)   (min 1)
 sell value = floor(price × loot.sellBackPct / 100)     (30%)
 ```
@@ -88,19 +101,24 @@ shop panel (title shows `L1/3` etc.). Costs are in `buildings.json`; what each
 level does is `levels` in `shops.json`. Buying a level restocks that shop at
 the new level straight away.
 
+Upgrade costs were cut in the nights 13–20 pass (trader 90/160/260 →
+60/120/200, blacksmith 100/180/280 → 80/140/220; rerolls 30/25/20 →
+20/18/15). The wall now has 8 levels (50/80/120/180/250/320/400/480g).
+Selling still pays 30%.
+
 | Trader level | Cost | Items | Item level | Price | Rarity weights (common/magic/rare/epic/legendary) | Reroll |
 |---|---|---|---|---|---|---|
 | L0 | – | 6 | night + 0..2 | 125% | 15/52/25/7/1 | – |
-| L1 | 90g | 7 | night + 0..2 | 125% | 15/52/25/7/1 | 30g |
-| L2 | 160g | 8 | night + 0..2 | 115% | 10/50/30/9/1 | 25g |
-| L3 | 260g | 9 | night + 0..3 | 105% | 5/45/35/13/2 | 20g |
+| L1 | 60g | 7 | night + 0..2 | 125% | 15/52/25/7/1 | 20g |
+| L2 | 120g | 8 | night + 0..2 | 115% | 10/50/30/9/1 | 18g |
+| L3 | 200g | 9 | night + 0..3 | 105% | 5/45/35/13/2 | 15g |
 
 | Blacksmith level | Cost | Price | Masterworks per day | Masterwork item level | Masterwork rarity (magic/rare/epic) | Catalogue unlocks |
 |---|---|---|---|---|---|---|
 | L0 | – | 100% | 0 | – | – | on `unlockNight` |
-| L1 | 100g | 90% | 1 | night + 0 | 80/20/0 | on `unlockNight` |
-| L2 | 180g | 85% | 2 | night + 1 | 60/40/0 | 1 night early |
-| L3 | 280g | 80% | 3 | night + 2 | 40/45/15 | 2 nights early |
+| L1 | 80g | 90% | 1 | night + 0 | 80/20/0 | on `unlockNight` |
+| L2 | 140g | 85% | 2 | night + 1 | 60/40/0 | 1 night early |
+| L3 | 220g | 80% | 3 | night + 2 | 40/45/15 | 2 nights early |
 
 Masterworks are rolled items (qty 1, restocked after every night) listed above
 the catalogue. Rare and epic still need item level 3 / 6.
@@ -110,3 +128,25 @@ a common has no affixes, so a higher item level would only raise its price,
 not its stats. That is why the "stock at the night's item level" idea is done
 through masterworks instead.
 
+
+## 8. Trader buy requests
+
+Every night the trader also posts **buy requests** (`shops.trader.requestCount`:
+3, 4 at trader L3). Each request pays `requests.payoutPct` (**150%**) of a
+matching item's value, far more than the 30% normal sell price. A request is
+one of (`requests.kindWeights`):
+
+| Kind | Weight | Matches |
+|---|---|---|
+| `base` | 50 | that base item, any rarity |
+| `type` | 35 | any item of a slot at or above a rarity (magic 45 / rare 40 / epic 15, `minRarityWeights`), e.g. "Rare+ Ring" |
+| `unique` | 15 | that one unique |
+
+Requests are rolled from **every** base and unique in `items.json`, ignoring
+the night and what you own, so most nights nothing in your bag matches. Only
+bag items count (unequip gear first). Each request takes one item and is then
+gone. They reroll with the trader stock after each night (and with a paid
+reroll) and are kept in the save (`save.shops.requests`). In the shop panel
+they are on the trader's **Wants** tab: pick a request, and **Sell to trader**
+is enabled when a bag item matches (best payout first). In the sim, a median
+balanced run fills about 2 requests for about 500g over the campaign.

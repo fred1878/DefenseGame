@@ -147,3 +147,54 @@ test("consumables: drink a potion in combat", async ({ page }) => {
     )
     .not.toContain("defense-potion");
 });
+
+test("shops: sell a bag item to a trader buy request on the Wants tab", async ({
+  page,
+}) => {
+  await gotoE2E(page);
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.setSave({
+      gold: 0,
+      night: 3,
+      gear: {
+        items: [
+          {
+            uid: 1,
+            baseId: "rusty_sword",
+            rarity: "common",
+            itemLevel: 2,
+            affixes: [],
+          },
+        ],
+        equipped: {},
+        nextUid: 2,
+      },
+      shops: {
+        trader: null,
+        blacksmith: null,
+        requests: [
+          { kind: "base", baseId: "rusty_sword" },
+          { kind: "unique", uniqueId: "worldsplitter" },
+        ],
+      },
+    });
+  });
+  await waitForTapTargets(page, [TRADER]);
+  await tapTarget(page, TRADER);
+  await waitForTapTargets(page, ["shop-tab-wants"]);
+  await tapTarget(page, "shop-tab-wants");
+  await waitForTapTargets(page, ["shop-card-0", "shop-card-1"]);
+  await tapTarget(page, "shop-card-0");
+  await waitForTapTargets(page, ["shop-fill"]);
+  await tapTarget(page, "shop-fill");
+  await expect.poll(() => saveField<number>(page, "gold")).toBeGreaterThan(0);
+  await expect
+    .poll(() =>
+      saveField<unknown[]>(page, "shops.requests").then((r) => r.length),
+    )
+    .toBe(1);
+  await expect
+    .poll(() => saveField<unknown[]>(page, "gear.items").then((i) => i.length))
+    .toBe(0);
+  await tapTarget(page, "shop-close");
+});
