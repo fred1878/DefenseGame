@@ -6,6 +6,15 @@ import {
 } from "./dataFieldsDocKeys";
 import { LOOT_FILE_BOOT_KEYS, LOOT_TABLE_BOOT_KEYS } from "./normalizeLoot";
 import {
+  CONSUMABLES_BOMB_BOOT_KEYS,
+  CONSUMABLES_ROW_BOOT_KEYS,
+} from "./normalizeConsumables";
+import {
+  SHOPS_BLACKSMITH_BOOT_KEYS,
+  SHOPS_FILE_BOOT_KEYS,
+  SHOPS_TRADER_BOOT_KEYS,
+} from "./normalizeShops";
+import {
   DEFENSE_MAP_BOOT_KEYS,
   DEFENSE_MAP_FIELD_BOOT_KEYS,
   DEFENSE_MAP_OBSTACLE_BOOT_KEYS,
@@ -84,6 +93,15 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...ITEMS_MODIFIER_BOOT_KEYS,
   ]),
   "loot.json": uniqueSorted([...LOOT_FILE_BOOT_KEYS, ...LOOT_TABLE_BOOT_KEYS]),
+  "consumables.json": uniqueSorted([
+    ...CONSUMABLES_ROW_BOOT_KEYS,
+    ...CONSUMABLES_BOMB_BOOT_KEYS,
+  ]),
+  "shops.json": uniqueSorted([
+    ...SHOPS_FILE_BOOT_KEYS,
+    ...SHOPS_TRADER_BOOT_KEYS,
+    ...SHOPS_BLACKSMITH_BOOT_KEYS,
+  ]),
   "player.json": [...PLAYER_BOOT_KEYS, "autoAttackMeleeRange"],
   "defense-maps.json": uniqueSorted([
     ...DEFENSE_MAPS_FILE_BOOT_KEYS,

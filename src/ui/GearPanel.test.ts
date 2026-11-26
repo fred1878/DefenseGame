@@ -10,7 +10,7 @@ import { GearPanel } from "./GearPanel";
 
 type Btn = { container: FakeGameObject };
 type Internals = {
-  rows: Array<{ bg: FakeGameObject; name: FakeGameObject; uid: number | null }>;
+  rows: Array<{ bg: FakeGameObject; name: FakeGameObject; key: number | null }>;
   cells: Array<{ slot: string; bg: FakeGameObject; name: FakeGameObject }>;
   equipBtn: Btn;
   unequipBtn: Btn;
@@ -82,7 +82,7 @@ describe("GearPanel", () => {
       inst(2, "band"),
     ]);
     expect(textOf(ui.bagTitle)).toBe("Bag 2/10");
-    const capRow = ui.rows.find((r) => r.uid === 1)!;
+    const capRow = ui.rows.find((r) => r.key === 1)!;
     capRow.bg.emit("pointerup");
     expect(textOf(ui.detailName)).toBe("Cap");
     expect(ui.diffLines.map(textOf)).toContain("+10 Armour");
@@ -101,7 +101,7 @@ describe("GearPanel", () => {
     ui.cells.find((c) => c.slot === "boots")!.bg.emit("pointerup");
     expect(textOf(ui.detailName)).toBe("Tap an item or slot");
 
-    ui.rows.find((r) => r.uid === 2)!.bg.emit("pointerup");
+    ui.rows.find((r) => r.key === 2)!.bg.emit("pointerup");
     tap(ui.sellBtn.container);
     expect(getSave().gold).toBe(15);
     expect(getSave().gear.items.map((i) => i.uid)).toEqual([1]);
@@ -117,7 +117,7 @@ describe("GearPanel", () => {
     expect(textOf(ui.diffLines[0]!)).toBe("No stat change");
     expect(panel.e2eTapTargets()["gear-next"]).toBeTruthy();
     tap(ui.nextBtn.container);
-    expect(ui.rows.filter((r) => r.uid !== null)).toHaveLength(1);
+    expect(ui.rows.filter((r) => r.key !== null)).toHaveLength(1);
     // Rows without an item ignore taps.
     ui.rows[3]!.bg.emit("pointerup");
   });

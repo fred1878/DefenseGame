@@ -7,7 +7,6 @@ import {
 import { getEmbeddedBuildId, townBuildIdLine } from "../../buildId";
 import { GAME } from "../../config";
 import type { DataStore } from "../../core/DataStore";
-import { playerDamageMult } from "../../core/GameState";
 import type { SaveGame } from "../../core/saveTypes";
 import { scaleUiX } from "../../core/displayScale";
 import { toggleFullscreen, fullscreenButtonLabel } from "../../ui/fullscreen";
@@ -235,11 +234,9 @@ function createTownUpdateButton(
   return { updateButton };
 }
 
-/** Status block text: night/gold, wall, blacksmith, build id lines. */
+/** Status block text: night/gold, wall, build id lines. */
 export function formatTownStatus(save: SaveGame, store: DataStore): string {
   const wall = save.buildings.wall ?? 0;
-  const smith = save.buildings.blacksmith ?? 0;
-  const dmg = playerDamageMult(save.buildings).toFixed(2);
   const wallDef = store.buildings.wall;
   const wallCost =
     wall < (wallDef?.maxLevel ?? 0) ? wallDef?.costByLevel[wall] : undefined;
@@ -251,7 +248,6 @@ export function formatTownStatus(save: SaveGame, store: DataStore): string {
   return [
     `Night ${save.night} · Gold ${save.gold}`,
     `Wall L${wall} (HP ${save.townWallHp}/${save.townWallHpMax})${wallCost !== undefined ? ` — next ${wallCost}g` : ""}`,
-    `Blacksmith L${smith} (damage x${dmg})`,
     townBuildIdLine(embedded, urlB),
   ].join("\n");
 }

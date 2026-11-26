@@ -29,6 +29,7 @@ export const TOWN_BUILDINGS_DOC_KEYS = [
   "opensEndlessMode",
   "opensWavePlanner",
   "opensSaveMenu",
+  "opensShop",
 ] as const;
 
 export const TOWN_LAYOUT_DOC_KEYS = [
@@ -49,6 +50,8 @@ export const SHIPPED_DATA_JSON_FILES = [
   "hit-flash.json",
   "items.json",
   "loot.json",
+  "consumables.json",
+  "shops.json",
   "player.json",
   "spell_input.json",
   "spells.json",

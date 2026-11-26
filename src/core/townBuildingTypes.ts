@@ -15,6 +15,8 @@ export type TownBuildingDef = {
   opensWavePlanner?: boolean;
   /** When true, tap opens the manual save-slot menu (e.g. daylit Market Stall). */
   opensSaveMenu?: boolean;
+  /** Opens a `shops.json` shop: `trader` (night Market Stall) or `blacksmith` (Moon Brazier). */
+  opensShop?: "trader" | "blacksmith";
 };
 
 export type TownLayoutSlot = {

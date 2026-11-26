@@ -39,6 +39,8 @@ export type DefenseSceneE2eDelegate = Phaser.Scene & {
   readonly autoToggle: { container: Phaser.GameObjects.Container };
   readonly spellBar: SpellBar;
   readonly debugBtn: TouchButtonHandle;
+  readonly potionBtn?: TouchButtonHandle;
+  readonly bombBtn?: TouchButtonHandle;
   readonly autoAttackEnabled: boolean;
   spawnPlanComplete: boolean;
   readonly nightEnded: boolean;

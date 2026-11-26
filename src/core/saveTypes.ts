@@ -1,6 +1,7 @@
 import type { ItemDraft } from "../gear/itemGen";
 import type { SpellId } from "../content/spells";
 import type { SaveGear } from "../gear/gearTypes";
+import type { SaveShops } from "../gear/shops";
 
 /** v2: gear (items + equipped slots) added; `player.weaponId` removed. */
 export const SAVE_VERSION = 2;
@@ -26,6 +27,10 @@ export type SaveGame = {
     hpMax: number;
   };
   gear: SaveGear;
+  /** Potion / bomb charges by `consumables.json` id. */
+  consumables: Record<string, number>;
+  /** Trader stock for the current day. */
+  shops: SaveShops;
   spellBar: SaveSpellBar;
   flags: string[];
 };

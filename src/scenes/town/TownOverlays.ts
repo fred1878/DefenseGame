@@ -10,7 +10,16 @@ import {
 import { launchDebugMenuFromHost } from "../../debug/debugMenuLifecycle";
 import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
 import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
+import { getGearCatalog } from "../../gear/gearCatalog";
+import { getLootConfig } from "../../gear/loot";
+import { createRng, randomSeed } from "../../gear/rng";
+import {
+  defaultShopContext,
+  ensureTraderStock,
+  type ShopId,
+} from "../../gear/shops";
 import { GearPanel } from "../../ui/GearPanel";
+import type { GearPanelContext } from "../../ui/gearPanel/gearPanelLogic";
 import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
 import type { ScreenRect } from "../../ui/screenLayout";
 import {
@@ -96,8 +105,23 @@ export class TownOverlays {
     );
   }
 
-  openGearPanel(): void {
+  /** Gear panel, or a shop (trader / blacksmith) with Shop + Bag tabs. */
+  openGearPanel(shop?: ShopId): void {
     if (this.gearPanel) return;
+    const catalog = getGearCatalog();
+    const ctx: GearPanelContext = { catalog, loot: getLootConfig() };
+    if (shop) {
+      ctx.shop = { id: shop, ctx: defaultShopContext(catalog) };
+      if (shop === "trader") {
+        const before = this.host.getSave();
+        const stocked = ensureTraderStock(
+          before,
+          ctx.shop.ctx,
+          createRng(randomSeed()),
+        );
+        if (stocked !== before) this.host.onGearChanged(stocked);
+      }
+    }
     this.gearPanel = new GearPanel(
       this.scene,
       () => this.host.getSave(),
@@ -105,6 +129,7 @@ export class TownOverlays {
       () => {
         this.gearPanel = null;
       },
+      ctx,
     );
   }
 

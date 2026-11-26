@@ -3,6 +3,7 @@ import { basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "../gear/gearCatalog";
 import { gearStatsFor } from "../gear/itemStats";
 import { addLootToSave } from "../gear/loot";
+import { normalizeSaveShops } from "../gear/shops";
 import { createEmptyGear, normalizeSaveGear } from "../gear/saveGear";
 import {
   createDefaultAutoCastSpellIds,
@@ -26,7 +27,7 @@ export function createNewSave(): SaveGame {
   return {
     night: 1,
     gold: 0,
-    buildings: { wall: 0, blacksmith: 0 },
+    buildings: { wall: 0 },
     townWallHp: wallMax,
     townWallHpMax: wallMax,
     player: {
@@ -34,6 +35,8 @@ export function createNewSave(): SaveGame {
       hpMax: basePlayerTuning().maxHp,
     },
     gear: createEmptyGear(),
+    consumables: {},
+    shops: { trader: null },
     spellBar: {
       slots: createDefaultSpellBarSlots(),
       autoCastSpellIds: createDefaultAutoCastSpellIds(),
@@ -128,9 +131,22 @@ function migrateSave(
     ...save,
     player: mergePlayerWithoutLegacyMoveSpeed(base.player, save.player),
     gear: normalizeSaveGear(save.gear, getGearCatalog()),
+    consumables: normalizeSaveConsumables(save.consumables),
+    shops: normalizeSaveShops(save.shops),
     buildings: { ...base.buildings, ...save.buildings },
     spellBar,
   });
+}
+
+function normalizeSaveConsumables(raw: unknown): Record<string, number> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, number> = {};
+  for (const [id, n] of Object.entries(raw)) {
+    if (typeof n === "number" && Number.isFinite(n) && n >= 1) {
+      out[id] = Math.floor(n);
+    }
+  }
+  return out;
 }
 
 /**
@@ -208,7 +224,12 @@ export function applyNightResult(
   save: SaveGame,
   result: NightResult,
 ): SaveGame {
-  const next = { ...save, night: save.night + (result.won ? 1 : 0) };
+  // New day in town: the trader restocks on the next visit.
+  const next = {
+    ...save,
+    night: save.night + (result.won ? 1 : 0),
+    shops: { ...save.shops, trader: null },
+  };
   next.gold = save.gold + result.goldEarned;
   next.townWallHp = Math.max(0, save.townWallHp - result.wallDamage);
   if (result.won) {
@@ -228,9 +249,4 @@ export function wallHpBonusFromBuildings(
 ): number {
   const wallLevel = buildings.wall ?? 0;
   return wallLevel * 50;
-}
-
-export function playerDamageMult(buildings: Record<string, number>): number {
-  const smith = buildings.blacksmith ?? 0;
-  return 1 + smith * 0.1;
 }

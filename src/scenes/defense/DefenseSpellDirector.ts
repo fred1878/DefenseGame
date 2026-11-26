@@ -4,7 +4,7 @@ import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
 import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
 import type { SaveGame } from "../../core/saveTypes";
-import { persistSave, playerDamageMult } from "../../core/GameState";
+import { persistSave } from "../../core/GameState";
 import { pickAutoCastSpell } from "../../combat/spellAutoCast";
 import {
   isStickMoving,
@@ -490,11 +490,9 @@ export class DefenseSpellDirector {
     );
   }
 
-  /** Blacksmith upgrade × gear spell power (plus element / named-spell bonus when `def` is known). */
+  /** Gear spell power (plus element / named-spell bonus when `def` is known). */
   spellDamageMult(def?: SpellDefinition): number {
-    return (
-      playerDamageMult(this.host.save.buildings) * gearSpellDamageMult(def)
-    );
+    return gearSpellDamageMult(def);
   }
 
   resolveSpellEffect(def: SpellDefinition): void {

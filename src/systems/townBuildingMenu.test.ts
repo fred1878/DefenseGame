@@ -16,11 +16,6 @@ describe("townBuildingMenu", () => {
       costByLevel: [50, 80],
       effect: "wallHpMax",
     },
-    blacksmith: {
-      maxLevel: 3,
-      costByLevel: [100, 200, 350],
-      effect: "playerDamage",
-    },
   };
 
   it("wave planner building opens panel on tap", () => {
@@ -124,7 +119,24 @@ describe("townBuildingMenu", () => {
     expect(next.townWallHp).toBe(120);
   });
 
-  it("formats wall and smith upgrade subtitles like legacy town UI", () => {
+  it("shop buildings open the trader or blacksmith", () => {
+    for (const shop of ["trader", "blacksmith"] as const) {
+      const def: TownBuildingDef = {
+        label: "Shop",
+        textureKey: "town_market_stall",
+        width: 10,
+        height: 10,
+        opensShop: shop,
+      };
+      expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
+        shop === "trader" ? "— Trader" : "— Blacksmith",
+      );
+      const { result } = handleTownBuildingTap(store, createNewSave(), def);
+      expect(result).toEqual({ kind: "openShop", shop, message: "" });
+    }
+  });
+
+  it("formats wall upgrade subtitles like legacy town UI", () => {
     const save = createNewSave();
     save.gold = 40;
     const wallDef: TownBuildingDef = {
@@ -136,18 +148,6 @@ describe("townBuildingMenu", () => {
     };
     expect(townBuildingSubtitle(store, save, wallDef)).toBe(
       "— Upgrade wall (L0, next 50g)",
-    );
-
-    save.buildings.blacksmith = 1;
-    const smithDef: TownBuildingDef = {
-      label: "Moon Brazier",
-      textureKey: "town_special_moon_brazier",
-      width: 80,
-      height: 80,
-      upgradeId: "blacksmith",
-    };
-    expect(townBuildingSubtitle(store, save, smithDef)).toBe(
-      "— Upgrade smith (L1, damage x1.10, next 200g)",
     );
   });
 
@@ -183,17 +183,17 @@ describe("townBuildingMenu", () => {
 
   it("blocks upgrade when gold is insufficient", () => {
     const def: TownBuildingDef = {
-      label: "Moon Brazier",
-      textureKey: "town_special_moon_brazier",
+      label: "Witchlight Beacon (Night)",
+      textureKey: "town_special_witchlight_beacon",
       width: 80,
-      height: 80,
-      upgradeId: "blacksmith",
+      height: 112,
+      upgradeId: "wall",
     };
     const save = createNewSave();
     save.gold = 10;
     const { result } = handleTownBuildingTap(store, save, def);
     expect(result.kind).toBe("blocked");
-    expect(result.message).toContain("Need 100g");
+    expect(result.message).toContain("Need 50g");
   });
 
   it("covers max-level, missing hook, and generic upgrade copy", () => {
@@ -226,16 +226,6 @@ describe("townBuildingMenu", () => {
     };
     save.buildings.wall = 5;
     expect(townBuildingSubtitle(store, save, wallDef)).toContain("Wall max");
-
-    const smithDef: TownBuildingDef = {
-      label: "Smith",
-      textureKey: "town_smith",
-      width: 10,
-      height: 10,
-      upgradeId: "blacksmith",
-    };
-    save.buildings.blacksmith = 3;
-    expect(townBuildingSubtitle(store, save, smithDef)).toContain("Smith max");
 
     const shopDef: TownBuildingDef = {
       label: "Workshop",
@@ -280,28 +270,15 @@ describe("townBuildingMenu", () => {
       "Workshop\n— customBoost",
     );
 
-    const smithUpgrade: TownBuildingDef = {
-      label: "Smith",
-      textureKey: "town_smith",
-      width: 10,
-      height: 10,
-      upgradeId: "blacksmith",
-    };
-    const smithSave = createNewSave();
-    smithSave.gold = 500;
-    smithSave.buildings.blacksmith = 0;
-    const smithed = handleTownBuildingTap(store, smithSave, smithUpgrade);
-    expect(smithed.result.message).toContain("damage x");
-
     const wallMaxTap = handleTownBuildingTap(store, save, wallDef);
     expect(wallMaxTap.result.kind).toBe("blocked");
   });
 
-  it("labels a player-damage upgrade and treats missing levels as zero", () => {
+  it("treats missing upgrade levels as zero", () => {
     store.buildings.training = {
       maxLevel: 2,
       costByLevel: [15, 30],
-      effect: "playerDamage",
+      effect: "luck",
     };
     const def: TownBuildingDef = {
       label: "Yard",
@@ -311,18 +288,15 @@ describe("townBuildingMenu", () => {
       upgradeId: "training",
     };
     const save = createNewSave();
-    delete (save.buildings as { blacksmith?: number }).blacksmith;
     save.gold = 20;
     expect(townBuildingSubtitle(store, save, def)).toContain("next 15g");
     const { result, save: next } = handleTownBuildingTap(store, save, def);
     expect(result.kind).toBe("upgraded");
-    expect(result.message).toContain("damage x");
+    expect(result.message).toBe("Upgraded to L1");
     expect(next.buildings.training).toBe(1);
 
     const wall = store.buildings.wall!;
-    const smith = store.buildings.blacksmith!;
     const wallCosts = wall.costByLevel;
-    const smithCosts = smith.costByLevel;
     wall.costByLevel = [];
     const wallDef: TownBuildingDef = {
       label: "Wall",
@@ -335,19 +309,7 @@ describe("townBuildingMenu", () => {
     expect(townBuildingSubtitle(store, save, wallDef)).toBe(
       "— Upgrade wall (L0)",
     );
-    smith.costByLevel = [];
-    save.buildings.blacksmith = 0;
-    const smithDef: TownBuildingDef = {
-      label: "Smith",
-      textureKey: "town_smith",
-      width: 10,
-      height: 10,
-      upgradeId: "blacksmith",
-    };
-    expect(townBuildingSubtitle(store, save, smithDef)).toContain("L0");
-    expect(townBuildingSubtitle(store, save, smithDef)).not.toContain("next");
     wall.costByLevel = wallCosts;
-    smith.costByLevel = smithCosts;
   });
 });
 
@@ -384,7 +346,7 @@ describe("townBuildingSubtitle upgrade labels", () => {
     save.buildings.market = 1;
     save.buildings.shrine = 1;
     expect(townBuildingSubtitle(menuStore, save, market)).toBe(
-      "— Player damage · max level",
+      "— playerDamage · max level",
     );
     expect(townBuildingSubtitle(menuStore, save, shrine)).toBe(
       "— luck · max level",

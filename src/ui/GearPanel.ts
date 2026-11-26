@@ -8,6 +8,7 @@ import {
   gearSummaryLines,
   itemDetailLines,
   SLOT_LABELS,
+  type StatDiff,
 } from "../gear/gearText";
 import { bagItems } from "../gear/inventory";
 import {
@@ -17,6 +18,7 @@ import {
 } from "../gear/itemStats";
 import { getLootConfig } from "../gear/loot";
 import { EQUIP_SLOTS, type EquipSlot } from "../gear/gearTypes";
+import { nextBlacksmithUnlock, shopTitle } from "../gear/shops";
 import { INPUT_MODALITY } from "../input/inputModality";
 import {
   acquireModalInput,
@@ -39,6 +41,12 @@ import {
   type GearPanelContext,
   type GearPanelState,
 } from "./gearPanel/gearPanelLogic";
+import {
+  consumablesSummary,
+  offerDetail,
+  shopRows,
+  type PanelRow,
+} from "./gearPanel/shopPanelLogic";
 
 type Button = ReturnType<typeof createTouchButton>;
 
@@ -48,21 +56,34 @@ type SlotCell = {
   name: Phaser.GameObjects.Text;
 };
 
-type BagRow = {
+type ListRow = {
   bg: Phaser.GameObjects.Rectangle;
   name: Phaser.GameObjects.Text;
   meta: Phaser.GameObjects.Text;
-  uid: number | null;
+  /** Bag: item uid. Shop: offer index. */
+  key: number | null;
+};
+
+type Detail = {
+  name: string;
+  color: string;
+  lines: string[];
+  diffTitle: string;
+  diffs: StatDiff[];
+  emptyDiffNote: string;
 };
 
 const SELECTED_FILL = 0x1e3a5f;
 const SELECTED_STROKE = 0x60a5fa;
 const CELL_FILL = 0x27272a;
 const CELL_STROKE = 0x52525b;
+const TAB_ON = 0x713f12;
+const TAB_OFF = 0x3f3f46;
 
 /**
- * Town overlay: equipped slots (4×3 grid), the bag (paged, sortable), item
- * details with a compare-vs-equipped diff, and equip / unequip / sell.
+ * Town overlay for gear and shops: equipped slots (4×3 grid), a paged list
+ * (bag items or shop offers), item details with a compare-vs-equipped diff,
+ * and equip / unequip / sell / buy.
  */
 export class GearPanel {
   private readonly root: Phaser.GameObjects.Container;
@@ -78,15 +99,18 @@ export class GearPanel {
   private readonly diffLines: Phaser.GameObjects.Text[] = [];
   private readonly statusText: Phaser.GameObjects.Text;
   private readonly cells: SlotCell[] = [];
-  private readonly rows: BagRow[] = [];
+  private readonly rows: ListRow[] = [];
+  private readonly shopTab: Button | null = null;
+  private readonly bagTab: Button | null = null;
   private readonly sortBtn: Button;
   private readonly prevBtn: Button;
   private readonly nextBtn: Button;
   private readonly equipBtn: Button;
   private readonly unequipBtn: Button;
+  private readonly buyBtn: Button;
   private readonly sellBtn: Button;
   private readonly closeBtn: Button;
-  private state: GearPanelState = createGearPanelState();
+  private state: GearPanelState;
   private tornDown = false;
 
   constructor(
@@ -97,6 +121,7 @@ export class GearPanel {
     ctx?: GearPanelContext,
   ) {
     this.ctx = ctx ?? { catalog: getGearCatalog(), loot: getLootConfig() };
+    this.state = createGearPanelState(this.ctx.shop ? "shop" : "bag");
     const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
     this.root = root;
 
@@ -136,15 +161,18 @@ export class GearPanel {
     };
 
     // Layout in the 390×844 legacy UI space (scaleUiX / scaleUiY).
-    text(left, scaleUiY(12), 22, "#f4f4f5").setText("Gear");
+    const title = this.ctx.shop
+      ? shopTitle(this.ctx.shop.ctx, this.ctx.shop.id)
+      : "Gear";
+    text(left, scaleUiY(12), 22, "#f4f4f5").setText(title);
     this.goldText = text(
       GAME.width - left,
       scaleUiY(16),
       16,
       "#fbbf24",
     ).setOrigin(1, 0);
-    this.summaryText = text(left, scaleUiY(44), 12, "#d4d4d8", {
-      lineSpacing: scaleUiY(2),
+    this.summaryText = text(left, scaleUiY(42), 12, "#d4d4d8", {
+      lineSpacing: scaleUiY(1),
       wordWrap: { width: innerW },
     });
 
@@ -152,8 +180,8 @@ export class GearPanel {
     const cols = 4;
     const gap = scaleUiX(4);
     const cellW = (innerW - gap * (cols - 1)) / cols;
-    const cellH = scaleUiY(46);
-    const gridTop = scaleUiY(98);
+    const cellH = scaleUiY(44);
+    const gridTop = scaleUiY(104);
     EQUIP_SLOTS.forEach((slot, i) => {
       const cx = left + (i % cols) * (cellW + gap) + cellW / 2;
       const cy = gridTop + Math.floor(i / cols) * (cellH + gap) + cellH / 2;
@@ -176,12 +204,34 @@ export class GearPanel {
       this.cells.push({ slot, bg, name });
     });
 
-    // Bag list.
-    const bagTop = gridTop + 3 * cellH + 2 * gap + scaleUiY(8);
-    this.bagTitle = text(left, bagTop + scaleUiY(4), 15, "#f4f4f5");
+    // List header: tabs (shops) or the bag title, plus Sort.
+    const listHeadY = gridTop + 3 * cellH + 2 * gap + scaleUiY(20);
+    this.bagTitle = text(left, listHeadY - scaleUiY(9), 15, "#f4f4f5");
+    if (this.ctx.shop) {
+      this.shopTab = this.button(
+        left + scaleUiX(48),
+        listHeadY,
+        "Shop",
+        96,
+        26,
+        TAB_ON,
+        0xfbbf24,
+        () => this.dispatch({ type: "tab", tab: "shop" }),
+      );
+      this.bagTab = this.button(
+        left + scaleUiX(150),
+        listHeadY,
+        "Bag",
+        96,
+        26,
+        TAB_OFF,
+        0xa1a1aa,
+        () => this.dispatch({ type: "tab", tab: "bag" }),
+      );
+    }
     this.sortBtn = this.button(
       GAME.width - left - scaleUiX(60),
-      bagTop + scaleUiY(12),
+      listHeadY,
       "Sort",
       120,
       26,
@@ -191,7 +241,7 @@ export class GearPanel {
     );
     const rowH = scaleUiY(40);
     const rowGap = scaleUiY(4);
-    const listTop = bagTop + scaleUiY(30);
+    const listTop = listHeadY + scaleUiY(18);
     for (let i = 0; i < GEAR_PANEL_ROWS_PER_PAGE; i++) {
       const cy = listTop + i * (rowH + rowGap) + rowH / 2;
       const bg = scene.add
@@ -211,20 +261,25 @@ export class GearPanel {
         11,
         "#a1a1aa",
       ).setOrigin(0, 0.5);
-      const row: BagRow = { bg, name, meta, uid: null };
+      const row: ListRow = { bg, name, meta, key: null };
       bg.on("pointerup", () => {
-        if (row.uid !== null) this.dispatch({ type: "select", uid: row.uid });
+        if (row.key === null) return;
+        this.dispatch(
+          this.state.tab === "shop"
+            ? { type: "selectOffer", index: row.key }
+            : { type: "select", uid: row.key },
+        );
       });
       this.rows.push(row);
     }
     const pagerY =
-      listTop + GEAR_PANEL_ROWS_PER_PAGE * (rowH + rowGap) + scaleUiY(12);
+      listTop + GEAR_PANEL_ROWS_PER_PAGE * (rowH + rowGap) + scaleUiY(10);
     this.prevBtn = this.button(
       GAME.width / 2 - scaleUiX(100),
       pagerY,
       "◀ Prev",
       90,
-      26,
+      24,
       0x3f3f46,
       0xa1a1aa,
       () => this.dispatch({ type: "page", delta: -1 }),
@@ -234,7 +289,7 @@ export class GearPanel {
       pagerY,
       "Next ▶",
       90,
-      26,
+      24,
       0x3f3f46,
       0xa1a1aa,
       () => this.dispatch({ type: "page", delta: 1 }),
@@ -242,8 +297,8 @@ export class GearPanel {
     this.pageText = text(GAME.width / 2, pagerY, 13, "#a1a1aa").setOrigin(0.5);
 
     // Detail + compare box.
-    const detailTop = pagerY + scaleUiY(20);
-    const detailH = scaleUiY(172);
+    const detailTop = pagerY + scaleUiY(18);
+    const detailH = scaleUiY(166);
     root.add(
       scene.add
         .rectangle(
@@ -262,35 +317,31 @@ export class GearPanel {
       detailTop + scaleUiY(6),
       14,
       "#fafafa",
-      {
-        wordWrap: { width: innerW - scaleUiX(16) },
-      },
+      { wordWrap: { width: innerW - scaleUiX(16) } },
     );
     this.detailText = text(
       left + scaleUiX(8),
       detailTop + scaleUiY(28),
       11,
       "#d4d4d8",
-      {
-        lineSpacing: scaleUiY(1),
-        wordWrap: { width: colW },
-      },
+      { lineSpacing: scaleUiY(1), wordWrap: { width: colW } },
     );
     const diffX = GAME.width / 2 + scaleUiX(4);
     this.diffTitle = text(diffX, detailTop + scaleUiY(28), 11, "#a1a1aa");
     for (let i = 0; i < 9; i++) {
       this.diffLines.push(
-        text(diffX, detailTop + scaleUiY(44 + i * 14), 11, "#4ade80", {
+        text(diffX, detailTop + scaleUiY(44 + i * 13.5), 11, "#4ade80", {
           wordWrap: { width: colW },
         }),
       );
     }
 
     // Actions.
-    const actionY = detailTop + detailH + scaleUiY(26);
+    const actionY = detailTop + detailH + scaleUiY(24);
     const third = innerW / 3;
+    const first = left + third / 2;
     this.equipBtn = this.button(
-      left + third / 2,
+      first,
       actionY,
       "Equip",
       112,
@@ -300,7 +351,7 @@ export class GearPanel {
       () => this.dispatch({ type: "equip" }),
     );
     this.unequipBtn = this.button(
-      left + third / 2,
+      first,
       actionY,
       "Unequip",
       112,
@@ -308,6 +359,16 @@ export class GearPanel {
       0x1d4ed8,
       0x60a5fa,
       () => this.dispatch({ type: "unequip" }),
+    );
+    this.buyBtn = this.button(
+      first,
+      actionY,
+      "Buy",
+      112,
+      36,
+      0xa16207,
+      0xfde047,
+      () => this.dispatch({ type: "buy" }),
     );
     this.sellBtn = this.button(
       left + third * 1.5,
@@ -331,12 +392,10 @@ export class GearPanel {
     );
     this.statusText = text(
       GAME.width / 2,
-      actionY + scaleUiY(24),
+      actionY + scaleUiY(22),
       12,
       "#fbbf24",
-      {
-        align: "center",
-      },
+      { align: "center" },
     ).setOrigin(0.5, 0);
 
     this.refresh();
@@ -373,14 +432,68 @@ export class GearPanel {
     this.refresh();
   }
 
+  private listRows(save: SaveGame): PanelRow[] {
+    if (this.state.tab === "shop") return shopRows(this.ctx, save);
+    return bagRows(this.ctx, save, this.state).map((r) => ({
+      key: r.item.uid,
+      name: r.name,
+      color: r.rarity.color,
+      meta: `${r.rarity.label} · ilvl ${r.item.itemLevel} · ${SLOT_LABELS[catalogSlot(r.base.type)]} · ${r.price}g`,
+    }));
+  }
+
+  private emptyListHint(): string {
+    if (this.state.tab === "bag")
+      return "Bag is empty — win nights to find gear";
+    return "Sold out — new stock after the next night";
+  }
+
+  private idleHint(save: SaveGame): string {
+    const shop = this.ctx.shop;
+    if (!shop || this.state.tab !== "shop") return "";
+    if (shop.id === "trader") return "Stock changes after every night.";
+    const next = nextBlacksmithUnlock(shop.ctx, save.night);
+    return next === null
+      ? "Full catalogue unlocked."
+      : `More stock unlocks at night ${next}.`;
+  }
+
+  private detail(save: SaveGame): Detail | null {
+    if (this.state.tab === "shop") {
+      const d = offerDetail(this.ctx, save, this.state.selectedOffer);
+      if (!d) return null;
+      return {
+        name: d.name,
+        color: d.color,
+        lines: d.lines,
+        diffTitle: d.diffTitle,
+        diffs: d.diffs,
+        emptyDiffNote: d.diffTitle ? "No stat change" : "",
+      };
+    }
+    const sel = selectedItem(this.ctx, save, this.state);
+    if (!sel) return null;
+    const actions = gearPanelActions(this.ctx, save, this.state);
+    return {
+      name: sel.name,
+      color: sel.rarity.color,
+      lines: itemDetailLines(sel),
+      diffTitle: actions.canUnequip ? "Equipped" : "If equipped:",
+      diffs: selectedDiff(this.ctx, save, this.state),
+      emptyDiffNote: actions.canEquip ? "No stat change" : "",
+    };
+  }
+
   private refresh(): void {
     const { catalog, loot } = this.ctx;
     const save = this.getSave();
     const stats = gearStatsFor(catalog, save.gear);
     const tuning = effectivePlayerTuning(basePlayerTuning(), stats);
     this.goldText.setText(`${save.gold}g`);
+    const summary = gearSummaryLines(catalog, stats, tuning);
+    const carry = consumablesSummary(this.ctx, save);
     this.summaryText.setText(
-      gearSummaryLines(catalog, stats, tuning).join("\n"),
+      [...summary.slice(0, carry ? 2 : 3), carry].filter(Boolean).join("\n"),
     );
 
     for (const cell of this.cells) {
@@ -394,62 +507,75 @@ export class GearPanel {
       cell.bg.setStrokeStyle(2, on ? SELECTED_STROKE : CELL_STROKE);
     }
 
-    const all = bagRows(this.ctx, save, this.state);
-    const pages = pageCount(all.length);
-    this.bagTitle.setText(
-      `Bag ${bagItems(save.gear).length}/${loot.inventoryCapacity}`,
-    );
+    const inShop = this.state.tab === "shop";
+    const bagLabel = `Bag ${bagItems(save.gear).length}/${loot.inventoryCapacity}`;
+    if (this.shopTab && this.bagTab) {
+      this.bagTitle.setText("");
+      this.bagTab.setLabel(bagLabel);
+      this.shopTab.container.setAlpha(inShop ? 1 : 0.6);
+      this.bagTab.container.setAlpha(inShop ? 0.6 : 1);
+    } else {
+      this.bagTitle.setText(bagLabel);
+    }
+    this.setVisible(this.sortBtn, !inShop);
     this.sortBtn.setLabel(`Sort: ${this.state.sort}`);
+
+    const all = this.listRows(save);
+    const pages = pageCount(all.length);
     this.pageText.setText(`${this.state.page + 1}/${pages}`);
     this.setEnabled(this.prevBtn, this.state.page > 0);
     this.setEnabled(this.nextBtn, this.state.page < pages - 1);
+    const selectedKey = inShop
+      ? this.state.selectedOffer
+      : this.state.selectedUid;
     const shown = visibleRows(all, this.state.page);
     this.rows.forEach((row, i) => {
       const r = shown[i];
-      row.uid = r?.item.uid ?? null;
+      row.key = r?.key ?? null;
       row.bg.setVisible(r !== undefined);
       row.name.setText(r ? r.name : "");
-      row.name.setColor(r ? r.rarity.color : "#fafafa");
-      row.meta.setText(
-        r
-          ? `${r.rarity.label} · ilvl ${r.item.itemLevel} · ${SLOT_LABELS[catalogSlot(r.base.type)]} · ${r.price}g`
-          : "",
-      );
-      const on = r !== undefined && r.item.uid === this.state.selectedUid;
+      row.name.setColor(r ? r.color : "#fafafa");
+      row.meta.setText(r ? r.meta : "");
+      const on = r !== undefined && r.key === selectedKey;
       row.bg.setFillStyle(on ? SELECTED_FILL : CELL_FILL);
       row.bg.setStrokeStyle(2, on ? SELECTED_STROKE : CELL_STROKE);
     });
     if (all.length === 0) {
-      this.rows[0]?.name.setText("Bag is empty — win nights to find gear");
+      this.rows[0]?.name.setText(this.emptyListHint());
       this.rows[0]?.name.setColor("#71717a");
     }
 
-    const sel = selectedItem(this.ctx, save, this.state);
-    this.detailName.setText(sel ? sel.name : "Tap an item or slot");
-    this.detailName.setColor(sel ? sel.rarity.color : "#71717a");
-    this.detailText.setText(sel ? itemDetailLines(sel).join("\n") : "");
-    const diffs = selectedDiff(this.ctx, save, this.state);
-    const actions = gearPanelActions(this.ctx, save, this.state);
-    this.diffTitle.setText(
-      sel ? (actions.canUnequip ? "Equipped" : "If equipped:") : "",
-    );
+    const d = this.detail(save);
+    this.detailName.setText(d ? d.name : "Tap an item or slot");
+    this.detailName.setColor(d ? d.color : "#71717a");
+    this.detailText.setText(d ? d.lines.join("\n") : this.idleHint(save));
+    this.diffTitle.setText(d ? d.diffTitle : "");
     this.diffLines.forEach((line, i) => {
-      const d = diffs[i];
-      line.setText(d ? d.text : "");
-      line.setColor(d?.better ? "#4ade80" : "#f87171");
+      const diff = d?.diffs[i];
+      line.setText(diff ? diff.text : "");
+      line.setColor(diff?.better ? "#4ade80" : "#f87171");
     });
-    if (sel && actions.canEquip && diffs.length === 0) {
-      this.diffLines[0]?.setText("No stat change");
+    if (d && d.diffs.length === 0 && d.emptyDiffNote) {
+      this.diffLines[0]?.setText(d.emptyDiffNote);
       this.diffLines[0]?.setColor("#a1a1aa");
     }
 
-    this.setVisible(this.equipBtn, !actions.canUnequip);
-    this.setVisible(this.unequipBtn, actions.canUnequip);
+    const actions = gearPanelActions(this.ctx, save, this.state);
+    const offer = inShop
+      ? offerDetail(this.ctx, save, this.state.selectedOffer)
+      : null;
+    this.setVisible(this.buyBtn, inShop);
+    this.setVisible(this.equipBtn, !inShop && !actions.canUnequip);
+    this.setVisible(this.unequipBtn, !inShop && actions.canUnequip);
+    this.setVisible(this.sellBtn, !inShop);
     this.setEnabled(this.equipBtn, actions.canEquip);
     this.setEnabled(this.sellBtn, actions.canSell);
     this.sellBtn.setLabel(
       actions.canSell ? `Sell ${actions.sellPrice}g` : "Sell",
     );
+    const canBuy = !!offer && !offer.soldOut && offer.price !== null;
+    this.setEnabled(this.buyBtn, canBuy);
+    this.buyBtn.setLabel(canBuy ? `Buy ${offer.price}g` : "Buy");
     this.statusText.setText(this.state.status);
   }
 
@@ -476,24 +602,29 @@ export class GearPanel {
 
   e2eTapTargets(): Record<string, { x: number; y: number }> {
     const out: Record<string, { x: number; y: number }> = {};
-    const add = (id: string, btn: Button): void => {
-      if (!btn.container.visible || btn.container.alpha < 1) return;
+    const add = (id: string, btn: Button | null): void => {
+      if (!btn?.container.visible || btn.container.alpha < 0.5) return;
       const r = interactiveObjectScreenRect(btn.container);
       if (!r) return;
       out[id] = { x: r.x + r.width / 2, y: r.y + r.height / 2 };
     };
+    add("gear-tab-shop", this.shopTab);
+    add("gear-tab-bag", this.bagTab);
     add("gear-sort", this.sortBtn);
     add("gear-prev", this.prevBtn);
     add("gear-next", this.nextBtn);
     add("gear-equip", this.equipBtn);
     add("gear-unequip", this.unequipBtn);
+    add("gear-buy", this.buyBtn);
     add("gear-sell", this.sellBtn);
     add("gear-close", this.closeBtn);
     for (const cell of this.cells) {
       out[`gear-slot-${cell.slot}`] = { x: cell.bg.x, y: cell.bg.y };
     }
     this.rows.forEach((row, i) => {
-      if (row.uid !== null) out[`gear-row-${i}`] = { x: row.bg.x, y: row.bg.y };
+      if (row.key !== null) {
+        out[`gear-row-${i}`] = { x: row.bg.x, y: row.bg.y };
+      }
     });
     return out;
   }
