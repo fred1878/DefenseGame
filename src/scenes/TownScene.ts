@@ -55,6 +55,7 @@ import {
 } from "../systems/townBuildingMenu";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
+import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
 import { ensureTownReachableReady } from "../core/GameAssetLoader";
 import { markE2EAssetsLoaded } from "../e2e/installE2E";
 import {
@@ -118,6 +119,7 @@ export class TownScene extends Phaser.Scene {
 
   create(): void {
     configureSceneInput(this);
+    applyPixelRenderDebugSettings(this.game);
     this.save = this.registry.get("save") as SaveGame;
     if (!this.save.spellBar.autoCastSpellIds) {
       this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
@@ -481,7 +483,12 @@ export class TownScene extends Phaser.Scene {
   ): void {
     if (blocksBaseLayerInput(this)) return;
     const goldBefore = this.save.gold;
-    const { save, result } = handleTownBuildingTap(store, this.save, def);
+    const { save, result } = handleTownBuildingTap(
+      store,
+      this.save,
+      def,
+      this.registry,
+    );
     if (result.kind === "startNight") {
       this.overlays.transitionToDefense(() => this.beginDefenseNight());
       return;

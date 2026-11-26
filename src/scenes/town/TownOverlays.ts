@@ -112,7 +112,11 @@ export class TownOverlays {
   openGearPanel(shop?: ShopId): void {
     if (this.gearPanel) return;
     const catalog = getGearCatalog();
-    const ctx: GearPanelContext = { catalog, loot: getLootConfig() };
+    const ctx: GearPanelContext = {
+      catalog,
+      loot: getLootConfig(),
+      registry: this.scene.registry,
+    };
     if (shop) {
       const store = this.scene.registry.get("dataStore") as DataStore;
       const rng = createRng(randomSeed());

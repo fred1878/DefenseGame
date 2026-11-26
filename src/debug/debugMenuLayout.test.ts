@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEBUG_MENU_CLOSE_OFFSET_DEFENSE,
+  DEBUG_MENU_CLOSE_OFFSET_TOWN,
   debugMenuStackCenterY,
 } from "./debugMenuLayout";
 
@@ -14,8 +15,11 @@ describe("debugMenuStackCenterY", () => {
     expect(closeCenter).toBeLessThanOrEqual(h - 20);
   });
 
-  it("leaves town menu centered when the shorter stack fits", () => {
-    expect(debugMenuStackCenterY(1200, noSafe, false)).toBe(600);
+  it("keeps town Close above the canvas bottom on the design height", () => {
+    const h = 1200;
+    const center = debugMenuStackCenterY(h, noSafe, false);
+    const closeCenter = center + DEBUG_MENU_CLOSE_OFFSET_TOWN;
+    expect(closeCenter).toBeLessThanOrEqual(h - 20);
   });
 
   it("respects bottom safe inset", () => {

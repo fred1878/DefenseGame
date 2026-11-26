@@ -7,6 +7,7 @@ import {
 } from "../core/GameAssetLoader";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
+import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
 import { loadSave, persistSave } from "../core/GameState";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
@@ -57,6 +58,7 @@ export class BootScene extends Phaser.Scene {
       return;
     }
     getDebugFlags(this.registry);
+    applyPixelRenderDebugSettings(this.game);
     const save = loadSave();
     persistSave(save);
     applySaveLoadout(save);
