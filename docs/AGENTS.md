@@ -87,4 +87,4 @@ Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`)
 
 ## Related docs
 
-[DATA_FIELDS.md](./DATA_FIELDS.md) · [ITEMS.md](./ITEMS.md) · [TALENTS.md](./TALENTS.md) · [ECONOMY_SIM.md](./ECONOMY_SIM.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)
+[REFACTOR_PLAN.md](./REFACTOR_PLAN.md) · [DATA_FIELDS.md](./DATA_FIELDS.md) · [ITEMS.md](./ITEMS.md) · [TALENTS.md](./TALENTS.md) · [ECONOMY_SIM.md](./ECONOMY_SIM.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)
