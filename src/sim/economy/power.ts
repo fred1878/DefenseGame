@@ -21,6 +21,8 @@ export type PowerModel = {
   steepness: number;
   /** Enemies a bomb is assumed to hit. */
   bombTargets: number;
+  /** Share of lifesteal healing over the fight that counts as extra EHP. */
+  lifestealUptime: number;
 };
 
 export const DEFAULT_POWER_MODEL: PowerModel = {
@@ -29,6 +31,7 @@ export const DEFAULT_POWER_MODEL: PowerModel = {
   threatScale: 0.5,
   steepness: 3,
   bombTargets: 3,
+  lifestealUptime: 0.25,
 };
 
 export type PlayerPower = {
@@ -50,6 +53,7 @@ export type PlayerPower = {
   ehp: number;
   attackSpeedPct: number;
   spellPowerPct: number;
+  lifestealPct: number;
 };
 
 function cycleSec(windupMs: number, activeMs: number, recoveryMs: number) {
@@ -115,6 +119,7 @@ export function playerPower(
     ehp: t.maxHp / (1 - damageReduction),
     attackSpeedPct: stats.flat.attackSpeedPct,
     spellPowerPct: stats.flat.spellPowerPct,
+    lifestealPct: stats.flat.lifestealPct,
   };
 }
 
@@ -146,7 +151,13 @@ export function nightPressure(
   const requiredDps = night.totalHp / fightSec;
   const offence =
     power.offenceDps + (boost.bombDamage * model.bombTargets) / fightSec;
-  const ehp = power.ehp + boost.healHp;
+  // Lifesteal heals a share of weapon damage dealt over the fight.
+  const sustain =
+    (power.lifestealPct / 100) *
+    power.weaponDps *
+    fightSec *
+    model.lifestealUptime;
+  const ehp = power.ehp + boost.healHp + sustain;
   const ratio = (have: number, need: number) => (need > 0 ? have / need : 10);
   const offenceRatio = ratio(offence, requiredDps);
   const defenceRatio = ratio(ehp, night.totalDamage * model.threatScale);

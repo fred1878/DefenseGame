@@ -6,6 +6,14 @@
     "maxItemLevelOffset": 2,
     "priceMulPct": 125,
     "rarityWeights": { "common": 15, "magic": 52, "rare": 25, "epic": 7, "legendary": 1 },
+    "rerollCost": 0,
+    "levels": [
+      { "itemCount": 7, "rerollCost": 30 },
+      { "itemCount": 8, "priceMulPct": 115, "rerollCost": 25,
+        "rarityWeights": { "common": 10, "magic": 50, "rare": 30, "epic": 9, "legendary": 1 } },
+      { "itemCount": 9, "priceMulPct": 105, "maxItemLevelOffset": 3, "rerollCost": 20,
+        "rarityWeights": { "common": 5, "magic": 45, "rare": 35, "epic": 13, "legendary": 2 } }
+    ],
     "consumables": [
       { "id": "minor_healing_potion", "qty": 3, "chancePct": 100 },
       { "id": "healing_potion", "qty": 2, "chancePct": 40 },
@@ -17,6 +25,17 @@
   "blacksmith": {
     "title": "Blacksmith",
     "priceMulPct": 100,
+    "stockCount": 0,
+    "stockItemLevelOffset": 0,
+    "stockRarityWeights": { "magic": 1 },
+    "unlockNightsEarly": 0,
+    "levels": [
+      { "priceMulPct": 90, "stockCount": 1, "stockRarityWeights": { "magic": 80, "rare": 20 } },
+      { "priceMulPct": 85, "stockCount": 2, "stockItemLevelOffset": 1, "unlockNightsEarly": 1,
+        "stockRarityWeights": { "magic": 60, "rare": 40 } },
+      { "priceMulPct": 80, "stockCount": 3, "stockItemLevelOffset": 2, "unlockNightsEarly": 2,
+        "stockRarityWeights": { "magic": 40, "rare": 45, "epic": 15 } }
+    ],
     "items": [
       { "baseId": "rusty_sword", "unlockNight": 1 },
       { "baseId": "sling", "unlockNight": 1 },

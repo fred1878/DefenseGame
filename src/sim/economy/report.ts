@@ -21,6 +21,24 @@ export type ReportMeta = {
   generatedAt: string;
 };
 
+/** Night numbers as compact ranges: [1,2,3,8] → "1–3, 8" ("—" when empty). */
+export function nightList(nights: readonly number[]): string {
+  if (!nights.length) return "—";
+  const parts: string[] = [];
+  let start = nights[0]!;
+  let prev = start;
+  for (const n of [...nights.slice(1), Number.NaN]) {
+    if (n === prev + 1) {
+      prev = n;
+      continue;
+    }
+    parts.push(start === prev ? String(start) : `${start}–${prev}`);
+    start = n;
+    prev = n;
+  }
+  return parts.join(", ");
+}
+
 const fmt = (v: number, digits = 0) =>
   Number.isFinite(v) ? v.toFixed(digits) : "∞";
 
@@ -63,6 +81,12 @@ export function consoleSummary(
         "wall",
         "gear",
         "potions",
+        "shops",
+        "reroll",
+        "trdL",
+        "smtL",
+        "easy",
+        "hard",
         "banked",
         "ilvl",
         "power",
@@ -80,6 +104,12 @@ export function consoleSummary(
         fmt(s.totalSpentWall.p50),
         fmt(s.totalSpentGear.p50),
         fmt(s.totalSpentConsumables.p50),
+        fmt(s.totalSpentShops.p50),
+        fmt(s.totalSpentRerolls.p50),
+        fmt(s.finalTraderLevel.p50),
+        fmt(s.finalBlacksmithLevel.p50),
+        nightList(s.easyNights),
+        nightList(s.hardNights),
         fmt(s.finalGold.p50),
         fmt(s.finalAvgItemLevel.p50, 1),
         fmt(s.finalPowerRatio.p50, 2),
@@ -120,7 +150,13 @@ export function consoleSummary(
             fmt(n.reachedPct),
             fmt(n.lossesPerRun, 2),
             fmt(m.goldBanked.p50),
-            fmt(m.spentWall.p50 + m.spentGear.p50 + m.spentConsumables.p50),
+            fmt(
+              m.spentWall.p50 +
+                m.spentGear.p50 +
+                m.spentConsumables.p50 +
+                m.spentShops.p50 +
+                m.spentRerolls.p50,
+            ),
             fmt(m.wallLevel.p50),
             fmt(m.avgItemLevel.p50, 1),
             fmt(m.offenceDps.p50),
@@ -212,6 +248,10 @@ export function runsCsv(
     "spentWall",
     "spentGear",
     "spentConsumables",
+    "spentShops",
+    "spentRerolls",
+    "finalTraderLevel",
+    "finalBlacksmithLevel",
     "finalGold",
     "finalWallLevel",
     "finalAvgItemLevel",
@@ -237,6 +277,10 @@ export function runsCsv(
           total((r) => r.spentWall),
           total((r) => r.spentGear),
           total((r) => r.spentConsumables),
+          total((r) => r.spentShops),
+          total((r) => r.spentRerolls),
+          last?.traderLevel ?? 0,
+          last?.blacksmithLevel ?? 0,
           last?.goldBanked ?? 0,
           last?.wallLevel ?? 0,
           +(last?.avgItemLevel ?? 0).toFixed(2),
@@ -258,6 +302,13 @@ const COLORS = [
   "#9333ea",
   "#ea580c",
   "#0891b2",
+  "#db2777",
+  "#65a30d",
+  "#78350f",
+  "#4f46e5",
+  "#ca8a04",
+  "#0f766e",
+  "#525252",
 ];
 const RARITY_COLORS: Record<string, string> = {
   common: "#a1a1aa",
@@ -321,7 +372,7 @@ export function lineChart(
   for (const r of refLines) {
     parts.push(
       `<line x1="${L}" y1="${sy(r.y)}" x2="${W - R}" y2="${sy(r.y)}" stroke="${r.color}" stroke-dasharray="5 4"/>`,
-      `<text x="${W - R + 4}" y="${sy(r.y) + 4}" font-size="10" fill="${r.color}">${esc(r.label)}</text>`,
+      `<text x="${L + 4}" y="${sy(r.y) - 3}" font-size="10" fill="${r.color}">${esc(r.label)}</text>`,
     );
   }
   series.forEach((s, i) => {
@@ -501,6 +552,12 @@ export function htmlReport(
       "wall",
       "gear",
       "potions",
+      "shop upgrades",
+      "rerolls",
+      "trader L",
+      "blacksmith L",
+      "too easy nights",
+      "too hard nights",
       "banked at end",
       "end ilvl",
       "end power",
@@ -519,6 +576,12 @@ export function htmlReport(
       fmt(s.totalSpentWall.p50),
       fmt(s.totalSpentGear.p50),
       fmt(s.totalSpentConsumables.p50),
+      fmt(s.totalSpentShops.p50),
+      fmt(s.totalSpentRerolls.p50),
+      fmt(s.finalTraderLevel.p50),
+      fmt(s.finalBlacksmithLevel.p50),
+      nightList(s.easyNights),
+      nightList(s.hardNights),
       fmt(s.finalGold.p50),
       fmt(s.finalAvgItemLevel.p50, 1),
       fmt(s.finalPowerRatio.p50, 2),

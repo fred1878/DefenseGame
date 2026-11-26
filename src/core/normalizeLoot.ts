@@ -2,6 +2,7 @@ import { RARITY_IDS, type RarityId } from "../gear/gearTypes";
 import type { LootConfig, LootTable } from "../gear/loot";
 import {
   ConfigLoadError,
+  optionalFiniteNumber,
   requireFiniteNumber,
   requireNumberFields,
   requireRecord,
@@ -10,6 +11,7 @@ import {
 export const LOOT_FILE_BOOT_KEYS = [
   "inventoryCapacity",
   "sellBackPct",
+  "lostNightGoldPct",
   "tables",
 ] as const;
 export const LOOT_TABLE_BOOT_KEYS = [
@@ -75,6 +77,9 @@ export function normalizeLoot(raw: unknown): LootConfig {
       "loot.inventoryCapacity",
     ),
     sellBackPct: requireFiniteNumber(root.sellBackPct, "loot.sellBackPct"),
+    lostNightGoldPct:
+      optionalFiniteNumber(root.lostNightGoldPct, "loot.lostNightGoldPct") ??
+      25,
     tables: Object.fromEntries(
       Object.entries(tables).map(([id, t]) => [id, normalizeTable(id, t)]),
     ),

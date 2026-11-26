@@ -429,6 +429,7 @@ Bag size, sell-back rate and gear drop tables. `nightWon` / `nightLost` roll at 
 |-------|---------|
 | `inventoryCapacity` | Max unequipped items in the bag; drops beyond it are sold automatically. |
 | `sellBackPct` | Percent of an item's price paid when selling it (50 = half price). |
+| `lostNightGoldPct` | Percent of a night's `rewardGold` paid when a campaign night is lost (default 25). |
 | `tables` | Object keyed by table id (`nightWon`, `nightLost`; more can be added for adventures). |
 
 Each table:
@@ -487,6 +488,8 @@ Each bomb:
 
 Town shops. The trader (night Market Stall) rolls new random stock after every campaign night; the blacksmith (Moon Brazier) sells a fixed catalogue of plain bases that unlocks with nights. Items sell back for `loot.json` sellBackPct of their item price.
 
+Both shops can be upgraded in their shop panel. Level costs and the max level live in `buildings.json` (`trader`, `blacksmith`, effect `shopLevel`); what each level does lives here in `levels`. Level N applies the rows `levels[0..N-1]` in order on top of the base fields, so a row only lists what changes. The bought level is saved in the save's `buildings` map.
+
 | Field | Meaning |
 |-------|---------|
 | `trader` | Random daily stock settings (below). |
@@ -501,7 +504,9 @@ Trader:
 | `itemCount` | Random items rolled per day. |
 | `minItemLevelOffset` | Lowest offset added to the current night for each item's item level. |
 | `maxItemLevelOffset` | Highest offset added to the current night for each item's item level. |
-| `rarityWeights` | Rarity id → relative weight for trader items (rarity `minItemLevel` still applies). |
+| `rarityWeights` | Rarity id → relative weight for trader items (rarity `minItemLevel` still applies; missing rarities never roll). |
+| `rerollCost` | Gold to reroll the day's trader stock from the shop panel; 0 hides the Reroll button. |
+| `levels` | Upgrade rows (level 1, 2, …). Each row may override `itemCount`, `minItemLevelOffset`, `maxItemLevelOffset`, `priceMulPct`, `rarityWeights` and `rerollCost` (trader) or `priceMulPct`, `stockCount`, `stockItemLevelOffset`, `stockRarityWeights` and `unlockNightsEarly` (blacksmith). |
 | `consumables` | Array of `{ id, qty, chancePct }` consumable offers rolled per day. |
 | `id` | consumables.json id offered. |
 | `qty` | Charges in stock that day. |
@@ -514,6 +519,10 @@ Blacksmith (`consumables` rows here are `{ id, unlockNight }` and always in stoc
 | `items` | Array of `{ baseId, unlockNight }`: plain common copies of items.json bases, unlimited stock. |
 | `baseId` | items.json base sold. |
 | `unlockNight` | Campaign night from which the row is for sale. |
+| `stockCount` | Masterwork items rolled per day (qty 1 each, listed first); 0 at the base level. |
+| `stockItemLevelOffset` | Offset added to the current night for masterwork item levels. |
+| `stockRarityWeights` | Rarity id → relative weight for masterwork items (rarity `minItemLevel` still applies; missing rarities never roll). |
+| `unlockNightsEarly` | Catalogue rows (`items`, `consumables`) unlock this many nights before their `unlockNight`. |
 
 ---
 
@@ -683,13 +692,13 @@ Each group:
 
 **TypeScript:** [BuildingDef](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
 
-Town upgrade defs keyed by building id (`wall`). The old `blacksmith` damage upgrade was replaced by the Blacksmith shop (`shops.json`).
+Town upgrade defs keyed by building id: `wall` (wall HP) and the shop levels `trader` / `blacksmith` (bought in the shop panel; per-level effects are `levels` in `shops.json`).
 
 | Field | Meaning |
 |-------|---------|
 | `maxLevel` | Maximum purchasable upgrade level for this town building. |
 | `costByLevel` | Gold cost per upgrade level index in town. |
-| `effect` | Effect id applied on upgrade: wallHpMax via GameState (see `GameState` / town menu) |
+| `effect` | Effect id applied on upgrade: wallHpMax via GameState (see `GameState` / town menu), or shopLevel for trader / blacksmith upgrades (`upgradeShop` in townBuildingMenu.ts). |
 
 ---
 

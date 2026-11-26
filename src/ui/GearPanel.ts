@@ -18,7 +18,7 @@ import {
 } from "../gear/itemStats";
 import { getLootConfig } from "../gear/loot";
 import { EQUIP_SLOTS, type EquipSlot } from "../gear/gearTypes";
-import { nextBlacksmithUnlock, shopTitle } from "../gear/shops";
+import { nextBlacksmithUnlock, shopLevel, shopTitle } from "../gear/shops";
 import { INPUT_MODALITY } from "../input/inputModality";
 import {
   acquireModalInput,
@@ -45,6 +45,7 @@ import {
   consumablesSummary,
   offerDetail,
   shopRows,
+  shopUpgradeInfo,
   type PanelRow,
 } from "./gearPanel/shopPanelLogic";
 
@@ -109,8 +110,12 @@ export class GearPanel {
   private readonly unequipBtn: Button;
   private readonly buyBtn: Button;
   private readonly sellBtn: Button;
+  private readonly upgradeBtn: Button;
+  private readonly rerollBtn: Button;
+  private readonly titleText: Phaser.GameObjects.Text;
   private readonly closeBtn: Button;
   private state: GearPanelState;
+  private detailWrap = { item: 0, idle: 0 };
   private tornDown = false;
 
   constructor(
@@ -164,7 +169,7 @@ export class GearPanel {
     const title = this.ctx.shop
       ? shopTitle(this.ctx.shop.ctx, this.ctx.shop.id)
       : "Gear";
-    text(left, scaleUiY(12), 22, "#f4f4f5").setText(title);
+    this.titleText = text(left, scaleUiY(12), 22, "#f4f4f5").setText(title);
     this.goldText = text(
       GAME.width - left,
       scaleUiY(16),
@@ -239,6 +244,16 @@ export class GearPanel {
       0xa1a1aa,
       () => this.dispatch({ type: "sort" }),
     );
+    this.rerollBtn = this.button(
+      GAME.width - left - scaleUiX(60),
+      listHeadY,
+      "Reroll",
+      120,
+      26,
+      0x3f3f46,
+      0xfbbf24,
+      () => this.dispatch({ type: "reroll" }),
+    );
     const rowH = scaleUiY(40);
     const rowGap = scaleUiY(4);
     const listTop = listHeadY + scaleUiY(18);
@@ -312,6 +327,7 @@ export class GearPanel {
         .setStrokeStyle(2, 0x3f3f46),
     );
     const colW = innerW / 2 - scaleUiX(10);
+    this.detailWrap = { item: colW, idle: innerW - scaleUiX(16) };
     this.detailName = text(
       left + scaleUiX(8),
       detailTop + scaleUiY(6),
@@ -379,6 +395,16 @@ export class GearPanel {
       0x9f1239,
       0xfb7185,
       () => this.dispatch({ type: "sell" }),
+    );
+    this.upgradeBtn = this.button(
+      left + third * 1.5,
+      actionY,
+      "Upgrade",
+      112,
+      36,
+      0x6d28d9,
+      0xc4b5fd,
+      () => this.dispatch({ type: "upgradeShop" }),
     );
     this.closeBtn = this.button(
       left + third * 2.5,
@@ -451,11 +477,28 @@ export class GearPanel {
   private idleHint(save: SaveGame): string {
     const shop = this.ctx.shop;
     if (!shop || this.state.tab !== "shop") return "";
-    if (shop.id === "trader") return "Stock changes after every night.";
-    const next = nextBlacksmithUnlock(shop.ctx, save.night);
-    return next === null
-      ? "Full catalogue unlocked."
-      : `More stock unlocks at night ${next}.`;
+    const info = shopUpgradeInfo(this.ctx, save);
+    const lines: string[] = [];
+    if (shop.id === "trader") lines.push("Stock changes after every night.");
+    else {
+      const next = nextBlacksmithUnlock(
+        shop.ctx,
+        save.night,
+        shopLevel(save, shop.ctx, "blacksmith"),
+      );
+      lines.push(
+        next === null
+          ? "Full catalogue unlocked."
+          : `More stock unlocks at night ${next}.`,
+      );
+    }
+    if (info) {
+      lines.push(`Now: ${info.current}`);
+      if (info.next) {
+        lines.push(`Next (${info.nextCost ?? "?"}g): ${info.next}`);
+      }
+    }
+    return lines.join("\n");
   }
 
   private detail(save: SaveGame): Detail | null {
@@ -490,6 +533,12 @@ export class GearPanel {
     const stats = gearStatsFor(catalog, save.gear);
     const tuning = effectivePlayerTuning(basePlayerTuning(), stats);
     this.goldText.setText(`${save.gold}g`);
+    const upgrade = shopUpgradeInfo(this.ctx, save);
+    if (this.ctx.shop && upgrade) {
+      this.titleText.setText(
+        `${shopTitle(this.ctx.shop.ctx, this.ctx.shop.id)} · L${upgrade.level}/${upgrade.maxLevel}`,
+      );
+    }
     const summary = gearSummaryLines(catalog, stats, tuning);
     const carry = consumablesSummary(this.ctx, save);
     this.summaryText.setText(
@@ -548,6 +597,9 @@ export class GearPanel {
     const d = this.detail(save);
     this.detailName.setText(d ? d.name : "Tap an item or slot");
     this.detailName.setColor(d ? d.color : "#71717a");
+    this.detailText.setWordWrapWidth(
+      d ? this.detailWrap.item : this.detailWrap.idle,
+    );
     this.detailText.setText(d ? d.lines.join("\n") : this.idleHint(save));
     this.diffTitle.setText(d ? d.diffTitle : "");
     this.diffLines.forEach((line, i) => {
@@ -568,6 +620,15 @@ export class GearPanel {
     this.setVisible(this.equipBtn, !inShop && !actions.canUnequip);
     this.setVisible(this.unequipBtn, !inShop && actions.canUnequip);
     this.setVisible(this.sellBtn, !inShop);
+    this.setVisible(this.upgradeBtn, inShop && !!upgrade);
+    const nextCost = upgrade?.nextCost ?? null;
+    this.setEnabled(this.upgradeBtn, nextCost !== null);
+    this.upgradeBtn.setLabel(
+      nextCost !== null ? `Upgrade ${nextCost}g` : "Max level",
+    );
+    const reroll = upgrade?.rerollCost ?? 0;
+    this.setVisible(this.rerollBtn, inShop && reroll > 0);
+    this.rerollBtn.setLabel(`Reroll ${reroll}g`);
     this.setEnabled(this.equipBtn, actions.canEquip);
     this.setEnabled(this.sellBtn, actions.canSell);
     this.sellBtn.setLabel(
@@ -617,6 +678,8 @@ export class GearPanel {
     add("gear-unequip", this.unequipBtn);
     add("gear-buy", this.buyBtn);
     add("gear-sell", this.sellBtn);
+    add("gear-upgrade", this.upgradeBtn);
+    add("gear-reroll", this.rerollBtn);
     add("gear-close", this.closeBtn);
     for (const cell of this.cells) {
       out[`gear-slot-${cell.slot}`] = { x: cell.bg.x, y: cell.bg.y };

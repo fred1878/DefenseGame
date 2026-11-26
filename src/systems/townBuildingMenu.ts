@@ -14,6 +14,7 @@ const SHOP_SUBTITLE = { trader: "— Trader", blacksmith: "— Blacksmith" };
 
 function upgradeEffectLabel(effect: string): string {
   if (effect === "wallHpMax") return "Wall HP";
+  if (effect === "shopLevel") return "Shop";
   return effect;
 }
 
@@ -28,7 +29,12 @@ export function townBuildingSubtitle(
   if (def.opensEndlessMode) return ENDLESS_MODE_SUBTITLE;
   if (def.opensWavePlanner) return WAVE_PLANNER_SUBTITLE;
   if (def.opensSaveMenu) return SAVE_MENU_SUBTITLE;
-  if (def.opensShop) return SHOP_SUBTITLE[def.opensShop];
+  if (def.opensShop) {
+    const level = save.buildings[def.opensShop] ?? 0;
+    return level > 0
+      ? `${SHOP_SUBTITLE[def.opensShop]} L${level}`
+      : SHOP_SUBTITLE[def.opensShop];
+  }
 
   const upgradeId = def.upgradeId;
   if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
@@ -121,6 +127,33 @@ export function handleTownBuildingTap(
 
   const attempt = tryApplyBuildingUpgrade(save, up, upgradeId);
   return attempt;
+}
+
+/**
+ * Buy the next upgrade level of a shop (`buildings.json` trader / blacksmith).
+ * The shop's stock for the day is cleared so it restocks at the new level.
+ */
+export function upgradeShop(
+  buildings: Readonly<Record<string, BuildingDef>>,
+  save: SaveGame,
+  shop: "trader" | "blacksmith",
+): { save: SaveGame; result: TownBuildingTapResult } {
+  const up = buildings[shop];
+  if (!up) {
+    return {
+      save,
+      result: { kind: "blocked", message: "Upgrade unavailable" },
+    };
+  }
+  const attempt = tryApplyBuildingUpgrade(save, up, shop);
+  if (attempt.result.kind !== "upgraded") return attempt;
+  return {
+    save: {
+      ...attempt.save,
+      shops: { ...attempt.save.shops, [shop]: null },
+    },
+    result: attempt.result,
+  };
 }
 
 function tryApplyBuildingUpgrade(

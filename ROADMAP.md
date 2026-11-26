@@ -22,6 +22,9 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 | **Equipment (Milestone H)** | [#362](https://github.com/fred1878/DefenseGame/pull/362) — 11 slots (melee, ranged, helm, chest, hands, legs, boots, 2 rings, 2 trinkets); `public/data/items.json` with item levels, 5 rarities, random affixes and authored uniques; armour (diminishing), attack speed, spell power, damage, HP, move speed, lifesteal / burn / chain procs, element and named-spell boosts; weapons change attack style |
 | **Inventory and drops (Milestone H)** | [#363](https://github.com/fred1878/DefenseGame/pull/363) — Gear panel (equip, unequip, compare, sort, sell for half price); end-of-night drops scaled by night from `public/data/loot.json`, with a `rollLoot` hook for adventure drops |
 | **Shops and consumables (Milestone H)** | [#364](https://github.com/fred1878/DefenseGame/pull/364) — Trader in the night Market Stall (random stock, rerolls after each night) and Blacksmith at the Moon Brazier (catalogue unlocks by night; replaces the old damage upgrade); potions and bombs from `public/data/consumables.json`, usable in combat via buttons or Q / E |
+| **Night loot summary** | [#366](https://github.com/fred1878/DefenseGame/pull/366) — after a campaign night: result, gold, loot in rarity colours, auto-sold items and wall HP, with Back to Town on the panel |
+| **Economy sim** | [#367](https://github.com/fred1878/DefenseGame/pull/367) — `npm run sim:economy`: seeded campaign runs on the real loot / shop / pricing code with strategy profiles, CSV / JSON / HTML report ([docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md)) |
+| **Economy rebalance + shop upgrades** | Sell-back 30%, lost nights pay 15% and drop nothing, night 10 reward 170, cheaper late blacksmith items, stronger potions / bombs; Trader and Blacksmith upgrade 3 levels each in their shop panel (more / better stock, lower prices, masterwork items, paid trader reroll); 8 more sim profiles |
 
 ---
 
@@ -119,8 +122,8 @@ Deepen the existing day phase so the town itself is the long-term progression su
 |------|--------|----------------|----------------|
 | Upgradeable walls | M | Partial | Wall HP upgrades exist; more tiers, visuals, and gates for later wall-defense slots |
 | Economic buildings (income) | L | No | Buildings that generate gold (or materials) between nights; upgrade their yield |
-| Market stalls | M | Wired | Night stall is the Trader, daylit stall holds saves; make shop tiers upgradeable (bigger stock, better rarities) |
-| Blacksmith | M | Shop | Moon Brazier sells a catalogue unlocking by night; add crafting, reforging affixes or upgrading item level |
+| Market stalls | M | Wired | Night stall is the Trader (3 upgrade levels: stock, rarities, prices, reroll), daylit stall holds saves; more stall types |
+| Blacksmith | M | Shop | Moon Brazier sells a catalogue unlocking by night, with 3 upgrade levels (discount, masterwork stock, earlier unlocks); add crafting, reforging affixes or upgrading item level |
 | Traders | M | Partial | One Trader with daily random stock; add visiting traders or themed stock |
 | Town centre | L | No | A central building that unlocks civic upgrades and later features |
 | Upgrade the buildings themselves | L | Partial | Every building has tiers (look, bonuses, unlocks), not only a single purchase |
@@ -132,7 +135,7 @@ Deepen the existing day phase so the town itself is the long-term progression su
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
 | Gear slots and stats | L | **Done** ([#362](https://github.com/fred1878/DefenseGame/pull/362), [#363](https://github.com/fred1878/DefenseGame/pull/363)) | Balance pass once more nights exist; more uniques and affixes; gear visuals on the player sprite |
-| Equipment shops / traders | L | **Done** ([#364](https://github.com/fred1878/DefenseGame/pull/364)) | Shop tiers via Milestone **G** upgrades; buy-back of sold items |
+| Equipment shops / traders | L | **Done** ([#364](https://github.com/fred1878/DefenseGame/pull/364)) | Shop upgrade tiers done; buy-back of sold items |
 | Consumables | M | Potions and bombs | More types (shields, wall repair kits, scrolls); a consumable belt / slot choice |
 | Adventure drops | M | Hook only (`rollLoot`) | Wire into daytime adventures (Milestone **K**) with their own loot tables |
 | Item sets and crafting | L | No | Set bonuses, salvage into materials, crafting at the blacksmith |

@@ -37,7 +37,7 @@ export function createNewSave(): SaveGame {
     },
     gear: createEmptyGear(),
     consumables: {},
-    shops: { trader: null },
+    shops: { trader: null, blacksmith: null },
     spellBar: {
       slots: createDefaultSpellBarSlots(),
       autoCastSpellIds: createDefaultAutoCastSpellIds(),
@@ -234,11 +234,11 @@ export function applyNightResultDetailed(
   catalog: GearCatalog = getGearCatalog(),
   loot?: LootConfig,
 ): NightResultApplication {
-  // New day in town: the trader restocks on the next visit.
+  // New day in town: both shops restock on the next visit.
   const next = {
     ...save,
     night: save.night + (result.won ? 1 : 0),
-    shops: { ...save.shops, trader: null },
+    shops: { trader: null, blacksmith: null },
   };
   next.gold = save.gold + result.goldEarned;
   next.townWallHp = Math.max(0, save.townWallHp - result.wallDamage);

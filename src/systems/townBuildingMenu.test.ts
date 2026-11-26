@@ -6,6 +6,7 @@ import {
   formatTownBuildingButtonLabel,
   handleTownBuildingTap,
   townBuildingSubtitle,
+  upgradeShop,
 } from "./townBuildingMenu";
 
 describe("townBuildingMenu", () => {
@@ -351,5 +352,42 @@ describe("townBuildingSubtitle upgrade labels", () => {
     expect(townBuildingSubtitle(menuStore, save, shrine)).toBe(
       "— luck · max level",
     );
+  });
+});
+
+describe("shop upgrades", () => {
+  const buildings = {
+    trader: { maxLevel: 2, costByLevel: [90, 160], effect: "shopLevel" },
+  };
+
+  it("buys a shop level, clears that shop's stock and shows it in the subtitle", () => {
+    const save = createNewSave();
+    save.gold = 100;
+    save.shops = { trader: [], blacksmith: [] };
+    const r = upgradeShop(buildings, save, "trader");
+    expect(r.result).toEqual({ kind: "upgraded", message: "Upgraded to L1" });
+    expect(r.save.gold).toBe(10);
+    expect(r.save.buildings.trader).toBe(1);
+    expect(r.save.shops).toEqual({ trader: null, blacksmith: [] });
+    const store = new DataStore();
+    const def: TownBuildingDef = {
+      label: "Market Stall (Night)",
+      textureKey: "town_market_stall",
+      width: 112,
+      height: 72,
+      opensShop: "trader",
+    };
+    expect(townBuildingSubtitle(store, r.save, def)).toBe("— Trader L1");
+    expect(upgradeShop(buildings, r.save, "trader").result.message).toBe(
+      "Need 160g (have 10g)",
+    );
+    r.save.buildings.trader = 2;
+    expect(upgradeShop(buildings, r.save, "trader").result.message).toBe(
+      "Shop — max level",
+    );
+    expect(upgradeShop(buildings, save, "blacksmith").result).toEqual({
+      kind: "blocked",
+      message: "Upgrade unavailable",
+    });
   });
 });

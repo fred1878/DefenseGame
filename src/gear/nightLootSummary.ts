@@ -38,12 +38,13 @@ export type NightLootSummary = {
   wallFill: number;
 };
 
-/** Gold paid for a campaign night (full reward on a win, a quarter on a loss). */
+/** Gold paid for a campaign night (full reward on a win, `loot.lostNightGoldPct` on a loss). */
 export function campaignNightGoldEarned(
   won: boolean,
   rewardGold: number,
+  lostNightGoldPct = getLootConfig().lostNightGoldPct,
 ): number {
-  return won ? rewardGold : Math.floor(rewardGold * 0.25);
+  return won ? rewardGold : Math.floor((rewardGold * lostNightGoldPct) / 100);
 }
 
 /** Wall HP left after the night, including the win wear penalty. */
@@ -174,7 +175,11 @@ export function resolveCampaignNightEnd(
   const loot = input.loot ?? getLootConfig();
   const finalWallHp = campaignNightFinalWallHp(input.won, input.wallHp);
   const wallDamage = input.wallHpStart - finalWallHp;
-  const goldEarned = campaignNightGoldEarned(input.won, input.rewardGold);
+  const goldEarned = campaignNightGoldEarned(
+    input.won,
+    input.rewardGold,
+    loot.lostNightGoldPct,
+  );
   const result: NightResult = {
     won: input.won,
     goldEarned,

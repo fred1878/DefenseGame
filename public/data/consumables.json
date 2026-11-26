@@ -2,25 +2,25 @@
   "items": {
     "minor_healing_potion": {
       "name": "Minor Healing Potion", "kind": "heal", "price": 20, "maxStack": 5, "cooldownMs": 1500,
-      "healHp": 35
+      "healHp": 50
     },
     "healing_potion": {
-      "name": "Healing Potion", "kind": "heal", "price": 45, "maxStack": 5, "cooldownMs": 1500,
-      "healHp": 80
+      "name": "Healing Potion", "kind": "heal", "price": 40, "maxStack": 5, "cooldownMs": 1500,
+      "healHp": 120
     },
     "fire_bomb": {
-      "name": "Fire Bomb", "kind": "bomb", "price": 30, "maxStack": 5, "cooldownMs": 2000,
-      "bomb": { "damage": 40, "radiusWu": 90, "rangeWu": 320, "flavor": "fire", "knockbackWu": 120,
+      "name": "Fire Bomb", "kind": "bomb", "price": 25, "maxStack": 5, "cooldownMs": 2000,
+      "bomb": { "damage": 60, "radiusWu": 90, "rangeWu": 320, "flavor": "fire", "knockbackWu": 120,
         "projectile": "spellArcBomb", "blast": "spellFireNova", "dotDps": 5, "dotMs": 3000 }
     },
     "frost_bomb": {
-      "name": "Frost Bomb", "kind": "bomb", "price": 30, "maxStack": 5, "cooldownMs": 2000,
-      "bomb": { "damage": 28, "radiusWu": 100, "rangeWu": 320, "flavor": "frost", "knockbackWu": 60,
+      "name": "Frost Bomb", "kind": "bomb", "price": 25, "maxStack": 5, "cooldownMs": 2000,
+      "bomb": { "damage": 42, "radiusWu": 100, "rangeWu": 320, "flavor": "frost", "knockbackWu": 60,
         "projectile": "spellIceBolt", "blast": "spellBlizzard", "slowPct": 45, "slowMs": 2500 }
     },
     "thunder_bomb": {
-      "name": "Thunder Bomb", "kind": "bomb", "price": 40, "maxStack": 5, "cooldownMs": 2000,
-      "bomb": { "damage": 35, "radiusWu": 80, "rangeWu": 320, "flavor": "lightning", "knockbackWu": 160,
+      "name": "Thunder Bomb", "kind": "bomb", "price": 35, "maxStack": 5, "cooldownMs": 2000,
+      "bomb": { "damage": 52, "radiusWu": 80, "rangeWu": 320, "flavor": "lightning", "knockbackWu": 160,
         "projectile": "spellLightningBolt", "blast": "spellShockwave", "stunMs": 800 }
     }
   }

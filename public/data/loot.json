@@ -1,6 +1,6 @@
 {
   "inventoryCapacity": 40,
-  "sellBackPct": 50,
+  "sellBackPct": 30, "lostNightGoldPct": 15,
   "tables": {
     "nightWon": {
       "minRolls": 1,
@@ -16,7 +16,7 @@
     },
     "nightLost": {
       "minRolls": 0,
-      "maxRolls": 1,
+      "maxRolls": 0,
       "minItemLevelOffset": -1,
       "maxItemLevelOffset": 0,
       "rarityByLevel": [

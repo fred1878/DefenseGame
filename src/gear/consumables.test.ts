@@ -68,7 +68,7 @@ describe("consumables", () => {
     expect(bombBlastSpellDef(items.minor_healing_potion!)).toBeNull();
     const fire = bombBlastSpellDef(items.fire_bomb!)!;
     expect(fire.mechanicType).toBe("blast");
-    expect(fire.baseDamage).toBe(40);
+    expect(fire.baseDamage).toBe(60);
     expect(fire.onHit).toEqual({ dotDps: 5, dotMs: 3000 });
     const frost = bombBlastSpellDef(items.frost_bomb!)!;
     expect(frost.onHit).toEqual({ slowPct: 45, slowMs: 2500 });
@@ -79,9 +79,9 @@ describe("consumables", () => {
 
   it("describes effects", () => {
     const items = config.items;
-    expect(consumableEffectLine(items.healing_potion!)).toBe("Heals 80 HP");
+    expect(consumableEffectLine(items.healing_potion!)).toBe("Heals 120 HP");
     expect(consumableEffectLine(items.fire_bomb!)).toBe(
-      "40 fire damage in an area, burn 5/s",
+      "60 fire damage in an area, burn 5/s",
     );
     expect(consumableEffectLine(items.frost_bomb!)).toMatch(/slow 45%/);
     expect(consumableEffectLine(items.thunder_bomb!)).toMatch(/stun 0.8s/);

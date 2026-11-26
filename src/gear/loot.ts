@@ -21,6 +21,8 @@ export type LootTable = {
 export type LootConfig = {
   inventoryCapacity: number;
   sellBackPct: number;
+  /** Percent of a night's rewardGold paid when the night is lost. */
+  lostNightGoldPct: number;
   tables: Record<string, LootTable>;
 };
 
