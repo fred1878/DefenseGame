@@ -7,6 +7,7 @@ import {
   addLootToSave,
   getLootConfig,
   rarityWeightsAt,
+  rollCount,
   rollLoot,
   rollNightDrops,
   setLootConfig,
@@ -63,6 +64,21 @@ describe("normalizeLoot", () => {
       bad((t) => (t.rarityByLevel = [{ fromLevel: 1, weights: { shiny: 1 } }])),
     ).toThrow(/Unknown rarity/);
     expect(() => normalizeLoot({ ...lootRaw(), sellBackPct: "x" })).toThrow();
+    expect(bad((t) => (t.rollWeights = [1, 2]))).toThrow(/rollWeights must list 1/);
+    expect(bad((t) => (t.rollWeights = "x"))).toThrow(/rollWeights/);
+    expect(bad((t) => (t.rollWeights = [-1]))).toThrow(/rollWeights\[0\] must be >= 0/);
+    expect(bad((t) => (t.rollWeights = ["x"]))).toThrow(/rollWeights\[0\]/);
+  });
+
+  it("parses optional roll-count weights", () => {
+    const raw = lootRaw();
+    const t = (raw.tables as Record<string, Record<string, unknown>>).nightWon!;
+    t.minRolls = 1;
+    t.rollWeights = [3, 1];
+    expect(normalizeLoot(raw).tables.nightWon?.rollWeights).toEqual([3, 1]);
+    expect(normalizeLoot(lootRaw()).tables.nightWon).not.toHaveProperty(
+      "rollWeights",
+    );
   });
 });
 
@@ -86,6 +102,17 @@ describe("loot rolls", () => {
       high.every((d) => d.rarity === "rare" || d.rarity === "common"),
     ).toBe(true);
     expect(high[0]?.itemLevel).toBe(6);
+  });
+
+  it("weights the roll count when rollWeights is set", () => {
+    const weighted = { ...table, minRolls: 1, maxRolls: 3, rollWeights: [0, 1, 0] };
+    const rng = createRng(5);
+    for (let i = 0; i < 20; i++) expect(rollCount(weighted, rng)).toBe(2);
+    const counts = new Set<number>();
+    const uniform = { ...table, minRolls: 1, maxRolls: 3 };
+    for (let i = 0; i < 60; i++) counts.add(rollCount(uniform, rng));
+    expect([...counts].sort()).toEqual([1, 2, 3]);
+    expect(rollCount({ ...weighted, rollWeights: [0, 0, 0] }, rng)).toBe(0);
   });
 
   it("drops nothing when the base pool is empty or the table is missing", () => {

@@ -61,6 +61,23 @@ describe("simulate", () => {
     }
   });
 
+  it("reports each night's starting save and pressure", () => {
+    const seen: Array<{ night: number; chance: number }> = [];
+    const r = simulateRun(
+      data,
+      opts({
+        maxAttempts: 3,
+        onNightStart: (save, pressure) =>
+          seen.push({ night: save.night, chance: pressure.winChance }),
+      }),
+      5,
+    );
+    expect(seen.map((s) => s.night)).toEqual(r.records.map((x) => x.night));
+    expect(seen.map((s) => s.chance)).toEqual(
+      r.records.map((x) => x.pressure.winChance),
+    );
+  });
+
   it("uses a fixed win rate when asked", () => {
     const always = simulateRun(
       data,

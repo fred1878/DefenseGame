@@ -26,6 +26,8 @@ type Internals = {
   }>;
   shopTab: Btn;
   bagTab: Btn;
+  requestsTab: Btn | null;
+  fillBtn: Btn & { label?: string };
   buyBtn: Btn;
   sellBtn: Btn;
   sortBtn: Btn;
@@ -114,6 +116,58 @@ describe("GearPanel shop mode", () => {
     expect(ui.buyBtn.container.visible).toBe(true);
   });
 
+  it("lists trader buy requests and sells a bag match", () => {
+    const { ui, tap, getSave, panel } = open("trader", (s) => {
+      s.gear = {
+        items: [
+          { uid: 1, baseId: "rusty_sword", rarity: "common", itemLevel: 1, affixes: [] },
+        ],
+        equipped: {},
+        nextUid: 2,
+      };
+      s.shops = {
+        trader: [],
+        blacksmith: [],
+        requests: [
+          { kind: "type", itemType: "ring", minRarity: "rare" },
+          { kind: "base", baseId: "rusty_sword" },
+        ],
+      };
+    });
+    expect(panel.e2eTapTargets()["gear-tab-requests"]).toBeTruthy();
+    tap(ui.requestsTab!.container);
+    expect(ui.sortBtn.container.visible).toBe(false);
+    expect(ui.fillBtn.container.visible).toBe(true);
+    expect(textOf(ui.detailText)).toMatch(/^The trader pays 150% of an item's value/);
+    expect(textOf(ui.rows[0]!.meta)).toMatch(/no match in bag$/);
+    expect(textOf(ui.rows[1]!.meta)).toMatch(/^Pays 150% · Rusty Sword → \d+g$/);
+    // No match: the sell button stays disabled.
+    ui.rows[0]!.bg.emit("pointerup");
+    expect(textOf(ui.detailName)).toBe("Rare+ Ring");
+    expect(panel.e2eTapTargets()["gear-fill-request"]).toBeUndefined();
+    ui.rows[1]!.bg.emit("pointerup");
+    expect(panel.e2eTapTargets()["gear-fill-request"]).toBeTruthy();
+    tap(ui.fillBtn.container);
+    expect(getSave().gear.items).toEqual([]);
+    expect(getSave().gold).toBeGreaterThan(500);
+    expect(getSave().shops.requests).toHaveLength(1);
+    expect(textOf(ui.statusText)).toMatch(/^Trader paid \d+g for Rusty Sword$/);
+    tap(ui.bagTab.container);
+    expect(ui.fillBtn.container.visible).toBe(false);
+    tap(ui.requestsTab!.container);
+    ui.rows[0]!.bg.emit("pointerup");
+    expect(textOf(ui.detailText)).toMatch(/Nothing in your bag matches/);
+  });
+
+  it("shows an empty requests list and no Wants tab at the blacksmith", () => {
+    const { ui, tap } = open("trader", (s) => {
+      s.shops = { trader: [], blacksmith: [], requests: [] };
+    });
+    tap(ui.requestsTab!.container);
+    expect(textOf(ui.rows[0]!.name)).toMatch(/No requests left/);
+    expect(open("blacksmith").ui.requestsTab).toBeNull();
+  });
+
   it("shows the trader hint and a sold-out list", () => {
     const { ui } = open("trader", (s) => {
       s.shops = { trader: [], blacksmith: [] };
@@ -142,10 +196,10 @@ describe("GearPanel shop mode", () => {
     );
     expect(textOf(ui.titleText)).toBe("Trader · L0/3");
     expect(ui.rerollBtn.container.visible).toBe(false);
-    expect(textOf(ui.detailText)).toMatch(/Next \(90g\): 7 items/);
+    expect(textOf(ui.detailText)).toMatch(/Next \(60g\): 7 items/);
     tap(ui.upgradeBtn.container);
     expect(getSave().buildings.trader).toBe(1);
-    expect(getSave().gold).toBe(910);
+    expect(getSave().gold).toBe(940);
     // Upgrading restocks at the new level (7 items + consumables).
     expect(
       getSave().shops.trader!.filter((o) => o.kind === "item"),
@@ -155,9 +209,9 @@ describe("GearPanel shop mode", () => {
     expect(panel.e2eTapTargets()["gear-reroll"]).toBeTruthy();
     const before = getSave().shops.trader;
     tap(ui.rerollBtn.container);
-    expect(getSave().gold).toBe(880);
+    expect(getSave().gold).toBe(920);
     expect(getSave().shops.trader).not.toBe(before);
-    expect(textOf(ui.statusText)).toBe("New stock for 30g");
+    expect(textOf(ui.statusText)).toBe("New stock for 20g");
     tap(ui.upgradeBtn.container);
     tap(ui.upgradeBtn.container);
     expect(getSave().buildings.trader).toBe(3);
@@ -169,7 +223,7 @@ describe("GearPanel shop mode", () => {
     const { ui, tap, getSave } = open(
       "blacksmith",
       (s) => {
-        s.gold = 100;
+        s.gold = 80;
         s.night = 4;
       },
       true,
@@ -179,6 +233,6 @@ describe("GearPanel shop mode", () => {
     expect(getSave().shops.blacksmith).toHaveLength(1);
     expect(textOf(ui.rows[0]!.meta)).toMatch(/1 left$/);
     tap(ui.upgradeBtn.container);
-    expect(textOf(ui.statusText)).toBe("Need 180g (have 0g)");
+    expect(textOf(ui.statusText)).toBe("Need 140g (have 0g)");
   });
 });

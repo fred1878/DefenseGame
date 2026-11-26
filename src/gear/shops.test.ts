@@ -15,6 +15,7 @@ import {
   buyOffer,
   defaultShopContext,
   ensureShopStock,
+  fillTraderRequest,
   getShopsConfig,
   nextBlacksmithUnlock,
   blacksmithAt,
@@ -104,6 +105,15 @@ describe("shops", () => {
     // Level 0 blacksmith has no masterwork stock.
     expect(stocked.shops.blacksmith).toEqual([]);
     expect(ensureShopStock(stocked, ctx, createRng(9))).toBe(stocked);
+    expect(stocked.shops.requests).toHaveLength(ctx.shops.trader.requestCount);
+    // Missing requests are rolled without touching today's stock.
+    const noRequests = {
+      ...stocked,
+      shops: { ...stocked.shops, requests: null },
+    };
+    const again = ensureShopStock(noRequests, ctx, createRng(4));
+    expect(again.shops.trader).toBe(stocked.shops.trader);
+    expect(again.shops.requests?.length).toBe(ctx.shops.trader.requestCount);
     expect(shopOffers(stocked, ctx, "trader")).toBe(stocked.shops.trader);
     expect(shopOffers(save, ctx, "trader")).toEqual([]);
   });
@@ -214,14 +224,37 @@ describe("shops", () => {
     expect(r.save.shops.trader).toEqual([]);
   });
 
+  it("fills a trader buy request from the bag", () => {
+    const save = richSave(3);
+    save.gear = {
+      items: [
+        { uid: 1, baseId: "rusty_sword", rarity: "common", itemLevel: 1, affixes: [] },
+      ],
+      equipped: {},
+      nextUid: 2,
+    };
+    save.shops = {
+      ...save.shops,
+      requests: [{ kind: "base", baseId: "rusty_sword" }],
+    };
+    const r = fillTraderRequest(save, ctx, 0);
+    expect(r.ok).toBe(true);
+    expect(r.gold).toBeGreaterThan(0);
+    expect(r.save.gold).toBe(save.gold + r.gold);
+    expect(r.save.shops.requests).toEqual([]);
+    expect(r.save.gear.items).toEqual([]);
+  });
+
   it("normalizes saved shop state", () => {
     expect(normalizeSaveShops(null)).toEqual({
       trader: null,
       blacksmith: null,
+      requests: null,
     });
     expect(normalizeSaveShops({ trader: "x" })).toEqual({
       trader: null,
       blacksmith: null,
+      requests: null,
     });
     expect(
       normalizeSaveShops({
@@ -240,6 +273,10 @@ describe("shops", () => {
         ],
       }).trader,
     ).toHaveLength(2);
+    expect(
+      normalizeSaveShops({ requests: [{ kind: "base", baseId: "x" }, 3] })
+        .requests,
+    ).toEqual([{ kind: "base", baseId: "x" }]);
   });
 
   it("stacks upgrade level rows and caps the saved level", () => {

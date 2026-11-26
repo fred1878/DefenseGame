@@ -37,7 +37,7 @@ export function createNewSave(): SaveGame {
     },
     gear: createEmptyGear(),
     consumables: {},
-    shops: { trader: null, blacksmith: null },
+    shops: { trader: null, blacksmith: null, requests: null },
     spellBar: {
       slots: createDefaultSpellBarSlots(),
       autoCastSpellIds: createDefaultAutoCastSpellIds(),
@@ -238,7 +238,7 @@ export function applyNightResultDetailed(
   const next = {
     ...save,
     night: save.night + (result.won ? 1 : 0),
-    shops: { trader: null, blacksmith: null },
+    shops: { trader: null, blacksmith: null, requests: null },
   };
   next.gold = save.gold + result.goldEarned;
   next.townWallHp = Math.max(0, save.townWallHp - result.wallDamage);

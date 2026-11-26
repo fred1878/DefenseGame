@@ -6,6 +6,14 @@ import {
   getConsumablesConfig,
   type ConsumablesConfig,
 } from "./consumables";
+import {
+  fillBuyRequest,
+  normalizeSaveRequests,
+  rollBuyRequests,
+  type BuyRequest,
+  type BuyRequestsConfig,
+  type FillRequestResult,
+} from "./buyRequests";
 import { addItem, bagItems } from "./inventory";
 import {
   createBaseItem,
@@ -30,11 +38,15 @@ export type TraderLevelFields = {
   rarityWeights: RarityWeights;
   /** Gold to reroll today's stock; 0 = no reroll. */
   rerollCost: number;
+  /** Buy requests posted each night (see `requests`). */
+  requestCount: number;
 };
 
 export type TraderConfig = TraderLevelFields & {
   title: string;
   consumables: { id: string; qty: number; chancePct: number }[];
+  /** Nightly buy requests: payout and roll odds. */
+  requests: BuyRequestsConfig;
   /** Upgrade levels 1..N: each row overrides the fields of the level below. */
   levels: Partial<TraderLevelFields>[];
 };
@@ -70,11 +82,13 @@ export type ShopOffer =
 
 /**
  * Saved shop state for the current day (null = restock on next visit):
- * trader stock and the blacksmith's masterwork stock.
+ * trader stock, the blacksmith's masterwork stock and the trader's buy
+ * requests (missing / null = roll on next visit).
  */
 export type SaveShops = {
   trader: ShopOffer[] | null;
   blacksmith: ShopOffer[] | null;
+  requests?: BuyRequest[] | null;
 };
 
 let active: ShopsConfig | null = null;
@@ -199,13 +213,24 @@ export function ensureShopStock(
   ctx: ShopContext,
   rng: Rng,
 ): SaveGame {
-  if (save.shops.trader && save.shops.blacksmith) return save;
+  if (save.shops.trader && save.shops.blacksmith && save.shops.requests) {
+    return save;
+  }
+  const traderLevel = shopLevel(save, ctx, "trader");
   return {
     ...save,
     shops: {
+      requests:
+        save.shops.requests ??
+        rollBuyRequests(
+          ctx.catalog,
+          ctx.shops.trader.requests,
+          traderAt(ctx, traderLevel).requestCount,
+          rng,
+        ),
       trader:
         save.shops.trader ??
-        rollTraderStock(ctx, save.night, rng, shopLevel(save, ctx, "trader")),
+        rollTraderStock(ctx, save.night, rng, traderLevel),
       blacksmith:
         save.shops.blacksmith ??
         rollBlacksmithStock(
@@ -216,6 +241,15 @@ export function ensureShopStock(
         ),
     },
   };
+}
+
+/** Sell the best matching bag item to the trader's buy request `index`. */
+export function fillTraderRequest(
+  save: SaveGame,
+  ctx: ShopContext,
+  index: number,
+): FillRequestResult {
+  return fillBuyRequest(save, ctx.catalog, ctx.shops.trader.requests, index);
 }
 
 /** Pay `rerollCost` for fresh trader stock (needs a trader upgrade). */
@@ -379,10 +413,15 @@ export function normalizeSaveShops(raw: unknown): SaveShops {
   return {
     trader: normalizeStock(block.trader),
     blacksmith: normalizeStock(block.blacksmith),
+    requests: normalizeSaveRequests(block.requests),
   };
 }
 
-type SaveShopsRaw = { trader?: unknown; blacksmith?: unknown };
+type SaveShopsRaw = {
+  trader?: unknown;
+  blacksmith?: unknown;
+  requests?: unknown;
+};
 
 function normalizeStock(list: unknown): ShopOffer[] | null {
   if (!Array.isArray(list)) return null;

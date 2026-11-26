@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import type { AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowHitboxes } from "../../debug/DebugState";
@@ -63,6 +64,24 @@ export function defenseSceneE2eLivingEnemyHps(
   return scene.enemies
     .filter((e) => e.damageable.alive)
     .map((e) => e.damageable.hp);
+}
+
+/** Set the MEL/RNG/AUTO mode without attacking (validation bot). */
+export function defenseSceneE2eSetAttackMode(
+  scene: DefenseSceneE2eDelegate,
+  mode: AttackMode,
+): void {
+  scene.player.setAttackMode(mode);
+  scene.refreshModeToggle(mode);
+}
+
+/** World position and HP of every living enemy, in spawn order (bot steering). */
+export function defenseSceneE2eLivingEnemyPositions(
+  scene: DefenseSceneE2eDelegate,
+): Array<{ x: number; y: number; hp: number }> {
+  return scene.enemies
+    .filter((e) => e.damageable.alive)
+    .map((e) => ({ x: e.sprite.x, y: e.sprite.y, hp: e.damageable.hp }));
 }
 
 export function defenseSceneE2eProjectileCount(

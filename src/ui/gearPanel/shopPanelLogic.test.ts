@@ -183,13 +183,21 @@ describe("shopPanelLogic", () => {
       shop: { id: "trader", ctx: shopCtx, buildings: buildingsRaw },
     };
     const info = shopUpgradeInfo(up, s)!;
-    expect(info).toMatchObject({ level: 0, maxLevel: 3, nextCost: 90 });
+    expect(info).toMatchObject({ level: 0, maxLevel: 3, nextCost: 60 });
     expect(info.rerollCost).toBe(0);
     expect(info.current).toMatch(/^6 items · ilvl night\+0–2 · 125% prices/);
-    expect(info.next).toMatch(/7 items.*reroll 30g$/);
+    expect(info.next).toMatch(/7 items.*reroll 20g · 3 requests$/);
     s.buildings.trader = 3;
     expect(shopUpgradeInfo(up, s)).toMatchObject({ nextCost: null, next: "" });
     expect(shopPerksLine(shopCtx, "blacksmith", 0)).toBe("list prices");
+    const noRequests: ShopContext = {
+      ...shopCtx,
+      shops: {
+        ...shopCtx.shops,
+        trader: { ...shopCtx.shops.trader, requestCount: 0, levels: [] },
+      },
+    };
+    expect(shopPerksLine(noRequests, "trader", 0)).not.toMatch(/request/);
     expect(shopPerksLine(shopCtx, "blacksmith", 1)).toBe(
       "90% prices · 1 masterwork (magic 80/rare 20, ilvl night+0)",
     );
@@ -227,12 +235,12 @@ describe("shopPanelLogic", () => {
     expect(r.save.buildings.trader).toBe(1);
     expect(r.save.shops.trader).not.toBeNull();
     const rr = reduceGearPanel(up, r.save, r.state, { type: "reroll" });
-    expect(rr.save.gold).toBe(200 - 90 - 30);
-    expect(rr.state.status).toBe("New stock for 30g");
+    expect(rr.save.gold).toBe(200 - 60 - 20);
+    expect(rr.state.status).toBe("New stock for 20g");
     const poor = { ...rr.save, gold: 0 };
     expect(
       reduceGearPanel(up, poor, rr.state, { type: "upgradeShop" }).state.status,
-    ).toBe("Need 160g (have 0g)");
+    ).toBe("Need 120g (have 0g)");
     // Default rng when none is given.
     const noRng: GearPanelContext = {
       ...trader,
@@ -241,6 +249,6 @@ describe("shopPanelLogic", () => {
     const d = reduceGearPanel(noRng, s, state, { type: "upgradeShop" });
     expect(
       reduceGearPanel(noRng, d.save, d.state, { type: "reroll" }).save.gold,
-    ).toBe(80);
+    ).toBe(120);
   });
 });

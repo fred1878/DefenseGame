@@ -42,6 +42,10 @@ export type DefenseGameE2EApi = {
   getAttackMode(): string | null;
   /** HP of each living enemy in the active Defense scene. */
   getLivingEnemyHps(): number[];
+  /** Set melee / ranged / auto without attacking (validation bot). */
+  setAttackMode(mode: import("../config").AttackMode): void;
+  /** Living enemies' world positions and HP (win-model validation bot). */
+  getLivingEnemyPositions(): Array<{ x: number; y: number; hp: number }>;
   getEnemyCount(): number;
   setManualReturnToTown(on: boolean): void;
   nightEnded(): boolean;

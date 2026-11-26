@@ -48,6 +48,7 @@ import {
   shopUpgradeInfo,
   type PanelRow,
 } from "./gearPanel/shopPanelLogic";
+import { requestDetail, requestRows } from "./gearPanel/requestPanelLogic";
 
 type Button = ReturnType<typeof createTouchButton>;
 
@@ -61,7 +62,7 @@ type ListRow = {
   bg: Phaser.GameObjects.Rectangle;
   name: Phaser.GameObjects.Text;
   meta: Phaser.GameObjects.Text;
-  /** Bag: item uid. Shop: offer index. */
+  /** Bag: item uid. Shop: offer index. Requests: request index. */
   key: number | null;
 };
 
@@ -103,12 +104,14 @@ export class GearPanel {
   private readonly rows: ListRow[] = [];
   private readonly shopTab: Button | null = null;
   private readonly bagTab: Button | null = null;
+  private readonly requestsTab: Button | null = null;
   private readonly sortBtn: Button;
   private readonly prevBtn: Button;
   private readonly nextBtn: Button;
   private readonly equipBtn: Button;
   private readonly unequipBtn: Button;
   private readonly buyBtn: Button;
+  private readonly fillBtn: Button;
   private readonly sellBtn: Button;
   private readonly upgradeBtn: Button;
   private readonly rerollBtn: Button;
@@ -214,41 +217,53 @@ export class GearPanel {
     this.bagTitle = text(left, listHeadY - scaleUiY(9), 15, "#f4f4f5");
     if (this.ctx.shop) {
       this.shopTab = this.button(
-        left + scaleUiX(48),
+        left + scaleUiX(40),
         listHeadY,
         "Shop",
-        96,
+        80,
         26,
         TAB_ON,
         0xfbbf24,
         () => this.dispatch({ type: "tab", tab: "shop" }),
       );
       this.bagTab = this.button(
-        left + scaleUiX(150),
+        left + scaleUiX(125),
         listHeadY,
         "Bag",
-        96,
+        80,
         26,
         TAB_OFF,
         0xa1a1aa,
         () => this.dispatch({ type: "tab", tab: "bag" }),
       );
+      if (this.ctx.shop.id === "trader") {
+        this.requestsTab = this.button(
+          left + scaleUiX(210),
+          listHeadY,
+          "Wants",
+          80,
+          26,
+          TAB_OFF,
+          0x34d399,
+          () => this.dispatch({ type: "tab", tab: "requests" }),
+        );
+      }
     }
     this.sortBtn = this.button(
-      GAME.width - left - scaleUiX(60),
+      GAME.width - left - scaleUiX(55),
       listHeadY,
       "Sort",
-      120,
+      110,
       26,
       0x3f3f46,
       0xa1a1aa,
       () => this.dispatch({ type: "sort" }),
     );
     this.rerollBtn = this.button(
-      GAME.width - left - scaleUiX(60),
+      GAME.width - left - scaleUiX(55),
       listHeadY,
       "Reroll",
-      120,
+      110,
       26,
       0x3f3f46,
       0xfbbf24,
@@ -280,9 +295,9 @@ export class GearPanel {
       bg.on("pointerup", () => {
         if (row.key === null) return;
         this.dispatch(
-          this.state.tab === "shop"
-            ? { type: "selectOffer", index: row.key }
-            : { type: "select", uid: row.key },
+          this.state.tab === "bag"
+            ? { type: "select", uid: row.key }
+            : { type: "selectOffer", index: row.key },
         );
       });
       this.rows.push(row);
@@ -386,6 +401,16 @@ export class GearPanel {
       0xfde047,
       () => this.dispatch({ type: "buy" }),
     );
+    this.fillBtn = this.button(
+      first,
+      actionY,
+      "Sell to trader",
+      112,
+      36,
+      0x047857,
+      0x34d399,
+      () => this.dispatch({ type: "fillRequest" }),
+    );
     this.sellBtn = this.button(
       left + third * 1.5,
       actionY,
@@ -460,6 +485,7 @@ export class GearPanel {
 
   private listRows(save: SaveGame): PanelRow[] {
     if (this.state.tab === "shop") return shopRows(this.ctx, save);
+    if (this.state.tab === "requests") return requestRows(this.ctx, save);
     return bagRows(this.ctx, save, this.state).map((r) => ({
       key: r.item.uid,
       name: r.name,
@@ -471,11 +497,21 @@ export class GearPanel {
   private emptyListHint(): string {
     if (this.state.tab === "bag")
       return "Bag is empty — win nights to find gear";
+    if (this.state.tab === "requests")
+      return "No requests left — new ones after the next night";
     return "Sold out — new stock after the next night";
   }
 
   private idleHint(save: SaveGame): string {
     const shop = this.ctx.shop;
+    if (shop && this.state.tab === "requests") {
+      const pct = shop.ctx.shops.trader.requests.payoutPct;
+      return [
+        `The trader pays ${pct}% of an item's value for what's on this list.`,
+        "New requests every night, picked from every item in the game, so you may never find a match.",
+        "Only bag items count; unequip gear first to sell it here.",
+      ].join("\n");
+    }
     if (!shop || this.state.tab !== "shop") return "";
     const info = shopUpgradeInfo(this.ctx, save);
     const lines: string[] = [];
@@ -502,6 +538,18 @@ export class GearPanel {
   }
 
   private detail(save: SaveGame): Detail | null {
+    if (this.state.tab === "requests") {
+      const d = requestDetail(this.ctx, save, this.state.selectedOffer);
+      if (!d) return null;
+      return {
+        name: d.name,
+        color: d.color,
+        lines: d.lines,
+        diffTitle: "",
+        diffs: [],
+        emptyDiffNote: "",
+      };
+    }
     if (this.state.tab === "shop") {
       const d = offerDetail(this.ctx, save, this.state.selectedOffer);
       if (!d) return null;
@@ -557,16 +605,19 @@ export class GearPanel {
     }
 
     const inShop = this.state.tab === "shop";
+    const inRequests = this.state.tab === "requests";
+    const inBag = this.state.tab === "bag";
     const bagLabel = `Bag ${bagItems(save.gear).length}/${loot.inventoryCapacity}`;
     if (this.shopTab && this.bagTab) {
       this.bagTitle.setText("");
       this.bagTab.setLabel(bagLabel);
       this.shopTab.container.setAlpha(inShop ? 1 : 0.6);
-      this.bagTab.container.setAlpha(inShop ? 0.6 : 1);
+      this.bagTab.container.setAlpha(inBag ? 1 : 0.6);
+      this.requestsTab?.container.setAlpha(inRequests ? 1 : 0.6);
     } else {
       this.bagTitle.setText(bagLabel);
     }
-    this.setVisible(this.sortBtn, !inShop);
+    this.setVisible(this.sortBtn, inBag);
     this.sortBtn.setLabel(`Sort: ${this.state.sort}`);
 
     const all = this.listRows(save);
@@ -574,9 +625,9 @@ export class GearPanel {
     this.pageText.setText(`${this.state.page + 1}/${pages}`);
     this.setEnabled(this.prevBtn, this.state.page > 0);
     this.setEnabled(this.nextBtn, this.state.page < pages - 1);
-    const selectedKey = inShop
-      ? this.state.selectedOffer
-      : this.state.selectedUid;
+    const selectedKey = inBag
+      ? this.state.selectedUid
+      : this.state.selectedOffer;
     const shown = visibleRows(all, this.state.page);
     this.rows.forEach((row, i) => {
       const r = shown[i];
@@ -617,9 +668,10 @@ export class GearPanel {
       ? offerDetail(this.ctx, save, this.state.selectedOffer)
       : null;
     this.setVisible(this.buyBtn, inShop);
-    this.setVisible(this.equipBtn, !inShop && !actions.canUnequip);
-    this.setVisible(this.unequipBtn, !inShop && actions.canUnequip);
-    this.setVisible(this.sellBtn, !inShop);
+    this.setVisible(this.fillBtn, inRequests);
+    this.setVisible(this.equipBtn, inBag && !actions.canUnequip);
+    this.setVisible(this.unequipBtn, inBag && actions.canUnequip);
+    this.setVisible(this.sellBtn, inBag);
     this.setVisible(this.upgradeBtn, inShop && !!upgrade);
     const nextCost = upgrade?.nextCost ?? null;
     this.setEnabled(this.upgradeBtn, nextCost !== null);
@@ -637,6 +689,12 @@ export class GearPanel {
     const canBuy = !!offer && !offer.soldOut && offer.price !== null;
     this.setEnabled(this.buyBtn, canBuy);
     this.buyBtn.setLabel(canBuy ? `Buy ${offer.price}g` : "Buy");
+    const request = inRequests
+      ? requestDetail(this.ctx, save, this.state.selectedOffer)
+      : null;
+    const payout = request?.payout ?? null;
+    this.setEnabled(this.fillBtn, payout !== null);
+    this.fillBtn.setLabel(payout !== null ? `Sell ${payout}g` : "Sell");
     this.statusText.setText(this.state.status);
   }
 
@@ -671,12 +729,14 @@ export class GearPanel {
     };
     add("gear-tab-shop", this.shopTab);
     add("gear-tab-bag", this.bagTab);
+    add("gear-tab-requests", this.requestsTab);
     add("gear-sort", this.sortBtn);
     add("gear-prev", this.prevBtn);
     add("gear-next", this.nextBtn);
     add("gear-equip", this.equipBtn);
     add("gear-unequip", this.unequipBtn);
     add("gear-buy", this.buyBtn);
+    add("gear-fill-request", this.fillBtn);
     add("gear-sell", this.sellBtn);
     add("gear-upgrade", this.upgradeBtn);
     add("gear-reroll", this.rerollBtn);

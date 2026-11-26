@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DataStore, EnemyDef, WaveDef } from "../core/DataStore";
 import { asScene, fakeScene } from "../test/fakeScene";
-import { scheduleWave } from "./WaveSpawner";
+import {
+  ELITE_HP_MUL,
+  groupHpMul,
+  scaledEnemyDef,
+  scheduleWave,
+} from "./WaveSpawner";
 
 const grunt: EnemyDef = {
   hp: 10,
@@ -82,5 +87,58 @@ describe("scheduleWave", () => {
     const [x, y] = spawnEnemy.mock.calls[0]!;
     expect(typeof x).toBe("number");
     expect(typeof y).toBe("number");
+  });
+
+  it("spawns hpMul groups with scaled HP, Elite-labelled at 2× and up", () => {
+    const scene = fakeScene();
+    const spawnEnemy = vi.fn();
+    const wave: WaveDef = {
+      groups: [
+        { enemyId: "grunt", count: 1, atMs: 0, intervalMs: 0, hpMul: 1.25 },
+        { enemyId: "grunt", count: 1, atMs: 10, intervalMs: 0, hpMul: 2.5 },
+      ],
+    } as WaveDef;
+    scheduleWave(
+      asScene(scene),
+      store({ grunt }),
+      wave,
+      { spawnEnemy, markSpawnPlanComplete: vi.fn() },
+      true,
+    );
+    scene.delayed[0]!.fn();
+    scene.delayed[1]!.fn();
+    expect(spawnEnemy.mock.calls[0]![2]).toMatchObject({
+      hp: 13,
+      displayName: "Grunt",
+    });
+    expect(spawnEnemy.mock.calls[1]![2]).toMatchObject({
+      hp: 25,
+      displayName: "Elite Grunt",
+    });
+  });
+});
+
+describe("wave hpMul helpers", () => {
+  const g = (hpMul?: number) => ({
+    enemyId: "grunt",
+    count: 1,
+    atMs: 0,
+    intervalMs: 0,
+    ...(hpMul === undefined ? {} : { hpMul }),
+  });
+
+  it("treats missing or invalid multipliers as 1", () => {
+    expect(groupHpMul(g())).toBe(1);
+    expect(groupHpMul(g(0))).toBe(1);
+    expect(groupHpMul(g(-2))).toBe(1);
+    expect(groupHpMul(g(Number.NaN))).toBe(1);
+    expect(groupHpMul(g(1.5))).toBe(1.5);
+  });
+
+  it("returns the same def at 1× and never drops below 1 HP", () => {
+    expect(scaledEnemyDef(grunt, 1)).toBe(grunt);
+    expect(scaledEnemyDef(grunt, 0.01).hp).toBe(1);
+    expect(scaledEnemyDef(grunt, ELITE_HP_MUL).displayName).toBe("Elite Grunt");
+    expect(grunt.hp).toBe(10);
   });
 });

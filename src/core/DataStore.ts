@@ -70,6 +70,16 @@ export type WaveGroup = {
   enemyId: string;
   count: number;
   intervalMs: number;
+  /**
+   * Optional HP multiplier for this group (default 1). Groups at 2× or more
+   * spawn as "Elite" enemies (nameplate prefix).
+   */
+  hpMul?: number;
+  /**
+   * Optional damage multiplier for this group (default 1): scales the enemy's
+   * hit, wall hit and ranged / charge damage.
+   */
+  damageMul?: number;
 };
 
 export type WaveDef = {

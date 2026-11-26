@@ -69,7 +69,7 @@ import type {
   DefenseMinimap,
   defenseMinimapLayout,
 } from "../ui/defenseMinimap";
-import { isE2EEnabled } from "../e2e/e2eMode";
+import { e2eCampaignWavesFromQuery, isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import {
   createDefenseSceneE2eHost,
@@ -490,9 +490,13 @@ export class DefenseScene extends Phaser.Scene {
     if (endless) {
       this.spawnPlanComplete = true;
       this.ensureEndlessSpawnCap();
-    } else if (wave && (!isE2EEnabled() || wavePlanner)) {
+    } else if (
+      wave &&
+      (!isE2EEnabled() || wavePlanner || e2eCampaignWavesFromQuery())
+    ) {
       // E2E skips campaign waves (tests spawn their own enemies), but a wave
-      // planner run is an explicit player-built plan, so it always runs.
+      // planner run is an explicit player-built plan, so it always runs, and
+      // `campaignWaves=1` opts a validation run into the real night.
       scheduleDefenseWave(
         this,
         store,
@@ -503,7 +507,7 @@ export class DefenseScene extends Phaser.Scene {
             this.spawnPlanComplete = true;
           },
         },
-        isE2EEnabled(),
+        isE2EEnabled() && !e2eCampaignWavesFromQuery(),
       );
     } else if (isE2EEnabled()) {
       this.spawnPlanComplete = false;

@@ -1,17 +1,17 @@
 {
   "wall": {
-    "maxLevel": 5,
-    "costByLevel": [50, 80, 120, 180, 250],
+    "maxLevel": 8,
+    "costByLevel": [50, 80, 120, 180, 250, 320, 400, 480],
     "effect": "wallHpMax"
   },
   "trader": {
     "maxLevel": 3,
-    "costByLevel": [90, 160, 260],
+    "costByLevel": [60, 120, 200],
     "effect": "shopLevel"
   },
   "blacksmith": {
     "maxLevel": 3,
-    "costByLevel": [100, 180, 280],
+    "costByLevel": [80, 140, 220],
     "effect": "shopLevel"
   }
 }

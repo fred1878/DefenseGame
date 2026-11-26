@@ -17,6 +17,7 @@ export const LOOT_FILE_BOOT_KEYS = [
 export const LOOT_TABLE_BOOT_KEYS = [
   "minRolls",
   "maxRolls",
+  "rollWeights",
   "minItemLevelOffset",
   "maxItemLevelOffset",
   "rarityByLevel",
@@ -31,7 +32,7 @@ function normalizeTable(id: string, raw: unknown): LootTable {
     row,
     ["minRolls", "maxRolls", "minItemLevelOffset", "maxItemLevelOffset"],
     path,
-  ) as Omit<LootTable, "rarityByLevel">;
+  ) as Omit<LootTable, "rarityByLevel" | "rollWeights">;
   if (nums.maxRolls < nums.minRolls) {
     throw new ConfigLoadError(`${path}.maxRolls must be >= minRolls`);
   }
@@ -64,7 +65,32 @@ function normalizeTable(id: string, raw: unknown): LootTable {
     };
   });
   rarityByLevel.sort((a, b) => a.fromLevel - b.fromLevel);
-  return { ...nums, rarityByLevel };
+  const rollWeights = normalizeRollWeights(row.rollWeights, nums, path);
+  return rollWeights
+    ? { ...nums, rollWeights, rarityByLevel }
+    : { ...nums, rarityByLevel };
+}
+
+/** Optional `rollWeights`: one weight per count from minRolls to maxRolls. */
+function normalizeRollWeights(
+  raw: unknown,
+  nums: { minRolls: number; maxRolls: number },
+  path: string,
+): number[] | undefined {
+  if (raw === undefined) return undefined;
+  const expected = nums.maxRolls - nums.minRolls + 1;
+  if (!Array.isArray(raw) || raw.length !== expected) {
+    throw new ConfigLoadError(
+      `${path}.rollWeights must list ${expected} weights (minRolls..maxRolls)`,
+    );
+  }
+  return raw.map((w, i) => {
+    const n = requireFiniteNumber(w, `${path}.rollWeights[${i}]`);
+    if (n < 0) {
+      throw new ConfigLoadError(`${path}.rollWeights[${i}] must be >= 0`);
+    }
+    return n;
+  });
 }
 
 /** Validate `public/data/loot.json` (bag size, sell-back rate, drop tables). */

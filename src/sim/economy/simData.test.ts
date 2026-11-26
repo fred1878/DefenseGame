@@ -41,6 +41,7 @@ describe("simData", () => {
   it("applies --set paths including array indices", () => {
     const raw = defaultRawData();
     applySetOverride(raw, "loot.tables.nightWon.maxRolls=4");
+    applySetOverride(raw, "loot.tables.nightWon.rollWeights=[4,3,2,1]");
     applySetOverride(raw, "shops.trader.consumables.0.qty = 9");
     applySetOverride(raw, "waves.1.rewardGold=999");
     const data = loadSimData(raw);
@@ -87,8 +88,8 @@ describe("simData", () => {
         "2": {
           rewardGold: 10,
           groups: [
-            { atMs: 0, enemyId: "a", count: 2, intervalMs: 1000 },
-            { atMs: 5000, enemyId: "b", count: 1, intervalMs: 0 },
+            { atMs: 0, enemyId: "a", count: 2, intervalMs: 1000, hpMul: -1 },
+            { atMs: 5000, enemyId: "b", count: 1, intervalMs: 0, hpMul: 2 },
           ],
         },
         "1": { rewardGold: 5 },
@@ -109,7 +110,7 @@ describe("simData", () => {
       night: 2,
       rewardGold: 10,
       enemyCount: 3,
-      totalHp: 70,
+      totalHp: 120,
       totalDamage: 4,
       totalWallDamage: 6,
       spawnSpanSec: 5,

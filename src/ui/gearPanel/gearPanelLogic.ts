@@ -23,6 +23,7 @@ import type { Rng } from "../../gear/rng";
 import {
   buyOffer,
   ensureShopStock,
+  fillTraderRequest,
   rerollTrader,
   shopOffers,
   type ShopContext,
@@ -32,11 +33,12 @@ import { upgradeShop } from "../../systems/townBuildingMenu";
 
 export const GEAR_PANEL_ROWS_PER_PAGE = 6;
 
-export type GearPanelTab = "bag" | "shop";
+/** `requests` is the trader's buy-request list (trader panel only). */
+export type GearPanelTab = "bag" | "shop" | "requests";
 
 export type GearPanelState = {
   tab: GearPanelTab;
-  /** Selected shop offer index (shop tab). */
+  /** Selected shop offer index (shop tab) or request index (requests tab). */
   selectedOffer: number | null;
   sort: ItemSortMode;
   page: number;
@@ -57,7 +59,8 @@ export type GearPanelCommand =
   | { type: "selectOffer"; index: number }
   | { type: "buy" }
   | { type: "upgradeShop" }
-  | { type: "reroll" };
+  | { type: "reroll" }
+  | { type: "fillRequest" };
 
 export type GearPanelContext = {
   catalog: GearCatalog;
@@ -95,6 +98,9 @@ export function tabRowCount(
 ): number {
   if (state.tab === "shop" && ctx.shop) {
     return shopOffers(save, ctx.shop.ctx, ctx.shop.id).length;
+  }
+  if (state.tab === "requests") {
+    return ctx.shop?.id === "trader" ? (save.shops.requests ?? []).length : 0;
   }
   return bagRows(ctx, save, state).length;
 }
@@ -286,6 +292,20 @@ export function reduceGearPanel(
           ...state,
           selectedOffer: null,
           page: 0,
+          status: r.message,
+        }),
+      };
+    }
+    case "fillRequest": {
+      if (ctx.shop?.id !== "trader" || state.selectedOffer === null) {
+        return { save, state };
+      }
+      const r = fillTraderRequest(save, ctx.shop.ctx, state.selectedOffer);
+      return {
+        save: r.save,
+        state: clampPage(ctx, r.save, {
+          ...state,
+          selectedOffer: r.ok ? null : state.selectedOffer,
           status: r.message,
         }),
       };

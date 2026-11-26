@@ -428,7 +428,7 @@ Bag size, sell-back rate and gear drop tables. `nightWon` / `nightLost` roll at 
 | Field | Meaning |
 |-------|---------|
 | `inventoryCapacity` | Max unequipped items in the bag; drops beyond it are sold automatically. |
-| `sellBackPct` | Percent of an item's price paid when selling it (50 = half price). |
+| `sellBackPct` | Percent of an item's price paid when selling it (30 = 30% of the price). |
 | `lostNightGoldPct` | Percent of a night's `rewardGold` paid when a campaign night is lost (default 25). |
 | `tables` | Object keyed by table id (`nightWon`, `nightLost`; more can be added for adventures). |
 
@@ -438,6 +438,7 @@ Each table:
 |-------|---------|
 | `minRolls` | Fewest items rolled per drop (integer, can be 0). |
 | `maxRolls` | Most items rolled per drop (integer, ≥ minRolls). |
+| `rollWeights` | Optional array with one weight per item count from minRolls to maxRolls (e.g. `[80, 20]` with 1–2 rolls = one item 80%, two 20%); missing = every count equally likely. |
 | `minItemLevelOffset` | Lowest offset added to the level (night) for each item's item level. |
 | `maxItemLevelOffset` | Highest offset added to the level for each item's item level. |
 | `rarityByLevel` | Array of `{ fromLevel, weights }` bands; the highest band at or below the item level applies. |
@@ -486,7 +487,7 @@ Each bomb:
 
 **TypeScript:** [ShopsConfig](../src/gear/shops.ts) — [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts).
 
-Town shops. The trader (night Market Stall) rolls new random stock after every campaign night; the blacksmith (Moon Brazier) sells a fixed catalogue of plain bases that unlocks with nights. Items sell back for `loot.json` sellBackPct of their item price.
+Town shops. The trader (night Market Stall) rolls new random stock and new buy requests after every campaign night; the blacksmith (Moon Brazier) sells a fixed catalogue of plain bases that unlocks with nights. Items sell back for `loot.json` sellBackPct of their item price.
 
 Both shops can be upgraded in their shop panel. Level costs and the max level live in `buildings.json` (`trader`, `blacksmith`, effect `shopLevel`); what each level does lives here in `levels`. Level N applies the rows `levels[0..N-1]` in order on top of the base fields, so a row only lists what changes. The bought level is saved in the save's `buildings` map.
 
@@ -505,8 +506,13 @@ Trader:
 | `minItemLevelOffset` | Lowest offset added to the current night for each item's item level. |
 | `maxItemLevelOffset` | Highest offset added to the current night for each item's item level. |
 | `rarityWeights` | Rarity id → relative weight for trader items (rarity `minItemLevel` still applies; missing rarities never roll). |
-| `rerollCost` | Gold to reroll the day's trader stock from the shop panel; 0 hides the Reroll button. |
-| `levels` | Upgrade rows (level 1, 2, …). Each row may override `itemCount`, `minItemLevelOffset`, `maxItemLevelOffset`, `priceMulPct`, `rarityWeights` and `rerollCost` (trader) or `priceMulPct`, `stockCount`, `stockItemLevelOffset`, `stockRarityWeights` and `unlockNightsEarly` (blacksmith). |
+| `rerollCost` | Gold to reroll the day's trader stock from the shop panel; 0 hides the Reroll button. A paid reroll does not change the buy requests. |
+| `requestCount` | Buy requests the trader posts each night (Wants tab); 0 = none. |
+| `requests` | Buy-request settings: `payoutPct`, `kindWeights`, `minRarityWeights` (below). Requests are rolled from every item in items.json, so the player may never own a match. |
+| `payoutPct` | Gold paid for a matching bag item as a percent of its value (its item price before shop markup); 150 = 1.5× value. Default 150. |
+| `kindWeights` | Relative odds of each request kind: `base` (one specific base item, any rarity), `type` (any item of a slot type at or above a minimum rarity, e.g. "Rare+ Ring") and `unique` (one specific unique). Kinds left out never roll. |
+| `minRarityWeights` | Rarity id → relative weight for the minimum rarity of `type` requests (missing rarities never roll). |
+| `levels` | Upgrade rows (level 1, 2, …). Each row may override `itemCount`, `minItemLevelOffset`, `maxItemLevelOffset`, `priceMulPct`, `rarityWeights`, `rerollCost` and `requestCount` (trader) or `priceMulPct`, `stockCount`, `stockItemLevelOffset`, `stockRarityWeights` and `unlockNightsEarly` (blacksmith). |
 | `consumables` | Array of `{ id, qty, chancePct }` consumable offers rolled per day. |
 | `id` | consumables.json id offered. |
 | `qty` | Charges in stock that day. |
@@ -683,8 +689,10 @@ Each group:
 | `enemyId` | Key referencing a row in enemies.json. |
 | `count` | Number of enemies to spawn in this group. |
 | `intervalMs` | Ms between consecutive spawns within the group. |
+| `hpMul` | Optional HP multiplier for every enemy in the group (default 1). At 2× or more the enemies spawn as "Elite" (nameplate prefix). Used for late-night elites. |
+| `damageMul` | Optional damage multiplier for every enemy in the group (default 1): scales the enemy's hit (`damage`), wall hit and ranged / charge damage (`combat` keys named `damage` or ending in `Damage`). Used for late-night tough groups and elites. |
 
-`DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`.
+`DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`. The campaign has nights 1–20; after night 20 the night-20 wave repeats (there is no end screen yet).
 
 ---
 

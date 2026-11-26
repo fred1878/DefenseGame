@@ -124,7 +124,7 @@ export type NightDifficulty = {
   night: number;
   rewardGold: number;
   enemyCount: number;
-  /** Sum of enemy HP. */
+  /** Sum of enemy HP (group `hpMul` applied; damage totals use `damageMul`). */
   totalHp: number;
   /** Sum of one hit from every enemy against the player. */
   totalDamage: number;
@@ -144,6 +144,8 @@ type RawGroup = {
   enemyId?: unknown;
   count?: unknown;
   intervalMs?: unknown;
+  hpMul?: unknown;
+  damageMul?: unknown;
 };
 
 const num = (v: unknown): number =>
@@ -177,9 +179,11 @@ export function waveDifficulties(
       }
       const count = num(g.count);
       d.enemyCount += count;
-      d.totalHp += count * num(enemy.hp);
-      d.totalDamage += count * num(enemy.damage);
-      d.totalWallDamage += count * num(enemy.combat?.wall?.damage);
+      const hpMul = num(g.hpMul) > 0 ? num(g.hpMul) : 1;
+      const dmgMul = num(g.damageMul) > 0 ? num(g.damageMul) : 1;
+      d.totalHp += count * num(enemy.hp) * hpMul;
+      d.totalDamage += count * num(enemy.damage) * dmgMul;
+      d.totalWallDamage += count * num(enemy.combat?.wall?.damage) * dmgMul;
       const lastMs = num(g.atMs) + Math.max(0, count - 1) * num(g.intervalMs);
       d.spawnSpanSec = Math.max(d.spawnSpanSec, lastMs / 1000);
     }

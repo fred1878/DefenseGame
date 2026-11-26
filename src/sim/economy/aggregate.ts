@@ -37,6 +37,7 @@ export const NIGHT_METRICS = {
   spentConsumables: (r: NightRecord) => r.spentConsumables,
   spentShops: (r: NightRecord) => r.spentShops,
   spentRerolls: (r: NightRecord) => r.spentRerolls,
+  requestGold: (r: NightRecord) => r.requestGold,
   traderLevel: (r: NightRecord) => r.traderLevel,
   blacksmithLevel: (r: NightRecord) => r.blacksmithLevel,
   goldBanked: (r: NightRecord) => r.goldBanked,
@@ -76,6 +77,8 @@ export type NightAggregate = {
   autoSoldPerRun: number;
   /** Average consumables used on this night per run. */
   consumablesPerRun: number;
+  /** Average buy-request gold on this night per run (all attempts). */
+  requestGoldPerRun: number;
   metrics: Record<NightMetric, Percentiles>;
   /** Average equipped items of each rarity after this night. */
   equippedRarity: RarityCounts;
@@ -99,6 +102,15 @@ export type StrategySummary = {
   totalSpentShops: Percentiles;
   totalSpentRerolls: Percentiles;
   rerolls: Percentiles;
+  /** Trader buy requests over the run: gold paid and requests filled. */
+  totalRequestGold: Percentiles;
+  requestsFilled: Percentiles;
+  /** Mean buy-request gold per run (the median is often 0). */
+  requestGoldMean: number;
+  /** Requests filled ÷ requests posted, %. */
+  requestFillPct: number;
+  /** Mean gold per filled request. */
+  requestGoldPerFill: number;
   finalTraderLevel: Percentiles;
   finalBlacksmithLevel: Percentiles;
   /** Nights whose median power ratio is flagged too easy / too hard. */
@@ -142,6 +154,7 @@ export function aggregateRuns(
     let losses = 0;
     let autoSold = 0;
     let consumables = 0;
+    let requestGold = 0;
     for (const run of runs) {
       const recs = run.records.filter((r) => r.night === diff.night);
       if (!recs.length) continue;
@@ -149,6 +162,7 @@ export function aggregateRuns(
       losses += recs.filter((r) => !r.won).length;
       autoSold += sum(recs.map((r) => r.autoSold));
       consumables += sum(recs.map((r) => r.consumablesUsed));
+      requestGold += sum(recs.map((r) => r.requestGold));
     }
     const reached = Math.max(1, finals.length);
     const metrics = Object.fromEntries(
@@ -167,6 +181,7 @@ export function aggregateRuns(
       lossesPerRun: losses / reached,
       autoSoldPerRun: autoSold / reached,
       consumablesPerRun: consumables / reached,
+      requestGoldPerRun: requestGold / reached,
       metrics,
       equippedRarity,
       flag: !finals.length
@@ -191,7 +206,15 @@ export function aggregateRuns(
   let fromTrader = 0;
   let fromShop = 0;
   let equippedTotal = 0;
+  let requestGoldAll = 0;
+  let filledAll = 0;
+  let postedAll = 0;
   for (const run of runs) {
+    for (const r of run.records) {
+      requestGoldAll += r.requestGold;
+      filledAll += r.requestsFilled;
+      postedAll += r.requestsPosted;
+    }
     for (const r of run.records) addCounts(dropRarity, r.dropRarity);
     const l = last(run);
     if (l) {
@@ -216,6 +239,11 @@ export function aggregateRuns(
     totalSpentShops: per(total((r) => r.spentShops)),
     totalSpentRerolls: per(total((r) => r.spentRerolls)),
     rerolls: per(total((r) => r.rerolls)),
+    totalRequestGold: per(total((r) => r.requestGold)),
+    requestsFilled: per(total((r) => r.requestsFilled)),
+    requestGoldMean: requestGoldAll / n,
+    requestFillPct: postedAll ? (100 * filledAll) / postedAll : 0,
+    requestGoldPerFill: filledAll ? requestGoldAll / filledAll : 0,
     finalTraderLevel: per((r) => last(r)?.traderLevel ?? 0),
     finalBlacksmithLevel: per((r) => last(r)?.blacksmithLevel ?? 0),
     easyNights: nights.filter((x) => x.flag === "too easy").map((x) => x.night),
