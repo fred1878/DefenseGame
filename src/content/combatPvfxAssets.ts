@@ -88,6 +88,22 @@ export const PVFX_FX_ASSETS = [
     frameCount: 18,
     frameRate: 1000 / 70,
   },
+  {
+    key: "fx_pvfx_fire_pillar",
+    file: "fire-fire-pillar.png",
+    frameWidth: 64,
+    frameHeight: 112,
+    frameCount: 24,
+    frameRate: 1000 / 70,
+  },
+  {
+    key: "fx_pvfx_ground_flames",
+    file: "fire-ground-flames.png",
+    frameWidth: 64,
+    frameHeight: 40,
+    frameCount: 16,
+    frameRate: 1000 / 75,
+  },
 ] as const;
 
 export const PVFX_TEXTURE = {
@@ -101,6 +117,8 @@ export const PVFX_TEXTURE = {
   shadowCast: "fx_pvfx_shadow_cast",
   flameRing: "fx_pvfx_flame_ring",
   incinerate: "fx_pvfx_incinerate",
+  firePillar: "fx_pvfx_fire_pillar",
+  groundFlames: "fx_pvfx_ground_flames",
 } as const;
 
 export const PVFX_ANIM = {
@@ -115,6 +133,8 @@ export const PVFX_ANIM = {
   shadowCast: "pvfx_shadow_cast",
   flameRing: "pvfx_flame_ring",
   incinerate: "pvfx_incinerate",
+  firePillar: "pvfx_fire_pillar",
+  groundFlamesLoop: "pvfx_ground_flames_loop",
 } as const;
 
 export const PVFX_ICE_SHATTER_STUN_LOOP_FRAMES = 3;
@@ -283,6 +303,11 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
       texture: PVFX_TEXTURE.incinerate,
       key: PVFX_TEXTURE.incinerate,
     },
+    {
+      anim: PVFX_ANIM.firePillar,
+      texture: PVFX_TEXTURE.firePillar,
+      key: PVFX_TEXTURE.firePillar,
+    },
   ] as const) {
     const entry = PVFX_FX_ASSETS.find((a) => a.key === oneShot.key)!;
     createOnce(
@@ -294,4 +319,16 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
       0,
     );
   }
+
+  const groundFlames = PVFX_FX_ASSETS.find(
+    (a) => a.key === PVFX_TEXTURE.groundFlames,
+  )!;
+  createOnce(
+    PVFX_ANIM.groundFlamesLoop,
+    PVFX_TEXTURE.groundFlames,
+    0,
+    groundFlames.frameCount - 1,
+    groundFlames.frameRate,
+    -1,
+  );
 }

@@ -3,8 +3,11 @@ import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
+import * as FlamestrikePvfx from "../../combat/FlamestrikePvfx";
 import * as SpellGroundAoeTelegraph from "../../combat/SpellGroundAoeTelegraph";
+import { PVFX_ANIM, PVFX_FX_ASSETS } from "../../content/combatPvfxAssets";
 import { spellById } from "../../content/spells";
+import { asScene, fakeScene } from "../../test/fakeScene";
 
 function spellDirectorTestHost(
   overrides: Partial<DefenseSpellDirectorHost> = {},
@@ -15,22 +18,14 @@ function spellDirectorTestHost(
   };
   let lingerAoeTelegraph: DefenseSpellDirectorHost["lingerAoeTelegraph"] = null;
   const maskWorldObject = vi.fn();
-  const gfx = {
-    setDepth: vi.fn(),
-    clear: vi.fn(),
-    lineStyle: vi.fn(),
-    fillStyle: vi.fn(),
-    strokeCircle: vi.fn(),
-    fillCircle: vi.fn(),
-    destroy: vi.fn(),
-  };
+  const scene = asScene(
+    fakeScene({
+      textures: PVFX_FX_ASSETS.map((a) => a.key),
+      anims: Object.values(PVFX_ANIM),
+    }),
+  );
   return {
-    scene: {
-      registry: { get: () => undefined },
-      add: { graphics: () => gfx },
-      cache: { audio: { exists: () => false } },
-      sound: { play: vi.fn() },
-    } as unknown as Phaser.Scene,
+    scene,
     save: { buildings: {} } as unknown as DefenseSpellDirectorHost["save"],
     player: player as unknown as DefenseSpellDirectorHost["player"],
     enemies: [],
@@ -81,10 +76,14 @@ function spellDirectorTestHost(
 }
 
 describe("DefenseSpellDirector linger AoE telegraph", () => {
-  it("spawns and registers a linger telegraph for flamestrike", () => {
+  it("uses PVFX ground flames for flamestrike linger instead of a procedural telegraph", () => {
     const registerSpy = vi.spyOn(
       SpellGroundAoeTelegraph,
       "registerSpellGroundAoeTelegraphWorld",
+    );
+    const flamesSpy = vi.spyOn(
+      FlamestrikePvfx,
+      "spawnFlamestrikeGroundFlamesLinger",
     );
     const host = spellDirectorTestHost();
     const director = new DefenseSpellDirector(host);
@@ -93,12 +92,13 @@ describe("DefenseSpellDirector linger AoE telegraph", () => {
 
     director.spawnPostChannelLinger(def!);
 
-    expect(host.lingerAoeTelegraph).not.toBeNull();
+    expect(host.lingerAoeTelegraph).toBeNull();
     expect(host.spellGroundZones).toHaveLength(1);
-    expect(registerSpy).toHaveBeenCalledWith(
-      host.lingerAoeTelegraph,
-      host.maskWorldObject,
-    );
+    expect(host.spellGroundZones[0]?.destroyLingerFx).toBeTypeOf("function");
+    expect(registerSpy).not.toHaveBeenCalled();
+    expect(flamesSpy).toHaveBeenCalled();
+    expect(host.flashNova).not.toHaveBeenCalled();
     registerSpy.mockRestore();
+    flamesSpy.mockRestore();
   });
 });

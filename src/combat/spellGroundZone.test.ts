@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type Phaser from "phaser";
 import type { SpellDefinition } from "../content/spells";
 import type { Damageable } from "./DamageSystem";
@@ -218,6 +218,30 @@ describe("spellGroundZone channeled damage", () => {
       1,
     );
     expect(damageable.hp).toBe(20);
+  });
+
+  it("invokes destroyLingerFx when a linger zone expires", () => {
+    const def: SpellDefinition = {
+      ...channeledGroundDef(0),
+      lingerMs: 500,
+      onHit: { dotDps: 4, dotMs: 500 },
+    };
+    const destroy = vi.fn();
+    const zone = spawnGroundZone(mockScene(), def, 0, 0, 1, 0, {
+      durationMs: 500,
+      lingerDot: true,
+    });
+    zone.destroyLingerFx = destroy;
+    tickSpellGroundZones(
+      mockScene(),
+      [zone],
+      600,
+      0,
+      [],
+      new EnemySpellStatusMap(),
+      1,
+    );
+    expect(destroy).toHaveBeenCalledOnce();
   });
 
   it("ticks linger DoT without counting channel remainder ticks", () => {

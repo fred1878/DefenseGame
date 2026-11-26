@@ -15,6 +15,7 @@ import {
   isChanneledHealSpell,
 } from "../../combat/channeledHealChannel";
 import { showFireNovaRingFx } from "../../combat/FireNovaRingFx";
+import { playFlamestrikeFirePillarBurst } from "../../combat/FlamestrikePvfx";
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
@@ -90,12 +91,17 @@ export function resolveDefenseSpellEffect(
           meteorStrikeFxFlipX(px, bx),
           host.maskWorldObject,
         );
+      } else if (def.id === "flamestrike") {
+        playFlamestrikeFirePillarBurst(
+          host.scene,
+          bx,
+          by,
+          blastRadiusPx,
+          host.maskWorldObject,
+        );
       } else {
         host.flashNova(bx, by, blastRadiusPx, {
-          blastTextureKey:
-            def.id === "flamestrike"
-              ? COMBAT_FX_TEXTURE.spellFireNova
-              : def.blastTextureKey,
+          blastTextureKey: def.blastTextureKey,
         });
       }
       break;

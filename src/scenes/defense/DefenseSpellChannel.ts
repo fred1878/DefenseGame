@@ -31,6 +31,7 @@ import {
 import { spawnGroundZone } from "../../combat/spellGroundZone";
 import { PLAYER_TUNING } from "../../config";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
+import { spawnFlamestrikeGroundFlamesLinger } from "../../combat/FlamestrikePvfx";
 import {
   playFireWhooshSfx,
   spellPlaysFireWhooshOnChanneledAreaStart,
@@ -319,31 +320,50 @@ export function spawnDefensePostChannelLinger(
     x: host.player.sprite.x,
     y: host.player.sprite.y,
   };
-  host.spellGroundZones.push(
-    spawnGroundZone(host.scene, def, center.x, center.y, mult, host.timeNow(), {
-      durationMs: def.lingerMs,
-      lingerDot: true,
-    }),
-  );
-  clearLingerAoeTelegraph();
-  const radiusWu = host.wu(def.blastRadiusWu!);
-  host.lingerAoeTelegraph = spawnSpellGroundAoeTelegraph(
+  const radiusPx = host.wu(def.blastRadiusWu!);
+  const zone = spawnGroundZone(
     host.scene,
+    def,
     center.x,
     center.y,
-    radiusWu,
-    spellGroundAoePalette(def),
-    1,
-    "channel",
+    mult,
+    host.timeNow(),
+    {
+      durationMs: def.lingerMs,
+      lingerDot: true,
+    },
   );
-  registerSpellGroundAoeTelegraphWorld(
-    host.lingerAoeTelegraph,
-    host.maskWorldObject,
-  );
-  updateSpellGroundAoeTelegraph(host.lingerAoeTelegraph, 0, "channel", 1);
-  host.flashNova(center.x, center.y, radiusWu, {
-    blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
-  });
+  if (def.id === "flamestrike") {
+    const lingerFx = spawnFlamestrikeGroundFlamesLinger(
+      host.scene,
+      center.x,
+      center.y,
+      radiusPx,
+      host.maskWorldObject,
+    );
+    zone.destroyLingerFx = lingerFx.destroy;
+    clearLingerAoeTelegraph();
+  } else {
+    clearLingerAoeTelegraph();
+    host.lingerAoeTelegraph = spawnSpellGroundAoeTelegraph(
+      host.scene,
+      center.x,
+      center.y,
+      radiusPx,
+      spellGroundAoePalette(def),
+      1,
+      "channel",
+    );
+    registerSpellGroundAoeTelegraphWorld(
+      host.lingerAoeTelegraph,
+      host.maskWorldObject,
+    );
+    updateSpellGroundAoeTelegraph(host.lingerAoeTelegraph, 0, "channel", 1);
+    host.flashNova(center.x, center.y, radiusPx, {
+      blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
+    });
+  }
+  host.spellGroundZones.push(zone);
   if (spellPlaysFireWhooshOnChannelLinger(def)) {
     playFireWhooshSfx(host.scene);
   }
