@@ -20,14 +20,15 @@ export type WavePlannerSetupLaunchData = {
 /** Freeze Town chrome so its interactives stay out of the input stack. */
 export function pauseTownForSetup(town: Phaser.Scene): void {
   const key = town.scene.key;
-  if (!town.scene.isPaused(key)) {
+  const paused = town.scene.isPaused?.(key) === true;
+  if (!paused) {
     town.scene.pause(key);
   }
 }
 
 export function resumeTownFromSetup(town: Phaser.Scene): void {
   const key = town.scene.key;
-  if (town.scene.isPaused(key)) {
+  if (town.scene.isPaused?.(key) === true) {
     town.scene.resume(key);
   }
 }
