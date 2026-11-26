@@ -6,6 +6,7 @@ import {
   persistSave,
   prepareDefenseNight,
   resetSaveAndReload,
+  syncPlayerHpMax,
 } from "../core/GameState";
 import { showTouchInput } from "../debug/DebugState";
 import { applyGearLoadout } from "../gear/gearRuntime";
@@ -24,7 +25,10 @@ import {
   popInputModality,
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
-import type { createTouchButton } from "../ui/touchButton";
+import {
+  type createTouchButton,
+  interactiveObjectScreenRect,
+} from "../ui/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import type { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
@@ -75,6 +79,7 @@ export class TownScene extends Phaser.Scene {
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
   private debugButton!: ReturnType<typeof createTouchButton>;
+  private gearButton!: ReturnType<typeof createTouchButton>;
   private fullscreenButton!: ReturnType<typeof createTouchButton>;
   private updateButton: ReturnType<typeof createTouchButton> | undefined;
   private buildingControls = new Map<string, TownBuildingControl>();
@@ -97,6 +102,7 @@ export class TownScene extends Phaser.Scene {
         this.beginWavePlannerDefense(groups),
       ),
     onLoadSaveSlot: (save) => this.applyLoadedSave(save),
+    onGearChanged: (save) => this.applyGearChange(save),
   });
   private readonly onInputModalityChanged = (): void =>
     this.syncTownBaseInput();
@@ -141,9 +147,15 @@ export class TownScene extends Phaser.Scene {
 
     const buttons = createTownHeaderButtons(this, {
       onDebug: () => this.overlays.launchDebugMenu(),
+      onGear: () => {
+        // e2e `setSave` writes the registry only; reopen on the latest save.
+        this.save = this.registry.get("save") as SaveGame;
+        this.overlays.openGearPanel();
+      },
       onReset: () => this.onResetTap(),
     });
     this.debugButton = buttons.debugButton;
+    this.gearButton = buttons.gearButton;
     this.fullscreenButton = buttons.fullscreenButton;
     this.resetButton = buttons.resetButton;
     this.updateButton = buttons.updateButton;
@@ -200,7 +212,19 @@ export class TownScene extends Phaser.Scene {
       return host.e2eGetUiTapTargets();
     }
     const store = this.registry.get("dataStore") as DataStore;
-    return collectTownUiTapTargets(store, this.buildingControls, this.overlays);
+    const out = collectTownUiTapTargets(
+      store,
+      this.buildingControls,
+      this.overlays,
+    );
+    const gear = interactiveObjectScreenRect(this.gearButton.container);
+    if (gear && !blocksBaseLayerInput(this)) {
+      out["town-gear"] = {
+        x: gear.x + gear.width / 2,
+        y: gear.y + gear.height / 2,
+      };
+    }
+    return out;
   }
 
   e2eGetSpellSortSlotHitRects(): ReturnType<
@@ -360,10 +384,20 @@ export class TownScene extends Phaser.Scene {
     }
     setContainerInputEnabled(this.resetButton.container, enabled);
     setContainerInputEnabled(this.debugButton.container, enabled);
+    setContainerInputEnabled(this.gearButton.container, enabled);
     setContainerInputEnabled(this.fullscreenButton.container, enabled);
     if (this.updateButton) {
       setContainerInputEnabled(this.updateButton.container, enabled);
     }
+  }
+
+  /** Gear panel equip / sell: persist, re-apply gear stats and refresh the header. */
+  private applyGearChange(save: SaveGame): void {
+    this.save = syncPlayerHpMax(save);
+    persistSave(this.save);
+    this.registry.set("save", this.save);
+    applyGearLoadout(this.save.gear);
+    this.refreshStatus(this.registry.get("dataStore") as DataStore);
   }
 
   /** Write the slot into the live autosave and restart Town on that state. */

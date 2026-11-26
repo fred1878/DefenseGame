@@ -10,6 +10,7 @@ import {
 import { launchDebugMenuFromHost } from "../../debug/debugMenuLifecycle";
 import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
 import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
+import { GearPanel } from "../../ui/GearPanel";
 import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
 import type { ScreenRect } from "../../ui/screenLayout";
 import {
@@ -28,6 +29,8 @@ export type TownOverlaysHost = {
   onStartWavePlanner(groups: WaveGroup[]): void;
   /** Persist the slot and restart Town with the loaded save. */
   onLoadSaveSlot(save: SaveGame): void;
+  /** Persist gear / gold changes from the Gear panel. */
+  onGearChanged(save: SaveGame): void;
 };
 
 /**
@@ -37,6 +40,7 @@ export type TownOverlaysHost = {
 export class TownOverlays {
   spellSortPanel: SpellBarSortPanel | null = null;
   saveMenuPanel: SaveMenuPanel | null = null;
+  gearPanel: GearPanel | null = null;
   private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
 
   constructor(
@@ -92,6 +96,18 @@ export class TownOverlays {
     );
   }
 
+  openGearPanel(): void {
+    if (this.gearPanel) return;
+    this.gearPanel = new GearPanel(
+      this.scene,
+      () => this.host.getSave(),
+      (save) => this.host.onGearChanged(save),
+      () => {
+        this.gearPanel = null;
+      },
+    );
+  }
+
   openEndlessPanel(): void {
     if (isEndlessModeSetupActive(this.scene.game)) return;
     openEndlessModeSetupScene(this.scene, {
@@ -111,6 +127,8 @@ export class TownOverlays {
   }
 
   teardown(): void {
+    this.gearPanel?.destroy();
+    this.gearPanel = null;
     this.saveMenuPanel?.destroy();
     this.saveMenuPanel = null;
     this.spellSortPanel?.destroy();
@@ -159,6 +177,9 @@ export class TownOverlays {
     }
     if (this.saveMenuPanel) {
       Object.assign(out, this.saveMenuPanel.e2eTapTargets());
+    }
+    if (this.gearPanel) {
+      Object.assign(out, this.gearPanel.e2eTapTargets());
     }
   }
 }

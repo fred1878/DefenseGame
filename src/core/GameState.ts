@@ -2,6 +2,7 @@ import { SPELL_BAR } from "../config";
 import { basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "../gear/gearCatalog";
 import { gearStatsFor } from "../gear/itemStats";
+import { addLootToSave } from "../gear/loot";
 import { createEmptyGear, normalizeSaveGear } from "../gear/saveGear";
 import {
   createDefaultAutoCastSpellIds,
@@ -215,6 +216,9 @@ export function applyNightResult(
       ...next.player,
       hp: Math.min(next.player.hpMax, next.player.hp + 10),
     };
+  }
+  if (result.drops?.length) {
+    return addLootToSave(next, result.drops, getGearCatalog()).save;
   }
   return next;
 }

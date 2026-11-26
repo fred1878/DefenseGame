@@ -1,3 +1,4 @@
+import type { ItemDraft } from "../gear/itemGen";
 import type { SpellId } from "../content/spells";
 import type { SaveGear } from "../gear/gearTypes";
 
@@ -34,4 +35,6 @@ export type NightResult = {
   goldEarned: number;
   wallDamage: number;
   night: number;
+  /** Gear rolled at night end; added to the bag by `applyNightResult`. */
+  drops?: ItemDraft[];
 };

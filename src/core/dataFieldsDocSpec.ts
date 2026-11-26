@@ -4,6 +4,7 @@ import {
   TOWN_LAYOUT_DOC_KEYS,
   WAVES_DOC_KEYS,
 } from "./dataFieldsDocKeys";
+import { LOOT_FILE_BOOT_KEYS, LOOT_TABLE_BOOT_KEYS } from "./normalizeLoot";
 import {
   DEFENSE_MAP_BOOT_KEYS,
   DEFENSE_MAP_FIELD_BOOT_KEYS,
@@ -82,6 +83,7 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...ITEMS_UNIQUE_BOOT_KEYS,
     ...ITEMS_MODIFIER_BOOT_KEYS,
   ]),
+  "loot.json": uniqueSorted([...LOOT_FILE_BOOT_KEYS, ...LOOT_TABLE_BOOT_KEYS]),
   "player.json": [...PLAYER_BOOT_KEYS, "autoAttackMeleeRange"],
   "defense-maps.json": uniqueSorted([
     ...DEFENSE_MAPS_FILE_BOOT_KEYS,
