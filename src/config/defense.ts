@@ -147,17 +147,6 @@ export function obstaclePhysicsLayout(
   };
 }
 
-export function obstacleColliderSize(
-  textureKey: ObstacleTextureKey,
-  registry?: Phaser.Data.DataManager,
-): {
-  w: number;
-  h: number;
-} {
-  const layout = obstaclePhysicsLayout(textureKey, registry);
-  return { w: layout.bodyW, h: layout.bodyH };
-}
-
 export function obstacleDisplaySize(
   textureKey: ObstacleTextureKey,
   registry?: Phaser.Data.DataManager,
