@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import consumablesRaw from "../../public/data/consumables.json";
 import itemsRaw from "../../public/data/items.json";
 import lootRaw from "../../public/data/loot.json";
+import buildingsRaw from "../../public/data/buildings.json";
 import shopsRaw from "../../public/data/shops.json";
 import { createNewSave } from "../core/GameState";
 import { normalizeConsumables } from "../core/normalizeConsumables";
@@ -9,6 +10,7 @@ import { normalizeItems } from "../core/normalizeItems";
 import { normalizeLoot } from "../core/normalizeLoot";
 import { normalizeShops } from "../core/normalizeShops";
 import type { SaveGame } from "../core/saveTypes";
+import { createRng } from "../gear/rng";
 import type { ShopContext, ShopId } from "../gear/shops";
 import { fakeEventData, fakePointer } from "../test/fakeInput";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
@@ -28,6 +30,9 @@ type Internals = {
   sellBtn: Btn;
   sortBtn: Btn;
   nextBtn: Btn;
+  upgradeBtn: Btn & { label?: string };
+  rerollBtn: Btn;
+  titleText: FakeGameObject;
   detailName: FakeGameObject;
   detailText: FakeGameObject;
   statusText: FakeGameObject;
@@ -45,7 +50,11 @@ const shopCtx: ShopContext = {
 
 const textOf = (t: FakeGameObject) => (t.last("setText")?.[0] as string) ?? "";
 
-function open(id: ShopId, init: (s: SaveGame) => void = () => {}) {
+function open(
+  id: ShopId,
+  init: (s: SaveGame) => void = () => {},
+  withUpgrades = false,
+) {
   const scene = fakeScene();
   let save: SaveGame = createNewSave();
   save.gold = 500;
@@ -56,7 +65,9 @@ function open(id: ShopId, init: (s: SaveGame) => void = () => {}) {
   const panel = new GearPanel(asScene(scene), () => save, onChange, undefined, {
     catalog,
     loot,
-    shop: { id, ctx: shopCtx },
+    shop: withUpgrades
+      ? { id, ctx: shopCtx, buildings: buildingsRaw, rng: createRng(4) }
+      : { id, ctx: shopCtx },
   });
   const ui = panel as unknown as Internals;
   const tap = (c: FakeGameObject) => {
@@ -70,7 +81,9 @@ function open(id: ShopId, init: (s: SaveGame) => void = () => {}) {
 describe("GearPanel shop mode", () => {
   it("opens the blacksmith on the shop tab and buys a potion", () => {
     const { ui, tap, getSave, panel } = open("blacksmith");
-    expect(textOf(ui.detailText)).toBe("More stock unlocks at night 2.");
+    expect(textOf(ui.detailText)).toMatch(
+      /^More stock unlocks at night 2\.\nNow: list prices$/,
+    );
     expect(panel.e2eTapTargets()["gear-buy"]).toBeUndefined();
     expect(panel.e2eTapTargets()["gear-tab-shop"]).toBeTruthy();
     tap(ui.nextBtn.container);
@@ -103,9 +116,11 @@ describe("GearPanel shop mode", () => {
 
   it("shows the trader hint and a sold-out list", () => {
     const { ui } = open("trader", (s) => {
-      s.shops = { trader: [] };
+      s.shops = { trader: [], blacksmith: [] };
     });
-    expect(textOf(ui.detailText)).toBe("Stock changes after every night.");
+    expect(textOf(ui.detailText)).toMatch(
+      /^Stock changes after every night\.\nNow: 6 items/,
+    );
     expect(textOf(ui.rows[0]!.name)).toMatch(/Sold out/);
   });
 
@@ -113,6 +128,57 @@ describe("GearPanel shop mode", () => {
     const { ui } = open("blacksmith", (s) => {
       s.night = 99;
     });
-    expect(textOf(ui.detailText)).toBe("Full catalogue unlocked.");
+    expect(textOf(ui.detailText)).toMatch(/^Full catalogue unlocked\./);
+  });
+
+  it("shows the shop level, buys upgrades and rerolls the trader", () => {
+    const { ui, tap, getSave, panel } = open(
+      "trader",
+      (s) => {
+        s.gold = 1000;
+        s.shops = { trader: [], blacksmith: [] };
+      },
+      true,
+    );
+    expect(textOf(ui.titleText)).toBe("Trader · L0/3");
+    expect(ui.rerollBtn.container.visible).toBe(false);
+    expect(textOf(ui.detailText)).toMatch(/Next \(90g\): 7 items/);
+    tap(ui.upgradeBtn.container);
+    expect(getSave().buildings.trader).toBe(1);
+    expect(getSave().gold).toBe(910);
+    // Upgrading restocks at the new level (7 items + consumables).
+    expect(
+      getSave().shops.trader!.filter((o) => o.kind === "item"),
+    ).toHaveLength(7);
+    expect(textOf(ui.titleText)).toBe("Trader · L1/3");
+    expect(textOf(ui.statusText)).toBe("Upgraded to L1");
+    expect(panel.e2eTapTargets()["gear-reroll"]).toBeTruthy();
+    const before = getSave().shops.trader;
+    tap(ui.rerollBtn.container);
+    expect(getSave().gold).toBe(880);
+    expect(getSave().shops.trader).not.toBe(before);
+    expect(textOf(ui.statusText)).toBe("New stock for 30g");
+    tap(ui.upgradeBtn.container);
+    tap(ui.upgradeBtn.container);
+    expect(getSave().buildings.trader).toBe(3);
+    expect(panel.e2eTapTargets()["gear-upgrade"]).toBeUndefined();
+    expect(textOf(ui.detailText)).not.toMatch(/Next/);
+  });
+
+  it("upgrades the blacksmith with masterwork stock", () => {
+    const { ui, tap, getSave } = open(
+      "blacksmith",
+      (s) => {
+        s.gold = 100;
+        s.night = 4;
+      },
+      true,
+    );
+    tap(ui.upgradeBtn.container);
+    expect(getSave().buildings.blacksmith).toBe(1);
+    expect(getSave().shops.blacksmith).toHaveLength(1);
+    expect(textOf(ui.rows[0]!.meta)).toMatch(/1 left$/);
+    tap(ui.upgradeBtn.container);
+    expect(textOf(ui.statusText)).toBe("Need 180g (have 0g)");
   });
 });

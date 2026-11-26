@@ -4,6 +4,7 @@ import {
   consoleSummary,
   htmlReport,
   lineChart,
+  nightList,
   nightsCsv,
   runsCsv,
   stackedBars,
@@ -73,7 +74,7 @@ describe("report", () => {
     const lines = runsCsv(byStrategy).trim().split("\n");
     expect(lines[0]).toMatch(/^strategy,seed,finished/);
     expect(lines).toHaveLength(1 + runs.length + 1);
-    expect(lines.at(-1)).toBe("no-spend,9,0,0,0,0,0,0,0,0,0,0,0,0,0");
+    expect(lines.at(-1)).toBe("no-spend,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
   });
 
   it("quotes CSV cells that need it", () => {
@@ -127,5 +128,12 @@ describe("report", () => {
     expect(
       stackedBars("B", [{ label: "r", shares: { a: 5 } }], { a: "#000" }),
     ).not.toMatch(/>5%<\/text>/);
+  });
+
+  it("compacts night lists into ranges", () => {
+    expect(nightList([])).toBe("—");
+    expect(nightList([1, 2, 3, 8])).toBe("1–3, 8");
+    expect(nightList([5])).toBe("5");
+    expect(nightList([2, 4, 5])).toBe("2, 4–5");
   });
 });

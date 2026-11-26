@@ -14,12 +14,18 @@ import {
   blacksmithOffers,
   buyOffer,
   defaultShopContext,
-  ensureTraderStock,
+  ensureShopStock,
   getShopsConfig,
   nextBlacksmithUnlock,
+  blacksmithAt,
   normalizeSaveShops,
   offerPrice,
+  rerollTrader,
+  rollBlacksmithStock,
   rollTraderStock,
+  shopLevel,
+  shopMaxLevel,
+  traderAt,
   setShopsConfig,
   shopOffers,
   shopTitle,
@@ -93,9 +99,11 @@ describe("shops", () => {
 
   it("stocks the trader only when empty", () => {
     const save = richSave(2);
-    const stocked = ensureTraderStock(save, ctx, createRng(3));
+    const stocked = ensureShopStock(save, ctx, createRng(3));
     expect(stocked.shops.trader?.length).toBeGreaterThan(0);
-    expect(ensureTraderStock(stocked, ctx, createRng(9))).toBe(stocked);
+    // Level 0 blacksmith has no masterwork stock.
+    expect(stocked.shops.blacksmith).toEqual([]);
+    expect(ensureShopStock(stocked, ctx, createRng(9))).toBe(stocked);
     expect(shopOffers(stocked, ctx, "trader")).toBe(stocked.shops.trader);
     expect(shopOffers(save, ctx, "trader")).toEqual([]);
   });
@@ -185,6 +193,7 @@ describe("shops", () => {
         { kind: "consumable", id: "ghost", qty: 1 },
         { kind: "consumable", id: "frost_bomb", qty: 0 },
       ],
+      blacksmith: null,
     };
     save = buyOffer(save, ctx, "trader", 0).save;
     expect(save.shops.trader![0]!.qty).toBe(1);
@@ -199,15 +208,26 @@ describe("shops", () => {
     const item = rollTraderStock(ctx, 1, createRng(2)).find(
       (o) => o.kind === "item",
     )!;
-    save.shops = { trader: [item] };
+    save.shops = { trader: [item], blacksmith: null };
     const r = buyOffer(save, ctx, "trader", 0);
     expect(r.ok).toBe(true);
     expect(r.save.shops.trader).toEqual([]);
   });
 
   it("normalizes saved shop state", () => {
-    expect(normalizeSaveShops(null)).toEqual({ trader: null });
-    expect(normalizeSaveShops({ trader: "x" })).toEqual({ trader: null });
+    expect(normalizeSaveShops(null)).toEqual({
+      trader: null,
+      blacksmith: null,
+    });
+    expect(normalizeSaveShops({ trader: "x" })).toEqual({
+      trader: null,
+      blacksmith: null,
+    });
+    expect(
+      normalizeSaveShops({
+        blacksmith: [{ kind: "consumable", id: "a", qty: 1 }],
+      }).blacksmith,
+    ).toHaveLength(1);
     expect(
       normalizeSaveShops({
         trader: [
@@ -220,5 +240,83 @@ describe("shops", () => {
         ],
       }).trader,
     ).toHaveLength(2);
+  });
+
+  it("stacks upgrade level rows and caps the saved level", () => {
+    const save = richSave(1);
+    expect(shopLevel(save, ctx, "trader")).toBe(0);
+    save.buildings.trader = 99;
+    expect(shopLevel(save, ctx, "trader")).toBe(shopMaxLevel(ctx, "trader"));
+    save.buildings.trader = -2;
+    expect(shopLevel(save, ctx, "trader")).toBe(0);
+    const t0 = traderAt(ctx, 0);
+    const t2 = traderAt(ctx, 2);
+    expect(t0.rerollCost).toBe(0);
+    expect(t2.itemCount).toBeGreaterThan(t0.itemCount);
+    expect(t2.priceMulPct).toBeLessThan(t0.priceMulPct);
+    // Level 1 row does not set priceMulPct, so it keeps the base value.
+    expect(traderAt(ctx, 1).priceMulPct).toBe(t0.priceMulPct);
+    expect(blacksmithAt(ctx, 0).stockCount).toBe(0);
+    expect(blacksmithAt(ctx, 3).unlockNightsEarly).toBeGreaterThan(0);
+  });
+
+  it("rolls blacksmith masterworks and sells them from saved stock", () => {
+    const stock = rollBlacksmithStock(ctx, 5, createRng(2), 3);
+    expect(stock).toHaveLength(blacksmithAt(ctx, 3).stockCount);
+    expect(
+      stock.every(
+        (o) => o.kind === "item" && o.qty === 1 && o.item.rarity !== "common",
+      ),
+    ).toBe(true);
+    expect(rollBlacksmithStock(ctx, 5, createRng(2))).toEqual([]);
+    const save = richSave(5);
+    save.buildings.blacksmith = 3;
+    save.shops = { trader: null, blacksmith: stock };
+    const offers = shopOffers(save, ctx, "blacksmith");
+    expect(offers.slice(0, stock.length)).toEqual(stock);
+    // Masterworks are priced at the level's blacksmith discount.
+    const listPrice = offerPrice(ctx, "blacksmith", offers[0]!)!;
+    const paid = offerPrice(ctx, "blacksmith", offers[0]!, 3)!;
+    expect(paid).toBeLessThan(listPrice);
+    const r = buyOffer(save, ctx, "blacksmith", 0);
+    expect(r.ok).toBe(true);
+    expect(r.save.gold).toBe(save.gold - paid);
+    expect(r.save.shops.blacksmith).toHaveLength(stock.length - 1);
+    // Upgrades unlock catalogue rows early.
+    expect(blacksmithOffers(ctx, 1, 3).length).toBeGreaterThan(
+      blacksmithOffers(ctx, 1).length,
+    );
+    expect(nextBlacksmithUnlock(ctx, 1, 3)).toBe(3);
+    expect(nextBlacksmithUnlock(ctx, 99, 3)).toBeNull();
+  });
+
+  it("rerolls the trader for gold once upgraded", () => {
+    const save = richSave(3);
+    expect(rerollTrader(save, ctx, createRng(1)).message).toMatch(/Upgrade/);
+    save.buildings.trader = 1;
+    const cost = traderAt(ctx, 1).rerollCost;
+    const r = rerollTrader(save, ctx, createRng(1));
+    expect(r.ok).toBe(true);
+    expect(r.save.gold).toBe(save.gold - cost);
+    expect(r.save.shops.trader!.filter((o) => o.kind === "item")).toHaveLength(
+      traderAt(ctx, 1).itemCount,
+    );
+    save.gold = cost - 1;
+    expect(rerollTrader(save, ctx, createRng(1)).message).toBe(
+      `Need ${cost}g (have ${cost - 1}g)`,
+    );
+  });
+
+  it("skips stock rows when no base can roll", () => {
+    const empty: ShopContext = {
+      ...ctx,
+      catalog: { ...catalog, bases: {} },
+    };
+    expect(rollBlacksmithStock(empty, 5, createRng(1), 3)).toEqual([]);
+    expect(
+      rollTraderStock(empty, 5, createRng(1)).every(
+        (o) => o.kind === "consumable",
+      ),
+    ).toBe(true);
   });
 });

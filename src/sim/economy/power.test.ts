@@ -139,6 +139,10 @@ describe("power", () => {
       100,
     );
     expect(empty.offenceRatio).toBe(10);
+    // Lifesteal heals a share of weapon damage over the fight into EHP.
+    const leech = nightPressure({ ...p, lifestealPct: 10 }, night, 100);
+    expect(leech.defenceRatio).toBeGreaterThan(easy.defenceRatio);
+    expect(p.lifestealPct).toBe(0);
   });
 
   it("maps ratio 1 to a coin flip", () => {

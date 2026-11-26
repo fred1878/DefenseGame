@@ -21,21 +21,41 @@ import { randInt, type Rng } from "./rng";
 export const SHOP_IDS = ["trader", "blacksmith"] as const;
 export type ShopId = (typeof SHOP_IDS)[number];
 
-export type TraderConfig = {
-  title: string;
+/** Trader fields a shop level can change. */
+export type TraderLevelFields = {
   itemCount: number;
   minItemLevelOffset: number;
   maxItemLevelOffset: number;
   priceMulPct: number;
   rarityWeights: RarityWeights;
-  consumables: { id: string; qty: number; chancePct: number }[];
+  /** Gold to reroll today's stock; 0 = no reroll. */
+  rerollCost: number;
 };
 
-export type BlacksmithConfig = {
+export type TraderConfig = TraderLevelFields & {
   title: string;
+  consumables: { id: string; qty: number; chancePct: number }[];
+  /** Upgrade levels 1..N: each row overrides the fields of the level below. */
+  levels: Partial<TraderLevelFields>[];
+};
+
+/** Blacksmith fields a shop level can change. */
+export type BlacksmithLevelFields = {
   priceMulPct: number;
+  /** Rolled "masterwork" items stocked per day (qty 1 each). */
+  stockCount: number;
+  /** Offset added to the night for masterwork item levels. */
+  stockItemLevelOffset: number;
+  stockRarityWeights: RarityWeights;
+  /** Catalogue rows unlock this many nights earlier. */
+  unlockNightsEarly: number;
+};
+
+export type BlacksmithConfig = BlacksmithLevelFields & {
+  title: string;
   items: { baseId: string; unlockNight: number }[];
   consumables: { id: string; unlockNight: number }[];
+  levels: Partial<BlacksmithLevelFields>[];
 };
 
 export type ShopsConfig = {
@@ -48,8 +68,14 @@ export type ShopOffer =
   | { kind: "item"; item: ItemDraft; qty: number | null }
   | { kind: "consumable"; id: string; qty: number | null };
 
-/** Saved shop state: trader stock for the current day (null = restock on next visit). */
-export type SaveShops = { trader: ShopOffer[] | null };
+/**
+ * Saved shop state for the current day (null = restock on next visit):
+ * trader stock and the blacksmith's masterwork stock.
+ */
+export type SaveShops = {
+  trader: ShopOffer[] | null;
+  blacksmith: ShopOffer[] | null;
+};
 
 let active: ShopsConfig | null = null;
 
@@ -79,13 +105,54 @@ export function defaultShopContext(catalog: GearCatalog): ShopContext {
   };
 }
 
+/** Upgrade level bought for a shop (`save.buildings`), capped to its data. */
+export function shopLevel(
+  save: SaveGame,
+  ctx: ShopContext,
+  shop: ShopId,
+): number {
+  const level = Math.floor(save.buildings[shop] ?? 0);
+  return Math.max(0, Math.min(level, ctx.shops[shop].levels.length));
+}
+
+/** Number of upgrade levels defined for a shop. */
+export function shopMaxLevel(ctx: ShopContext, shop: ShopId): number {
+  return ctx.shops[shop].levels.length;
+}
+
+/** Trader settings at an upgrade level (level rows stack in order). */
+export function traderAt(ctx: ShopContext, level: number): TraderConfig {
+  let t = ctx.shops.trader;
+  for (const row of t.levels.slice(0, level)) t = { ...t, ...row };
+  return t;
+}
+
+/** Blacksmith settings at an upgrade level (level rows stack in order). */
+export function blacksmithAt(
+  ctx: ShopContext,
+  level: number,
+): BlacksmithConfig {
+  let b = ctx.shops.blacksmith;
+  for (const row of b.levels.slice(0, level)) b = { ...b, ...row };
+  return b;
+}
+
+function shopAt(
+  ctx: ShopContext,
+  shop: ShopId,
+  level: number,
+): TraderConfig | BlacksmithConfig {
+  return shop === "trader" ? traderAt(ctx, level) : blacksmithAt(ctx, level);
+}
+
 /** Fresh trader stock: random items around the night's level plus consumables. */
 export function rollTraderStock(
   ctx: ShopContext,
   night: number,
   rng: Rng,
+  level = 0,
 ): ShopOffer[] {
-  const t = ctx.shops.trader;
+  const t = traderAt(ctx, level);
   const out: ShopOffer[] = [];
   for (let i = 0; i < t.itemCount; i++) {
     const itemLevel = Math.max(
@@ -107,31 +174,101 @@ export function rollTraderStock(
   return out;
 }
 
-/** Roll trader stock when the day has none yet (first visit after a night). */
-export function ensureTraderStock(
+/** Blacksmith masterwork stock: rolled items at the night's level (upgrades only). */
+export function rollBlacksmithStock(
+  ctx: ShopContext,
+  night: number,
+  rng: Rng,
+  level = 0,
+): ShopOffer[] {
+  const b = blacksmithAt(ctx, level);
+  const out: ShopOffer[] = [];
+  for (let i = 0; i < b.stockCount; i++) {
+    const item = rollItem(ctx.catalog, rng, {
+      itemLevel: Math.max(1, night + b.stockItemLevelOffset),
+      rarityWeights: b.stockRarityWeights,
+    });
+    if (item) out.push({ kind: "item", item, qty: 1 });
+  }
+  return out;
+}
+
+/** Roll the day's trader / blacksmith stock when missing (first visit after a night). */
+export function ensureShopStock(
   save: SaveGame,
   ctx: ShopContext,
   rng: Rng,
 ): SaveGame {
-  if (save.shops.trader) return save;
+  if (save.shops.trader && save.shops.blacksmith) return save;
   return {
     ...save,
-    shops: { ...save.shops, trader: rollTraderStock(ctx, save.night, rng) },
+    shops: {
+      trader:
+        save.shops.trader ??
+        rollTraderStock(ctx, save.night, rng, shopLevel(save, ctx, "trader")),
+      blacksmith:
+        save.shops.blacksmith ??
+        rollBlacksmithStock(
+          ctx,
+          save.night,
+          rng,
+          shopLevel(save, ctx, "blacksmith"),
+        ),
+    },
   };
 }
 
-/** Blacksmith catalogue unlocked by `night`: plain common bases plus consumables. */
-export function blacksmithOffers(ctx: ShopContext, night: number): ShopOffer[] {
-  const b = ctx.shops.blacksmith;
-  const out: ShopOffer[] = [];
+/** Pay `rerollCost` for fresh trader stock (needs a trader upgrade). */
+export function rerollTrader(
+  save: SaveGame,
+  ctx: ShopContext,
+  rng: Rng,
+): BuyResult {
+  const level = shopLevel(save, ctx, "trader");
+  const cost = traderAt(ctx, level).rerollCost;
+  if (cost <= 0) {
+    return { save, ok: false, message: "Upgrade the trader to reroll" };
+  }
+  if (save.gold < cost) {
+    return { save, ok: false, message: `Need ${cost}g (have ${save.gold}g)` };
+  }
+  return {
+    save: {
+      ...save,
+      gold: save.gold - cost,
+      shops: {
+        ...save.shops,
+        trader: rollTraderStock(ctx, save.night, rng, level),
+      },
+    },
+    ok: true,
+    message: `New stock for ${cost}g`,
+  };
+}
+
+/**
+ * Blacksmith offers: the day's masterwork `stock` first, then the catalogue
+ * unlocked by `night` (plain common bases) and consumables.
+ */
+export function blacksmithOffers(
+  ctx: ShopContext,
+  night: number,
+  level = 0,
+  stock: readonly ShopOffer[] = [],
+): ShopOffer[] {
+  const b = blacksmithAt(ctx, level);
+  const unlockedBy = night + b.unlockNightsEarly;
+  const out: ShopOffer[] = [...stock];
   for (const row of b.items) {
-    if (row.unlockNight > night) continue;
+    if (row.unlockNight > unlockedBy) continue;
     if (!ctx.catalog.bases[row.baseId]) continue;
     const item = createBaseItem(ctx.catalog, row.baseId, 1);
     out.push({ kind: "item", item, qty: null });
   }
   for (const row of b.consumables) {
-    if (row.unlockNight > night || !ctx.consumables.items[row.id]) continue;
+    if (row.unlockNight > unlockedBy || !ctx.consumables.items[row.id]) {
+      continue;
+    }
     out.push({ kind: "consumable", id: row.id, qty: null });
   }
   return out;
@@ -141,12 +278,14 @@ export function blacksmithOffers(ctx: ShopContext, night: number): ShopOffer[] {
 export function nextBlacksmithUnlock(
   ctx: ShopContext,
   night: number,
+  level = 0,
 ): number | null {
+  const early = blacksmithAt(ctx, level).unlockNightsEarly;
   const later = [
     ...ctx.shops.blacksmith.items,
     ...ctx.shops.blacksmith.consumables,
   ]
-    .map((r) => r.unlockNight)
+    .map((r) => Math.max(1, r.unlockNight - early))
     .filter((n) => n > night);
   return later.length ? Math.min(...later) : null;
 }
@@ -158,20 +297,26 @@ export function shopOffers(
 ): ShopOffer[] {
   return shop === "trader"
     ? (save.shops.trader ?? [])
-    : blacksmithOffers(ctx, save.night);
+    : blacksmithOffers(
+        ctx,
+        save.night,
+        shopLevel(save, ctx, "blacksmith"),
+        save.shops.blacksmith ?? [],
+      );
 }
 
 export function shopTitle(ctx: ShopContext, shop: ShopId): string {
   return ctx.shops[shop].title;
 }
 
-/** Gold price of an offer at this shop (null when its data row is gone). */
+/** Gold price of an offer at this shop level (null when its data row is gone). */
 export function offerPrice(
   ctx: ShopContext,
   shop: ShopId,
   offer: ShopOffer,
+  level = 0,
 ): number | null {
-  const mul = ctx.shops[shop].priceMulPct / 100;
+  const mul = shopAt(ctx, shop, level).priceMulPct / 100;
   if (offer.kind === "consumable") {
     const def = ctx.consumables.items[offer.id];
     return def ? Math.max(1, Math.round(def.price * mul)) : null;
@@ -194,7 +339,7 @@ export function buyOffer(
   if (!offer || offer.qty === 0) {
     return { save, ok: false, message: "Sold out" };
   }
-  const price = offerPrice(ctx, shop, offer);
+  const price = offerPrice(ctx, shop, offer, shopLevel(save, ctx, shop));
   if (price === null)
     return { save, ok: false, message: "No longer available" };
   if (save.gold < price) {
@@ -217,21 +362,31 @@ export function buyOffer(
     name = ctx.consumables.items[offer.id]!.name;
   }
   next = { ...next, gold: next.gold - price };
-  if (shop === "trader" && offer.qty !== null) {
-    const trader = [...offers];
-    if (offer.qty <= 1) trader.splice(index, 1);
-    else trader[index] = { ...offer, qty: offer.qty - 1 };
-    next = { ...next, shops: { ...next.shops, trader } };
+  if (offer.qty !== null) {
+    // Limited rows live in the saved stock (trader list / blacksmith masterworks first).
+    // Only saved stock rows (trader list, blacksmith masterworks) have a qty.
+    const stock = [...save.shops[shop]!];
+    if (offer.qty <= 1) stock.splice(index, 1);
+    else stock[index] = { ...offer, qty: offer.qty - 1 };
+    next = { ...next, shops: { ...next.shops, [shop]: stock } };
   }
   return { save: next, ok: true, message: `Bought ${name} for ${price}g` };
 }
 
 /** Saved shop block with bad rows dropped (missing → restock on next visit). */
 export function normalizeSaveShops(raw: unknown): SaveShops {
-  if (!raw || typeof raw !== "object") return { trader: null };
-  const trader = (raw as { trader?: unknown }).trader;
-  if (!Array.isArray(trader)) return { trader: null };
-  const offers = trader.filter(
+  const block = raw && typeof raw === "object" ? (raw as SaveShopsRaw) : {};
+  return {
+    trader: normalizeStock(block.trader),
+    blacksmith: normalizeStock(block.blacksmith),
+  };
+}
+
+type SaveShopsRaw = { trader?: unknown; blacksmith?: unknown };
+
+function normalizeStock(list: unknown): ShopOffer[] | null {
+  if (!Array.isArray(list)) return null;
+  return list.filter(
     (o): o is ShopOffer =>
       !!o &&
       typeof o === "object" &&
@@ -239,5 +394,4 @@ export function normalizeSaveShops(raw: unknown): SaveShops {
         (o.kind === "consumable" && typeof o.id === "string")) &&
       (o.qty === null || typeof o.qty === "number"),
   );
-  return { trader: offers };
 }

@@ -78,9 +78,11 @@ describe("simulate", () => {
     expect(never.finished).toBe(false);
     expect(never.records).toHaveLength(5);
     expect(never.records.every((r) => r.night === 1 && !r.won)).toBe(true);
-    // A lost night pays a quarter of the reward.
+    // A lost night pays loot.lostNightGoldPct of the reward.
     expect(never.records[0]!.goldEarned).toBe(
-      Math.floor(data.nights[0]!.rewardGold / 4),
+      Math.floor(
+        (data.nights[0]!.rewardGold * data.loot.lostNightGoldPct) / 100,
+      ),
     );
   });
 
@@ -203,5 +205,67 @@ describe("simulate", () => {
 
   it("starts rarity counts at zero", () => {
     expect(Object.values(emptyRarityCounts()).every((v) => v === 0)).toBe(true);
+  });
+
+  it("buys shop upgrades and rerolls with the shop strategies", () => {
+    const investor = simulateMany(
+      data,
+      opts({ strategy: "shop-investor" }),
+      1,
+      4,
+    );
+    const last = investor.map((r) => r.records.at(-1)!);
+    expect(last.some((r) => r.traderLevel > 0 && r.blacksmithLevel > 0)).toBe(
+      true,
+    );
+    expect(
+      investor.flatMap((r) => r.records).some((r) => r.spentShops > 0),
+    ).toBe(true);
+    const reroller = simulateMany(data, opts({ strategy: "reroller" }), 1, 4);
+    const recs = reroller.flatMap((r) => r.records);
+    expect(recs.some((r) => r.rerolls > 0 && r.spentRerolls > 0)).toBe(true);
+    expect(recs.every((r) => r.rerolls <= 3)).toBe(true);
+  });
+
+  it("tilts gear picks toward each profile's focus stat", () => {
+    const end = (strategy: SimOptions["strategy"]) =>
+      simulateMany(data, opts({ strategy }), 1, 6).map(
+        (r) => r.records.at(-1)!.powerAfter,
+      );
+    const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const tank = end("tank");
+    const caster = end("spell-caster");
+    expect(avg(tank.map((p) => p.ehp))).toBeGreaterThan(
+      avg(caster.map((p) => p.ehp)),
+    );
+    expect(avg(caster.map((p) => p.spellPowerPct))).toBeGreaterThan(
+      avg(tank.map((p) => p.spellPowerPct)),
+    );
+  });
+
+  it("buys no shop levels when buildings.json has none", () => {
+    const raw = defaultRawData();
+    applySetOverride(raw, "buildings.trader.maxLevel=0");
+    applySetOverride(raw, "buildings.blacksmith.costByLevel=[]");
+    const noShops = loadSimData(raw);
+    for (const strategy of ["shop-investor", "reroller"] as const) {
+      const run = simulateRun(
+        noShops,
+        { ...defaultSimOptions(noShops), strategy },
+        2,
+      );
+      expect(run.records.every((r) => r.spentShops === 0)).toBe(true);
+      expect(run.records.every((r) => r.rerolls === 0)).toBe(true);
+    }
+    const raw2 = defaultRawData();
+    delete (raw2.buildings as Record<string, unknown>).trader;
+    const noTrader = loadSimData(raw2);
+    const run = simulateRun(
+      noTrader,
+      { ...defaultSimOptions(noTrader), strategy: "shop-investor" },
+      2,
+    );
+    expect(run.records.every((r) => r.traderLevel === 0)).toBe(true);
+    loadSimData(defaultRawData());
   });
 });

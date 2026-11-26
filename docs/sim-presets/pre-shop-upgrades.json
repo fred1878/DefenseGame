@@ -1,0 +1,30 @@
+{
+  "loot": {
+    "sellBackPct": 50,
+    "lostNightGoldPct": 25,
+    "tables": { "nightLost": { "maxRolls": 1 } }
+  },
+  "waves": { "10": { "rewardGold": 150 } },
+  "consumables": {
+    "items": {
+      "minor_healing_potion": { "healHp": 35, "price": 20 },
+      "healing_potion": { "healHp": 80, "price": 45 },
+      "fire_bomb": { "price": 30, "bomb": { "damage": 40 } },
+      "frost_bomb": { "price": 30, "bomb": { "damage": 28 } },
+      "thunder_bomb": { "price": 40, "bomb": { "damage": 35 } }
+    }
+  },
+  "items": {
+    "bases": {
+      "steel_sword": { "price": 170 },
+      "long_bow": { "price": 150 },
+      "steel_helm": { "price": 160 },
+      "plate_cuirass": { "price": 220 },
+      "heavy_crossbow": { "price": 220 }
+    }
+  },
+  "buildings": {
+    "trader": { "maxLevel": 0 },
+    "blacksmith": { "maxLevel": 0 }
+  }
+}

@@ -18,12 +18,17 @@ import {
 import type { LootConfig } from "../../gear/loot";
 import type { EquipSlot, GearCatalog } from "../../gear/gearTypes";
 import type { SaveGame } from "../../core/saveTypes";
+import type { BuildingDef } from "../../core/DataStore";
+import type { Rng } from "../../gear/rng";
 import {
   buyOffer,
+  ensureShopStock,
+  rerollTrader,
   shopOffers,
   type ShopContext,
   type ShopId,
 } from "../../gear/shops";
+import { upgradeShop } from "../../systems/townBuildingMenu";
 
 export const GEAR_PANEL_ROWS_PER_PAGE = 6;
 
@@ -50,13 +55,23 @@ export type GearPanelCommand =
   | { type: "sell" }
   | { type: "tab"; tab: GearPanelTab }
   | { type: "selectOffer"; index: number }
-  | { type: "buy" };
+  | { type: "buy" }
+  | { type: "upgradeShop" }
+  | { type: "reroll" };
 
 export type GearPanelContext = {
   catalog: GearCatalog;
   loot: LootConfig;
-  /** When set the panel is a shop (Shop + Bag tabs). */
-  shop?: { id: ShopId; ctx: ShopContext };
+  /**
+   * When set the panel is a shop (Shop + Bag tabs). `buildings` holds the
+   * shop upgrade costs (buildings.json); `rng` rolls restocks and rerolls.
+   */
+  shop?: {
+    id: ShopId;
+    ctx: ShopContext;
+    buildings?: Readonly<Record<string, BuildingDef>>;
+    rng?: Rng;
+  };
 };
 
 export function createGearPanelState(
@@ -242,6 +257,35 @@ export function reduceGearPanel(
         state: clampPage(ctx, r.save, {
           ...state,
           selectedOffer: stillThere ? state.selectedOffer : null,
+          status: r.message,
+        }),
+      };
+    }
+    case "upgradeShop": {
+      if (!ctx.shop?.buildings) return { save, state };
+      const r = upgradeShop(ctx.shop.buildings, save, ctx.shop.id);
+      const next =
+        r.result.kind === "upgraded"
+          ? ensureShopStock(r.save, ctx.shop.ctx, ctx.shop.rng ?? Math.random)
+          : r.save;
+      return {
+        save: next,
+        state: clampPage(ctx, next, {
+          ...state,
+          selectedOffer: null,
+          status: r.result.message,
+        }),
+      };
+    }
+    case "reroll": {
+      if (ctx.shop?.id !== "trader") return { save, state };
+      const r = rerollTrader(save, ctx.shop.ctx, ctx.shop.rng ?? Math.random);
+      return {
+        save: r.save,
+        state: clampPage(ctx, r.save, {
+          ...state,
+          selectedOffer: null,
+          page: 0,
           status: r.message,
         }),
       };

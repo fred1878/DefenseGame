@@ -35,6 +35,10 @@ export const NIGHT_METRICS = {
   spentWall: (r: NightRecord) => r.spentWall,
   spentGear: (r: NightRecord) => r.spentGear,
   spentConsumables: (r: NightRecord) => r.spentConsumables,
+  spentShops: (r: NightRecord) => r.spentShops,
+  spentRerolls: (r: NightRecord) => r.spentRerolls,
+  traderLevel: (r: NightRecord) => r.traderLevel,
+  blacksmithLevel: (r: NightRecord) => r.blacksmithLevel,
   goldBanked: (r: NightRecord) => r.goldBanked,
   wallLevel: (r: NightRecord) => r.wallLevel,
   avgItemLevel: (r: NightRecord) => r.avgItemLevel,
@@ -92,6 +96,14 @@ export type StrategySummary = {
   totalSpentWall: Percentiles;
   totalSpentGear: Percentiles;
   totalSpentConsumables: Percentiles;
+  totalSpentShops: Percentiles;
+  totalSpentRerolls: Percentiles;
+  rerolls: Percentiles;
+  finalTraderLevel: Percentiles;
+  finalBlacksmithLevel: Percentiles;
+  /** Nights whose median power ratio is flagged too easy / too hard. */
+  easyNights: number[];
+  hardNights: number[];
   finalGold: Percentiles;
   finalAvgItemLevel: Percentiles;
   finalPowerRatio: Percentiles;
@@ -201,6 +213,13 @@ export function aggregateRuns(
     totalSpentWall: per(total((r) => r.spentWall)),
     totalSpentGear: per(total((r) => r.spentGear)),
     totalSpentConsumables: per(total((r) => r.spentConsumables)),
+    totalSpentShops: per(total((r) => r.spentShops)),
+    totalSpentRerolls: per(total((r) => r.spentRerolls)),
+    rerolls: per(total((r) => r.rerolls)),
+    finalTraderLevel: per((r) => last(r)?.traderLevel ?? 0),
+    finalBlacksmithLevel: per((r) => last(r)?.blacksmithLevel ?? 0),
+    easyNights: nights.filter((x) => x.flag === "too easy").map((x) => x.night),
+    hardNights: nights.filter((x) => x.flag === "too hard").map((x) => x.night),
     finalGold: per((r) => last(r)?.goldBanked ?? 0),
     finalAvgItemLevel: per((r) => last(r)?.avgItemLevel ?? 0),
     finalPowerRatio: per((r) => last(r)?.pressure.powerRatio ?? 0),

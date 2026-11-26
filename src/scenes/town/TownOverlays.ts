@@ -15,7 +15,7 @@ import { getLootConfig } from "../../gear/loot";
 import { createRng, randomSeed } from "../../gear/rng";
 import {
   defaultShopContext,
-  ensureTraderStock,
+  ensureShopStock,
   type ShopId,
 } from "../../gear/shops";
 import { GearPanel } from "../../ui/GearPanel";
@@ -111,16 +111,17 @@ export class TownOverlays {
     const catalog = getGearCatalog();
     const ctx: GearPanelContext = { catalog, loot: getLootConfig() };
     if (shop) {
-      ctx.shop = { id: shop, ctx: defaultShopContext(catalog) };
-      if (shop === "trader") {
-        const before = this.host.getSave();
-        const stocked = ensureTraderStock(
-          before,
-          ctx.shop.ctx,
-          createRng(randomSeed()),
-        );
-        if (stocked !== before) this.host.onGearChanged(stocked);
-      }
+      const store = this.scene.registry.get("dataStore") as DataStore;
+      const rng = createRng(randomSeed());
+      ctx.shop = {
+        id: shop,
+        ctx: defaultShopContext(catalog),
+        buildings: store.buildings,
+        rng,
+      };
+      const before = this.host.getSave();
+      const stocked = ensureShopStock(before, ctx.shop.ctx, rng);
+      if (stocked !== before) this.host.onGearChanged(stocked);
     }
     this.gearPanel = new GearPanel(
       this.scene,

@@ -17,7 +17,15 @@ import {
   tabRowCount,
   type GearPanelContext,
 } from "./gearPanelLogic";
-import { consumablesSummary, offerDetail, shopRows } from "./shopPanelLogic";
+import buildingsRaw from "../../../public/data/buildings.json";
+import { createRng } from "../../gear/rng";
+import {
+  consumablesSummary,
+  offerDetail,
+  shopPerksLine,
+  shopRows,
+  shopUpgradeInfo,
+} from "./shopPanelLogic";
 
 const catalog = normalizeItems(itemsRaw);
 const loot = normalizeLoot(lootRaw);
@@ -52,7 +60,7 @@ describe("shopPanelLogic", () => {
     expect(rows.length).toBe(blacksmithOffers(shopCtx, 1).length);
     expect(rows[0]!.meta).toMatch(/Common · ilvl 1 · .+ · \d+g$/);
     const pot = rows.find((r) => r.name === "Minor Healing Potion")!;
-    expect(pot.meta).toBe("Heals 35 HP · 20g");
+    expect(pot.meta).toBe("Heals 50 HP · 20g");
     expect(shopRows(plain, save())).toEqual([]);
   });
 
@@ -67,6 +75,7 @@ describe("shopPanelLogic", () => {
         { ...item, qty: 1 },
         { kind: "item", item: { ...item.item, baseId: "ghost" }, qty: 1 },
       ],
+      blacksmith: null,
     };
     const rows = shopRows(trader, s);
     expect(rows[0]!.meta).toMatch(/· 2 left$/);
@@ -92,7 +101,7 @@ describe("shopPanelLogic", () => {
     const potIdx = rows.findIndex((o) => o.kind === "consumable");
     expect(offerDetail(smith, s, potIdx)!.lines).toEqual([
       "Potion · drink in combat (Q)",
-      "Heals 35 HP",
+      "Heals 50 HP",
       "Carrying 0/5",
     ]);
     const bombs = blacksmithOffers(shopCtx, 2);
@@ -145,7 +154,10 @@ describe("shopPanelLogic", () => {
 
   it("drops the selection when the last trader unit sells", () => {
     const s = save();
-    s.shops = { trader: [{ kind: "consumable", id: "fire_bomb", qty: 1 }] };
+    s.shops = {
+      trader: [{ kind: "consumable", id: "fire_bomb", qty: 1 }],
+      blacksmith: null,
+    };
     let state = createGearPanelState("shop");
     state = reduceGearPanel(trader, s, state, {
       type: "selectOffer",
@@ -154,5 +166,81 @@ describe("shopPanelLogic", () => {
     const r = reduceGearPanel(trader, s, state, { type: "buy" });
     expect(r.save.shops.trader).toEqual([]);
     expect(r.state.selectedOffer).toBeNull();
+  });
+
+  it("describes shop levels, costs and perks", () => {
+    const s = save(3, 50);
+    expect(shopUpgradeInfo(plain, s)).toBeNull();
+    // No buildings data: no upgrades offered.
+    expect(shopUpgradeInfo(trader, s)).toMatchObject({
+      level: 0,
+      maxLevel: 0,
+      nextCost: null,
+      next: "",
+    });
+    const up: GearPanelContext = {
+      ...trader,
+      shop: { id: "trader", ctx: shopCtx, buildings: buildingsRaw },
+    };
+    const info = shopUpgradeInfo(up, s)!;
+    expect(info).toMatchObject({ level: 0, maxLevel: 3, nextCost: 90 });
+    expect(info.rerollCost).toBe(0);
+    expect(info.current).toMatch(/^6 items · ilvl night\+0–2 · 125% prices/);
+    expect(info.next).toMatch(/7 items.*reroll 30g$/);
+    s.buildings.trader = 3;
+    expect(shopUpgradeInfo(up, s)).toMatchObject({ nextCost: null, next: "" });
+    expect(shopPerksLine(shopCtx, "blacksmith", 0)).toBe("list prices");
+    expect(shopPerksLine(shopCtx, "blacksmith", 1)).toBe(
+      "90% prices · 1 masterwork (magic 80/rare 20, ilvl night+0)",
+    );
+    expect(shopPerksLine(shopCtx, "blacksmith", 3)).toMatch(
+      /3 masterworks .* · unlocks 2 nights early$/,
+    );
+    expect(shopPerksLine(shopCtx, "blacksmith", 2)).toMatch(
+      /unlocks 1 night early$/,
+    );
+    const smithUp: GearPanelContext = {
+      ...smith,
+      shop: { id: "blacksmith", ctx: shopCtx, buildings: buildingsRaw },
+    };
+    expect(shopUpgradeInfo(smithUp, save(1))!.rerollCost).toBe(0);
+  });
+
+  it("upgrades and rerolls through the reducer", () => {
+    const s = save(2, 200);
+    const state = createGearPanelState("shop");
+    // Without buildings / on the blacksmith these are no-ops.
+    expect(
+      reduceGearPanel(trader, s, state, { type: "upgradeShop" }).save,
+    ).toBe(s);
+    expect(reduceGearPanel(smith, s, state, { type: "reroll" }).save).toBe(s);
+    const up: GearPanelContext = {
+      ...trader,
+      shop: {
+        id: "trader",
+        ctx: shopCtx,
+        buildings: buildingsRaw,
+        rng: createRng(1),
+      },
+    };
+    const r = reduceGearPanel(up, s, state, { type: "upgradeShop" });
+    expect(r.save.buildings.trader).toBe(1);
+    expect(r.save.shops.trader).not.toBeNull();
+    const rr = reduceGearPanel(up, r.save, r.state, { type: "reroll" });
+    expect(rr.save.gold).toBe(200 - 90 - 30);
+    expect(rr.state.status).toBe("New stock for 30g");
+    const poor = { ...rr.save, gold: 0 };
+    expect(
+      reduceGearPanel(up, poor, rr.state, { type: "upgradeShop" }).state.status,
+    ).toBe("Need 160g (have 0g)");
+    // Default rng when none is given.
+    const noRng: GearPanelContext = {
+      ...trader,
+      shop: { id: "trader", ctx: shopCtx, buildings: buildingsRaw },
+    };
+    const d = reduceGearPanel(noRng, s, state, { type: "upgradeShop" });
+    expect(
+      reduceGearPanel(noRng, d.save, d.state, { type: "reroll" }).save.gold,
+    ).toBe(80);
   });
 });

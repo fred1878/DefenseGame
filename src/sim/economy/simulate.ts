@@ -18,13 +18,20 @@ import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, type Rng } from "../../gear/rng";
 import {
   buyOffer,
-  ensureTraderStock,
+  ensureShopStock,
   offerPrice,
+  rerollTrader,
+  SHOP_IDS,
+  shopLevel,
   shopOffers,
+  traderAt,
   type ShopContext,
   type ShopId,
 } from "../../gear/shops";
-import { handleTownBuildingTap } from "../../systems/townBuildingMenu";
+import {
+  handleTownBuildingTap,
+  upgradeShop,
+} from "../../systems/townBuildingMenu";
 import {
   DEFAULT_POWER_MODEL,
   nightPressure,
@@ -42,16 +49,88 @@ export const STRATEGY_IDS = [
   "balanced",
   "potion-hoarder",
   "no-spend",
+  "melee-dps",
+  "ranged",
+  "spell-caster",
+  "tank",
+  "sustain",
+  "wall-turtle",
+  "shop-investor",
+  "reroller",
 ] as const;
 export type StrategyId = (typeof STRATEGY_IDS)[number];
 
 export const STRATEGY_LABELS: Record<StrategyId, string> = {
-  "walls-first": "Walls first, then gear",
-  "gear-first": "Gear first, then walls",
-  balanced: "Best upgrade per gold (walls + gear)",
+  "walls-first": "Walls first, then gear; spare gold into shop upgrades",
+  "gear-first": "Gear first, then walls; spare gold into shop upgrades",
+  balanced:
+    "Best upgrade per gold (walls + gear); spare gold into shop upgrades",
   "potion-hoarder": "Fill potions/bombs, then best upgrade per gold",
   "no-spend": "Never buy (drops only)",
+  "melee-dps":
+    "Balanced, but gear picks favour melee DPS (weapon, attack speed)",
+  ranged: "Balanced, but gear picks favour ranged DPS",
+  "spell-caster":
+    "Balanced, but gear picks favour spell power / element boosts",
+  tank: "Balanced, but gear picks favour effective HP (armour, HP)",
+  sustain: "Balanced, but gear picks favour lifesteal",
+  "wall-turtle": "Walls first, then armour/HP gear",
+  "shop-investor": "Shop upgrades first (cheapest level), then balanced",
+  reroller:
+    "Trader upgrade first, balanced, then rerolls trader stock (≤3/day)",
 };
+
+type SpendPlan =
+  | "walls-first"
+  | "gear-first"
+  | "balanced"
+  | "potions"
+  | "none"
+  | "investor"
+  | "reroller";
+
+type Profile = {
+  plan: SpendPlan;
+  /** Gear focus metric; gear score = power ratio × (metric / metric with no gear). */
+  focus?: (p: PlayerPower) => number;
+  /** Put gold left after the plan into shop upgrades. */
+  spareToShops: boolean;
+};
+
+const PROFILES: Record<StrategyId, Profile> = {
+  "walls-first": { plan: "walls-first", spareToShops: true },
+  "gear-first": { plan: "gear-first", spareToShops: true },
+  balanced: { plan: "balanced", spareToShops: true },
+  "potion-hoarder": { plan: "potions", spareToShops: false },
+  "no-spend": { plan: "none", spareToShops: false },
+  "melee-dps": {
+    plan: "balanced",
+    focus: (p) => p.meleeDps,
+    spareToShops: true,
+  },
+  ranged: { plan: "balanced", focus: (p) => p.rangedDps, spareToShops: true },
+  "spell-caster": {
+    plan: "balanced",
+    focus: (p) => p.spellMult,
+    spareToShops: true,
+  },
+  tank: { plan: "balanced", focus: (p) => p.ehp, spareToShops: true },
+  sustain: {
+    plan: "balanced",
+    focus: (p) => 1 + p.lifestealPct / 10,
+    spareToShops: true,
+  },
+  "wall-turtle": {
+    plan: "walls-first",
+    focus: (p) => p.ehp,
+    spareToShops: false,
+  },
+  "shop-investor": { plan: "investor", spareToShops: true },
+  reroller: { plan: "reroller", spareToShops: true },
+};
+
+/** Trader rerolls a reroller makes per town visit at most. */
+const MAX_REROLLS_PER_DAY = 3;
 
 export type WinModel = "power" | "fixed";
 
@@ -101,6 +180,12 @@ export type NightRecord = {
   spentWall: number;
   spentGear: number;
   spentConsumables: number;
+  /** Shop upgrade levels bought this night. */
+  spentShops: number;
+  spentRerolls: number;
+  rerolls: number;
+  traderLevel: number;
+  blacksmithLevel: number;
   /** Gold left after the town phase. */
   goldBanked: number;
   wallLevel: number;
@@ -149,7 +234,10 @@ class Run {
   readonly origin = new Map<number, "drop" | ShopId>();
   readonly shopCtx: ShopContext;
   private readonly store: DataStore;
-  spent = { wall: 0, gear: 0, consumables: 0 };
+  readonly profile: Profile;
+  private readonly focusBase: number;
+  spent = emptySpend();
+  rerolls = 0;
   salesGold = 0;
 
   constructor(
@@ -165,6 +253,9 @@ class Run {
       loot: data.loot,
     };
     this.store = { buildings: data.buildings } as unknown as DataStore;
+    this.profile = PROFILES[opts.strategy];
+    const empty = { items: [], equipped: {}, nextUid: 1 };
+    this.focusBase = this.profile.focus?.(this.power(empty)) ?? 1;
   }
 
   difficulty(): NightDifficulty {
@@ -177,13 +268,22 @@ class Run {
     return playerPower(this.data.catalog, gear, this.opts.model);
   }
 
+  /** Gear / wall choice score: power ratio, tilted toward the profile's focus stat. */
   score(gear: SaveGear, wallHpMax = this.save.townWallHpMax): number {
-    return nightPressure(
-      this.power(gear),
+    const power = this.power(gear);
+    const ratio = nightPressure(
+      power,
       this.difficulty(),
       wallHpMax,
       this.opts.model,
     ).powerRatio;
+    const focus = this.profile.focus;
+    if (!focus) return ratio;
+    return ratio * (Math.max(0, focus(power)) / this.focusBase);
+  }
+
+  level(shop: ShopId): number {
+    return shopLevel(this.save, this.shopCtx, shop);
   }
 
   /** Best slot for an owned item and the score with it equipped there. */
@@ -267,7 +367,7 @@ class Run {
         out.push({
           shop,
           index,
-          price: offerPrice(this.shopCtx, shop, offer)!,
+          price: offerPrice(this.shopCtx, shop, offer, this.level(shop))!,
         });
       });
     }
@@ -342,7 +442,7 @@ class Run {
           if (!def || consumableCount(this.save, offer.id) >= def.maxStack) {
             return;
           }
-          const price = offerPrice(this.shopCtx, shop, offer);
+          const price = offerPrice(this.shopCtx, shop, offer, this.level(shop));
           if (price === null || price > this.save.gold) return;
           if (!pick || price < pick.price) pick = { shop, index, price };
         });
@@ -357,8 +457,57 @@ class Run {
     }
   }
 
-  spend(): void {
-    switch (this.opts.strategy) {
+  /** Cheapest affordable next shop level, or null. */
+  nextShopUpgrade(only?: ShopId): { shop: ShopId; cost: number } | null {
+    let best: { shop: ShopId; cost: number } | null = null;
+    for (const shop of SHOP_IDS) {
+      if (only && shop !== only) continue;
+      const def = this.data.buildings[shop];
+      if (!def) continue;
+      const level = this.save.buildings[shop] ?? 0;
+      const cap = Math.min(def.maxLevel, this.data.shops[shop].levels.length);
+      const cost = def.costByLevel[level];
+      if (level >= cap || cost === undefined || cost > this.save.gold) continue;
+      if (!best || cost < best.cost) best = { shop, cost };
+    }
+    return best;
+  }
+
+  /** Buy one shop level through the game's upgrade code; stock refreshes. */
+  buyShopUpgrade(only?: ShopId): boolean {
+    const next = this.nextShopUpgrade(only);
+    if (!next) return false;
+    const r = upgradeShop(this.data.buildings, this.save, next.shop);
+    /* v8 ignore next -- nextShopUpgrade already checked level, cost and gold */
+    if (r.result.kind !== "upgraded") return false;
+    this.save = ensureShopStock(r.save, this.shopCtx, this.rng);
+    this.spent.shops += next.cost;
+    return true;
+  }
+
+  buyShopsLoop(only?: ShopId): void {
+    while (this.buyShopUpgrade(only)) {
+      // keep upgrading while affordable
+    }
+  }
+
+  /** Reroll trader stock (if worth it) and shop again, up to the daily cap. */
+  rerollLoop(): void {
+    for (let i = 0; i < MAX_REROLLS_PER_DAY; i++) {
+      const cost = traderAt(this.shopCtx, this.level("trader")).rerollCost;
+      if (cost <= 0 || this.save.gold < cost * 2) return;
+      const r = rerollTrader(this.save, this.shopCtx, this.rng);
+      /* v8 ignore next -- cost and gold checked above */
+      if (!r.ok) return;
+      this.save = r.save;
+      this.spent.rerolls += cost;
+      this.rerolls += 1;
+      this.balancedLoop();
+    }
+  }
+
+  private runPlan(): void {
+    switch (this.profile.plan) {
       case "walls-first":
         this.buyWallsLoop();
         this.buyGearLoop();
@@ -370,12 +519,31 @@ class Run {
       case "balanced":
         this.balancedLoop();
         return;
-      case "potion-hoarder":
+      case "potions":
         this.fillConsumables();
         this.balancedLoop();
         return;
-      case "no-spend":
+      case "none":
         return;
+      case "investor":
+        this.buyShopsLoop();
+        this.balancedLoop();
+        return;
+      case "reroller":
+        this.buyShopsLoop("trader");
+        this.balancedLoop();
+        this.rerollLoop();
+        return;
+    }
+  }
+
+  spend(): void {
+    this.runPlan();
+    if (!this.profile.spareToShops) return;
+    if (this.buyShopUpgrade()) {
+      this.buyShopsLoop();
+      // New stock at the new level: shop again with what is left.
+      this.runPlan();
     }
   }
 
@@ -393,6 +561,10 @@ class Run {
     this.save = { ...this.save, consumables: {} };
     return { boost, used };
   }
+}
+
+function emptySpend() {
+  return { wall: 0, gear: 0, consumables: 0, shops: 0, rerolls: 0 };
 }
 
 function rarityOf(drafts: readonly { rarity: RarityId }[]): RarityCounts {
@@ -477,11 +649,12 @@ export function simulateRun(
     for (let uid = uidBefore; uid < run.save.gear.nextUid; uid++) {
       run.origin.set(uid, "drop");
     }
-    run.spent = { wall: 0, gear: 0, consumables: 0 };
+    run.spent = emptySpend();
+    run.rerolls = 0;
     run.salesGold = added.soldGold;
 
     // Town phase.
-    run.save = ensureTraderStock(run.save, run.shopCtx, rng);
+    run.save = ensureShopStock(run.save, run.shopCtx, rng);
     const goldInTown = run.save.gold;
     const offers = run.gearOffers();
     const traderPrices = offers
@@ -511,6 +684,11 @@ export function simulateRun(
       spentWall: run.spent.wall,
       spentGear: run.spent.gear,
       spentConsumables: run.spent.consumables,
+      spentShops: run.spent.shops,
+      spentRerolls: run.spent.rerolls,
+      rerolls: run.rerolls,
+      traderLevel: run.level("trader"),
+      blacksmithLevel: run.level("blacksmith"),
       goldBanked: run.save.gold,
       wallLevel: wallLevel(run.save),
       wallHpMax: run.save.townWallHpMax,

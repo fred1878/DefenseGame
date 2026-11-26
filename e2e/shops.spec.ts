@@ -64,6 +64,25 @@ test("shops: buy from the blacksmith at the Moon Brazier", async ({ page }) => {
   await tapTarget(page, "gear-close");
 });
 
+test("shops: upgrade the trader, then pay to reroll its stock", async ({
+  page,
+}) => {
+  await gotoE2E(page);
+  await page.evaluate(() => {
+    window.__DEFENSEGAME_E2E__?.api?.setSave({ gold: 500, night: 3 });
+  });
+  await waitForTapTargets(page, [TRADER]);
+  await tapTarget(page, TRADER);
+  await waitForTapTargets(page, ["gear-upgrade", "gear-row-0"]);
+  await tapTarget(page, "gear-upgrade");
+  await expect.poll(() => saveField<number>(page, "buildings.trader")).toBe(1);
+  await expect.poll(() => saveField<number>(page, "gold")).toBe(410);
+  await waitForTapTargets(page, ["gear-reroll"]);
+  await tapTarget(page, "gear-reroll");
+  await expect.poll(() => saveField<number>(page, "gold")).toBe(380);
+  await tapTarget(page, "gear-close");
+});
+
 test("consumables: drink a potion in combat", async ({ page }) => {
   await gotoE2E(page);
   await page.evaluate(() => {

@@ -29,14 +29,16 @@ const draft = (
 const loot = (capacity: number): LootConfig => ({
   inventoryCapacity: capacity,
   sellBackPct: 50,
+  lostNightGoldPct: 25,
   tables: {},
 });
 
 describe("campaign night gold and wall", () => {
-  it("pays the full reward on a win and a quarter on a loss", () => {
+  it("pays the full reward on a win and lostNightGoldPct on a loss", () => {
     expect(campaignNightGoldEarned(true, 40)).toBe(40);
-    expect(campaignNightGoldEarned(false, 40)).toBe(10);
-    expect(campaignNightGoldEarned(false, 41)).toBe(10);
+    // Shipped loot.json: 15% on a loss.
+    expect(campaignNightGoldEarned(false, 40)).toBe(6);
+    expect(campaignNightGoldEarned(false, 41, 25)).toBe(10);
   });
 
   it("applies the win wear penalty and floors at zero", () => {
