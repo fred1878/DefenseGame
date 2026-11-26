@@ -18,7 +18,8 @@ import {
   ensureShopStock,
   type ShopId,
 } from "../../gear/shops";
-import { GearPanel } from "../../ui/GearPanel";
+import { InventoryPanel } from "../../ui/InventoryPanel";
+import { ShopPanel } from "../../ui/ShopPanel";
 import type { GearPanelContext } from "../../ui/gearPanel/gearPanelLogic";
 import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
 import type { ScreenRect } from "../../ui/screenLayout";
@@ -49,7 +50,7 @@ export type TownOverlaysHost = {
 export class TownOverlays {
   spellSortPanel: SpellBarSortPanel | null = null;
   saveMenuPanel: SaveMenuPanel | null = null;
-  gearPanel: GearPanel | null = null;
+  gearPanel: ShopPanel | InventoryPanel | null = null;
   private defenseLoadingOverlay: TownDefenseLoadingOverlay | null = null;
 
   constructor(
@@ -105,7 +106,7 @@ export class TownOverlays {
     );
   }
 
-  /** Gear panel, or a shop (trader / blacksmith) with Shop + Bag tabs. */
+  /** Inventory (town Gear button), or a shop (trader / blacksmith) with Buy + Sell tabs. */
   openGearPanel(shop?: ShopId): void {
     if (this.gearPanel) return;
     const catalog = getGearCatalog();
@@ -123,7 +124,8 @@ export class TownOverlays {
       const stocked = ensureShopStock(before, ctx.shop.ctx, rng);
       if (stocked !== before) this.host.onGearChanged(stocked);
     }
-    this.gearPanel = new GearPanel(
+    const Panel = shop ? ShopPanel : InventoryPanel;
+    this.gearPanel = new Panel(
       this.scene,
       () => this.host.getSave(),
       (save) => this.host.onGearChanged(save),
