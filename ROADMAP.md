@@ -22,9 +22,9 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 | **Equipment (Milestone H)** | [#362](https://github.com/fred1878/DefenseGame/pull/362) — 11 slots (melee, ranged, helm, chest, hands, legs, boots, 2 rings, 2 trinkets); `public/data/items.json` with item levels, 5 rarities, random affixes and authored uniques; armour (diminishing), attack speed, spell power, damage, HP, move speed, lifesteal / burn / chain procs, element and named-spell boosts; weapons change attack style |
 | **Inventory and drops (Milestone H)** | [#363](https://github.com/fred1878/DefenseGame/pull/363) — Gear panel (equip, unequip, compare, sort, sell for half price); end-of-night drops scaled by night from `public/data/loot.json`, with a `rollLoot` hook for adventure drops |
 | **Shops and consumables (Milestone H)** | [#364](https://github.com/fred1878/DefenseGame/pull/364) — Trader in the night Market Stall (random stock, rerolls after each night) and Blacksmith at the Moon Brazier (catalogue unlocks by night; replaces the old damage upgrade); potions and bombs from `public/data/consumables.json`, usable in combat via buttons or Q / E |
-| **Night loot summary** | [#366](https://github.com/fred1878/DefenseGame/pull/366) — after a campaign night: result, gold, loot in rarity colours, auto-sold items and wall HP, with Back to Town on the panel |
-| **Economy sim** | [#367](https://github.com/fred1878/DefenseGame/pull/367) — `npm run sim:economy`: seeded campaign runs on the real loot / shop / pricing code with strategy profiles, CSV / JSON / HTML report ([docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md)) |
-| **Economy rebalance + shop upgrades** | Sell-back 30%, lost nights pay 15% and drop nothing, night 10 reward 170, cheaper late blacksmith items, stronger potions / bombs; Trader and Blacksmith upgrade 3 levels each in their shop panel (more / better stock, lower prices, masterwork items, paid trader reroll); 8 more sim profiles |
+| **Campaign night loot summary** | [#366](https://github.com/fred1878/DefenseGame/pull/366) — End-of-night overlay (result, gold, rarity-coloured drops, auto-sold items, wall HP) via `resolveCampaignNightEnd` / `NightLootSummaryPanel` |
+| **Economy / progression sim** | [#367](https://github.com/fred1878/DefenseGame/pull/367) — `npm run sim:economy` Monte Carlo over real gear/loot/shop code; [docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md) and [docs/ITEMS.md](./docs/ITEMS.md) |
+| **Economy rebalance + shop upgrades** | [#371](https://github.com/fred1878/DefenseGame/pull/371) — Sell-back 30%, lost nights pay 15% and drop nothing, night 10 reward 170, cheaper late blacksmith items, stronger potions / bombs; Trader and Blacksmith upgrade 3 levels each in their shop panel (more / better stock, lower prices, masterwork items, paid trader reroll); 8 more sim profiles |
 | **Talents (Milestone I)** | Talents screen from town: three branches (Blade, Marksman, Sorcery), 5 tiers opened by points spent in the branch, pick-one tier III, ranks with per-rank stat modifiers and procs that stack into gear stats (combat, Gear totals, economy sim), 1 point per night won, reset for 50g; data in `public/data/talents.json` ([docs/TALENTS.md](./docs/TALENTS.md)) |
 
 ---
@@ -41,7 +41,7 @@ Spell interactions come next after remaining campaign polish because they sit on
 | **1** | **DefenseScene refactor** — **done** (PRs 1–12, P1, P2; pooling landed in `5bc75e1`). Historical plan: [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) | L |
 | **2** | Tag **`v0.1.0`** + optional GitHub Release | S |
 | **3** | Milestone **B** remaining content (campaign ending after night 12, night polish) | M–L |
-| **4** | Milestone **C** remaining (cone art VFX, **spell interactions**). Damage numbers are in progress separately | M–L |
+| **4** | Milestone **C** remaining (cone art VFX, **spell interactions**; damage numbers — tuning only) | M–L |
 | **5** | Milestone **G** — Fully upgradeable town | L |
 | **6** | Milestone **H** — Equipment, shops, and traders — core **done** (see Recently landed); follow-ups below | L |
 | **7** | Milestone **I** — Talents — core **done** (see Recently landed); follow-ups below | L |
@@ -85,17 +85,17 @@ Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done)
 
 ---
 
-## Milestone B — Core loop (nights 1–10+)
+## Milestone B — Core loop (nights 1–12+)
 
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
-| Waves nights 1–10 | M | Yes | Balance pass; docs in `WAVES.md` |
+| Waves nights 1–12 | M | Yes | Balance pass (use `npm run sim:economy` for economy); docs in `WAVES.md` |
 | 12 enemy types | L | Yes | More behaviors tied to buildings; tuning |
 | Wall win/lose + `NightResult` | M | Yes | Clearer lose UX; endless vs campaign rules |
 | Wall upgrades | M | Yes | More upgrade types — expanded in Milestone **G**. The smith damage upgrade was replaced by gear (Milestone **H**) |
 | Gallows / spell bar buildings | S | Yes | Art and copy |
-| **Campaign after night 12** | M | No | Ending or NG+; stop repeating night 12 wave |
-| **Unwired town buildings** | M | Yes | Haunted Well (endless), Plague Clinic (wave planner), Market Stall (night, Trader) and Market Stall (daylit, saves) are all wired |
+| **Campaign after night 12** | M | No | Today: `night` keeps advancing on wins and `getWaveForNight` **repeats the night-12 wave**. Need ending or NG+ and explicit post-12 rules (endless unlock, credits, etc.) |
+| **Town building wiring** | S | **Done** | Haunted Well (endless), Plague Clinic (wave planner), night Market Stall (Trader + Gear), daylit Market Stall (saves) |
 | Endless concurrent spawn (if on `main`) | M | Partial | Polish, balance, docs |
 
 ---
@@ -197,7 +197,11 @@ Leave town during the day, then bring the proceeds back for the night's defense.
 | `DefenseScene` decomposition | L | Done (see execution order steps 0–1) | Further splits are follow-up work; archived plan line counts are stale |
 | `touchButton` / `EnemyRangedCombat` splits | — | Done ([#133](https://github.com/fred1878/DefenseGame/pull/133), [#134](https://github.com/fred1878/DefenseGame/pull/134)) | — |
 | `defenseNightLogic` pure guard | S | Yes | Keep covered when moving `endNight` |
-| Strict TypeScript + coverage floors | M | Yes | Thresholds 75 / 75 / 75, branches 69; do not lower them |
+| Strict TypeScript + coverage floors | M | Yes | Vitest thresholds **95 / 95 / 95**, branches **90** (`vitest.config.ts`); `src/scenes/**` and `src/world/**` excluded from coverage — do not lower floors |
+| `SAVE_VERSION` migration tests | S | Partial | v2 load guards exist; add fixture tests before the next schema bump |
+| Deprecated API cleanup | S | Partial | `@deprecated` shims (`main.ts`, `DefenseWaveSpawner`, legacy save `autoCast`, spell spawn helpers) — remove once callers migrated |
+| Vitest worker reuse | S | No | Enable `poolOptions.threads.isolate: false` when safe (~5s+ off local/CI unit runs per Vitest hint) |
+| Balance tooling | S | **Yes** | `sim:economy` for tuning; keep wave/loot docs in sync with sim defaults |
 
 ---
 
@@ -206,8 +210,28 @@ Leave town during the day, then bring the proceeds back for the night's defense.
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
 | **Installable PWA (web)** | M | **Yes** | Add to Home Screen / Install app from the Pages URL; offline after the first load |
-| Capacitor device smoke (AGENTS step 6) | M | `capacitor.config.ts` stub | Add packages, iOS/Android smoke |
+| Capacitor device smoke | M | **Android APK** on Releases; in-town update check | iOS smoke; Play Store / App Store packaging (Milestone F XL) |
 | Store APK/IPA | XL | No | Signing, CI per `CI_RELEASES.md` |
+
+---
+
+## Proposed additions (backlog)
+
+Candidates not yet in a milestone table above. Pull into execution order when a step owner is free.
+
+| Item | Effort | Rationale |
+|------|--------|-----------|
+| **Player melee crit** | S | `BruiserPlayerCritHitFx` exists; wire crit chance from gear and reuse FX |
+| **Gear on player sprite** | M | Equipped items visible in Defense (at least weapon silhouette) |
+| **Spell cooldown / error UX** | S | Clear feedback when cast fails (OOM, channel interrupted, no target) |
+| **Lose-night UX** | S | Stronger copy and CTA when wall or player dies (campaign vs endless) |
+| **PWA install prompt polish** | S | Gentle “install app” hint after first successful night on mobile browsers |
+| **Expand Vitest into scenes** | L | Selective tests for `defenseNightLogic` adapters without full Phaser; avoid bloating excludes forever |
+| **iOS Capacitor smoke** | M | Parity with Android stub; no store submit yet |
+| **Dependabot + secret scanning** | S | Repo settings — keep `package-lock.json` patchable without manual audit |
+| **Accessibility pass** | M | Touch targets audit, contrast on HUD text, reduced motion for screen shake |
+| **Spell bar mobile drag** | S | Town spell sort panel edge cases at screen borders (called out in Milestone C) |
+| **Night 12+ telemetry hooks** | S | Debug-only counters for how many saves sit past night 12 (informs ending design) |
 
 ---
 
@@ -216,6 +240,8 @@ Leave town during the day, then bring the proceeds back for the night's defense.
 - [README.md](./README.md)
 - [docs/AGENTS.md](./docs/AGENTS.md)
 - [docs/DATA_FIELDS.md](./docs/DATA_FIELDS.md)
+- [docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md)
+- [docs/ITEMS.md](./docs/ITEMS.md)
 - [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md)
 - [docs/CI_RELEASES.md](./docs/CI_RELEASES.md)
 - [docs/TESTING.md](./docs/TESTING.md)

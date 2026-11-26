@@ -113,6 +113,8 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `endless-mode.spec.ts`, `endless-mode-panel-layout.spec.ts`, `endless-respawn-targeting.spec.ts` | Endless training flow, panel behavior, respawn targeting |
 | `town-touch.spec.ts` | Start night, Haunted Well / endless, drag-off (building debug overlay is `@manual`) |
 | `save-menu.spec.ts` | Daylit Market Stall opens the save menu; close and reopen |
+| `gear.spec.ts` | Gear panel equip, compare, bag overflow |
+| `shops.spec.ts` | Trader and blacksmith flows from town buildings |
 | `town-spell-panel-tap-toggle.spec.ts` | Town spell pool tap add/remove |
 | `defense-hud-layout.spec.ts` | Core HUD chrome + combat anchor layout (minimap / play-band projection probes are `@manual`) |
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
@@ -172,7 +174,14 @@ Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `
 
 ## Coverage notes
 
-Vitest thresholds apply to included `src/**` modules (scenes and Phaser boot stay excluded). `npm run test:coverage` enforces modest line/branch floors in CI.
+`npm run test:coverage` (CI `verify` job) enforces thresholds in `vitest.config.ts`:
+
+| Metric | Floor | Typical actual |
+|--------|------:|---------------:|
+| lines / functions / statements | 95% | ~98% |
+| branches | 90% | ~96% |
+
+**Excluded from coverage:** `src/scenes/**`, `src/world/**`, `src/main.ts`, Capacitor update stubs — scene behavior is covered by Playwright and extraction modules under `scenes/defense/*.test.ts`. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 ## Visual checks (screenshot baselines)
 
 `e2e/visual-screens.spec.ts` compares four screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):
