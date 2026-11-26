@@ -1,15 +1,16 @@
 import Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
-import { HOLY_FX_ANIM, HOLY_FX_TEXTURE } from "../content/holyFxAssets";
-import { COMBAT_FX_TEXTURE } from "../content/assets";
+import { PVFX_ANIM, PVFX_TEXTURE } from "../content/combatPvfxAssets";
 import { SpellHealChannelFx } from "./SpellHealChannelFx";
 
 (Phaser as { BlendModes?: { ADD: number } }).BlendModes = { ADD: 1 };
 
+const PVFX_KEYS = Object.values(PVFX_TEXTURE);
+
 describe("SpellHealChannelFx", () => {
-  it("destroys graphics and glow on stop", () => {
+  it("destroys graphics and aura sprite on stop", () => {
     const gfxDestroy = vi.fn();
-    const glowDestroy = vi.fn();
+    const loopDestroy = vi.fn();
     const tweenStop = vi.fn();
     const gfx = {
       setDepth: vi.fn(),
@@ -22,33 +23,37 @@ describe("SpellHealChannelFx", () => {
       strokeCircle: vi.fn(),
       destroy: gfxDestroy,
     };
-    const glow: Record<string, unknown> = {
+    const loop: Record<string, unknown> = {
       setPosition: vi.fn(),
-      setDepth: vi.fn(),
-      setTint: vi.fn(),
-      setAlpha: vi.fn(),
-      setBlendMode: vi.fn(),
-      setDisplaySize: vi.fn(),
-      destroy: glowDestroy,
+      destroy: loopDestroy,
+      play: vi.fn(),
     };
     const chain = (k: string) => {
-      glow[k] = vi.fn(() => glow);
+      loop[k] = vi.fn(() => loop);
     };
     for (const k of [
       "setDepth",
-      "setTint",
-      "setAlpha",
       "setBlendMode",
+      "setAlpha",
+      "setOrigin",
       "setDisplaySize",
     ]) {
       chain(k);
     }
-    const image = vi.fn(() => glow);
+    loop.play = vi.fn(() => loop);
     const scene = {
-      textures: { exists: () => true },
+      textures: {
+        exists: (key: string) =>
+          PVFX_KEYS.includes(key as (typeof PVFX_KEYS)[number]),
+      },
+      anims: {
+        exists: (key: string) => key === PVFX_ANIM.regenAuraLoop,
+        create: vi.fn(),
+        generateFrameNumbers: vi.fn(() => []),
+      },
       add: {
         graphics: () => gfx,
-        image,
+        sprite: vi.fn(() => loop),
       },
       tweens: {
         add: () => ({ stop: tweenStop }),
@@ -61,7 +66,7 @@ describe("SpellHealChannelFx", () => {
 
     expect(tweenStop).toHaveBeenCalled();
     expect(gfxDestroy).toHaveBeenCalled();
-    expect(glowDestroy).toHaveBeenCalled();
+    expect(loopDestroy).toHaveBeenCalled();
     fx.destroy();
   });
 
@@ -78,11 +83,27 @@ describe("SpellHealChannelFx", () => {
       strokeCircle: vi.fn(),
       destroy: gfxDestroy,
     };
+    const loop = {
+      setDepth: vi.fn().mockReturnThis(),
+      setBlendMode: vi.fn().mockReturnThis(),
+      setAlpha: vi.fn().mockReturnThis(),
+      setOrigin: vi.fn().mockReturnThis(),
+      setDisplaySize: vi.fn().mockReturnThis(),
+      play: vi.fn().mockReturnThis(),
+      destroy: vi.fn(),
+    };
     const scene = {
-      textures: { exists: () => false },
+      textures: {
+        exists: (key: string) => key === PVFX_TEXTURE.regenAura,
+      },
+      anims: {
+        exists: (key: string) => key === PVFX_ANIM.regenAuraLoop,
+        create: vi.fn(),
+        generateFrameNumbers: vi.fn(() => []),
+      },
       add: {
         graphics: () => gfx,
-        image: vi.fn(),
+        sprite: vi.fn(() => loop),
       },
       tweens: { add: tweenAdd },
     } as unknown as Phaser.Scene;
@@ -96,7 +117,20 @@ describe("SpellHealChannelFx", () => {
     fx.stop();
   });
 
-  it("starts the holy loop when the channel texture and anim exist", () => {
+  it("throws when regen-aura PVFX is missing", () => {
+    const scene = {
+      textures: { exists: () => false },
+      anims: { exists: () => false, create: vi.fn() },
+      add: { graphics: vi.fn() },
+      tweens: { add: vi.fn() },
+    } as unknown as Phaser.Scene;
+    const fx = new SpellHealChannelFx(scene);
+    expect(() => fx.start(0, 0)).toThrow(
+      /PVFX texture missing \(heal channel\)/,
+    );
+  });
+
+  it("starts the regen-aura loop when PVFX is ready", () => {
     const register = vi.fn();
     const loop: Record<string, unknown> = {
       setPosition: vi.fn(),
@@ -108,6 +142,7 @@ describe("SpellHealChannelFx", () => {
       "setDepth",
       "setBlendMode",
       "setAlpha",
+      "setOrigin",
       "setDisplaySize",
     ]) {
       loop[k] = vi.fn(chain);
@@ -130,13 +165,16 @@ describe("SpellHealChannelFx", () => {
     }> = [];
     const scene = {
       textures: {
-        exists: (key: string) => key === HOLY_FX_TEXTURE.channel,
+        exists: (key: string) => key === PVFX_TEXTURE.regenAura,
       },
-      anims: { exists: (key: string) => key === HOLY_FX_ANIM.channelLoop },
+      anims: {
+        exists: (key: string) => key === PVFX_ANIM.regenAuraLoop,
+        create: vi.fn(),
+        generateFrameNumbers: vi.fn(() => []),
+      },
       add: {
         graphics: () => gfx,
         sprite: vi.fn(() => loop),
-        image: vi.fn(),
       },
       tweens: {
         add: vi.fn(
@@ -169,67 +207,12 @@ describe("SpellHealChannelFx", () => {
   it("no-ops fadeOut before start and follow after stop", () => {
     const scene = {
       textures: { exists: () => false },
-      add: { graphics: vi.fn(), image: vi.fn() },
+      add: { graphics: vi.fn(), sprite: vi.fn() },
       tweens: { add: vi.fn(() => ({ stop: vi.fn() })) },
     } as unknown as Phaser.Scene;
     const fx = new SpellHealChannelFx(scene);
     fx.fadeOut();
     fx.follow(1, 2);
     expect(scene.add.graphics).not.toHaveBeenCalled();
-  });
-});
-
-describe("SpellHealChannelFx leftover glow branches", () => {
-  it("follows and fades the shockwave glow when the holy loop is missing", () => {
-    const glow = {
-      setPosition: vi.fn(),
-      setDepth: vi.fn().mockReturnThis(),
-      setTint: vi.fn().mockReturnThis(),
-      setAlpha: vi.fn().mockReturnThis(),
-      setBlendMode: vi.fn().mockReturnThis(),
-      setDisplaySize: vi.fn().mockReturnThis(),
-    };
-    const gfx = {
-      setDepth: vi.fn(),
-      setBlendMode: vi.fn(),
-      clear: vi.fn(),
-      fillStyle: vi.fn(),
-      fillCircle: vi.fn(),
-      lineStyle: vi.fn(),
-      strokeCircle: vi.fn(),
-    };
-    const tweens: Array<{
-      stop: ReturnType<typeof vi.fn>;
-      onComplete?: () => void;
-    }> = [];
-    const scene = {
-      textures: {
-        exists: (key: string) => key === COMBAT_FX_TEXTURE.spellShockwave,
-      },
-      add: {
-        graphics: vi.fn(() => gfx),
-        image: vi.fn(() => glow),
-        sprite: vi.fn(),
-      },
-      tweens: {
-        add: vi.fn((cfg: { onComplete?: () => void }) => {
-          const tw: {
-            stop: ReturnType<typeof vi.fn>;
-            onComplete?: () => void;
-          } = { stop: vi.fn() };
-          if (cfg.onComplete) tw.onComplete = cfg.onComplete;
-          tweens.push(tw);
-          return tw;
-        }),
-      },
-    } as unknown as Phaser.Scene;
-    const fx = new SpellHealChannelFx(scene);
-    const register = vi.fn();
-    fx.start(4, 8, register);
-    expect(scene.add.image).toHaveBeenCalled();
-    fx.follow(20, 30);
-    expect(glow.setPosition).toHaveBeenCalledWith(20, 30);
-    fx.fadeOut();
-    expect(tweens.length).toBeGreaterThan(1);
   });
 });

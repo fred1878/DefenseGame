@@ -104,6 +104,14 @@ export const PVFX_FX_ASSETS = [
     frameCount: 16,
     frameRate: 1000 / 75,
   },
+  {
+    key: "fx_pvfx_regen_aura",
+    file: "holy-regen-aura.png",
+    frameWidth: 48,
+    frameHeight: 64,
+    frameCount: 16,
+    frameRate: 1000 / 80,
+  },
 ] as const;
 
 export const PVFX_TEXTURE = {
@@ -119,6 +127,7 @@ export const PVFX_TEXTURE = {
   incinerate: "fx_pvfx_incinerate",
   firePillar: "fx_pvfx_fire_pillar",
   groundFlames: "fx_pvfx_ground_flames",
+  regenAura: "fx_pvfx_regen_aura",
 } as const;
 
 export const PVFX_ANIM = {
@@ -135,9 +144,19 @@ export const PVFX_ANIM = {
   incinerate: "pvfx_incinerate",
   firePillar: "pvfx_fire_pillar",
   groundFlamesLoop: "pvfx_ground_flames_loop",
+  regenAuraLoop: "pvfx_regen_aura_loop",
 } as const;
 
 export const PVFX_ICE_SHATTER_STUN_LOOP_FRAMES = 3;
+
+/** PVFX `holy/regen-aura` lit cell + gameplay pivot (manifest `pivot`). */
+export const PVFX_REGEN_AURA_SOURCE_W = 48;
+export const PVFX_REGEN_AURA_SOURCE_H = 64;
+export const PVFX_REGEN_AURA_ORIGIN_X = 24 / PVFX_REGEN_AURA_SOURCE_W;
+export const PVFX_REGEN_AURA_ORIGIN_Y = 57 / PVFX_REGEN_AURA_SOURCE_H;
+/** Sprite display width = beacon radius × this (height keeps 48:64 aspect). */
+export const PVFX_REGEN_AURA_CHANNEL_SPRITE_SCALE = 1.65;
+export const PVFX_REGEN_AURA_CHANNEL_ALPHA = 0.42;
 
 const PVFX_RIGHT_FACING_TEXTURES = new Set<string>([
   PVFX_TEXTURE.arrowFlight,
@@ -253,6 +272,18 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
     shatter.frameCount - 1,
     shatter.frameRate,
     0,
+  );
+
+  const regenAura = PVFX_FX_ASSETS.find(
+    (a) => a.key === PVFX_TEXTURE.regenAura,
+  )!;
+  createOnce(
+    PVFX_ANIM.regenAuraLoop,
+    PVFX_TEXTURE.regenAura,
+    0,
+    regenAura.frameCount - 1,
+    regenAura.frameRate,
+    -1,
   );
 
   for (const flightKey of [

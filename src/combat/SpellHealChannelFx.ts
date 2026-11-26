@@ -1,12 +1,16 @@
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
-import { COMBAT_FX_TEXTURE } from "../content/assets";
 import {
-  HOLY_FX_ANIM,
-  HOLY_FX_CHANNEL_ALPHA,
-  HOLY_FX_CHANNEL_SPRITE_SCALE,
-  HOLY_FX_TEXTURE,
-} from "../content/holyFxAssets";
+  assertPvfxClipReady,
+  PVFX_ANIM,
+  PVFX_REGEN_AURA_CHANNEL_ALPHA,
+  PVFX_REGEN_AURA_CHANNEL_SPRITE_SCALE,
+  PVFX_REGEN_AURA_ORIGIN_X,
+  PVFX_REGEN_AURA_ORIGIN_Y,
+  PVFX_REGEN_AURA_SOURCE_H,
+  PVFX_REGEN_AURA_SOURCE_W,
+  PVFX_TEXTURE,
+} from "../content/combatPvfxAssets";
 
 /** Holy beacon radius — between pre-boost 44 and boosted #278 (52). */
 const BEACON_RADIUS_PX = 48;
@@ -14,18 +18,18 @@ const BEACON_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 /** Brief fade when channel ends or is cancelled by movement. */
 const CHANNEL_FADE_OUT_MS = 280;
 
-const GOLD_RING = 0xffe8a0;
-const WHITE_CORE = 0xfffef5;
-const GOLD_FILL = 0xffcc44;
+/** Procedural rings — subtle green-gold shift vs legacy all-gold heal vectors. */
+const GOLD_RING = 0xd8f0a0;
+const WHITE_CORE = 0xf6fff2;
+const GOLD_FILL = 0xc4e858;
 
 /**
- * Sustained gold/white healing aura on the caster during channeled Heal.
+ * Sustained green-gold healing aura on the caster during channeled Heal.
  * Follow the player each frame via {@link follow}.
  */
 export class SpellHealChannelFx {
   private gfx: Phaser.GameObjects.Graphics | null = null;
-  private glow: Phaser.GameObjects.Image | null = null;
-  private holyLoop: Phaser.GameObjects.Sprite | null = null;
+  private auraLoop: Phaser.GameObjects.Sprite | null = null;
   private pulseTween: Phaser.Tweens.Tween | null = null;
   private fadeTween: Phaser.Tweens.Tween | null = null;
   private pulse = { phase: 0 };
@@ -41,9 +45,12 @@ export class SpellHealChannelFx {
     registerWorldDraw?: (go: Phaser.GameObjects.GameObject) => void,
   ): void {
     this.stop();
-    const holyActive =
-      this.scene.textures.exists(HOLY_FX_TEXTURE.channel) &&
-      (this.scene.anims?.exists(HOLY_FX_ANIM.channelLoop) ?? false);
+    assertPvfxClipReady(
+      this.scene,
+      PVFX_TEXTURE.regenAura,
+      PVFX_ANIM.regenAuraLoop,
+      "heal channel",
+    );
 
     const gfx = this.scene.add.graphics();
     gfx.setDepth(BEACON_DEPTH);
@@ -51,31 +58,21 @@ export class SpellHealChannelFx {
     registerWorldDraw?.(gfx);
     this.gfx = gfx;
 
-    if (holyActive) {
-      const loopSize = BEACON_RADIUS_PX * HOLY_FX_CHANNEL_SPRITE_SCALE;
-      const loop = this.scene.add
-        .sprite(centerX, centerY, HOLY_FX_TEXTURE.channel)
-        .setDepth(BEACON_DEPTH + 1)
-        .setBlendMode(Phaser.BlendModes.ADD)
-        .setAlpha(HOLY_FX_CHANNEL_ALPHA)
-        .setDisplaySize(loopSize, loopSize)
-        .play(HOLY_FX_ANIM.channelLoop);
-      registerWorldDraw?.(loop);
-      this.holyLoop = loop;
-    } else {
-      const shockKey = COMBAT_FX_TEXTURE.spellShockwave;
-      if (this.scene.textures.exists(shockKey)) {
-        const glow = this.scene.add
-          .image(centerX, centerY, shockKey)
-          .setDepth(BEACON_DEPTH - 1)
-          .setTint(0xffe6a8)
-          .setAlpha(0.42)
-          .setBlendMode(Phaser.BlendModes.ADD)
-          .setDisplaySize(BEACON_RADIUS_PX * 2.4, BEACON_RADIUS_PX * 2.4);
-        registerWorldDraw?.(glow);
-        this.glow = glow;
-      }
-    }
+    const widthScale =
+      (BEACON_RADIUS_PX * PVFX_REGEN_AURA_CHANNEL_SPRITE_SCALE) /
+      PVFX_REGEN_AURA_SOURCE_W;
+    const displayW = PVFX_REGEN_AURA_SOURCE_W * widthScale;
+    const displayH = PVFX_REGEN_AURA_SOURCE_H * widthScale;
+    const loop = this.scene.add
+      .sprite(centerX, centerY, PVFX_TEXTURE.regenAura)
+      .setDepth(BEACON_DEPTH + 1)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setAlpha(PVFX_REGEN_AURA_CHANNEL_ALPHA)
+      .setOrigin(PVFX_REGEN_AURA_ORIGIN_X, PVFX_REGEN_AURA_ORIGIN_Y)
+      .setDisplaySize(displayW, displayH)
+      .play(PVFX_ANIM.regenAuraLoop);
+    registerWorldDraw?.(loop);
+    this.auraLoop = loop;
 
     this.centerX = centerX;
     this.centerY = centerY;
@@ -95,11 +92,8 @@ export class SpellHealChannelFx {
   follow(centerX: number, centerY: number): void {
     this.centerX = centerX;
     this.centerY = centerY;
-    if (this.glow) {
-      this.glow.setPosition(centerX, centerY);
-    }
-    if (this.holyLoop) {
-      this.holyLoop.setPosition(centerX, centerY);
+    if (this.auraLoop) {
+      this.auraLoop.setPosition(centerX, centerY);
     }
     this.redraw();
   }
@@ -129,15 +123,14 @@ export class SpellHealChannelFx {
   /** Brief alpha fade then destroy (natural end or movement cancel). */
   fadeOut(): void {
     if (this.fading) return;
-    const hasGfx = this.gfx || this.glow || this.holyLoop;
+    const hasGfx = this.gfx || this.auraLoop;
     if (!hasGfx) return;
     this.fading = true;
     this.pulseTween?.stop();
     this.pulseTween = null;
     const targets: Phaser.GameObjects.Components.AlphaSingle[] = [];
     if (this.gfx) targets.push(this.gfx);
-    if (this.glow) targets.push(this.glow);
-    if (this.holyLoop) targets.push(this.holyLoop);
+    if (this.auraLoop) targets.push(this.auraLoop);
     this.fadeTween = this.scene.tweens.add({
       targets,
       alpha: 0,
@@ -155,10 +148,8 @@ export class SpellHealChannelFx {
     this.pulseTween = null;
     this.gfx?.destroy();
     this.gfx = null;
-    this.glow?.destroy();
-    this.glow = null;
-    this.holyLoop?.destroy();
-    this.holyLoop = null;
+    this.auraLoop?.destroy();
+    this.auraLoop = null;
   }
 
   destroy(): void {
