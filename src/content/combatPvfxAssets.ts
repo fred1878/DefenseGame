@@ -72,6 +72,22 @@ export const PVFX_FX_ASSETS = [
     frameCount: 12,
     frameRate: 1000 / 70,
   },
+  {
+    key: "fx_pvfx_flame_ring",
+    file: "fire-flame-ring.png",
+    frameWidth: 112,
+    frameHeight: 80,
+    frameCount: 16,
+    frameRate: 1000 / 70,
+  },
+  {
+    key: "fx_pvfx_incinerate",
+    file: "fire-incinerate.png",
+    frameWidth: 64,
+    frameHeight: 64,
+    frameCount: 18,
+    frameRate: 1000 / 70,
+  },
 ] as const;
 
 export const PVFX_TEXTURE = {
@@ -83,6 +99,8 @@ export const PVFX_TEXTURE = {
   critHit: "fx_pvfx_crit_hit",
   holyCast: "fx_pvfx_holy_cast",
   shadowCast: "fx_pvfx_shadow_cast",
+  flameRing: "fx_pvfx_flame_ring",
+  incinerate: "fx_pvfx_incinerate",
 } as const;
 
 export const PVFX_ANIM = {
@@ -95,6 +113,8 @@ export const PVFX_ANIM = {
   critHit: "pvfx_crit_hit",
   holyCast: "pvfx_holy_cast",
   shadowCast: "pvfx_shadow_cast",
+  flameRing: "pvfx_flame_ring",
+  incinerate: "pvfx_incinerate",
 } as const;
 
 export const PVFX_ICE_SHATTER_STUN_LOOP_FRAMES = 3;
@@ -252,6 +272,16 @@ export function registerCombatPvfxAnimations(scene: Phaser.Scene): void {
       anim: PVFX_ANIM.shadowCast,
       texture: PVFX_TEXTURE.shadowCast,
       key: PVFX_TEXTURE.shadowCast,
+    },
+    {
+      anim: PVFX_ANIM.flameRing,
+      texture: PVFX_TEXTURE.flameRing,
+      key: PVFX_TEXTURE.flameRing,
+    },
+    {
+      anim: PVFX_ANIM.incinerate,
+      texture: PVFX_TEXTURE.incinerate,
+      key: PVFX_TEXTURE.incinerate,
     },
   ] as const) {
     const entry = PVFX_FX_ASSETS.find((a) => a.key === oneShot.key)!;

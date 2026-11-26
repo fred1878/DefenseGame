@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { PLAYER_TUNING } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
-import { PVFX_FX_ASSETS, PVFX_TEXTURE } from "../content/combatPvfxAssets";
+import {
+  PVFX_ANIM,
+  PVFX_FX_ASSETS,
+  PVFX_TEXTURE,
+} from "../content/combatPvfxAssets";
 import {
   ICE_FX_ANIM,
   ICE_FX_ASSETS,
@@ -151,6 +155,29 @@ describe("applySpellSwing / applySpellCone", () => {
     expect(hp(inCone)).toBe(95);
     expect(hp(outside)).toBe(100);
     expect(status.applyStun).toHaveBeenCalledWith("in", 1);
+  });
+
+  it("cone of fire uses three PVFX incinerate streams instead of the procedural wedge", () => {
+    const scene = fakeScene({
+      textures: PVFX_FX_ASSETS.map((a) => a.key),
+      anims: Object.values(PVFX_ANIM),
+    });
+    applySpellCone(
+      asScene(scene),
+      0,
+      0,
+      0,
+      def({
+        id: "cone_of_fire" as SpellDefinition["id"],
+        coneRangeWu: 100,
+        coneArcDeg: 60,
+      }),
+      [],
+      1,
+    );
+    expect(scene.made("graphics")).toHaveLength(0);
+    expect(scene.made("sprite")).toHaveLength(3);
+    expect(scene.made("sprite")[0]!.args[2]).toBe(PVFX_TEXTURE.incinerate);
   });
 
   it("cone of cold adds the ice hit burst on top of the cone wash", () => {

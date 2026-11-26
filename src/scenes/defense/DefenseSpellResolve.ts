@@ -14,10 +14,7 @@ import {
   channeledHealCompletionRemainder,
   isChanneledHealSpell,
 } from "../../combat/channeledHealChannel";
-import {
-  fireNovaRingDurationMs,
-  showFireNovaRingFx,
-} from "../../combat/FireNovaRingFx";
+import { showFireNovaRingFx } from "../../combat/FireNovaRingFx";
 import { resolveBlinkLanding } from "../../combat/spellMechanics";
 import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
 import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
@@ -82,15 +79,8 @@ export function resolveDefenseSpellEffect(
           bx,
           by,
           blastRadiusPx,
-          fireNovaRingDurationMs(def, blastRadiusPx),
           host.maskWorldObject,
         );
-        host.flashNova(bx, by, blastRadiusPx, {
-          blastTextureKey: COMBAT_FX_TEXTURE.spellFireNova,
-          durationMs: 440,
-          startAlpha: 0.98,
-          scaleEnd: 1.45,
-        });
       } else if (def.id === "meteor") {
         playMeteorStrikeFx(
           host.scene,
