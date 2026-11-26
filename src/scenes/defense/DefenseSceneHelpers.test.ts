@@ -109,6 +109,17 @@ describe("checkDefenseRunEnd", () => {
     });
     expect(onEndlessEnd).toHaveBeenCalledWith("player");
   });
+
+  it("passes wall loss reason on campaign night end", () => {
+    const onNightEnd = vi.fn();
+    checkDefenseRunEnd({
+      ...base,
+      wallHp: 0,
+      onNightEnd,
+      onEndlessEnd: vi.fn(),
+    });
+    expect(onNightEnd).toHaveBeenCalledWith(false, "wall");
+  });
 });
 
 describe("endlessHudHeader", () => {

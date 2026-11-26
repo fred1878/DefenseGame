@@ -15,11 +15,17 @@ describe("evaluateNightEnd", () => {
   });
 
   it("loss when wall reaches zero", () => {
-    expect(evaluateNightEnd({ ...base, wallHp: 0 })).toEqual({ won: false });
+    expect(evaluateNightEnd({ ...base, wallHp: 0 })).toEqual({
+      won: false,
+      lossReason: "wall",
+    });
   });
 
   it("loss when player hp reaches zero", () => {
-    expect(evaluateNightEnd({ ...base, playerHp: 0 })).toEqual({ won: false });
+    expect(evaluateNightEnd({ ...base, playerHp: 0 })).toEqual({
+      won: false,
+      lossReason: "player",
+    });
   });
 
   it("win when spawn plan done and no living enemies", () => {

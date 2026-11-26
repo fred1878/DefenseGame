@@ -1,4 +1,9 @@
-export type NightEndEvaluation = false | { won: boolean };
+import type { CampaignNightLossReason } from "./defense/nightEndMessaging";
+
+export type NightEndEvaluation =
+  | false
+  | { won: true }
+  | { won: false; lossReason: CampaignNightLossReason };
 
 export type EndlessEndEvaluation = false | { reason: "player" };
 
@@ -25,8 +30,8 @@ export function evaluateNightEnd(input: {
   livingEnemies: number;
 }): NightEndEvaluation {
   if (input.nightEnded) return false;
-  if (input.wallHp <= 0) return { won: false };
-  if (input.playerHp <= 0) return { won: false };
+  if (input.wallHp <= 0) return { won: false, lossReason: "wall" };
+  if (input.playerHp <= 0) return { won: false, lossReason: "player" };
   if (input.spawnPlanComplete && input.livingEnemies === 0)
     return { won: true };
   return false;

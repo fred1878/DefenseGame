@@ -198,9 +198,9 @@ Leave town during the day, then bring the proceeds back for the night's defense.
 | `DefenseScene` decomposition | L | Done (see execution order steps 0–1) | Further splits are follow-up work; archived plan line counts are stale |
 | `touchButton` / `EnemyRangedCombat` splits | — | Done ([#133](https://github.com/fred1878/DefenseGame/pull/133), [#134](https://github.com/fred1878/DefenseGame/pull/134)) | — |
 | `defenseNightLogic` pure guard | S | Yes | Keep covered when moving `endNight` |
-| Strict TypeScript + coverage floors | M | Yes | Vitest thresholds **95 / 95 / 95**, branches **90** (`vitest.config.ts`); `src/scenes/**` and `src/world/**` excluded from coverage — do not lower floors |
+| Strict TypeScript + coverage floors | M | Yes | Vitest **94 / 95 / 94**, branches **90** with scene orchestrators + Phaser HUD glue excluded; `scenes/defense/*` modules and `world/**` in scope (`vitest.config.ts`) |
 | `SAVE_VERSION` migration tests | S | Partial | v2 load guards exist; add fixture tests before the next schema bump |
-| Deprecated API cleanup | S | Partial | `@deprecated` shims (`main.ts`, `DefenseWaveSpawner`, legacy save `autoCast`, spell spawn helpers) — remove once callers migrated |
+| Deprecated API cleanup | S | Partial | `@deprecated` shims (`DefenseWaveSpawner`, legacy save `autoCast`, spell spawn helpers) — `main.ts` removed |
 | Vitest worker reuse | S | No | Enable `poolOptions.threads.isolate: false` when safe (~5s+ off local/CI unit runs per Vitest hint) |
 | Balance tooling | S | **Yes** | `sim:economy` for tuning; keep wave/loot docs in sync with sim defaults |
 
@@ -225,7 +225,7 @@ Candidates not yet in a milestone table above. Pull into execution order when a 
 | **Player melee crit** | S | `BruiserPlayerCritHitFx` exists; wire crit chance from gear and reuse FX |
 | **Gear on player sprite** | M | Equipped items visible in Defense (at least weapon silhouette) |
 | **Spell cooldown / error UX** | S | Clear feedback when cast fails (OOM, channel interrupted, no target) |
-| **Lose-night UX** | S | Stronger copy and CTA when wall or player dies (campaign vs endless) |
+| **Lose-night UX** | S | **Done** — wall/player campaign copy, progress notes, training/sim HUD lines |
 | **PWA install prompt polish** | S | Gentle “install app” hint after first successful night on mobile browsers |
 | **Expand Vitest into scenes** | L | Selective tests for `defenseNightLogic` adapters without full Phaser; avoid bloating excludes forever |
 | **iOS Capacitor smoke** | M | Parity with Android stub; no store submit yet |
