@@ -172,7 +172,23 @@ and the best fit on purpose: the bot is simple (charges into melee, never
 drinks potions) and the sample is small. Night 5 is the hardest early night
 for the bot (12 grunts + 10 skirmishers + charger and reaver all at once).
 
-FINAL_VALIDATION_PLACEHOLDER
+Check on the shipped waves (nights 13–20 with `damageMul` 1.3–2.1) and
+talents on (48 fights: nights 12, 15, 18, 20 × 4 gear levels × 3 repeats):
+
+| Night | 12 | 15 | 18 | 20 | All |
+|---|---|---|---|---|---|
+| Model predicted | 76% | 58% | 48% | 45% | 57% |
+| Bot won | 100% | 92% | 100% | 100% | 98% |
+
+Even the "behind" saves (model 11–41%) won 11 of 12. In those wins the bot
+kept 85–95% of its HP and the wall was almost never hit: with 60–70 enemies
+alive at once, they die before they get close. So **the model still
+over-rates late nights**. The likely gap is crowd damage: weapon arcs, AoE
+spells and on-hit procs hit many enemies at once, but the model's offence
+treats player DPS as single-target against the night's total HP. Treat the
+late-night win chances as relative (how strategies and nights compare), and
+expect real late nights to be easier than the table says until offence is
+modelled for crowds or the waves are pushed harder in real play.
 
 ## Reading the output
 
