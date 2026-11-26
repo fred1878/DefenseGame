@@ -219,4 +219,44 @@ describe("spellGroundZone channeled damage", () => {
     );
     expect(damageable.hp).toBe(20);
   });
+
+  it("ticks linger DoT without counting channel remainder ticks", () => {
+    const def: SpellDefinition = {
+      ...channeledGroundDef(0),
+      lingerMs: 1000,
+      lingerTickMs: 250,
+      onHit: { dotDps: 8, dotMs: 1000 },
+    };
+    const damageable: Damageable = {
+      id: "e1",
+      hp: 500,
+      maxHp: 500,
+      alive: true,
+      team: "enemy",
+    };
+    const amounts: number[] = [];
+    damageable.onDamaged = (a) => amounts.push(a);
+    const enemy: EnemyHitTarget & { damageable: Damageable; id: string } = {
+      id: "e1",
+      x: 0,
+      y: 0,
+      radius: 16,
+      damageable,
+    };
+    const zone = spawnGroundZone(mockScene(), def, 0, 0, 1, 0, {
+      durationMs: def.lingerMs!,
+      lingerDot: true,
+    });
+    tickSpellGroundZones(
+      mockScene(),
+      [zone],
+      250,
+      250,
+      [enemy],
+      new EnemySpellStatusMap(),
+      1,
+    );
+    expect(amounts[0]).toBeCloseTo(2);
+    expect(zone.channelTicksDone).toBeUndefined();
+  });
 });

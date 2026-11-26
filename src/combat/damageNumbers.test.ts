@@ -352,3 +352,88 @@ describe("DAMAGE_NUMBERS config", () => {
     ]);
   });
 });
+
+describe("damageNumbers leftover branches", () => {
+  it("displays a negative fraction that would otherwise round to zero", () => {
+    expect(displayDamageAmount(-0.4)).toBe(-1);
+    expect(displayDamageAmount(0)).toBe(0);
+  });
+
+  it("aggregates two live crits and prefers the latest match", () => {
+    const cfg = { ...DAMAGE_NUMBERS, aggregateWindowMs: 200 };
+    let state = createDamageNumberState();
+    const first = spawnOrAggregateDamageNumber(
+      state,
+      {
+        targetId: "e1",
+        x: 0,
+        y: 0,
+        amount: 8,
+        kind: "physical",
+        isCrit: true,
+      },
+      0,
+      cfg,
+    );
+    state = first.state;
+    // A second matching entry in the window is unusual but findAggregate
+    // should keep the later lastHitAtMs.
+    state.active.push({
+      ...state.active[0]!,
+      id: 99,
+      lastHitAtMs: 40,
+      spawnedAtMs: 40,
+      amount: 3,
+    });
+    const second = spawnOrAggregateDamageNumber(
+      state,
+      {
+        targetId: "e1",
+        x: 1,
+        y: 1,
+        amount: 5,
+        kind: "physical",
+        isCrit: true,
+      },
+      50,
+      cfg,
+    );
+    expect(second.action).toBe("aggregate");
+    const matched = second.state.active.find((e) => e.id === 99);
+    expect(matched?.amount).toBe(8);
+    expect(matched?.isCrit).toBe(true);
+  });
+
+  it("uses defensive pose defaults when motion timings are zeroed", () => {
+    const cfg = {
+      ...DAMAGE_NUMBERS,
+      styles: {
+        ...DAMAGE_NUMBERS.styles,
+        physical: {
+          ...DAMAGE_NUMBERS.styles.physical,
+          motion: {
+            ...DAMAGE_NUMBERS.styles.physical.motion,
+            durationMs: 0,
+            popMs: 0,
+            fadeStartT: 1,
+          },
+        },
+      },
+    };
+    const entry = {
+      id: 1,
+      targetId: "e1",
+      kind: "physical" as const,
+      isCrit: false,
+      amount: 4,
+      startX: 0,
+      startY: 0,
+      spawnedAtMs: 0,
+      lastHitAtMs: 0,
+      seed: 1,
+    };
+    const pose = damageNumberPose(entry, 100, cfg);
+    expect(pose.scale).toBe(1);
+    expect(pose.alpha).toBe(1);
+  });
+});

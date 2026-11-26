@@ -405,4 +405,34 @@ describe("movement remaining branches", () => {
     const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
     expect(setVelocity).toHaveBeenCalledWith(0, 0);
   });
+
+  it("applies status speed fallback and blocks a swinging chaser", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+    delete (enemy as { statusSpeedMul?: number }).statusSpeedMul;
+    enemy.combat.phase = "idle";
+    enemy.sprite.x = 0;
+    enemy.sprite.y = 0;
+    applyChaseVelocity(enemy, 100, 0, 1);
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalled();
+    const [vx] = setVelocity.mock.calls.at(-1)!;
+    expect(vx).toBeGreaterThan(0);
+
+    setVelocity.mockClear();
+    enemy.combat.phase = "windup";
+    applyDirectVelocity(enemy, 1, 0, 1);
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("holds chase velocity at the wall when the target is the wall", () => {
+    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const approachY = wallMeleeStandoffY(enemy);
+    enemy.sprite.y = approachY + 2;
+    enemy.combat.phase = "idle";
+    applyChaseVelocity(enemy, enemy.sprite.x, approachY, 1, {
+      targetKind: "wall",
+    });
+    const setVelocity = enemy.sprite.setVelocity as ReturnType<typeof vi.fn>;
+    expect(setVelocity).toHaveBeenCalledWith(0, 0);
+  });
 });

@@ -57,4 +57,21 @@ describe("planEndlessSpawns", () => {
       { enemyId: "javelineer", spawnCount: 0 },
     ]);
   });
+
+  it("treats non-finite caps as the minimum and missing counts as zero", () => {
+    expect(clampEndlessConcurrent(Number.NaN)).toBe(ENDLESS_CONCURRENT_MIN);
+    expect(clampEndlessConcurrent(Number.POSITIVE_INFINITY)).toBe(
+      ENDLESS_CONCURRENT_MIN,
+    );
+    const fromMap = planEndlessSpawns(
+      [{ enemyId: "grunt", concurrentCap: 5 }],
+      new Map(),
+    );
+    expect(fromMap).toEqual([{ enemyId: "grunt", spawnCount: 5 }]);
+    const fromRecord = planEndlessSpawns(
+      [{ enemyId: "grunt", concurrentCap: 4 }],
+      {},
+    );
+    expect(fromRecord).toEqual([{ enemyId: "grunt", spawnCount: 4 }]);
+  });
 });

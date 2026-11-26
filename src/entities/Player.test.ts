@@ -158,3 +158,38 @@ describe("Player attack mode and phases", () => {
     expect(player.meleeHitboxFacingRad()).toBe(player.getFacingAngle());
   });
 });
+
+describe("Player leftover branches", () => {
+  it("faces with the current angle when the target is at the player", () => {
+    const player = mockPlayer();
+    player.faceToward(100, 0);
+    const facing = player.getFacingAngle();
+    player.faceToward(0, 0);
+    expect(player.getFacingAngle()).toBeCloseTo(facing);
+  });
+
+  it("roots during ranged recovery and ignores idle attack updates", () => {
+    const player = mockPlayer();
+    player.setAttackMode("ranged");
+    expect(player.tryStartAttack()).toBe(true);
+    player.updateAttack(PLAYER_TUNING.rangedWindupMs);
+    player.updateAttack(PLAYER_TUNING.rangedActiveMs);
+    expect(player.attackPhaseNow).toBe("recovery");
+    player.setVelocityFromStick(1, 0, 200);
+    const sprite = player.sprite as unknown as {
+      setVelocity: ReturnType<typeof vi.fn>;
+    };
+    expect(sprite.setVelocity).toHaveBeenCalledWith(0, 0);
+    player.updateAttack(PLAYER_TUNING.rangedRecoveryMs);
+    expect(player.attackPhaseNow).toBe("idle");
+    player.updateAttack(16);
+    expect(player.attackPhaseNow).toBe("idle");
+  });
+
+  it("skips melee damage outside the active swing", () => {
+    const player = mockPlayer();
+    const enemy = mockEnemyAt(40, 0);
+    player.damageEnemiesInArc([enemy], 10, 0);
+    expect(enemy.damageable.hp).toBe(100);
+  });
+});

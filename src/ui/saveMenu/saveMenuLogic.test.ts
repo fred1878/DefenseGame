@@ -113,3 +113,36 @@ describe("saveMenuLogic", () => {
     expect(state.status).toBe("Deleted Slot 1");
   });
 });
+
+describe("saveMenuLogic leftover branches", () => {
+  it("falls back to a generic name when the selected slot is missing", () => {
+    const state = {
+      ...createSaveMenuState(slots),
+      selected: 99,
+      confirm: "load" as const,
+    };
+    expect(saveMenuPrompt(state)).toContain("this slot");
+  });
+
+  it("ignores select, save, and confirm when the slot or confirm is invalid", () => {
+    const state = createSaveMenuState(slots);
+    expect(
+      reduceSaveMenu(state, { type: "select", index: 99 }).effect.type,
+    ).toBe("none");
+    const confirming = {
+      ...state,
+      selected: 1,
+      confirm: "delete" as const,
+    };
+    expect(
+      reduceSaveMenu(confirming, { type: "requestSave" }).effect.type,
+    ).toBe("none");
+    expect(reduceSaveMenu(state, { type: "confirm" }).effect.type).toBe("none");
+  });
+
+  it("uses a fallback slot name when deleting an unknown index", () => {
+    const state = createSaveMenuState([]);
+    const next = applyDeleteResult(state, 4);
+    expect(next.status).toBe("Deleted Slot 5");
+  });
+});

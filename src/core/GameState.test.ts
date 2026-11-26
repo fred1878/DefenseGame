@@ -17,6 +17,8 @@ import {
   persistSave,
   resetSaveAndReload,
   wallHpBonusFromBuildings,
+  mergePlayerWithoutLegacyMoveSpeed,
+  normalizeSave,
 } from "./GameState";
 
 describe("GameState", () => {
@@ -261,5 +263,54 @@ describe("GameState bar length", () => {
     const loaded = loadSave();
     expect(loaded.spellBar.slots).toHaveLength(SPELL_BAR.slotCount);
     vi.unstubAllGlobals();
+  });
+});
+
+describe("GameState leftover branches", () => {
+  it("loadSave starts fresh when the key is empty", () => {
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      setItem: () => undefined,
+      removeItem: () => undefined,
+    });
+    expect(loadSave().night).toBe(1);
+    vi.unstubAllGlobals();
+  });
+
+  it("normalizes a missing spell bar and a missing player", () => {
+    const base = createNewSave();
+    const noBar = normalizeSave({
+      ...base,
+      spellBar: undefined,
+    } as unknown as SaveGame);
+    expect(noBar.spellBar.slots).toHaveLength(SPELL_BAR.slotCount);
+    expect(mergePlayerWithoutLegacyMoveSpeed(base.player)).toEqual(base.player);
+  });
+
+  it("keeps current player hp when an endless exit reports no hp", () => {
+    const save = createNewSave();
+    save.player.hp = 40;
+    const next = applyEndlessRunExit(save, 10, 0);
+    expect(next.player.hp).toBe(40);
+    expect(next.townWallHp).toBe(10);
+  });
+
+  it("does not advance the night or heal when a night is lost", () => {
+    const save = createNewSave();
+    save.player.hp = 20;
+    const next = applyNightResult(save, {
+      won: false,
+      goldEarned: 5,
+      wallDamage: 8,
+      night: 1,
+    });
+    expect(next.night).toBe(1);
+    expect(next.gold).toBe(5);
+    expect(next.townWallHp).toBe(save.townWallHp - 8);
+    expect(next.player.hp).toBe(20);
+  });
+
+  it("treats a missing wall building as level zero", () => {
+    expect(wallHpBonusFromBuildings({})).toBe(0);
   });
 });

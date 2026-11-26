@@ -296,4 +296,57 @@ describe("townBuildingMenu", () => {
     const wallMaxTap = handleTownBuildingTap(store, save, wallDef);
     expect(wallMaxTap.result.kind).toBe("blocked");
   });
+
+  it("labels a player-damage upgrade and treats missing levels as zero", () => {
+    store.buildings.training = {
+      maxLevel: 2,
+      costByLevel: [15, 30],
+      effect: "playerDamage",
+    };
+    const def: TownBuildingDef = {
+      label: "Yard",
+      textureKey: "town_yard",
+      width: 10,
+      height: 10,
+      upgradeId: "training",
+    };
+    const save = createNewSave();
+    delete (save.buildings as { blacksmith?: number }).blacksmith;
+    save.gold = 20;
+    expect(townBuildingSubtitle(store, save, def)).toContain("next 15g");
+    const { result, save: next } = handleTownBuildingTap(store, save, def);
+    expect(result.kind).toBe("upgraded");
+    expect(result.message).toContain("damage x");
+    expect(next.buildings.training).toBe(1);
+
+    const wall = store.buildings.wall!;
+    const smith = store.buildings.blacksmith!;
+    const wallCosts = wall.costByLevel;
+    const smithCosts = smith.costByLevel;
+    wall.costByLevel = [];
+    const wallDef: TownBuildingDef = {
+      label: "Wall",
+      textureKey: "town_wall",
+      width: 10,
+      height: 10,
+      upgradeId: "wall",
+    };
+    save.buildings.wall = 0;
+    expect(townBuildingSubtitle(store, save, wallDef)).toBe(
+      "— Upgrade wall (L0)",
+    );
+    smith.costByLevel = [];
+    save.buildings.blacksmith = 0;
+    const smithDef: TownBuildingDef = {
+      label: "Smith",
+      textureKey: "town_smith",
+      width: 10,
+      height: 10,
+      upgradeId: "blacksmith",
+    };
+    expect(townBuildingSubtitle(store, save, smithDef)).toContain("L0");
+    expect(townBuildingSubtitle(store, save, smithDef)).not.toContain("next");
+    wall.costByLevel = wallCosts;
+    smith.costByLevel = smithCosts;
+  });
 });
