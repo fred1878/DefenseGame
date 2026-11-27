@@ -1,135 +1,79 @@
-import Phaser from "phaser";
+import type { DataStore } from "../core/DataStore";
+import type { ScreenRect } from "../ui/screenLayout";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
 } from "./loading/GameAssetLoader";
-import { showTouchInput } from "../debug/DebugState";
-import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
-import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
-import { configureSceneInput } from "../input/inputTuning";
-import { isE2EEnabled } from "../e2e/e2eMode";
-import { publishE2E } from "../e2e/e2eGlobal";
 import { EndlessModePanel } from "../ui/EndlessModePanel";
 import { EndlessModePanelLoadingSkeleton } from "../ui/EndlessModePanelLoadingSkeleton";
-import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
-import { isPointerOverInteractive } from "../input/pointerOverInteractive";
 import {
   closeTownSetupScene,
   type EndlessModeSetupLaunchData,
   TOWN_ENDLESS_SETUP_SCENE_KEY,
 } from "./town/townSetupSceneLifecycle";
-import { getDataStore } from "../core/registryKeys";
+import { TownRosterSetupScene } from "./town/TownRosterSetupScene";
 
-export class EndlessModeSetupScene extends Phaser.Scene {
-  private panel: EndlessModePanel | null = null;
+export class EndlessModeSetupScene extends TownRosterSetupScene<
+  EndlessModePanel,
+  EndlessModeSetupLaunchData
+> {
   private loading: EndlessModePanelLoadingSkeleton | null = null;
-  private touchDebug!: TouchInputDebugDraw;
-  private fpsOverlay!: FpsDebugOverlay;
-  private launchData!: EndlessModeSetupLaunchData;
-  private started = false;
 
   constructor() {
     super({ key: TOWN_ENDLESS_SETUP_SCENE_KEY });
   }
 
-  init(data: EndlessModeSetupLaunchData): void {
-    this.launchData = data;
-    this.started = false;
-  }
-
-  create(): void {
-    configureSceneInput(this);
-    this.touchDebug = new TouchInputDebugDraw(this);
-    this.fpsOverlay = new FpsDebugOverlay(this);
-
-    const store = getDataStore(this.registry);
+  protected openSetup(store: DataStore): void {
     const openPanel = (): void => {
       this.loading?.destroy();
       this.loading = null;
-      if (this.panel) return;
-      this.panel = new EndlessModePanel(
-        this,
-        store,
-        (selections, infiniteHp) => {
-          this.started = true;
-          const launch = this.launchData;
-          this.panel = null;
-          closeTownSetupScene(this, () =>
-            launch.onStart(selections, infiniteHp),
-          );
-        },
-        () => {
-          if (this.started) return;
-          this.panel = null;
-          closeTownSetupScene(this);
-        },
+      this.showPanel(
+        () =>
+          new EndlessModePanel(
+            this,
+            store,
+            (selections, infiniteHp) => {
+              const launch = this.launchData;
+              this.startRun(() => launch.onStart(selections, infiniteHp));
+            },
+            () => this.dismissPanel(),
+          ),
       );
-      if (isE2EEnabled()) {
-        publishE2E({ scene: "Town", ready: true });
-      }
     };
 
     if (isTownReachableReady(this.game, store)) {
       openPanel();
-    } else {
-      let cancelled = false;
-      this.loading = new EndlessModePanelLoadingSkeleton(this, () => {
-        cancelled = true;
-        this.loading = null;
-        closeTownSetupScene(this);
-      });
-      void ensureTownReachableReady(this, store)
-        .then(() => {
-          if (cancelled) return;
-          openPanel();
-        })
-        .catch((err) => {
-          console.error("Endless setup readiness failed", err);
-          this.loading?.showError("Could not load endless roster. Try again.");
-          this.time.delayedCall(2800, () => {
-            this.loading?.destroy();
-            this.loading = null;
-            closeTownSetupScene(this);
-          });
-        });
-    }
-
-    this.events.on("shutdown", () => {
-      this.loading?.destroy();
-      this.loading = null;
-      this.panel?.destroy();
-      this.panel = null;
-      this.touchDebug.destroy();
-      this.fpsOverlay.destroy();
-    });
-
-    if (isE2EEnabled()) {
-      publishE2E({ scene: "Town", ready: true });
-    }
-  }
-
-  override update(_time: number, delta: number): void {
-    this.fpsOverlay.tick(this.registry, delta, this.game);
-    if (!showTouchInput(this.registry)) {
-      this.touchDebug.clear();
       return;
     }
-    this.touchDebug.draw({
-      pointerUiBlocked: (pointer) => isPointerOverInteractive(this, pointer),
-      uiScreenRects: this.collectTouchDebugRects(),
+    let cancelled = false;
+    this.loading = new EndlessModePanelLoadingSkeleton(this, () => {
+      cancelled = true;
+      this.loading = null;
+      closeTownSetupScene(this);
     });
+    void ensureTownReachableReady(this, store)
+      .then(() => {
+        if (cancelled) return;
+        openPanel();
+      })
+      .catch((err) => {
+        console.error("Endless setup readiness failed", err);
+        this.loading?.showError("Could not load endless roster. Try again.");
+        this.time.delayedCall(2800, () => {
+          this.loading?.destroy();
+          this.loading = null;
+          closeTownSetupScene(this);
+        });
+      });
   }
 
-  private collectTouchDebugRects() {
-    const skip = [
-      this.touchDebug.uiGraphics(),
-      this.touchDebug.worldGraphics(),
-    ];
-    const base = collectInteractiveScreenRects(this, { skip });
-    if (this.panel) {
-      return [...base, ...this.panel.touchDebugScreenRects()];
-    }
-    return base;
+  protected override onSetupShutdown(): void {
+    this.loading?.destroy();
+    this.loading = null;
+  }
+
+  protected override extraTouchDebugRects(): ScreenRect[] {
+    return this.panel?.touchDebugScreenRects() ?? [];
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
@@ -200,9 +144,5 @@ export class EndlessModeSetupScene extends Phaser.Scene {
 
   e2eSetEndlessEnemyCap(enemyId: string, cap: number): void {
     this.panel?.e2eSetEnemyCap(enemyId, cap);
-  }
-
-  e2eTouchDebugRectCount(): number {
-    return this.collectTouchDebugRects().length;
   }
 }
