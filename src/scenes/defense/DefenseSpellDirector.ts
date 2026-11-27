@@ -4,7 +4,7 @@ import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
 import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
 import type { SaveGame } from "../../core/save/saveTypes";
-import { persistSave } from "../../core/save/GameState";
+import { persistSave } from "../../core/save/saveRepository";
 import { pickAutoCastSpell } from "../../combat/rules/spellAutoCast";
 import {
   isStickMoving,

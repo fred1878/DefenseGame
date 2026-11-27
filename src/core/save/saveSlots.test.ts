@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createNewSave, normalizeSave } from "./GameState";
 import { SAVE_VERSION } from "./saveTypes";
+import saveV1 from "./fixtures/save-v1.json";
 import { saveSlotStorageKey } from "./storageKeys";
 import {
   SAVE_SLOT_COUNT,
@@ -67,7 +68,7 @@ describe("saveSlots", () => {
     expect(listSaveSlots()[2]?.empty).toBe(true);
   });
 
-  it("deletes a slot whose schema version differs", () => {
+  it("keeps a slot written by a newer build but reports it unreadable", () => {
     const items = stubStorage();
     const save = createNewSave();
     items.set(
@@ -75,18 +76,21 @@ describe("saveSlots", () => {
       JSON.stringify({ version: SAVE_VERSION + 1, savedAt: 10, save }),
     );
     expect(readSaveSlot(0)).toBeNull();
-    expect(items.has(saveSlotStorageKey(0))).toBe(false);
+    expect(loadSaveSlot(0)).toBeNull();
+    expect(listSaveSlots()[0]?.empty).toBe(true);
+    expect(items.has(saveSlotStorageKey(0))).toBe(true);
   });
 
-  it("deletes a slot with a lower schema version rather than migrating it", () => {
+  it("migrates a v1 slot instead of deleting it", () => {
     const items = stubStorage();
-    const save = createNewSave();
-    items.set(
-      saveSlotStorageKey(1),
-      JSON.stringify({ version: SAVE_VERSION - 1, savedAt: 10, save }),
-    );
-    expect(loadSaveSlot(1)).toBeNull();
-    expect(items.has(saveSlotStorageKey(1))).toBe(false);
+    items.set(saveSlotStorageKey(1), JSON.stringify(saveV1));
+    const view = readSaveSlot(1);
+    expect(view).toMatchObject({ night: 5, gold: 120, savedAt: 1764000000000 });
+    const loaded = loadSaveSlot(1);
+    expect(loaded?.night).toBe(5);
+    expect(loaded?.gear.items).toEqual([]);
+    expect(loaded?.player).not.toHaveProperty("weaponId");
+    expect(items.has(saveSlotStorageKey(1))).toBe(true);
   });
 
   it("deletes corrupt JSON and blobs missing a save", () => {

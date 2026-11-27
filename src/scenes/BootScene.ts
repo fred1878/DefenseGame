@@ -8,7 +8,7 @@ import {
 import { DataStore } from "../core/data/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
-import { loadSave, persistSave } from "../core/save/GameState";
+import { loadSave, persistSave } from "../core/save/saveRepository";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";

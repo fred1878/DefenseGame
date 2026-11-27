@@ -1,6 +1,7 @@
 import { SAVE_VERSION, type SaveGame } from "./saveTypes";
 import { saveSlotStorageKey } from "./storageKeys";
 import { normalizeSave } from "./GameState";
+import { keepUnreadableSave, parseStoredSave } from "./saveRepository";
 
 export const SAVE_SLOT_COUNT = 5;
 
@@ -20,12 +21,6 @@ export type OccupiedSaveSlotView = {
 };
 
 export type SaveSlotView = EmptySaveSlotView | OccupiedSaveSlotView;
-
-type SaveSlotBlob = {
-  version?: unknown;
-  savedAt?: unknown;
-  save?: unknown;
-};
 
 export function saveSlotName(index: number): string {
   return `Slot ${index + 1}`;
@@ -63,63 +58,41 @@ function emptySlot(index: number): EmptySaveSlotView {
   return { index, name: saveSlotName(index), empty: true };
 }
 
-function isSaveGameShape(value: unknown): value is SaveGame {
-  if (typeof value !== "object" || value === null) return false;
-  const save = value as SaveGame;
-  return typeof save.night === "number" && typeof save.gold === "number";
-}
-
 /**
- * Read one slot. Version mismatches and corrupt JSON are deleted, not migrated.
- * Same-version saves are normalized with the existing intra-version helpers.
+ * Read and validate one slot through {@link parseStoredSave}: older versions
+ * are migrated, corrupt or invalid blobs are deleted, and a blob written by a
+ * newer build is kept in storage but reported as unreadable (null).
  */
-export function readSaveSlot(index: number): OccupiedSaveSlotView | null {
+function readSlotSave(
+  index: number,
+): { save: SaveGame; savedAt: number | null } | null {
   if (typeof localStorage === "undefined") return null;
   const key = saveSlotStorageKey(index);
   const raw = localStorage.getItem(key);
   if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as SaveSlotBlob;
-    if (parsed.version !== SAVE_VERSION || !isSaveGameShape(parsed.save)) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    const savedAt =
-      typeof parsed.savedAt === "number" && Number.isFinite(parsed.savedAt)
-        ? parsed.savedAt
-        : 0;
-    const save = normalizeSave(parsed.save);
-    return {
-      index,
-      name: saveSlotName(index),
-      empty: false,
-      night: save.night,
-      gold: save.gold,
-      savedAt,
-    };
-  } catch {
-    localStorage.removeItem(key);
-    return null;
-  }
+  const read = parseStoredSave(raw);
+  if (read.ok) return read;
+  if (!keepUnreadableSave(read.reason)) localStorage.removeItem(key);
+  return null;
 }
 
-/** Full save from a compatible slot, or null if empty / just purged. */
+/** Slot summary for the save menu, or null when empty / unreadable. */
+export function readSaveSlot(index: number): OccupiedSaveSlotView | null {
+  const read = readSlotSave(index);
+  if (!read) return null;
+  return {
+    index,
+    name: saveSlotName(index),
+    empty: false,
+    night: read.save.night,
+    gold: read.save.gold,
+    savedAt: read.savedAt ?? 0,
+  };
+}
+
+/** Full save from a readable slot (migrated if older), or null. */
 export function loadSaveSlot(index: number): SaveGame | null {
-  if (typeof localStorage === "undefined") return null;
-  const key = saveSlotStorageKey(index);
-  const raw = localStorage.getItem(key);
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as SaveSlotBlob;
-    if (parsed.version !== SAVE_VERSION || !isSaveGameShape(parsed.save)) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return normalizeSave(parsed.save);
-  } catch {
-    localStorage.removeItem(key);
-    return null;
-  }
+  return readSlotSave(index)?.save ?? null;
 }
 
 export function writeSaveSlot(
@@ -154,8 +127,9 @@ export function deleteSaveSlot(index: number): void {
 }
 
 /**
- * List all slots. Incompatible or corrupt entries are deleted when encountered
- * (also the right moment to call this: when the save menu opens).
+ * List all slots. Corrupt entries are deleted when encountered (also the right
+ * moment to call this: when the save menu opens); newer-version slots show as
+ * empty but stay in storage until overwritten.
  */
 export function listSaveSlots(): SaveSlotView[] {
   const slots: SaveSlotView[] = [];

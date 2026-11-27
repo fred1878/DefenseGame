@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
 import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
-import { persistSave } from "../../core/save/GameState";
+import { persistSave } from "../../core/save/saveRepository";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
 import type { SaveGame } from "../../core/save/saveTypes";
 import { isE2EEnabled } from "../../e2e/e2eMode";

@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "savedAt": 1764100000000,
+  "save": {
+    "night": 7,
+    "gold": 340,
+    "buildings": { "wall": 2 },
+    "townWallHp": 180,
+    "townWallHpMax": 200,
+    "player": { "hp": 95, "hpMax": 100 },
+    "gear": { "items": [], "equipped": {}, "nextUid": 1 },
+    "consumables": { "healing_potion": 2 },
+    "shops": { "trader": null, "blacksmith": null, "requests": null },
+    "talents": { "ranks": {}, "earned": 6 },
+    "spellBar": {
+      "slots": [
+        "fire_bolt",
+        "ice_bolt",
+        "lightning_bolt",
+        "fire_nova",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "autoCastSpellIds": []
+    },
+    "flags": []
+  }
+}

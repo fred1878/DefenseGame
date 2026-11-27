@@ -5,11 +5,10 @@ import type { SaveGame } from "../core/save/saveTypes";
 import type { DataStore } from "../core/data/DataStore";
 import {
   normalizeSave,
-  persistSave,
   prepareDefenseNight,
-  resetSaveAndReload,
   syncPlayerHpMax,
 } from "../core/save/GameState";
+import { persistSave, resetSaveAndReload } from "../core/save/saveRepository";
 import { showTouchInput } from "../debug/DebugState";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import {

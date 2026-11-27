@@ -12,14 +12,12 @@ import {
   applyEndlessRunExit,
   applyNightResult,
   createNewSave,
-  loadSave,
   prepareDefenseNight,
-  persistSave,
-  resetSaveAndReload,
   wallHpBonusFromBuildings,
   mergePlayerWithoutLegacyMoveSpeed,
   normalizeSave,
 } from "./GameState";
+import { loadSave, persistSave, resetSaveAndReload } from "./saveRepository";
 
 describe("GameState", () => {
   it("loadSave drops legacy player.moveSpeed from save blob", () => {

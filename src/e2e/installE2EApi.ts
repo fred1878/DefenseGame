@@ -8,9 +8,9 @@ import { spellIconTextureKey } from "../content/assets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import {
   mergePlayerWithoutLegacyMoveSpeed,
-  persistSave,
   type LegacySavePlayer,
 } from "../core/save/GameState";
+import { persistSave } from "../core/save/saveRepository";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
 import {

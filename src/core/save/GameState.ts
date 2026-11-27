@@ -11,13 +11,7 @@ import {
   normalizeAutoCastSpellIds,
 } from "../../content/spellBarAutoCast";
 import { createDefaultSpellBarSlots } from "../../content/spells";
-import {
-  SAVE_VERSION,
-  type NightResult,
-  type SaveGame,
-  type SaveSpellBar,
-} from "./saveTypes";
-import { saveStorageKey } from "./storageKeys";
+import type { NightResult, SaveGame, SaveSpellBar } from "./saveTypes";
 import { getTalentCatalog } from "../../talents/talentCatalog";
 import {
   awardNightTalentPoints,
@@ -25,10 +19,6 @@ import {
   normalizeSaveTalents,
 } from "../../talents/talentLogic";
 import { saveTalentBonus } from "../../talents/talentRuntime";
-
-function storageKey(): string {
-  return saveStorageKey();
-}
 
 export function createNewSave(): SaveGame {
   const wallMax = 100;
@@ -52,23 +42,6 @@ export function createNewSave(): SaveGame {
     },
     flags: [],
   };
-}
-
-export function loadSave(): SaveGame {
-  if (typeof localStorage === "undefined") {
-    return createNewSave();
-  }
-  try {
-    const raw = localStorage.getItem(storageKey());
-    if (!raw) return createNewSave();
-    const parsed = JSON.parse(raw) as { version?: number; save?: SaveGame };
-    if (parsed.version !== SAVE_VERSION || !parsed.save) {
-      return createNewSave();
-    }
-    return migrateSave(parsed.save);
-  } catch {
-    return createNewSave();
-  }
 }
 
 function normalizeSpellBar(raw?: Partial<SaveSpellBar>): SaveSpellBar {
@@ -179,25 +152,6 @@ export function syncPlayerHpMax(save: SaveGame): SaveGame {
   const gained = Math.max(0, hpMax - prevMax);
   const hp = Math.max(1, Math.min(hpMax, save.player.hp + gained));
   return { ...save, player: { ...save.player, hp, hpMax } };
-}
-
-export function persistSave(save: SaveGame): void {
-  if (typeof localStorage === "undefined") return;
-  localStorage.setItem(
-    storageKey(),
-    JSON.stringify({ version: SAVE_VERSION, save }),
-  );
-}
-
-/** Wipes save and reloads (mobile-friendly substitute for hard refresh). */
-export function resetSaveAndReload(): void {
-  if (typeof localStorage !== "undefined") {
-    localStorage.removeItem(storageKey());
-  }
-  if (typeof window === "undefined") return;
-  const url = new URL(window.location.href);
-  url.searchParams.set("fresh", String(Date.now()));
-  window.location.replace(url.toString());
 }
 
 /** Ensures save values allow starting a new defense night after a loss (wall or player at 0). */
