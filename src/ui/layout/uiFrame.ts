@@ -101,3 +101,20 @@ export function frameTouchButton(
   container.addAt(ns, 1);
   return ns;
 }
+
+/**
+ * Red enamel close (×) over a touch button (Talents header). Draws the `dg-close-red`
+ * art on top of the button's own frame and label; no-op until the part has loaded.
+ */
+export function skinRedCloseButton(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  size = 52,
+): Phaser.GameObjects.Image | null {
+  if (!hasUiPart(scene, "dg-close-red")) return null;
+  const img = scene.add
+    .image(0, 0, uiPartKey("dg-close-red"))
+    .setDisplaySize(size, size);
+  container.add(img);
+  return img;
+}

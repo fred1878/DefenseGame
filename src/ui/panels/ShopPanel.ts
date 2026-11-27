@@ -1,8 +1,15 @@
 import type Phaser from "phaser";
+import { playUiSfx } from "../../audio/uiSfx";
+import { gearCommandSfx, playPanelSfx } from "../gearPanel/panelSfx";
 import type { SaveGame } from "../../core/save/saveTypes";
 import type { ModalInputLease } from "../../input/modalBackdrop";
 import { DG_THEME } from "../theme/dgTheme";
-import type { Box, DgKit, Tap } from "../gearPanel/dgPanelKit";
+import {
+  fitText,
+  type Box,
+  type DgKit,
+  type Tap,
+} from "../gearPanel/dgPanelKit";
 import {
   createActionBar,
   createCard,
@@ -94,6 +101,7 @@ export class ShopPanel {
     if (!ctx.shop) throw new Error("ShopPanel needs a shop context");
     this.state = createGearPanelState("shop");
     const o = createOverlayRoot(scene);
+    playUiSfx(scene, "panelOpen");
     this.root = o.root;
     this.kit = o.kit;
     this.lease = o.lease;
@@ -103,6 +111,7 @@ export class ShopPanel {
       shopHeader(ctx, getSave()).title,
       () => this.destroy(),
       ctx.shop.id === "blacksmith" ? "hammer" : "coins",
+      { purse: true },
     );
     this.subtitle = head.subtitle;
     this.goldText = head.gold;
@@ -222,6 +231,7 @@ export class ShopPanel {
       this.perPage,
     );
     this.state = state;
+    playPanelSfx(this.kit.scene, gearCommandSfx(cmd.type, save !== prev));
     if (save !== prev) this.onSaveChange(save);
     this.refresh();
   }
@@ -231,7 +241,7 @@ export class ShopPanel {
     const ctx = this.ctx;
     const st = this.state;
     const head = shopHeader(ctx, save);
-    this.subtitle.setText(head.subtitle);
+    fitText(this.subtitle, head.subtitle, 224);
     this.goldText.setText(head.gold);
     const wants = st.tab === "requests";
     this.tabs.set(st.tab === "shop" ? 0 : wants ? 2 : 1, [
@@ -334,6 +344,7 @@ export class ShopPanel {
   destroy(): void {
     if (this.tornDown) return;
     this.tornDown = true;
+    playUiSfx(this.kit.scene, "panelClose");
     this.lease.release();
     if (this.root.active) this.root.destroy();
     this.onDismiss?.();

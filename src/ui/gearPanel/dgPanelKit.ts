@@ -473,11 +473,15 @@ export class DgKit {
     this.icon(cx, cy, icon, 26, DG_THEME.accentGoldBright);
   }
 
-  /** Header card: crimson emblem, Pixelify title, subtitle, gold pill, close (×). */
+  /**
+   * Header card: crimson emblem, Pixelify title, subtitle, gold, red enamel close (×).
+   * `purse` (Blacksmith / Trader) shows the gold larger in a crested gold frame.
+   */
   header(
     title: string,
     onClose: () => void,
     emblem: UiIconName,
+    opts: { purse?: boolean } = {},
   ): {
     title: Phaser.GameObjects.Text;
     subtitle: Phaser.GameObjects.Text;
@@ -497,6 +501,14 @@ export class DgKit {
       size: 13,
       color: DG_THEME.textMuted,
     });
+    const gold = opts.purse ? this.purse() : this.goldPill();
+    this.closeButton(492, 60);
+    // Generous hit area for the close button (touch).
+    const close = this.tap(464, 28, 60, 64, onClose);
+    return { title: titleText, subtitle, gold, close };
+  }
+
+  private goldPill(): Phaser.GameObjects.Text {
     this.box(370, 42, 92, 36, {
       fill: DG_THEME.bgSlot,
       stroke: DG_THEME.accentGold,
@@ -505,23 +517,68 @@ export class DgKit {
       frame: "dark",
     });
     this.icon(390, 60, "coins", 18, DG_THEME.accentGold);
-    const gold = this.text(404, 60, "", {
+    return this.text(404, 60, "", {
       size: 16,
       title: true,
       color: DG_THEME.accentGoldBright,
       originY: 0.5,
     });
-    this.box(470, 40, 44, 40, {
+  }
+
+  /** Shop purse: "YOUR GOLD" over a pixel coin and 26px gold digits (right-aligned). */
+  private purse(): Phaser.GameObjects.Text {
+    const x = 328;
+    const w = 132;
+    this.box(x, 38, w, 50, {
+      fill: DG_THEME.bgSlot,
+      stroke: DG_THEME.accentGold,
+      strokeWidth: 1.5,
+      radius: 8,
+      frame: "slotGold",
+    });
+    this.text(x + w - 10, 47, "YOUR GOLD", {
+      size: 10,
+      bold: true,
+      color: DG_THEME.accentGold,
+      originX: 1,
+      originY: 0.5,
+    }).setLetterSpacing(1.2);
+    if (hasUiPart(this.scene, "dg-coin")) {
+      this.root.add(
+        this.scene.add
+          .image(x + 22, 70, uiPartKey("dg-coin"))
+          .setDisplaySize(21, 20),
+      );
+    } else {
+      this.icon(x + 22, 70, "coins", 18, DG_THEME.accentGold);
+    }
+    return this.text(x + w - 10, 70, "", {
+      size: 26,
+      title: true,
+      color: DG_THEME.accentGoldBright,
+      originX: 1,
+      originY: 0.5,
+    }).setStroke("#000000", 3);
+  }
+
+  /** Red enamel close (×) in a gold frame; falls back to the plain button frame. */
+  private closeButton(cx: number, cy: number): void {
+    if (hasUiPart(this.scene, "dg-close-red")) {
+      this.root.add(
+        this.scene.add
+          .image(cx, cy, uiPartKey("dg-close-red"))
+          .setDisplaySize(52, 52),
+      );
+      return;
+    }
+    this.box(cx - 22, cy - 20, 44, 40, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       strokeWidth: 1,
       radius: 10,
       frame: "btn",
     });
-    this.icon(492, 60, "close", 20);
-    // Generous hit area for the close button (touch).
-    const close = this.tap(466, 30, 56, 60, onClose);
-    return { title: titleText, subtitle, gold, close };
+    this.icon(cx, cy, "close", 20);
   }
 
   /** Two-tab segmented control (y 112–162). */

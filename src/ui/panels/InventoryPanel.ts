@@ -1,4 +1,6 @@
 import type Phaser from "phaser";
+import { playUiSfx } from "../../audio/uiSfx";
+import { gearCommandSfx, playPanelSfx } from "../gearPanel/panelSfx";
 import type { SaveGame } from "../../core/save/saveTypes";
 import { SLOT_LABELS } from "../../gear/gearText";
 import { EQUIP_SLOTS, type EquipSlot } from "../../gear/gearTypes";
@@ -82,6 +84,7 @@ export class InventoryPanel {
     private readonly ctx: GearPanelContext,
   ) {
     const o = createOverlayRoot(scene);
+    playUiSfx(scene, "panelOpen");
     this.root = o.root;
     this.kit = o.kit;
     this.lease = o.lease;
@@ -228,6 +231,7 @@ export class InventoryPanel {
       BAG_TILES_PER_PAGE,
     );
     this.state = state;
+    playPanelSfx(this.kit.scene, gearCommandSfx(cmd.type, save !== prev));
     if (save !== prev) this.onSaveChange(save);
     this.refresh();
   }
@@ -278,6 +282,7 @@ export class InventoryPanel {
   destroy(): void {
     if (this.tornDown) return;
     this.tornDown = true;
+    playUiSfx(this.kit.scene, "panelClose");
     this.lease.release();
     if (this.root.active) this.root.destroy();
     this.onDismiss?.();

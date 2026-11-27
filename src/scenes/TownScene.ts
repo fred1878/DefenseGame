@@ -53,6 +53,7 @@ import {
   townBuildingSubtitle,
 } from "../systems/townBuildingMenu";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
+import { playUiSfx } from "../audio/uiSfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
 import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
 import { ensureTownReachableReady } from "./loading/GameAssetLoader";
@@ -429,6 +430,7 @@ export class TownScene extends Phaser.Scene {
     if (result.kind === "upgraded") {
       this.save = save;
       playCoinDeltaSfx(this, goldBefore, save.gold);
+      playUiSfx(this, "upgrade");
       persistSave(this.save);
       setSave(this.registry, this.save);
       this.refreshBuildingOverlays(store);

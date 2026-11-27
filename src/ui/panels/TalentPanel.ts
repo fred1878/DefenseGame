@@ -4,7 +4,9 @@ import {
   frameTouchButton,
   hasUiPart,
   setUiFrame,
+  skinRedCloseButton,
 } from "../layout/uiFrame";
+import { playUiSfx } from "../../audio/uiSfx";
 import type Phaser from "phaser";
 import { PALETTE } from "../theme/uiPalette";
 import { debugEconomyPolicy } from "../../debug/debugEconomy";
@@ -181,6 +183,7 @@ export class TalentPanel {
     const root = modal.root;
     this.root = root;
     this.modal = modal;
+    playUiSfx(scene, "panelOpen");
 
     this.chrome = scene.add.graphics();
     this.tree = scene.add.graphics();
@@ -434,6 +437,7 @@ export class TalentPanel {
     frameTouchButton(scene, this.learnBtn.container, "btnDark", bw, L.actionH);
     frameTouchButton(scene, this.resetBtn.container, "btnDark", bw, L.actionH);
     frameTouchButton(scene, this.closeBtn.container, "btn", 44, 40);
+    skinRedCloseButton(scene, this.closeBtn.container);
 
     this.selectedId = this.defaultSelection();
     ensureTalentIcons(scene);
@@ -864,6 +868,7 @@ export class TalentPanel {
   destroy(): void {
     if (this.tornDown) return;
     this.tornDown = true;
+    playUiSfx(this.scene, "panelClose");
     this.scene.textures.off("addtexture", this.onTextureAdded);
     this.modal.close();
     this.onDismiss?.();
