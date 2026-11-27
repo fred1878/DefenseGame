@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import type Phaser from "phaser";
 import { applySpellInputTuning } from "../../config/spellInput";
 import { normalizeSpellInput } from "../../core/normalizeSpellInput";
-import { SpellCastController } from "../../combat/SpellCastController";
-import { SpellInputQueue } from "../../combat/spellInputQueue";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
+import { SpellInputQueue } from "../../combat/rules/spellInputQueue";
 import type { SpellDefinition } from "../../content/spells";
 import {
   DefenseSpellDirector,

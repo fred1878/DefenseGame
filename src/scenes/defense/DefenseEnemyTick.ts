@@ -2,13 +2,13 @@ import { playerTuning } from "../../config/player";
 import { enemyCombatTick } from "./enemyCombatModules";
 import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/rules/DamageSystem";
 import { updateEnemyBrain } from "../../ai/EnemyBrain";
 import { pickEnemyTarget, wallCombatPoint } from "../../ai/brainShared";
 import {
   playerAggroRadiusWu,
   playerIncomingDamageMult,
-} from "../../combat/shadowformRuntime";
+} from "../../combat/rules/shadowformRuntime";
 import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
 import type { EnemyPeerAlly } from "../../ai/behaviors/types";
 import {
@@ -23,12 +23,12 @@ import {
 import { worldDisplayPx, worldUnit } from "../../config/worldScale";
 import { interruptEnemyAttack } from "../../entities/enemyRanged/attackInterrupt";
 import type { EnemyProjectile } from "../../entities/Projectile";
-import type { Damageable } from "../../combat/DamageSystem";
-import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
+import type { Damageable } from "../../combat/rules/DamageSystem";
+import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
 import {
   decayEnemyKnockback,
   setEnemyChaseVelocity,
-} from "../../combat/enemyKnockback";
+} from "../../combat/rules/enemyKnockback";
 import { updateEnemyNameplate } from "../../ui/enemyNameplate";
 import { SPRITE_DISPLAY } from "../../content/assets";
 

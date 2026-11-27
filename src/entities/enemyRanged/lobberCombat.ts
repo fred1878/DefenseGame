@@ -1,10 +1,10 @@
-import { jitterTelegraphCenter } from "../../combat/aoeTelegraphJitter";
+import { jitterTelegraphCenter } from "../../combat/fx/aoeTelegraphJitter";
 import {
   destroyArrowRainTelegraph,
   LOBBER_TELEGRAPH_PALETTE,
   spawnArrowRainTelegraph,
   updateArrowRainTelegraph,
-} from "../../combat/ArrowRainTelegraph";
+} from "../../combat/fx/ArrowRainTelegraph";
 import { worldUnit } from "../../config/worldScale";
 import type { EnemyInstance } from "../Enemy";
 import type { EnemyAttackTarget } from "../EnemyCombat";

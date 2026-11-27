@@ -1,8 +1,8 @@
 import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
-import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
-import { setShadowformRuntimeMults } from "../../combat/shadowformRuntime";
-import { shadowformActive } from "../../combat/shadowform";
+import { destroyArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
+import { setShadowformRuntimeMults } from "../../combat/rules/shadowformRuntime";
+import { shadowformActive } from "../../combat/rules/shadowform";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { Player } from "../../entities/Player";
 import {

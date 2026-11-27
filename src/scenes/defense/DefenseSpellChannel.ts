@@ -1,17 +1,17 @@
 import { playerTuning } from "../../config/player";
 import type { SpellDefinition } from "../../content/spells";
-import { isStickMoving } from "../../combat/spellInputQueue";
+import { isStickMoving } from "../../combat/rules/spellInputQueue";
 import {
   applyHealAmount,
   applySpellCone,
   strikeSpellCone,
-} from "../../combat/SpellEffects";
+} from "../../combat/rules/SpellEffects";
 import {
   advanceChanneledConeTicks,
   CHANNELED_CONE_MAX_TICKS,
   createChanneledConeTickState,
   type ChanneledConeTickState,
-} from "../../combat/channeledConeChannel";
+} from "../../combat/rules/channeledConeChannel";
 import {
   advanceChanneledHealTicks,
   channeledHealMaxTicks,
@@ -19,7 +19,7 @@ import {
   createChanneledHealTickState,
   isChanneledHealSpell,
   type ChanneledHealTickState,
-} from "../../combat/channeledHealChannel";
+} from "../../combat/rules/channeledHealChannel";
 import { spellChannelTickMs } from "../../content/spellTargeting";
 import { spellById } from "../../content/spells";
 import {
@@ -28,10 +28,10 @@ import {
   spellNeedsGroundAoeTelegraph,
   spawnSpellGroundAoeTelegraph,
   updateSpellGroundAoeTelegraph,
-} from "../../combat/SpellGroundAoeTelegraph";
-import { spawnGroundZone } from "../../combat/spellGroundZone";
+} from "../../combat/fx/SpellGroundAoeTelegraph";
+import { spawnGroundZone } from "../../combat/rules/spellGroundZone";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
-import { spawnFlamestrikeGroundFlamesLinger } from "../../combat/FlamestrikePvfx";
+import { spawnFlamestrikeGroundFlamesLinger } from "../../combat/fx/FlamestrikePvfx";
 import {
   playFireWhooshSfx,
   spellPlaysFireWhooshOnChanneledAreaStart,

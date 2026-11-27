@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { EnemyKnockbackCarrier } from "../combat/enemyKnockback";
+import type { EnemyKnockbackCarrier } from "../combat/rules/enemyKnockback";
 import {
   clampToDefensePlayBounds,
   defensePlayBoundsInset,

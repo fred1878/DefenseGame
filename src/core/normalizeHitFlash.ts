@@ -1,4 +1,7 @@
-import { DAMAGE_FLAVORS, type DamageFlavor } from "../combat/DamageSystem";
+import {
+  DAMAGE_FLAVORS,
+  type DamageFlavor,
+} from "../combat/rules/DamageSystem";
 import {
   ConfigLoadError,
   requireFiniteNumber,

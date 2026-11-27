@@ -6,7 +6,7 @@ import { UI_TEXTURE } from "../../content/assets";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { VirtualStick } from "../../input/VirtualStick";
 import type { Player } from "../../entities/Player";
-import { SpellCastController } from "../../combat/SpellCastController";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
 import { CastBar } from "../../ui/CastBar";
 import { SpellBar } from "../../ui/SpellBar";
 import {

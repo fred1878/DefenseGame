@@ -1,8 +1,8 @@
-import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
+import { pickAutoCastCombatEnemy } from "../../combat/rules/spellAutoCastCombatEnemy";
 import {
   AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE,
   resolveAutoCastGroundAim,
-} from "../../combat/spellGroundAim";
+} from "../../combat/rules/spellGroundAim";
 import { playerTuning } from "../../config/player";
 import {
   spellAutoCastUsesRangedEnemyPick,

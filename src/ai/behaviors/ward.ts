@@ -6,8 +6,8 @@ import {
 import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { DEFENSE_MAP } from "../../config";
-import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
-import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
+import { playerAggroRadiusWu } from "../../combat/rules/shadowformRuntime";
+import { setEnemyChaseVelocity } from "../../combat/rules/enemyKnockback";
 import { worldUnit } from "../../config/worldScale";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
 import { resolveEnemyTarget } from "../brainShared";

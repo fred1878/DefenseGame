@@ -5,7 +5,7 @@ import { spellById, type SpellId } from "../content/spells";
 import { spellUsesManualGroundAim } from "../content/spellTargeting";
 import { spellIconTextureKey } from "../content/assets";
 import { scaleUiY } from "../config/uiScale";
-import type { SpellCastController } from "../combat/SpellCastController";
+import type { SpellCastController } from "../combat/rules/SpellCastController";
 import {
   bindTapOrLongPress,
   createTouchButton,

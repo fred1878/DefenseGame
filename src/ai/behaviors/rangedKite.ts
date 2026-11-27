@@ -6,7 +6,7 @@ import { nextPathMoveTarget } from "./shared/pathApproach";
  */
 import { tuning } from "../../tuning/gameTuning";
 import { DEFENSE_MAP } from "../../config";
-import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
+import { playerAggroRadiusWu } from "../../combat/rules/shadowformRuntime";
 import { worldUnit } from "../../config/worldScale";
 import type { NavPeerAgent } from "../../pathfinding/grid";
 import {

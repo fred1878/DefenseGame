@@ -1,4 +1,4 @@
-import { finalizeEnemyMeleeFxTiming } from "../combat/meleeFxTiming";
+import { finalizeEnemyMeleeFxTiming } from "../combat/fx/meleeFxTiming";
 import {
   ConfigLoadError,
   optionalFiniteNumber,

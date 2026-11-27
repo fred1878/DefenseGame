@@ -1,5 +1,5 @@
 import { SPELL_BAR } from "../config/spellBar";
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import type { SpellTargetMode } from "./spellTargeting";
 import bundledSpells from "../../public/data/spells.json";
 

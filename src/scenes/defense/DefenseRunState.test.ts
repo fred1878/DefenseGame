@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type Phaser from "phaser";
 
-vi.mock("../../combat/EnemyIceRootFx", () => ({
+vi.mock("../../combat/fx/EnemyIceRootFx", () => ({
   EnemyIceRootFxController: class {},
 }));
-vi.mock("../../combat/EnemyIceStunFx", () => ({
+vi.mock("../../combat/fx/EnemyIceStunFx", () => ({
   EnemyIceStunFxController: class {},
 }));
 

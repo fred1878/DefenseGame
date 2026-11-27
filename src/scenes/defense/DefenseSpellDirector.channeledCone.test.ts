@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { SpellCastController } from "../../combat/SpellCastController";
-import * as SpellEffects from "../../combat/SpellEffects";
-import * as spellOnHitEffects from "../../combat/spellOnHitEffects";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
+import * as SpellEffects from "../../combat/rules/SpellEffects";
+import * as spellOnHitEffects from "../../combat/rules/spellOnHitEffects";
 import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,

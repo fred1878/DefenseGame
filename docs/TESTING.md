@@ -89,7 +89,7 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | Pathfinding / LOS | `src/pathfinding/pathfinding.test.ts` |
 | Enemy AI target pick | `src/ai/brainShared.test.ts` |
 | Enemy combat FSM / wall hits | `src/entities/EnemyCombat.test.ts` |
-| Hitbox / damage / knockback | `src/combat/*.test.ts` |
+| Hitbox / damage / knockback | `src/combat/rules/*.test.ts` (VFX: `src/combat/fx/*.test.ts`) |
 | GameState / DataStore | `src/core/*.test.ts` |
 | Layout math | `src/ui/screenLayout.test.ts` |
 | Stick mask + gesture FSM | `src/input/VirtualStick.test.ts` |

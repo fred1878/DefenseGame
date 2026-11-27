@@ -3,7 +3,7 @@ import { tuning } from "../tuning/gameTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import Phaser from "phaser";
 import { DEFENSE_MAP, type AttackMode } from "../config";
-import { resetShadowformRuntimeMults } from "../combat/shadowformRuntime";
+import { resetShadowformRuntimeMults } from "../combat/rules/shadowformRuntime";
 import type { EnemyDef } from "../core/DataStore";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
@@ -12,10 +12,10 @@ import { worldUnit } from "../config/worldScale";
 import {
   shadowformActive,
   shadowformMoveSpeedMultiplier,
-} from "../combat/shadowform";
-import { SpellInputQueue } from "../combat/spellInputQueue";
-import { SpellCastController } from "../combat/SpellCastController";
-import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
+} from "../combat/rules/shadowform";
+import { SpellInputQueue } from "../combat/rules/spellInputQueue";
+import { SpellCastController } from "../combat/rules/SpellCastController";
+import { EnemySpellStatusMap } from "../combat/rules/enemySpellStatus";
 import { DefenseConsumables } from "./defense/DefenseConsumables";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
 import { anyDebugOverlayOn, showTouchInput } from "../debug/DebugState";

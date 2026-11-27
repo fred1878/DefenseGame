@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
+import type { ArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { createLobberCombatState } from "./types";

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { SpellCastController } from "../combat/SpellCastController";
+import { SpellCastController } from "../combat/rules/SpellCastController";
 import { basePlayerTuning } from "../config/player";
 import { getSpellCatalog } from "../content/spells";
 import { spellCastMs } from "../content/spellTargeting";

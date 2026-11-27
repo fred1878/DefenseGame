@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import type { PlayerTuning } from "../config/player";
 import {
   FLAT_STAT_IDS,

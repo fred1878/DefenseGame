@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
-import type { Damageable } from "../../combat/DamageSystem";
-import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
+import type { Damageable } from "../../combat/rules/DamageSystem";
+import { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
 import type { PlayerProjectile } from "../../entities/Projectile";
 import type { Player } from "../../entities/Player";
 import {

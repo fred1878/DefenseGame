@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
-import { playBruiserMeleeCritHitOnPlayerFx } from "../../combat/BruiserPlayerCritHitFx";
-import { attachPvfxProjectileFx } from "../../combat/SpellPvfxProjectileFx";
+import { playBruiserMeleeCritHitOnPlayerFx } from "../../combat/fx/BruiserPlayerCritHitFx";
+import { attachPvfxProjectileFx } from "../../combat/fx/SpellPvfxProjectileFx";
 import { worldUnit } from "../../config/worldScale";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import {

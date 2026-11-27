@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import type {
   HitFlashConfig,
   HitFlashFlavorEntry,

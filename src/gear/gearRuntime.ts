@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import { applyEffectivePlayerTuning, basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "./gearCatalog";
 import type { GearCatalog, OnHitProc, SaveGear, StatBonus } from "./gearTypes";

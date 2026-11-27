@@ -1,6 +1,9 @@
 import type Phaser from "phaser";
-import { applyHealAmount, applySpellBlastAt } from "../../combat/SpellEffects";
-import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
+import {
+  applyHealAmount,
+  applySpellBlastAt,
+} from "../../combat/rules/SpellEffects";
+import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
 import type { SaveGame } from "../../core/saveTypes";
 import type { Player } from "../../entities/Player";
 import {

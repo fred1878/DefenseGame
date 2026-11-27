@@ -47,7 +47,7 @@
     {
       "includes": [
         "e2e/win-model.spec.ts",
-        "src/combat/spellGroundZone.ts",
+        "src/combat/rules/spellGroundZone.ts",
         "src/debug/TouchInputDebugDraw.ts",
         "src/entities/EnemyCombat.ts",
         "src/entities/Projectile.ts",

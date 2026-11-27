@@ -1,4 +1,4 @@
-import { DAMAGE_FLAVORS } from "../combat/DamageSystem";
+import { DAMAGE_FLAVORS } from "../combat/rules/DamageSystem";
 import type { SpellDefinition, SpellMechanicType } from "../content/spells";
 import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import { ConfigLoadError, requireFiniteNumber } from "./configValidation";

@@ -8,7 +8,7 @@ import {
   defenseHalfWidth,
   defenseObstacleSpriteDisplayPosition,
 } from "../../config";
-import { flashSpriteTint } from "../../combat/HitFlash";
+import { flashSpriteTint } from "../../combat/fx/HitFlash";
 import { Player } from "../../entities/Player";
 import { DamageNumberFx } from "./DamageNumberFx";
 import { worldUnit } from "../../config/worldScale";

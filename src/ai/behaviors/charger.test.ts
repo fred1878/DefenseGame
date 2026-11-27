@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { testChargerCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
-import { spawnChargerChargeStartSmokeFx } from "../../combat/ChargerChargeSmokeFx";
+import { spawnChargerChargeStartSmokeFx } from "../../combat/fx/ChargerChargeSmokeFx";
 
-vi.mock("../../combat/ChargerChargeSmokeFx", () => ({
+vi.mock("../../combat/fx/ChargerChargeSmokeFx", () => ({
   spawnChargerChargeStartSmokeFx: vi.fn(),
 }));
 

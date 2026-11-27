@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { SpellCastController } from "../../combat/SpellCastController";
-import { SpellInputQueue } from "../../combat/spellInputQueue";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
+import { SpellInputQueue } from "../../combat/rules/spellInputQueue";
 import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,

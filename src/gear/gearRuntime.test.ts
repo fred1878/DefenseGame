@@ -1,9 +1,9 @@
 import { playerTuning } from "../config/player";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
-import type { Damageable } from "../combat/DamageSystem";
+import { EnemySpellStatusMap } from "../combat/rules/enemySpellStatus";
+import type { Damageable } from "../combat/rules/DamageSystem";
 import { basePlayerTuning } from "../config/player";
-import { playerIncomingDamageMult } from "../combat/shadowformRuntime";
+import { playerIncomingDamageMult } from "../combat/rules/shadowformRuntime";
 import { gearFixture } from "../test/gearFixture";
 import { getGearCatalog, setGearCatalog } from "./gearCatalog";
 import { applyWeaponHitEffects } from "./gearProcs";

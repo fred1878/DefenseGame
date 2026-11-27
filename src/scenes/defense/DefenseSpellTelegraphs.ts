@@ -1,7 +1,7 @@
 import type { SpellDefinition } from "../../content/spells";
-import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
-import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
-import { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
+import { SpellBlizzardChannelFx } from "../../combat/fx/SpellBlizzardChannelFx";
+import { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
+import { SpellIceCastWindupFx } from "../../combat/fx/SpellIceCastWindupFx";
 import { spellUsesIceCastWindupFx } from "../../content/iceFxSpells";
 import {
   destroySpellGroundAoeTelegraph,
@@ -10,7 +10,7 @@ import {
   spellNeedsGroundAoeTelegraph,
   spawnSpellGroundAoeTelegraph,
   updateSpellGroundAoeTelegraph,
-} from "../../combat/SpellGroundAoeTelegraph";
+} from "../../combat/fx/SpellGroundAoeTelegraph";
 import { spellCastMs } from "../../content/spellTargeting";
 import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";

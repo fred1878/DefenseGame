@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 
 /** Consumable shapes, shared by `gear/consumables` and `core/normalizeConsumables` (no runtime deps, so no cycle). */
 export const CONSUMABLE_KINDS = ["heal", "bomb"] as const;

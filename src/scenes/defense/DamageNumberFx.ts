@@ -11,7 +11,7 @@ import {
   styleForKind,
   type DamageNumberSource,
   type DamageNumberState,
-} from "../../combat/damageNumbers";
+} from "../../combat/fx/damageNumbers";
 import { DEFENSE_RENDER_DEPTH } from "../../config";
 import {
   DAMAGE_NUMBERS,

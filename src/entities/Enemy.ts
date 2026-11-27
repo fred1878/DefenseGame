@@ -13,7 +13,7 @@ import {
   resolveEnemyCombat,
   type ResolvedEnemyCombat,
 } from "../core/enemyTuning";
-import type { Damageable } from "../combat/DamageSystem";
+import type { Damageable } from "../combat/rules/DamageSystem";
 import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 import {
   createArrowRainCombatState,
@@ -34,7 +34,7 @@ import {
   enemyCollisionBodyRadius,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
-import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
+import { reapplySpriteHitFlashIfActive } from "../combat/fx/HitFlash";
 import {
   createEnemyNameplate,
   prepareEnemyNameplateForRespawn,
@@ -42,7 +42,7 @@ import {
   updateEnemyNameplate,
   type EnemyNameplate,
 } from "../ui/enemyNameplate";
-import { cancelEnemyMeleeFxTimer } from "../combat/enemyMeleeFxSchedule";
+import { cancelEnemyMeleeFxTimer } from "../combat/fx/enemyMeleeFxSchedule";
 
 export type EnemyBehaviorExtra = {
   strafeSign: 1 | -1;

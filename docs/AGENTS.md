@@ -44,7 +44,7 @@ src/
   gear/           # Items, inventory, shops, loot rolls, night loot summary
   sim/            # Economy simulator (scripts/econ-sim.mjs → src/sim/economy/)
   input/          # VirtualStick, input modality, modal backdrop
-  combat/         # Hitboxes, damage, knockback, SpellCastController, SpellEffects
+  combat/         # rules/: hitboxes, damage, knockback, SpellCastController, SpellEffects; fx/: combat VFX + telegraphs
   debug/          # DebugState flags + debug drawers
   entities/       # Player, Enemy, projectiles
   ai/             # EnemyBrain (entry) + brainShared (helpers) + behaviors/

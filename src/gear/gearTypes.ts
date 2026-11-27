@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 
 /** Player equipment slots (11). Rings and trinkets have two slots each. */
 export const EQUIP_SLOTS = [

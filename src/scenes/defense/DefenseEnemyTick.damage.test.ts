@@ -1,7 +1,7 @@
 import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config/defense";
-import type { Damageable } from "../../combat/DamageSystem";
+import type { Damageable } from "../../combat/rules/DamageSystem";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testChargerCombat } from "../../test/fixtures/inlineCombat";

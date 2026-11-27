@@ -10,21 +10,21 @@ import {
   applySpellSwing,
   type SpellEnemyTarget,
   spawnSpellProjectile,
-} from "../../combat/SpellEffects";
+} from "../../combat/rules/SpellEffects";
 import {
   channeledHealCompletionRemainder,
   isChanneledHealSpell,
-} from "../../combat/channeledHealChannel";
-import { showFireNovaRingFx } from "../../combat/FireNovaRingFx";
-import { playFlamestrikeFirePillarBurst } from "../../combat/FlamestrikePvfx";
-import { resolveBlinkLanding } from "../../combat/spellMechanics";
-import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
-import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
+} from "../../combat/rules/channeledHealChannel";
+import { showFireNovaRingFx } from "../../combat/fx/FireNovaRingFx";
+import { playFlamestrikeFirePillarBurst } from "../../combat/fx/FlamestrikePvfx";
+import { resolveBlinkLanding } from "../../combat/rules/spellMechanics";
+import { showFlashHealPulseFx } from "../../combat/fx/SpellFlashHealFx";
+import { playIceWallSegmentEndFx } from "../../combat/fx/IceWallEndFx";
 import {
   meteorStrikeFxFlipX,
   playMeteorStrikeFx,
-} from "../../combat/SpellMeteorStrikeFx";
-import { playShadowformCastFx } from "../../combat/ShadowformCastFx";
+} from "../../combat/fx/SpellMeteorStrikeFx";
+import { playShadowformCastFx } from "../../combat/fx/ShadowformCastFx";
 import {
   DEFENSE_RENDER_DEPTH,
   defenseHalfHeight,

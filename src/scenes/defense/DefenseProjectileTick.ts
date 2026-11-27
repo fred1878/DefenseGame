@@ -1,13 +1,13 @@
 import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
-import type { Damageable } from "../../combat/DamageSystem";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
-import { applySpellBlastAt } from "../../combat/SpellEffects";
-import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
-import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import { playerIncomingDamageMult } from "../../combat/shadowformRuntime";
+import type { Damageable } from "../../combat/rules/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/rules/DamageSystem";
+import { applySpellBlastAt } from "../../combat/rules/SpellEffects";
+import { applySpellOnHitEffects } from "../../combat/rules/spellOnHitEffects";
+import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
+import { playerIncomingDamageMult } from "../../combat/rules/shadowformRuntime";
 import { spellById } from "../../content/spells";
-import { spellProjectileDirectKnockback } from "../../combat/spellKnockback";
+import { spellProjectileDirectKnockback } from "../../combat/rules/spellKnockback";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import { playerBodyRadiusPx } from "../../entities/entityPhysics";
 import {
@@ -18,17 +18,17 @@ import {
 } from "../../entities/Projectile";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { clearLobberAirborneTelegraph } from "../../entities/enemyRanged/lobberCombat";
-import { spawnLobberGroundImpactSmokeFx } from "../../combat/LobberImpactSmokeFx";
+import { spawnLobberGroundImpactSmokeFx } from "../../combat/fx/LobberImpactSmokeFx";
 import { ICE_BOLT_SPELL_ID } from "../../content/iceFxSpells";
 import {
   destroyIceBoltProjectileFx,
   finishIceBoltProjectileHit,
   syncIceBoltProjectileFx,
-} from "../../combat/SpellIceBoltProjectileFx";
+} from "../../combat/fx/SpellIceBoltProjectileFx";
 import {
   destroyPvfxProjectileFx,
   syncPvfxProjectileFx,
-} from "../../combat/SpellPvfxProjectileFx";
+} from "../../combat/fx/SpellPvfxProjectileFx";
 import type { Player } from "../../entities/Player";
 
 export type DefenseProjectileEnemyTarget = {

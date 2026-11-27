@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { arcHitboxHitsTarget } from "../combat/Hitbox";
+import { arcHitboxHitsTarget } from "../combat/rules/Hitbox";
 
 const FILL = 0xff3333;
 const FILL_ALPHA = 0.35;

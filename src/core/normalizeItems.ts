@@ -1,4 +1,7 @@
-import { DAMAGE_FLAVORS, type DamageFlavor } from "../combat/DamageSystem";
+import {
+  DAMAGE_FLAVORS,
+  type DamageFlavor,
+} from "../combat/rules/DamageSystem";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import {
   FLAT_STAT_IDS,

@@ -5,13 +5,13 @@ import {
 } from "./shared/pathApproach";
 import { tuning } from "../../tuning/gameTuning";
 import { DEFENSE_MAP } from "../../config";
-import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
+import { playerAggroRadiusWu } from "../../combat/rules/shadowformRuntime";
 import { worldUnit } from "../../config/worldScale";
 import { hasLineOfSight } from "../../pathfinding/los";
 import { resolveEnemyTarget } from "../brainShared";
 import type { EnemyBehavior } from "./types";
 import { applyDirectVelocity, setEnemyChaseVelocity } from "./movement";
-import { spawnChargerChargeStartSmokeFx } from "../../combat/ChargerChargeSmokeFx";
+import { spawnChargerChargeStartSmokeFx } from "../../combat/fx/ChargerChargeSmokeFx";
 
 export const chargerBehavior: EnemyBehavior = (ctx) => {
   const { enemy, nav, grid, playerX, playerY, deltaMs } = ctx;

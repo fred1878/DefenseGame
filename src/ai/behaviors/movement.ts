@@ -1,7 +1,7 @@
 import { tuning } from "../../tuning/gameTuning";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { northWallAttackY } from "../../config";
-import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
+import { setEnemyChaseVelocity } from "../../combat/rules/enemyKnockback";
 import {
   requireMeleeChaseStandoffWu,
   wallMeleeApproachStandoffWu,

@@ -5,26 +5,26 @@ import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
 import type { SaveGame } from "../../core/saveTypes";
 import { persistSave } from "../../core/GameState";
-import { pickAutoCastSpell } from "../../combat/spellAutoCast";
+import { pickAutoCastSpell } from "../../combat/rules/spellAutoCast";
 import {
   isStickMoving,
   type SpellInputQueue,
-} from "../../combat/spellInputQueue";
+} from "../../combat/rules/spellInputQueue";
 import type {
   SpellCastController,
   SpellCastInputMode,
-} from "../../combat/SpellCastController";
-import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import type { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
-import type { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
-import type { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
-import type { EnemyIceRootFxController } from "../../combat/EnemyIceRootFx";
-import type { EnemyIceStunFxController } from "../../combat/EnemyIceStunFx";
+} from "../../combat/rules/SpellCastController";
+import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
+import type { SpellBlizzardChannelFx } from "../../combat/fx/SpellBlizzardChannelFx";
+import type { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
+import type { SpellIceCastWindupFx } from "../../combat/fx/SpellIceCastWindupFx";
+import type { EnemyIceRootFxController } from "../../combat/fx/EnemyIceRootFx";
+import type { EnemyIceStunFxController } from "../../combat/fx/EnemyIceStunFx";
 import {
   spellNeedsGroundAoeTelegraph,
   type SpellGroundAoeTelegraph,
-} from "../../combat/SpellGroundAoeTelegraph";
-import type { SpellGroundZone } from "../../combat/spellGroundZone";
+} from "../../combat/fx/SpellGroundAoeTelegraph";
+import type { SpellGroundZone } from "../../combat/rules/spellGroundZone";
 import {
   spellAutoCastRequiresCombatTarget,
   spellCastUsesEnemyAim,
@@ -99,7 +99,7 @@ export type DefenseSpellDirectorHost = {
     expiresAt: number;
   }>;
   wu: (n: number) => number;
-  enemyTargets: () => import("../../combat/SpellEffects").SpellEnemyTarget[];
+  enemyTargets: () => import("../../combat/rules/SpellEffects").SpellEnemyTarget[];
   resolveStrikeMode: (auto: boolean) => "melee" | "ranged";
   flashNova: (
     x: number,

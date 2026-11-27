@@ -2,16 +2,16 @@ import type Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import { worldDisplayPx } from "../config/worldScale";
-import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
-import { applyDamage } from "../combat/DamageSystem";
-import { segmentFirstCircleHitT } from "../combat/Hitbox";
-import { applyKnockbackFrom } from "../combat/Knockback";
+import type { Damageable, DamageFlavor } from "../combat/rules/DamageSystem";
+import { applyDamage } from "../combat/rules/DamageSystem";
+import { segmentFirstCircleHitT } from "../combat/rules/Hitbox";
+import { applyKnockbackFrom } from "../combat/rules/Knockback";
 import {
   applyEnemyKnockbackFrom,
   type EnemyKnockbackCarrier,
-} from "../combat/enemyKnockback";
-import type { IceBoltProjectileFxState } from "../combat/SpellIceBoltProjectileFx";
-import type { PvfxProjectileFxState } from "../combat/SpellPvfxProjectileFx";
+} from "../combat/rules/enemyKnockback";
+import type { IceBoltProjectileFxState } from "../combat/fx/SpellIceBoltProjectileFx";
+import type { PvfxProjectileFxState } from "../combat/fx/SpellPvfxProjectileFx";
 import { projectileTextureRotationOffset } from "../content/combatPvfxAssets";
 import {
   acquireProjectileSprite,

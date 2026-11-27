@@ -7,11 +7,11 @@ import {
   type PlayerCardinal,
 } from "../content/assets";
 import { worldDisplayPx, worldUnit } from "../config/worldScale";
-import { arcHitboxHitsTarget } from "../combat/Hitbox";
-import type { Damageable } from "../combat/DamageSystem";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/DamageSystem";
-import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
-import { applyEnemyKnockbackFrom } from "../combat/enemyKnockback";
+import { arcHitboxHitsTarget } from "../combat/rules/Hitbox";
+import type { Damageable } from "../combat/rules/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/rules/DamageSystem";
+import { reapplySpriteHitFlashIfActive } from "../combat/fx/HitFlash";
+import { applyEnemyKnockbackFrom } from "../combat/rules/enemyKnockback";
 import type { EnemyInstance } from "./Enemy";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
 import {

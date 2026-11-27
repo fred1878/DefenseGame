@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
-import { meleeSwipeRotation } from "../combat/MeleeSwipeFx";
+import { meleeSwipeRotation } from "../combat/fx/MeleeSwipeFx";
 import {
   MELEE_FX_ANIM,
   MELEE_FX_ASSETS,

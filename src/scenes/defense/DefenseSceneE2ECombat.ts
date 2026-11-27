@@ -2,15 +2,15 @@ import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
 import { spellRequiresStationary } from "../../content/spellTargeting";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/rules/DamageSystem";
 import { setShowHitboxes } from "../../debug/DebugState";
-import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
+import { showEnemyMeleeSwipe } from "../../combat/fx/MeleeSwipeFx";
 import {
   enemyMeleeFxSpec,
   enemyMeleeFxTransform,
 } from "../../content/meleeFxAssets";
-import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
-import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
+import { showFlashHealPulseFx } from "../../combat/fx/SpellFlashHealFx";
+import { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
 import type { SpellBar } from "../../ui/SpellBar";
 import {
   interactiveObjectScreenRect,

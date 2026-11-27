@@ -3,7 +3,7 @@ import type Phaser from "phaser";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import { ConfigLoadError } from "../core/configValidation";
 import type { EnemyDef } from "../core/DataStore";
-import type { EnemyKnockbackCarrier } from "../combat/enemyKnockback";
+import type { EnemyKnockbackCarrier } from "../combat/rules/enemyKnockback";
 import {
   type EntityPhysicsTuning,
   setTuning,

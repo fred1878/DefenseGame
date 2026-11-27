@@ -1,4 +1,4 @@
-import { DAMAGE_FLAVORS } from "../combat/DamageSystem";
+import { DAMAGE_FLAVORS } from "../combat/rules/DamageSystem";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import {
   CONSUMABLE_KINDS,
