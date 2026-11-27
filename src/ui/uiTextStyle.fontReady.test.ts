@@ -79,3 +79,25 @@ describe("rerenderTextsWhenFontReady", () => {
     expect(() => rerenderTextsWhenFontReady("16px X", () => [])).not.toThrow();
   });
 });
+
+describe("installDefaultUiFont", () => {
+  it("defaults add.text to the pixel UI stack, keeping explicit families", async () => {
+    const { installDefaultUiFont, UI_FONT_FAMILY } = await import(
+      "./uiTextStyle"
+    );
+    const seen: unknown[] = [];
+    const proto = {
+      text(_x: number, _y: number, _t: string, style?: unknown) {
+        seen.push(style);
+        return null as never;
+      },
+    };
+    installDefaultUiFont(proto);
+    installDefaultUiFont(proto);
+    installDefaultUiFont(undefined);
+    proto.text(0, 0, "a");
+    proto.text(0, 0, "b", { fontFamily: "serif" } as never);
+    expect(seen[0]).toEqual({ fontFamily: UI_FONT_FAMILY });
+    expect(seen[1]).toEqual({ fontFamily: "serif" });
+  });
+});

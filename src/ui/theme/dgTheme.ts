@@ -47,8 +47,9 @@ export const DG_BUTTON_STROKE = {
 /** Icon stroke tint (parchment) used across the panels. */
 export const DG_ICON_TINT = "#E9DFCB";
 
-/** Pixel title face (OFL, `public/fonts/pixelify-sans`). */
-export const DG_TITLE_FONT = '"Pixelify Sans", system-ui, sans-serif';
+/** Pixel title face (OFL): Departure Mono digits, then Pixelify Sans. */
+export const DG_TITLE_FONT =
+  '"DG Digits", "Pixelify Sans", system-ui, sans-serif';
 
 /** `#RRGGBB` → 0xRRGGBB for Phaser fills / strokes / tints. */
 export function hexToInt(hex: string): number {

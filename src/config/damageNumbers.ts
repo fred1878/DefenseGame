@@ -85,7 +85,7 @@ export const DAMAGE_NUMBERS: DamageNumbersConfig = {
   enabled: true,
   maxActive: 32,
   aggregateWindowMs: 120,
-  fontFamily: DAMAGE_NUMBER_FONT_FAMILY,
+  fontFamily: `"DG Digits", "${DAMAGE_NUMBER_FONT_FAMILY}", sans-serif`,
   fontWeight: "700",
   offsetY: -6,
   styles: {
@@ -197,6 +197,35 @@ export function queueDamageNumberFont(
     key: DAMAGE_NUMBER_FONT_FAMILY,
     url,
     format: "truetype",
-    descriptors: { weight: "700", style: "normal" },
+    descriptors: { weight: "400 700", style: "normal" },
+  });
+}
+
+/** "DG Digits": Departure Mono (OFL) for 0-9 and % only (see index.html @font-face). */
+export const DIGIT_FONT_FAMILY = "DG Digits";
+export const DIGIT_FONT_PATH =
+  "fonts/departure-mono/DepartureMono-Regular.woff2";
+
+/** Queue the digit face so numbers render in Departure Mono from the first frame. */
+export function queueDigitFont(
+  loader: {
+    font: (config: {
+      key: string;
+      url: string;
+      format: string;
+      descriptors: { weight: string; style: string; unicodeRange: string };
+    }) => unknown;
+  },
+  url: string = DIGIT_FONT_PATH,
+): void {
+  loader.font({
+    key: DIGIT_FONT_FAMILY,
+    url,
+    format: "woff2",
+    descriptors: {
+      weight: "400 700",
+      style: "normal",
+      unicodeRange: "U+0030-0039, U+0025",
+    },
   });
 }
