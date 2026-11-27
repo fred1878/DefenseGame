@@ -24,6 +24,13 @@ export interface StaticServer {
   url: string;
   /** Paths requested so far (for asserting what a scene loaded). */
   requests: string[];
+  /**
+   * Hold responses for paths matching `re` until the returned release
+   * function runs (deterministic "still loading" states). Pass a status to
+   * the release to answer the held requests with it instead (load failures);
+   * later requests are served normally either way.
+   */
+  hold(re: RegExp): (status?: number) => void;
   close(): Promise<void>;
 }
 
@@ -35,11 +42,26 @@ export async function startPublicServer(
   root = path.join(process.cwd(), "public"),
 ): Promise<StaticServer> {
   const requests: string[] = [];
+  const holds: { re: RegExp; waiting: Array<(status?: number) => void> }[] = [];
   const server = http.createServer((req, res) => {
     const urlPath = decodeURIComponent(
       new URL(req.url ?? "/", "http://x").pathname,
     );
     requests.push(urlPath);
+    const held = holds.find((h) => h.re.test(urlPath));
+    if (held) {
+      held.waiting.push((status) => {
+        if (status === undefined) serve(urlPath, res);
+        else {
+          res.writeHead(status, { "access-control-allow-origin": "*" });
+          res.end();
+        }
+      });
+      return;
+    }
+    serve(urlPath, res);
+  });
+  const serve = (urlPath: string, res: http.ServerResponse): void => {
     const file = path.join(root, path.normalize(urlPath));
     if (!file.startsWith(root) || !fs.existsSync(file)) {
       res.writeHead(404, { "access-control-allow-origin": "*" });
@@ -52,7 +74,7 @@ export async function startPublicServer(
       "access-control-allow-origin": "*",
     });
     fs.createReadStream(file).pipe(res);
-  });
+  };
   await new Promise<void>((resolve) =>
     server.listen(0, "127.0.0.1", () => resolve()),
   );
@@ -60,6 +82,15 @@ export async function startPublicServer(
   return {
     url: `http://127.0.0.1:${port}/`,
     requests,
+    hold(re) {
+      const entry = { re, waiting: [] as Array<(status?: number) => void> };
+      holds.push(entry);
+      return (status?: number) => {
+        const i = holds.indexOf(entry);
+        if (i >= 0) holds.splice(i, 1);
+        for (const go of entry.waiting.splice(0)) go(status);
+      };
+    },
     close: () =>
       new Promise<void>((resolve) => {
         server.closeAllConnections();
