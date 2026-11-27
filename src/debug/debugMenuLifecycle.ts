@@ -1,4 +1,4 @@
-import { ensureDebugMenuScene } from "../core/lazyScenes";
+import { ensureDebugMenuScene } from "../scenes/loading/lazyScenes";
 import { INPUT_MODALITY, pushInputModality } from "../input/inputModality";
 
 export const DEBUG_MENU_CLOSE = "debug-menu-close";

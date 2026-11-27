@@ -6,7 +6,7 @@ import {
   ensureNightReady,
   ensureTownReachableReady,
   isTownReachableReady,
-} from "../../core/GameAssetLoader";
+} from "../loading/GameAssetLoader";
 import { launchDebugMenuFromHost } from "../../debug/debugMenuLifecycle";
 import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
 import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";

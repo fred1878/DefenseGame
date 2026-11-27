@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { SFX_ASSETS, SFX_ASSET_ROOT } from "../content/audioAssets";
+import { SFX_ASSETS, SFX_ASSET_ROOT } from "../../content/audioAssets";
 import {
   COMBAT_FX_ASSETS,
   ENEMY_SPRITE_ASSETS,
@@ -11,44 +11,44 @@ import {
   SPELL_ICON_ROOT,
   UI_ASSET_ROOT,
   UI_ASSETS,
-} from "../content/assets";
+} from "../../content/assets";
 import {
   TOWN_BUILDING_ASSET_ROOT,
   TOWN_BUILDING_ASSETS,
-} from "../content/townBuildingAssets";
+} from "../../content/townBuildingAssets";
 import {
   HOLY_FX_ASSETS,
   HOLY_FX_ROOT,
   registerHolyFxAnimations,
-} from "../content/holyFxAssets";
+} from "../../content/holyFxAssets";
 import {
   ICE_FX_ASSETS,
   ICE_FX_ROOT,
   registerIceFxAnimations,
-} from "../content/iceFxAssets";
+} from "../../content/iceFxAssets";
 import {
   PVFX_FX_ASSETS,
   PVFX_FX_ROOT,
   registerCombatPvfxAnimations,
-} from "../content/combatPvfxAssets";
+} from "../../content/combatPvfxAssets";
 import {
   MELEE_FX_ASSETS,
   MELEE_FX_ROOT,
   registerMeleeFxAnimations,
-} from "../content/meleeFxAssets";
+} from "../../content/meleeFxAssets";
 import {
   SMOKE_FX_ASSETS,
   SMOKE_FX_ROOT,
   registerSmokeFxAnimations,
-} from "../content/smokeFxAssets";
-import { queueUiIcons } from "../ui/icons/uiIcons";
-import { configurePixelArtTextures } from "./pixelArtTextures";
-import type { DataStore } from "./DataStore";
+} from "../../content/smokeFxAssets";
+import { queueUiIcons } from "../../ui/icons/uiIcons";
+import { configurePixelArtTextures } from "../../core/pixelArtTextures";
+import type { DataStore } from "../../core/DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
 import {
   DAMAGE_NUMBER_FONT_PATH,
   queueDamageNumberFont,
-} from "../config/damageNumbers";
+} from "../../config/damageNumbers";
 
 const ASSET_ROOT = "assets";
 export const DEFENSE_ASSETS_READY_KEY = "defenseAssetsReady";

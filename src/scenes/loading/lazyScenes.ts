@@ -8,11 +8,9 @@ let wavePlannerSetupScenePromise: Promise<void> | null = null;
 export async function ensureDefenseScene(game: Phaser.Game): Promise<void> {
   if (game.scene.getScene("Defense")) return;
   if (!defenseScenePromise) {
-    defenseScenePromise = import("../scenes/DefenseScene").then(
-      ({ DefenseScene }) => {
-        game.scene.add("Defense", DefenseScene, false);
-      },
-    );
+    defenseScenePromise = import("../DefenseScene").then(({ DefenseScene }) => {
+      game.scene.add("Defense", DefenseScene, false);
+    });
   }
   await defenseScenePromise;
 }
@@ -20,7 +18,7 @@ export async function ensureDefenseScene(game: Phaser.Game): Promise<void> {
 export async function ensureDebugMenuScene(game: Phaser.Game): Promise<void> {
   if (game.scene.getScene("DebugMenu")) return;
   if (!debugMenuScenePromise) {
-    debugMenuScenePromise = import("../scenes/DebugMenuScene").then(
+    debugMenuScenePromise = import("../DebugMenuScene").then(
       ({ DebugMenuScene }) => {
         game.scene.add("DebugMenu", DebugMenuScene, false);
       },
@@ -35,7 +33,7 @@ export async function ensureEndlessModeSetupScene(
   const key = "TownEndlessSetup";
   if (game.scene.getScene(key)) return;
   if (!endlessSetupScenePromise) {
-    endlessSetupScenePromise = import("../scenes/EndlessModeSetupScene").then(
+    endlessSetupScenePromise = import("../EndlessModeSetupScene").then(
       ({ EndlessModeSetupScene }) => {
         game.scene.add(key, EndlessModeSetupScene, false);
       },
@@ -50,11 +48,11 @@ export async function ensureWavePlannerSetupScene(
   const key = "TownWavePlannerSetup";
   if (game.scene.getScene(key)) return;
   if (!wavePlannerSetupScenePromise) {
-    wavePlannerSetupScenePromise = import(
-      "../scenes/WavePlannerSetupScene"
-    ).then(({ WavePlannerSetupScene }) => {
-      game.scene.add(key, WavePlannerSetupScene, false);
-    });
+    wavePlannerSetupScenePromise = import("../WavePlannerSetupScene").then(
+      ({ WavePlannerSetupScene }) => {
+        game.scene.add(key, WavePlannerSetupScene, false);
+      },
+    );
   }
   await wavePlannerSetupScenePromise;
 }

@@ -12,7 +12,7 @@ import {
   queueTownFluffAssets,
   runQueuedLoader,
 } from "./GameAssetLoader";
-import type { DataStore } from "./DataStore";
+import type { DataStore } from "../../core/DataStore";
 
 function fakeLoader(listSize = 0) {
   const listeners = new Map<string, Array<(...args: unknown[]) => void>>();

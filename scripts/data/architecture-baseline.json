@@ -4,7 +4,6 @@
     "config-is-constants-only: config/defenseMaps.ts -> core/normalizeDefenseMaps.ts",
     "config-is-constants-only: config/shadowformRuntime.ts -> gear/gearRuntime.ts",
     "config-is-constants-only: config/spellBar.ts -> core/displayScale.ts",
-    "core-below-presentation: core/GameAssetLoader.ts -> ui/icons/uiIcons.ts",
     "core-below-presentation: core/GameState.ts -> e2e/e2eMode.ts",
     "core-below-presentation: core/defenseRunMode.ts -> systems/endlessSpawnScheduler.ts",
     "core-below-presentation: core/defenseRunMode.ts -> systems/wavePlannerTiming.ts",

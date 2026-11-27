@@ -6,15 +6,15 @@ import {
   resetLazyScenesForTests,
 } from "./lazyScenes";
 
-vi.mock("../scenes/DebugMenuScene", () => ({
+vi.mock("../DebugMenuScene", () => ({
   DebugMenuScene: class DebugMenuScene {},
 }));
 
-vi.mock("../scenes/EndlessModeSetupScene", () => ({
+vi.mock("../EndlessModeSetupScene", () => ({
   EndlessModeSetupScene: class EndlessModeSetupScene {},
 }));
 
-vi.mock("../scenes/WavePlannerSetupScene", () => ({
+vi.mock("../WavePlannerSetupScene", () => ({
   WavePlannerSetupScene: class WavePlannerSetupScene {},
 }));
 
@@ -59,7 +59,7 @@ describe("ensureDebugMenuScene", () => {
 describe("ensureDefenseScene leftover branches", () => {
   it("registers Defense once and no-ops when it is already present", async () => {
     vi.resetModules();
-    vi.doMock("../scenes/DefenseScene", () => ({
+    vi.doMock("../DefenseScene", () => ({
       DefenseScene: class DefenseScene {},
     }));
     const { ensureDefenseScene, resetLazyScenesForTests } = await import(

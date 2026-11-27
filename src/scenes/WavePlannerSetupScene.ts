@@ -3,7 +3,7 @@ import type { WaveGroup } from "../core/DataStore";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
-} from "../core/GameAssetLoader";
+} from "./loading/GameAssetLoader";
 import { showTouchInput } from "../debug/DebugState";
 import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";

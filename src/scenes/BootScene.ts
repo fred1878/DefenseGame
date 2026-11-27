@@ -4,7 +4,7 @@ import { markBoot, measureBoot } from "../core/bootPerf";
 import {
   queueMinimalTownBootAssets,
   runQueuedLoader,
-} from "../core/GameAssetLoader";
+} from "./loading/GameAssetLoader";
 import { DataStore } from "../core/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
 import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";

@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import {
   ensureEndlessModeSetupScene,
   ensureWavePlannerSetupScene,
-} from "../../core/lazyScenes";
+} from "../loading/lazyScenes";
 import type { WaveGroup } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 

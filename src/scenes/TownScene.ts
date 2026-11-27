@@ -56,7 +56,7 @@ import {
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
 import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
-import { ensureTownReachableReady } from "../core/GameAssetLoader";
+import { ensureTownReachableReady } from "./loading/GameAssetLoader";
 import { markE2EAssetsLoaded } from "../e2e/installE2E";
 import {
   createTownHeader,
