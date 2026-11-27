@@ -1,7 +1,7 @@
 import { type EconomyPolicy, hasEnoughGold } from "../core/economyPolicy";
 import bundledShops from "../../public/data/shops.json";
-import { normalizeShops } from "../core/normalizeShops";
-import type { SaveGame } from "../core/saveTypes";
+import { normalizeShops } from "../core/data/normalizeShops";
+import type { SaveGame } from "../core/save/saveTypes";
 import { addConsumable, getConsumablesConfig } from "./consumables";
 import type { ConsumablesConfig } from "./consumableTypes";
 import {

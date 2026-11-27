@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { collectInteractiveScreenRects } from "../../debug/collectInteractiveScreenRects";
 import type { TouchInputDebugDraw } from "../../debug/TouchInputDebugDraw";
-import type { ScreenRect } from "../../ui/screenLayout";
+import type { ScreenRect } from "../../ui/layout/screenLayout";
 import type { TownOverlays } from "./TownOverlays";
 
 /** Interactive UI rects for the touch debug overlay (skips the overlay's own graphics). */

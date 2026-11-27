@@ -1,15 +1,15 @@
 import type Phaser from "phaser";
-import type { WaveGroup } from "../../core/DataStore";
+import type { WaveGroup } from "../../core/data/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import {
   ensureNightReady,
   ensureTownReachableReady,
   isTownReachableReady,
 } from "../loading/GameAssetLoader";
 import { launchDebugMenuFromHost } from "../../debug/debugMenuLifecycle";
-import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
-import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
+import { SpellBarSortPanel } from "../../ui/panels/SpellBarSortPanel";
+import { TownDefenseLoadingOverlay } from "../../ui/panels/TownDefenseLoadingOverlay";
 import { getGearCatalog } from "../../gear/gearCatalog";
 import { getLootConfig } from "../../gear/loot";
 import { createRng, randomSeed } from "../../gear/rng";
@@ -18,12 +18,12 @@ import {
   ensureShopStock,
   type ShopId,
 } from "../../gear/shops";
-import { InventoryPanel } from "../../ui/InventoryPanel";
-import { ShopPanel } from "../../ui/ShopPanel";
+import { InventoryPanel } from "../../ui/panels/InventoryPanel";
+import { ShopPanel } from "../../ui/panels/ShopPanel";
 import type { GearPanelContext } from "../../ui/gearPanel/gearPanelLogic";
-import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
-import { TalentPanel } from "../../ui/TalentPanel";
-import type { ScreenRect } from "../../ui/screenLayout";
+import { SaveMenuPanel } from "../../ui/panels/SaveMenuPanel";
+import { TalentPanel } from "../../ui/panels/TalentPanel";
+import type { ScreenRect } from "../../ui/layout/screenLayout";
 import {
   isEndlessModeSetupActive,
   isWavePlannerSetupActive,

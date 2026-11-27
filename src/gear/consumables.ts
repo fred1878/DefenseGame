@@ -1,7 +1,7 @@
 import bundledConsumables from "../../public/data/consumables.json";
 import type { SpellDefinition } from "../content/spells";
-import { normalizeConsumables } from "../core/normalizeConsumables";
-import type { SaveGame } from "../core/saveTypes";
+import { normalizeConsumables } from "../core/data/normalizeConsumables";
+import type { SaveGame } from "../core/save/saveTypes";
 
 import type {
   ConsumableDef,

@@ -4,8 +4,8 @@ import {
   defenseFieldPx,
   defenseHalfWidth,
 } from "../config/defense";
-import type { DefensePlayArea } from "../ui/screenLayout";
-import { snapCameraLikePhaser3 } from "../core/phaser3PixelParity";
+import type { DefensePlayArea } from "../ui/layout/screenLayout";
+import { snapCameraLikePhaser3 } from "../core/render/phaser3PixelParity";
 import {
   adoptDefenseWorldObject,
   isInDefenseWorldLayer,

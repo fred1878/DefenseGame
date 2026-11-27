@@ -4,7 +4,7 @@ import type {
   EnemyDef,
   WaveDef,
   WaveGroup,
-} from "../core/DataStore";
+} from "../core/data/DataStore";
 import { pickWaveSpawnPoint } from "../world/defenseSpawns";
 
 export type WaveSpawnerCallbacks = {

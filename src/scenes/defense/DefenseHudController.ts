@@ -2,25 +2,25 @@ import type Phaser from "phaser";
 import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
 import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import type { AttackMode } from "../../config";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { scaleUiX } from "../../config/uiScale";
 import { UI_TEXTURE } from "../../content/assets";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { VirtualStick } from "../../input/VirtualStick";
 import type { Player } from "../../entities/Player";
 import { SpellCastController } from "../../combat/rules/SpellCastController";
-import { CastBar } from "../../ui/CastBar";
-import { SpellBar } from "../../ui/SpellBar";
+import { CastBar } from "../../ui/hud/CastBar";
+import { SpellBar } from "../../ui/hud/SpellBar";
 import {
   createCombatHudChrome,
   type CombatHudChrome,
-} from "../../ui/combatHudChrome";
+} from "../../ui/hud/combatHudChrome";
 import {
   DefenseMinimap,
   defenseMinimapLayout,
   defenseMinimapScreenRect,
-} from "../../ui/defenseMinimap";
-import { defensePlayAreaLayout } from "../../ui/screenLayout";
+} from "../../ui/hud/defenseMinimap";
+import { defensePlayAreaLayout } from "../../ui/layout/screenLayout";
 import {
   buildCombatStickUiMask,
   bottomHudStripLayout,
@@ -29,15 +29,15 @@ import {
   nightReturnButtonPosition,
   readSafeInsets,
   type SafeInsets,
-} from "../../ui/screenLayout";
-import { hudTextPosition } from "../../ui/defenseHudLayout";
+} from "../../ui/layout/screenLayout";
+import { hudTextPosition } from "../../ui/hud/defenseHudLayout";
 import {
   createTouchButton,
   createTouchCircleButton,
   createTouchToggleButton,
-} from "../../ui/touchButton";
-import type { TouchButtonHandle } from "../../ui/touchButton";
-import { uiTextStyle } from "../../ui/uiTextStyle";
+} from "../../ui/touch/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
+import { uiTextStyle } from "../../ui/layout/uiTextStyle";
 import { runDefenseUiFactory } from "../../world/defenseWorldAddHook";
 
 export type DefenseHudControllerDeps = {

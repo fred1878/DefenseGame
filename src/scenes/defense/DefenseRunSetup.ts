@@ -1,8 +1,8 @@
 import type Phaser from "phaser";
 import { createDefaultAutoCastSpellIds } from "../../content/spellBarAutoCast";
 import { createDefaultSpellBarSlots } from "../../content/spells";
-import type { DataStore, WaveDef } from "../../core/DataStore";
-import type { SaveGame } from "../../core/saveTypes";
+import type { DataStore, WaveDef } from "../../core/data/DataStore";
+import type { SaveGame } from "../../core/save/saveTypes";
 import {
   type EndlessRunSelection,
   readDefenseRunMode,

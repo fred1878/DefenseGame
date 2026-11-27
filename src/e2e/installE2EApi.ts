@@ -3,14 +3,14 @@ import type Phaser from "phaser";
 import { SPELL_BAR, type AttackMode } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
 import { spellIconTextureKey } from "../content/assets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import {
   mergePlayerWithoutLegacyMoveSpeed,
   persistSave,
   type LegacySavePlayer,
-} from "../core/GameState";
+} from "../core/save/GameState";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
 import {

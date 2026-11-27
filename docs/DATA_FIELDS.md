@@ -9,7 +9,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 - `autoAttackMeleeRange` — px; derived melee engage range at Boot (example bullet), or
 - A table row `| \`fieldName\` | … |` where cells after the field name combine to ≥15 characters of **type, unit, and meaning** (no `TBD` / `TODO`).
 
-**Bidirectional parity:** `src/core/dataFieldsDoc.test.ts` compares exported `*BOOT_KEYS` from `normalize*` (and `dataFieldsDocKeys.ts`) to parsed field names per section. CI fails on **missing** keys (new config not documented) and **extra** keys (renamed/removed config still in the doc). Update normalize key lists and this file in the **same PR**.
+**Bidirectional parity:** `src/core/data/dataFieldsDoc.test.ts` compares exported `*BOOT_KEYS` from `normalize*` (and `dataFieldsDocKeys.ts`) to parsed field names per section. CI fails on **missing** keys (new config not documented) and **extra** keys (renamed/removed config still in the doc). Update normalize key lists and this file in the **same PR**.
 
 ## Units
 
@@ -47,22 +47,22 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 
 | File | Input (authorable) | Resolved / runtime | Module |
 |------|---------------------|-------------------|--------|
-| `buildings.json` | — | [BuildingDef](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
-| `defense-maps.json` | [DefenseMapsFileInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/normalizeDefenseMaps.ts) | [DefenseMapsRegistry](../src/core/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/normalizeDefenseMaps.ts) | [normalizeDefenseMaps.ts](../src/core/normalizeDefenseMaps.ts) |
-| `enemies.json` | [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts) | [EnemyDef](../src/core/DataStore.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) | [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts) |
-| `enemy-ai.json` | [EnemyAiInput](../src/core/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
-| `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
-| `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
-| `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
-| `consumables.json` | — | [ConsumablesConfig](../src/gear/consumables.ts) | [normalizeConsumables.ts](../src/core/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts) |
-| `shops.json` | — | [ShopsConfig](../src/gear/shops.ts) | [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts) |
-| `loot.json` | — | [LootConfig](../src/gear/loot.ts) | [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts) |
-| `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
-| `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
-| `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
-| `town_buildings.json` | — | [TownBuildingDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
-| `town_layout.json` | [TownLayoutInput](../src/core/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
-| `waves.json` | — | [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
+| `buildings.json` | — | [BuildingDef](../src/core/data/DataStore.ts) | [DataStore.ts](../src/core/data/DataStore.ts) |
+| `defense-maps.json` | [DefenseMapsFileInput](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/data/normalizeDefenseMaps.ts) | [DefenseMapsRegistry](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/data/normalizeDefenseMaps.ts) | [normalizeDefenseMaps.ts](../src/core/data/normalizeDefenseMaps.ts) |
+| `enemies.json` | [EnemyDefInput](../src/core/data/normalizeEnemy.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts) | [EnemyDef](../src/core/data/DataStore.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) | [normalizeEnemy.ts](../src/core/data/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts) |
+| `enemy-ai.json` | [EnemyAiInput](../src/core/data/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/data/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
+| `entity-physics.json` | [EntityPhysicsInput](../src/core/data/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/data/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/data/normalizeEntityPhysics.ts) |
+| `hit-flash.json` | [HitFlashInput](../src/core/data/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/data/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/data/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
+| `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/data/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
+| `consumables.json` | — | [ConsumablesConfig](../src/gear/consumables.ts) | [normalizeConsumables.ts](../src/core/data/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts) |
+| `shops.json` | — | [ShopsConfig](../src/gear/shops.ts) | [normalizeShops.ts](../src/core/data/normalizeShops.ts), [shops.ts](../src/gear/shops.ts) |
+| `loot.json` | — | [LootConfig](../src/gear/loot.ts) | [normalizeLoot.ts](../src/core/data/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts) |
+| `player.json` | [PlayerConfigInput](../src/core/data/normalizePlayer.ts) | [PlayerConfig](../src/core/data/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/data/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
+| `spell_input.json` | [SpellInputConfigInput](../src/core/data/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/data/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
+| `spells.json` | [SpellsFileInput](../src/core/data/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/data/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
+| `town_buildings.json` | — | [TownBuildingDef](../src/core/data/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
+| `town_layout.json` | [TownLayoutInput](../src/core/data/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/data/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/data/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
+| `waves.json` | — | [WaveDef](../src/core/data/DataStore.ts), [WaveGroup](../src/core/data/DataStore.ts) | [DataStore.ts](../src/core/data/DataStore.ts) |
 
 **Removed (do not re-add):** `enemy-combat-defaults.json`, `spell-mechanics.json` — combat is fully per row in `enemies.json`; Shadowform tuning lives on the `shadowform` spell row.
 
@@ -70,7 +70,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 
 ## enemies.json
 
-**TypeScript:** [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyDef](../src/core/DataStore.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) — [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts).
+**TypeScript:** [EnemyDefInput](../src/core/data/normalizeEnemy.ts), [EnemyDef](../src/core/data/DataStore.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) — [normalizeEnemy.ts](../src/core/data/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts).
 
 Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`enemyId`) and endless mode.
 
@@ -267,7 +267,7 @@ Telegraphed ground zone ticks.
 
 ## enemy-ai.json
 
-**TypeScript:** [EnemyAiInput](../src/core/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
+**TypeScript:** [EnemyAiInput](../src/core/data/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/data/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
 
 Global chase / wall path tuning (`applyEnemyAi` → `tuning("enemyAi")` in `src/tuning/gameTuning.ts`).
 
@@ -282,7 +282,7 @@ Global chase / wall path tuning (`applyEnemyAi` → `tuning("enemyAi")` in `src/
 
 ## entity-physics.json
 
-**TypeScript:** [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts), [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) — [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts).
+**TypeScript:** [EntityPhysicsInput](../src/core/data/normalizeEntityPhysics.ts), [EntityPhysicsTuning](../src/core/data/normalizeEntityPhysics.ts) — [normalizeEntityPhysics.ts](../src/core/data/normalizeEntityPhysics.ts).
 
 Nav inflation and knockback cap (`applyEntityPhysics`).
 
@@ -296,7 +296,7 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 
 ## spell_input.json
 
-**TypeScript:** [SpellInputConfigInput](../src/core/normalizeSpellInput.ts), [SpellInputTuning](../src/config/spellInput.ts) — [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts).
+**TypeScript:** [SpellInputConfigInput](../src/core/data/normalizeSpellInput.ts), [SpellInputTuning](../src/config/spellInput.ts) — [normalizeSpellInput.ts](../src/core/data/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts).
 
 Virtual stick thresholds for spell cast interrupt vs movement detection (`applySpellInputTuning`).
 
@@ -310,7 +310,7 @@ Virtual stick thresholds for spell cast interrupt vs movement detection (`applyS
 
 ## hit-flash.json
 
-**TypeScript:** [HitFlashInput](../src/core/normalizeHitFlash.ts), [HitFlashConfig](../src/core/normalizeHitFlash.ts), [HitFlashFlavorEntry](../src/core/normalizeHitFlash.ts) — [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts).
+**TypeScript:** [HitFlashInput](../src/core/data/normalizeHitFlash.ts), [HitFlashConfig](../src/core/data/normalizeHitFlash.ts), [HitFlashFlavorEntry](../src/core/data/normalizeHitFlash.ts) — [normalizeHitFlash.ts](../src/core/data/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts).
 
 Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitFlash` → `applyHitFlashConfig` → `HitFlash.ts`).
 
@@ -328,7 +328,7 @@ Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitF
 
 ## items.json
 
-**TypeScript:** [GearCatalog](../src/gear/gearTypes.ts) — [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts), [gearRuntime.ts](../src/gear/gearRuntime.ts).
+**TypeScript:** [GearCatalog](../src/gear/gearTypes.ts) — [normalizeItems.ts](../src/core/data/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts), [gearRuntime.ts](../src/gear/gearRuntime.ts).
 
 Equipment: item bases, random affixes, rarities and authored uniques. Saves store only `baseId`, `rarity`, `itemLevel`, `uniqueId` and rolled affix values, so editing a base or unique here changes items players already own. Items whose base or unique is removed are dropped from saves on load.
 
@@ -427,7 +427,7 @@ Modifiers and procs:
 
 ## loot.json
 
-**TypeScript:** [LootConfig](../src/gear/loot.ts) — [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts).
+**TypeScript:** [LootConfig](../src/gear/loot.ts) — [normalizeLoot.ts](../src/core/data/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts).
 
 Bag size, sell-back rate and gear drop tables. `nightWon` / `nightLost` roll at the end of a campaign night with the night number as the level; add more tables (e.g. per adventure area) and roll them with `rollLoot`.
 
@@ -455,7 +455,7 @@ Each table:
 
 ## consumables.json
 
-**TypeScript:** [ConsumablesConfig](../src/gear/consumables.ts) — [normalizeConsumables.ts](../src/core/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts).
+**TypeScript:** [ConsumablesConfig](../src/gear/consumables.ts) — [normalizeConsumables.ts](../src/core/data/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts).
 
 Potions and bombs usable in combat from the Potion / Bomb HUD buttons (keys Q / E). Each button uses the first owned item of its kind in file order. Saves store charges by id.
 
@@ -491,7 +491,7 @@ Each bomb:
 
 ## shops.json
 
-**TypeScript:** [ShopsConfig](../src/gear/shops.ts) — [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts).
+**TypeScript:** [ShopsConfig](../src/gear/shops.ts) — [normalizeShops.ts](../src/core/data/normalizeShops.ts), [shops.ts](../src/gear/shops.ts).
 
 Town shops. The trader (night Market Stall) rolls new random stock and new buy requests after every campaign night; the blacksmith (Moon Brazier) sells a fixed catalogue of plain bases that unlocks with nights. Items sell back for `loot.json` sellBackPct of their item price.
 
@@ -540,7 +540,7 @@ Blacksmith (`consumables` rows here are `{ id, unlockNight }` and always in stoc
 
 ## talents.json
 
-**TypeScript:** [TalentCatalog](../src/talents/talentTypes.ts) — [normalizeTalents.ts](../src/core/normalizeTalents.ts), [talentLogic.ts](../src/talents/talentLogic.ts), [talentRuntime.ts](../src/talents/talentRuntime.ts). Design notes: [TALENTS.md](./TALENTS.md).
+**TypeScript:** [TalentCatalog](../src/talents/talentTypes.ts) — [normalizeTalents.ts](../src/core/data/normalizeTalents.ts), [talentLogic.ts](../src/talents/talentLogic.ts), [talentRuntime.ts](../src/talents/talentRuntime.ts). Design notes: [TALENTS.md](./TALENTS.md).
 
 Talent tree: branches of tiers of nodes. Each learned rank adds the node's `perRank` stat modifiers and procs (same format as items.json Modifiers) into the gear stat sum, so combat, the Gear panel totals and the economy sim all see them. Saves store only `{ ranks: { id: rank }, earned }`; ranks that no longer fit the tree after an edit are refunded on load.
 
@@ -594,7 +594,7 @@ Each node:
 
 ## player.json
 
-**TypeScript:** [PlayerConfigInput](../src/core/normalizePlayer.ts), [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts).
+**TypeScript:** [PlayerConfigInput](../src/core/data/normalizePlayer.ts), [PlayerConfig](../src/core/data/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/data/normalizePlayer.ts), [player.ts](../src/config/player.ts).
 
 Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
@@ -635,7 +635,7 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
 ## spells.json
 
-**TypeScript:** [SpellsFileInput](../src/core/normalizeSpells.ts), [SpellDefinition](../src/content/spells.ts) — [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts).
+**TypeScript:** [SpellsFileInput](../src/core/data/normalizeSpells.ts), [SpellDefinition](../src/content/spells.ts) — [normalizeSpells.ts](../src/core/data/normalizeSpells.ts), [spells.ts](../src/content/spells.ts).
 
 Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
@@ -709,7 +709,7 @@ Shadowform multipliers are also applied globally via `shadowformMechanicsFromCat
 
 ## defense-maps.json
 
-**TypeScript:** [DefenseMapsFileInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapsRegistry](../src/core/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/normalizeDefenseMaps.ts) — [normalizeDefenseMaps.ts](../src/core/normalizeDefenseMaps.ts).
+**TypeScript:** [DefenseMapsFileInput](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapsRegistry](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/data/normalizeDefenseMaps.ts) — [normalizeDefenseMaps.ts](../src/core/data/normalizeDefenseMaps.ts).
 
 | Field | Meaning |
 |-------|---------|
@@ -738,7 +738,7 @@ Each obstacle:
 
 ## waves.json
 
-**TypeScript:** [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
+**TypeScript:** [WaveDef](../src/core/data/DataStore.ts), [WaveGroup](../src/core/data/DataStore.ts) — [DataStore.ts](../src/core/data/DataStore.ts).
 
 Top-level keys: **night number** (string) → wave def.
 
@@ -764,7 +764,7 @@ Each group:
 
 ## buildings.json
 
-**TypeScript:** [BuildingDef](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
+**TypeScript:** [BuildingDef](../src/core/data/DataStore.ts) — [DataStore.ts](../src/core/data/DataStore.ts).
 
 Town upgrade defs keyed by building id: `wall` (wall HP) and the shop levels `trader` / `blacksmith` (bought in the shop panel; per-level effects are `levels` in `shops.json`).
 
@@ -778,7 +778,7 @@ Town upgrade defs keyed by building id: `wall` (wall HP) and the shop levels `tr
 
 ## town_buildings.json
 
-**TypeScript:** [TownBuildingDef](../src/core/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
+**TypeScript:** [TownBuildingDef](../src/core/data/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts).
 
 Town clickable building art + actions (`TownBuildingDef`).
 
@@ -800,7 +800,7 @@ Town clickable building art + actions (`TownBuildingDef`).
 
 ## town_layout.json
 
-**TypeScript:** [TownLayoutInput](../src/core/normalizeTownLayout.ts) → [TownLayoutDef](../src/core/townBuildingTypes.ts) — [normalizeTownLayout.ts](../src/core/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
+**TypeScript:** [TownLayoutInput](../src/core/data/normalizeTownLayout.ts) → [TownLayoutDef](../src/core/data/townBuildingTypes.ts) — [normalizeTownLayout.ts](../src/core/data/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts).
 
 | Field | Meaning |
 |-------|---------|

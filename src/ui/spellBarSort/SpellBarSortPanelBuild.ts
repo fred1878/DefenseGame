@@ -15,8 +15,8 @@ import {
   type SpellId,
 } from "../../content/spells";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
-import { bindTapOrLongPress, createTouchButton } from "../touchButton";
-import { uiTextStyle } from "../uiTextStyle";
+import { bindTapOrLongPress, createTouchButton } from "../touch/touchButton";
+import { uiTextStyle } from "../layout/uiTextStyle";
 
 export type SlotView = {
   frame: Phaser.GameObjects.Rectangle;

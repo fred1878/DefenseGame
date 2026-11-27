@@ -4,10 +4,10 @@ import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import type {
   TownBuildingDef,
   TownLayoutDef,
-} from "../../core/townBuildingTypes";
+} from "../../core/data/townBuildingTypes";
 import { setContainerInputEnabled } from "../../input/setContainerInputEnabled";
-import { bindContainerPress } from "../../ui/touchButton";
-import { uiSmallLabelShadow, uiTextStyle } from "../../ui/uiTextStyle";
+import { bindContainerPress } from "../../ui/touch/touchButton";
+import { uiSmallLabelShadow, uiTextStyle } from "../../ui/layout/uiTextStyle";
 
 function townBuildingDisplayWidth(
   def: TownBuildingDef,

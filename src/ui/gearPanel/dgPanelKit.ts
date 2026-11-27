@@ -11,7 +11,7 @@ import {
   rerenderTextsWhenFontReady,
   uiTextStyle,
   UI_FONT_FAMILY,
-} from "../uiTextStyle";
+} from "../layout/uiTextStyle";
 import {
   DG_BUTTON_STROKE,
   DG_ICON_TINT,

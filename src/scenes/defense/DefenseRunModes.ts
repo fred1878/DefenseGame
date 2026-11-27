@@ -1,4 +1,4 @@
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import type { CampaignNightLossReason } from "../../systems/nightEndMessaging";
 import { endlessHudHeader } from "./DefenseEndlessSpawn";
 import {

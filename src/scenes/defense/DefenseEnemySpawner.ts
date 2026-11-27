@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import { flashSpriteTint } from "../../combat/fx/HitFlash";
 import type { DamageFlavor } from "../../combat/rules/DamageSystem";
 import { destroyArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
-import type { DataStore, EnemyDef } from "../../core/DataStore";
+import type { DataStore, EnemyDef } from "../../core/data/DataStore";
 import {
   reconfigureEnemyInstance,
   spawnEnemy,
@@ -12,7 +12,7 @@ import { cancelEnemyMeleeFxTimer } from "../../combat/fx/enemyMeleeFxSchedule";
 import {
   destroyEnemyNameplate,
   stashEnemyNameplateForPool,
-} from "../../ui/enemyNameplate";
+} from "../../ui/hud/enemyNameplate";
 
 export type DefenseEnemySpawnerHooks = {
   onRemovedFromPlay: () => void;

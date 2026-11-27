@@ -1,4 +1,4 @@
-import type { DataStore } from "../core/DataStore";
+import type { DataStore } from "../core/data/DataStore";
 
 /** Enemy ids that appear in defense wave spawns (playable in endless). */
 export function listPlayableDefenseEnemyIds(store: DataStore): string[] {

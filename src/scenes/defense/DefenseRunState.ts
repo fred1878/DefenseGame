@@ -12,7 +12,7 @@ import type { SpellGroundZone } from "../../combat/rules/spellGroundZone";
 import type { SpellEnemyTarget } from "../../combat/rules/SpellEffects";
 import type { DefenseObstacleRect } from "../../config/defense";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import type { FocusTapFlash } from "../../debug/TouchInputDebugDraw";
 import type { VirtualStick } from "../../input/VirtualStick";
 import type { EnemyInstance } from "../../entities/Enemy";
@@ -21,11 +21,11 @@ import type {
   PlayerProjectile,
 } from "../../entities/Projectile";
 import type { Player } from "../../entities/Player";
-import type { CastBar } from "../../ui/CastBar";
-import type { SpellBar } from "../../ui/SpellBar";
-import type { GroundTargetReticle } from "../../ui/GroundTargetReticle";
-import type { SafeInsets } from "../../ui/screenLayout";
-import type { TouchButtonHandle } from "../../ui/touchButton";
+import type { CastBar } from "../../ui/hud/CastBar";
+import type { SpellBar } from "../../ui/hud/SpellBar";
+import type { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
+import type { SafeInsets } from "../../ui/layout/screenLayout";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
 import type { DefenseTargeting } from "./DefenseTargeting";
 import type { DefensePlayerCombatHost } from "./DefensePlayerCombat";
 import type { DefenseGroundAimHost } from "./DefenseGroundAim";

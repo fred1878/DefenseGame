@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it, vi, beforeAll } from "vitest";
 import Phaser from "phaser";
 import { applyHitFlashConfig } from "../../config/hitFlash";
-import { normalizeHitFlash } from "../../core/normalizeHitFlash";
+import { normalizeHitFlash } from "../../core/data/normalizeHitFlash";
 import {
   flashSpriteTint,
   hitFlashDurationMs,

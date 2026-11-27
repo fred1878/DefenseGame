@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import { getDataStore } from "../../core/registryKeys";
 import { showTouchInput } from "../../debug/DebugState";
 import { FpsDebugOverlay } from "../../debug/FpsDebugOverlay";
@@ -9,7 +9,7 @@ import { publishE2E } from "../../e2e/e2eGlobal";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { configureSceneInput } from "../../input/inputTuning";
 import { isPointerOverInteractive } from "../../input/pointerOverInteractive";
-import type { ScreenRect } from "../../ui/screenLayout";
+import type { ScreenRect } from "../../ui/layout/screenLayout";
 import { closeTownSetupScene } from "./townSetupSceneLifecycle";
 
 /**

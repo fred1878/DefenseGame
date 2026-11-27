@@ -16,16 +16,19 @@ import { configureSceneInput } from "../input/inputTuning";
 import { isPointerOverInteractive } from "../input/pointerOverInteractive";
 import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
-import { createTouchButton } from "../ui/touchButton";
-import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
+import { createTouchButton } from "../ui/touch/touchButton";
+import { hudBandHeight, readSafeInsets } from "../ui/layout/screenLayout";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
-import { uiTextStyle } from "../ui/uiTextStyle";
+import { uiTextStyle } from "../ui/layout/uiTextStyle";
 import {
   cycleDebugWorldPixelScale,
   worldScaleDebugLabel,
-} from "../core/worldPixelScale";
+} from "../core/render/worldPixelScale";
 import { getWorldPixelScale } from "../config/worldScale";
-import { fullscreenButtonLabel, toggleFullscreen } from "../ui/fullscreen";
+import {
+  fullscreenButtonLabel,
+  toggleFullscreen,
+} from "../ui/layout/fullscreen";
 import {
   DEBUG_MENU_CLOSE,
   isDefenseDebugHost,
@@ -50,7 +53,7 @@ import {
   setDebugRendererRoundPixels,
   setDebugScaleAutoRound,
   worldTextureFilterLabel,
-} from "../core/pixelRenderDebug";
+} from "../core/render/pixelRenderDebug";
 import {
   debugInfiniteGold,
   debugInfiniteGoldLabel,

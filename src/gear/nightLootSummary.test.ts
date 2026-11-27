@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createNewSave } from "../core/GameState";
+import { createNewSave } from "../core/save/GameState";
 import { gearFixture } from "../test/gearFixture";
 import type { ItemDraft } from "./itemGen";
 import type { LootConfig } from "./loot";

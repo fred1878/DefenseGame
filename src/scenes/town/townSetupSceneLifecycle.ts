@@ -3,7 +3,7 @@ import {
   ensureEndlessModeSetupScene,
   ensureWavePlannerSetupScene,
 } from "../loading/lazyScenes";
-import type { WaveGroup } from "../../core/DataStore";
+import type { WaveGroup } from "../../core/data/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 
 export const TOWN_ENDLESS_SETUP_SCENE_KEY = "TownEndlessSetup";

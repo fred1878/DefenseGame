@@ -31,7 +31,10 @@ import {
 } from "../../world/defenseWorldAddHook";
 import { configureDefenseObstacleArt } from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
-import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
+import {
+  defensePlayAreaLayout,
+  readSafeInsets,
+} from "../../ui/layout/screenLayout";
 
 export type DefenseWorldBootstrapResult = {
   player: Player;

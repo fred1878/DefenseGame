@@ -1,17 +1,23 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { GAME } from "../../config";
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import { INPUT_MODALITY } from "../../input/inputModality";
 import {
   openModalPanel,
   type ModalInputLease,
 } from "../../input/modalBackdrop";
-import { addRosterListChrome } from "../rosterPanelShared";
-import { createTouchButton, hitAreaLocalPointToScreen } from "../touchButton";
-import { uiTextStyle } from "../uiTextStyle";
-import { createUiRoundedRect, type UiRoundedRect } from "../uiRoundedRect";
+import { addRosterListChrome } from "../panels/rosterPanelShared";
+import {
+  createTouchButton,
+  hitAreaLocalPointToScreen,
+} from "../touch/touchButton";
+import { uiTextStyle } from "../layout/uiTextStyle";
+import {
+  createUiRoundedRect,
+  type UiRoundedRect,
+} from "../layout/uiRoundedRect";
 
 /** Max roster rows visible before scrolling. */
 export const MAX_VISIBLE_ROWS = 6;

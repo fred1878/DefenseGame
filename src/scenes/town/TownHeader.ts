@@ -7,10 +7,13 @@ import {
 } from "../../appUpdate/checkForUpdate";
 import { getEmbeddedBuildId, townBuildIdLine } from "../../buildId";
 import { GAME } from "../../config";
-import type { DataStore } from "../../core/DataStore";
-import type { SaveGame } from "../../core/saveTypes";
+import type { DataStore } from "../../core/data/DataStore";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { scaleUiX } from "../../config/uiScale";
-import { toggleFullscreen, fullscreenButtonLabel } from "../../ui/fullscreen";
+import {
+  toggleFullscreen,
+  fullscreenButtonLabel,
+} from "../../ui/layout/fullscreen";
 import {
   debugButtonPosition,
   townGearButtonPosition,
@@ -21,9 +24,9 @@ import {
   townStatusTextTopY,
   townTalentsButtonPosition,
   townTitleY,
-} from "../../ui/screenLayout";
-import { createTouchButton } from "../../ui/touchButton";
-import { uiTextStyle } from "../../ui/uiTextStyle";
+} from "../../ui/layout/screenLayout";
+import { createTouchButton } from "../../ui/touch/touchButton";
+import { uiTextStyle } from "../../ui/layout/uiTextStyle";
 
 type TouchButton = ReturnType<typeof createTouchButton>;
 

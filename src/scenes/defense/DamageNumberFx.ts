@@ -17,7 +17,7 @@ import {
   DAMAGE_NUMBERS,
   type DamageNumberKind,
 } from "../../config/damageNumbers";
-import { uiTextResolution } from "../../core/displayScale";
+import { uiTextResolution } from "../../core/render/displayScale";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 
 type TextObj = Phaser.GameObjects.Text;

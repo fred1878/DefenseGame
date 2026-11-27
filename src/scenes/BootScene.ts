@@ -5,10 +5,10 @@ import {
   queueMinimalTownBootAssets,
   runQueuedLoader,
 } from "./loading/GameAssetLoader";
-import { DataStore } from "../core/DataStore";
+import { DataStore } from "../core/data/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
-import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
-import { loadSave, persistSave } from "../core/GameState";
+import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
+import { loadSave, persistSave } from "../core/save/GameState";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";

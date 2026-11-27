@@ -12,7 +12,7 @@ import {
   updateSpellGroundAoeTelegraph,
 } from "../../combat/fx/SpellGroundAoeTelegraph";
 import { spellCastMs } from "../../content/spellTargeting";
-import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
+import { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
 
 /** Tear down the windup/channel ground telegraph, blizzard FX and heal channel FX. */

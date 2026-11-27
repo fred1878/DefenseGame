@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SaveSlotView } from "../../core/saveSlots";
+import type { SaveSlotView } from "../../core/save/saveSlots";
 import {
   applyDeleteResult,
   applyWriteResult,

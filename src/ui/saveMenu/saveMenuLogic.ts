@@ -1,4 +1,4 @@
-import type { SaveSlotView } from "../../core/saveSlots";
+import type { SaveSlotView } from "../../core/save/saveSlots";
 
 export type SaveMenuConfirmKind = "overwrite" | "load" | "delete";
 

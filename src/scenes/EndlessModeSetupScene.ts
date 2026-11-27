@@ -1,11 +1,11 @@
-import type { DataStore } from "../core/DataStore";
-import type { ScreenRect } from "../ui/screenLayout";
+import type { DataStore } from "../core/data/DataStore";
+import type { ScreenRect } from "../ui/layout/screenLayout";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
 } from "./loading/GameAssetLoader";
-import { EndlessModePanel } from "../ui/EndlessModePanel";
-import { EndlessModePanelLoadingSkeleton } from "../ui/EndlessModePanelLoadingSkeleton";
+import { EndlessModePanel } from "../ui/panels/EndlessModePanel";
+import { EndlessModePanelLoadingSkeleton } from "../ui/panels/EndlessModePanelLoadingSkeleton";
 import {
   closeTownSetupScene,
   type EndlessModeSetupLaunchData,

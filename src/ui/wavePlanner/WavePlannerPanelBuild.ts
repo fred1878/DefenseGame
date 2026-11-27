@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { GAME } from "../../config";
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import { INPUT_MODALITY } from "../../input/inputModality";
 import {
@@ -13,10 +13,10 @@ import {
   WAVE_PLANNER_DEFAULT_AT_MS,
   WAVE_PLANNER_DEFAULT_INTERVAL_MS,
 } from "../../core/wavePlannerTiming";
-import { addRosterListChrome } from "../rosterPanelShared";
-import { createTouchButton } from "../touchButton";
-import { uiTextStyle } from "../uiTextStyle";
-import { createUiRoundedRect } from "../uiRoundedRect";
+import { addRosterListChrome } from "../panels/rosterPanelShared";
+import { createTouchButton } from "../touch/touchButton";
+import { uiTextStyle } from "../layout/uiTextStyle";
+import { createUiRoundedRect } from "../layout/uiRoundedRect";
 
 const MAX_VISIBLE_ROWS = 5;
 

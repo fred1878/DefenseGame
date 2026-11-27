@@ -1,8 +1,8 @@
-import type { DataStore } from "../core/DataStore";
-import type { SaveGame } from "../core/saveTypes";
-import type { TownBuildingDef } from "../core/townBuildingTypes";
-import { wallHpBonusFromBuildings } from "../core/GameState";
-import type { BuildingDef } from "../core/DataStore";
+import type { DataStore } from "../core/data/DataStore";
+import type { SaveGame } from "../core/save/saveTypes";
+import type { TownBuildingDef } from "../core/data/townBuildingTypes";
+import { wallHpBonusFromBuildings } from "../core/save/GameState";
+import type { BuildingDef } from "../core/data/DataStore";
 import { type EconomyPolicy, hasEnoughGold } from "../core/economyPolicy";
 
 const UNIMPLEMENTED_SUBTITLE = "— Not available yet";

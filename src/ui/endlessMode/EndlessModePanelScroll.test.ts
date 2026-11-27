@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { scaleUiY } from "../../config/uiScale";
 import { FakeEmitter, fakePointer } from "../../test/fakeInput";
 import type { EndlessListLayout, EnemyRow } from "./EndlessModePanelBuild";
-import * as endlessModePanelPick from "../endlessModePanelPick";
+import * as endlessModePanelPick from "../panels/endlessModePanelPick";
 import { EndlessModePanelScroll } from "./EndlessModePanelScroll";
 
 const ROWS = 10;

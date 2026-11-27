@@ -6,7 +6,7 @@ import {
   applySpellBlastAt,
 } from "../../combat/rules/SpellEffects";
 import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import type { Player } from "../../entities/Player";
 import {
   consumableButtonState,
@@ -19,7 +19,7 @@ import {
   spendConsumable,
 } from "../../gear/consumables";
 import type { ConsumableKind } from "../../gear/consumableTypes";
-import type { TouchButtonHandle } from "../../ui/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
 
 type EnemyTarget = Parameters<typeof applySpellBlastAt>[4][number];
 

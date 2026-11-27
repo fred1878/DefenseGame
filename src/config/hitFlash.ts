@@ -2,7 +2,7 @@ import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import type {
   HitFlashConfig,
   HitFlashFlavorEntry,
-} from "../core/normalizeHitFlash";
+} from "../core/data/normalizeHitFlash";
 import { setTuning, tuning } from "../tuning/gameTuning";
 
 /** Replace runtime hit-flash tuning after `public/data/hit-flash.json` loads (Boot). */

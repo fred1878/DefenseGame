@@ -42,8 +42,8 @@ import {
   registerSmokeFxAnimations,
 } from "../../content/smokeFxAssets";
 import { queueUiIcons } from "../../ui/icons/uiIcons";
-import { configurePixelArtTextures } from "../../core/pixelArtTextures";
-import type { DataStore } from "../../core/DataStore";
+import { configurePixelArtTextures } from "../../core/render/pixelArtTextures";
+import type { DataStore } from "../../core/data/DataStore";
 import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
 import {
   DAMAGE_NUMBER_FONT_PATH,

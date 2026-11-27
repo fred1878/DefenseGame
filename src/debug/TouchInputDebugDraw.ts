@@ -2,7 +2,7 @@ import type Phaser from "phaser";
 import { PALETTE } from "../ui/theme/uiPalette";
 import type { ScreenRect } from "../input/VirtualStick";
 import type { VirtualStick } from "../input/VirtualStick";
-import { interactiveObjectScreenRect } from "../ui/touchButton";
+import { interactiveObjectScreenRect } from "../ui/touch/touchButton";
 
 const SCREEN_DEPTH = 248;
 const WORLD_DEPTH = 29;

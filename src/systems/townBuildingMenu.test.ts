@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { debugEconomyPolicy } from "../debug/debugEconomy";
-import { DataStore } from "../core/DataStore";
-import type { TownBuildingDef } from "../core/townBuildingTypes";
-import { createNewSave } from "../core/GameState";
+import { DataStore } from "../core/data/DataStore";
+import type { TownBuildingDef } from "../core/data/townBuildingTypes";
+import { createNewSave } from "../core/save/GameState";
 import {
   formatTownBuildingButtonLabel,
   handleTownBuildingTap,

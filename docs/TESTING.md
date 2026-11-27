@@ -91,10 +91,10 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | Enemy combat FSM / wall hits | `src/entities/EnemyCombat.test.ts` |
 | Hitbox / damage / knockback | `src/combat/rules/*.test.ts` (VFX: `src/combat/fx/*.test.ts`) |
 | GameState / DataStore | `src/core/*.test.ts` |
-| Layout math | `src/ui/screenLayout.test.ts` |
+| Layout math | `src/ui/layout/screenLayout.test.ts` |
 | Stick mask + gesture FSM | `src/input/VirtualStick.test.ts` |
 | Night-end guards and save rules | `src/systems/nightEndRules.test.ts` |
-| Touch slop | `src/ui/touchButtonGesture.test.ts`, `touchButton.test.ts` |
+| Touch slop | `src/ui/touch/touchButtonGesture.test.ts`, `touchButton.test.ts` |
 
 ## Playwright suites
 

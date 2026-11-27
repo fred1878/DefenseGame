@@ -1,4 +1,4 @@
-import { normalizeItems } from "../core/normalizeItems";
+import { normalizeItems } from "../core/data/normalizeItems";
 import type { GearCatalog } from "../gear/gearTypes";
 
 /** Small inline `items.json` used by gear unit tests (not the shipped catalog). */

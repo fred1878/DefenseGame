@@ -1,8 +1,8 @@
 import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
-import type { EnemyDef } from "../../core/DataStore";
-import type { TouchButtonHandle } from "../../ui/touchButton";
-import type { defenseMinimapLayout } from "../../ui/defenseMinimap";
+import type { EnemyDef } from "../../core/data/DataStore";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
+import type { defenseMinimapLayout } from "../../ui/hud/defenseMinimap";
 import type { DefenseRunState } from "./DefenseRunState";
 
 export type DefenseObstacleBumpCardinal = "north" | "south" | "east" | "west";

@@ -29,7 +29,7 @@ import {
   decayEnemyKnockback,
   setEnemyChaseVelocity,
 } from "../../combat/rules/enemyKnockback";
-import { updateEnemyNameplate } from "../../ui/enemyNameplate";
+import { updateEnemyNameplate } from "../../ui/hud/enemyNameplate";
 import { SPRITE_DISPLAY } from "../../content/assets";
 
 export type DefenseEnemyTickHost = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { DataStore } from "./DataStore";
+import type { DataStore } from "./data/DataStore";
 import {
   getDataStore,
   getSave,
@@ -10,7 +10,7 @@ import {
   setDataStore,
   setSave,
 } from "./registryKeys";
-import { createNewSave } from "./GameState";
+import { createNewSave } from "./save/GameState";
 
 function fakeRegistry() {
   const values = new Map<string, unknown>();

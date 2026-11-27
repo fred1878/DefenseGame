@@ -1,9 +1,9 @@
-import type { DataStore, WaveGroup } from "../core/DataStore";
+import type { DataStore, WaveGroup } from "../core/data/DataStore";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
 } from "./loading/GameAssetLoader";
-import { WavePlannerPanel } from "../ui/WavePlannerPanel";
+import { WavePlannerPanel } from "../ui/panels/WavePlannerPanel";
 import {
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
   type WavePlannerSetupLaunchData,

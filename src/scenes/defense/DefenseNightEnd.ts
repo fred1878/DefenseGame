@@ -1,17 +1,17 @@
 import type Phaser from "phaser";
 import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
 import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
-import { persistSave } from "../../core/GameState";
+import { persistSave } from "../../core/save/GameState";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { publishE2E } from "../../e2e/e2eGlobal";
 import type { Player } from "../../entities/Player";
-import { createTouchButton } from "../../ui/touchButton";
-import type { TouchButtonHandle } from "../../ui/touchButton";
-import { nightReturnButtonPosition } from "../../ui/screenLayout";
+import { createTouchButton } from "../../ui/touch/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
+import { nightReturnButtonPosition } from "../../ui/layout/screenLayout";
 import { scaleUiX } from "../../config/uiScale";
-import type { SafeInsets } from "../../ui/screenLayout";
+import type { SafeInsets } from "../../ui/layout/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
 import {
   evaluateEndlessEnd,
@@ -23,7 +23,7 @@ import {
 import { getGearCatalog } from "../../gear/gearCatalog";
 import { rollNightDrops } from "../../gear/loot";
 import { createRng, randomSeed } from "../../gear/rng";
-import { NightLootSummaryPanel } from "../../ui/NightLootSummaryPanel";
+import { NightLootSummaryPanel } from "../../ui/panels/NightLootSummaryPanel";
 import type { CampaignNightLossReason } from "../../systems/nightEndMessaging";
 import {
   simulatedNightEndHeadline,

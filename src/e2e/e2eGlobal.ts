@@ -1,4 +1,4 @@
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
 import { isE2EEnabled } from "./e2eMode";
 
 export type DefenseGameE2EState = {

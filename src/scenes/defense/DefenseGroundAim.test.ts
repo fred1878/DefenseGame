@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { GAME } from "../../config";
 import { scaleUiX } from "../../config/uiScale";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../../input/inputTuning";
-import { defensePlayAreaLayout } from "../../ui/screenLayout";
+import { defensePlayAreaLayout } from "../../ui/layout/screenLayout";
 import { spellById } from "../../content/spells";
 import {
   DefenseGroundAim,

@@ -4,9 +4,9 @@ import type { AttackMode } from "../../config";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { Player } from "../../entities/Player";
 import { FOCUS_SELECT_LOCK_MS } from "../../input/inputTuning";
-import { defensePlayAreaLayout } from "../../ui/screenLayout";
-import type { SafeInsets } from "../../ui/screenLayout";
-import type { TargetIndicator } from "../../ui/TargetIndicator";
+import { defensePlayAreaLayout } from "../../ui/layout/screenLayout";
+import type { SafeInsets } from "../../ui/layout/screenLayout";
+import type { TargetIndicator } from "../../ui/hud/TargetIndicator";
 
 export type DefenseTargetingHost = {
   scene: Phaser.Scene;

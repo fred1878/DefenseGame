@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type Phaser from "phaser";
 import { applySpellInputTuning } from "../../config/spellInput";
-import { normalizeSpellInput } from "../../core/normalizeSpellInput";
+import { normalizeSpellInput } from "../../core/data/normalizeSpellInput";
 import { SpellCastController } from "../../combat/rules/SpellCastController";
 import { SpellInputQueue } from "../../combat/rules/spellInputQueue";
 import type { SpellDefinition } from "../../content/spells";
@@ -9,7 +9,7 @@ import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
-import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
+import { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
 
 applySpellInputTuning(
   normalizeSpellInput({

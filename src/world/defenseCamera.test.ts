@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { GAME } from "../config";
-import { defensePlayAreaLayout, readSafeInsets } from "../ui/screenLayout";
+import {
+  defensePlayAreaLayout,
+  readSafeInsets,
+} from "../ui/layout/screenLayout";
 import { defenseWorldToScreen } from "./defenseCamera";
 
 describe("defenseWorldToScreen", () => {

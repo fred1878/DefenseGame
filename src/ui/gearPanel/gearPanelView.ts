@@ -6,7 +6,7 @@
  */
 import { basePlayerTuning } from "../../config/player";
 import { PALETTE_CSS } from "../theme/uiPalette";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { consumableCount, consumableEffectLine } from "../../gear/consumables";
 import type { ConsumableDef } from "../../gear/consumableTypes";
 import { compareGear, type CompareRow } from "../../gear/gearCompare";

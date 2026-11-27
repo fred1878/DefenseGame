@@ -1,15 +1,15 @@
 import Phaser from "phaser";
 import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { createDefaultAutoCastSpellIds } from "../content/spellBarAutoCast";
-import type { SaveGame } from "../core/saveTypes";
-import type { DataStore } from "../core/DataStore";
+import type { SaveGame } from "../core/save/saveTypes";
+import type { DataStore } from "../core/data/DataStore";
 import {
   normalizeSave,
   persistSave,
   prepareDefenseNight,
   resetSaveAndReload,
   syncPlayerHpMax,
-} from "../core/GameState";
+} from "../core/save/GameState";
 import { showTouchInput } from "../debug/DebugState";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import {
@@ -30,17 +30,17 @@ import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import {
   type createTouchButton,
   interactiveObjectScreenRect,
-} from "../ui/touchButton";
+} from "../ui/touch/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import type { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
+import type { SpellBarSortPanel } from "../ui/panels/SpellBarSortPanel";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
   setWavePlannerDefenseRun,
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
-import type { WaveGroup } from "../core/DataStore";
+import type { WaveGroup } from "../core/data/DataStore";
 import { clampEndlessConcurrent } from "../core/endlessLimits";
 import {
   spawnTownBuildingControls,
@@ -53,7 +53,7 @@ import {
 } from "../systems/townBuildingMenu";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
-import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
+import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
 import { ensureTownReachableReady } from "./loading/GameAssetLoader";
 import { markE2EAssetsLoaded } from "../e2e/e2eAssets";
 import {

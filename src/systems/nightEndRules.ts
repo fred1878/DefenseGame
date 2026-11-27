@@ -1,5 +1,5 @@
-import { applyEndlessRunExit } from "../core/GameState";
-import type { SaveGame } from "../core/saveTypes";
+import { applyEndlessRunExit } from "../core/save/GameState";
+import type { SaveGame } from "../core/save/saveTypes";
 import {
   type CampaignNightEndResolution,
   type ResolveCampaignNightEndInput,

@@ -1,4 +1,4 @@
-import { normalizeTalents } from "../core/normalizeTalents";
+import { normalizeTalents } from "../core/data/normalizeTalents";
 import type { TalentCatalog } from "../talents/talentTypes";
 
 /** Small inline `talents.json` for unit tests (not the shipped tree). */

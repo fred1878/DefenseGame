@@ -3,8 +3,8 @@ import type Phaser from "phaser";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
 import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
-import type { SaveGame } from "../../core/saveTypes";
-import { persistSave } from "../../core/GameState";
+import type { SaveGame } from "../../core/save/saveTypes";
+import { persistSave } from "../../core/save/GameState";
 import { pickAutoCastSpell } from "../../combat/rules/spellAutoCast";
 import {
   isStickMoving,
@@ -36,9 +36,9 @@ import type { DefenseObstacleRect } from "../../config/defense";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { PlayerProjectile } from "../../entities/Projectile";
 import type { Player } from "../../entities/Player";
-import type { SpellBar } from "../../ui/SpellBar";
-import type { CastBar } from "../../ui/CastBar";
-import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
+import type { SpellBar } from "../../ui/hud/SpellBar";
+import type { CastBar } from "../../ui/hud/CastBar";
+import { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
 import type { DefenseTargeting } from "./DefenseTargeting";
 import {
   defenseAutoCastCombatTarget,

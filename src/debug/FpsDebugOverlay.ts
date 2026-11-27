@@ -1,7 +1,10 @@
 import type Phaser from "phaser";
 import { scaleUiX } from "../config/uiScale";
-import { fpsDebugOverlayPosition, readSafeInsets } from "../ui/screenLayout";
-import { uiTextStyle } from "../ui/uiTextStyle";
+import {
+  fpsDebugOverlayPosition,
+  readSafeInsets,
+} from "../ui/layout/screenLayout";
+import { uiTextStyle } from "../ui/layout/uiTextStyle";
 import { showFpsCounter } from "./DebugState";
 
 const SMOOTH = 0.12;

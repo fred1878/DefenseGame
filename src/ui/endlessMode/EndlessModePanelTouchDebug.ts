@@ -1,9 +1,9 @@
 import type Phaser from "phaser";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
-import type { ScreenRect } from "../screenLayout";
-import { interactiveObjectScreenRect } from "../touchButton";
-import { endlessRowCenterOverlapsViewport } from "../endlessModePanelPick";
-import type { createTouchButton } from "../touchButton";
+import type { ScreenRect } from "../layout/screenLayout";
+import { interactiveObjectScreenRect } from "../touch/touchButton";
+import { endlessRowCenterOverlapsViewport } from "../panels/endlessModePanelPick";
+import type { createTouchButton } from "../touch/touchButton";
 import type { EndlessListLayout, EnemyRow } from "./EndlessModePanelBuild";
 import type { EndlessModePanelScroll } from "./EndlessModePanelScroll";
 

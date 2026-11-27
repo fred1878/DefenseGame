@@ -2,7 +2,7 @@ import {
   enemyCollisionBodyRadius,
   playerBodyRadiusPx,
 } from "../entities/entityPhysics";
-import { ConfigLoadError } from "./configValidation";
+import { ConfigLoadError } from "./data/configValidation";
 import {
   behaviorCombatKitSections,
   requireEnemyArrowRainCombat,
@@ -15,7 +15,7 @@ import {
   requireEnemyWallCombat,
   requireEnemyWallSiegeCombat,
   requireEnemyWardCombat,
-} from "./normalizeEnemyCombat";
+} from "./data/normalizeEnemyCombat";
 
 /** Movement speed multipliers during an attack kit's combat phases. `0` holds still. */
 export type EnemyAttackMovement = {

@@ -7,7 +7,7 @@ import {
   isTownReachableReady,
   TOWN_FLUFF_READY_KEY,
 } from "./GameAssetLoader";
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 
 function mockGame(
   registry: Record<string, unknown>,

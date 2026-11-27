@@ -57,7 +57,7 @@
         "src/scenes/defense/DefenseProjectileTick.ts",
         "src/scenes/defense/DefenseSpellChannel.ts",
         "src/sim/economy/aggregate.ts",
-        "src/ui/TalentPanel.ts",
+        "src/ui/panels/TalentPanel.ts",
         "src/ui/gearPanel/dgPanelKit.ts",
         "src/ui/gearPanel/gearPanelChrome.ts"
       ],

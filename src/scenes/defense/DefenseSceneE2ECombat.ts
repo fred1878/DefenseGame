@@ -12,11 +12,11 @@ import {
 } from "../../content/meleeFxAssets";
 import { showFlashHealPulseFx } from "../../combat/fx/SpellFlashHealFx";
 import { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
-import type { SpellBar } from "../../ui/SpellBar";
+import type { SpellBar } from "../../ui/hud/SpellBar";
 import {
   interactiveObjectScreenRect,
   isTouchButtonVisuallyPressed,
-} from "../../ui/touchButton";
+} from "../../ui/touch/touchButton";
 import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 
 /** E2E hooks: readiness, input, combat, enemies, night/endless state, tap targets. */

@@ -1,6 +1,6 @@
 import { playerTuning } from "../config/player";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createNewSave } from "../core/GameState";
+import { createNewSave } from "../core/save/GameState";
 import { SPELL_BAR } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { spellIconTextureKey } from "../content/assets";

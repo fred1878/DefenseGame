@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { applyDefenseMaps } from "../core/applyDefenseMaps";
+import { applyDefenseMaps } from "../core/data/applyDefenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import { applyHitFlashConfig } from "../config/hitFlash";
 import { applySpellInputTuning } from "../config/spellInput";
@@ -9,16 +9,19 @@ import {
   applyEnemyBodyRadii,
   applyEntityPhysics,
 } from "../entities/entityPhysics";
-import { normalizeEnemyRow, type EnemyDefInput } from "../core/normalizeEnemy";
-import { normalizeEnemyAi } from "../core/normalizeEnemyAi";
-import { normalizeEntityPhysics } from "../core/normalizeEntityPhysics";
-import { normalizeHitFlash } from "../core/normalizeHitFlash";
+import {
+  normalizeEnemyRow,
+  type EnemyDefInput,
+} from "../core/data/normalizeEnemy";
+import { normalizeEnemyAi } from "../core/data/normalizeEnemyAi";
+import { normalizeEntityPhysics } from "../core/data/normalizeEntityPhysics";
+import { normalizeHitFlash } from "../core/data/normalizeHitFlash";
 import { deriveGroundTapAutoCastSpellIds } from "../content/spellGroundTapCast";
 import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
-import { normalizeSpellCatalog } from "../core/normalizeSpells";
-import { normalizeSpellInput } from "../core/normalizeSpellInput";
-import { normalizePlayerConfig } from "../core/normalizePlayer";
+import { normalizeSpellCatalog } from "../core/data/normalizeSpells";
+import { normalizeSpellInput } from "../core/data/normalizeSpellInput";
+import { normalizePlayerConfig } from "../core/data/normalizePlayer";
 const dataDir = path.join(process.cwd(), "public/data");
 
 function readPublicJson<T>(name: string): T {

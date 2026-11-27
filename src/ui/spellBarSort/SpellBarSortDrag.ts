@@ -5,8 +5,8 @@ import { isSpellPoolSelectable } from "../../content/spellPoolReadiness";
 import { spellById, type SpellId } from "../../content/spells";
 import { scaleUiX } from "../../config/uiScale";
 import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../../input/inputTuning";
-import { interactiveObjectScreenRect } from "../touchButton";
-import { releaseOnSameButton } from "../touchButtonGesture";
+import { interactiveObjectScreenRect } from "../touch/touchButton";
+import { releaseOnSameButton } from "../touch/touchButtonGesture";
 import type { SlotView } from "./SpellBarSortPanelBuild";
 
 type PoolPressState = {

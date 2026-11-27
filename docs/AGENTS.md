@@ -8,7 +8,7 @@ Code-only top-down real-time action RPG: **town by day**, **defend the settlemen
 
 BootScene (load `public/data/*.json` + assets, restore save) → TownScene (upgrades, start night) → DefenseScene (real-time waves, wall HP) → TownScene.
 
-**Invariant:** defense code never edits town state (gold, buildings, gear) field by field. At night end, `scenes/defense/DefenseNightEnd.ts` calls the pure rules in `systems/nightEndRules.ts` once (`resolveCampaignNightEndSave` → `resolveCampaignNightEnd` → `applyNightResultDetailed` in `core/GameState.ts`, or `resolveRunExitSave` → `applyEndlessRunExit` for endless and wave-planner runs), then persists the returned `SaveGame`. `DefenseNightEnd` itself only does presentation (HUD, loot panel, return button, SFX).
+**Invariant:** defense code never edits town state (gold, buildings, gear) field by field. At night end, `scenes/defense/DefenseNightEnd.ts` calls the pure rules in `systems/nightEndRules.ts` once (`resolveCampaignNightEndSave` → `resolveCampaignNightEnd` → `applyNightResultDetailed` in `core/save/GameState.ts`, or `resolveRunExitSave` → `applyEndlessRunExit` for endless and wave-planner runs), then persists the returned `SaveGame`. `DefenseNightEnd` itself only does presentation (HUD, loot panel, return button, SFX).
 
 ## Commands
 
@@ -40,7 +40,7 @@ src/
   gameMain.ts     # Phaser.Game (portrait 540×1200, FIT + autoRound)
   config/         # Layout/engine constants only — no gameplay numbers
   content/        # Asset keys, spell catalog ids
-  core/           # GameState, saveTypes, DataStore, normalize* (JSON validation)
+  core/           # data/: DataStore, normalize* (JSON validation); save/: GameState, saveTypes, saveSlots; render/: display scale, hi-DPI, pixel render; root: registry keys, events, run modes
   gear/           # Items, inventory, shops, loot rolls, night loot summary
   sim/            # Economy simulator (scripts/econ-sim.mjs → src/sim/economy/)
   input/          # VirtualStick, input modality, modal backdrop
@@ -52,7 +52,7 @@ src/
   scenes/         # Boot, Town, Defense, DebugMenu
   scenes/defense/ # DefenseScene helpers (HUD, ticks, spells, e2e, night end)
   systems/        # WaveSpawner, town buildings, endless roster/scheduler
-  ui/             # SpellBar, panels, touch buttons, screenLayout
+  ui/             # hud/ (SpellBar, CastBar, HUD layout), panels/ (modal panels), touch/ (touch buttons), layout/ (screenLayout, text style), theme/, per-panel folders
   audio/          # SFX helpers (public/assets/audio/sfx)
   world/          # Ground layers, camera, spawn points
   test/           # Vitest Phaser stub + input fakes
@@ -72,7 +72,7 @@ Prefer a new JSON row + a small behavior module over growing scene files.
 | Code content | `src/content/` | Texture keys/paths (`assets.ts`), spell ids (`spells.ts`) |
 | Runtime JSON | `public/data/` | enemies, enemy-ai, player, defense-maps, spell_input, spells, entity-physics, waves, buildings, items, loot, consumables, shops, talents… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). Talents: [TALENTS.md](./TALENTS.md). |
 
-Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`).
+Save shapes: `src/core/save/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`).
 
 ## Conventions
 
@@ -80,8 +80,8 @@ Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`)
 - **Vitest:** don't assert against shipped `public/data/*.json` values; use inline fixtures.
 - **Combat:** Arcade bodies for movement; custom hitboxes for attacks. Player FSM `idle → windup → active → recovery` (damage only in `active`). Objective is `townWallHp`.
 - **Input:** one owner at a time via `src/input/inputModality.ts`. Modals use `acquireModalInput` + `bindModalDimBackdrop`; host scenes react to `INPUT_MODALITY_CHANGED`.
-- **Save safety:** extend `SaveGame` only with backward-compatible defaults in `createNewSave()` (`core/GameState.ts`).
-- **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx` in `config/worldScale.ts`; the debug setters live in `core/worldPixelScale.ts`).
+- **Save safety:** extend `SaveGame` only with backward-compatible defaults in `createNewSave()` (`core/save/GameState.ts`).
+- **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx` in `config/worldScale.ts`; the debug setters live in `core/render/worldPixelScale.ts`).
 - **CI:** typecheck, Biome lint, knip, unit tests (`test:coverage` enforces **94 / 95 / 94** lines/functions/statements, **90** branches — see `vitest.config.ts`; scene orchestrators and Phaser HUD glue excluded; `scenes/defense/*` modules and `world/**` included), build and Chromium Playwright must stay green. Delete dead code rather than adding knip ignores. Merges to main publish Pages.
 - **Balance:** prefer `npm run sim:economy` when changing `waves.json`, `loot.json`, shop prices, or affix power — [ECONOMY_SIM.md](./ECONOMY_SIM.md).
 - **Defense pooling:** projectile sprites via `src/entities/projectilePool.ts` (`releaseProjectileSprite` on despawn); enemy shells via `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Scene shutdown calls `destroyProjectilePool` / `destroyDefenseEnemyPool`.

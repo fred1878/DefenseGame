@@ -4,10 +4,10 @@ import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import Phaser from "phaser";
 import { DEFENSE_MAP, type AttackMode } from "../config";
 import { resetShadowformRuntimeMults } from "../combat/rules/shadowformRuntime";
-import type { EnemyDef } from "../core/DataStore";
+import type { EnemyDef } from "../core/data/DataStore";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
-import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
+import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
 import { worldUnit } from "../config/worldScale";
 import {
   shadowformActive,
@@ -45,15 +45,15 @@ import type { EnemyInstance } from "../entities/Enemy";
 import type {
   createTouchToggleButton,
   TouchButtonHandle,
-} from "../ui/touchButton";
-import { TargetIndicator } from "../ui/TargetIndicator";
-import { GroundTargetReticle } from "../ui/GroundTargetReticle";
-import { cameraWorldPoint } from "../ui/screenLayout";
-import type { CombatHudChrome } from "../ui/combatHudChrome";
+} from "../ui/touch/touchButton";
+import { TargetIndicator } from "../ui/hud/TargetIndicator";
+import { GroundTargetReticle } from "../ui/hud/GroundTargetReticle";
+import { cameraWorldPoint } from "../ui/layout/screenLayout";
+import type { CombatHudChrome } from "../ui/hud/combatHudChrome";
 import type {
   DefenseMinimap,
   defenseMinimapLayout,
-} from "../ui/defenseMinimap";
+} from "../ui/hud/defenseMinimap";
 import { recordCombatDamage } from "../e2e/combatTally";
 import { e2eCampaignWavesFromQuery, isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";

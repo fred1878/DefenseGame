@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { DataStore } from "../core/DataStore";
+import type { DataStore } from "../core/data/DataStore";
 import { sumChallengeRating } from "./challengeRating";
 
 describe("sumChallengeRating", () => {

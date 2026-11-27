@@ -23,8 +23,8 @@ import {
   type GearCatalog,
   type ItemType,
 } from "../../gear/gearTypes";
-import type { SaveGame } from "../../core/saveTypes";
-import type { BuildingDef } from "../../core/DataStore";
+import type { SaveGame } from "../../core/save/saveTypes";
+import type { BuildingDef } from "../../core/data/DataStore";
 import type { Rng } from "../../gear/rng";
 import {
   buyOffer,

@@ -7,7 +7,7 @@ const nightEnd = vi.hoisted(() => ({
 }));
 vi.mock("./DefenseNightEnd", () => nightEnd);
 
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import {
   type DefenseRunModeContext,
   defenseRunModeStrategy,

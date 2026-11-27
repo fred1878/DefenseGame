@@ -8,7 +8,7 @@ import {
 import { resolveEnemyCardinal } from "./enemyFacing";
 import { worldDisplayPx, worldUnit } from "../config/worldScale";
 import { DEFENSE_RENDER_DEPTH } from "../config";
-import type { EnemyDef } from "../core/DataStore";
+import type { EnemyDef } from "../core/data/DataStore";
 import {
   resolveEnemyCombat,
   type ResolvedEnemyCombat,
@@ -41,7 +41,7 @@ import {
   recycleEnemyNameplateAfterDeath,
   updateEnemyNameplate,
   type EnemyNameplate,
-} from "../ui/enemyNameplate";
+} from "../ui/hud/enemyNameplate";
 import { cancelEnemyMeleeFxTimer } from "../combat/fx/enemyMeleeFxSchedule";
 
 export type EnemyBehaviorExtra = {

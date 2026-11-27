@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
-import type { ScreenRect } from "../ui/screenLayout";
-import { interactiveObjectScreenRect } from "../ui/touchButton";
+import type { ScreenRect } from "../ui/layout/screenLayout";
+import { interactiveObjectScreenRect } from "../ui/touch/touchButton";
 
 export type CollectInteractiveScreenRectsOptions = {
   /** Game objects to omit (e.g. touch-debug overlay graphics). */

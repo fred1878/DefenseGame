@@ -12,14 +12,14 @@ import {
   type PlayerProjectile,
 } from "../../entities/Projectile";
 import { destroyDefenseEnemyPool } from "./DefenseEnemySpawner";
-import { destroyEnemyNameplate } from "../../ui/enemyNameplate";
+import { destroyEnemyNameplate } from "../../ui/hud/enemyNameplate";
 import {
   blocksBaseLayerInput,
   INPUT_MODALITY,
   isInputModalityActive,
 } from "../../input/inputModality";
 import { setContainerInputEnabled } from "../../input/setContainerInputEnabled";
-import type { TouchButtonHandle } from "../../ui/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
 
 type Destroyable = { destroy(): void };
 

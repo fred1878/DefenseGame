@@ -1,6 +1,6 @@
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import type { TownBuildingControl } from "./TownBuildings";
-import { isTouchButtonVisuallyPressed } from "../../ui/touchButton";
+import { isTouchButtonVisuallyPressed } from "../../ui/touch/touchButton";
 import type { TownOverlays } from "./TownOverlays";
 
 /** Building + open-overlay tap targets keyed by e2e test id. */

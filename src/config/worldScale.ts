@@ -3,7 +3,7 @@ import { GAME } from "./game";
 
 /**
  * World pixel scale: pure lookups shared by config, gameplay and rendering.
- * Debug setters that restart scenes live in `core/worldPixelScale.ts`.
+ * Debug setters that restart scenes live in `core/render/worldPixelScale.ts`.
  */
 export const WORLD_PIXEL_SCALE_REGISTRY_KEY = "worldPixelScale";
 export const WORLD_PIXEL_SCALE_CHANGED = "world-pixel-scale-changed";

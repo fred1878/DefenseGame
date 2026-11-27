@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { formatDefenseHudText } from "./DefenseHudController";
 import { checkDefenseRunEnd } from "./DefenseNightEnd";
 import { endlessHudHeader } from "./DefenseEndlessSpawn";
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 
 const baseHud = {
   header: "Night 3",

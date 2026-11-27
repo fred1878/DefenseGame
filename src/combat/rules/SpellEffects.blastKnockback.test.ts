@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ConfigLoadError } from "../../core/configValidation";
+import { ConfigLoadError } from "../../core/data/configValidation";
 import { applySpellBlastAt } from "./SpellEffects";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import type { SpellDefinition } from "../../content/spells";

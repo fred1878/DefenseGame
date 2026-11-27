@@ -1,8 +1,8 @@
 import { playerTuning } from "../config/player";
 import type Phaser from "phaser";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
-import { ConfigLoadError } from "../core/configValidation";
-import type { EnemyDef } from "../core/DataStore";
+import { ConfigLoadError } from "../core/data/configValidation";
+import type { EnemyDef } from "../core/data/DataStore";
 import type { EnemyKnockbackCarrier } from "../combat/rules/enemyKnockback";
 import {
   type EntityPhysicsTuning,

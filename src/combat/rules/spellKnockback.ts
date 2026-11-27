@@ -2,7 +2,7 @@ import type { SpellDefinition } from "../../content/spells";
 import {
   ConfigLoadError,
   requireFiniteNumber,
-} from "../../core/configValidation";
+} from "../../core/data/configValidation";
 
 function spellFieldPath(def: SpellDefinition, field: string): string {
   return `spells.${def.id}.${field}`;

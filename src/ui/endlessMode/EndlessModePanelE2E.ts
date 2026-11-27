@@ -2,7 +2,7 @@ import { GAME } from "../../config";
 import {
   interactiveObjectScreenRect,
   type createTouchButton,
-} from "../touchButton";
+} from "../touch/touchButton";
 import {
   MAX_VISIBLE_ROWS,
   type EndlessListLayout,

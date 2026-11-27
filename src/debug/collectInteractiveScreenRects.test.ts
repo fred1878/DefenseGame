@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import Phaser from "phaser";
 import { collectInteractiveScreenRects } from "./collectInteractiveScreenRects";
 
-vi.mock("../ui/touchButton", () => ({
+vi.mock("../ui/touch/touchButton", () => ({
   interactiveObjectScreenRect: (obj: Phaser.GameObjects.GameObject) => {
     const tag = (obj as { __rectTag?: string }).__rectTag;
     if (!tag) return null;

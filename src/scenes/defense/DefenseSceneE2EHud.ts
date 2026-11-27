@@ -1,10 +1,10 @@
 import type Phaser from "phaser";
-import type { defenseMinimapLayout } from "../../ui/defenseMinimap";
+import type { defenseMinimapLayout } from "../../ui/hud/defenseMinimap";
 import {
   combatChromeLayout,
   defensePlayAreaLayout,
-} from "../../ui/screenLayout";
-import { hudTextPosition } from "../../ui/defenseHudLayout";
+} from "../../ui/layout/screenLayout";
+import { hudTextPosition } from "../../ui/hud/defenseHudLayout";
 import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 
 /** E2E hooks: HUD layout probe and HUD band pixel sampling. */

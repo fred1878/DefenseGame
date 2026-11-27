@@ -2,7 +2,7 @@ import type { EnemyAiTuning } from "../config/enemy";
 import type { PlayerTuning } from "../config/player";
 import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import type { SpellInputTuning } from "../config/spellInput";
-import type { HitFlashConfig } from "../core/normalizeHitFlash";
+import type { HitFlashConfig } from "../core/data/normalizeHitFlash";
 
 /** `entity-physics.json` after normalising. */
 export type EntityPhysicsTuning = {

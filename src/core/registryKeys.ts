@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
-import type { DataStore } from "./DataStore";
-import type { SaveGame } from "./saveTypes";
+import type { DataStore } from "./data/DataStore";
+import type { SaveGame } from "./save/saveTypes";
 
 /** Phaser game registry key holding the live `SaveGame`. */
 export const REGISTRY_SAVE_KEY = "save";

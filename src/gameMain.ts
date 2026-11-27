@@ -3,15 +3,15 @@ import { GAME } from "./config";
 import { markBoot, measureBoot } from "./core/bootPerf";
 import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { publishE2E, seedE2EWindowStub } from "./e2e/e2eGlobal";
-import { setE2EStorageIsolation } from "./core/storageKeys";
-import { clampRenderResolution } from "./core/displayScale";
-import { installHiDpiCanvas } from "./core/hiDpiCanvas";
-import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
+import { setE2EStorageIsolation } from "./core/save/storageKeys";
+import { clampRenderResolution } from "./core/render/displayScale";
+import { installHiDpiCanvas } from "./core/render/hiDpiCanvas";
+import { installPhaser3VertexRounding } from "./core/render/phaser3PixelParity";
 import {
   DEFAULT_WORLD_PIXEL_SCALE,
   WORLD_PIXEL_SCALE_REGISTRY_KEY,
 } from "./config/worldScale";
-import { bindViewportToScale } from "./ui/screenLayout";
+import { bindViewportToScale } from "./ui/layout/screenLayout";
 import { BootScene } from "./scenes/BootScene";
 import { TownScene } from "./scenes/TownScene";
 

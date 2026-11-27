@@ -1,6 +1,6 @@
 import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import { describe, expect, it, vi } from "vitest";
-import type { EnemyDef } from "../core/DataStore";
+import type { EnemyDef } from "../core/data/DataStore";
 import { shippedEnemyCombatForBehavior } from "../test/shippedEnemyCombat";
 import { asScene, fakeScene } from "../test/fakeScene";
 import {

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { requireMeleeChaseStandoffWu, resolveEnemyCombat } from "./enemyTuning";
-import { ConfigLoadError } from "./configValidation";
-import { assertEnemyResolvedCombat, normalizeEnemyRow } from "./normalizeEnemy";
-import type { EnemyDef } from "./DataStore";
+import { ConfigLoadError } from "./data/configValidation";
+import {
+  assertEnemyResolvedCombat,
+  normalizeEnemyRow,
+} from "./data/normalizeEnemy";
+import type { EnemyDef } from "./data/DataStore";
 import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
 
 describe("resolveEnemyCombat", () => {

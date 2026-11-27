@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DataStore, EnemyDef, WaveDef } from "../core/DataStore";
+import type { DataStore, EnemyDef, WaveDef } from "../core/data/DataStore";
 import { asScene, fakeScene } from "../test/fakeScene";
 import {
   ELITE_HP_MUL,

@@ -1,4 +1,4 @@
-import type { WaveGroup } from "./DataStore";
+import type { WaveGroup } from "./data/DataStore";
 import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,

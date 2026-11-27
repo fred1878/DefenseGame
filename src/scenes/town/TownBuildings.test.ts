@@ -3,7 +3,7 @@ import { scaleUiX } from "../../config/uiScale";
 import type {
   TownBuildingDef,
   TownLayoutDef,
-} from "../../core/townBuildingTypes";
+} from "../../core/data/townBuildingTypes";
 import { asScene, fakeScene } from "../../test/fakeScene";
 import {
   spawnTownBuildingControls,

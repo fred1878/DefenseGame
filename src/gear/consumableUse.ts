@@ -1,4 +1,4 @@
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
 import { consumableKindCount, getConsumablesConfig } from "./consumables";
 import type { ConsumableKind, ConsumablesConfig } from "./consumableTypes";
 

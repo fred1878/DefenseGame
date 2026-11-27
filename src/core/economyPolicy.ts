@@ -1,4 +1,4 @@
-import type { SaveGame } from "./saveTypes";
+import type { SaveGame } from "./save/saveTypes";
 
 /**
  * Overrides passed into gold and talent rules. Today only the debug menu's
