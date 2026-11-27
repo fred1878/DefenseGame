@@ -14,8 +14,8 @@ import {
   nearestWalkable,
   worldToCell,
 } from "../../pathfinding/grid";
-import type { EnemyNavState } from "../EnemyBrain";
-import { replanEnemyPath } from "../EnemyBrain";
+import type { EnemyNavState } from "../brainShared";
+import { replanEnemyPath } from "../brainShared";
 import {
   applyChaseVelocity,
   applyDirectVelocity,

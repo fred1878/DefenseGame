@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { testStationaryRangedCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyCombat } from "../../entities/EnemyCombat";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { stationaryRangedBehavior } from "./stationaryRanged";
 

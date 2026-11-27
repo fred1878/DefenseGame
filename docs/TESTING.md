@@ -87,7 +87,7 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | Area | File |
 |------|------|
 | Pathfinding / LOS | `src/pathfinding/pathfinding.test.ts` |
-| Enemy AI target pick | `src/ai/EnemyBrain.test.ts` |
+| Enemy AI target pick | `src/ai/brainShared.test.ts` |
 | Enemy combat FSM / wall hits | `src/entities/EnemyCombat.test.ts` |
 | Hitbox / damage / knockback | `src/combat/*.test.ts` |
 | GameState / DataStore | `src/core/*.test.ts` |

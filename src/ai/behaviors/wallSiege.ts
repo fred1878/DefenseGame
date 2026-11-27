@@ -6,7 +6,7 @@ import {
   replanEnemyPath,
   resolveEnemyTarget,
   wallPathingPlayerClearancePx,
-} from "../EnemyBrain";
+} from "../brainShared";
 import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,

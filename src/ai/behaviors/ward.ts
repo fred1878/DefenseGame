@@ -9,7 +9,7 @@ import {
   replanEnemyPath,
   resolveEnemyTarget,
   wallPathingPlayerClearancePx,
-} from "../EnemyBrain";
+} from "../brainShared";
 import type { EnemyBehavior, EnemyPeerAlly } from "./types";
 import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
 

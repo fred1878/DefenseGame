@@ -47,7 +47,7 @@ src/
   combat/         # Hitboxes, damage, knockback, SpellCastController, SpellEffects
   debug/          # DebugState flags + debug drawers
   entities/       # Player, Enemy, projectiles
-  ai/             # EnemyBrain + behaviors/
+  ai/             # EnemyBrain (entry) + brainShared (helpers) + behaviors/
   pathfinding/    # Nav grid, A*, LOS
   scenes/         # Boot, Town, Defense, DebugMenu
   scenes/defense/ # DefenseScene helpers (HUD, ticks, spells, e2e, night end)

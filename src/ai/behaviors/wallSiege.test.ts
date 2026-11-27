@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { testWallSiegeCombat } from "../../test/fixtures/inlineCombat";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { northWallAttackY } from "../../config";
 import { wallSiegeBehavior } from "./wallSiege";

@@ -3,7 +3,7 @@ import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
 import { defenseHalfWidth } from "../../config/defense";
 import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
 import { buildNavGrid } from "../../pathfinding/grid";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import {
   applyRetreatPathing,
@@ -11,7 +11,7 @@ import {
   retreatGoalFromThreat,
   snapRetreatGoalToWalkable,
 } from "./retreatPathing";
-import * as EnemyBrain from "../EnemyBrain";
+import * as BrainShared from "../brainShared";
 
 describe("retreatPathing", () => {
   const grid = buildNavGrid(
@@ -26,7 +26,7 @@ describe("retreatPathing", () => {
   });
 
   it("replans with A* when backing from the player", () => {
-    const replanSpy = vi.spyOn(EnemyBrain, "replanEnemyPath");
+    const replanSpy = vi.spyOn(BrainShared, "replanEnemyPath");
     const enemy = mockEnemyInstance({
       defId: "arrow_rain_archer",
       behavior: "arrowRainArcher",

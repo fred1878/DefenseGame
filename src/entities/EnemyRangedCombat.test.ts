@@ -5,7 +5,7 @@ import {
   testStationaryRangedCombat,
 } from "../test/fixtures/inlineCombat";
 import { northWallAttackY } from "../config/defense";
-import { createEnemyNav } from "../ai/EnemyBrain";
+import { createEnemyNav } from "../ai/brainShared";
 import {
   createArrowRainCombatState,
   createJavelineerCombatState,

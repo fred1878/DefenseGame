@@ -1,6 +1,5 @@
 {
   "cycles": [
-    "ai/EnemyBrain.ts <-> ai/behaviors/arrowRainArcher.ts <-> ai/behaviors/bruiser.ts <-> ai/behaviors/charger.ts <-> ai/behaviors/index.ts <-> ai/behaviors/javelineer.ts <-> ai/behaviors/lobber.ts <-> ai/behaviors/meleeChaser.ts <-> ai/behaviors/rangedHybrid.ts <-> ai/behaviors/rangedKite.ts <-> ai/behaviors/retreatPathing.ts <-> ai/behaviors/stationaryRanged.ts <-> ai/behaviors/wallSiege.ts <-> ai/behaviors/ward.ts",
     "config/defense.ts <-> core/worldPixelScale.ts <-> entities/entityPhysics.ts <-> world/defenseObstacleBlocker.ts",
     "content/spellBarAutoCast.ts <-> content/spells.ts",
     "core/normalizeConsumables.ts <-> gear/consumables.ts",

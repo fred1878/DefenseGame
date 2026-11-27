@@ -5,7 +5,7 @@ import {
   resolveEnemyCombat,
 } from "../core/enemyTuning";
 import { playerBodyRadiusPx } from "./entityPhysics";
-import { createEnemyNav } from "../ai/EnemyBrain";
+import { createEnemyNav } from "../ai/brainShared";
 import {
   createEnemyCombat,
   enemyShouldDrawMeleeArcOverlay,

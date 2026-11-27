@@ -27,8 +27,8 @@ import {
   type StationaryRangedCombatState,
 } from "./EnemyRangedCombat";
 
-import type { EnemyNavState } from "../ai/EnemyBrain";
-import { createEnemyNav } from "../ai/EnemyBrain";
+import type { EnemyNavState } from "../ai/brainShared";
+import { createEnemyNav } from "../ai/brainShared";
 import {
   enemyCollisionBodyRadius,
   tuneArcadeDynamicBody,

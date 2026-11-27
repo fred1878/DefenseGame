@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid, cellToWorldCenter } from "../../pathfinding/grid";
 import { hasLineOfSight } from "../../pathfinding/los";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { meleeChaserBehavior } from "./meleeChaser";
 import { wallMeleeStandoffY } from "./movement";

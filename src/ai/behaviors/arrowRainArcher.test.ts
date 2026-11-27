@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testArrowRainCombat } from "../../test/fixtures/inlineCombat";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { arrowRainArcherBehavior } from "./arrowRainArcher";
-import * as EnemyBrain from "../EnemyBrain";
+import * as BrainShared from "../brainShared";
 
 function mockArcher(x: number, y: number) {
   return mockEnemyInstance({
@@ -74,7 +74,7 @@ describe("arrowRainArcherBehavior", () => {
       DEFENSE_MAP.cellSize,
       DEFENSE_MAP.pathClearancePx,
     );
-    const replanSpy = vi.spyOn(EnemyBrain, "replanEnemyPath");
+    const replanSpy = vi.spyOn(BrainShared, "replanEnemyPath");
     const enemy = mockArcher(0, 120);
     enemy.nav.replanMs = 0;
     const preferred = testArrowRainCombat.preferredRangeWu - 30;

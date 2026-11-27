@@ -1,10 +1,7 @@
 import type Phaser from "phaser";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
-import {
-  pickEnemyTarget,
-  updateEnemyBrain,
-  wallCombatPoint,
-} from "../../ai/EnemyBrain";
+import { updateEnemyBrain } from "../../ai/EnemyBrain";
+import { pickEnemyTarget, wallCombatPoint } from "../../ai/brainShared";
 import { PLAYER_TUNING } from "../../config";
 import {
   playerAggroRadiusWu,

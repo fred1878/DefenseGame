@@ -4,7 +4,7 @@ import { buildNavGrid } from "../../pathfinding/grid";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { lobberBehavior } from "./lobber";
 
 function mockLobber(

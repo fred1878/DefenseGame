@@ -4,7 +4,7 @@ import type {
   EnemyNavState,
   EnemyObjectiveMode,
   EnemyTargetKind,
-} from "../EnemyBrain";
+} from "../brainShared";
 
 export type BehaviorMoveResult = {
   targetX: number;

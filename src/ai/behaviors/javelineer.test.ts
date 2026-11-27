@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testJavelineerCombat } from "../../test/fixtures/inlineCombat";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { javelineerBehavior } from "./javelineer";
 

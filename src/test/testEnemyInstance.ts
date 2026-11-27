@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { createEnemyNav } from "../ai/EnemyBrain";
+import { createEnemyNav } from "../ai/brainShared";
 import { resolveEnemyCombat } from "../core/enemyTuning";
 import { shippedEnemyCombatForBehavior } from "./shippedEnemyCombat";
 import type { EnemyInstance } from "../entities/Enemy";

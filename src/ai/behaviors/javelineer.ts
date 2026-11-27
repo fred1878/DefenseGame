@@ -112,7 +112,7 @@ function playerOrbitDirs(
 
 function kiteArcVelocity(
   enemy: EnemyInstance,
-  nav: import("../EnemyBrain").EnemyNavState,
+  nav: import("../brainShared").EnemyNavState,
   ctx: {
     grid: NavGrid;
     deltaMs: number;

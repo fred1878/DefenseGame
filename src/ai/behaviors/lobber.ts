@@ -1,6 +1,9 @@
 import { worldUnit } from "../../core/worldPixelScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
-import { pathingPeerAgents, wallPathingPlayerClearancePx } from "../EnemyBrain";
+import {
+  pathingPeerAgents,
+  wallPathingPlayerClearancePx,
+} from "../brainShared";
 import type { EnemyBehavior } from "./types";
 import {
   applyChaseVelocity,

@@ -12,7 +12,7 @@ import {
   resolveEnemyTarget,
   type EnemyNavState,
   type EnemyTargetKind,
-} from "../EnemyBrain";
+} from "../brainShared";
 import type { BehaviorMoveResult, EnemyBehaviorContext } from "./types";
 import { applyChaseVelocity, setEnemyChaseVelocity } from "./movement";
 import { applyRetreatPathing } from "./retreatPathing";

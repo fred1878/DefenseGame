@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import type { DefenseObstacleRect } from "../config";
 import type { EnemyInstance } from "../entities/Enemy";
-import type { EnemyTargetKind } from "../ai/EnemyBrain";
+import type { EnemyTargetKind } from "../ai/brainShared";
 import type { NavGrid } from "../pathfinding/grid";
 
 const PATH_COLOR = 0x38bdf8;

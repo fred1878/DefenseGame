@@ -12,7 +12,7 @@ import {
   isMeleeBodyCollisionBehavior,
   playerBodyRadiusPx,
 } from "../../entities/entityPhysics";
-import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
+import type { EnemyNavState, EnemyTargetKind } from "../brainShared";
 
 /** World units — ignore player nudge smaller than this for pack holds / chord tests. */
 const MELEE_PACK_ANCHOR_HYSTERESIS_WU = 4;

@@ -4,7 +4,7 @@ import { createRangedHybridCombatState } from "../../entities/EnemyRangedCombat"
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import { rangedHybridBehavior } from "./rangedHybrid";
 
 const grid = buildNavGrid([], 40);

@@ -27,7 +27,7 @@ import {
   wallCombatPoint,
   wallPathingPlayerClearancePx,
   wallTargetPoint,
-} from "./EnemyBrain";
+} from "./brainShared";
 
 describe("pickEnemyTarget", () => {
   const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);

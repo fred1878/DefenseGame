@@ -19,7 +19,7 @@ const enemyDefs = Object.fromEntries(
     normalizeEnemyRow(id, row),
   ]),
 );
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
