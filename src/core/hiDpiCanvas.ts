@@ -12,7 +12,8 @@
  * units, so every game coordinate, camera and pointer mapping is unchanged; the GPU
  * simply rasterises the same scene with more pixels. Pixel-art textures keep NEAREST
  * sampling (see `configurePixelArtTextures`), so they stay blocky, while Text is drawn
- * at the backing resolution 1:1.
+ * at the backing resolution 1:1 (NEAREST is lossless there because image quads snap
+ * to whole backing pixels).
  *
  * Off-screen framebuffers (filters, masks, dynamic textures) keep their logical size.
  */
@@ -173,6 +174,9 @@ export function installHiDpiCanvas(game: Phaser.Game): () => void {
     const key = `${size.width}x${size.height}`;
     if (key === lastKey) return;
     lastKey = key;
+    // Backing store ≈ display size: no CSS pixelated upscale (it could drop a
+    // column when CSS px × DPR is fractional).
+    canvas.style.imageRendering = "auto";
     if (canvas.width !== size.width) canvas.width = size.width;
     if (canvas.height !== size.height) canvas.height = size.height;
     backing.sx = size.width / GAME.width;

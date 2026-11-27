@@ -99,6 +99,7 @@ function fakeGame(opts: {
   const updateScale = vi.fn();
   const game = {
     canvas: {
+      style: { imageRendering: "pixelated" },
       width: 540,
       height: 1200,
       getBoundingClientRect: () => opts.css,
@@ -156,6 +157,7 @@ describe("installHiDpiCanvas", () => {
     const dispose = installHiDpiCanvas(g.game as never);
     expect(g.game.canvas.width).toBe(1080);
     expect(g.game.canvas.height).toBe(2400);
+    expect(g.game.canvas.style.imageRendering).toBe("auto");
     expect(g.base.width).toBe(540);
     expect(g.base.state.viewport).toEqual([0, 0, 1080, 2400]);
     g.base.setScissorBox(10, 20, 100, 50);

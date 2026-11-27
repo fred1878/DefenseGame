@@ -29,9 +29,6 @@ async function start(): Promise<void> {
   const { default: PhaserRuntime } = await import("phaser");
   markBoot("defensegame:phaser-import-end");
   installPhaser3VertexRounding(PhaserRuntime);
-  const { installNearestTextureDefault } = await import(
-    "./core/pixelArtTextures"
-  );
   measureBoot(
     "defensegame:phaser-import",
     "defensegame:phaser-import-start",
@@ -61,10 +58,10 @@ async function start(): Promise<void> {
     },
     render: {
       roundPixels: true,
-      // The canvas backing store follows the screen (hiDpiCanvas.ts), so Text and
-      // default textures sample LINEAR at 1:1 and no CSS pixelated upscale is applied.
-      // Pixel-art keys stay NEAREST via configurePixelArtTextures.
-      antialias: true,
+      // Keep NEAREST everywhere (pixel art; also much cheaper on software GL).
+      // Text stays sharp because hiDpiCanvas renders it 1:1 with the backing
+      // store and image quads snap to whole backing pixels.
+      antialias: false,
       preserveDrawingBuffer: e2eBuild,
     },
     input: {
@@ -84,7 +81,6 @@ async function start(): Promise<void> {
   hideLoadingSplash();
 
   game.registry.set("renderResolution", clampRenderResolution());
-  installNearestTextureDefault(game);
   installHiDpiCanvas(game);
   game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
