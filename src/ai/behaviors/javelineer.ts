@@ -7,13 +7,15 @@ import {
   type NavPeerAgent,
 } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
-import type { EnemyBehavior } from "./types";
+import type { EnemyJavelineerCombat } from "../../core/enemyTuning";
+import type { EnemyBehavior, EnemyBehaviorContext } from "./types";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
   setEnemyChaseVelocity,
 } from "./movement";
 import {
+  type BehaviorFrame,
   beginBehaviorFrame,
   followPlannedPath,
   frameResult,
@@ -166,121 +168,141 @@ function kiteArcVelocity(
 }
 
 export const javelineerBehavior: EnemyBehavior = (ctx) => {
-  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
+  const { enemy, nav, deltaMs } = ctx;
   const frame = beginBehaviorFrame(ctx);
-  const { ex, ey, reg, waypointRadius, desired, goal } = frame;
-
-  const dx = playerX - ex;
-  const dy = playerY - ey;
-  const dist = Math.hypot(dx, dy);
   const javelineer = enemy.combatTuning.javelineer;
 
-  if (desired === "player" && javelineer) {
-    const minRange = worldUnit(javelineer.minRangeWu, reg);
-    const maxRange = worldUnit(javelineer.maxRangeWu, reg);
-    const bandSlack = worldUnit(javelineer.kiteBandSlackWu, reg);
-    const ideal = (minRange + maxRange) / 2;
-    const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
-
-    if (dist < minRange) {
-      kiteArcVelocity(enemy, nav, {
-        grid,
-        deltaMs,
-        waypointRadius,
-        threatX: playerX,
-        threatY: playerY,
-        tangentX,
-        tangentY,
-        nx,
-        ny,
-        radialBlend: CLOSE_RETREAT_BLEND,
-        towardPlayer: false,
-        speedMul: 1.1,
-        peerAgents,
-        retreatGoalDistPx: Math.max(
-          minRange - dist + worldUnit(48, reg),
-          worldUnit(72, reg),
-        ),
-      });
-    } else if (dist > maxRange) {
-      replanPathIfDue(ctx, frame);
-      followPlannedPath(ctx, frame, 1.08);
-    } else {
-      const distError = dist - ideal;
-      let radialBlend = 0;
-      let towardPlayer = false;
-      let speedMul = javelineer.strafeSpeedMul;
-
-      if (Math.abs(distError) <= bandSlack) {
-        if (distError > bandSlack * 0.4) {
-          radialBlend = IDEAL_RANGE_NUDGE;
-          towardPlayer = true;
-        } else if (distError < -bandSlack * 0.4) {
-          radialBlend = IDEAL_RANGE_NUDGE;
-          towardPlayer = false;
-        }
-      } else if (distError > 0) {
-        radialBlend = RANGE_APPROACH_BLEND;
-        towardPlayer = true;
-      } else {
-        radialBlend = RANGE_RETREAT_BLEND;
-        towardPlayer = false;
-        speedMul = Math.max(speedMul, 1.02);
-      }
-
-      kiteArcVelocity(enemy, nav, {
-        grid,
-        deltaMs,
-        waypointRadius,
-        threatX: playerX,
-        threatY: playerY,
-        tangentX,
-        tangentY,
-        nx,
-        ny,
-        radialBlend,
-        towardPlayer,
-        speedMul,
-        peerAgents,
-        retreatGoalDistPx: !towardPlayer
-          ? Math.max(ideal - dist + bandSlack, worldUnit(56, reg))
-          : undefined,
-      });
-    }
+  if (frame.desired === "player" && javelineer) {
+    javelineerVsPlayer(ctx, frame, javelineer);
   } else if (javelineer) {
-    const wallY = northWallAttackY(reg);
-    const distToWall = ey - wallY;
-    const minRange = worldUnit(javelineer.minRangeWu, reg);
-    const maxRange = worldUnit(javelineer.maxRangeWu, reg);
-    const { strafeSpeedMul } = javelineer;
-    if (distToWall < minRange) {
-      applyRetreatPathing({
-        enemy,
-        nav,
-        grid,
-        threatX: ex,
-        threatY: wallY,
-        deltaMs,
-        waypointRadius,
-        peerAgents,
-        speedMul: 1.05,
-        retreatGoalDistPx: Math.max(
-          minRange - distToWall + worldUnit(40, reg),
-          worldUnit(64, reg),
-        ),
-      });
-    } else if (distToWall > maxRange) {
-      replanPathIfDue(ctx, frame);
-      followPlannedPath(ctx, frame, 1);
-    } else {
-      advanceStrafeSign(enemy, deltaMs);
-      const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
-      applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
-    }
+    javelineerVsWall(ctx, frame, javelineer);
   } else if (replanPathIfDue(ctx, frame)) {
     // Untuned javelineer only re-steers on the ticks it replans.
-    applyChaseVelocity(enemy, goal.x, goal.y, 1, { nav, deltaMs });
+    applyChaseVelocity(enemy, frame.goal.x, frame.goal.y, 1, { nav, deltaMs });
   }
 
   return frameResult(frame);
 };
+
+/** Keep the player inside the throw band: retreat, close in, or strafe. */
+function javelineerVsPlayer(
+  ctx: EnemyBehaviorContext,
+  frame: BehaviorFrame,
+  javelineer: EnemyJavelineerCombat,
+): void {
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAgents } = ctx;
+  const { ex, ey, reg, waypointRadius } = frame;
+  const dx = playerX - ex;
+  const dy = playerY - ey;
+  const dist = Math.hypot(dx, dy);
+  const minRange = worldUnit(javelineer.minRangeWu, reg);
+  const maxRange = worldUnit(javelineer.maxRangeWu, reg);
+  const bandSlack = worldUnit(javelineer.kiteBandSlackWu, reg);
+  const ideal = (minRange + maxRange) / 2;
+  const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
+
+  if (dist < minRange) {
+    kiteArcVelocity(enemy, nav, {
+      grid,
+      deltaMs,
+      waypointRadius,
+      threatX: playerX,
+      threatY: playerY,
+      tangentX,
+      tangentY,
+      nx,
+      ny,
+      radialBlend: CLOSE_RETREAT_BLEND,
+      towardPlayer: false,
+      speedMul: 1.1,
+      peerAgents,
+      retreatGoalDistPx: Math.max(
+        minRange - dist + worldUnit(48, reg),
+        worldUnit(72, reg),
+      ),
+    });
+  } else if (dist > maxRange) {
+    replanPathIfDue(ctx, frame);
+    followPlannedPath(ctx, frame, 1.08);
+  } else {
+    const distError = dist - ideal;
+    let radialBlend = 0;
+    let towardPlayer = false;
+    let speedMul = javelineer.strafeSpeedMul;
+
+    if (Math.abs(distError) <= bandSlack) {
+      if (distError > bandSlack * 0.4) {
+        radialBlend = IDEAL_RANGE_NUDGE;
+        towardPlayer = true;
+      } else if (distError < -bandSlack * 0.4) {
+        radialBlend = IDEAL_RANGE_NUDGE;
+        towardPlayer = false;
+      }
+    } else if (distError > 0) {
+      radialBlend = RANGE_APPROACH_BLEND;
+      towardPlayer = true;
+    } else {
+      radialBlend = RANGE_RETREAT_BLEND;
+      towardPlayer = false;
+      speedMul = Math.max(speedMul, 1.02);
+    }
+
+    kiteArcVelocity(enemy, nav, {
+      grid,
+      deltaMs,
+      waypointRadius,
+      threatX: playerX,
+      threatY: playerY,
+      tangentX,
+      tangentY,
+      nx,
+      ny,
+      radialBlend,
+      towardPlayer,
+      speedMul,
+      peerAgents,
+      retreatGoalDistPx: !towardPlayer
+        ? Math.max(ideal - dist + bandSlack, worldUnit(56, reg))
+        : undefined,
+    });
+  }
+}
+
+/** Hold the wall throw band: back off, approach, or strafe along the wall. */
+function javelineerVsWall(
+  ctx: EnemyBehaviorContext,
+  frame: BehaviorFrame,
+  javelineer: EnemyJavelineerCombat,
+): void {
+  const { enemy, nav, grid, deltaMs, peerAgents } = ctx;
+  const { ex, ey, reg, waypointRadius } = frame;
+  const wallY = northWallAttackY(reg);
+  const distToWall = ey - wallY;
+  const minRange = worldUnit(javelineer.minRangeWu, reg);
+  const maxRange = worldUnit(javelineer.maxRangeWu, reg);
+  const { strafeSpeedMul } = javelineer;
+  if (distToWall < minRange) {
+    applyRetreatPathing({
+      enemy,
+      nav,
+      grid,
+      threatX: ex,
+      threatY: wallY,
+      deltaMs,
+      waypointRadius,
+      peerAgents,
+      speedMul: 1.05,
+      retreatGoalDistPx: Math.max(
+        minRange - distToWall + worldUnit(40, reg),
+        worldUnit(64, reg),
+      ),
+    });
+  } else if (distToWall > maxRange) {
+    replanPathIfDue(ctx, frame);
+    followPlannedPath(ctx, frame, 1);
+  } else {
+    advanceStrafeSign(enemy, deltaMs);
+    const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
+    applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
+  }
+}

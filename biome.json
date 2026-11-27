@@ -46,8 +46,6 @@
   "overrides": [
     {
       "includes": [
-        "src/ai/behaviors/javelineer.ts",
-        "src/ai/behaviors/meleeChaser.ts",
         "e2e/win-model.spec.ts",
         "src/combat/spellGroundZone.ts",
         "src/debug/TouchInputDebugDraw.ts",
@@ -56,7 +54,6 @@
         "src/entities/enemyRanged/arrowRainCombat.ts",
         "src/pathfinding/astar.ts",
         "src/scenes/defense/DefenseDebugDraw.ts",
-        "src/scenes/defense/DefenseEnemyTick.ts",
         "src/scenes/defense/DefenseProjectileTick.ts",
         "src/scenes/defense/DefenseSpellChannel.ts",
         "src/scenes/defense/DefenseSpellResolve.ts",
