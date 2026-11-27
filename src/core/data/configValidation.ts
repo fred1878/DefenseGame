@@ -42,3 +42,30 @@ export function optionalFiniteNumber(
   if (value === undefined) return undefined;
   return requireFiniteNumber(value, path);
 }
+
+/** Spec for a group of all-number JSON sections: section name → required keys. */
+export type NumberSectionSpec = Record<string, readonly string[]>;
+
+/** Parsed shape of a {@link NumberSectionSpec}. */
+export type NumberSections<S extends NumberSectionSpec> = {
+  [K in keyof S]: Record<S[K][number], number>;
+};
+
+/** Read nested all-number sections (`root[section][key]`); every key is required. */
+export function requireNumberSections<S extends NumberSectionSpec>(
+  root: Record<string, unknown>,
+  spec: S,
+  path: string,
+): NumberSections<S> {
+  const out: Record<string, Record<string, number>> = {};
+  for (const [name, keys] of Object.entries(spec)) {
+    const block = requireRecord(root[name], `${path}.${name}`);
+    out[name] = requireNumberFields(block, keys, `${path}.${name}`);
+  }
+  return out as NumberSections<S>;
+}
+
+/** Every key named in a section spec (for `DATA_FIELDS.md` parity). */
+export function numberSectionKeys(spec: NumberSectionSpec): string[] {
+  return [...new Set(Object.values(spec).flat())].sort();
+}

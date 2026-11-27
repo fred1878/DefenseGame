@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import { worldUnit } from "../../config/worldScale";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
@@ -47,6 +48,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
       }),
     );
 
+  const move = tuning("enemyAi").rangedHybrid;
   if (extra?.mode === "retreat" && desired === "player" && hybrid) {
     const preferred = worldUnit(hybrid.preferredRangeWu, reg);
     applyRetreatPathing({
@@ -58,9 +60,9 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
       deltaMs,
       waypointRadius,
       peerAgents,
-      speedMul: 1.05,
+      speedMul: move.retreatSpeedMul,
       retreatGoalDistPx: Math.max(
-        worldUnit(72, reg),
+        worldUnit(move.retreatMinWu, reg),
         preferred - dist + worldUnit(hybrid.retreatRangeSlackWu, reg),
       ),
     });
@@ -68,7 +70,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
   }
 
   if (extra?.mode === "melee" && desired === "player") {
-    chasePlayer(1.08);
+    chasePlayer(move.meleeChaseSpeedMul);
     return frameResult(frame);
   }
 
@@ -78,7 +80,7 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
       reg,
     );
     if (dist <= meleeEngage) {
-      chasePlayer(1.05);
+      chasePlayer(move.closeChaseSpeedMul);
       return frameResult(frame);
     }
     return applyKiteBand(ctx, frame, {
@@ -88,9 +90,9 @@ export const rangedHybridBehavior: EnemyBehavior = (ctx) => {
       attackMax: worldUnit(ranged.attackTriggerRangeWu, reg),
       threatX: playerX,
       threatY: playerY,
-      retreatSpeedMul: 0.88,
-      retreatMinWu: 64,
-      followSpeedMul: 0.92,
+      retreatSpeedMul: move.kiteRetreatSpeedMul,
+      retreatMinWu: move.kiteRetreatMinWu,
+      followSpeedMul: move.kiteFollowSpeedMul,
     });
   }
 

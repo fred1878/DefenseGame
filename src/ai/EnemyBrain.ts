@@ -1,3 +1,4 @@
+import { tuning } from "../tuning/gameTuning";
 import { DEFENSE_MAP } from "../config";
 import { worldUnit } from "../config/worldScale";
 import type { NavGrid, NavPeerAgent } from "../pathfinding/grid";
@@ -34,7 +35,7 @@ export function updateEnemyBrain(
     deltaMs,
     worldUnit(DEFENSE_MAP.pathWaypointRadius, reg),
     DEFENSE_MAP.pathStallMs,
-    worldUnit(3, reg),
+    worldUnit(tuning("enemyAi").pathing.stallProgressWu, reg),
   );
   const behavior = getEnemyBehavior(enemy.behavior);
   return behavior({

@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import { northWallAttackY } from "../../config";
 import { worldUnit } from "../../config/worldScale";
 import {
@@ -23,17 +24,16 @@ import {
 } from "./rangedKite";
 import { applyRetreatPathing } from "./retreatPathing";
 
-const STRAFE_PROBE_DIST = 44;
-/** Blend weight for closing distance while in the kite band. */
-const RANGE_APPROACH_BLEND = 0.38;
-/** Blend weight for backing off while still inside the outer band. */
-const RANGE_RETREAT_BLEND = 0.48;
-/** Stronger retreat when inside min range (melee danger). */
-const CLOSE_RETREAT_BLEND = 0.68;
-/** Light radial nudge when sitting on the ideal arc distance. */
-const IDEAL_RANGE_NUDGE = 0.2;
+/** Movement tuning shared by every javelineer (`enemy-ai.json` `javelineer`). */
+function moveTune() {
+  return tuning("enemyAi").javelineer;
+}
 
-function advanceStrafeSign(enemy: EnemyInstance, deltaMs: number): void {
+function advanceStrafeSign(
+  enemy: EnemyInstance,
+  deltaMs: number,
+  orbitFlipMs: number,
+): void {
   enemy.behaviorExtra.strafeFlipMs = Math.max(
     0,
     enemy.behaviorExtra.strafeFlipMs - deltaMs,
@@ -41,8 +41,7 @@ function advanceStrafeSign(enemy: EnemyInstance, deltaMs: number): void {
   if (enemy.behaviorExtra.strafeFlipMs <= 0) {
     enemy.behaviorExtra.strafeSign =
       enemy.behaviorExtra.strafeSign === 1 ? -1 : 1;
-    enemy.behaviorExtra.strafeFlipMs =
-      enemy.combatTuning.javelineer?.orbitFlipMs ?? 1400;
+    enemy.behaviorExtra.strafeFlipMs = orbitFlipMs;
   }
 }
 
@@ -54,8 +53,9 @@ function strafeTangentBlocked(
   tangentY: number,
   peerAgents?: readonly NavPeerAgent[],
 ): boolean {
-  const probeX = x + tangentX * STRAFE_PROBE_DIST;
-  const probeY = y + tangentY * STRAFE_PROBE_DIST;
+  const probe = moveTune().strafeProbeDistPx;
+  const probeX = x + tangentX * probe;
+  const probeY = y + tangentY * probe;
   const cell = worldToCell(grid, probeX, probeY);
   if (!cell) return true;
   return cellBlocked(grid, cell.col, cell.row, peerAgents);
@@ -66,6 +66,7 @@ function resolveStrafeSign(
   grid: NavGrid,
   tangentX: number,
   tangentY: number,
+  orbitFlipMs: number,
   peerAgents?: readonly NavPeerAgent[],
 ): 1 | -1 {
   let sign = enemy.behaviorExtra.strafeSign;
@@ -83,8 +84,7 @@ function resolveStrafeSign(
   ) {
     sign = sign === 1 ? -1 : 1;
     enemy.behaviorExtra.strafeSign = sign;
-    enemy.behaviorExtra.strafeFlipMs =
-      enemy.combatTuning.javelineer?.orbitFlipMs ?? 1400;
+    enemy.behaviorExtra.strafeFlipMs = orbitFlipMs;
     if (
       strafeTangentBlocked(
         grid,
@@ -128,23 +128,28 @@ function kiteArcVelocity(
     radialBlend: number;
     towardPlayer: boolean;
     speedMul: number;
+    orbitFlipMs: number;
     peerAgents?: readonly NavPeerAgent[] | undefined;
     retreatGoalDistPx?: number | undefined;
   },
 ): void {
-  advanceStrafeSign(enemy, ctx.deltaMs);
+  advanceStrafeSign(enemy, ctx.deltaMs, ctx.orbitFlipMs);
   const sign = resolveStrafeSign(
     enemy,
     ctx.grid,
     ctx.tangentX,
     ctx.tangentY,
+    ctx.orbitFlipMs,
     ctx.peerAgents,
   );
   const radialSign = ctx.towardPlayer ? 1 : -1;
   const tangentX = ctx.tangentX * sign;
   const tangentY = ctx.tangentY * sign;
 
-  if (!ctx.towardPlayer && ctx.radialBlend > 0.05) {
+  if (
+    !ctx.towardPlayer &&
+    ctx.radialBlend > tuning("enemyAi").retreat.blendMinWeight
+  ) {
     const strafeWeight = 1 / (1 + ctx.radialBlend);
     applyRetreatPathing({
       enemy,
@@ -200,6 +205,8 @@ function javelineerVsPlayer(
   const bandSlack = worldUnit(javelineer.kiteBandSlackWu, reg);
   const ideal = (minRange + maxRange) / 2;
   const { nx, ny, tangentX, tangentY } = playerOrbitDirs(dx, dy, dist);
+  const move = moveTune();
+  const { orbitFlipMs } = javelineer;
 
   if (dist < minRange) {
     kiteArcVelocity(enemy, nav, {
@@ -212,18 +219,19 @@ function javelineerVsPlayer(
       tangentY,
       nx,
       ny,
-      radialBlend: CLOSE_RETREAT_BLEND,
+      radialBlend: move.closeRetreatBlend,
       towardPlayer: false,
-      speedMul: 1.1,
+      speedMul: move.closeRetreatSpeedMul,
+      orbitFlipMs,
       peerAgents,
       retreatGoalDistPx: Math.max(
-        minRange - dist + worldUnit(48, reg),
-        worldUnit(72, reg),
+        minRange - dist + worldUnit(move.closeRetreatExtraWu, reg),
+        worldUnit(move.closeRetreatMinWu, reg),
       ),
     });
   } else if (dist > maxRange) {
     replanPathIfDue(ctx, frame);
-    followPlannedPath(ctx, frame, 1.08);
+    followPlannedPath(ctx, frame, move.approachSpeedMul);
   } else {
     const distError = dist - ideal;
     let radialBlend = 0;
@@ -231,20 +239,21 @@ function javelineerVsPlayer(
     let speedMul = javelineer.strafeSpeedMul;
 
     if (Math.abs(distError) <= bandSlack) {
-      if (distError > bandSlack * 0.4) {
-        radialBlend = IDEAL_RANGE_NUDGE;
+      const nudgeAt = bandSlack * move.idealBandFrac;
+      if (distError > nudgeAt) {
+        radialBlend = move.idealRangeNudge;
         towardPlayer = true;
-      } else if (distError < -bandSlack * 0.4) {
-        radialBlend = IDEAL_RANGE_NUDGE;
+      } else if (distError < -nudgeAt) {
+        radialBlend = move.idealRangeNudge;
         towardPlayer = false;
       }
     } else if (distError > 0) {
-      radialBlend = RANGE_APPROACH_BLEND;
+      radialBlend = move.rangeApproachBlend;
       towardPlayer = true;
     } else {
-      radialBlend = RANGE_RETREAT_BLEND;
+      radialBlend = move.rangeRetreatBlend;
       towardPlayer = false;
-      speedMul = Math.max(speedMul, 1.02);
+      speedMul = Math.max(speedMul, move.bandRetreatMinSpeedMul);
     }
 
     kiteArcVelocity(enemy, nav, {
@@ -260,9 +269,13 @@ function javelineerVsPlayer(
       radialBlend,
       towardPlayer,
       speedMul,
+      orbitFlipMs,
       peerAgents,
       retreatGoalDistPx: !towardPlayer
-        ? Math.max(ideal - dist + bandSlack, worldUnit(56, reg))
+        ? Math.max(
+            ideal - dist + bandSlack,
+            worldUnit(move.bandRetreatMinWu, reg),
+          )
         : undefined,
     });
   }
@@ -280,7 +293,8 @@ function javelineerVsWall(
   const distToWall = ey - wallY;
   const minRange = worldUnit(javelineer.minRangeWu, reg);
   const maxRange = worldUnit(javelineer.maxRangeWu, reg);
-  const { strafeSpeedMul } = javelineer;
+  const { strafeSpeedMul, orbitFlipMs } = javelineer;
+  const move = moveTune();
   if (distToWall < minRange) {
     applyRetreatPathing({
       enemy,
@@ -291,18 +305,18 @@ function javelineerVsWall(
       deltaMs,
       waypointRadius,
       peerAgents,
-      speedMul: 1.05,
+      speedMul: move.wallRetreatSpeedMul,
       retreatGoalDistPx: Math.max(
-        minRange - distToWall + worldUnit(40, reg),
-        worldUnit(64, reg),
+        minRange - distToWall + worldUnit(move.wallRetreatExtraWu, reg),
+        worldUnit(move.wallRetreatMinWu, reg),
       ),
     });
   } else if (distToWall > maxRange) {
     replanPathIfDue(ctx, frame);
     followPlannedPath(ctx, frame, 1);
   } else {
-    advanceStrafeSign(enemy, deltaMs);
-    const sign = resolveStrafeSign(enemy, grid, 1, 0, peerAgents);
+    advanceStrafeSign(enemy, deltaMs, orbitFlipMs);
+    const sign = resolveStrafeSign(enemy, grid, 1, 0, orbitFlipMs, peerAgents);
     applyDirectVelocity(enemy, sign, 0, strafeSpeedMul);
   }
 }

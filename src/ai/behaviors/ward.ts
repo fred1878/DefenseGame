@@ -315,7 +315,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
   }
 
   const move = nextPathMoveTarget(nav, ex, ey, goalX, goalY, waypointRadius);
-  chaseToward(ctx, move, 0.82, targetKind);
+  chaseToward(ctx, move, tuning("enemyAi").ward.chaseSpeedMul, targetKind);
 
   return { targetX: goalX, targetY: goalY, targetKind };
 };

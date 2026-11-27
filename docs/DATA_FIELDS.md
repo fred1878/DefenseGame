@@ -269,7 +269,7 @@ Telegraphed ground zone ticks.
 
 **TypeScript:** [EnemyAiInput](../src/core/data/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/data/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
 
-Global chase / wall path tuning (`applyEnemyAi` → `tuning("enemyAi")` in `src/tuning/gameTuning.ts`).
+Global chase / wall path tuning plus per-behaviour movement (`applyEnemyAi` → `tuning("enemyAi")` in `src/tuning/gameTuning.ts`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|
@@ -277,6 +277,65 @@ Global chase / wall path tuning (`applyEnemyAi` → `tuning("enemyAi")` in `src/
 | `playerChaseMemoryMs` | ms | Ms to keep chasing last known player after LOS break. |
 | `wallVelocityBlendMs` | ms | Ms blending velocity from chase back toward wall path. |
 | `northWallMeleeStandoffWu` | px | Global px offset south of north wall for path goals. |
+
+Nested sections below apply to every enemy of that behaviour (per-enemy attack numbers stay in `enemies.json` `combat`). Speed multipliers scale the enemy's `speedWu`; `*Wu` distances scale with `worldUnit()`.
+
+### `pathing` (all enemies)
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `waypointRadiusWu` | WU | How close an enemy must get to a path node before advancing to the next. |
+| `replanMs` | ms | Minimum ms between A* replans per enemy. |
+| `stallMs` | ms | No progress toward the waypoint for this long forces an emergency replan. |
+| `stallProgressWu` | WU | Movement below this distance counts as no progress for stall detection. |
+
+### `retreat` (shared retreat steering)
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `probeDistPx` | px | Look-ahead distance used to test whether a flee or sidestep direction is blocked. |
+| `defaultGoalWu` | WU | Flee goal distance when a behaviour does not pass its own. |
+| `sidestepSpeedMul` | dimensionless | Speed multiplier applied when sidestepping a blocked retreat. |
+| `blendReachWu` | WU | Reach of the strafe vector blended into a retreat path step. |
+| `blendMinWeight` | dimensionless | Radial blend above which a javelineer backs off via retreat pathing instead of a direct strafe. |
+
+### `javelineer`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `strafeProbeDistPx` | px | Look-ahead used to test whether the orbit strafe direction is blocked. |
+| `rangeApproachBlend` | dimensionless | Radial weight for closing in when outside the kite band. |
+| `rangeRetreatBlend` | dimensionless | Radial weight for backing off when inside the band but too close. |
+| `closeRetreatBlend` | dimensionless | Radial weight for retreating when inside `minRangeWu` (melee danger). |
+| `idealRangeNudge` | dimensionless | Light radial weight used to settle on the ideal orbit distance. |
+| `idealBandFrac` | dimensionless | Fraction of `kiteBandSlackWu` beyond which the ideal-range nudge applies. |
+| `closeRetreatSpeedMul` | dimensionless | Speed multiplier when retreating from inside min range. |
+| `closeRetreatExtraWu` | WU | Extra flee distance beyond min range when the player is too close. |
+| `closeRetreatMinWu` | WU | Minimum flee goal distance when the player is too close. |
+| `approachSpeedMul` | dimensionless | Path-follow speed multiplier when beyond max range. |
+| `bandRetreatMinSpeedMul` | dimensionless | Floor on the strafe speed multiplier while backing off inside the band. |
+| `bandRetreatMinWu` | WU | Minimum flee goal distance while backing off inside the band. |
+| `wallRetreatSpeedMul` | dimensionless | Speed multiplier when backing off from the north wall. |
+| `wallRetreatExtraWu` | WU | Extra distance beyond min range when backing off from the wall. |
+| `wallRetreatMinWu` | WU | Minimum flee goal distance when backing off from the wall. |
+
+### `stationaryRanged`, `arrowRainArcher`, `rangedHybrid`, `lobber`, `ward`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `followSpeedMul` | dimensionless | Path-follow speed multiplier while approaching the kite band (stationaryRanged, arrowRainArcher, lobber). |
+| `wallRetreatSpeedMul` | dimensionless | Speed multiplier when too close to the wall (stationaryRanged, arrowRainArcher; javelineer has its own). |
+| `wallRetreatMinWu` | WU | Minimum flee goal distance from the wall (stationaryRanged, arrowRainArcher; javelineer has its own). |
+| `playerRetreatSpeedMul` | dimensionless | Speed multiplier when the player is too close (stationaryRanged, arrowRainArcher). |
+| `playerRetreatMinWu` | WU | Minimum flee goal distance from the player (stationaryRanged, arrowRainArcher). |
+| `retreatSpeedMul` | dimensionless | Speed multiplier in retreat mode (rangedHybrid after melee swings; lobber when too close). |
+| `retreatMinWu` | WU | Minimum flee goal distance in retreat mode (rangedHybrid, lobber). |
+| `meleeChaseSpeedMul` | dimensionless | rangedHybrid chase speed multiplier in melee mode. |
+| `closeChaseSpeedMul` | dimensionless | rangedHybrid chase speed multiplier when the player is inside melee trigger range in ranged mode. |
+| `kiteRetreatSpeedMul` | dimensionless | rangedHybrid retreat speed multiplier while kiting in ranged mode. |
+| `kiteRetreatMinWu` | WU | rangedHybrid minimum flee goal distance while kiting. |
+| `kiteFollowSpeedMul` | dimensionless | rangedHybrid path-follow speed multiplier while kiting. |
+| `chaseSpeedMul` | dimensionless | ward chase speed multiplier toward its post or the player. |
 
 ---
 

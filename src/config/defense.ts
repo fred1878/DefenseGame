@@ -159,12 +159,18 @@ export function obstacleDisplaySize(
 export const DEFENSE_MAP = {
   /** 16px nav cells — quarter ground tile — so blocked cells hug sprite mass. */
   cellSize: 16,
-  /** How close an enemy must be to a path node before advancing. */
-  pathWaypointRadius: 14,
+  /** How close an enemy must be to a path node before advancing (`enemy-ai.json` `pathing`). */
+  get pathWaypointRadius(): number {
+    return tuning("enemyAi").pathing.waypointRadiusWu;
+  },
   /** Recompute A* at most this often per enemy (ms). */
-  pathReplanMs: 450,
+  get pathReplanMs(): number {
+    return tuning("enemyAi").pathing.replanMs;
+  },
   /** No meaningful progress toward the current waypoint for this long → emergency replan. */
-  pathStallMs: 400,
+  get pathStallMs(): number {
+    return tuning("enemyAi").pathing.stallMs;
+  },
 };
 
 export type DefenseObstacleRect = {

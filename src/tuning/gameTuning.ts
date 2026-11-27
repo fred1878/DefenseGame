@@ -44,7 +44,15 @@ export function setTuning<K extends TuningKey>(
   key: K,
   value: GameTuning[K],
 ): void {
-  slots[key] = Object.freeze({ ...value });
+  slots[key] = deepFreeze(structuredClone(value));
+}
+
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object") {
+    for (const child of Object.values(value)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
 }
 
 export function tuning<K extends TuningKey>(key: K): Readonly<GameTuning[K]> {

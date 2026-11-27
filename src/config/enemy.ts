@@ -1,3 +1,4 @@
+import type { EnemyAiSections } from "../core/data/normalizeEnemyAi";
 import { setTuning } from "../tuning/gameTuning";
 
 export type EnemyAiTuning = {
@@ -6,7 +7,7 @@ export type EnemyAiTuning = {
   wallVelocityBlendMs: number;
   /** Global path goal offset south of the north wall (world units). */
   northWallMeleeStandoffWu: number;
-};
+} & EnemyAiSections;
 
 /** Replace enemy AI tuning after `public/data/enemy-ai.json` loads (Boot). Read with `tuning("enemyAi")`. */
 export function applyEnemyAi(next: EnemyAiTuning): void {

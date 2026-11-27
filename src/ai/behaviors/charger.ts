@@ -22,9 +22,9 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
   const extra = enemy.behaviorExtra;
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
 
-  if (extra.chargeActiveMs > 0) {
+  if (tune && extra.chargeActiveMs > 0) {
     extra.chargeActiveMs = Math.max(0, extra.chargeActiveMs - deltaMs);
-    const dashMul = tune?.dashSpeedMul ?? 2.2;
+    const dashMul = tune.dashSpeedMul;
     applyDirectVelocity(
       enemy,
       extra.chargeDashDirX,

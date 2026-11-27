@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import { worldUnit } from "../../config/worldScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
@@ -84,9 +85,9 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
         playerY,
         wallPathingPlayerClearancePx(reg),
       ),
-      speedMul: 0.78,
+      speedMul: tuning("enemyAi").lobber.retreatSpeedMul,
       retreatGoalDistPx: Math.max(
-        worldUnit(64, reg),
+        worldUnit(tuning("enemyAi").lobber.retreatMinWu, reg),
         preferred - dist + bandSlack,
       ),
     });
@@ -94,7 +95,7 @@ export const lobberBehavior: EnemyBehavior = (ctx) => {
   } else if (dist <= attackMax) {
     setEnemyChaseVelocity(enemy, 0, 0);
   } else {
-    followPlannedPath(ctx, frame, 0.9);
+    followPlannedPath(ctx, frame, tuning("enemyAi").lobber.followSpeedMul);
   }
 
   return frameResult(frame);

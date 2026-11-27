@@ -30,7 +30,10 @@ import {
   ENEMY_ROW_BOOT_KEYS,
   ENEMY_ROW_OPTIONAL_BOOT_KEYS,
 } from "./normalizeEnemy";
-import { ENEMY_AI_BOOT_KEYS } from "./normalizeEnemyAi";
+import {
+  ENEMY_AI_BOOT_KEYS,
+  ENEMY_AI_SECTION_DOC_KEYS,
+} from "./normalizeEnemyAi";
 import { ENTITY_PHYSICS_BOOT_KEYS } from "./normalizeEntityPhysics";
 import {
   HIT_FLASH_BOOT_KEYS,
@@ -83,7 +86,10 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...ENEMY_ROW_OPTIONAL_BOOT_KEYS,
     ...ENEMY_COMBAT_SCALAR_KEYS,
   ]),
-  "enemy-ai.json": [...ENEMY_AI_BOOT_KEYS],
+  "enemy-ai.json": uniqueSorted([
+    ...ENEMY_AI_BOOT_KEYS,
+    ...ENEMY_AI_SECTION_DOC_KEYS,
+  ]),
   "entity-physics.json": [...ENTITY_PHYSICS_BOOT_KEYS],
   "hit-flash.json": uniqueSorted([
     ...HIT_FLASH_BOOT_KEYS,
