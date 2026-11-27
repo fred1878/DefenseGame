@@ -10,9 +10,6 @@ const MELEE_MAX_RANGE_FILL = PALETTE.materialOrange300;
 const MELEE_MAX_RANGE_FILL_ALPHA = 0.07;
 const MELEE_MAX_RANGE_LINE = PALETTE.materialOrange500;
 const MELEE_MAX_RANGE_LINE_ALPHA = 0.52;
-const PROJECTILE_BLAST_FILL = PALETTE.fuchsia500;
-const PROJECTILE_BLAST_ALPHA = 0.08;
-const PROJECTILE_LINE = PALETTE.fuchsia600;
 const CHARGE_DASH_LINE = PALETTE.cyan300;
 const CHARGE_DASH_LINE_ALPHA = 0.8;
 
@@ -72,16 +69,6 @@ export class CombatRangeDebugDraw {
       lineWidth: 1.5,
       line: MELEE_MAX_RANGE_LINE,
       lineAlpha: MELEE_MAX_RANGE_LINE_ALPHA,
-    });
-  }
-
-  drawProjectileBlastRadius(x: number, y: number, radius: number): void {
-    drawDebugDisc(this.g, x, y, radius, {
-      fill: PROJECTILE_BLAST_FILL,
-      fillAlpha: PROJECTILE_BLAST_ALPHA,
-      lineWidth: 1.25,
-      line: PROJECTILE_LINE,
-      lineAlpha: 0.75,
     });
   }
 

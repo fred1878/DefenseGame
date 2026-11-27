@@ -35,7 +35,6 @@ describe("CombatRangeDebugDraw", () => {
     drawer.drawMeleeActivationRange(1, 2, 40);
     drawer.drawMeleeMaxRange(1, 2, 60);
     drawer.drawMeleeArc(0, 0, 0, 50, Math.PI / 4);
-    drawer.drawProjectileBlastRadius(10, 10, 30);
     drawer.drawChargeDashLine(0, 0, 20, 0);
     drawer.clear();
     expect(g.clear).toHaveBeenCalled();

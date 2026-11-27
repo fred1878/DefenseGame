@@ -113,6 +113,8 @@ export type DefenseCombatDebugInput = {
   enemyProjectiles: EnemyProjectile[];
   obstacleBlockers: DefenseObstacleRect[];
   wu: (atDefault2x: number) => number;
+  /** Frame delta, used to fade recorded spell hit areas. */
+  delta: number;
 };
 
 export function drawDefenseCombatDebug(input: DefenseCombatDebugInput): void {
@@ -121,7 +123,10 @@ export function drawDefenseCombatDebug(input: DefenseCombatDebugInput): void {
   const showBoxes = showHitboxes(input.registry);
 
   if (!showRanges) rangeDebug.clear();
-  if (!showBoxes) hitboxDebug.clear();
+  if (!showBoxes) {
+    hitboxDebug.clear();
+    hitboxDebug.clearSpellHits();
+  }
   if (!showRanges && !showBoxes) return;
 
   const pBody = player.sprite.body as Phaser.Physics.Arcade.Body;
@@ -166,31 +171,34 @@ export function drawDefenseCombatDebug(input: DefenseCombatDebugInput): void {
     if (!p.sprite.active) continue;
     if (showBoxes) {
       hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
-    }
-    if (
-      showRanges &&
-      p.spellBehavior === "aoe_on_hit" &&
-      p.blastRadiusWu !== undefined &&
-      p.lobAimX !== undefined &&
-      p.lobAimY !== undefined
-    ) {
-      rangeDebug.drawProjectileBlastRadius(
-        p.lobAimX,
-        p.lobAimY,
-        wu(p.blastRadiusWu),
-      );
+      if (p.spellBehavior === "aoe_on_hit" && p.blastRadiusWu !== undefined) {
+        // Enemy projectile blast radius is in world units.
+        hitboxDebug.drawProjectileBlastRadius(
+          p.lobAimX ?? p.sprite.x,
+          p.lobAimY ?? p.sprite.y,
+          wu(p.blastRadiusWu),
+        );
+      }
     }
   }
 
   if (showBoxes) {
     for (const p of input.projectiles) {
-      if (p.sprite.active) {
-        hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
+      if (!p.sprite.active) continue;
+      hitboxDebug.drawProjectileBody(p.sprite.x, p.sprite.y, projBodyR);
+      if (p.blastRadiusWu !== undefined) {
+        // Spell projectiles store the blast radius pre-scaled to px at spawn.
+        hitboxDebug.drawProjectileBlastRadius(
+          p.pendingDetonation?.x ?? p.sprite.x,
+          p.pendingDetonation?.y ?? p.sprite.y,
+          p.blastRadiusWu,
+        );
       }
     }
     for (const obs of input.obstacleBlockers) {
       hitboxDebug.drawObstacleRect(obs.x, obs.y, obs.w, obs.h);
     }
+    hitboxDebug.drawSpellHitAreas(input.delta);
   }
 }
 
