@@ -208,7 +208,8 @@ it), and `--bars cooldown,frost,frost-bolt,lightning` replays each save once
 per bar above (gear and talents stay the save's own, labelled
 `strategy/frost` etc.). `--saves DIR/snapshots.json` replays an earlier
 run's saves instead of playing the sim again, so a rerun uses the very same
-saves.
+saves. `--resume` keeps the out folder's results and plays only the
+fights still missing one (use it with `--saves` so the snapshots match).
 
 Superseded first full-cast check (spell-caster saves, nights 7–20 ×
 p10/p50/p90, one fight each; the default bot lost one fight's result at

@@ -27,6 +27,7 @@
 // Extra bars are labelled strategy/bar; gear and talents are the save's own.
 // --saves DIR/snapshots.json: replay an earlier run's saves instead of
 // playing the sim again (same gear, talents and gold; bars rebuilt).
+// --resume: keep the out folder's results and play only the missing fights.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -326,7 +327,32 @@ function runFights() {
     if (b.status !== 0) process.exit(b.status ?? 1);
   }
   const results = path.join(out, "results.jsonl");
-  fs.rmSync(results, { force: true });
+  // --resume: keep finished fights and play only the snapshots missing a
+  // result (needs the same snapshots, e.g. with --saves).
+  let toPlay = path.join(out, "snapshots.json");
+  if (flags.has("--resume") && fs.existsSync(results)) {
+    const done = new Set(
+      fs
+        .readFileSync(results, "utf8")
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => {
+          const r = JSON.parse(line);
+          return `${r.id}#${r.rep}`;
+        }),
+    );
+    const pending = snaps.filter(
+      (s) =>
+        !Array.from({ length: repeats }, (_, i) => `${s.id}#${i + 1}`).every(
+          (k) => done.has(k),
+        ),
+    );
+    toPlay = path.join(out, "pending.json");
+    fs.writeFileSync(toPlay, `${JSON.stringify(pending)}\n`);
+    console.log(`resuming: ${pending.length} snapshots still to play`);
+  } else {
+    fs.rmSync(results, { force: true });
+  }
   const p = spawnSync(
     "npx",
     [
@@ -343,7 +369,7 @@ function runFights() {
         ...process.env,
         E2E_WORKERS: flag("--workers", "8"),
         WIN_MODEL_FULL_CAST: flags.has("--full-cast") ? "1" : "",
-        WIN_MODEL_SNAPSHOTS: path.join(out, "snapshots.json"),
+        WIN_MODEL_SNAPSHOTS: toPlay,
         WIN_MODEL_RESULTS: results,
         WIN_MODEL_REPEATS: String(repeats),
         WIN_MODEL_DATA_DIR: dataDir,
