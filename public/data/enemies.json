@@ -59,7 +59,7 @@
         "activeMs": 130,
         "recoveryMs": 600,
         "cooldownMs": 520,
-        "fxStartMs": 400,
+        "fxStartMs": 480,
         "fxDurationMs": 720,
         "vfxDisplayW": 72,
         "vfxDisplayH": 58,
@@ -134,7 +134,7 @@
         "activeMs": 80,
         "recoveryMs": 120,
         "cooldownMs": 180,
-        "fxStartMs": 70,
+        "fxStartMs": 130,
         "fxDurationMs": 300,
         "vfxDisplayW": 78,
         "vfxDisplayH": 28,
@@ -177,7 +177,7 @@
         "attackMovement": {
           "windupMul": 0,
           "activeMul": 0,
-          "recoveryMul": 0
+          "recoveryMul": 0.2
         }
       }
     },
@@ -240,11 +240,11 @@
         "rangeWu": 46,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 64,
-        "windupMs": 520,
+        "windupMs": 300
         "activeMs": 140,
         "recoveryMs": 620,
         "cooldownMs": 480,
-        "fxStartMs": 400,
+        "fxStartMs": 300,
         "fxDurationMs": 900,
         "vfxDisplayW": 50,
         "vfxDisplayH": 34,
@@ -252,7 +252,7 @@
         "attackMovement": {
           "windupMul": 0,
           "activeMul": 0,
-          "recoveryMul": 0
+          "recoveryMul": 0.1
         }
       },
       "wallSiege": {
@@ -278,14 +278,14 @@
       },
       "melee": {
         "triggerRangeWu": 45,
-        "rangeWu": 34,
-        "meleeChaseStandoffWu": 2,
+        "rangeWu": 38,
+        "meleeChaseStandoffWu": 3,
         "arcDeg": 58,
         "windupMs": 260,
         "activeMs": 80,
-        "recoveryMs": 340,
+        "recoveryMs": 250,
         "cooldownMs": 260,
-        "fxStartMs": 180,
+        "fxStartMs": 260,
         "fxDurationMs": 417,
         "vfxDisplayW": 48,
         "vfxDisplayH": 48,
