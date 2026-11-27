@@ -2,7 +2,6 @@ import type Phaser from "phaser";
 import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { GAME } from "../../config";
 import type { SaveGame } from "../../core/save/saveTypes";
-import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import {
   formatSaveSlotMeta,
   listSaveSlots,
@@ -28,6 +27,13 @@ import {
   saveMenuPrompt,
   type SaveMenuState,
 } from "../saveMenu/saveMenuLogic";
+import {
+  type SaveMenuButtonId,
+  saveMenuLayout,
+  saveMenuRowCenterY,
+} from "../saveMenu/saveMenuLayout";
+
+type SaveMenuButton = ReturnType<typeof createTouchButton>;
 
 type SlotRow = {
   index: number;
@@ -44,12 +50,12 @@ export class SaveMenuPanel {
   private readonly modal: ModalPanel;
   private readonly rows: SlotRow[] = [];
   private readonly promptText: Phaser.GameObjects.Text;
-  private readonly saveBtn: ReturnType<typeof createTouchButton>;
-  private readonly loadBtn: ReturnType<typeof createTouchButton>;
-  private readonly deleteBtn: ReturnType<typeof createTouchButton>;
-  private readonly confirmBtn: ReturnType<typeof createTouchButton>;
-  private readonly cancelBtn: ReturnType<typeof createTouchButton>;
-  private readonly closeBtn: ReturnType<typeof createTouchButton>;
+  private readonly saveBtn: SaveMenuButton;
+  private readonly loadBtn: SaveMenuButton;
+  private readonly deleteBtn: SaveMenuButton;
+  private readonly confirmBtn: SaveMenuButton;
+  private readonly cancelBtn: SaveMenuButton;
+  private readonly closeBtn: SaveMenuButton;
   private readonly onLoad: (save: SaveGame) => void;
   private readonly onDismiss: (() => void) | undefined;
   private readonly getSave: () => SaveGame;
@@ -71,14 +77,15 @@ export class SaveMenuPanel {
     const root = modal.root;
     this.modal = modal;
 
+    const l = saveMenuLayout();
     root.add(
       scene.add
         .text(
           GAME.width / 2,
-          scaleUiY(64),
+          l.titleY,
           "Saves",
           uiTextStyle(scene, {
-            fontSize: `${scaleUiX(24)}px`,
+            fontSize: `${l.titleFontPx}px`,
             color: PALETTE_CSS.zinc100,
           }),
         )
@@ -88,28 +95,22 @@ export class SaveMenuPanel {
       scene.add
         .text(
           GAME.width / 2,
-          scaleUiY(98),
+          l.introY,
           "Copy the current game into a slot, or load one. Progress still autosaves as you play.",
           uiTextStyle(scene, {
-            fontSize: `${scaleUiX(13)}px`,
+            fontSize: `${l.introFontPx}px`,
             color: PALETTE_CSS.zinc400,
             align: "center",
-            wordWrap: { width: GAME.width - scaleUiX(36) },
+            wordWrap: { width: l.introWrapW },
           }),
         )
         .setOrigin(0.5, 0),
     );
 
-    const rowW = GAME.width - scaleUiX(48);
-    const listLeft = (GAME.width - rowW) / 2;
-    const rowH = scaleUiY(88);
-    const gap = scaleUiY(10);
-    const listTop = scaleUiY(176);
-
     for (const slot of this.state.slots) {
-      const cy = listTop + slot.index * (rowH + gap) + rowH / 2;
+      const cy = saveMenuRowCenterY(l, slot.index);
       const bg = scene.add
-        .rectangle(GAME.width / 2, cy, rowW, rowH, PALETTE.zinc700, 1)
+        .rectangle(GAME.width / 2, cy, l.rowW, l.rowH, PALETTE.zinc700, 1)
         .setStrokeStyle(2, PALETTE.zinc500)
         .setInteractive();
       bg.on("pointerup", () =>
@@ -117,24 +118,24 @@ export class SaveMenuPanel {
       );
       const title = scene.add
         .text(
-          listLeft + scaleUiX(16),
-          cy - scaleUiY(18),
+          l.listLeft + l.rowTextInsetX,
+          cy + l.rowTitleOffsetY,
           slot.name,
           uiTextStyle(scene, {
-            fontSize: `${scaleUiX(18)}px`,
+            fontSize: `${l.rowTitleFontPx}px`,
             color: PALETTE_CSS.zinc50,
           }),
         )
         .setOrigin(0, 0.5);
       const meta = scene.add
         .text(
-          listLeft + scaleUiX(16),
-          cy + scaleUiY(16),
+          l.listLeft + l.rowTextInsetX,
+          cy + l.rowMetaOffsetY,
           formatSaveSlotMeta(slot),
           uiTextStyle(scene, {
-            fontSize: `${scaleUiX(13)}px`,
+            fontSize: `${l.rowMetaFontPx}px`,
             color: PALETTE_CSS.zinc400,
-            lineSpacing: scaleUiY(2),
+            lineSpacing: l.rowMetaLineSpacing,
           }),
         )
         .setOrigin(0, 0.5);
@@ -145,116 +146,43 @@ export class SaveMenuPanel {
     this.promptText = scene.add
       .text(
         GAME.width / 2,
-        GAME.height - scaleUiY(214),
+        l.promptY,
         "",
         uiTextStyle(scene, {
-          fontSize: `${scaleUiX(15)}px`,
+          fontSize: `${l.promptFontPx}px`,
           color: PALETTE_CSS.amber400,
           align: "center",
-          wordWrap: { width: GAME.width - scaleUiX(40) },
+          wordWrap: { width: l.promptWrapW },
         }),
       )
       .setOrigin(0.5);
     root.add(this.promptText);
 
-    const actionY = GAME.height - scaleUiY(148);
-    const btnW = scaleUiX(140);
-    const btnH = scaleUiY(48);
-    const mid = GAME.width / 2;
-    const gapX = scaleUiX(154);
-
-    this.saveBtn = createTouchButton(
-      scene,
-      mid - gapX,
-      actionY,
-      "Save",
-      () => this.dispatch({ type: "requestSave" }),
-      {
-        width: btnW,
-        height: btnH,
-        depth: 510,
-        fontSize: `${scaleUiX(16)}px`,
-        fillColor: PALETTE.green700,
-        strokeColor: PALETTE.green400,
-      },
-    );
-    this.loadBtn = createTouchButton(
-      scene,
-      mid,
-      actionY,
-      "Load",
-      () => this.dispatch({ type: "requestLoad" }),
-      {
-        width: btnW,
-        height: btnH,
-        depth: 510,
-        fontSize: `${scaleUiX(16)}px`,
-        fillColor: PALETTE.blue700,
-        strokeColor: PALETTE.blue400,
-      },
-    );
-    this.deleteBtn = createTouchButton(
-      scene,
-      mid + gapX,
-      actionY,
-      "Delete",
-      () => this.dispatch({ type: "requestDelete" }),
-      {
-        width: btnW,
-        height: btnH,
-        depth: 510,
-        fontSize: `${scaleUiX(16)}px`,
-        fillColor: 0x9f1239,
-        strokeColor: PALETTE.rose400,
-      },
-    );
-
-    this.confirmBtn = createTouchButton(
-      scene,
-      mid - scaleUiX(80),
-      actionY,
-      "Confirm",
-      () => this.dispatch({ type: "confirm" }),
-      {
-        width: scaleUiX(140),
-        height: btnH,
-        depth: 510,
-        fontSize: `${scaleUiX(16)}px`,
-        fillColor: PALETTE.green700,
-        strokeColor: PALETTE.green400,
-      },
-    );
-    this.cancelBtn = createTouchButton(
-      scene,
-      mid + scaleUiX(80),
-      actionY,
-      "Cancel",
-      () => this.dispatch({ type: "cancel" }),
-      {
-        width: scaleUiX(140),
-        height: btnH,
-        depth: 510,
-        fontSize: `${scaleUiX(16)}px`,
-        fillColor: PALETTE.zinc600,
-        strokeColor: PALETTE.zinc400,
-      },
-    );
-
-    this.closeBtn = createTouchButton(
-      scene,
-      mid,
-      GAME.height - scaleUiY(80),
-      "Close",
-      () => this.destroy(),
-      {
-        width: scaleUiX(120),
-        height: scaleUiY(40),
-        depth: 510,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: PALETTE.zinc600,
-        strokeColor: PALETTE.zinc400,
-      },
-    );
+    const onTap: Record<SaveMenuButtonId, () => void> = {
+      save: () => this.dispatch({ type: "requestSave" }),
+      load: () => this.dispatch({ type: "requestLoad" }),
+      delete: () => this.dispatch({ type: "requestDelete" }),
+      confirm: () => this.dispatch({ type: "confirm" }),
+      cancel: () => this.dispatch({ type: "cancel" }),
+      close: () => this.destroy(),
+    };
+    const btns = {} as Record<SaveMenuButtonId, SaveMenuButton>;
+    for (const b of l.buttons) {
+      btns[b.id] = createTouchButton(scene, b.x, b.y, b.label, onTap[b.id], {
+        width: b.width,
+        height: b.height,
+        depth: l.buttonDepth,
+        fontSize: `${b.fontSizePx}px`,
+        fillColor: b.fill,
+        strokeColor: b.stroke,
+      });
+    }
+    this.saveBtn = btns.save;
+    this.loadBtn = btns.load;
+    this.deleteBtn = btns.delete;
+    this.confirmBtn = btns.confirm;
+    this.cancelBtn = btns.cancel;
+    this.closeBtn = btns.close;
     root.add([
       this.saveBtn.container,
       this.loadBtn.container,
@@ -312,19 +240,13 @@ export class SaveMenuPanel {
     }
   }
 
-  private setButtonVisible(
-    btn: ReturnType<typeof createTouchButton>,
-    visible: boolean,
-  ): void {
+  private setButtonVisible(btn: SaveMenuButton, visible: boolean): void {
     btn.container.setVisible(visible);
     if (visible) btn.container.setInteractive();
     else btn.container.disableInteractive();
   }
 
-  private setButtonEnabled(
-    btn: ReturnType<typeof createTouchButton>,
-    enabled: boolean,
-  ): void {
+  private setButtonEnabled(btn: SaveMenuButton, enabled: boolean): void {
     btn.container.setAlpha(enabled ? 1 : 0.45);
     if (enabled) btn.container.setInteractive();
     else btn.container.disableInteractive();
@@ -339,10 +261,7 @@ export class SaveMenuPanel {
 
   e2eTapTargets(): Record<string, { x: number; y: number }> {
     const out: Record<string, { x: number; y: number }> = {};
-    const add = (
-      id: string,
-      btn: ReturnType<typeof createTouchButton>,
-    ): void => {
+    const add = (id: string, btn: SaveMenuButton): void => {
       if (!btn.container.visible) return;
       const r = interactiveObjectScreenRect(btn.container);
       if (!r) return;

@@ -22,7 +22,7 @@ export type DefenseTargetingHost = {
   wu: (atDefault2x: number) => number;
 };
 
-/** Tap-to-focus, facing targets, and HUD hit tests (REFACTOR_PLAN PR5). */
+/** Tap-to-focus, facing targets, and HUD hit tests. */
 export class DefenseTargeting {
   focusEnemyId: string | null = null;
   focusSelectLockMs = 0;

@@ -99,7 +99,7 @@ export function enemyDefById(store: DataStore, defId: string): EnemyDef {
   return def;
 }
 
-/** Spawn one enemy into the defense scene lists (REFACTOR_PLAN PR3 + PR12 pool). */
+/** Spawn one enemy into the defense scene lists. */
 export function spawnDefenseEnemyAt(
   host: DefenseEnemySpawnerHost,
   x: number,
