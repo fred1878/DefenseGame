@@ -2,6 +2,7 @@ import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
 import type { EnemyDef } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
+import type { SpellCastController } from "../../combat/SpellCastController";
 import type { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
 import type { DefenseTargeting } from "./DefenseTargeting";
 import type { EnemyInstance } from "../../entities/Enemy";
@@ -38,6 +39,7 @@ export type DefenseSceneE2eDelegate = Phaser.Scene & {
   readonly modeToggle: { container: Phaser.GameObjects.Container };
   readonly autoToggle: { container: Phaser.GameObjects.Container };
   readonly spellBar: SpellBar;
+  readonly spellCaster: SpellCastController;
   readonly debugBtn: TouchButtonHandle;
   readonly potionBtn?: TouchButtonHandle;
   readonly bombBtn?: TouchButtonHandle;
