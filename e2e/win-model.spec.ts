@@ -66,7 +66,10 @@ const RENDER_EVERY = Number(process.env.WIN_MODEL_RENDER_EVERY ?? "0");
 const BOT_MS = Number(process.env.WIN_MODEL_BOT_MS ?? "150");
 const BOT_EVERY_STEPS = Math.max(1, Math.round(BOT_MS / STEP_MS));
 const TRACE_EVERY_STEPS = Math.max(1, Math.round(1000 / STEP_MS));
-/** Fixed-step fights give up after this much game time. */
+/**
+ * Fixed-step fights give up after this much game time; the row is written
+ * with `timedOut: true` (not won).
+ */
 const MAX_GAME_MS = 20 * 60_000;
 
 /** Stable 32-bit seed for a night/tier/repeat (same for every variant). */
@@ -294,6 +297,7 @@ test.describe("win model validation @manual", () => {
         let last = { wall: 0, hp: 0, enemies: 0 };
         let trace: number[][] = [];
         let gameSeconds = 0;
+        let timedOut = false;
         let endHp: { wall: number; hp: number } | null = null;
         if (fixedStep) {
           // Drive the night in fixed steps until Town is back: bot every 150
@@ -345,7 +349,7 @@ test.describe("win model validation @manual", () => {
               maxGameMs: MAX_GAME_MS,
             },
           );
-          expect(out.timedOut).toBe(false);
+          timedOut = out.timedOut;
           trace = out.trace;
           last = out.last;
           gameSeconds = out.gameMs / 1000;
@@ -412,6 +416,9 @@ test.describe("win model validation @manual", () => {
           lastWallHp: last.wall,
           lastPlayerHp: last.hp,
           lastEnemies: last.enemies,
+          // Fixed steps: the night was still running after MAX_GAME_MS (e.g.
+          // an enemy the bot cannot reach); counted as not won.
+          timedOut,
           // Fixed steps: wall / player HP on the night's last frame.
           endWallHp: endHp ? Math.round(endHp.wall) : null,
           endPlayerHp: endHp ? Math.round(endHp.hp) : null,
