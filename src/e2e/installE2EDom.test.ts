@@ -139,7 +139,11 @@ describe("installE2EDom", () => {
     expect(host?.attrs["data-testid"]).toBe("e2e-dom-root");
     const start = host?.querySelector('[data-testid="start-night"]');
     const atk = host?.querySelector('[data-testid="combat-atk"]');
-    expect(start?.textContent).toBe("start-night");
+    expect(start?.textContent).toBe("");
+    expect(start?.attrs["aria-label"]).toBe("start-night");
+    expect(start?.style.cssText).toContain("opacity:0;");
+    expect(start?.style.cssText).toContain("display:block");
+    expect(atk?.style.cssText).toContain("display:none");
     expect(atk?.type).toBe("button");
     start?.clicks[0]?.();
     atk?.clicks[0]?.();

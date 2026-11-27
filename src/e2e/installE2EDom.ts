@@ -30,9 +30,13 @@ function ensureDomMirrorButton(
     btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("data-testid", testId);
-    btn.textContent = testId;
-    btn.style.cssText =
-      "position:fixed;width:44px;height:44px;opacity:0.01;pointer-events:auto;z-index:99999";
+    // No visible label: an aria-label keeps the button identifiable without text that
+    // showed through when the unpositioned mirrors stacked at the page's top-left.
+    btn.setAttribute("aria-label", testId);
+    // Fully transparent (Playwright `force` clicks still work). At opacity 0.01 the
+    // ~14 stacked default-styled buttons composited into a faint grey "spell-slot" ghost
+    // in every ?e2e=1 capture and visual baseline. Unpositioned mirrors start hidden.
+    btn.style.cssText = `position:fixed;left:0;top:0;width:44px;height:44px;opacity:0;background:transparent;border:0;padding:0;color:transparent;font-size:0;pointer-events:auto;z-index:99999;display:${testId === "start-night" ? "block" : "none"}`;
     host.appendChild(btn);
     btn.addEventListener("click", onClick);
   }
