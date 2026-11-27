@@ -73,7 +73,9 @@ describe("defenseTopHud", () => {
     );
     hud.setVisible(false);
     expect(
-      hud.roots.every((r) => (r as unknown as FakeGameObject).visible === false),
+      hud.roots.every(
+        (r) => (r as unknown as FakeGameObject).visible === false,
+      ),
     ).toBe(true);
   });
 });

@@ -63,7 +63,11 @@ export function createCombatHudChrome(
     border.strokePath();
   }
 
-  const roots: Phaser.GameObjects.GameObject[] = [topPanel, bottomPanel, border];
+  const roots: Phaser.GameObjects.GameObject[] = [
+    topPanel,
+    bottomPanel,
+    border,
+  ];
   // Dark Ages frames over the vector bands (no-op without the textures, e.g. unit tests).
   const frames = [
     topH > 1 ? addUiFrame(scene, "ornate", 0, 0, w, topH) : null,
@@ -78,9 +82,11 @@ export function createCombatHudChrome(
     roots,
     setVisible: (visible) => {
       for (const root of roots) {
-        (root as Phaser.GameObjects.GameObject & {
-          setVisible: (v: boolean) => unknown;
-        }).setVisible(visible);
+        (
+          root as Phaser.GameObjects.GameObject & {
+            setVisible: (v: boolean) => unknown;
+          }
+        ).setVisible(visible);
       }
     },
   };

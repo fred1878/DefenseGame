@@ -109,7 +109,9 @@ export function createDefenseTopHud(
   const L = layout;
   const roots: Phaser.GameObjects.GameObject[] = [];
   const keep = <T extends Phaser.GameObjects.GameObject>(go: T): T => {
-    (go as unknown as Phaser.GameObjects.Components.ScrollFactor).setScrollFactor?.(0);
+    (
+      go as unknown as Phaser.GameObjects.Components.ScrollFactor
+    ).setScrollFactor?.(0);
     (go as unknown as Phaser.GameObjects.Components.Depth).setDepth?.(depth);
     roots.push(go);
     return go;
@@ -137,7 +139,13 @@ export function createDefenseTopHud(
         )
         .setOrigin(originX, originY),
     );
-  const part = (name: UiPartName, x: number, y: number, w: number, h: number) =>
+  const part = (
+    name: UiPartName,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+  ) =>
     hasUiPart(scene, name)
       ? keep(scene.add.image(x, y, uiPartKey(name)).setDisplaySize(w, h))
       : null;
@@ -163,8 +171,22 @@ export function createDefenseTopHud(
 
   // Enemies-left plate.
   frame("dark", L.enemiesX, L.row1Y, L.enemiesW, 40);
-  const enemies = text(L.enemiesX + L.enemiesW / 2, L.row1Y + 4, 20, "#f4ead8", 0.5, 0);
-  const enemiesLbl = text(L.enemiesX + L.enemiesW / 2, L.row1Y + 25, 12, "#cdbf9f", 0.5, 0);
+  const enemies = text(
+    L.enemiesX + L.enemiesW / 2,
+    L.row1Y + 4,
+    20,
+    "#f4ead8",
+    0.5,
+    0,
+  );
+  const enemiesLbl = text(
+    L.enemiesX + L.enemiesW / 2,
+    L.row1Y + 25,
+    12,
+    "#cdbf9f",
+    0.5,
+    0,
+  );
   enemiesLbl.setText("ENEMIES");
 
   // Wall / hero bars.
@@ -191,7 +213,9 @@ export function createDefenseTopHud(
             .setOrigin(0, 0)
             .setDisplaySize(innerW, fh),
         )
-      : keep(scene.add.rectangle(innerX, fy, innerW, fh, fallback).setOrigin(0, 0));
+      : keep(
+          scene.add.rectangle(innerX, fy, innerW, fh, fallback).setOrigin(0, 0),
+        );
     let lx = x + 12;
     if (icon) {
       part(icon, x + 14, y + h / 2, 12, 18);
@@ -229,7 +253,14 @@ export function createDefenseTopHud(
           .rectangle(progX + 8, L.progressY + 4, progW - 16, 6, 0x7c3aed)
           .setOrigin(0, 0),
       );
-  const progText = text(L.width - L.pad - 4, L.progressY + 7, 12, "#cdbf9f", 1, 0.5);
+  const progText = text(
+    L.width - L.pad - 4,
+    L.progressY + 7,
+    12,
+    "#cdbf9f",
+    1,
+    0.5,
+  );
 
   const setFill = (b: Bar, ratio: number) => {
     const w = Math.round(b.innerW * ratio);

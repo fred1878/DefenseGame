@@ -319,7 +319,9 @@ export class SpellBar {
       visual.label.setVisible(onCd);
       if (!onCd || !def) continue;
       const secs = remaining / 1000;
-      visual.label.setText(secs >= 10 ? String(Math.ceil(secs)) : secs.toFixed(1));
+      visual.label.setText(
+        secs >= 10 ? String(Math.ceil(secs)) : secs.toFixed(1),
+      );
 
       const ratio = Phaser.Math.Clamp(remaining / def.cooldownMs, 0, 1);
       const coverH = slotH * ratio;

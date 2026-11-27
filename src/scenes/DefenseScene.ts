@@ -94,9 +94,7 @@ import {
 } from "./defense/DefenseNightEnd";
 import type { CampaignNightLossReason } from "./defense/nightEndMessaging";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
-import {
-  createDefenseHudController,
-} from "./defense/DefenseHudController";
+import { createDefenseHudController } from "./defense/DefenseHudController";
 import {
   bindPlayerObstacleCorrection,
   bootstrapDefenseWorld,
