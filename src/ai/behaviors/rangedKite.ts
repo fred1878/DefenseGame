@@ -1,3 +1,4 @@
+import { nextPathMoveTarget } from "./shared/pathApproach";
 /**
  * Shared steps for the ranged enemy behaviours (stationaryRanged, arrowRainArcher,
  * rangedHybrid, lobber, javelineer): per-tick target resolution, path replanning,
@@ -101,20 +102,15 @@ export function followPlannedPath(
   speedMul: number,
 ): void {
   const { enemy, nav, deltaMs } = ctx;
-  let moveX = frame.goal.x;
-  let moveY = frame.goal.y;
-  if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-    const wp = nav.path[nav.pathIndex]!;
-    if (Math.hypot(wp.x - frame.ex, wp.y - frame.ey) <= frame.waypointRadius) {
-      nav.pathIndex += 1;
-    }
-    const nextWp = nav.path[nav.pathIndex];
-    if (nextWp) {
-      moveX = nextWp.x;
-      moveY = nextWp.y;
-    }
-  }
-  applyChaseVelocity(enemy, moveX, moveY, speedMul, { nav, deltaMs });
+  const move = nextPathMoveTarget(
+    nav,
+    frame.ex,
+    frame.ey,
+    frame.goal.x,
+    frame.goal.y,
+    frame.waypointRadius,
+  );
+  applyChaseVelocity(enemy, move.x, move.y, speedMul, { nav, deltaMs });
 }
 
 export type KiteBandOptions = {

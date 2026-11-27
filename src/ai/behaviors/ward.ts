@@ -1,3 +1,8 @@
+import {
+  chaseToward,
+  nextPathMoveTarget,
+  replanApproachPathIfDue,
+} from "./shared/pathApproach";
 import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { DEFENSE_MAP } from "../../config";
@@ -5,14 +10,8 @@ import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { worldUnit } from "../../config/worldScale";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
-import {
-  pathingPeerAgents,
-  replanEnemyPath,
-  resolveEnemyTarget,
-  wallPathingPlayerClearancePx,
-} from "../brainShared";
+import { resolveEnemyTarget } from "../brainShared";
 import type { EnemyBehavior, EnemyPeerAlly } from "./types";
-import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
 
 const RANGED_PROTECT_BEHAVIORS = new Set([
   "arrowRainArcher",
@@ -200,16 +199,7 @@ export function evaluateWardPostHold(
 }
 
 export const wardBehavior: EnemyBehavior = (ctx) => {
-  const {
-    enemy,
-    nav,
-    grid,
-    playerX,
-    playerY,
-    deltaMs,
-    peerAgents,
-    peerAllies,
-  } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAllies } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -312,56 +302,20 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
 
   const skipReplan = postHold?.skipReplan ?? false;
 
-  if (!skipReplan && (nav.replanMs <= 0 || nav.path.length === 0)) {
-    replanEnemyPath(
-      nav,
-      grid,
+  if (!skipReplan) {
+    replanApproachPathIfDue(
+      ctx,
       ex,
       ey,
       goalX,
       goalY,
-      waypointRadius,
-      pathingPeerAgents(
-        peerAgents,
-        targetKind,
-        playerX,
-        playerY,
-        wallPathingPlayerClearancePx(enemy.sprite.scene.registry),
-      ),
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
-
-  let moveX = goalX;
-  let moveY = goalY;
-  if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-    const wp = nav.path[nav.pathIndex]!;
-    const d = Math.hypot(wp.x - ex, wp.y - ey);
-    if (d <= waypointRadius) {
-      nav.pathIndex += 1;
-    }
-    const nextWp = nav.path[nav.pathIndex];
-    if (nextWp) {
-      moveX = nextWp.x;
-      moveY = nextWp.y;
-    }
-  }
-
-  applyChaseVelocity(
-    enemy,
-    moveX,
-    moveY,
-    0.82,
-    playerChaseVelocityOpts(enemy, {
-      nav,
-      deltaMs,
       targetKind,
-      playerX,
-      playerY,
-      peerAllies,
-    }),
-  );
+      waypointRadius,
+    );
+  }
+
+  const move = nextPathMoveTarget(nav, ex, ey, goalX, goalY, waypointRadius);
+  chaseToward(ctx, move, 0.82, targetKind);
 
   return { targetX: goalX, targetY: goalY, targetKind };
 };
