@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createNewSave } from "../core/save/GameState";
-import { hasEnoughGold } from "../core/economyPolicy";
+import { hasEnoughGold, spendGold } from "../core/economyPolicy";
 import { talentFixture } from "../test/talentFixture";
 import {
   canLearn,
@@ -30,6 +30,13 @@ describe("debugEconomy", () => {
     expect(
       pointsAvailable(createNewSave().talents, debugEconomyPolicy(reg)),
     ).toBeGreaterThan(0);
+  });
+
+  it("spendGold skips deduction when infinite gold is on", () => {
+    const reg = fakeRegistry();
+    setDebugInfiniteGold(reg, true);
+    const policy = debugEconomyPolicy(reg);
+    expect(spendGold(3, 50, policy)).toBe(3);
   });
 
   it("hasEnoughGold ignores balance when infinite gold is on", () => {

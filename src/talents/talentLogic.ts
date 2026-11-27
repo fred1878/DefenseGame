@@ -1,4 +1,4 @@
-import type { EconomyPolicy } from "../core/economyPolicy";
+import { type EconomyPolicy, spendGold } from "../core/economyPolicy";
 import type { OnHitProc, StatBonus, StatModifier } from "../gear/gearTypes";
 import type {
   SaveTalents,
@@ -177,7 +177,7 @@ export function resetTalents(
   if (!canResetTalents(catalog, talents, gold, policy)) return null;
   return {
     talents: { ...talents, ranks: {} },
-    gold: gold - catalog.config.resetCostGold,
+    gold: spendGold(gold, catalog.config.resetCostGold, policy),
   };
 }
 

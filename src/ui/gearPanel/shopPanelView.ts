@@ -3,6 +3,8 @@
  * grid, "Coming soon" cards, detail + compare and the bottom action bar.
  */
 import type { SaveGame } from "../../core/save/saveTypes";
+import { type EconomyPolicy, hasEnoughGold } from "../../core/economyPolicy";
+import { debugEconomyPolicy } from "../../debug/debugEconomy";
 import { consumableEffectLine } from "../../gear/consumables";
 import { goldAfterRow, type CompareRow } from "../../gear/gearCompare";
 import { bagItems } from "../../gear/inventory";
@@ -48,6 +50,9 @@ import {
   type TileView,
 } from "./gearPanelView";
 import { shopUpgradeInfo } from "./shopPanelLogic";
+function shopEconomyPolicy(ctx: GearPanelContext): EconomyPolicy | undefined {
+  return ctx.registry ? debugEconomyPolicy(ctx.registry) : undefined;
+}
 
 export type ShopCardView = {
   key: number;
@@ -126,13 +131,15 @@ export function shopHeader(
 
 function entryCard(
   entry: PanelEntry,
-  gold: number,
+  save: SaveGame,
   selected: boolean,
   selling: boolean,
+  policy?: EconomyPolicy,
 ): ShopCardView {
   const price = entry.price;
   const soldOut = entry.qty === 0;
-  const unaffordable = !selling && price !== null && price > gold;
+  const unaffordable =
+    !selling && price !== null && !hasEnoughGold(save, price, policy);
   const priceText = price === null ? "—" : soldOut ? "Sold out" : `${price}g`;
   const priceColor =
     price === null || soldOut
@@ -181,8 +188,9 @@ export function shopCards(
 ): ShopCardView[] {
   const selling = state.tab === "bag";
   const selectedKey = selling ? state.selectedUid : state.selectedOffer;
+  const policy = shopEconomyPolicy(ctx);
   return listEntries(ctx, save, state).map((e) =>
-    entryCard(e, save.gold, e.key === selectedKey, selling),
+    entryCard(e, save, e.key === selectedKey, selling, policy),
   );
 }
 
@@ -403,6 +411,7 @@ export function shopDetail(
       ? undefined
       : tabEntries(ctx, save, state).find((e) => e.key === key);
   if (!entry) return idleDetail(ctx, save, state);
+  const policy = shopEconomyPolicy(ctx);
   const d = emptyDetail();
   if (entry.kind === "consumable") {
     d.tile = consumableTile(entry.def, entry.count);
@@ -412,7 +421,8 @@ export function shopDetail(
     d.lines = consumableLines(save, entry.def);
     d.compareTitle = "Purchase";
     if (entry.price !== null) {
-      d.rows = [goldAfterRow("Gold after purchase", save.gold, -entry.price)];
+      const delta = policy?.infiniteGold ? 0 : -entry.price;
+      d.rows = [goldAfterRow("Gold after purchase", save.gold, delta)];
     }
     return d;
   }
@@ -435,10 +445,11 @@ export function shopDetail(
   d.againstColor = cmp.againstColor;
   d.rows = [...cmp.rows];
   if (entry.price !== null) {
+    const purchaseDelta = policy?.infiniteGold ? 0 : -entry.price;
     d.rows.push(
       selling
         ? goldAfterRow("Gold after sale", save.gold, entry.price)
-        : goldAfterRow("Gold after purchase", save.gold, -entry.price),
+        : goldAfterRow("Gold after purchase", save.gold, purchaseDelta),
     );
   }
   return d;
@@ -490,6 +501,7 @@ export function shopActions(
       },
     ];
   }
+  const policy = shopEconomyPolicy(ctx);
   const entry =
     state.selectedOffer === null
       ? undefined
@@ -519,7 +531,9 @@ export function shopActions(
     return out;
   }
   const affordable =
-    entry.price !== null && entry.price <= save.gold && entry.qty !== 0;
+    entry.price !== null &&
+    hasEnoughGold(save, entry.price, policy) &&
+    entry.qty !== 0;
   const bagRoom = bagItems(save.gear).length < ctx.loot.inventoryCapacity;
   return [
     {

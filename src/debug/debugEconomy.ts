@@ -3,7 +3,7 @@ import type { EconomyPolicy } from "../core/economyPolicy";
 export const DEBUG_INFINITE_GOLD_KEY = "debugInfiniteGold";
 export const DEBUG_INFINITE_TALENT_POINTS_KEY = "debugInfiniteTalentPoints";
 
-/** Session-only: town upgrades / shops ignore insufficient gold (gold still deducts when spent). */
+/** Session-only: all gold costs pass affordability checks without spending balance. */
 export function debugInfiniteGold(registry: Phaser.Data.DataManager): boolean {
   return registry.get(DEBUG_INFINITE_GOLD_KEY) === true;
 }
