@@ -1,6 +1,7 @@
 import type Phaser from "phaser";
 import type { DataStore } from "../../core/data/DataStore";
 import { recordCombatDamage } from "../../e2e/combatTally";
+import { publishE2E } from "../../e2e/e2eGlobal";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import type { DefenseTopHud } from "../../ui/hud/defenseTopHud";
 import type { TouchButtonHandle } from "../../ui/touch/touchButton";
@@ -8,6 +9,7 @@ import type { DamageNumberFx } from "./DamageNumberFx";
 import type { DefenseEnemySpawnerHost } from "./DefenseEnemySpawner";
 import type { DefenseNightEndShared } from "./DefenseNightEnd";
 import type { DefenseRunState } from "./DefenseRunState";
+import type { DefenseSceneE2eHost } from "./DefenseSceneE2EHost";
 
 /*
  * Adapters binding DefenseScene's run state and HUD to the night-end and
@@ -95,4 +97,26 @@ export function defenseEnemySpawnerHost(
       );
     },
   };
+}
+
+/** E2E mode: publish Defense scene state (with per-frame combat flags from `update`). */
+export function publishDefenseE2eState(
+  e2e: DefenseSceneE2eHost | null,
+  withFlags: boolean,
+): void {
+  if (!e2e) return;
+  publishE2E({
+    scene: "Defense",
+    ready: true,
+    player: e2e.playerPosition(),
+    ...(withFlags
+      ? {
+          flags: {
+            attackPhase: e2e.attackPhase(),
+            projectileCount: e2e.projectileCount(),
+            enemyCount: e2e.enemyCount(),
+          },
+        }
+      : {}),
+  });
 }

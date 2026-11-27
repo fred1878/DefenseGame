@@ -37,7 +37,6 @@ import type {
   defenseMinimapLayout,
 } from "../ui/hud/defenseMinimap";
 import { isE2EEnabled } from "../e2e/e2eMode";
-import { publishE2E } from "../e2e/e2eGlobal";
 import type { DefenseSceneE2eHost } from "./defense/DefenseSceneE2EHost";
 import { createRegisteredDefenseSceneE2eHost } from "./defense/defenseSceneE2eHook";
 import { DefenseRunState } from "./defense/DefenseRunState";
@@ -95,6 +94,7 @@ import {
 import {
   defenseEnemySpawnerHost,
   defenseNightEndContext,
+  publishDefenseE2eState,
 } from "./defense/DefenseSceneHosts";
 
 export class DefenseScene extends Phaser.Scene {
@@ -403,14 +403,7 @@ export class DefenseScene extends Phaser.Scene {
       ensureEndlessSpawnCap: () => this.ensureEndlessSpawnCap(),
     });
 
-    const e2e = isE2EEnabled() ? this.e2e : null;
-    if (e2e) {
-      publishE2E({
-        scene: "Defense",
-        ready: true,
-        player: e2e.playerPosition(),
-      });
-    }
+    if (isE2EEnabled()) publishDefenseE2eState(this.e2e, false);
 
     this.events.off("shutdown", this.onDefenseShutdown);
     this.events.once("shutdown", this.onDefenseShutdown);
@@ -451,19 +444,7 @@ export class DefenseScene extends Phaser.Scene {
       onNightEnd: (won, lossReason) => this.endNight(won, lossReason),
     });
 
-    const e2e = isE2EEnabled() ? this.e2e : null;
-    if (e2e) {
-      publishE2E({
-        scene: "Defense",
-        ready: true,
-        player: e2e.playerPosition(),
-        flags: {
-          attackPhase: e2e.attackPhase(),
-          projectileCount: e2e.projectileCount(),
-          enemyCount: e2e.enemyCount(),
-        },
-      });
-    }
+    if (isE2EEnabled()) publishDefenseE2eState(this.e2e, true);
   }
 
   private refreshHudText(living: number): void {

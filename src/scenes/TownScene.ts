@@ -28,10 +28,7 @@ import {
   popInputModality,
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
-import {
-  type createTouchButton,
-  interactiveObjectScreenRect,
-} from "../ui/touch/touchButton";
+import type { createTouchButton } from "../ui/touch/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import type { SpellBarSortPanel } from "../ui/panels/SpellBarSortPanel";
@@ -42,7 +39,6 @@ import {
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
 import type { WaveGroup } from "../core/data/DataStore";
-import { clampEndlessConcurrent } from "../core/endlessLimits";
 import {
   spawnTownBuildingControls,
   type TownBuildingControl,
@@ -75,6 +71,7 @@ import { dismissTownSetupScenes } from "./town/townSetupSceneLifecycle";
 import {
   collectTownUiTapTargets,
   isTownTouchButtonPressed,
+  e2eEndlessSelections,
 } from "./town/TownSceneE2E";
 import { collectTownTouchDebugUiRects } from "./town/TownTouchDebug";
 import { isPointerOverInteractive } from "../input/pointerOverInteractive";
@@ -207,23 +204,17 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const store = getDataStore(this.registry);
-    const out = collectTownUiTapTargets(
-      store,
+    return collectTownUiTapTargets(
+      getDataStore(this.registry),
       this.buildingControls,
       this.overlays,
+      blocksBaseLayerInput(this)
+        ? []
+        : [
+            ["town-gear", this.gearButton.container],
+            ["town-talents", this.talentsButton.container],
+          ],
     );
-    const header: Array<[string, ReturnType<typeof createTouchButton>]> = [
-      ["town-gear", this.gearButton],
-      ["town-talents", this.talentsButton],
-    ];
-    for (const [id, btn] of header) {
-      const r = interactiveObjectScreenRect(btn.container);
-      if (r && !blocksBaseLayerInput(this)) {
-        out[id] = { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-      }
-    }
-    return out;
   }
 
   e2eGetSpellSortSlotHitRects(): ReturnType<
@@ -263,11 +254,10 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
-    const store = getDataStore(this.registry);
-    const cap = clampEndlessConcurrent(
-      store.player.endlessPanelDefaultConcurrent,
+    const selections = e2eEndlessSelections(
+      getDataStore(this.registry),
+      enemyId,
     );
-    const selections: EndlessRunSelection[] = [{ enemyId, concurrentCap: cap }];
     this.overlays.transitionToDefense(() =>
       this.beginEndlessDefense(selections, infiniteHp),
     );
