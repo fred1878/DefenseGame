@@ -14,7 +14,7 @@ import {
   createStationaryRangedCombatState,
   updateStationaryRangedCombat,
 } from "./EnemyRangedCombat";
-import { mockEnemyInstance } from "./testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 
 function baseEnemy(
   behavior: "arrowRainArcher" | "javelineer" | "stationaryRanged",

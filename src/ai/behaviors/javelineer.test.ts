@@ -3,7 +3,7 @@ import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testJavelineerCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { javelineerBehavior } from "./javelineer";
 
 function mockJavelineer(x: number, y: number) {

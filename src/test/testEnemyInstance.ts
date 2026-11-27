@@ -1,9 +1,9 @@
 import { vi } from "vitest";
 import { createEnemyNav } from "../ai/EnemyBrain";
 import { resolveEnemyCombat } from "../core/enemyTuning";
-import { shippedEnemyCombatForBehavior } from "../test/shippedEnemyCombat";
-import type { EnemyInstance } from "./Enemy";
-import { createEnemyCombat } from "./EnemyCombat";
+import { shippedEnemyCombatForBehavior } from "./shippedEnemyCombat";
+import type { EnemyInstance } from "../entities/Enemy";
+import { createEnemyCombat } from "../entities/EnemyCombat";
 
 export function mockEnemyInstance(
   partial: Partial<EnemyInstance> & Pick<EnemyInstance, "behavior">,

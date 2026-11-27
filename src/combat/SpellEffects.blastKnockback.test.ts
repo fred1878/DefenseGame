@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ConfigLoadError } from "../core/configValidation";
 import { applySpellBlastAt } from "./SpellEffects";
-import { mockEnemyInstance } from "../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import type { SpellDefinition } from "../content/spells";
 
 function blastDef(partial: Partial<SpellDefinition> = {}): SpellDefinition {

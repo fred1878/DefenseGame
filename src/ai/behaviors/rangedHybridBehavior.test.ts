@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
 import { createRangedHybridCombatState } from "../../entities/EnemyRangedCombat";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { createEnemyNav } from "../EnemyBrain";

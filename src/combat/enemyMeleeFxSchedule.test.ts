@@ -3,7 +3,7 @@ import { ENEMY_MELEE_SLASH_SFX_KEYS } from "../audio/enemyMeleeSlashSfx";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import type { EnemyInstance } from "../entities/Enemy";
 import { createRangedHybridCombatState } from "../entities/enemyRanged/types";
-import { mockEnemyInstance } from "../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import { fakeScene } from "../test/fakeScene";
 import {
   cancelEnemyMeleeFxTimer,

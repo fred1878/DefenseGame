@@ -3,7 +3,7 @@ import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testArrowRainCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { arrowRainArcherBehavior } from "./arrowRainArcher";
 import * as EnemyBrain from "../EnemyBrain";
 

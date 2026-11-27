@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { applyEntityPhysics } from "../entities/entityPhysics";
-import { mockEnemyInstance } from "../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import {
   ENEMY_KNOCKBACK_WEIGHT_BASELINE,
   applyEnemyKnockbackFrom,

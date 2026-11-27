@@ -12,7 +12,7 @@ import {
   ICE_FX_TEXTURE,
 } from "../content/iceFxAssets";
 import type { SpellDefinition } from "../content/spells";
-import { mockEnemyInstance } from "../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import { asScene, fakeScene } from "../test/fakeScene";
 import type { EnemySpellStatusMap } from "./enemySpellStatus";
 import {

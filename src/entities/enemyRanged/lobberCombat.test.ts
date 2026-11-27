@@ -7,7 +7,7 @@ import {
   clearLobberAirborneTelegraph,
   updateLobberCombat,
 } from "./lobberCombat";
-import { mockEnemyInstance } from "../testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 
 describe("updateLobberCombat attack commit", () => {
   const base = shippedEnemyCombat("lobber");

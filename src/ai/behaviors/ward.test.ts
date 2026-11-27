@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {

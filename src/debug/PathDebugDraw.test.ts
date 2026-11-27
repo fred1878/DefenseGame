@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { asScene, fakeScene } from "../test/fakeScene";
-import { mockEnemyInstance } from "../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import { PathDebugDraw } from "./PathDebugDraw";
 import type { NavGrid } from "../pathfinding/grid";
 

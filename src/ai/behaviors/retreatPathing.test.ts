@@ -4,7 +4,7 @@ import { defenseHalfWidth } from "../../config/defense";
 import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import {
   applyRetreatPathing,
   applyTangentSlideAwayFromThreat,

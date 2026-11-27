@@ -7,7 +7,7 @@ import {
   fakeScene,
   type FakeScene,
 } from "../test/fakeScene";
-import { mockEnemyInstance } from "./testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import {
   projectileArcadeRadiusPx,
   spawnEnemyLobProjectile,

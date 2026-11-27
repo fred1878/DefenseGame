@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config/defense";
 import type { Damageable } from "../../combat/DamageSystem";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testChargerCombat } from "../../test/fixtures/inlineCombat";
 import { tickDefenseEnemies } from "./DefenseEnemyTick";

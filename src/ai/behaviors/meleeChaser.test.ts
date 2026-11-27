@@ -3,7 +3,7 @@ import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid, cellToWorldCenter } from "../../pathfinding/grid";
 import { hasLineOfSight } from "../../pathfinding/los";
 import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { meleeChaserBehavior } from "./meleeChaser";
 import { wallMeleeStandoffY } from "./movement";
 import { shouldMeleeLosShortcutToPlayer } from "./movement";

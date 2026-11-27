@@ -16,7 +16,7 @@ import {
 } from "./EnemyCombat";
 import { createRangedHybridCombatState } from "./EnemyRangedCombat";
 import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
-import { mockEnemyInstance } from "./testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 
 function mockEnemy(
   x: number,

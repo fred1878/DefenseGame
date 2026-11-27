@@ -7,7 +7,7 @@ import { resolve } from "node:path";
 import type { EnemyDefInput } from "../../core/normalizeEnemy";
 import { normalizeEnemyRow } from "../../core/normalizeEnemy";
 import { applyEnemyBodyRadii } from "../../entities/entityPhysics";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { createRangedHybridCombatState } from "../../entities/EnemyRangedCombat";
 
 const enemiesRaw = JSON.parse(
