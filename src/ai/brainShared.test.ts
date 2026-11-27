@@ -1,7 +1,7 @@
+import { defenseObstacles } from "../config/defense";
 import { tuning } from "../tuning/gameTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import { describe, expect, it } from "vitest";
-import { DEFENSE_OBSTACLES } from "../config";
 import {
   DEFENSE_MAP,
   northWallApproachY,
@@ -27,7 +27,11 @@ import {
 } from "./brainShared";
 
 describe("pickEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, maxNavObstacleClearancePx());
+  const grid = buildNavGrid(
+    defenseObstacles(),
+    16,
+    maxNavObstacleClearancePx(),
+  );
 
   it("huntPlayer always targets the player", () => {
     expect(
@@ -54,7 +58,7 @@ describe("pickEnemyTarget", () => {
   });
 
   it("targets wall when rock blocks LOS even if close", () => {
-    const rock = DEFENSE_OBSTACLES[0]!;
+    const rock = defenseObstacles()[0]!;
     const ex = rock.x - 30;
     const ey = rock.y;
     const px = rock.x + 30;
@@ -86,7 +90,11 @@ describe("pickEnemyTarget", () => {
 });
 
 describe("resolveEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, maxNavObstacleClearancePx());
+  const grid = buildNavGrid(
+    defenseObstacles(),
+    16,
+    maxNavObstacleClearancePx(),
+  );
 
   it("continues toward last known position after LOS breaks", () => {
     const nav = createEnemyNav();
@@ -172,7 +180,7 @@ describe("pathingPeerAgents", () => {
 describe("replanEnemyPath", () => {
   it("produces a non-empty path toward goal", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       16,
       maxNavObstacleClearancePx(),
     );

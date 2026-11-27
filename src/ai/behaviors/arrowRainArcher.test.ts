@@ -1,6 +1,7 @@
+import { defenseObstacles } from "../../config/defense";
 import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
-import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
+import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testArrowRainCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyNav } from "../brainShared";
@@ -71,7 +72,7 @@ describe("arrowRainArcherBehavior", () => {
 
   it("replans a flee path when inside preferred range", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
       maxNavObstacleClearancePx(),
     );

@@ -8,16 +8,19 @@ import {
 import { worldDisplayPx, worldScaleFactor, worldUnit } from "./worldScale";
 import type Phaser from "phaser";
 
+let fieldTiles: { cols: number; rows: number } = { cols: 0, rows: 0 };
+let obstaclePlacements: DefenseObstaclePlacement[] = [];
+let obstacleRects: DefenseObstacleRect[] = [];
+
 /** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
-export let DEFENSE_FIELD_TILES: { cols: number; rows: number } = {
-  cols: 0,
-  rows: 0,
-};
+export function defenseFieldTiles(): Readonly<{ cols: number; rows: number }> {
+  return fieldTiles;
+}
 
 export function assertDefenseFieldLoaded(): void {
-  if (DEFENSE_FIELD_TILES.cols < 1 || DEFENSE_FIELD_TILES.rows < 1) {
+  if (fieldTiles.cols < 1 || fieldTiles.rows < 1) {
     throw new Error(
-      "DEFENSE_FIELD_TILES not loaded — Boot must apply public/data/defense-maps.json",
+      "Defense field not loaded — Boot must apply public/data/defense-maps.json",
     );
   }
 }
@@ -38,8 +41,8 @@ export function defenseFieldPx(registry?: Phaser.Data.DataManager): {
   assertDefenseFieldLoaded();
   const step = defenseGroundTileStep(registry);
   return {
-    width: DEFENSE_FIELD_TILES.cols * step,
-    height: DEFENSE_FIELD_TILES.rows * step,
+    width: fieldTiles.cols * step,
+    height: fieldTiles.rows * step,
   };
 }
 
@@ -179,7 +182,9 @@ export type DefenseObstaclePlacement = {
 };
 
 /** Tile placements from `defense-maps.json` (empty until Boot). */
-export let DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [];
+export function defenseObstaclePlacements(): readonly DefenseObstaclePlacement[] {
+  return obstaclePlacements;
+}
 
 export function defenseObstacleSpriteAnchor(
   placement: DefenseObstaclePlacement,
@@ -223,13 +228,9 @@ export function defenseObstacleColliderFromPlacement(
   };
 }
 
-/** Static rock/wall blockers (world coords = Arcade body AABB center + size). */
-export let DEFENSE_OBSTACLES: DefenseObstacleRect[] = [];
-
-function refreshDefenseObstacleColliders(): void {
-  DEFENSE_OBSTACLES = DEFENSE_OBSTACLE_PLACEMENTS.map((p) =>
-    defenseObstacleColliderFromPlacement(p),
-  );
+/** Static rock/wall blockers at default world scale (Arcade body AABB center + size). */
+export function defenseObstacles(): readonly DefenseObstacleRect[] {
+  return obstacleRects;
 }
 
 /** Apply field footprint + obstacles from `public/data/defense-maps.json`. */
@@ -237,7 +238,9 @@ export function applyDefenseMapLayout(
   field: { cols: number; rows: number },
   obstacles: DefenseObstaclePlacement[],
 ): void {
-  DEFENSE_FIELD_TILES = { ...field };
-  DEFENSE_OBSTACLE_PLACEMENTS = obstacles.map((p) => ({ ...p }));
-  refreshDefenseObstacleColliders();
+  fieldTiles = { ...field };
+  obstaclePlacements = obstacles.map((p) => ({ ...p }));
+  obstacleRects = obstaclePlacements.map((p) =>
+    defenseObstacleColliderFromPlacement(p),
+  );
 }

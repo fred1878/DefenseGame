@@ -1,9 +1,6 @@
+import { defenseFieldTiles } from "../config/defense";
 import type Phaser from "phaser";
-import {
-  DEFENSE_FIELD_TILES,
-  defenseHalfHeight,
-  defenseHalfWidth,
-} from "../config";
+import { defenseHalfHeight, defenseHalfWidth } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { EnemyInstance } from "../entities/Enemy";
 import type { SafeInsets, ScreenRect } from "./screenLayout";
@@ -29,7 +26,7 @@ export function defenseMinimapLayout(
   const margin = scaleUiX(12);
   const width = scaleUiX(76);
   const height = Math.round(
-    width * (DEFENSE_FIELD_TILES.rows / DEFENSE_FIELD_TILES.cols),
+    width * (defenseFieldTiles().rows / defenseFieldTiles().cols),
   );
   const textTop = hudTextPosition(safe);
   const textBlockH = scaleUiY(78);

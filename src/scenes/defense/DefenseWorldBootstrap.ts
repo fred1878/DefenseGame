@@ -1,7 +1,7 @@
+import { defenseObstaclePlacements } from "../../config/defense";
 import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
 import {
-  DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
   type DefenseObstacleRect,
   defenseHalfHeight,
@@ -108,8 +108,8 @@ export function bootstrapDefenseWorld(
 
   const obstacleGroup = scene.physics.add.staticGroup();
   const obstacleBlockers = defenseObstacleBlockerRects(scene.registry);
-  for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
-    const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
+  for (let i = 0; i < defenseObstaclePlacements().length; i++) {
+    const placement = defenseObstaclePlacements()[i]!;
     const blocker = obstacleBlockers[i]!;
     const displayPos = defenseObstacleSpriteDisplayPosition(placement, reg);
     const art = scene.add.image(

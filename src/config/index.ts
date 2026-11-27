@@ -1,10 +1,7 @@
 export { GAME } from "./game";
 export type { AttackMode } from "./player";
 export {
-  DEFENSE_FIELD_TILES,
   DEFENSE_MAP,
-  DEFENSE_OBSTACLE_PLACEMENTS,
-  DEFENSE_OBSTACLES,
   defenseHalfHeight,
   defenseHalfWidth,
   defenseObstacleSpriteDisplayPosition,

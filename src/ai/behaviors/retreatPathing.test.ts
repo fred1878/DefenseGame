@@ -1,6 +1,7 @@
+import { defenseObstacles } from "../../config/defense";
 import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
-import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
+import { DEFENSE_MAP } from "../../config";
 import { defenseHalfWidth } from "../../config/defense";
 import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
 import { buildNavGrid } from "../../pathfinding/grid";
@@ -16,7 +17,7 @@ import * as BrainShared from "../brainShared";
 
 describe("retreatPathing", () => {
   const grid = buildNavGrid(
-    DEFENSE_OBSTACLES,
+    defenseObstacles(),
     DEFENSE_MAP.cellSize,
     maxNavObstacleClearancePx(),
   );
@@ -81,7 +82,7 @@ describe("retreatPathing", () => {
   });
 
   it("holds when flee and tangents are blocked on a boxed-in cell", () => {
-    const rock = DEFENSE_OBSTACLES[0]!;
+    const rock = defenseObstacles()[0]!;
     const enemy = mockEnemyInstance({
       defId: "arrow_rain_archer",
       behavior: "arrowRainArcher",
