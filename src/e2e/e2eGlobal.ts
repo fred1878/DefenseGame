@@ -75,9 +75,6 @@ export type DefenseGameE2EApi = {
   getAutoAttackEnabled(): boolean;
   /** Turn the HUD auto attack on or off (Defense only). */
   setAutoAttackEnabled(on: boolean): void;
-  syncDomMirrors(): void;
-  tapDomMirror(testId: string): void;
-  simulateScreenTap(x: number, y: number): void;
   getDefenseWallHp(): number;
   setSpawnPlanComplete(complete?: boolean): void;
   e2eBottomChromeTextureKey(): string | null;

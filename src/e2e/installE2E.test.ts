@@ -86,7 +86,7 @@ describe("installE2E", () => {
     markE2EAssetsLoaded({} as Phaser.Game);
   });
 
-  it("publishes Town and Defense scene state and DOM targets", () => {
+  it("publishes Town and Defense scene state", () => {
     vi.stubEnv("VITE_E2E", "true");
     windowStub();
     const listeners = new Map<string, Array<() => void>>();
@@ -150,7 +150,6 @@ describe("installE2E", () => {
     expect(getE2EState().api).toBeTruthy();
     expect(getE2EState().scene).toBe("Town");
     expect(getE2EState().ready).toBe(true);
-    expect(town.e2eGetUiTapTargets).toHaveBeenCalled();
 
     activeKey = "Defense";
     listeners.get(Phaser.Scenes.Events.CREATE)?.[0]?.();

@@ -21,7 +21,6 @@ import {
 } from "../scenes/town/townSetupSceneLifecycle";
 import { activeTownUiHost, activeEndlessSetupScene } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
-import { positionDomMirrors } from "./installE2EDom";
 import { castTally, combatTally, resetCombatTally } from "./combatTally";
 import { peekDataStore, peekSave, setSave } from "../core/registryKeys";
 
@@ -228,28 +227,6 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     setAutoAttackEnabled(on: boolean) {
       activeDefenseE2e(game)?.setAutoAttackEnabled(on);
-    },
-    syncDomMirrors() {
-      const defense = activeDefense(game);
-      if (defense) {
-        positionDomMirrors(e2eOf(defense).getUiTapTargets());
-        return;
-      }
-      const town = activeTownUiHost(game);
-      if (town) {
-        positionDomMirrors(town.e2eGetUiTapTargets());
-      }
-    },
-    tapDomMirror(testId: string) {
-      const defense = activeDefense(game);
-      if (!defense) return;
-      const targets = e2eOf(defense).getUiTapTargets();
-      const pt = targets[testId];
-      if (!pt) return;
-      e2eOf(defense).simulateScreenTap(pt.x, pt.y);
-    },
-    simulateScreenTap(x: number, y: number) {
-      activeDefenseE2e(game)?.simulateScreenTap(x, y);
     },
     getDefenseWallHp() {
       return activeDefenseE2e(game)?.wallHp() ?? 0;

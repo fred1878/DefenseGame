@@ -201,20 +201,4 @@ test.describe("real pointer / touch input", () => {
       )
       .toBe(false);
   });
-
-  test("@manual DOM mirror ATK button", async ({ page }) => {
-    await page.evaluate(() =>
-      window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors(),
-    );
-    await page.locator('[data-testid="combat-atk"]').click({ force: true });
-    await expect
-      .poll(
-        async () =>
-          page.evaluate(
-            () => window.__DEFENSEGAME_E2E__?.flags.attackPhase ?? "idle",
-          ),
-        { timeout: 10_000 },
-      )
-      .not.toBe("idle");
-  });
 });
