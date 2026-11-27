@@ -110,3 +110,24 @@ export function configurePixelArtTextures(scene: Phaser.Scene): void {
     scene.textures.get(key).setFilter(textureFilterForKey(key, mode));
   }
 }
+
+/** Generated SVG talent icons are vector art and look better smoothed. */
+const SMOOTH_TEXTURE_PREFIXES = ["talent_icon_"] as const;
+
+/**
+ * The renderer runs with `antialias: true` (so Text samples LINEAR at the hi-DPI
+ * backing resolution), which makes Phaser's default texture filter LINEAR. Keep the
+ * old pixel-art default: every texture added later starts NEAREST (or follows the
+ * debug filter mode), except known vector textures. Modules that want smoothing
+ * (e.g. `uiIconFrame`) still call `setFilter(LINEAR)` on first use.
+ */
+export function installNearestTextureDefault(game: Phaser.Game): void {
+  game.textures.on(
+    Phaser.Textures.Events.ADD,
+    (key: string, texture: Phaser.Textures.Texture) => {
+      if (SMOOTH_TEXTURE_PREFIXES.some((p) => key.startsWith(p))) return;
+      const mode = getDebugWorldTextureFilter(game.registry);
+      texture.setFilter(textureFilterForKey(key, mode));
+    },
+  );
+}

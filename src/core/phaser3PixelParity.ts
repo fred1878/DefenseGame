@@ -111,12 +111,25 @@ export function installPhaser3VertexRounding(phaser: typeof Phaser): void {
   proto.__phaser3Rounding = true;
 }
 
+/**
+ * Backing-store pixels per game unit (see `hiDpiCanvas.ts`). Quads snap to whole
+ * backing pixels, which at scale 1 is the Phaser 3 whole-game-pixel snap.
+ */
+let vertexSnapScale = 1;
+
+export function setVertexSnapScale(scale: number): void {
+  vertexSnapScale = scale > 0 ? scale : 1;
+}
+
 /** Phaser 3 `setQuad` rounding: snap corner 0, move the other corners by the same offset. */
-export function snapQuadLikePhaser3(quad: Float32Array | number[]): void {
+export function snapQuadLikePhaser3(
+  quad: Float32Array | number[],
+  scale: number = vertexSnapScale,
+): void {
   const x0 = quad[0] ?? 0;
   const y0 = quad[1] ?? 0;
-  const dx = Math.floor(x0 + 0.5) - x0;
-  const dy = Math.floor(y0 + 0.5) - y0;
+  const dx = Math.floor(x0 * scale + 0.5) / scale - x0;
+  const dy = Math.floor(y0 * scale + 0.5) / scale - y0;
   for (let i = 0; i < 8; i += 2) {
     quad[i] = (quad[i] ?? 0) + dx;
     quad[i + 1] = (quad[i + 1] ?? 0) + dy;

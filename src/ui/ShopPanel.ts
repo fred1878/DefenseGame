@@ -187,11 +187,14 @@ export class ShopPanel {
     );
     this.footnote = kit.text(270, 1172, "", {
       size: 12,
-      color: DG_THEME.textMuted,
+      color: DG_THEME.textSecondary,
       originX: 0.5,
       originY: 0.5,
     });
     this.refresh();
+    kit.whenTitleFontReady(() => {
+      if (!this.tornDown) this.refresh();
+    });
   }
 
   private onAction(id: ActionView["id"]): void {

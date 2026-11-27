@@ -49,7 +49,11 @@ import {
 } from "./talentPanel/talentPanelLayout";
 import { fitText } from "./gearPanel/dgPanelKit";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
-import { UI_FONT_FAMILY, uiTextStyle } from "./uiTextStyle";
+import {
+  rerenderTextsWhenFontReady,
+  UI_FONT_FAMILY,
+  uiTextStyle,
+} from "./uiTextStyle";
 
 type Button = ReturnType<typeof createTouchButton>;
 
@@ -186,7 +190,7 @@ export class TalentPanel {
           .setTint(0xe9dfcb),
       );
     }
-    this.text(L.pad + 84, headerMid - 14, "Talents", 30, DG.text, true)
+    this.text(L.pad + 84, headerMid - 14, "Talents", 32, DG.text, true)
       .setOrigin(0, 0.5)
       .setFontStyle("bold");
     this.text(
@@ -200,7 +204,7 @@ export class TalentPanel {
       W - L.pad - 16 - 40 - 12 - 48,
       headerMid,
       "",
-      17,
+      16,
       DG.goldBrightText,
       true,
     ).setOrigin(0.5);
@@ -239,9 +243,9 @@ export class TalentPanel {
     ];
     let lx = W - L.pad - 12;
     for (const [label, stroke, fill] of [...legend].reverse()) {
-      const t = this.text(lx, pbMid, label, 11, DG.textSecondary);
+      const t = this.text(lx, pbMid, label, 12, DG.textSecondary);
       t.setOrigin(1, 0.5);
-      lx -= label.length * 6 + 6;
+      lx -= Math.ceil(t.width || label.length * 6.5) + 8;
       this.chrome.fillStyle(fill, 1).fillCircle(lx - 5, pbMid, 5);
       this.chrome.lineStyle(2, stroke, 1).strokeCircle(lx - 5, pbMid, 5);
       lx -= 24;
@@ -266,7 +270,7 @@ export class TalentPanel {
           0,
           0.5,
         ),
-        spent: this.text(cx, headY + 37, "", 10, DG.goldText).setOrigin(0.5),
+        spent: this.text(cx, headY + 37, "", 12, DG.goldText).setOrigin(0.5),
       };
       this.layoutBranchHeader(view, cx, headY, b.name, "");
       this.branches.push(view);
@@ -282,8 +286,8 @@ export class TalentPanel {
         gx,
         top + 44,
         `${tierThreshold(catalog, t)} pts`,
-        9,
-        DG.textMuted,
+        12,
+        DG.textSecondary,
       ).setOrigin(0.5);
     });
 
@@ -308,7 +312,7 @@ export class TalentPanel {
           slot.x,
           slot.y + L.orbR + 14,
           loc.node.name,
-          11,
+          12,
           DG.text,
           false,
           { align: "center", wordWrap: { width: 74 } },
@@ -317,8 +321,8 @@ export class TalentPanel {
           slot.x,
           slot.y + L.orbR + 42,
           "",
-          9,
-          DG.textMuted,
+          12,
+          DG.textSecondary,
         ).setOrigin(0.5, 0),
       });
     }
@@ -326,7 +330,7 @@ export class TalentPanel {
     // Detail panel.
     const dx = L.pad + 16;
     const dy = this.layout.detailY + 14;
-    this.detailName = this.text(dx, dy, "", 22, DG.text, true)
+    this.detailName = this.text(dx, dy, "", 24, DG.text, true)
       .setOrigin(0, 0)
       .setFontStyle("bold");
     this.detailRankBg = scene.add.graphics();
@@ -335,7 +339,7 @@ export class TalentPanel {
       W - L.pad - 16,
       dy + 14,
       "",
-      13,
+      16,
       DG.goldBrightText,
       true,
     ).setOrigin(1, 0.5);
@@ -358,12 +362,12 @@ export class TalentPanel {
       });
     }
     this.procText = this.text(dx, dy + 78, "", 12, DG.textSecondary);
-    this.tierLeft = this.text(dx, dy + 122, "", 11, DG.textMuted);
+    this.tierLeft = this.text(dx, dy + 122, "", 12, DG.textSecondary);
     this.tierRight = this.text(
       W - L.pad - 16,
       dy + 122,
       "",
-      11,
+      12,
       DG.arcaneText,
     ).setOrigin(1, 0);
     this.statusText = this.text(
@@ -448,15 +452,11 @@ export class TalentPanel {
 
   /** Re-render Pixelify titles once the web font is ready (index.html @font-face). */
   private loadPixelFont(): void {
-    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
-    if (!fonts?.load) return;
-    void fonts
-      .load(`700 16px "${DAMAGE_NUMBER_FONT_FAMILY}"`)
-      .then(() => {
-        if (this.tornDown) return;
-        for (const t of this.pixelTexts) t.setFontFamily(PIXEL_FONT);
-      })
-      .catch(() => undefined);
+    rerenderTextsWhenFontReady(
+      `700 16px "${DAMAGE_NUMBER_FONT_FAMILY}"`,
+      () => (this.tornDown ? [] : this.pixelTexts),
+      () => this.refresh(),
+    );
   }
 
   private drawChrome(): void {

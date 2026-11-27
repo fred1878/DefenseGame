@@ -5,6 +5,7 @@ import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
 import { publishE2E } from "./e2e/e2eGlobal";
 import { clampRenderResolution } from "./core/displayScale";
+import { installHiDpiCanvas } from "./core/hiDpiCanvas";
 import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
 import {
   DEFAULT_WORLD_PIXEL_SCALE,
@@ -28,6 +29,9 @@ async function start(): Promise<void> {
   const { default: PhaserRuntime } = await import("phaser");
   markBoot("defensegame:phaser-import-end");
   installPhaser3VertexRounding(PhaserRuntime);
+  const { installNearestTextureDefault } = await import(
+    "./core/pixelArtTextures"
+  );
   measureBoot(
     "defensegame:phaser-import",
     "defensegame:phaser-import-start",
@@ -57,7 +61,10 @@ async function start(): Promise<void> {
     },
     render: {
       roundPixels: true,
-      antialias: false,
+      // The canvas backing store follows the screen (hiDpiCanvas.ts), so Text and
+      // default textures sample LINEAR at 1:1 and no CSS pixelated upscale is applied.
+      // Pixel-art keys stay NEAREST via configurePixelArtTextures.
+      antialias: true,
       preserveDrawingBuffer: e2eBuild,
     },
     input: {
@@ -77,6 +84,8 @@ async function start(): Promise<void> {
   hideLoadingSplash();
 
   game.registry.set("renderResolution", clampRenderResolution());
+  installNearestTextureDefault(game);
+  installHiDpiCanvas(game);
   game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
   if (isE2EEnabled()) {
