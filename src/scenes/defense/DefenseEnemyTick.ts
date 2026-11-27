@@ -1,4 +1,5 @@
 import { playerTuning } from "../../config/player";
+import { enemyCombatTick } from "./enemyCombatModules";
 import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
@@ -20,20 +21,8 @@ import {
   enforceEnemyDefenseBounds,
 } from "../../entities/entityPhysics";
 import { worldDisplayPx, worldUnit } from "../../config/worldScale";
-import { updateEnemyCombat } from "../../entities/EnemyCombat";
-import {
-  updateArrowRainCombat,
-  updateJavelineerCombat,
-  updateLobberCombat,
-  updateRangedHybridCombat,
-  updateStationaryRangedCombat,
-} from "../../entities/EnemyRangedCombat";
 import { interruptEnemyAttack } from "../../entities/enemyRanged/attackInterrupt";
-import {
-  spawnEnemyLobProjectile,
-  spawnEnemyProjectile,
-  type EnemyProjectile,
-} from "../../entities/Projectile";
+import type { EnemyProjectile } from "../../entities/Projectile";
 import type { Damageable } from "../../combat/DamageSystem";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import {
@@ -41,13 +30,7 @@ import {
   setEnemyChaseVelocity,
 } from "../../combat/enemyKnockback";
 import { updateEnemyNameplate } from "../../ui/enemyNameplate";
-import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../../content/assets";
-import {
-  enemyProjectileTextureKey,
-  PVFX_TEXTURE,
-} from "../../content/combatPvfxAssets";
-import { attachPvfxProjectileFx } from "../../combat/SpellPvfxProjectileFx";
-import { playBruiserMeleeCritHitOnPlayerFx } from "../../combat/BruiserPlayerCritHitFx";
+import { SPRITE_DISPLAY } from "../../content/assets";
 
 export type DefenseEnemyTickHost = {
   scene: Phaser.Scene;
@@ -184,180 +167,23 @@ export function tickDefenseEnemies(
             ...wallCombatPoint(e.sprite.x, host.scene.registry),
           };
 
-    let playerHitDamage = 0;
     const onWallHit = () => {
       const wallDamage = e.combatTuning.wall.damage;
       wallHp = Math.max(0, wallHp - wallDamage);
     };
-
-    if (e.behavior === "arrowRainArcher" && e.arrowRain) {
-      const rain = updateArrowRainCombat(
-        e,
-        attackTarget,
-        e.arrowRain,
-        delta,
-        onWallHit,
-      );
-      if (rain.hitPlayer) playerHitDamage += rain.damage;
-    } else if (e.behavior === "javelineer" && e.javelineer) {
-      const jav = updateJavelineerCombat(
-        e,
-        attackTarget,
-        e.javelineer,
-        delta,
-        onWallHit,
-      );
-      if (jav.spawnJavelin) {
-        const req = jav.spawnJavelin;
-        const id = host.nextProjectileId("ej_");
-        const javTune = e.combatTuning.javelineer!;
-        const javProj = spawnEnemyProjectile(
-          host.scene,
-          req.fromX,
-          req.fromY,
-          req.toX,
-          req.toY,
-          worldUnit(javTune.projectileSpeedWu, host.scene.registry),
-          req.damage,
-          worldUnit(javTune.projectileMaxTravelWu, host.scene.registry),
-          id,
-        );
-        javProj.sourceEnemyId = e.id;
-        host.maskWorldObject?.(javProj.sprite);
-        enemyProjectiles.push(javProj);
-      }
-      if (jav.meleeHit) playerHitDamage += e.damage;
-    } else if (e.behavior === "stationaryRanged" && e.stationaryRanged) {
-      const bolt = updateStationaryRangedCombat(
-        e,
-        attackTarget,
-        e.stationaryRanged,
-        delta,
-        onWallHit,
-      );
-      if (bolt.spawnBolt) {
-        const req = bolt.spawnBolt;
-        const tune = e.combatTuning.stationaryRanged!;
-        const id = host.nextProjectileId("es_");
-        const boltTexture = enemyProjectileTextureKey(
-          host.scene,
-          e.defId,
-          COMBAT_FX_TEXTURE.stoneThrow,
-        );
-        const boltProj = spawnEnemyProjectile(
-          host.scene,
-          req.fromX,
-          req.fromY,
-          req.toX,
-          req.toY,
-          worldUnit(tune.projectileSpeedWu, host.scene.registry),
-          req.damage,
-          worldUnit(tune.projectileMaxTravelWu, host.scene.registry),
-          id,
-          boltTexture,
-        );
-        if (boltTexture === PVFX_TEXTURE.arrowFlight) {
-          attachPvfxProjectileFx(
-            host.scene,
-            boltProj,
-            boltTexture,
-            host.maskWorldObject,
-          );
-        }
-        boltProj.sourceEnemyId = e.id;
-        host.maskWorldObject?.(boltProj.sprite);
-        enemyProjectiles.push(boltProj);
-      }
-    } else if (e.behavior === "rangedHybrid" && e.rangedHybrid) {
-      const hybrid = updateRangedHybridCombat(
-        e,
-        attackTarget,
-        e.rangedHybrid,
-        delta,
-        onWallHit,
-      );
-      if (hybrid.spawnBolt) {
-        const req = hybrid.spawnBolt;
-        const tune = e.combatTuning.stationaryRanged!;
-        const id = host.nextProjectileId("eh_");
-        const hybridProj = spawnEnemyProjectile(
-          host.scene,
-          req.fromX,
-          req.fromY,
-          req.toX,
-          req.toY,
-          worldUnit(tune.projectileSpeedWu, host.scene.registry),
-          req.damage,
-          worldUnit(tune.projectileMaxTravelWu, host.scene.registry),
-          id,
-        );
-        hybridProj.sourceEnemyId = e.id;
-        host.maskWorldObject?.(hybridProj.sprite);
-        enemyProjectiles.push(hybridProj);
-      }
-      if (hybrid.meleeHit) playerHitDamage += e.damage;
-    } else if (e.behavior === "charger") {
-      const extra = e.behaviorExtra;
-      const chargerTune = e.combatTuning.charger!;
-      if (
-        extra.chargeActiveMs > 0 &&
-        attackTarget.kind === "player" &&
-        !extra.chargeHitThisDash
-      ) {
-        const bodyR = enemyCollisionBodyRadius(e.defId);
-        const touch =
-          Math.hypot(px - e.sprite.x, py - e.sprite.y) <= bodyR + playerRadius;
-        if (touch) {
-          extra.chargeHitThisDash = true;
-          playerHitDamage += chargerTune.chargeDamage;
-        }
-      } else if (extra.chargeActiveMs <= 0 && extra.chargeWindupMs <= 0) {
-        const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
-        if (hitPlayer) playerHitDamage += e.damage;
-      }
-    } else if (e.behavior === "lobber" && e.lobber) {
-      const lob = updateLobberCombat(
-        e,
-        attackTarget,
-        e.lobber,
-        delta,
-        onWallHit,
-      );
-      if (lob.spawnLob) {
-        const req = lob.spawnLob;
-        const tune = e.combatTuning.lobber!;
-        const id = host.nextProjectileId("el_");
-        const proj = spawnEnemyLobProjectile(
-          host.scene,
-          req.fromX,
-          req.fromY,
-          req.toX,
-          req.toY,
-          tune.projectileSpeedWu,
-          req.damage,
-          tune.blastRadiusWu,
-          id,
-        );
-        (proj as EnemyProjectile & { lobDamageScale?: number }).lobDamageScale =
-          req.blastDamageScale;
-        proj.sourceEnemyId = e.id;
-        host.maskWorldObject?.(proj.sprite);
-        enemyProjectiles.push(proj);
-      }
-    } else {
-      const hitPlayer = updateEnemyCombat(e, attackTarget, delta, onWallHit);
-      if (hitPlayer) {
-        playerHitDamage += e.damage;
-        if (e.behavior === "bruiser" && attackTarget.kind === "player") {
-          playBruiserMeleeCritHitOnPlayerFx(
-            host.scene,
-            attackTarget.x,
-            attackTarget.y,
-            host.maskWorldObject,
-          );
-        }
-      }
-    }
+    const playerHitDamage = enemyCombatTick(e.behavior)({
+      scene: host.scene,
+      enemy: e,
+      target: attackTarget,
+      delta,
+      playerX: px,
+      playerY: py,
+      playerRadius,
+      onWallHit,
+      nextProjectileId: host.nextProjectileId,
+      maskWorldObject: host.maskWorldObject,
+      addProjectile: (proj) => enemyProjectiles.push(proj),
+    });
 
     if (
       playerHitDamage > 0 &&
