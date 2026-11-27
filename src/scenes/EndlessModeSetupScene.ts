@@ -12,6 +12,7 @@ import {
   TOWN_ENDLESS_SETUP_SCENE_KEY,
 } from "./town/townSetupSceneLifecycle";
 import { TownRosterSetupScene } from "./town/TownRosterSetupScene";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
 
 export class EndlessModeSetupScene extends TownRosterSetupScene<
   EndlessModePanel,
@@ -57,12 +58,15 @@ export class EndlessModeSetupScene extends TownRosterSetupScene<
         openPanel();
       })
       .catch((err) => {
-        console.error("Endless setup readiness failed", err);
-        this.loading?.showError("Could not load endless roster. Try again.");
-        this.time.delayedCall(2800, () => {
-          this.loading?.destroy();
-          this.loading = null;
-          closeTownSetupScene(this);
+        if (cancelled) return;
+        this.loading?.destroy();
+        this.loading = null;
+        reportFatal(this, {
+          title: "Could not load endless roster",
+          message: "Check your connection and try again.",
+          error: err,
+          onRetry: () => this.openSetup(store),
+          onClose: () => closeTownSetupScene(this),
         });
       });
   }

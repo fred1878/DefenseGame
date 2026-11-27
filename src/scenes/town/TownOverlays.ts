@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { reportFatal } from "../../ui/panels/FatalErrorPanel";
 import type { WaveGroup } from "../../core/data/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 import type { SaveGame } from "../../core/save/saveTypes";
@@ -204,13 +205,14 @@ export class TownOverlays {
         run();
       })
       .catch((err) => {
-        console.error("Night readiness failed", err);
-        this.defenseLoadingOverlay?.showError(
-          "Could not load defense. Try again.",
-        );
-        this.scene.time.delayedCall(2800, () => {
-          this.defenseLoadingOverlay?.destroy();
-          this.defenseLoadingOverlay = null;
+        this.defenseLoadingOverlay?.destroy();
+        this.defenseLoadingOverlay = null;
+        reportFatal(this.scene, {
+          title: "Could not load defense",
+          message: "Check your connection and try again.",
+          error: err,
+          onRetry: () => this.transitionToDefense(run),
+          onClose: () => {},
         });
       });
   }

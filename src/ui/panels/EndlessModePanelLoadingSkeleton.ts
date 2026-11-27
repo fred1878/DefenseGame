@@ -19,7 +19,6 @@ export const ENDLESS_PANEL_LOADING_SKELETON_ROWS = 5;
 export class EndlessModePanelLoadingSkeleton {
   private readonly root: Phaser.GameObjects.Container;
   private readonly modal: ModalPanel;
-  private readonly statusText: Phaser.GameObjects.Text;
   private readonly closeBtn: ReturnType<typeof createTouchButton>;
   private readonly onDismiss: (() => void) | undefined;
 
@@ -111,7 +110,7 @@ export class EndlessModePanelLoadingSkeleton {
     );
     this.root.add(footerSk);
 
-    this.statusText = scene.add
+    const statusText = scene.add
       .text(
         GAME.width / 2,
         footerY + scaleUiY(72),
@@ -122,7 +121,7 @@ export class EndlessModePanelLoadingSkeleton {
         }),
       )
       .setOrigin(0.5);
-    this.root.add(this.statusText);
+    this.root.add(statusText);
 
     this.closeBtn = createTouchButton(
       scene,
@@ -156,11 +155,6 @@ export class EndlessModePanelLoadingSkeleton {
   private dismiss(): void {
     this.onDismiss?.();
     this.destroy();
-  }
-
-  showError(message: string): void {
-    this.statusText.setText(message);
-    this.statusText.setColor(PALETTE_CSS.red400);
   }
 
   destroy(): void {

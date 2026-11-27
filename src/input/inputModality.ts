@@ -88,5 +88,6 @@ export const INPUT_MODALITY = {
   townTalents: { id: "town:talents", layer: "modal" as const },
   townDefenseLoading: { id: "town:defense-loading", layer: "modal" as const },
   debugMenu: { id: "debug-menu", layer: "modal" as const },
+  fatalError: { id: "fatal-error", layer: "modal" as const },
   defenseGroundAim: { id: "defense:ground-aim", layer: "transient" as const },
 } satisfies Record<string, InputModalityToken>;

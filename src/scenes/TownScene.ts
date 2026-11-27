@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
 import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { createDefaultAutoCastSpellIds } from "../content/spellBarAutoCast";
 import type { SaveGame } from "../core/save/saveTypes";
@@ -181,21 +182,7 @@ export class TownScene extends Phaser.Scene {
       this.fpsOverlay.destroy();
     });
 
-    markBoot("defensegame:town-prefetch-start");
-    void ensureTownReachableReady(this, store)
-      .then(() => {
-        markBoot("defensegame:town-prefetch-end");
-        measureBoot(
-          "defensegame:town-prefetch",
-          "defensegame:town-prefetch-start",
-          "defensegame:town-prefetch-end",
-        );
-        if (isE2EEnabled()) {
-          markE2EAssetsLoaded(this.game);
-          publishE2E({ assetsLoaded: true });
-        }
-      })
-      .catch((err) => console.error("Town prefetch failed", err));
+    this.startTownPrefetch(store);
 
     if (isE2EEnabled()) {
       publishE2E({ scene: "Town", ready: true });
@@ -271,6 +258,33 @@ export class TownScene extends Phaser.Scene {
     this.overlays.transitionToDefense(() =>
       this.beginEndlessDefense(selections, infiniteHp),
     );
+  }
+
+  /** Background prefetch of everything reachable from Town; Retry panel on failure. */
+  private startTownPrefetch(store: DataStore): void {
+    markBoot("defensegame:town-prefetch-start");
+    void ensureTownReachableReady(this, store)
+      .then(() => {
+        markBoot("defensegame:town-prefetch-end");
+        measureBoot(
+          "defensegame:town-prefetch",
+          "defensegame:town-prefetch-start",
+          "defensegame:town-prefetch-end",
+        );
+        if (isE2EEnabled()) {
+          markE2EAssetsLoaded(this.game);
+          publishE2E({ assetsLoaded: true });
+        }
+      })
+      .catch((err) => {
+        if (!this.scene.isActive()) return;
+        reportFatal(this, {
+          title: "Could not load town assets",
+          message: "Check your connection and try again.",
+          error: err,
+          onRetry: () => this.startTownPrefetch(store),
+        });
+      });
   }
 
   /**

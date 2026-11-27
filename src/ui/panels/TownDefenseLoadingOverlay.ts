@@ -14,7 +14,6 @@ const BOOT_BG = 0x0f1014;
 export class TownDefenseLoadingOverlay {
   private readonly root: Phaser.GameObjects.Container;
   private readonly modal: ModalPanel;
-  private readonly statusText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     const modal = openModalPanel(scene, {
@@ -39,7 +38,7 @@ export class TownDefenseLoadingOverlay {
       .setOrigin(0.5);
     this.root.add(title);
 
-    this.statusText = scene.add
+    const statusText = scene.add
       .text(
         GAME.width / 2,
         GAME.height / 2 + scaleUiY(28),
@@ -50,12 +49,7 @@ export class TownDefenseLoadingOverlay {
         }),
       )
       .setOrigin(0.5);
-    this.root.add(this.statusText);
-  }
-
-  showError(message: string): void {
-    this.statusText.setText(message);
-    this.statusText.setColor(PALETTE_CSS.red400);
+    this.root.add(statusText);
   }
 
   destroy(): void {

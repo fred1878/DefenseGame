@@ -12,7 +12,7 @@ describe("EndlessModePanelLoadingSkeleton", () => {
     expect(ENDLESS_PANEL_LOADING_SKELETON_ROWS).toBeLessThanOrEqual(8);
   });
 
-  it("builds the overlay, reports close targets, and can show an error", () => {
+  it("builds the overlay and reports close targets", () => {
     const scene = fakeScene();
     const onDismiss = vi.fn();
     const overlay = new EndlessModePanelLoadingSkeleton(
@@ -23,12 +23,6 @@ describe("EndlessModePanelLoadingSkeleton", () => {
     expect(scene.made("rectangle").length).toBeGreaterThan(
       ENDLESS_PANEL_LOADING_SKELETON_ROWS,
     );
-    overlay.showError("could not load roster");
-    const status = scene
-      .made("text")
-      .find((t) => t.args.includes("Loading roster…"));
-    expect(status?.last("setText")).toEqual(["could not load roster"]);
-    expect(status?.last("setColor")).toEqual(["#f87171"]);
     const targets = overlay.e2eTapTargets();
     expect(typeof targets).toBe("object");
     overlay.destroy();

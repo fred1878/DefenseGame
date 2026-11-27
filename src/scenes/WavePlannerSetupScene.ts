@@ -5,10 +5,12 @@ import {
 } from "./loading/GameAssetLoader";
 import { WavePlannerPanel } from "../ui/panels/WavePlannerPanel";
 import {
+  closeTownSetupScene,
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
   type WavePlannerSetupLaunchData,
 } from "./town/townSetupSceneLifecycle";
 import { TownRosterSetupScene } from "./town/TownRosterSetupScene";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
 
 export class WavePlannerSetupScene extends TownRosterSetupScene<
   WavePlannerPanel,
@@ -36,7 +38,17 @@ export class WavePlannerSetupScene extends TownRosterSetupScene<
     if (isTownReachableReady(this.game, store)) {
       open();
     } else {
-      void ensureTownReachableReady(this, store).then(open);
+      void ensureTownReachableReady(this, store)
+        .then(open)
+        .catch((err) => {
+          reportFatal(this, {
+            title: "Could not load the wave planner",
+            message: "Check your connection and try again.",
+            error: err,
+            onRetry: () => this.openSetup(store),
+            onClose: () => closeTownSetupScene(this),
+          });
+        });
     }
   }
 

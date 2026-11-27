@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { GAME } from "../config";
 import { markBoot, measureBoot } from "../core/bootPerf";
 import {
   queueMinimalTownBootAssets,
@@ -13,6 +12,7 @@ import { applySaveLoadout } from "../talents/talentRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { setDataStore, setSave } from "../core/registryKeys";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -50,12 +50,12 @@ export class BootScene extends Phaser.Scene {
         "defensegame:boot-data-end",
       );
     } catch (err) {
-      this.add
-        .text(GAME.width / 2, GAME.height / 2, "Failed to load data", {
-          color: "#ff6b6b",
-        })
-        .setOrigin(0.5);
-      console.error(err);
+      reportFatal(this, {
+        title: "Failed to load data",
+        message: "Check your connection and try again.",
+        error: err,
+        onRetry: () => this.scene.restart(),
+      });
       return;
     }
     getDebugFlags(this.registry);
