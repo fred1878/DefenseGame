@@ -70,4 +70,25 @@ describe("town name plate", () => {
     plate.moveTo(100, 50);
     expect(c.last("setY")).toEqual([50]);
   });
+
+  it("hides its parts while baked and reports a key that tracks content", () => {
+    const scene = fakeScene({ textures: parts });
+    const plate = createTownPlate(
+      asScene(scene),
+      200,
+      300,
+      { name: "Haunted Well", action: "Endless" },
+      20,
+    );
+    const k1 = plate.bakeKey();
+    plate.setBaked(true);
+    const kids = (plate.container as unknown as { list: FakeGameObject[] })
+      .list;
+    expect(kids.every((k) => k.visible === false)).toBe(true);
+    expect(plate.container.visible).not.toBe(false);
+    plate.setBaked(false);
+    expect(kids.some((k) => k.visible !== false)).toBe(true);
+    plate.update({ name: "Haunted Well", action: "Spells" });
+    expect(plate.bakeKey()).not.toBe(k1);
+  });
 });

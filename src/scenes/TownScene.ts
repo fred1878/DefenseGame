@@ -563,6 +563,9 @@ export class TownScene extends Phaser.Scene {
       if (!def) continue;
       control.update(this.buildingView(store, id, def, growth));
     }
+    this.world.bake(
+      [...this.buildingControls.values()].map((c) => c.bakeArt()),
+    );
     this.hud.update(this.save, growth);
   }
 

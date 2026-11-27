@@ -124,6 +124,10 @@ describe("spawnTownBuildingControls", () => {
     const box = control.container.input?.hitArea as Phaser.Geom.Rectangle;
     expect(box.height).toBeCloseTo(TOWN_ISO_SPRITES.market_hall![3] * 0.6);
 
+    const art = control.bakeArt();
+    expect(art.key).toBe("market:market_hall");
+    expect(art.sprite).toBe(sprite);
+    expect(art.shadow).toBe(shadow);
     control.setInputEnabled(false);
     expect(control.container.input?.enabled).toBe(false);
     control.setInputEnabled(true);

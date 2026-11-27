@@ -11,7 +11,8 @@ import {
   TOWN_ISO_SPRITES,
   TOWN_ISO_STAGES,
 } from "../../world/townIso/townIsoStageData";
-import { createTownPlate } from "../../ui/townBuildingPlate";
+import type { TownBakeArt } from "../../systems/TownBuildings";
+import { createTownPlate, type TownPlate } from "../../ui/townBuildingPlate";
 import type {
   TownIsoLightColor,
   TownStageIndex,
@@ -19,6 +20,8 @@ import type {
 
 /** Render depths of the town world layers (HUD and plates sit above 10). */
 export const TOWN_ISO_DEPTH = {
+  /** The baked world + name plates (everything below except smoke). */
+  baked: 0.05,
   ground: 0.1,
   fog: 0.2,
   plot: 0.3,
@@ -49,6 +52,10 @@ const TOWN_LOCKED_PLATE_DEPTH = 19;
 /** Mockup "Empty plot" spot (screen px) shown locked until the next stage. */
 export const TOWN_LOCKED_PLOT_SCREEN = { x: 282, y: 640 } as const;
 
+/** Static world objects that get baked (all have depth + visibility). */
+type BakeableObject = Phaser.GameObjects.GameObject &
+  Phaser.GameObjects.Components.Visible & { depth: number };
+
 type SmokePuff = {
   img: Phaser.GameObjects.Image;
   x: number;
@@ -67,9 +74,16 @@ export const TOWN_ISO_SCALE = TOWN_ISO_VIEW.scale;
  */
 export class TownIsoWorld {
   private objects: Phaser.GameObjects.GameObject[] = [];
+  /** Objects drawn into the bake (ground, fog, plot, scenery, lights, vignette). */
+  private statics: BakeableObject[] = [];
   private puffs: SmokePuff[] = [];
   private builtStage: TownStageIndex | null = null;
   private builtKey = "";
+  private bakeRt: Phaser.GameObjects.RenderTexture | null = null;
+  private bakedKey = "";
+  private lockedPlate: TownPlate | null = null;
+  /** Building art from the last `bake` call; `tick` re-bakes plates when they change. */
+  private art: readonly TownBakeArt[] = [];
 
   constructor(private readonly scene: Phaser.Scene) {}
 
@@ -94,7 +108,7 @@ export class TownIsoWorld {
     this.buildLights(stage);
     for (const [x, y] of data.smoke) this.addSmokeSource(x, y);
     if (unlockTownLevel !== null) this.buildLockedPlot(unlockTownLevel);
-    this.track(
+    this.trackStatic(
       this.scene.add
         .image(0, 0, TOWN_ISO_TEXTURE.vignette)
         .setOrigin(0)
@@ -103,8 +117,77 @@ export class TownIsoWorld {
     );
   }
 
+  /**
+   * Draw the static world, the buildings' art and contact shadows (in depth order) and then
+   * the name plates into one screen-sized render texture, and hide the originals.
+   * Software-rendered WebGL (CI, low-end devices) otherwise pays for ~5 full-screen layers,
+   * 60+ sprites and every plate part each frame. Building and plate containers stay visible
+   * (with hidden parts) so their hit areas still work. Only redrawn when something it shows
+   * changed (stage, a building's art tier, a plate's content or layout).
+   */
+  bake(art: readonly TownBakeArt[]): void {
+    this.art = art;
+    this.rebakeIfStale();
+  }
+
+  private bakePlates(): TownPlate[] {
+    const plates = this.art.map((a) => a.plate);
+    if (this.lockedPlate) plates.push(this.lockedPlate);
+    return plates;
+  }
+
+  private rebakeIfStale(): void {
+    const plates = this.bakePlates();
+    const key = [
+      this.builtKey,
+      ...this.art.map((a) => a.key),
+      ...plates.map((p) => p.bakeKey()),
+    ].join("|");
+    if (key === this.bakedKey) return;
+    this.bakedKey = key;
+    if (!this.bakeRt) {
+      this.bakeRt = this.scene.add
+        .renderTexture(0, 0, GAME.width, GAME.height)
+        .setOrigin(0)
+        .setDepth(TOWN_ISO_DEPTH.baked);
+      // Drawn 1:1 on screen: nearest keeps the baked pixels exactly as rendered.
+      this.bakeRt.texture?.setFilter?.(Phaser.Textures.FilterMode.NEAREST);
+      // Snap sprites like the scene camera does (game config roundPixels), so the bake is
+      // as crisp as drawing them live.
+      this.bakeRt.camera?.setRoundPixels?.(true);
+    }
+    const rt = this.bakeRt;
+    const items: BakeableObject[] = [...this.statics];
+    for (const a of this.art) {
+      a.sprite.setVisible(true);
+      items.push(
+        a.shadow as BakeableObject,
+        a.container as unknown as BakeableObject,
+      );
+    }
+    for (const o of items) o.setVisible(true);
+    // Stable sort keeps creation order for equal depths, like the display list.
+    items.sort((a, b) => (a.depth ?? 0) - (b.depth ?? 0));
+    const sortedPlates = [...plates].sort(
+      (a, b) => (a.container.depth ?? 0) - (b.container.depth ?? 0),
+    );
+    for (const p of sortedPlates) p.setBaked(false);
+    rt.clear();
+    for (const o of items) rt.draw(o);
+    for (const p of sortedPlates) rt.draw(p.container);
+    rt.render();
+    for (const o of this.statics) o.setVisible(false);
+    for (const a of this.art) {
+      a.sprite.setVisible(false);
+      a.shadow.setVisible(false);
+    }
+    for (const p of sortedPlates) p.setBaked(true);
+  }
+
   /** Advance chimney smoke. */
   tick(deltaMs: number): void {
+    // Plates re-lay out on their own (web font load); keep the baked copy current.
+    if (this.bakedKey) this.rebakeIfStale();
     for (const p of this.puffs) {
       p.age = (p.age + deltaMs) % SMOKE_LIFE_MS;
       this.placePuff(p);
@@ -113,6 +196,9 @@ export class TownIsoWorld {
 
   destroy(): void {
     this.clear();
+    this.bakeRt?.destroy();
+    this.bakeRt = null;
+    this.art = [];
     this.builtStage = null;
     this.builtKey = "";
   }
@@ -120,7 +206,10 @@ export class TownIsoWorld {
   private clear(): void {
     for (const o of this.objects) o.destroy();
     this.objects = [];
+    this.statics = [];
     this.puffs = [];
+    this.lockedPlate = null;
+    this.bakedKey = "";
   }
 
   private track<T extends Phaser.GameObjects.GameObject>(obj: T): T {
@@ -128,12 +217,17 @@ export class TownIsoWorld {
     return obj;
   }
 
+  private trackStatic<T extends BakeableObject>(obj: T): T {
+    this.statics.push(obj);
+    return this.track(obj);
+  }
+
   /** Dashed diamond on the ground and a grey plate: "Empty plot · Unlocks at Town Lv N". */
   private buildLockedPlot(unlockTownLevel: number): void {
     const { x, y } = TOWN_LOCKED_PLOT_SCREEN;
     const hw = 58;
     const hh = 28;
-    const g = this.track(
+    const g = this.trackStatic(
       this.scene.add.graphics().setDepth(TOWN_ISO_DEPTH.plot),
     );
     const pts = [
@@ -178,13 +272,14 @@ export class TownIsoWorld {
       TOWN_LOCKED_PLATE_DEPTH,
     );
     this.track(plate.container);
+    this.lockedPlate = plate;
   }
 
   private buildGround(stage: TownStageIndex): void {
     const data = TOWN_ISO_STAGES[stage];
     if (!data) return;
     const V = TOWN_ISO_VIEW;
-    const rt = this.track(
+    const rt = this.trackStatic(
       this.scene.add
         .renderTexture(0, 0, V.viewWidth, V.viewHeight)
         .setOrigin(0)
@@ -203,7 +298,7 @@ export class TownIsoWorld {
     }
     rt.render();
     const fogKey = TOWN_ISO_TEXTURE.fog[stage];
-    this.track(
+    this.trackStatic(
       this.scene.add
         .image(0, 0, fogKey)
         .setOrigin(0)
@@ -223,7 +318,7 @@ export class TownIsoWorld {
       const [ax, ay, w, h] = frame;
       const s = isoWorldToScreen(wx, wy);
       const flip = flags.flip === true;
-      this.track(
+      this.trackStatic(
         this.scene.add
           .image(s.x, s.y, TOWN_ISO_ATLAS.dim, key)
           .setOrigin(flip ? 1 - ax / w : ax / w, ay / h)
@@ -240,7 +335,7 @@ export class TownIsoWorld {
     if (!data) return;
     for (const [wx, wy, color, rad, k] of data.lights) {
       const s = isoWorldToScreen(wx, wy);
-      this.track(
+      this.trackStatic(
         this.scene.add
           .image(s.x, s.y, TOWN_ISO_TEXTURE.light)
           .setDisplaySize(rad * 2 * TOWN_ISO_SCALE, rad * 1.1 * TOWN_ISO_SCALE)

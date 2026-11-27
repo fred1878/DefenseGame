@@ -37,6 +37,17 @@ export type TownBuildingControl = {
   update: (view: TownBuildingView) => void;
   /** Tap point in game/canvas coords (centre of the sprite's tap box, for e2e taps). */
   spriteCenter: () => { x: number; y: number };
+  /** Static art the town bakes into its world layer (see `TownIsoWorld.bake`). */
+  bakeArt: () => TownBakeArt;
+};
+
+/** A building's static art: `key` changes whenever the drawn tier changes. */
+export type TownBakeArt = {
+  key: string;
+  shadow: Phaser.GameObjects.Image;
+  container: Phaser.GameObjects.Container;
+  sprite: Phaser.GameObjects.Image;
+  plate: TownPlate;
 };
 
 export type SpawnTownBuildingControlsOpts = {
@@ -121,12 +132,14 @@ export function spawnTownBuildingControls(
     );
     let tapBox = townBuildingTapBox(first.tier, def, scale);
     let foot = townBuildingFootScreen(slot, first.tier);
+    let tierKey = first.tier.key;
 
     const update = (view: TownBuildingView): void => {
       const t = view.tier;
       const frame = TOWN_ISO_SPRITES[t.key];
       const [ax, ay, w, h] = frame ?? [0, 0, 1, 1];
       foot = townBuildingFootScreen(slot, t);
+      tierKey = t.key;
       container
         .setPosition(foot.x, foot.y)
         .setDepth(isoDepthForWorldY(foot.worldY));
@@ -159,12 +172,9 @@ export function spawnTownBuildingControls(
     update(first);
 
     container.setInteractive(tapBox, Phaser.Geom.Rectangle.Contains);
-    bindContainerPress(scene, container, () => opts.onTap(buildingId, def), {
-      bg: sprite,
-      colors: { rest: 0xffffff, pressed: 0xb8b8b8 },
-      pressScale: 0.97,
-      textured: true,
-    });
+    // No press tint/scale: the art is baked into the world layer and the tap opens its panel
+    // on pointerdown anyway.
+    bindContainerPress(scene, container, () => opts.onTap(buildingId, def));
     const plateObj = plate.container;
     plate.makeTappable(() => opts.onTap(buildingId, def));
 
@@ -184,6 +194,13 @@ export function spawnTownBuildingControls(
       spriteCenter: () => ({
         x: foot.x + tapBox.x + tapBox.width / 2,
         y: foot.y + tapBox.y + tapBox.height / 2,
+      }),
+      bakeArt: () => ({
+        key: `${buildingId}:${tierKey}`,
+        shadow,
+        container,
+        sprite,
+        plate,
       }),
     });
   }

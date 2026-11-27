@@ -25,6 +25,13 @@ export type TownPlate = {
   moveTo: (x: number, y: number) => void;
   /** Make the plate (box + crest) a tap target. */
   makeTappable: (onTap: () => void) => void;
+  /** Changes whenever what the plate draws changes (content, position, font re-render). */
+  bakeKey: () => string;
+  /**
+   * Baked plates hide their parts (a render texture draws them); the container stays visible
+   * so its hit area keeps working.
+   */
+  setBaked: (baked: boolean) => void;
 };
 
 const NAME_PX = 15;
@@ -99,6 +106,15 @@ export function createTownPlate(
   let current = info;
   let width = 0;
   let height = PLATE_H;
+  let baked = false;
+  let fontRenders = 0;
+
+  const applyVisibility = (): void => {
+    for (const child of container.list) {
+      (child as Phaser.GameObjects.Image).setVisible(!baked);
+    }
+    if (!baked) crest.setVisible(current.locked !== true);
+  };
 
   const ensureFrame = (locked: boolean): void => {
     if (frame && frameLocked === locked) return;
@@ -138,7 +154,6 @@ export function createTownPlate(
         width,
         height,
       );
-    crest.setVisible(!locked);
     name.setPosition(0, locked ? 5 : 7);
     const rowY = locked ? 21 : 25;
     let cx = -rowW / 2;
@@ -179,6 +194,7 @@ export function createTownPlate(
     container.setX(Math.min(Math.max(anchorX, minX), maxX));
     const hit = container.input?.hitArea as Phaser.Geom.Rectangle | undefined;
     hit?.setTo?.(-width / 2, -16, width, height + 16);
+    applyVisibility();
   };
 
   const update = (next: TownPlateInfo): void => {
@@ -208,7 +224,10 @@ export function createTownPlate(
   rerenderTextsWhenFontReady(
     `700 ${NAME_PX}px "Pixelify Sans"`,
     () => [name, lv, action],
-    layout,
+    () => {
+      fontRenders++;
+      layout();
+    },
   );
 
   return {
@@ -225,6 +244,12 @@ export function createTownPlate(
         Phaser.Geom.Rectangle.Contains,
       );
       bindContainerPress(scene, container, onTap);
+    },
+    bakeKey: () =>
+      `${JSON.stringify(current)}@${container.x},${container.y}#${fontRenders}`,
+    setBaked: (b: boolean) => {
+      baked = b;
+      applyVisibility();
     },
   };
 }

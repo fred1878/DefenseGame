@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { TownBakeArt } from "../../systems/TownBuildings";
+import { createTownPlate } from "../../ui/townBuildingPlate";
 import { asScene, fakeScene, type FakeGameObject } from "../../test/fakeScene";
 import { TOWN_ISO_STAGES } from "../../world/townIso/townIsoStageData";
 import { TownIsoWorld } from "./TownIsoWorld";
@@ -43,5 +45,59 @@ describe("TownIsoWorld", () => {
     world.destroy();
     expect(world.stage).toBeNull();
     expect(puff.destroyed).toBe(true);
+  });
+
+  it("bakes the static world, building art and plates into one layer and hides them", () => {
+    const scene = fakeScene();
+    const world = new TownIsoWorld(asScene(scene));
+    world.build(1, 5);
+    const phaser = asScene(scene);
+    const sprite = phaser.add.image(0, 0, "town_iso_lit", "watchtower");
+    const container = phaser.add.container(10, 10).setDepth(1.5);
+    const shadow = phaser.add.image(0, 0, "town_iso_light").setDepth(0.5);
+    const plate = createTownPlate(
+      asScene(scene),
+      100,
+      100,
+      { name: "Beacon", action: "Wall", level: 1, maxLevel: 8 },
+      20,
+    );
+    const art = {
+      key: "beacon:watchtower",
+      sprite,
+      container,
+      shadow,
+      plate,
+    } as unknown as TownBakeArt;
+    world.bake([art]);
+    const rts = scene.made("renderTexture");
+    const bake = rts.at(-1) as FakeGameObject;
+    expect(bake.args.slice(2, 4)).toEqual([540, 1200]);
+    const drawn = bake.callsTo("draw").map(([o]) => o);
+    expect(drawn).toContain(container);
+    expect(drawn).toContain(shadow);
+    // Plates go on top of the world.
+    expect(drawn.indexOf(plate.container)).toBeGreaterThan(
+      drawn.indexOf(container),
+    );
+    expect(drawn.indexOf(shadow)).toBeLessThan(drawn.indexOf(container));
+    expect(bake.callsTo("render")).toHaveLength(1);
+    expect((sprite as unknown as FakeGameObject).visible).toBe(false);
+    expect((shadow as unknown as FakeGameObject).visible).toBe(false);
+    // Containers stay visible so their hit areas keep working.
+    expect((container as unknown as FakeGameObject).visible).not.toBe(false);
+    const dim = scene.made("image").find((i) => i.args[2] === "town_iso_dim");
+    expect(dim?.visible).toBe(false);
+
+    // Nothing changed: no redraw. A plate change is picked up on the next tick.
+    world.bake([art]);
+    world.tick(16);
+    expect(bake.callsTo("render")).toHaveLength(1);
+    plate.update({ name: "Beacon", action: "Wall", level: 2, maxLevel: 8 });
+    world.tick(16);
+    expect(bake.callsTo("render")).toHaveLength(2);
+
+    world.destroy();
+    expect(bake.destroyed).toBe(true);
   });
 });

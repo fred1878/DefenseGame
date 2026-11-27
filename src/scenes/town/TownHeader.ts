@@ -76,7 +76,9 @@ export type TownHud = {
 
 /** Gothic top bar (title, status, gold) and bottom bar (town level + growth). */
 export function createTownHeader(scene: Phaser.Scene): TownHud {
-  scene.add.rectangle(0, 0, GAME.width, GAME.height, 0x0e0d10).setOrigin(0);
+  // Camera clear instead of a full-screen rectangle: the baked town world covers the screen,
+  // and every full-screen layer is costly under software-rendered WebGL.
+  scene.cameras?.main?.setBackgroundColor(0x0e0d10);
   addHudBar(scene, TOWN_ISO_TEXTURE.topBar, 0, TOP_BAR_H, 16, 32);
   const bottomY = GAME.height - BOTTOM_BAR_H;
   addHudBar(scene, TOWN_ISO_TEXTURE.bottomBar, bottomY, BOTTOM_BAR_H, 34, 16);
