@@ -66,7 +66,7 @@ Per night attempt:
    nights × 4 attempts, then the run is "unfinished"). Drops come from
    `rollNightDrops` (won / lost table) into the bag; full bag ⇒ auto-sold.
    A win wears the wall by 2 HP; a loss knocks it down (rebuilt next night).
-   The campaign is 20 nights (`waves.json`).
+   The sim plays the 20 authored nights (`waves.json`); the campaign itself continues past them in the game.
 3. **Town.** Shops restock (`ensureShopStock`: trader stock and blacksmith
    masterworks at the bought shop level), blacksmith catalogue unlocks by
    night. The strategy equips upgrades, sells surplus at `sellBackPct`, and

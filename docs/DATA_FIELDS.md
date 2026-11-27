@@ -841,7 +841,7 @@ Each group:
 | `hpMul` | Optional HP multiplier for every enemy in the group (default 1). At `gameplay.json` `waves.eliteHpMul` or more the enemies spawn as "Elite" (nameplate prefix). Used for late-night elites. |
 | `damageMul` | Optional damage multiplier for every enemy in the group (default 1): scales the enemy's hit (`damage`), wall hit and ranged / charge damage (`combat` keys named `damage` or ending in `Damage`). Used for late-night tough groups and elites. |
 
-`DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`. The campaign has nights 1–20; after night 20 the night-20 wave repeats (there is no end screen yet).
+`DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`. Nights 1–20 are authored; 20 is the current content limit, not a campaign end, so nights 21+ reuse the night-20 wave until more rows exist.
 
 ---
 

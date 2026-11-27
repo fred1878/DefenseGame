@@ -38,4 +38,4 @@ Grunts, bruisers, and skirmishers path toward the **north wall** unless the play
 
 Each enemy id has a unique `textureKey` (`enemy_<id>`) and four facing PNGs in `public/assets/sprites/enemies/<id>/`.
 
-If a night is missing from JSON, `DataStore.getWaveForNight` falls back to the highest defined night ≤ requested night, then night `1`. After night **20**, wave data **repeats night 20**.
+If a night is missing from JSON, `DataStore.getWaveForNight` falls back to the highest defined night ≤ requested night, then night `1`. Night **20** is the current content limit, not a campaign end: wins keep advancing, and **night 21+** reuse the night-20 wave until their rows are authored.
