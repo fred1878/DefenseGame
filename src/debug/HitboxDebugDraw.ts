@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { drawDebugDisc, drawDebugSegment, drawDebugWedge } from "./debugShapes";
 import { arcHitboxHitsTarget } from "../combat/rules/Hitbox";
 
 const FILL = 0xff3333;
@@ -53,26 +54,35 @@ export class HitboxDebugDraw {
   }
 
   drawCircle(x: number, y: number, radius: number): void {
-    this.g.fillStyle(FILL, FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.5, LINE, LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: FILL,
+      fillAlpha: FILL_ALPHA,
+      lineWidth: 1.5,
+      line: LINE,
+      lineAlpha: LINE_ALPHA,
+    });
   }
 
   /** Distance at which melee windup / player auto-melee can start (center-to-center). */
   drawMeleeActivationRange(x: number, y: number, radius: number): void {
-    this.g.fillStyle(MELEE_ACTIVATION_FILL, MELEE_ACTIVATION_FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.5, MELEE_ACTIVATION_LINE, MELEE_ACTIVATION_LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: MELEE_ACTIVATION_FILL,
+      fillAlpha: MELEE_ACTIVATION_FILL_ALPHA,
+      lineWidth: 1.5,
+      line: MELEE_ACTIVATION_LINE,
+      lineAlpha: MELEE_ACTIVATION_LINE_ALPHA,
+    });
   }
 
   /** Max center-to-center reach of the melee swipe arc (strike `range`). */
   drawMeleeMaxRange(x: number, y: number, radius: number): void {
-    this.g.fillStyle(MELEE_MAX_RANGE_FILL, MELEE_MAX_RANGE_FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.5, MELEE_MAX_RANGE_LINE, MELEE_MAX_RANGE_LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: MELEE_MAX_RANGE_FILL,
+      fillAlpha: MELEE_MAX_RANGE_FILL_ALPHA,
+      lineWidth: 1.5,
+      line: MELEE_MAX_RANGE_LINE,
+      lineAlpha: MELEE_MAX_RANGE_LINE_ALPHA,
+    });
   }
 
   /** Arcade static blocker AABB (world center + size) — matches physics colliders. */
@@ -87,34 +97,46 @@ export class HitboxDebugDraw {
 
   /** Moving projectile body (arcade circle). */
   drawProjectileBody(x: number, y: number, radius: number): void {
-    this.g.fillStyle(PROJECTILE_FILL, PROJECTILE_FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.25, PROJECTILE_LINE, PROJECTILE_LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: PROJECTILE_FILL,
+      fillAlpha: PROJECTILE_FILL_ALPHA,
+      lineWidth: 1.25,
+      line: PROJECTILE_LINE,
+      lineAlpha: PROJECTILE_LINE_ALPHA,
+    });
   }
 
   /** Segment-vs-circle test uses `player.radius + slack` at the projectile center. */
   drawProjectilePlayerHitTest(x: number, y: number, radius: number): void {
-    this.g.fillStyle(PROJECTILE_HIT_TEST_FILL, PROJECTILE_HIT_TEST_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1, PROJECTILE_LINE, PROJECTILE_LINE_ALPHA * 0.6);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: PROJECTILE_HIT_TEST_FILL,
+      fillAlpha: PROJECTILE_HIT_TEST_ALPHA,
+      lineWidth: 1,
+      line: PROJECTILE_LINE,
+      lineAlpha: PROJECTILE_LINE_ALPHA * 0.6,
+    });
   }
 
   /** Ground blast center (lob in flight / imminent detonation). */
   drawProjectileBlastRadius(x: number, y: number, radius: number): void {
-    this.g.fillStyle(PROJECTILE_BLAST_FILL, PROJECTILE_BLAST_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.25, PROJECTILE_LINE, PROJECTILE_LINE_ALPHA * 0.85);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: PROJECTILE_BLAST_FILL,
+      fillAlpha: PROJECTILE_BLAST_ALPHA,
+      lineWidth: 1.25,
+      line: PROJECTILE_LINE,
+      lineAlpha: PROJECTILE_LINE_ALPHA * 0.85,
+    });
   }
 
   /** Charger dash contact disk (body + player radius). */
   drawChargeTouchRadius(x: number, y: number, radius: number): void {
-    this.g.fillStyle(CHARGE_TOUCH_FILL, CHARGE_TOUCH_FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.5, CHARGE_TOUCH_LINE, CHARGE_TOUCH_LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: CHARGE_TOUCH_FILL,
+      fillAlpha: CHARGE_TOUCH_FILL_ALPHA,
+      lineWidth: 1.5,
+      line: CHARGE_TOUCH_LINE,
+      lineAlpha: CHARGE_TOUCH_LINE_ALPHA,
+    });
   }
 
   drawChargeDashLine(
@@ -123,11 +145,16 @@ export class HitboxDebugDraw {
     toX: number,
     toY: number,
   ): void {
-    this.g.lineStyle(2, CHARGE_DASH_LINE, CHARGE_DASH_LINE_ALPHA);
-    this.g.beginPath();
-    this.g.moveTo(fromX, fromY);
-    this.g.lineTo(toX, toY);
-    this.g.strokePath();
+    drawDebugSegment(
+      this.g,
+      fromX,
+      fromY,
+      toX,
+      toY,
+      2,
+      CHARGE_DASH_LINE,
+      CHARGE_DASH_LINE_ALPHA,
+    );
   }
 
   drawMeleeArc(
@@ -139,18 +166,13 @@ export class HitboxDebugDraw {
   ): void {
     const start = facing - arcHalfRad;
     const end = facing + arcHalfRad;
-    this.g.fillStyle(FILL, FILL_ALPHA);
-    this.g.beginPath();
-    this.g.moveTo(originX, originY);
-    this.g.arc(originX, originY, range, start, end, false);
-    this.g.closePath();
-    this.g.fillPath();
-    this.g.lineStyle(1.5, LINE, LINE_ALPHA);
-    this.g.beginPath();
-    this.g.moveTo(originX, originY);
-    this.g.arc(originX, originY, range, start, end, false);
-    this.g.closePath();
-    this.g.strokePath();
+    drawDebugWedge(this.g, originX, originY, range, start, end, {
+      fill: FILL,
+      fillAlpha: FILL_ALPHA,
+      lineWidth: 1.5,
+      line: LINE,
+      lineAlpha: LINE_ALPHA,
+    });
   }
 
   /** Visual only — mirrors arcHitbox logic for a probe point. */

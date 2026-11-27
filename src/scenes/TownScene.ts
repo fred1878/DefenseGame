@@ -70,10 +70,8 @@ import {
   collectTownUiTapTargets,
   isTownTouchButtonPressed,
 } from "./town/TownSceneE2E";
-import {
-  collectTownTouchDebugUiRects,
-  isPointerOverInteractive,
-} from "./town/TownTouchDebug";
+import { collectTownTouchDebugUiRects } from "./town/TownTouchDebug";
+import { isPointerOverInteractive } from "../input/pointerOverInteractive";
 import { getDataStore, getSave, setSave } from "../core/registryKeys";
 
 export class TownScene extends Phaser.Scene {

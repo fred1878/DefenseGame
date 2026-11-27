@@ -12,7 +12,7 @@ import { publishE2E } from "../e2e/e2eGlobal";
 import { EndlessModePanel } from "../ui/EndlessModePanel";
 import { EndlessModePanelLoadingSkeleton } from "../ui/EndlessModePanelLoadingSkeleton";
 import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
-import { isPointerOverInteractive } from "./town/TownTouchDebug";
+import { isPointerOverInteractive } from "../input/pointerOverInteractive";
 import {
   closeTownSetupScene,
   type EndlessModeSetupLaunchData,

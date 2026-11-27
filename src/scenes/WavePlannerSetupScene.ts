@@ -17,7 +17,7 @@ import {
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
   type WavePlannerSetupLaunchData,
 } from "./town/townSetupSceneLifecycle";
-import { isPointerOverInteractive } from "./town/TownTouchDebug";
+import { isPointerOverInteractive } from "../input/pointerOverInteractive";
 import { getDataStore } from "../core/registryKeys";
 
 export class WavePlannerSetupScene extends Phaser.Scene {
