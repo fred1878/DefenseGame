@@ -12,7 +12,10 @@ import {
   PLAYER_TEXTURE,
   UI_ASSETS,
 } from "../content/assets";
-import { TOWN_BUILDING_ASSETS } from "../content/townBuildingAssets";
+import {
+  TOWN_ISO_ATLAS,
+  TOWN_ISO_LINEAR_TEXTURE_KEYS,
+} from "../content/townIsoAssets";
 import { HOLY_FX_ASSETS } from "../content/holyFxAssets";
 import { ICE_FX_ASSETS } from "../content/iceFxAssets";
 import { PVFX_FX_ASSETS } from "../content/combatPvfxAssets";
@@ -53,6 +56,9 @@ export const HYBRID_LINEAR_TEXTURE_KEYS = [
 
 const HYBRID_LINEAR_SET = new Set<string>(HYBRID_LINEAR_TEXTURE_KEYS);
 
+/** The isometric town is drawn at 0.6x: always LINEAR so downscaled pixels do not shimmer. */
+const TOWN_LINEAR_SET = new Set<string>(TOWN_ISO_LINEAR_TEXTURE_KEYS);
+
 /** Every loaded texture key that {@link configurePixelArtTextures} can filter. */
 export function allPixelArtTextureKeys(): readonly string[] {
   return [
@@ -63,7 +69,8 @@ export function allPixelArtTextureKeys(): readonly string[] {
     ...DEFENSE_OBSTACLE_ASSETS.map((a) => a.key),
     ...UI_ASSETS.map((a) => a.key),
     ...UI_PART_ASSETS.map((a) => a.key),
-    ...TOWN_BUILDING_ASSETS.map((a) => a.key),
+    TOWN_ISO_ATLAS.ground,
+    ...TOWN_ISO_LINEAR_TEXTURE_KEYS,
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),
     ...PVFX_FX_ASSETS.map((a) => a.key),
@@ -76,6 +83,7 @@ export function textureFilterForKey(
   key: string,
   mode: WorldTextureFilterMode,
 ): Phaser.Textures.FilterMode {
+  if (TOWN_LINEAR_SET.has(key)) return Phaser.Textures.FilterMode.LINEAR;
   if (mode === "linear") return Phaser.Textures.FilterMode.LINEAR;
   if (mode === "hybrid" && HYBRID_LINEAR_SET.has(key)) {
     return Phaser.Textures.FilterMode.LINEAR;

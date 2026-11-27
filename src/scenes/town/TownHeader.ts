@@ -22,40 +22,158 @@ import {
   townTitleY,
 } from "../../ui/screenLayout";
 import { createTouchButton } from "../../ui/touchButton";
-import { uiTextStyle } from "../../ui/uiTextStyle";
+import { addUiFrame } from "../../ui/uiFrame";
+import { rerenderTextsWhenFontReady, uiTextStyle } from "../../ui/uiTextStyle";
+import { TOWN_STAGE_NAMES } from "../../config/townGrowth";
+import { TOWN_ISO_TEXTURE } from "../../content/townIsoAssets";
+import { uiPartKey } from "../../content/uiParts";
+import type { TownGrowthView } from "../../world/townIso/townGrowth";
 
 type TouchButton = ReturnType<typeof createTouchButton>;
 
-/** Background, "Town — Day" title, and the (empty) status text block. */
-export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
-  scene.add.rectangle(0, 0, GAME.width, GAME.height, 0x1a1c24).setOrigin(0);
+const HUD_DEPTH = 150;
+const TOP_BAR_H = 136;
+const BOTTOM_BAR_H = 128;
+const GOLD_TEXT = "#F2C75C";
+const PARCHMENT = "#E8DCC0";
+
+function hudText(
+  scene: Phaser.Scene,
+  px: number,
+  color: string,
+): Phaser.Types.GameObjects.Text.TextStyle {
+  return uiTextStyle(scene, {
+    fontSize: `${px}px`,
+    fontStyle: "bold",
+    color,
+    stroke: "#0b0908",
+    strokeThickness: px > 14 ? 4 : 3,
+  });
+}
+
+/** Gothic bar from a full-width 540 px panel (only the middle rows stretch). */
+function addHudBar(
+  scene: Phaser.Scene,
+  key: string,
+  y: number,
+  h: number,
+  top: number,
+  bottom: number,
+): void {
+  if (!scene.textures?.exists?.(key) || !scene.add?.nineslice) return;
+  scene.add
+    .nineslice(0, y, key, undefined, GAME.width, h, 16, 16, top, bottom)
+    .setOrigin(0)
+    .setDepth(HUD_DEPTH);
+}
+
+export type TownHud = {
+  /** Status lines under the title (also shows transient tap messages). */
+  statusText: Phaser.GameObjects.Text;
+  /** Gold pill + town level / growth bar. Town level is a placeholder (config/townGrowth.ts). */
+  update: (save: SaveGame, growth: TownGrowthView) => void;
+};
+
+/** Gothic top bar (title, status, gold) and bottom bar (town level + growth). */
+export function createTownHeader(scene: Phaser.Scene): TownHud {
+  scene.add.rectangle(0, 0, GAME.width, GAME.height, 0x0e0d10).setOrigin(0);
+  addHudBar(scene, TOWN_ISO_TEXTURE.topBar, 0, TOP_BAR_H, 16, 32);
+  const bottomY = GAME.height - BOTTOM_BAR_H;
+  addHudBar(scene, TOWN_ISO_TEXTURE.bottomBar, bottomY, BOTTOM_BAR_H, 34, 16);
 
   const titleY = townTitleY();
   scene.add
-    .text(
-      GAME.width / 2,
-      titleY,
-      "Town — Day",
-      uiTextStyle(scene, {
-        fontSize: `${scaleUiX(28)}px`,
-        color: "#f4f4f5",
-      }),
-    )
-    .setOrigin(0.5);
+    .image(32, titleY, uiPartKey("ed-moon"))
+    .setDisplaySize(24, 24)
+    .setDepth(HUD_DEPTH + 1);
+  const title = scene.add
+    .text(52, titleY, "Town — Day", hudText(scene, 24, GOLD_TEXT))
+    .setOrigin(0, 0.5)
+    .setDepth(HUD_DEPTH + 1);
 
-  return scene.add
+  const statusText = scene.add
     .text(
-      GAME.width / 2,
+      52,
       townStatusTextTopY(),
       "",
       uiTextStyle(scene, {
-        fontSize: `${scaleUiX(18)}px`,
-        color: "#a1a1aa",
-        align: "center",
-        wordWrap: { width: GAME.width - scaleUiX(48) },
+        fontSize: "13px",
+        color: PARCHMENT,
+        stroke: "#0b0908",
+        strokeThickness: 3,
+        lineSpacing: 1,
+        wordWrap: { width: GAME.width - 52 - 140 },
       }),
     )
-    .setOrigin(0.5, 0);
+    .setOrigin(0, 0)
+    .setDepth(HUD_DEPTH + 1);
+
+  const goldW = 124;
+  const goldH = 34;
+  const goldX = GAME.width - 14 - goldW;
+  const goldPill = addUiFrame(
+    scene,
+    "plate",
+    goldX,
+    titleY - goldH / 2,
+    goldW,
+    goldH,
+  );
+  goldPill?.setDepth(HUD_DEPTH + 1);
+  scene.add
+    .image(goldX + 18, titleY, uiPartKey("da-gem-gold"))
+    .setDisplaySize(16, 15)
+    .setDepth(HUD_DEPTH + 2);
+  const goldText = scene.add
+    .text(goldX + goldW - 12, titleY, "0", hudText(scene, 20, "#FBBF24"))
+    .setOrigin(1, 0.5)
+    .setDepth(HUD_DEPTH + 2);
+
+  const lvY = bottomY + 40;
+  const lvText = scene.add
+    .text(18, lvY, "", hudText(scene, 18, GOLD_TEXT))
+    .setOrigin(0, 0.5)
+    .setDepth(HUD_DEPTH + 1);
+  const hintText = scene.add
+    .text(0, lvY + 1, "", hudText(scene, 13, PARCHMENT))
+    .setOrigin(0, 0.5)
+    .setDepth(HUD_DEPTH + 1);
+  const barX = 16;
+  const barY = lvY + 16;
+  const barW = GAME.width - 32;
+  const barH = 12;
+  const track = scene.add
+    .rectangle(barX, barY, barW, barH, 0x15120f)
+    .setOrigin(0)
+    .setStrokeStyle(2, 0x6b5a3a)
+    .setDepth(HUD_DEPTH + 1);
+  const fill = scene.add
+    .image(barX + 2, barY + 2, uiPartKey("da-fill-gold-hi"))
+    .setOrigin(0)
+    .setDepth(HUD_DEPTH + 2);
+  void track;
+
+  const update = (save: SaveGame, growth: TownGrowthView): void => {
+    goldText.setText(String(save.gold));
+    lvText.setText(`Town Lv ${growth.townLevel}`);
+    const stageName = TOWN_STAGE_NAMES[growth.stage];
+    hintText.setText(
+      growth.nextStageTownLevel === null
+        ? `${stageName} · Max stage`
+        : `${stageName} · Grows at Town Lv ${growth.nextStageTownLevel}`,
+    );
+    hintText.setX(lvText.x + lvText.width + 10);
+    const w = Math.max(0, (barW - 4) * growth.progress);
+    fill.setDisplaySize(Math.max(1, w), barH - 4).setVisible(w > 0);
+  };
+
+  rerenderTextsWhenFontReady(
+    '700 24px "Pixelify Sans"',
+    () => [title, statusText, goldText, lvText, hintText],
+    () => hintText.setX(lvText.x + lvText.width + 10),
+  );
+
+  return { statusText, update };
 }
 
 export type TownHeaderButtons = {

@@ -13,11 +13,6 @@ import {
   spellBarCenterY,
   spellBarSlotOrigin,
   expectedSpellBarCenterY,
-  townActionButtonY,
-  townBuildingGridBandBottomFootY,
-  townBuildingGridClearsStatus,
-  townBuildingGridColumnX,
-  townBuildingGridFootY,
   townFullscreenButtonPosition,
   townResetSaveButtonPosition,
   townUpdateButtonPosition,
@@ -176,13 +171,6 @@ describe("screenLayout", () => {
     expect(btn.x + btn.width / 2).toBeLessThanOrEqual(GAME.width);
   });
 
-  it("townActionButtonY stacks from bottom", () => {
-    const y0 = townActionButtonY(scene, safe, 0);
-    const y1 = townActionButtonY(scene, safe, 1);
-    expect(y0).toBeGreaterThan(y1);
-    expect(y0).toBeLessThan(GAME.height);
-  });
-
   it("town chrome buttons sit flush to top corners with safe insets only", () => {
     const fsW = scaleUiX(168);
     const fsH = scaleUiX(36);
@@ -194,7 +182,9 @@ describe("screenLayout", () => {
     expect(reset.x + resetW / 2).toBeCloseTo(GAME.width - safe.right, 0);
     expect(reset.y - fsH / 2).toBeCloseTo(safe.top, 0);
     expect(townStatusTextTopY()).toBeGreaterThan(townTitleY());
-    expect(townStatusTextTopY()).toBeLessThan(scaleUiY(128));
+    // Title row and status sit under the corner buttons, inside the 136 px top bar.
+    expect(townTitleY()).toBeGreaterThan(fs.y + fsH / 2);
+    expect(townStatusTextTopY()).toBeLessThan(136 - 3 * 15);
   });
 
   it("stacks the native update button under the fullscreen control", () => {
@@ -213,18 +203,6 @@ describe("screenLayout", () => {
     expect(update.x).toBeCloseTo(fs.x, 0);
     expect(update.y).toBeGreaterThan(fs.y + fsH / 2);
     expect(update.y - updateH / 2).toBeCloseTo(fs.y + fsH / 2 + scaleUiY(8), 0);
-  });
-
-  it("town building grid fills band between status and bottom", () => {
-    expect(townBuildingGridFootY(0)).toBe(townBuildingGridBandBottomFootY());
-    expect(townBuildingGridFootY(3)).toBeLessThan(townBuildingGridFootY(2));
-    expect(townBuildingGridFootY(2)).toBeLessThan(townBuildingGridFootY(1));
-    expect(townBuildingGridFootY(1)).toBeLessThan(townBuildingGridFootY(0));
-    expect(townBuildingGridColumnX(0)).toBeLessThan(GAME.width / 2);
-    expect(townBuildingGridColumnX(1)).toBeGreaterThan(GAME.width / 2);
-    expect(townBuildingGridClearsStatus(3, 112)).toBe(true);
-    const mid = (townBuildingGridFootY(0) + townBuildingGridFootY(3)) / 2;
-    expect(mid).toBeGreaterThan(GAME.height * 0.45);
   });
 });
 

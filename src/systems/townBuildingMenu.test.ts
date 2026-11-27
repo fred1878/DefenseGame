@@ -3,9 +3,8 @@ import { DataStore } from "../core/DataStore";
 import type { TownBuildingDef } from "../core/townBuildingTypes";
 import { createNewSave } from "../core/GameState";
 import {
-  formatTownBuildingButtonLabel,
   handleTownBuildingTap,
-  townBuildingSubtitle,
+  townBuildingPlateInfo,
   upgradeShop,
 } from "./townBuildingMenu";
 
@@ -22,13 +21,12 @@ describe("townBuildingMenu", () => {
   it("wave planner building opens panel on tap", () => {
     const def: TownBuildingDef = {
       label: "Plague Clinic",
-      textureKey: "town_special_plague_clinic",
       width: 96,
       height: 96,
       opensWavePlanner: true,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
-      "— Wave planner",
+    expect(townBuildingPlateInfo(store, createNewSave(), def).action).toBe(
+      "Wave plan",
     );
     const { result } = handleTownBuildingTap(store, createNewSave(), def);
     expect(result.kind).toBe("openWavePlanner");
@@ -36,13 +34,14 @@ describe("townBuildingMenu", () => {
 
   it("save menu building opens panel on tap", () => {
     const def: TownBuildingDef = {
-      label: "Market Stall (Daylit)",
-      textureKey: "town_market_stall_daylit",
+      label: "Daylit Market",
       width: 112,
       height: 72,
       opensSaveMenu: true,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe("— Saves");
+    expect(townBuildingPlateInfo(store, createNewSave(), def).action).toBe(
+      "Save",
+    );
     const { result } = handleTownBuildingTap(store, createNewSave(), def);
     expect(result.kind).toBe("openSaveMenu");
   });
@@ -50,34 +49,32 @@ describe("townBuildingMenu", () => {
   it("endless training building opens panel on tap", () => {
     const def: TownBuildingDef = {
       label: "Haunted Well",
-      textureKey: "town_special_haunted_well",
       width: 80,
       height: 80,
       opensEndlessMode: true,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
-      "— Endless training",
+    expect(townBuildingPlateInfo(store, createNewSave(), def).action).toBe(
+      "Endless",
     );
     const { result } = handleTownBuildingTap(store, createNewSave(), def);
     expect(result.kind).toBe("openEndlessMode");
   });
 
-  it("uses honest subtitle when no upgrade hook", () => {
+  it("uses an honest plate action when no upgrade hook", () => {
     const def: TownBuildingDef = {
       label: "Haunted Well",
-      textureKey: "town_special_haunted_well",
       width: 80,
       height: 80,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
-      "— Not available yet",
-    );
+    expect(townBuildingPlateInfo(store, createNewSave(), def)).toEqual({
+      name: "Haunted Well",
+      action: "Not available yet",
+    });
   });
 
   it("tap without upgradeId is a noop", () => {
     const def: TownBuildingDef = {
       label: "Gallows Square",
-      textureKey: "town_special_gallows_square",
       width: 112,
       height: 72,
     };
@@ -88,7 +85,6 @@ describe("townBuildingMenu", () => {
   it("applies upgrade when upgradeId is set", () => {
     const def: TownBuildingDef = {
       label: "Town Wall",
-      textureKey: "town_wall",
       width: 128,
       height: 56,
       upgradeId: "wall",
@@ -106,7 +102,6 @@ describe("townBuildingMenu", () => {
   it("raises current wall HP by the same delta as max on upgrade", () => {
     const def: TownBuildingDef = {
       label: "Town Wall",
-      textureKey: "town_wall",
       width: 128,
       height: 56,
       upgradeId: "wall",
@@ -124,44 +119,45 @@ describe("townBuildingMenu", () => {
     for (const shop of ["trader", "blacksmith"] as const) {
       const def: TownBuildingDef = {
         label: "Shop",
-        textureKey: "town_market_stall",
         width: 10,
         height: 10,
         opensShop: shop,
       };
-      expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
-        shop === "trader" ? "— Trader" : "— Blacksmith",
+      expect(townBuildingPlateInfo(store, createNewSave(), def).action).toBe(
+        shop === "trader" ? "Trader" : "Blacksmith",
       );
       const { result } = handleTownBuildingTap(store, createNewSave(), def);
       expect(result).toEqual({ kind: "openShop", shop, message: "" });
     }
   });
 
-  it("formats wall upgrade subtitles like legacy town UI", () => {
+  it("shows wall level and max on the beacon plate", () => {
     const save = createNewSave();
     save.gold = 40;
     const wallDef: TownBuildingDef = {
-      label: "Witchlight Beacon (Night)",
-      textureKey: "town_special_witchlight_beacon",
+      label: "Witchlight Beacon",
       width: 80,
       height: 112,
       upgradeId: "wall",
     };
-    expect(townBuildingSubtitle(store, save, wallDef)).toBe(
-      "— Upgrade wall (L0, next 50g)",
-    );
+    expect(townBuildingPlateInfo(store, save, wallDef)).toEqual({
+      name: "Witchlight Beacon",
+      action: "Wall",
+      level: 0,
+      maxLevel: 5,
+      upgradeReady: false,
+    });
   });
 
-  it("spell bar building shows subtitle and opens spell bar on tap", () => {
+  it("spell bar building shows its plate action and opens spell bar on tap", () => {
     const def: TownBuildingDef = {
-      label: "Witchlight Beacon (Daylit)",
-      textureKey: "town_special_witchlight_beacon_daylit",
+      label: "Daylit Beacon",
       width: 80,
       height: 112,
       opensSpellBar: true,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
-      "— Spell bar",
+    expect(townBuildingPlateInfo(store, createNewSave(), def).action).toBe(
+      "Spells",
     );
     const { result } = handleTownBuildingTap(store, createNewSave(), def);
     expect(result.kind).toBe("openSpellBar");
@@ -170,13 +166,12 @@ describe("townBuildingMenu", () => {
   it("start night building returns startNight tap result", () => {
     const def: TownBuildingDef = {
       label: "Gallows Square",
-      textureKey: "town_special_gallows_square",
       width: 112,
       height: 72,
       startsNight: true,
     };
-    expect(townBuildingSubtitle(store, createNewSave(), def)).toBe(
-      "— Start night",
+    expect(townBuildingPlateInfo(store, createNewSave(), def).action).toBe(
+      "Start night",
     );
     const { result } = handleTownBuildingTap(store, createNewSave(), def);
     expect(result.kind).toBe("startNight");
@@ -184,8 +179,7 @@ describe("townBuildingMenu", () => {
 
   it("blocks upgrade when gold is insufficient", () => {
     const def: TownBuildingDef = {
-      label: "Witchlight Beacon (Night)",
-      textureKey: "town_special_witchlight_beacon",
+      label: "Witchlight Beacon",
       width: 80,
       height: 112,
       upgradeId: "wall",
@@ -199,8 +193,7 @@ describe("townBuildingMenu", () => {
 
   it("allows upgrade when debug infinite gold is on", () => {
     const def: TownBuildingDef = {
-      label: "Witchlight Beacon (Night)",
-      textureKey: "town_special_witchlight_beacon",
+      label: "Witchlight Beacon",
       width: 80,
       height: 112,
       upgradeId: "wall",
@@ -227,42 +220,49 @@ describe("townBuildingMenu", () => {
     const save = createNewSave();
     const missingHook: TownBuildingDef = {
       label: "Ruins",
-      textureKey: "town_ruins",
       width: 40,
       height: 40,
       upgradeId: "missing",
     };
-    expect(townBuildingSubtitle(store, save, missingHook)).toBe(
-      "— Not available yet",
-    );
+    expect(townBuildingPlateInfo(store, save, missingHook)).toEqual({
+      name: "Ruins",
+      action: "Upgrade",
+    });
     expect(handleTownBuildingTap(store, save, missingHook).result.kind).toBe(
       "noop",
     );
 
     const wallDef: TownBuildingDef = {
       label: "Wall",
-      textureKey: "town_wall",
       width: 10,
       height: 10,
       upgradeId: "wall",
     };
     save.buildings.wall = 5;
-    expect(townBuildingSubtitle(store, save, wallDef)).toContain("Wall max");
+    expect(townBuildingPlateInfo(store, save, wallDef)).toMatchObject({
+      level: 5,
+      maxLevel: 5,
+      upgradeReady: false,
+    });
 
     const shopDef: TownBuildingDef = {
       label: "Workshop",
-      textureKey: "town_workshop",
       width: 10,
       height: 10,
       upgradeId: "workshop",
     };
-    expect(townBuildingSubtitle(store, save, shopDef)).toBe(
-      "— Upgrade (workshop L0, next 25g)",
-    );
+    expect(townBuildingPlateInfo(store, save, shopDef)).toMatchObject({
+      action: "Upgrade",
+      level: 0,
+      maxLevel: 1,
+      upgradeReady: false,
+    });
     save.buildings.workshop = 1;
-    expect(townBuildingSubtitle(store, save, shopDef)).toBe(
-      "— customBoost · max level",
-    );
+    expect(townBuildingPlateInfo(store, save, shopDef)).toMatchObject({
+      level: 1,
+      maxLevel: 1,
+      upgradeReady: false,
+    });
     expect(handleTownBuildingTap(store, save, shopDef).result.kind).toBe(
       "blocked",
     );
@@ -273,7 +273,11 @@ describe("townBuildingMenu", () => {
       effect: "customBoost",
     };
     save.buildings.workshop = 1;
-    expect(townBuildingSubtitle(store, save, shopDef)).toBe("— customBoost");
+    expect(townBuildingPlateInfo(store, save, shopDef)).toMatchObject({
+      level: 1,
+      maxLevel: 3,
+      upgradeReady: false,
+    });
     expect(handleTownBuildingTap(store, save, shopDef).result.message).toBe(
       "Upgrade unavailable",
     );
@@ -288,9 +292,6 @@ describe("townBuildingMenu", () => {
     const upgraded = handleTownBuildingTap(store, save, shopDef);
     expect(upgraded.result.kind).toBe("upgraded");
     expect(upgraded.result.message).toBe("Upgraded to L2");
-    expect(formatTownBuildingButtonLabel(shopDef, "— customBoost")).toBe(
-      "Workshop\n— customBoost",
-    );
 
     const wallMaxTap = handleTownBuildingTap(store, save, wallDef);
     expect(wallMaxTap.result.kind).toBe("blocked");
@@ -304,14 +305,13 @@ describe("townBuildingMenu", () => {
     };
     const def: TownBuildingDef = {
       label: "Yard",
-      textureKey: "town_yard",
       width: 10,
       height: 10,
       upgradeId: "training",
     };
     const save = createNewSave();
     save.gold = 20;
-    expect(townBuildingSubtitle(store, save, def)).toContain("next 15g");
+    expect(townBuildingPlateInfo(store, save, def).upgradeReady).toBe(true);
     const { result, save: next } = handleTownBuildingTap(store, save, def);
     expect(result.kind).toBe("upgraded");
     expect(result.message).toBe("Upgraded to L1");
@@ -322,21 +322,20 @@ describe("townBuildingMenu", () => {
     wall.costByLevel = [];
     const wallDef: TownBuildingDef = {
       label: "Wall",
-      textureKey: "town_wall",
       width: 10,
       height: 10,
       upgradeId: "wall",
     };
     save.buildings.wall = 0;
-    expect(townBuildingSubtitle(store, save, wallDef)).toBe(
-      "— Upgrade wall (L0)",
+    expect(townBuildingPlateInfo(store, save, wallDef).upgradeReady).toBe(
+      false,
     );
     wall.costByLevel = wallCosts;
   });
 });
 
-describe("townBuildingSubtitle upgrade labels", () => {
-  it("labels a maxed generic upgrade by its effect", () => {
+describe("townBuildingPlateInfo upgrade levels", () => {
+  it("shows maxed generic upgrades without an upgrade arrow", () => {
     const menuStore = new DataStore();
     menuStore.buildings = {
       market: {
@@ -352,14 +351,12 @@ describe("townBuildingSubtitle upgrade labels", () => {
     };
     const market: TownBuildingDef = {
       label: "Market",
-      textureKey: "town_market",
       width: 80,
       height: 80,
       upgradeId: "market",
     };
     const shrine: TownBuildingDef = {
       label: "Shrine",
-      textureKey: "town_shrine",
       width: 80,
       height: 80,
       upgradeId: "shrine",
@@ -367,12 +364,16 @@ describe("townBuildingSubtitle upgrade labels", () => {
     const save = createNewSave();
     save.buildings.market = 1;
     save.buildings.shrine = 1;
-    expect(townBuildingSubtitle(menuStore, save, market)).toBe(
-      "— playerDamage · max level",
-    );
-    expect(townBuildingSubtitle(menuStore, save, shrine)).toBe(
-      "— luck · max level",
-    );
+    expect(townBuildingPlateInfo(menuStore, save, market)).toMatchObject({
+      level: 1,
+      maxLevel: 1,
+      upgradeReady: false,
+    });
+    expect(townBuildingPlateInfo(menuStore, save, shrine)).toMatchObject({
+      level: 1,
+      maxLevel: 1,
+      upgradeReady: false,
+    });
   });
 });
 
@@ -381,7 +382,7 @@ describe("shop upgrades", () => {
     trader: { maxLevel: 2, costByLevel: [90, 160], effect: "shopLevel" },
   };
 
-  it("buys a shop level, clears that shop's stock and shows it in the subtitle", () => {
+  it("buys a shop level, clears that shop's stock and shows it on the plate", () => {
     const save = createNewSave();
     save.gold = 100;
     save.shops = { trader: [], blacksmith: [] };
@@ -392,13 +393,15 @@ describe("shop upgrades", () => {
     expect(r.save.shops).toEqual({ trader: null, blacksmith: [] });
     const store = new DataStore();
     const def: TownBuildingDef = {
-      label: "Market Stall (Night)",
-      textureKey: "town_market_stall",
+      label: "Night Market",
       width: 112,
       height: 72,
       opensShop: "trader",
     };
-    expect(townBuildingSubtitle(store, r.save, def)).toBe("— Trader L1");
+    expect(townBuildingPlateInfo(store, r.save, def)).toEqual({
+      name: "Night Market",
+      action: "Trader",
+    });
     expect(upgradeShop(buildings, r.save, "trader").result.message).toBe(
       "Need 160g (have 10g)",
     );

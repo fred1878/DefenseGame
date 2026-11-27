@@ -1,79 +1,97 @@
 import Phaser from "phaser";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { TOWN_ISO_ATLAS, TOWN_ISO_TEXTURE } from "../content/townIsoAssets";
 import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
+import { TOWN_ISO_VIEW } from "../config/townIsoView";
+import {
+  createTownPlate,
+  type TownPlate,
+  type TownPlateInfo,
+} from "../ui/townBuildingPlate";
 import { bindContainerPress } from "../ui/touchButton";
-import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
+import {
+  isoDepthForWorldY,
+  isoScreenToWorld,
+  isoWorldToScreen,
+} from "../world/townIso/isoGrid";
+import { TOWN_ISO_SPRITES } from "../world/townIso/townIsoStageData";
+import type { TownIsoBuildingTier } from "../world/townIso/townIsoTypes";
 
-function townBuildingDisplayWidth(
-  def: TownBuildingDef,
-  buildingDisplayScale: number,
-): number {
-  return def.width * buildingDisplayScale;
-}
+/** Plates draw above the town world and under the HUD bars. */
+const PLATE_DEPTH = 20;
+/** Contact shadow under each tappable building (above ground/fog, below sprites). */
+const SHADOW_DEPTH = 0.5;
+const SHADOW_ALPHA = 0.85;
 
-function townBuildingDisplayHeight(
-  def: TownBuildingDef,
-  buildingDisplayScale: number,
-): number {
-  return def.height * buildingDisplayScale;
-}
+/** What a building shows: its art tier and its name plate. */
+export type TownBuildingView = {
+  tier: TownIsoBuildingTier;
+  plate: TownPlateInfo;
+};
 
 export type TownBuildingControl = {
   container: Phaser.GameObjects.Container;
   buildingId: string;
   setInputEnabled: (enabled: boolean) => void;
-  setLabel: (text: string) => void;
-  /** Building center in game/canvas coords (for e2e taps). */
+  /** Swap art tier / refresh the name plate. */
+  update: (view: TownBuildingView) => void;
+  /** Tap point in game/canvas coords (centre of the sprite's tap box, for e2e taps). */
   spriteCenter: () => { x: number; y: number };
 };
 
 export type SpawnTownBuildingControlsOpts = {
-  depth?: number;
-  labelFor: (def: TownBuildingDef) => string;
+  viewFor: (buildingId: string, def: TownBuildingDef) => TownBuildingView;
   onTap: (buildingId: string, def: TownBuildingDef) => void;
 };
 
-export function townBuildingLabelWrapWidth(def: TownBuildingDef): number {
-  return Math.max(def.width, scaleUiX(136));
-}
-
-/** Interactive hit box in container space (feet at origin, origin 0,0). */
-export function townBuildingFootprintHitArea(
+/**
+ * Tap box (container space, foot at the origin) around a tier sprite drawn at `scale`.
+ * The sprite's outer 15% each side is left out so neighbours overlap less; never smaller
+ * than the building's `width` x `height` from town_buildings.json.
+ */
+export function townBuildingTapBox(
+  tier: TownIsoBuildingTier,
   def: TownBuildingDef,
-  buildingDisplayScale: number,
+  scale: number,
 ): Phaser.Geom.Rectangle {
-  const width = townBuildingDisplayWidth(def, buildingDisplayScale);
-  const height = townBuildingDisplayHeight(def, buildingDisplayScale);
-  return new Phaser.Geom.Rectangle(-width / 2, -height, width, height);
+  const frame = TOWN_ISO_SPRITES[tier.key];
+  const [ax, ay, w, h] = frame ?? [0, 0, 0, 0];
+  const left = -ax * scale;
+  const right = (w - ax) * scale;
+  const inset = (right - left) * 0.15;
+  const boxW = Math.max(def.width, right - left - inset * 2);
+  const boxH = Math.max(def.height, h * scale);
+  const cx = (left + right) / 2;
+  return new Phaser.Geom.Rectangle(
+    cx - boxW / 2,
+    -ay * scale + (h * scale - boxH),
+    boxW,
+    boxH,
+  );
 }
 
-function townBuildingOverlayLabelStyle(
-  scene: Phaser.Scene,
-  wrapWidth: number,
-): Phaser.Types.GameObjects.Text.TextStyle {
-  const fontPx = scaleUiX(12);
-  return uiTextStyle(scene, {
-    fontSize: `${fontPx}px`,
-    color: "#fafafa",
-    align: "center",
-    wordWrap: { width: wrapWidth, useAdvancedWrap: true },
-    lineSpacing: scaleUiY(2),
-    shadow: uiSmallLabelShadow(),
-  });
+/** Screen position of a tier's foot for a layout slot (slot x/y are screen px). */
+export function townBuildingFootScreen(
+  slot: { x: number; y: number },
+  tier: TownIsoBuildingTier,
+): { x: number; y: number; worldY: number } {
+  const w = isoScreenToWorld(slot.x, slot.y);
+  const s = isoWorldToScreen(w.x + tier.dx, w.y + tier.dy);
+  return { x: s.x, y: s.y, worldY: w.y + tier.dy };
 }
 
-/** Layout slot buildings: sprite art + overlay label, full footprint is the tap target. */
+/**
+ * Isometric town buildings: full-colour lit sprite (no outline or glow), a soft contact
+ * shadow and a crest name plate. Sprite and plate are both tap targets.
+ */
 export function spawnTownBuildingControls(
   scene: Phaser.Scene,
   defs: Record<string, TownBuildingDef>,
   layout: TownLayoutDef,
   opts: SpawnTownBuildingControlsOpts,
 ): TownBuildingControl[] {
-  const depth = opts.depth ?? 24;
   const out: TownBuildingControl[] = [];
-
-  const buildingDisplayScale = layout.buildingDisplayScale;
+  const scale = TOWN_ISO_VIEW.scale * layout.buildingDisplayScale;
 
   for (const slot of layout.slots) {
     const def = defs[slot.buildingId];
@@ -83,70 +101,90 @@ export function spawnTownBuildingControls(
       );
       continue;
     }
-    if (!scene.textures.exists(def.textureKey)) {
-      console.warn(`Town building texture missing: ${def.textureKey}`);
-      continue;
-    }
+    const buildingId = slot.buildingId;
+    const first = opts.viewFor(buildingId, def);
+    const container = scene.add.container(0, 0);
+    const sprite = scene.add.image(0, 0, TOWN_ISO_ATLAS.lit, first.tier.key);
+    container.add(sprite);
+    const shadow = scene.add
+      .image(0, 0, TOWN_ISO_TEXTURE.light)
+      .setTint(0x000000)
+      .setAlpha(SHADOW_ALPHA)
+      .setDepth(SHADOW_DEPTH);
 
-    const footX = slot.x;
-    const footY = slot.y;
-
-    const container = scene.add.container(footX, footY).setDepth(depth);
-
-    const sprite = scene.add
-      .image(0, 0, def.textureKey)
-      .setOrigin(0.5, 1)
-      .setDisplaySize(
-        townBuildingDisplayWidth(def, buildingDisplayScale),
-        townBuildingDisplayHeight(def, buildingDisplayScale),
-      );
-
-    const labelWrap = townBuildingLabelWrapWidth(def);
-    const labelY = -scaleUiY(4);
-    const labelText = opts.labelFor(def);
-    const text = scene.add
-      .text(
-        0,
-        labelY,
-        labelText,
-        townBuildingOverlayLabelStyle(scene, labelWrap - scaleUiX(6)),
-      )
-      .setOrigin(0.5, 1);
-
-    container.add([sprite, text]);
-
-    const hitArea = townBuildingFootprintHitArea(def, buildingDisplayScale);
-    container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-
-    bindContainerPress(
+    const plate: TownPlate = createTownPlate(
       scene,
-      container,
-      () => opts.onTap(slot.buildingId, def),
-      {
-        bg: sprite,
-        colors: { rest: 0xffffff, pressed: 0xb8b8b8 },
-        pressScale: 0.96,
-        textured: true,
-      },
+      0,
+      0,
+      first.plate,
+      PLATE_DEPTH,
     );
+    let tapBox = townBuildingTapBox(first.tier, def, scale);
+    let foot = townBuildingFootScreen(slot, first.tier);
 
-    container.setData("testid", `town-building-${slot.buildingId}`);
+    const update = (view: TownBuildingView): void => {
+      const t = view.tier;
+      const frame = TOWN_ISO_SPRITES[t.key];
+      const [ax, ay, w, h] = frame ?? [0, 0, 1, 1];
+      foot = townBuildingFootScreen(slot, t);
+      container
+        .setPosition(foot.x, foot.y)
+        .setDepth(isoDepthForWorldY(foot.worldY));
+      sprite
+        .setTexture(TOWN_ISO_ATLAS.lit, t.key)
+        .setOrigin(ax / w, ay / h)
+        .setScale(scale);
+      const [fa, fb] = t.footprint;
+      // Footprint diamond: foot = bottom corner; centre sits (fb - fa) * 16, (fa + fb) * 8 away.
+      shadow
+        .setPosition(
+          foot.x + 16 * (fb - fa) * TOWN_ISO_VIEW.scale,
+          foot.y - 8 * (fa + fb) * TOWN_ISO_VIEW.scale,
+        )
+        .setDisplaySize(
+          36 * (fa + fb) * TOWN_ISO_VIEW.scale,
+          18 * (fa + fb) * TOWN_ISO_VIEW.scale,
+        );
+      tapBox = townBuildingTapBox(t, def, scale);
+      if (container.input?.hitArea) {
+        const r = container.input.hitArea as Phaser.Geom.Rectangle;
+        r.x = tapBox.x;
+        r.y = tapBox.y;
+        r.width = tapBox.width;
+        r.height = tapBox.height;
+      }
+      plate.moveTo(foot.x, foot.y + 4);
+      plate.update(view.plate);
+    };
+    update(first);
+
+    container.setInteractive(tapBox, Phaser.Geom.Rectangle.Contains);
+    bindContainerPress(scene, container, () => opts.onTap(buildingId, def), {
+      bg: sprite,
+      colors: { rest: 0xffffff, pressed: 0xb8b8b8 },
+      pressScale: 0.97,
+      textured: true,
+    });
+    const plateObj = plate.container;
+    plate.makeTappable(() => opts.onTap(buildingId, def));
+
+    container.setData("testid", `town-building-${buildingId}`);
     if (def.startsNight) {
       container.setData("testid", "start-night");
     }
 
-    const spriteCenter = (): { x: number; y: number } => ({
-      x: footX,
-      y: footY - townBuildingDisplayHeight(def, buildingDisplayScale) / 2,
-    });
-
     out.push({
       container,
-      buildingId: slot.buildingId,
-      setInputEnabled: (enabled: boolean) =>
-        setContainerInputEnabled(container, enabled),
-      setLabel: (next: string) => text.setText(next),
-      spriteCenter,
+      buildingId,
+      setInputEnabled: (enabled: boolean) => {
+        setContainerInputEnabled(container, enabled);
+        setContainerInputEnabled(plateObj, enabled);
+      },
+      update,
+      spriteCenter: () => ({
+        x: foot.x + tapBox.x + tapBox.width / 2,
+        y: foot.y + tapBox.y + tapBox.height / 2,
+      }),
     });
   }
 
