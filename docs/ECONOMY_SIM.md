@@ -223,14 +223,15 @@ build (`src/sim/economy/schoolBuilds.ts`), labelled `strategy/fire` etc.;
 `generic` is the save as it is. A school build keeps the save's items
 (base, rarity, item level, affix count) and its talent points:
 
-- **Gear**: Sturdy, Vital, of Speed and uniques stay. Every other affix on
-  an equipped item becomes the school's first legal pick for its position
+- **Gear**: Sturdy, Vital, of Speed, uniques and affixes already in the
+  school's pool (Mastery / Quickening re-keyed to its spells) stay. Every
+  other affix on an equipped item becomes the school's first legal pick for its position
   and item type: prefixes the element (Fiery / Icy / Shocking), then
   Arcane; suffixes of Mastery and of Quickening keyed to the school's
   spells (frost: Quickening first), then the school's weapon proc (of
   Embers / of Frost / of Thunder). The new roll sits at the same point of
-  its tier for the item level as the old one. With no legal pick (e.g.
-  Sharp on gloves) the old affix stays.
+  its tier for the item level as the old one. With no legal unused pick
+  (e.g. Sharp on gloves) the old affix stays, so no item has an affix twice.
 - **Talents**: Sorcery first: Arcane Study 3, Kindling 2, Deep Winter
   (frost) or Overcharge (lightning; fire takes it too, only to reach the
   next tiers), Focus 3, Meteor Storm 1. Points left keep the save's other

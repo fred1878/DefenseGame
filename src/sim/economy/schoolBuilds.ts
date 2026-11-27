@@ -17,12 +17,14 @@ import { type ElementBar, elementBar } from "./spellBars";
  * the save's items (base, rarity, item level, affix count) and its total
  * talent points, so builds stay comparable with the save they come from:
  *
- * - Gear: defensive affixes (Sturdy, Vital, of Speed) and uniques stay.
- *   Every other affix becomes the school's first legal pick for its
+ * - Gear: defensive affixes (Sturdy, Vital, of Speed), affixes already in
+ *   the school's pool (re-keyed to its spells) and uniques stay. Every
+ *   other affix becomes the school's first legal pick for its
  *   position (prefix: element damage, then Arcane spell power; suffix:
  *   of Mastery / of Quickening on the school's spells, then the school's
  *   weapon proc), rolled at the same point of the new affix's tier for the
- *   item level as the old roll. With no legal pick the old affix stays.
+ *   item level as the old roll. With no legal unused pick the old affix
+ *   stays, so no item carries an affix twice.
  * - Talents: Sorcery first (Arcane Study 3, Kindling 2, the school's tier-3
  *   node, Focus 3, Meteor Storm 1); points left over keep the save's other
  *   talents, dropping the deepest tiers first.
@@ -90,6 +92,17 @@ function rollLike(
   return Math.round(b.min + f * (b.max - b.min));
 }
 
+function keyedSpell(
+  id: string,
+  spec: SchoolSpec,
+  turn: { mastery: number; quickening: number },
+): string | undefined {
+  if (id !== "of_mastery" && id !== "of_quickening") return undefined;
+  const kind = id === "of_mastery" ? "mastery" : "quickening";
+  const spells = spec[kind];
+  return spells[turn[kind]++ % spells.length];
+}
+
 function schoolItem(
   catalog: GearCatalog,
   item: ItemInstance,
@@ -98,14 +111,19 @@ function schoolItem(
 ): ItemInstance {
   const base = catalog.bases[item.baseId];
   if (item.uniqueId || !base) return item;
-  const used = new Set(
-    item.affixes.filter((a) => KEPT_AFFIXES.includes(a.id)).map((a) => a.id),
-  );
+  const pool = new Set([...spec.prefixes, ...spec.suffixes]);
+  // Kept and already-school affixes stay; nothing is picked twice.
+  const stays = (id: string) => KEPT_AFFIXES.includes(id) || pool.has(id);
+  const used = new Set(item.affixes.map((a) => a.id).filter(stays));
   const affixes = item.affixes.map((rolled): RolledAffix => {
     const old = catalog.affixes[rolled.id];
     if (!old || KEPT_AFFIXES.includes(rolled.id)) return rolled;
-    const pool = old.position === "prefix" ? spec.prefixes : spec.suffixes;
-    const pick = pool
+    if (pool.has(rolled.id)) {
+      const spell = keyedSpell(rolled.id, spec, turn);
+      return spell ? { ...rolled, spell } : rolled;
+    }
+    const picks = old.position === "prefix" ? spec.prefixes : spec.suffixes;
+    const pick = picks
       .map((id) => catalog.affixes[id])
       .find(
         (d): d is AffixDef =>
@@ -114,18 +132,11 @@ function schoolItem(
           d.types.includes(base.type) &&
           !!tierAt(d, item.itemLevel),
       );
-    if (!pick) {
-      used.add(rolled.id);
-      return rolled;
-    }
+    if (!pick) return rolled;
     used.add(pick.id);
     const value = rollLike(old, rolled.value, pick, item.itemLevel);
-    if (pick.id !== "of_mastery" && pick.id !== "of_quickening")
-      return { id: pick.id, value };
-    const kind = pick.id === "of_mastery" ? "mastery" : "quickening";
-    const spells = spec[kind];
-    const spell = spells[turn[kind]++ % spells.length]!;
-    return { id: pick.id, value, spell };
+    const spell = keyedSpell(pick.id, spec, turn);
+    return spell ? { id: pick.id, value, spell } : { id: pick.id, value };
   });
   return { ...item, affixes };
 }

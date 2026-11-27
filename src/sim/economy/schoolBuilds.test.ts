@@ -56,9 +56,34 @@ const GEAR: SaveGear = {
       itemLevel: 5,
       affixes: [{ id: "brutal", value: 1 }],
     },
+    {
+      uid: 6,
+      baseId: "javelins",
+      rarity: "rare",
+      itemLevel: 19,
+      affixes: [
+        { id: "of_embers", value: 28 },
+        { id: "of_frost", value: 48 },
+        { id: "fiery", value: 50 },
+      ],
+    },
+    {
+      uid: 7,
+      baseId: "padded_vest",
+      rarity: "rare",
+      itemLevel: 22,
+      affixes: [{ id: "of_mastery", value: 80, spell: "ice_bolt" }],
+    },
   ],
-  equipped: { helm: 1, rangedWeapon: 2, hands: 3, meleeWeapon: 4 },
-  nextUid: 6,
+  equipped: {
+    helm: 1,
+    rangedWeapon: 2,
+    hands: 3,
+    meleeWeapon: 4,
+    trinket1: 6,
+    chest: 7,
+  },
+  nextUid: 8,
 };
 
 const affixes = (g: SaveGear, uid: number) =>
@@ -85,6 +110,15 @@ describe("school builds", () => {
     expect(affixes(frost, 3)).toEqual([{ id: "sharp", value: 24 }]);
     expect(frost.items[3]).toBe(GEAR.items[3]);
     expect(frost.items[4]).toBe(GEAR.items[4]);
+    // Affixes already in the school's pool stay (no doubles), re-keyed.
+    expect(affixes(frost, 6).map((a) => a.id)).toEqual([
+      "of_embers",
+      "of_frost",
+      "icy",
+    ]);
+    expect(affixes(frost, 7)).toEqual([
+      { id: "of_mastery", value: 80, spell: "blizzard" },
+    ]);
     const fire = schoolGear(data.catalog, GEAR, "fire");
     expect(affixes(fire, 1)[1]).toEqual({
       id: "of_mastery",
