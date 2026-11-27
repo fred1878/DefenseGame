@@ -9,13 +9,13 @@
     "combat": {
       "wall": {
         "damage": 6,
-        "triggerRangeWu": 42,
-        "hitRangeWu": 34
+        "triggerRangeWu": 48,
+        "hitRangeWu": 40
       },
       "melee": {
         "triggerRangeWu": 72,
         "rangeWu": 68,
-        "meleeChaseStandoffWu": 4,
+        "meleeChaseStandoffWu": 5,
         "arcDeg": 70,
         "windupMs": 160,
         "activeMs": 150,
@@ -25,7 +25,7 @@
         "fxDurationMs": 450,
         "vfxDisplayW": 112,
         "vfxDisplayH": 112,
-        "vfxOffsetWu": 24,
+        "vfxOffsetWu": 26,
         "attackMovement": {
           "windupMul": 0,
           "activeMul": 0,
