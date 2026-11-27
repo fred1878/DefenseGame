@@ -14,7 +14,7 @@ import {
 } from "../../combat/fx/damageNumbers";
 import { DEFENSE_RENDER_DEPTH } from "../../config";
 import {
-  DAMAGE_NUMBERS,
+  damageNumbersConfig,
   type DamageNumberKind,
 } from "../../config/damageNumbers";
 import { uiTextResolution } from "../../core/render/displayScale";
@@ -77,7 +77,9 @@ export class DamageNumberFx {
     if (!this.enabled || amount <= 0) return;
     const x = sprite.x;
     const y =
-      sprite.y - sprite.displayHeight * 0.4 + scaleUiY(DAMAGE_NUMBERS.offsetY);
+      sprite.y -
+      sprite.displayHeight * damageNumbersConfig().anchorHeightFrac +
+      scaleUiY(damageNumbersConfig().offsetY);
     const req =
       isCrit === true
         ? { targetId, x, y, amount, kind, isCrit: true as const }
@@ -123,13 +125,13 @@ export class DamageNumberFx {
     }
     const text = this.scene.add
       .text(0, 0, "", {
-        fontFamily: DAMAGE_NUMBERS.fontFamily,
-        fontSize: `${scaleUiX(DAMAGE_NUMBERS.styles.physical.fontSize)}px`,
-        color: DAMAGE_NUMBERS.styles.physical.fill,
-        stroke: DAMAGE_NUMBERS.styles.physical.stroke,
+        fontFamily: damageNumbersConfig().fontFamily,
+        fontSize: `${scaleUiX(damageNumbersConfig().styles.physical.fontSize)}px`,
+        color: damageNumbersConfig().styles.physical.fill,
+        stroke: damageNumbersConfig().styles.physical.stroke,
         strokeThickness: Math.max(
           2,
-          scaleUiX(DAMAGE_NUMBERS.styles.physical.strokeThickness),
+          scaleUiX(damageNumbersConfig().styles.physical.strokeThickness),
         ),
         resolution: uiTextResolution(this.scene),
         align: "center",
@@ -159,7 +161,7 @@ export class DamageNumberFx {
     const size = isCrit ? style.critFontSize : style.fontSize;
     text.setText(formatDamageNumberText(amount, kind));
     text.setStyle({
-      fontFamily: DAMAGE_NUMBERS.fontFamily,
+      fontFamily: damageNumbersConfig().fontFamily,
       fontSize: `${scaleUiX(size)}px`,
       color: style.fill,
       stroke: style.stroke,

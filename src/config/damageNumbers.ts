@@ -1,3 +1,4 @@
+import { setTuning, tuning } from "../tuning/gameTuning";
 /**
  * Tunable floating damage-number presentation for Defense night.
  * Visual kinds cover every combat DamageFlavor plus heal and reserved
@@ -62,124 +63,34 @@ export type DamageNumberStyle = {
 export type DamageNumbersConfig = {
   enabled: boolean;
   maxActive: number;
-  /** Hits on the same target + kind within this window merge. */
   aggregateWindowMs: number;
   fontFamily: string;
   fontWeight: string;
-  /** Added to the default “above sprite” offset, design pixels. */
   offsetY: number;
+  /** Numbers start this fraction of the sprite height above its centre. */
+  anchorHeightFrac: number;
   styles: Record<DamageNumberKind, DamageNumberStyle>;
 };
 
-const BASE_MOTION: DamageNumberMotion = {
-  durationMs: 800,
-  fadeStartT: 0.45,
-  driftY: -36,
-  driftX: 0,
-  popScale: 1.35,
-  popMs: 120,
-  critPopScale: 1.7,
-};
+/** Authored part of {@link DamageNumbersConfig} (`public/data/damage-numbers.json`). */
+export type DamageNumbersTuning = Omit<
+  DamageNumbersConfig,
+  "fontFamily" | "fontWeight"
+>;
 
-export const DAMAGE_NUMBERS: DamageNumbersConfig = {
-  enabled: true,
-  maxActive: 32,
-  aggregateWindowMs: 120,
-  fontFamily: DAMAGE_NUMBER_FONT_FAMILY,
-  fontWeight: "700",
-  offsetY: -6,
-  styles: {
-    physical: {
-      fill: "#f4f4f5",
-      stroke: "#18181b",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      motion: { ...BASE_MOTION },
-    },
-    fire: {
-      fill: "#ff8a2a",
-      stroke: "#4a1a00",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      motion: {
-        ...BASE_MOTION,
-        durationMs: 740,
-        flickerHz: 14,
-        popScale: 1.4,
-      },
-    },
-    frost: {
-      fill: "#c8eeff",
-      stroke: "#16324a",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      motion: {
-        ...BASE_MOTION,
-        durationMs: 920,
-        driftY: -28,
-        popScale: 1.2,
-      },
-    },
-    lightning: {
-      fill: "#ffe566",
-      stroke: "#3f2a00",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      motion: {
-        ...BASE_MOTION,
-        durationMs: 680,
-        jitterPx: 3,
-        popScale: 1.45,
-      },
-    },
-    water: {
-      fill: "#7dd3fc",
-      stroke: "#0c4a6e",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      motion: {
-        ...BASE_MOTION,
-        durationMs: 860,
-        waveAmp: 8,
-        waveHz: 2.2,
-      },
-    },
-    poison: {
-      fill: "#86ef45",
-      stroke: "#14532d",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      motion: {
-        ...BASE_MOTION,
-        durationMs: 980,
-        driftY: -22,
-        waveAmp: 5,
-        waveHz: 1.4,
-        popScale: 1.15,
-      },
-    },
-    heal: {
-      fill: "#4ade80",
-      stroke: "#052e16",
-      strokeThickness: 4,
-      fontSize: 18,
-      critFontSize: 26,
-      prefix: "+",
-      motion: {
-        ...BASE_MOTION,
-        durationMs: 900,
-        driftY: -42,
-        popScale: 1.25,
-      },
-    },
-  },
-};
+/** Apply `damage-numbers.json` (Boot / test setup); the font stays in code with its asset. */
+export function applyDamageNumbers(next: DamageNumbersTuning): void {
+  setTuning("damageNumbers", {
+    ...next,
+    fontFamily: DAMAGE_NUMBER_FONT_FAMILY,
+    fontWeight: "700",
+  });
+}
+
+/** Active damage-number config: `damage-numbers.json` plus the bundled font. */
+export function damageNumbersConfig(): Readonly<DamageNumbersConfig> {
+  return tuning("damageNumbers");
+}
 
 /** Queue the Bold instance of Pixelify Sans on a Phaser loader. */
 export function queueDamageNumberFont(

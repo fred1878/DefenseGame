@@ -25,5 +25,17 @@
     "playerProjectileHitSlackPx": 6,
     "lobOvershootPx": 12,
     "lobMinTravelPx": 80
+  },
+  "feel": {
+    "novaFlashDurationMs": 320,
+    "novaFlashStartAlpha": 0.9,
+    "novaFlashScaleEnd": 1.25,
+    "impactTelegraphMs": 360,
+    "chainLightningHoldMs": 280,
+    "consumableToastHoldMs": 700,
+    "consumableToastFadeMs": 500,
+    "consumableToastRisePx": 24,
+    "townStatusMs": 2200,
+    "resetConfirmWindowMs": 4000
   }
 }

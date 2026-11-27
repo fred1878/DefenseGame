@@ -43,6 +43,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `town_layout.json` | yes (`normalizeTownLayout`) |
 | `waves.json` | yes (no schema validator) |
 | `gameplay.json` | yes (`normalizeGameplay`) |
+| `damage-numbers.json` | yes (`normalizeDamageNumbers`) |
 
 ### TypeScript types
 
@@ -64,6 +65,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `town_buildings.json` | — | [TownBuildingDef](../src/core/data/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
 | `town_layout.json` | [TownLayoutInput](../src/core/data/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/data/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/data/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
 | `waves.json` | — | [WaveDef](../src/core/data/DataStore.ts), [WaveGroup](../src/core/data/DataStore.ts) | [DataStore.ts](../src/core/data/DataStore.ts) |
+| `damage-numbers.json` | — | [DamageNumbersTuning](../src/config/damageNumbers.ts) | [normalizeDamageNumbers.ts](../src/core/data/normalizeDamageNumbers.ts), [damageNumbers.ts](../src/config/damageNumbers.ts) |
 | `gameplay.json` | — | [GameplayTuning](../src/core/data/normalizeGameplay.ts) | [normalizeGameplay.ts](../src/core/data/normalizeGameplay.ts), [gameplay.ts](../src/config/gameplay.ts) |
 
 **Removed (do not re-add):** `enemy-combat-defaults.json`, `spell-mechanics.json` — combat is fully per row in `enemies.json`; Shadowform tuning lives on the `shadowform` spell row.
@@ -890,6 +892,66 @@ Global rules with no per-row home, loaded with the town data at Boot (`applyGame
 | `playerProjectileHitSlackPx` | px | Extra radius added to enemy hurtboxes for player projectile hits. |
 | `lobOvershootPx` | px | Extra travel past the aim point for lobbed enemy projectiles. |
 | `lobMinTravelPx` | px | Minimum travel distance for lobbed enemy projectiles. |
+
+### `feel`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `novaFlashDurationMs` | ms | Blast flash duration when the caller gives none (bombs, splash hits). |
+| `novaFlashStartAlpha` | dimensionless | Blast flash starting opacity when the caller gives none. |
+| `novaFlashScaleEnd` | dimensionless | Blast flash end scale when the caller gives none. |
+| `impactTelegraphMs` | ms | How long the ground-AoE impact ring stays after it lands. |
+| `chainLightningHoldMs` | ms | Chain lightning bolt hold time; the fade lasts this minus 80 ms (at least 100 ms). |
+| `consumableToastHoldMs` | ms | How long a potion/bomb message (e.g. "No enemy in range") stays before fading. |
+| `consumableToastFadeMs` | ms | Fade-out duration of that message. |
+| `consumableToastRisePx` | px | How far that message rises while fading. |
+| `townStatusMs` | ms | How long a town status message shows before the normal status returns. |
+| `resetConfirmWindowMs` | ms | Time to tap "Confirm reset" before the reset button disarms. |
+
+---
+
+## damage-numbers.json
+
+**TypeScript:** [DamageNumbersTuning](../src/config/damageNumbers.ts) — [normalizeDamageNumbers.ts](../src/core/data/normalizeDamageNumbers.ts), [damageNumbers.ts](../src/config/damageNumbers.ts).
+
+Floating combat numbers in Defense (`applyDamageNumbers` → `damageNumbersConfig()`), loaded with the defense data. The font family stays in code with its asset. UI sizes are design px and scale with the UI.
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `enabled` | boolean | Show floating damage and heal numbers at all. |
+| `maxActive` | dimensionless | Most numbers on screen at once; the oldest is recycled past this. |
+| `aggregateWindowMs` | ms | Hits on the same target and kind within this window merge into one number. |
+| `offsetY` | px | Extra vertical offset (design px) for the number spawn point. |
+| `anchorHeightFrac` | dimensionless | Numbers spawn this fraction of the sprite height above its centre. |
+| `styles` | object | One style per kind: physical, fire, frost, lightning, water, poison, heal (all required). |
+
+Each `styles.<kind>`:
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `fill` | string | CSS text colour, e.g. `#ff8a2a`. |
+| `stroke` | string | CSS outline colour. |
+| `strokeThickness` | px | Outline width in design px. |
+| `fontSize` | px | Font size for normal hits, design px. |
+| `critFontSize` | px | Font size for crits, design px. |
+| `prefix` | string | Optional text before the number (heal uses `+`). |
+| `motion` | object | Animation, below. |
+
+Each `motion`:
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `durationMs` | ms | Total lifetime of the number. |
+| `fadeStartT` | dimensionless | Fraction of the lifetime (0–1) where the fade-out starts. |
+| `driftY` | px | Vertical drift over the lifetime (negative is up). |
+| `driftX` | px | Horizontal drift over the lifetime. |
+| `popScale` | dimensionless | Peak scale of the spawn pop on normal hits. |
+| `popMs` | ms | Duration of the spawn pop. |
+| `critPopScale` | dimensionless | Peak pop scale on crits. |
+| `flickerHz` | Hz | Optional alpha flicker rate (fire). |
+| `jitterPx` | px | Optional random position jitter (lightning). |
+| `waveAmp` | px | Optional sideways wave amplitude (water, poison). |
+| `waveHz` | Hz | Optional sideways wave frequency. |
 
 ---
 

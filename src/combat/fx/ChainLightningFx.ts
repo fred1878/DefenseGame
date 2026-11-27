@@ -1,9 +1,9 @@
 import Phaser from "phaser";
+import { tuning } from "../../tuning/gameTuning";
 import { DEFENSE_RENDER_DEPTH } from "../../config";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 
 const CHAIN_FX_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
-const CHAIN_HOLD_MS = 280;
 const CHAIN_CORE = 0x99eeff;
 const CHAIN_EDGE = 0x44aaff;
 const JITTER_SEGMENTS = 5;
@@ -111,7 +111,8 @@ export function showChainLightningFx(
     }
   }
 
-  const fadeMs = Math.max(100, CHAIN_HOLD_MS - 80);
+  const holdMs = tuning("gameplay").feel.chainLightningHoldMs;
+  const fadeMs = Math.max(100, holdMs - 80);
   scene.tweens.add({
     targets: [gfx, ...hopSprites],
     alpha: 0,

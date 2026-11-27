@@ -3,7 +3,7 @@ import {
   DAMAGE_NUMBER_FONT_FAMILY,
   DAMAGE_NUMBER_FONT_PATH,
   DAMAGE_NUMBER_KINDS,
-  DAMAGE_NUMBERS,
+  damageNumbersConfig,
   queueDamageNumberFont,
 } from "../../config/damageNumbers";
 import {
@@ -82,10 +82,10 @@ describe("formatDamageNumberText", () => {
 describe("areDamageNumbersEnabled", () => {
   it("follows the config flag when no query override is set", () => {
     expect(
-      areDamageNumbersEnabled({}, { ...DAMAGE_NUMBERS, enabled: true }),
+      areDamageNumbersEnabled({}, { ...damageNumbersConfig(), enabled: true }),
     ).toBe(true);
     expect(
-      areDamageNumbersEnabled({}, { ...DAMAGE_NUMBERS, enabled: false }),
+      areDamageNumbersEnabled({}, { ...damageNumbersConfig(), enabled: false }),
     ).toBe(false);
   });
 
@@ -110,7 +110,11 @@ describe("areDamageNumbersEnabled", () => {
 });
 
 describe("spawnOrAggregateDamageNumber", () => {
-  const cfg = { ...DAMAGE_NUMBERS, maxActive: 3, aggregateWindowMs: 100 };
+  const cfg = {
+    ...damageNumbersConfig(),
+    maxActive: 3,
+    aggregateWindowMs: 100,
+  };
 
   it("spawns a new floater and ignores non-positive amounts", () => {
     const empty = createDamageNumberState();
@@ -239,7 +243,7 @@ describe("spawnOrAggregateDamageNumber", () => {
 describe("expireDamageNumbers and pose", () => {
   it("expires floaters after their style duration", () => {
     let state = createDamageNumberState();
-    const fireDuration = DAMAGE_NUMBERS.styles.fire.motion.durationMs;
+    const fireDuration = damageNumbersConfig().styles.fire.motion.durationMs;
     state = spawnOrAggregateDamageNumber(
       state,
       { targetId: "e1", x: 0, y: 0, amount: 5, kind: "fire" },
@@ -272,7 +276,7 @@ describe("expireDamageNumbers and pose", () => {
 
     const end = damageNumberPose(
       entry,
-      DAMAGE_NUMBERS.styles.physical.motion.durationMs - 1,
+      damageNumbersConfig().styles.physical.motion.durationMs - 1,
     );
     expect(end.alpha).toBeLessThan(0.2);
     expect(end.y).toBeLessThan(mid.y);
@@ -324,19 +328,19 @@ describe("expireDamageNumbers and pose", () => {
   });
 });
 
-describe("DAMAGE_NUMBERS config", () => {
+describe("damage-numbers.json config", () => {
   it("defines a style for every presentation kind and a licensed font", () => {
     for (const kind of DAMAGE_NUMBER_KINDS) {
-      const style = DAMAGE_NUMBERS.styles[kind];
+      const style = damageNumbersConfig().styles[kind];
       expect(style.fill).toMatch(/^#/);
       expect(style.stroke).toMatch(/^#/);
       expect(style.fontSize).toBeGreaterThan(0);
       expect(style.critFontSize).toBeGreaterThan(style.fontSize);
       expect(style.motion.durationMs).toBeGreaterThan(0);
     }
-    expect(DAMAGE_NUMBERS.fontFamily).toBe(DAMAGE_NUMBER_FONT_FAMILY);
+    expect(damageNumbersConfig().fontFamily).toBe(DAMAGE_NUMBER_FONT_FAMILY);
     expect(DAMAGE_NUMBER_FONT_PATH).toContain("pixelify-sans");
-    expect(DAMAGE_NUMBERS.styles.heal.prefix).toBe("+");
+    expect(damageNumbersConfig().styles.heal.prefix).toBe("+");
   });
 
   it("queues the font on a Phaser-like loader", () => {
@@ -360,7 +364,7 @@ describe("damageNumbers leftover branches", () => {
   });
 
   it("aggregates two live crits and prefers the latest match", () => {
-    const cfg = { ...DAMAGE_NUMBERS, aggregateWindowMs: 200 };
+    const cfg = { ...damageNumbersConfig(), aggregateWindowMs: 200 };
     let state = createDamageNumberState();
     const first = spawnOrAggregateDamageNumber(
       state,
@@ -406,13 +410,13 @@ describe("damageNumbers leftover branches", () => {
 
   it("uses defensive pose defaults when motion timings are zeroed", () => {
     const cfg = {
-      ...DAMAGE_NUMBERS,
+      ...damageNumbersConfig(),
       styles: {
-        ...DAMAGE_NUMBERS.styles,
+        ...damageNumbersConfig().styles,
         physical: {
-          ...DAMAGE_NUMBERS.styles.physical,
+          ...damageNumbersConfig().styles.physical,
           motion: {
-            ...DAMAGE_NUMBERS.styles.physical.motion,
+            ...damageNumbersConfig().styles.physical.motion,
             durationMs: 0,
             popMs: 0,
             fadeStartT: 1,

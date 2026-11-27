@@ -37,6 +37,11 @@ import {
 import { ENTITY_PHYSICS_BOOT_KEYS } from "./normalizeEntityPhysics";
 import { GAMEPLAY_DOC_KEYS } from "./normalizeGameplay";
 import {
+  DAMAGE_NUMBERS_BOOT_KEYS,
+  DAMAGE_NUMBERS_MOTION_BOOT_KEYS,
+  DAMAGE_NUMBERS_STYLE_BOOT_KEYS,
+} from "./normalizeDamageNumbers";
+import {
   HIT_FLASH_BOOT_KEYS,
   HIT_FLASH_FLAVOR_BOOT_KEYS,
 } from "./normalizeHitFlash";
@@ -144,6 +149,11 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
   ]),
   "waves.json": [...WAVES_DOC_KEYS],
   "gameplay.json": GAMEPLAY_DOC_KEYS,
+  "damage-numbers.json": uniqueSorted([
+    ...DAMAGE_NUMBERS_BOOT_KEYS,
+    ...DAMAGE_NUMBERS_STYLE_BOOT_KEYS,
+    ...DAMAGE_NUMBERS_MOTION_BOOT_KEYS,
+  ]),
   "buildings.json": [...BUILDINGS_DOC_KEYS],
   "town_buildings.json": [...TOWN_BUILDINGS_DOC_KEYS],
   "town_layout.json": [...TOWN_LAYOUT_DOC_KEYS],

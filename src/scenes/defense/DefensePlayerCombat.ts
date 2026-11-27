@@ -1,4 +1,5 @@
 import { playerTuning } from "../../config/player";
+import { tuning } from "../../tuning/gameTuning";
 import { gearRangedProjectile } from "../../gear/gearRuntime";
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../../config";
@@ -66,9 +67,10 @@ export class DefensePlayerCombat {
       );
       return;
     }
-    const durationMs = def?.durationMs ?? 320;
-    const startAlpha = def?.startAlpha ?? 0.9;
-    const scaleEnd = def?.scaleEnd ?? 1.25;
+    const feel = tuning("gameplay").feel;
+    const durationMs = def?.durationMs ?? feel.novaFlashDurationMs;
+    const startAlpha = def?.startAlpha ?? feel.novaFlashStartAlpha;
+    const scaleEnd = def?.scaleEnd ?? feel.novaFlashScaleEnd;
     const sprite = scene.add
       .image(x, y, key)
       .setDepth(DEFENSE_RENDER_DEPTH.playerCombatFx)

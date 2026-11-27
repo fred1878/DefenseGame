@@ -3,6 +3,7 @@ import type { PlayerTuning } from "../config/player";
 import type { ShadowformMechanics } from "../config/shadowformMechanics";
 import type { SpellInputTuning } from "../config/spellInput";
 import type { HitFlashConfig } from "../core/data/normalizeHitFlash";
+import type { DamageNumbersConfig } from "../config/damageNumbers";
 import type { GameplayTuning } from "../core/data/normalizeGameplay";
 
 /** `entity-physics.json` after normalising. */
@@ -28,6 +29,8 @@ export type GameTuning = {
   player: PlayerTuning;
   /** Global rules from `gameplay.json` (wall, spawn band, shared combat, feel). */
   gameplay: GameplayTuning;
+  /** `damage-numbers.json` plus the bundled font family. */
+  damageNumbers: DamageNumbersConfig;
 };
 
 type TuningKey = keyof GameTuning;
@@ -40,6 +43,7 @@ const SOURCE: Record<TuningKey, string> = {
   shadowform: "shadowform fields from public/data/spells.json",
   player: "public/data/player.json",
   gameplay: "public/data/gameplay.json",
+  damageNumbers: "public/data/damage-numbers.json",
 };
 
 const slots: Partial<Record<TuningKey, unknown>> = {};

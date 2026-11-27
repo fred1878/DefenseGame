@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { tuning } from "../../tuning/gameTuning";
 import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
 import { PALETTE_CSS } from "../../ui/theme/uiPalette";
 import {
@@ -161,12 +162,13 @@ export class DefenseConsumables {
       .setScrollFactor(0)
       .setDepth(DEFENSE_UI_DEPTH.nightEnd);
     this.host.registerUiDraw(t);
+    const feel = tuning("gameplay").feel;
     scene.tweens.add({
       targets: t,
       alpha: 0,
-      y: t.y - 24,
-      delay: 700,
-      duration: 500,
+      y: t.y - feel.consumableToastRisePx,
+      delay: feel.consumableToastHoldMs,
+      duration: feel.consumableToastFadeMs,
       onComplete: () => t.destroy(),
     });
   }

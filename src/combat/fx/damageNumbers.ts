@@ -1,5 +1,5 @@
 import {
-  DAMAGE_NUMBERS,
+  damageNumbersConfig,
   type DamageNumberKind,
   type DamageNumberMotion,
   type DamageNumbersConfig,
@@ -54,7 +54,7 @@ export function displayDamageAmount(amount: number): number {
 export function formatDamageNumberText(
   amount: number,
   kind: DamageNumberKind,
-  cfg: DamageNumbersConfig = DAMAGE_NUMBERS,
+  cfg: Readonly<DamageNumbersConfig> = damageNumbersConfig(),
 ): string {
   const prefix = cfg.styles[kind].prefix ?? "";
   return `${prefix}${displayDamageAmount(amount)}`;
@@ -73,7 +73,7 @@ export type DamageNumberQuery = {
  */
 export function areDamageNumbersEnabled(
   query: DamageNumberQuery = {},
-  cfg: DamageNumbersConfig = DAMAGE_NUMBERS,
+  cfg: Readonly<DamageNumbersConfig> = damageNumbersConfig(),
 ): boolean {
   const raw = query.dmgNum;
   if (raw === "0" || raw === "false") return false;
@@ -193,7 +193,7 @@ export function spawnOrAggregateDamageNumber(
   state: DamageNumberState,
   req: DamageNumberSpawnRequest,
   nowMs: number,
-  cfg: DamageNumbersConfig = DAMAGE_NUMBERS,
+  cfg: Readonly<DamageNumbersConfig> = damageNumbersConfig(),
 ): DamageNumberSpawnResult {
   if (req.amount <= 0) {
     return { state, action: "ignored", id: 0, evictedIds: [] };
@@ -242,7 +242,7 @@ export function spawnOrAggregateDamageNumber(
 export function expireDamageNumbers(
   state: DamageNumberState,
   nowMs: number,
-  cfg: DamageNumbersConfig = DAMAGE_NUMBERS,
+  cfg: Readonly<DamageNumbersConfig> = damageNumbersConfig(),
 ): { state: DamageNumberState; expiredIds: number[] } {
   const expiredIds: number[] = [];
   const active: ActiveDamageNumber[] = [];
@@ -290,7 +290,7 @@ function alphaAt(t: number, motion: DamageNumberMotion): number {
 export function damageNumberPose(
   entry: ActiveDamageNumber,
   nowMs: number,
-  cfg: DamageNumbersConfig = DAMAGE_NUMBERS,
+  cfg: Readonly<DamageNumbersConfig> = damageNumbersConfig(),
 ): DamageNumberPose {
   const motion = cfg.styles[entry.kind].motion;
   const elapsed = Math.max(0, nowMs - entry.spawnedAtMs);
@@ -324,7 +324,7 @@ export function damageNumberPose(
 
 export function styleForKind(
   kind: DamageNumberKind,
-  cfg: DamageNumbersConfig = DAMAGE_NUMBERS,
+  cfg: Readonly<DamageNumbersConfig> = damageNumbersConfig(),
 ): DamageNumbersConfig["styles"][DamageNumberKind] {
   return cfg.styles[kind];
 }

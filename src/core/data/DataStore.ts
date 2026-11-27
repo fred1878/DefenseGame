@@ -1,3 +1,5 @@
+import { applyDamageNumbers } from "../../config/damageNumbers";
+import { normalizeDamageNumbers } from "./normalizeDamageNumbers";
 import { applyGameplay } from "../../config/gameplay";
 import { normalizeGameplay } from "./normalizeGameplay";
 import type { EnemyBehaviorId } from "../enemyBehaviorIds";
@@ -171,6 +173,7 @@ export class DataStore {
       enemyAi,
       hitFlash,
       spellInput,
+      damageNumbers,
     ] = await Promise.all([
       fetchJson<Record<string, EnemyDef>>(`${prefix}data/enemies.json`),
       fetchJson<Record<string, WaveDef>>(`${prefix}data/waves.json`),
@@ -180,7 +183,9 @@ export class DataStore {
       fetchJson<EnemyAiInput>(`${prefix}data/enemy-ai.json`),
       fetchJson<HitFlashInput>(`${prefix}data/hit-flash.json`),
       fetchJson<SpellInputConfigInput>(`${prefix}data/spell_input.json`),
+      fetchJson<unknown>(`${prefix}data/damage-numbers.json`),
     ]);
+    applyDamageNumbers(normalizeDamageNumbers(damageNumbers));
     this.enemies = Object.fromEntries(
       Object.entries(enemies).map(([id, row]) => [
         id,

@@ -1,4 +1,5 @@
 import type { SpellDefinition } from "../../content/spells";
+import { tuning } from "../../tuning/gameTuning";
 import { SpellBlizzardChannelFx } from "../../combat/fx/SpellBlizzardChannelFx";
 import { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
 import { SpellIceCastWindupFx } from "../../combat/fx/SpellIceCastWindupFx";
@@ -142,7 +143,9 @@ export function pulseDefenseImpactAoeTelegraph(
   );
   registerSpellGroundAoeTelegraphWorld(impact, host.maskWorldObject);
   updateSpellGroundAoeTelegraph(impact, 0, "impact", 1);
-  host.delayedCall(360, () => destroySpellGroundAoeTelegraph(impact));
+  host.delayedCall(tuning("gameplay").feel.impactTelegraphMs, () =>
+    destroySpellGroundAoeTelegraph(impact),
+  );
 }
 
 /** Ice VFX 2 Start on caster during frost spell windup. */

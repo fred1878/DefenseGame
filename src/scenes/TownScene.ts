@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { tuning } from "../tuning/gameTuning";
 import { reportFatal } from "../ui/panels/FatalErrorPanel";
 import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { createDefaultAutoCastSpellIds } from "../content/spellBarAutoCast";
@@ -375,10 +376,13 @@ export class TownScene extends Phaser.Scene {
     if (!this.resetArmed) {
       this.resetArmed = true;
       this.resetButton.setLabel("Confirm reset");
-      this.time.delayedCall(4000, () => {
-        this.resetArmed = false;
-        this.resetButton.setLabel("Reset save");
-      });
+      this.time.delayedCall(
+        tuning("gameplay").feel.resetConfirmWindowMs,
+        () => {
+          this.resetArmed = false;
+          this.resetButton.setLabel("Reset save");
+        },
+      );
       return;
     }
     resetSaveAndReload();
@@ -451,10 +455,13 @@ export class TownScene extends Phaser.Scene {
     if (this.statusFlashEvent) {
       this.statusFlashEvent.remove(false);
     }
-    this.statusFlashEvent = this.time.delayedCall(2200, () => {
-      this.statusFlashEvent = null;
-      this.refreshStatus(store);
-    });
+    this.statusFlashEvent = this.time.delayedCall(
+      tuning("gameplay").feel.townStatusMs,
+      () => {
+        this.statusFlashEvent = null;
+        this.refreshStatus(store);
+      },
+    );
   }
 
   private refreshStatus(store: DataStore): void {

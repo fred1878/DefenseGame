@@ -26,6 +26,18 @@ export const GAMEPLAY_SECTION_KEYS = {
     "lobOvershootPx",
     "lobMinTravelPx",
   ],
+  feel: [
+    "novaFlashDurationMs",
+    "novaFlashStartAlpha",
+    "novaFlashScaleEnd",
+    "impactTelegraphMs",
+    "chainLightningHoldMs",
+    "consumableToastHoldMs",
+    "consumableToastFadeMs",
+    "consumableToastRisePx",
+    "townStatusMs",
+    "resetConfirmWindowMs",
+  ],
 } as const;
 
 export type GameplayTuning = NumberSections<typeof GAMEPLAY_SECTION_KEYS>;
