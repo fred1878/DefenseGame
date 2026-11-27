@@ -224,6 +224,22 @@ which then was the only spell cast:
 | frost first | 35/42 | 1/42 | 42.0% / 0% |
 | lightning first | 37/42 | 31/42 | 0% / 2.3% |
 
+Rerun with the fixed bars (the same 42 spell-caster saves, nights 7–20 ×
+p10/p50/p90, one fight each; a few fights wrote no result):
+
+| Bar | Current bot won | Full-cast bot won | Frost / lightning / fire share (full-cast) |
+|---|---|---|---|
+| cooldown | 25/42 | 24/40 | 0% / 0% / 18.7% |
+| frost (blizzard filler) | 31/42 | 33/42 | 12.7% / 0% / 17.0% |
+| frost-bolt (ice_bolt filler) | 29/41 | 30/42 | 14.3% / 0% / 16.5% |
+| lightning | 29/42 | 27/41 | 0% / 4.2% / 18.3% |
+
+The rest was physical (weapon) damage. Heals now fire about 4–5 times a
+fight. The same saves for balanced, ranged and no-spend (from the final
+batch) won 21/32, 21/33 and 9/31 with the fixed bar, against 26/32, 26/33
+and 12/31 with the old one (which spammed the instant `water_bolt`, castable
+while moving).
+
 `fit` does coordinate descent on the model knobs by log loss over nights ≥
 `--min-night` (13); earlier nights are held out and only scored.
 
