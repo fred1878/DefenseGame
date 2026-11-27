@@ -26,7 +26,7 @@ import { EnemyIceStunFxController } from "../combat/EnemyIceStunFx";
 import type { SpellGroundAoeTelegraph } from "../combat/SpellGroundAoeTelegraph";
 import type { SpellGroundZone } from "../combat/spellGroundZone";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
-import { showTouchInput } from "../debug/DebugState";
+import { anyDebugOverlayOn, showTouchInput } from "../debug/DebugState";
 import {
   DEBUG_MENU_CLOSE,
   openDebugMenuFromHost,
@@ -332,6 +332,7 @@ export class DefenseScene extends Phaser.Scene {
     this.wavePlannerMode = false;
     this.leaveEndlessBtn = null;
     this.endlessInfiniteHp = false;
+    this.debugOverlaysActive = true;
   }
 
   /** Lifesteal and gear on-hit procs for player auto-attacks. */
@@ -723,7 +724,20 @@ export class DefenseScene extends Phaser.Scene {
     );
   }
 
+  /**
+   * Debug overlays only clear/hide themselves while every flag is off, so after
+   * one clearing pass they are skipped until a flag turns on again.
+   */
+  private debugOverlaysActive = true;
+
   private drawDebugOverlays(delta: number): void {
+    const anyOn = anyDebugOverlayOn(this.registry);
+    if (!anyOn && !this.debugOverlaysActive) {
+      // Touch debug drops the tap flash while it is off.
+      this.focusTapFlash = null;
+      return;
+    }
+    this.debugOverlaysActive = anyOn;
     drawDefenseCombatDebug({
       registry: this.registry,
       rangeDebug: this.rangeDebug,

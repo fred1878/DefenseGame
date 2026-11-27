@@ -97,3 +97,15 @@ export function setShowFpsCounter(
 export function showFpsCounter(registry: Phaser.Data.DataManager): boolean {
   return getDebugFlags(registry).showFpsCounter;
 }
+
+/** True when any defense debug overlay (hitboxes, ranges, touch, paths, FPS) is on. */
+export function anyDebugOverlayOn(registry: Phaser.Data.DataManager): boolean {
+  const f = getDebugFlags(registry);
+  return (
+    f.showHitboxes ||
+    f.showCombatRanges ||
+    f.showTouchInput ||
+    f.showEnemyPaths ||
+    f.showFpsCounter
+  );
+}
