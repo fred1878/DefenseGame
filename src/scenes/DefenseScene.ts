@@ -57,10 +57,8 @@ import type {
 import { recordCombatDamage } from "../e2e/combatTally";
 import { e2eCampaignWavesFromQuery, isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import {
-  createDefenseSceneE2eHost,
-  type DefenseSceneE2eHost,
-} from "./defense/DefenseSceneE2EHost";
+import type { DefenseSceneE2eHost } from "./defense/DefenseSceneE2EHost";
+import { createRegisteredDefenseSceneE2eHost } from "./defense/defenseSceneE2eHook";
 import { DefenseRunState } from "./defense/DefenseRunState";
 import {
   spawnDefenseEnemyAt,
@@ -461,11 +459,12 @@ export class DefenseScene extends Phaser.Scene {
       this.run.spawnPlanComplete = true;
     }
 
-    if (isE2EEnabled()) {
+    const e2e = isE2EEnabled() ? this.e2e : null;
+    if (e2e) {
       publishE2E({
         scene: "Defense",
         ready: true,
-        player: this.e2e.playerPosition(),
+        player: e2e.playerPosition(),
       });
     }
 
@@ -626,15 +625,16 @@ export class DefenseScene extends Phaser.Scene {
       onNightEnd: (won, lossReason) => this.endNight(won, lossReason),
     });
 
-    if (isE2EEnabled()) {
+    const e2e = isE2EEnabled() ? this.e2e : null;
+    if (e2e) {
       publishE2E({
         scene: "Defense",
         ready: true,
-        player: this.e2e.playerPosition(),
+        player: e2e.playerPosition(),
         flags: {
-          attackPhase: this.e2e.attackPhase(),
-          projectileCount: this.e2e.projectileCount(),
-          enemyCount: this.e2e.enemyCount(),
+          attackPhase: e2e.attackPhase(),
+          projectileCount: e2e.projectileCount(),
+          enemyCount: e2e.enemyCount(),
         },
       });
     }
@@ -945,5 +945,10 @@ export class DefenseScene extends Phaser.Scene {
    * E2E hooks (`installE2E*`): every `defenseSceneE2e*` helper bound to this
    * scene, e.g. `scene.e2e.enemyCount()`. See `DefenseSceneE2EHost.ts`.
    */
-  readonly e2e: DefenseSceneE2eHost = createDefenseSceneE2eHost(this);
+  get e2e(): DefenseSceneE2eHost | null {
+    this.e2eHost ??= createRegisteredDefenseSceneE2eHost(this);
+    return this.e2eHost;
+  }
+
+  private e2eHost: DefenseSceneE2eHost | null = null;
 }

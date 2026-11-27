@@ -123,7 +123,7 @@ export type DefenseGameE2EApi = {
   getDefenseHalfHeight(): number;
   getDefenseHalfWidth(): number;
   getDefenseHudLayoutProbe(): ReturnType<
-    import("../scenes/DefenseScene").DefenseScene["e2e"]["hudLayoutProbe"]
+    import("../scenes/defense/DefenseSceneE2EHost").DefenseSceneE2eHost["hudLayoutProbe"]
   >;
   worldPointToDefenseScreen(
     worldX: number,
@@ -132,7 +132,7 @@ export type DefenseGameE2EApi = {
   sampleDefenseHudBandPixelsAsync(): Promise<
     Awaited<
       ReturnType<
-        import("../scenes/DefenseScene").DefenseScene["e2e"]["sampleHudBandPixelsAsync"]
+        import("../scenes/defense/DefenseSceneE2EHost").DefenseSceneE2eHost["sampleHudBandPixelsAsync"]
       >
     >
   >;

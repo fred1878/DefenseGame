@@ -6,6 +6,8 @@ import { onGameEvent } from "../core/gameEvents";
 import { isE2EEnabled } from "./e2eMode";
 import { publishE2E } from "./e2eGlobal";
 import { buildApi } from "./installE2EApi";
+import { createDefenseSceneE2eHost } from "../scenes/defense/DefenseSceneE2EHost";
+import { registerDefenseSceneE2eHostFactory } from "../scenes/defense/defenseSceneE2eHook";
 import { ensureDomTestActions, positionDomMirrors } from "./installE2EDom";
 
 /*
@@ -51,6 +53,7 @@ export function attachE2EGame(game: Phaser.Game): void {
   if (!isE2EEnabled()) return;
 
   subscribeE2EGameEvents();
+  registerDefenseSceneE2eHostFactory(createDefenseSceneE2eHost);
   const api = buildApi(game);
   publishE2E({ api });
   ensureDomTestActions(api);
@@ -81,20 +84,21 @@ export function attachE2EGame(game: Phaser.Game): void {
     }
     if (key === "Defense") {
       const defense = game.scene.getScene("Defense") as DefenseScene | null;
-      if (defense?.scene.isActive() && defense.e2e.isReady()) {
-        patch.player = defense.e2e.playerPosition();
+      const host = defense?.scene.isActive() ? defense.e2e : null;
+      if (host?.isReady()) {
+        patch.player = host.playerPosition();
         patch.flags = {
-          attackPhase: defense.e2e.attackPhase(),
-          projectileCount: defense.e2e.projectileCount(),
-          enemyCount: defense.e2e.enemyCount(),
-          endlessMode: defense.e2e.isEndlessMode(),
-          endlessEnemyId: defense.e2e.endlessEnemyId() ?? "",
-          nightEnded: defense.e2e.nightEnded(),
-          hasReturnButton: defense.e2e.hasReturnButton(),
-          defenseWallHp: defense.e2e.wallHp(),
-          autoAttackOn: defense.e2e.autoAttackEnabled(),
+          attackPhase: host.attackPhase(),
+          projectileCount: host.projectileCount(),
+          enemyCount: host.enemyCount(),
+          endlessMode: host.isEndlessMode(),
+          endlessEnemyId: host.endlessEnemyId() ?? "",
+          nightEnded: host.nightEnded(),
+          hasReturnButton: host.hasReturnButton(),
+          defenseWallHp: host.wallHp(),
+          autoAttackOn: host.autoAttackEnabled(),
         };
-        positionDomMirrors(defense.e2e.getUiTapTargets());
+        positionDomMirrors(host.getUiTapTargets());
       }
     }
     publishE2E(patch);
