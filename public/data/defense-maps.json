@@ -3,7 +3,7 @@
   "maps": [
     {
       "id": "night-field",
-      "field": { "cols": 8, "rows": 22 },
+      "field": { "cols": 9, "rows": 22 },
       "obstacles": [
         { "tileX": 1, "tileY": 3, "textureKey": "obstacle_wide_slab" },
         { "tileX": 7, "tileY": 4, "textureKey": "obstacle_tall_rock" },
