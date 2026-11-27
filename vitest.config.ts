@@ -3,6 +3,17 @@ import fs from "node:fs";
 import path from "node:path";
 
 const TEST_GLOB = "src/**/*.test.ts";
+/**
+ * Scene tests boot the real (vendored) Phaser build headless under jsdom +
+ * node-canvas. Slower than the stub-based projects, so they live in their own
+ * project and never share a worker with them.
+ */
+const SCENE_TEST_GLOB = "src/**/*.scene.test.ts";
+const PHASER_STUB = path.resolve(import.meta.dirname, "src/test/phaserStub.ts");
+const PHASER_REAL = path.resolve(
+  import.meta.dirname,
+  "node_modules/phaser/dist/phaser-defensegame.js",
+);
 
 /**
  * Test files that replace modules with `vi.mock` / `vi.doMock`. A mock only
@@ -14,7 +25,7 @@ const TEST_GLOB = "src/**/*.test.ts";
 function mockingTestFiles(): string[] {
   const root = import.meta.dirname;
   return fs
-    .globSync(TEST_GLOB, { cwd: root })
+    .globSync(TEST_GLOB, { cwd: root, exclude: [SCENE_TEST_GLOB] })
     .filter((f) =>
       /\bvi\.(?:mock|doMock)\(/.test(
         fs.readFileSync(path.join(root, f), "utf8"),
@@ -25,27 +36,38 @@ function mockingTestFiles(): string[] {
 const MOCKING_TESTS = mockingTestFiles();
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      phaser: path.resolve(import.meta.dirname, "src/test/phaserStub.ts"),
-    },
-  },
   test: {
     environment: "node",
     setupFiles: ["src/test/bootPublicConfig.ts"],
     projects: [
       {
         extends: true,
+        resolve: { alias: { phaser: PHASER_STUB } },
         test: {
           name: "shared",
           include: [TEST_GLOB],
-          exclude: MOCKING_TESTS,
+          exclude: [...MOCKING_TESTS, SCENE_TEST_GLOB],
           isolate: false,
         },
       },
       {
         extends: true,
+        resolve: { alias: { phaser: PHASER_STUB } },
         test: { name: "isolated", include: MOCKING_TESTS },
+      },
+      {
+        extends: true,
+        resolve: { alias: { phaser: PHASER_REAL } },
+        test: {
+          name: "scenes",
+          include: [SCENE_TEST_GLOB],
+          environment: "jsdom",
+          environmentOptions: {
+            jsdom: { resources: "usable", pretendToBeVisual: true },
+          },
+          setupFiles: ["src/test/scene/sceneTestSetup.ts"],
+          testTimeout: 30_000,
+        },
       },
     ],
     coverage: {

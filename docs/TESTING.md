@@ -9,7 +9,7 @@
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
 | `npm run check:arch` | Runtime import cycles + folder layer rules in `src/` (`scripts/check-architecture.mjs`). Fails on new debt and on fixed debt still listed in `scripts/data/architecture-baseline.json`; refresh with `node scripts/check-architecture.mjs --update-baseline` after removing debt. The baseline has been **empty** since refactor phase P1 and `--update-baseline` can only remove entries, so any new cycle or layer violation fails the gate. |
 | `npm run format` | Biome formatter; run it when `lint` reports formatting |
-| `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
+| `npm run test` | Vitest unit + integration (`src/**/*.test.ts`), plus real-Phaser scene tests (`src/**/*.scene.test.ts`, project `scenes`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
 | `npm run test:e2e` | Playwright browser suites (`e2e/`) |
@@ -172,6 +172,32 @@ npx playwright test --project=chromium
 ```
 
 Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `playwright.config.ts`).
+
+## Scene tests with real Phaser (spike)
+
+`src/**/*.scene.test.ts` run in a third Vitest project, `scenes`, that uses the
+**real vendored Phaser build** (`node_modules/phaser/dist/phaser-defensegame.js`)
+instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
+(prebuilt binaries, no system packages / node-gyp). The stub-based `shared` and
+`isolated` projects are unchanged.
+
+- `src/test/scene/staticServer.ts` serves `public/` over HTTP on a random port;
+  `BASE_URL` is stubbed to it, so `BootScene` / `DataStore` / the loader fetch
+  the shipped JSON, PNGs and fonts exactly like the browser.
+- `src/test/scene/phaserHarness.ts` boots a `Phaser.Game` (`CANVAS` by default,
+  `HEADLESS` optional), stops its rAF loop and owns the clock:
+  `step(frames)` advances fixed 1/60 s frames via `game.headlessStep`;
+  `stepUntil(pred)` also yields to the event loop for real I/O; `tap(x, y)`
+  dispatches DOM mouse events on the canvas (full InputManager hit testing);
+  `renderPng()` runs one frame through the Canvas renderer.
+- `src/test/scene/townBoot.ts` `bootToTown()` runs Boot -> Town (the
+  production scene list) and `seedMathRandom(seed)` makes runs replayable.
+- Loaders cache promises per module (one game per page in the app), so a test
+  that boots a second game uses `vi.resetModules()` + dynamic imports (see the
+  determinism test in `DefenseScene.scene.test.ts`).
+- Audio is off (`noAudio`); `FontFace` is polyfilled in
+  `src/test/scene/sceneTestSetup.ts` by registering the font bytes with
+  `@napi-rs/canvas`. Set `SCENE_SNAPSHOT_DIR` to write rendered PNGs.
 
 ## Coverage notes
 

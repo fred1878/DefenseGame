@@ -41,9 +41,11 @@
   "devDependencies": {
     "@biomejs/biome": "2.6.9",
     "@capacitor/cli": "^8.6.0",
+    "@napi-rs/canvas": "^1.2.1",
     "@playwright/test": "^1.49.1",
     "@types/node": "^24.19.2",
     "@vitest/coverage-v8": "^5.1.2",
+    "jsdom": "^31.0.1",
     "knip": "6.48.0",
     "typescript": "^5.6.3",
     "vite": "^8.3.8",
