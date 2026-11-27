@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { DefenseSceneE2eHost } from "./DefenseSceneE2EHost";
 import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 import {
@@ -7,6 +7,9 @@ import {
 } from "./defenseSceneE2eHook";
 
 describe("defenseSceneE2eHook", () => {
+  // Importing the E2E chunk elsewhere registers a factory as a side effect;
+  // start clean so shared-worker runs (isolate: false) see no leftover.
+  beforeEach(() => registerDefenseSceneE2eHostFactory(null));
   afterEach(() => registerDefenseSceneE2eHostFactory(null));
 
   it("returns null until the E2E chunk registers a factory", () => {

@@ -1,4 +1,20 @@
 import { readFileSync } from "node:fs";
+import { afterAll, vi } from "vitest";
+import { resetShadowformRuntimeMults } from "../combat/rules/shadowformRuntime";
+import { setVertexSnapScale } from "../core/render/phaser3PixelParity";
+import { resetGearRuntime } from "../gear/gearRuntime";
+import { resetCombatTally } from "../e2e/combatTally";
+import { setGearCatalog } from "../gear/gearCatalog";
+import { setLootConfig } from "../gear/loot";
+import { setConsumablesConfig } from "../gear/consumables";
+import { setShopsConfig } from "../gear/shops";
+import { setTalentCatalog } from "../talents/talentCatalog";
+import { setE2EStorageIsolation } from "../core/save/storageKeys";
+import { normalizeItems } from "../core/data/normalizeItems";
+import { normalizeLoot } from "../core/data/normalizeLoot";
+import { normalizeConsumables } from "../core/data/normalizeConsumables";
+import { normalizeShops } from "../core/data/normalizeShops";
+import { normalizeTalents } from "../core/data/normalizeTalents";
 import path from "node:path";
 import { applyDefenseMaps } from "../core/data/applyDefenseMaps";
 import { applyEnemyAi } from "../config/enemy";
@@ -69,4 +85,30 @@ export function bootPublicConfigFixtures(): void {
   });
 }
 
+/**
+ * Runs before every test file. Most files share workers (`isolate: false` in
+ * vitest.config.ts), so reset the module-level runtime state a previous file
+ * may have left behind, then re-apply the shipped config.
+ */
+function resetSharedModuleState(): void {
+  resetGearRuntime();
+  resetShadowformRuntimeMults();
+  resetCombatTally();
+  setVertexSnapScale(1);
+  setE2EStorageIsolation(() => false);
+  // Catalogs a test may have swapped; the game itself sets these at Boot.
+  setGearCatalog(normalizeItems(readPublicJson("items.json")));
+  setLootConfig(normalizeLoot(readPublicJson("loot.json")));
+  setConsumablesConfig(
+    normalizeConsumables(readPublicJson("consumables.json")),
+  );
+  setShopsConfig(normalizeShops(readPublicJson("shops.json")));
+  setTalentCatalog(normalizeTalents(readPublicJson("talents.json")));
+}
+
+resetSharedModuleState();
 bootPublicConfigFixtures();
+afterAll(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});

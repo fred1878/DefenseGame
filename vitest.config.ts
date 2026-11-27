@@ -1,5 +1,28 @@
 import { defineConfig } from "vitest/config";
+import fs from "node:fs";
 import path from "node:path";
+
+const TEST_GLOB = "src/**/*.test.ts";
+
+/**
+ * Test files that replace modules with `vi.mock` / `vi.doMock`. A mock only
+ * applies if the module is not already cached, so these run isolated (one
+ * module graph per file); every other file shares workers (`isolate: false`),
+ * which skips ~200 ms of worker startup per file. Found by scanning, so a new
+ * mocking test is isolated automatically.
+ */
+function mockingTestFiles(): string[] {
+  const root = import.meta.dirname;
+  return fs
+    .globSync(TEST_GLOB, { cwd: root })
+    .filter((f) =>
+      /\bvi\.(?:mock|doMock)\(/.test(
+        fs.readFileSync(path.join(root, f), "utf8"),
+      ),
+    )
+    .sort();
+}
+const MOCKING_TESTS = mockingTestFiles();
 
 export default defineConfig({
   resolve: {
@@ -10,7 +33,21 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["src/test/bootPublicConfig.ts"],
-    include: ["src/**/*.test.ts"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "shared",
+          include: [TEST_GLOB],
+          exclude: MOCKING_TESTS,
+          isolate: false,
+        },
+      },
+      {
+        extends: true,
+        test: { name: "isolated", include: MOCKING_TESTS },
+      },
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary", "html"],

@@ -179,7 +179,12 @@ describe("ensure asset loaders", () => {
 
   it("prefetching town-reachable ready loads remaining work and clears on error", async () => {
     const loader = fakeLoader(0);
-    const registry: Record<string, unknown> = {};
+    // Scenes count as registered so no lazy scene import is left running
+    // after the test (it would outlive the file in shared-worker runs).
+    const registry: Record<string, unknown> = {
+      "scene:Defense": true,
+      "scene:DebugMenu": true,
+    };
     const scene = fakeScene(loader, registry);
     const store = {
       defenseDataReady: false,
@@ -201,8 +206,6 @@ describe("ensure asset loaders", () => {
     registry[TOWN_FLUFF_READY_KEY] = true;
     registry[DEFENSE_ASSETS_READY_KEY] = true;
     (store as { defenseDataReady: boolean }).defenseDataReady = true;
-    registry["scene:Defense"] = true;
-    registry["scene:DebugMenu"] = true;
     await expect(
       ensureTownReachableReady(scene, store),
     ).resolves.toBeUndefined();
