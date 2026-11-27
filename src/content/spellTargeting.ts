@@ -64,13 +64,16 @@ export function spellAutoCastNeedsEnemyTarget(def: SpellDefinition): boolean {
 
 /**
  * Auto-cast waits for a living combat target before firing (manual cast unchanged).
- * Self-centered buffs/heals and caster-centered novas may still auto-cast with no enemies.
+ * Ground AoE needs no target: it aims at a picked enemy, else along the facing
+ * direction. Self-centered buffs/heals and caster-centered novas may still
+ * auto-cast with no enemies.
  */
 export function spellAutoCastRequiresCombatTarget(
   def: SpellDefinition,
 ): boolean {
   const mode = spellTargetMode(def);
-  if (mode === "ground" || mode === "enemy") return true;
+  if (mode === "ground") return false;
+  if (mode === "enemy") return true;
   if (spellAutoCastNeedsEnemyTarget(def)) return true;
   return (
     def.mechanicType === "projectile" || def.mechanicType === "projectile_aoe"

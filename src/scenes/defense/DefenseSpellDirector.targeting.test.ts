@@ -154,6 +154,20 @@ describe("DefenseSpellDirector manual targeting", () => {
     },
   );
 
+  it("tap-casts ground AoE with no enemies along the facing direction", () => {
+    const h = makeHost({ enemies: [], enemyTargets: () => [] });
+    const director = new DefenseSpellDirector(h);
+    const beginSpy = vi
+      .spyOn(director, "beginSpellCast")
+      .mockImplementation(() => {});
+
+    director.onSpellCastRequest("meteor");
+
+    expect(h.pendingGroundCast).toBeNull();
+    expect(h.groundAim).not.toBeNull();
+    expect(beginSpy).toHaveBeenCalledWith("meteor", "manual", 0, 0);
+  });
+
   it("tap-casts fire_blast without entering pending ground aim", () => {
     const h = makeHost();
     const director = new DefenseSpellDirector(h);

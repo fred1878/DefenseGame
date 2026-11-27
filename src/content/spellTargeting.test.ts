@@ -49,7 +49,7 @@ describe("spellTargeting", () => {
     expect(spellTargetMode(d)).toBe("ground");
     expect(spellRequiresManualTarget(d)).toBe(true);
     expect(spellUsesManualGroundAim(d)).toBe(true);
-    expect(spellAutoCastRequiresCombatTarget(d)).toBe(true);
+    expect(spellAutoCastRequiresCombatTarget(d)).toBe(false);
   });
 
   it("flags enemy, cone, and swing spells for auto-cast enemy aim", () => {
@@ -113,12 +113,12 @@ describe("spellTargeting", () => {
     ).toBe(true);
   });
 
-  it("requires a combat target for auto-cast ground, enemy, and directional spells", () => {
+  it("requires a combat target for auto-cast enemy and directional spells, but not ground AoE", () => {
     expect(
       spellAutoCastRequiresCombatTarget(
         def({ id: "flamestrike", mechanicType: "blast", targetMode: "ground" }),
       ),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       spellAutoCastRequiresCombatTarget(
         def({

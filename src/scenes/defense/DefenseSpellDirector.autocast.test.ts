@@ -10,6 +10,7 @@ import {
   setSpellCatalog,
   spellById,
 } from "../../content/spells";
+import { tuning } from "../../tuning/gameTuning";
 
 /** Meteor substitute owned by this file; auto-cast aim reads only the range. */
 const GROUND_MAX_RANGE_WU = 240;
@@ -90,20 +91,23 @@ function spellDirectorTestHost(
 }
 
 describe("DefenseSpellDirector auto-cast target guard", () => {
-  it("does not cast ground AoE auto-cast spells with no living enemies", () => {
-    const director = new DefenseSpellDirector(
-      spellDirectorTestHost({
-        spellInputQueue: new SpellInputQueue(),
-        spellCaster: new SpellCastController(),
-      }),
-    );
+  it("casts ground AoE along the facing direction when no living enemies exist", () => {
+    const host = spellDirectorTestHost({
+      spellInputQueue: new SpellInputQueue(),
+      spellCaster: new SpellCastController(),
+    });
+    const director = new DefenseSpellDirector(host);
     const beginSpy = vi
       .spyOn(director, "beginSpellCast")
       .mockImplementation(() => {});
 
     director.tryAutoCastSpells(0, 0);
 
-    expect(beginSpy).not.toHaveBeenCalled();
+    expect(beginSpy).toHaveBeenCalledWith("meteor", "auto", 0, 0);
+    const facingReach =
+      GROUND_MAX_RANGE_WU * tuning("spellInput").groundAimFacingRangeFrac;
+    expect(host.groundAim?.x).toBeCloseTo(facingReach, 5);
+    expect(host.groundAim?.y).toBeCloseTo(0, 5);
   });
 
   it("casts ground AoE when a combat target exists", () => {

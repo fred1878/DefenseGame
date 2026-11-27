@@ -179,15 +179,15 @@ export class DefenseSpellDirector {
     if (!pick) return;
     const def = spellById(pick.spellId);
     if (!def) return;
-    if (spellAutoCastRequiresCombatTarget(def)) {
+    if (spellTargetMode(def) === "ground") {
+      // Ground AoE never waits for a target: enemy aim when one is picked,
+      // else the facing direction (manual ground aim is placed before casting).
+      this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
+    } else if (spellAutoCastRequiresCombatTarget(def)) {
       const target = defenseAutoCastCombatTarget(this.host, def);
       if (!target) return;
-      if (spellTargetMode(def) === "ground") {
-        this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
-      } else {
-        this.host.targeting.setFocusEnemy(target.id);
-        this.host.player.faceToward(target.x, target.y);
-      }
+      this.host.targeting.setFocusEnemy(target.id);
+      this.host.player.faceToward(target.x, target.y);
     }
     this.beginSpellCast(pick.spellId, "auto", stickX, stickY);
   }
@@ -279,7 +279,8 @@ export class DefenseSpellDirector {
     }
 
     if (spellGroundTapAutoCasts(def.id) && mode === "ground") {
-      if (!target) return false;
+      // Ground AoE needs no target: enemy aim when one is picked, else the
+      // facing direction. A press-drag placement is kept by `beginSpellCast`.
       this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
       return true;
     }
