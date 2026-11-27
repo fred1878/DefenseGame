@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "includes": ["src/**", "e2e/**", "scripts/**", "*.ts", "!vendor", "!public"]
   },
@@ -18,7 +22,9 @@
       "arrowParentheses": "always"
     }
   },
-  "assist": { "enabled": false },
+  "assist": {
+    "enabled": false
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -26,7 +32,47 @@
       "style": {
         "noNonNullAssertion": "off",
         "useImportType": "error"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": {
+            "maxAllowedComplexity": 25
+          }
+        }
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "e2e/win-model.spec.ts",
+        "src/combat/rules/spellGroundZone.ts",
+        "src/debug/TouchInputDebugDraw.ts",
+        "src/entities/EnemyCombat.ts",
+        "src/entities/Projectile.ts",
+        "src/entities/enemyRanged/arrowRainCombat.ts",
+        "src/pathfinding/astar.ts",
+        "src/scenes/defense/DefenseDebugDraw.ts",
+        "src/scenes/defense/DefenseProjectileTick.ts",
+        "src/scenes/defense/DefenseSpellChannel.ts",
+        "src/sim/economy/aggregate.ts",
+        "src/ui/panels/TalentPanel.ts",
+        "src/ui/gearPanel/dgPanelKit.ts",
+        "src/ui/gearPanel/gearPanelChrome.ts"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveCognitiveComplexity": {
+              "level": "error",
+              "options": {
+                "maxAllowedComplexity": 52
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

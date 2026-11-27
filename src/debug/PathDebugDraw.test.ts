@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { asScene, fakeScene } from "../test/fakeScene";
-import { mockEnemyInstance } from "../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import { PathDebugDraw } from "./PathDebugDraw";
 import type { NavGrid } from "../pathfinding/grid";
 
@@ -26,7 +26,7 @@ describe("PathDebugDraw", () => {
     expect(g.callsTo("strokeRect").length).toBeGreaterThan(2);
 
     const withPath = mockEnemyInstance({
-      behavior: "melee",
+      behavior: "meleeChaser",
       sprite: { x: 0, y: 0, setVelocity: () => undefined } as never,
       nav: {
         path: [
@@ -39,7 +39,7 @@ describe("PathDebugDraw", () => {
     draw.drawEnemy(withPath, "wall", 20, 0);
     draw.drawEnemy(
       mockEnemyInstance({
-        behavior: "melee",
+        behavior: "meleeChaser",
         nav: { path: [], pathIndex: 0 } as never,
       }),
       "player",

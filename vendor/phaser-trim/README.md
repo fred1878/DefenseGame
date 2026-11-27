@@ -31,6 +31,6 @@ Trim manifests in this folder:
 | `gameobjects-index.js` | Copied over `phaser/src/gameobjects/index.js` during `build:phaser` only |
 | `loader-filetypes-index.js` | Copied over `phaser/src/loader/filetypes/index.js` during `build:phaser` only (drops Tilemap CSV/Impact/JSON loaders) |
 
-Both overlays are listed in `PHASER_OVERLAYS` in `scripts/build-phaser-custom.mjs`; the originals are restored after the build.
+Both overlays are listed in `PHASER_OVERLAYS` in `scripts/build/build-phaser-custom.mjs`; the originals are restored after the build.
 
-Webpack config: `scripts/phaser-webpack.config.cjs`. Size guards: `scripts/assert-phaser-chunk-size.mjs` (post-`vite build`) and `src/build/phaserVendorSize.test.ts`. Lower both baselines when a trim shrinks the bundle.
+Webpack config: `scripts/build/phaser-webpack.config.cjs`. Size guards: `scripts/build/assert-phaser-chunk-size.mjs` (post-`vite build`) and `src/build/phaserVendorSize.test.ts`. Lower both baselines when a trim shrinks the bundle.

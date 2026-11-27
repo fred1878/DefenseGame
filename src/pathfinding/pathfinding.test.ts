@@ -1,5 +1,6 @@
+import { defenseObstacles } from "../config/defense";
 import { describe, expect, it } from "vitest";
-import { DEFENSE_MAP, DEFENSE_OBSTACLES, defenseHalfHeight } from "../config";
+import { DEFENSE_MAP, defenseHalfHeight } from "../config";
 import {
   enemyCollisionBodyRadius,
   enemyPathClearancePx,
@@ -18,8 +19,7 @@ import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
   it("uses static obstacle nav clearance from data", () => {
-    expect(DEFENSE_MAP.pathClearancePx).toBe(18);
-    expect(DEFENSE_MAP.pathClearancePx).toBe(maxNavObstacleClearancePx());
+    expect(maxNavObstacleClearancePx()).toBe(18);
     expect(enemyPathClearancePx("bruiser")).toBeGreaterThan(
       enemyCollisionBodyRadius("bruiser"),
     );
@@ -30,23 +30,23 @@ describe("nav grid", () => {
 
   it("marks obstacle cells blocked", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     expect(cellBlocked(grid, 0, 0)).toBe(false);
-    const obs = DEFENSE_OBSTACLES[0]!;
+    const obs = defenseObstacles()[0]!;
     const col = Math.floor((obs.x - grid.minX) / grid.cellSize);
     const row = Math.floor((obs.y - grid.minY) / grid.cellSize);
     expect(cellBlocked(grid, col, row)).toBe(true);
   });
 
   it("inflates static obstacles by path clearance", () => {
-    const tight = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize, 0);
+    const tight = buildNavGrid(defenseObstacles(), DEFENSE_MAP.cellSize, 0);
     const wide = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     let extra = 0;
     for (let r = 0; r < wide.rows; r++) {
@@ -82,7 +82,7 @@ describe("A*", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const start = cellToWorldCenter(grid, 2, 10);
     const goal = cellToWorldCenter(grid, 18, 10);
@@ -108,7 +108,7 @@ describe("A*", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const start = cellToWorldCenter(grid, 2, 10);
     const goal = cellToWorldCenter(grid, 18, 10);
@@ -162,9 +162,9 @@ describe("A*", () => {
 
   it("finds a route around spread obstacles to the north wall", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const northY = -defenseHalfHeight() + 40;
     const halfH = defenseHalfHeight();
@@ -178,11 +178,11 @@ describe("A*", () => {
 describe("line of sight", () => {
   it("is blocked when a rock lies between points", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
-    const rock = DEFENSE_OBSTACLES[0]!;
+    const rock = defenseObstacles()[0]!;
     expect(
       hasLineOfSight(grid, rock.x - 120, rock.y, rock.x + 120, rock.y),
     ).toBe(false);
@@ -190,9 +190,9 @@ describe("line of sight", () => {
 
   it("is clear across open ground", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const halfH = defenseHalfHeight();
     expect(hasLineOfSight(grid, 0, halfH - 120, 0, halfH - 40)).toBe(true);
@@ -200,9 +200,9 @@ describe("line of sight", () => {
 
   it("is clear when the ray crosses only the nav clearance band", () => {
     const grid = buildNavGrid(
-      DEFENSE_OBSTACLES,
+      defenseObstacles(),
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     let clearanceCell: { col: number; row: number } | null = null;
     for (let r = 0; r < grid.rows; r++) {
@@ -231,7 +231,7 @@ describe("grid cell helpers", () => {
   const grid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
 
   it("returns null for world points outside the grid", () => {
@@ -264,7 +264,11 @@ describe("grid cell helpers", () => {
   });
 
   it("returns the original cell when the whole map is blocked", () => {
-    const solid = buildNavGrid(DEFENSE_OBSTACLES, DEFENSE_MAP.cellSize, 10_000);
+    const solid = buildNavGrid(
+      defenseObstacles(),
+      DEFENSE_MAP.cellSize,
+      10_000,
+    );
     const start = { col: 0, row: 0 };
     expect(nearestWalkable(solid, start.col, start.row)).toEqual(start);
   });
@@ -275,7 +279,7 @@ describe("cellBlocked leftover branches", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const { x, y } = cellToWorldCenter(grid, 2, 2);
     expect(cellBlocked(grid, 2, 2, [{ x, y }], 20)).toBe(true);

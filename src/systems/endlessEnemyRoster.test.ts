@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DataStore } from "../core/DataStore";
+import { DataStore } from "../core/data/DataStore";
 import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
 import { listPlayableDefenseEnemyIds } from "./endlessEnemyRoster";
 

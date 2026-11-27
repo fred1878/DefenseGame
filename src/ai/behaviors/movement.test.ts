@@ -1,13 +1,14 @@
+import { tuning } from "../../tuning/gameTuning";
 import { describe, expect, it, vi } from "vitest";
-import { northWallAttackY, WALL_VELOCITY_BLEND_MS } from "../../config";
+import { northWallAttackY } from "../../config";
 import { wallMeleeApproachStandoffWu } from "../../core/enemyTuning";
 import { testWallCombat } from "../../test/fixtures/inlineCombat";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { EnemyDefInput } from "../../core/normalizeEnemy";
-import { normalizeEnemyRow } from "../../core/normalizeEnemy";
+import type { EnemyDefInput } from "../../core/data/normalizeEnemy";
+import { normalizeEnemyRow } from "../../core/data/normalizeEnemy";
 import { applyEnemyBodyRadii } from "../../entities/entityPhysics";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { createRangedHybridCombatState } from "../../entities/EnemyRangedCombat";
 
 const enemiesRaw = JSON.parse(
@@ -19,7 +20,7 @@ const enemyDefs = Object.fromEntries(
     normalizeEnemyRow(id, row),
   ]),
 );
-import { createEnemyNav } from "../EnemyBrain";
+import { createEnemyNav } from "../brainShared";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
@@ -322,7 +323,7 @@ describe("wall melee hold helpers", () => {
       knockbackVx: 80,
       knockbackVy: 0,
     });
-    enemy.nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
+    enemy.nav.wallTransitionMs = tuning("enemyAi").wallVelocityBlendMs;
     const body = { velocity: { x: 140, y: 0 } };
     (enemy.sprite as unknown as { body: typeof body }).body = body;
     applyChaseVelocity(enemy, 200, 0, 1, {

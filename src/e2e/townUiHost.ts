@@ -36,3 +36,13 @@ export function e2eReportsTownScene(game: Phaser.Game): boolean {
   if (town?.scene.isActive() || town?.scene.isPaused?.() === true) return true;
   return isAnyTownSetupSceneActive(game);
 }
+
+/** The Endless setup scene when it is the active Town UI host (roster e2e hooks). */
+export function activeEndlessSetupScene(
+  game: Phaser.Game,
+): EndlessModeSetupScene | null {
+  const host = activeTownUiHost(game);
+  return host?.scene.key === TOWN_ENDLESS_SETUP_SCENE_KEY
+    ? (host as EndlessModeSetupScene)
+    : null;
+}

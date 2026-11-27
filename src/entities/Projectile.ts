@@ -1,17 +1,18 @@
+import { tuning } from "../tuning/gameTuning";
 import type Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
-import { worldDisplayPx } from "../core/worldPixelScale";
-import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
-import { applyDamage } from "../combat/DamageSystem";
-import { segmentFirstCircleHitT } from "../combat/Hitbox";
-import { applyKnockbackFrom } from "../combat/Knockback";
+import { worldDisplayPx } from "../config/worldScale";
+import type { Damageable, DamageFlavor } from "../combat/rules/DamageSystem";
+import { applyDamage } from "../combat/rules/DamageSystem";
+import { segmentFirstCircleHitT } from "../combat/rules/Hitbox";
+import { applyKnockbackFrom } from "../combat/rules/Knockback";
 import {
   applyEnemyKnockbackFrom,
   type EnemyKnockbackCarrier,
-} from "../combat/enemyKnockback";
-import type { IceBoltProjectileFxState } from "../combat/SpellIceBoltProjectileFx";
-import type { PvfxProjectileFxState } from "../combat/SpellPvfxProjectileFx";
+} from "../combat/rules/enemyKnockback";
+import type { IceBoltProjectileFxState } from "../combat/fx/SpellIceBoltProjectileFx";
+import type { PvfxProjectileFxState } from "../combat/fx/SpellPvfxProjectileFx";
 import { projectileTextureRotationOffset } from "../content/combatPvfxAssets";
 import {
   acquireProjectileSprite,
@@ -191,7 +192,8 @@ export function updateProjectile(
   for (const e of enemies) {
     if (!e.damageable.alive) continue;
     if (skipIds?.has(e.id)) continue;
-    const hitR = e.radius + 6;
+    const hitR =
+      e.radius + tuning("gameplay").combat.playerProjectileHitSlackPx;
     const t = segmentFirstCircleHitT(x0, y0, x1, y1, e.x, e.y, hitR);
     if (t === null) continue;
     if (firstT === null || t < firstT) {
@@ -372,6 +374,7 @@ export function spawnEnemyLobProjectile(
 ): EnemyProjectile {
   const dist = Math.hypot(toX - fromX, toY - fromY);
   const angle = Math.atan2(toY - fromY, toX - fromX);
+  const lob = tuning("gameplay").combat;
   const proj = spawnPlayerProjectile(
     scene,
     fromX,
@@ -379,7 +382,7 @@ export function spawnEnemyLobProjectile(
     angle,
     speed,
     damage,
-    Math.max(dist + 12, 80),
+    Math.max(dist + lob.lobOvershootPx, lob.lobMinTravelPx),
     id,
     textureKey,
     "physical",
@@ -399,7 +402,10 @@ export function projectileArcadeRadiusPx(
 }
 
 /** Segment-vs-player hit test uses player body radius + this slack. */
-export const ENEMY_PROJECTILE_PLAYER_HIT_SLACK_PX = 6;
+/** Extra px on the player hurt radius for enemy projectiles (`gameplay.json` combat). */
+function enemyProjectilePlayerHitSlackPx(): number {
+  return tuning("gameplay").combat.enemyProjectileHitSlackPx;
+}
 
 export function updateEnemyProjectile(
   projectile: EnemyProjectile,
@@ -430,7 +436,7 @@ export function updateEnemyProjectile(
     y1,
     player.x,
     player.y,
-    player.radius + ENEMY_PROJECTILE_PLAYER_HIT_SLACK_PX,
+    player.radius + enemyProjectilePlayerHitSlackPx(),
   );
 
   if (t !== null && player.damageable.alive) {

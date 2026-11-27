@@ -11,4 +11,4 @@ alwaysApply: false
 - Defense helpers live in `DefenseSceneE2E{Combat,Obstacles,Hud}.ts` (barrel `DefenseSceneE2E.ts`). `DefenseScene.e2e` exposes each `defenseSceneE2eFoo(scene, …)` as `e2e.foo(…)`. Town still uses TownScene `e2e*` wrappers. Specs call the API or DOM mirrors, not Phaser internals.
 - CI Chromium is the merge gate. `@manual` suites are skipped in CI.
 - `e2e/` and `playwright.config.ts` are typechecked by `npm run typecheck`.
-- Run `npm run build:e2e` before Playwright. Visual proof uses `scripts/capture-*.mjs` (see docs/MANUAL_UI_CAPTURE.md).
+- Run `npm run build:e2e` before Playwright. Visual proof uses `scripts/capture/capture-*.mjs` (see docs/MANUAL_UI_CAPTURE.md).

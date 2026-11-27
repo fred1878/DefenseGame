@@ -1,9 +1,10 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { testJavelineerCombat } from "../../test/fixtures/inlineCombat";
-import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createEnemyNav } from "../brainShared";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { javelineerBehavior } from "./javelineer";
 
 function mockJavelineer(x: number, y: number) {
@@ -59,7 +60,7 @@ describe("javelineerBehavior", () => {
   const navGrid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
 
   it("retreats and arcs when player is inside min range", () => {
@@ -148,14 +149,12 @@ describe("javelineerBehavior", () => {
     expect(enemy.behaviorExtra.strafeSign).toBe(1);
   });
 
-  it("defaults the orbit flip interval when the tune is omitted", () => {
+  it("resets the orbit flip interval from the enemy's orbitFlipMs", () => {
     const enemy = mockJavelineer(0, 0);
-    const { orbitFlipMs: _omit, ...rest } = enemy.combatTuning.javelineer!;
-    void _omit;
     enemy.combatTuning = {
       ...enemy.combatTuning,
-      javelineer: rest,
-    } as typeof enemy.combatTuning;
+      javelineer: { ...enemy.combatTuning.javelineer!, orbitFlipMs: 777 },
+    };
     enemy.behaviorExtra.strafeFlipMs = 0;
     const band =
       (testJavelineerCombat.minRangeWu + testJavelineerCombat.maxRangeWu) / 2;
@@ -167,7 +166,7 @@ describe("javelineerBehavior", () => {
       playerY: 0,
       deltaMs: 16,
     });
-    expect(enemy.behaviorExtra.strafeFlipMs).toBe(1400);
+    expect(enemy.behaviorExtra.strafeFlipMs).toBe(777);
   });
 
   it("nudges slightly outward when a bit closer than ideal inside slack", () => {

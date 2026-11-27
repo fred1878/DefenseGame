@@ -1,4 +1,4 @@
-import type { SafeInsets } from "../ui/screenLayout";
+import type { SafeInsets } from "../ui/layout/screenLayout";
 
 /**
  * Debug menu sheet layout in logical (540×1200) px. Every row is laid out top-down

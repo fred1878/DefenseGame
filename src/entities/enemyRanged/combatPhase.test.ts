@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createEnemyCombat } from "../EnemyCombat";
-import { mockEnemyInstance } from "../testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { advanceCombatPhase, tickCooldownAndFaceTarget } from "./combatPhase";
 
 describe("advanceCombatPhase", () => {

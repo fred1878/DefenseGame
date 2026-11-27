@@ -1,11 +1,18 @@
+import { ENEMY_BEHAVIOR_IDS } from "../../core/enemyBehaviorIds";
 import { describe, expect, it } from "vitest";
 import { getEnemyBehavior } from "./index";
 import { meleeChaserBehavior } from "./meleeChaser";
 import { wardBehavior } from "./ward";
 
 describe("getEnemyBehavior", () => {
-  it("returns a named behavior and falls back to melee chaser", () => {
+  it("returns the named behavior", () => {
     expect(getEnemyBehavior("ward")).toBe(wardBehavior);
-    expect(getEnemyBehavior("not_a_behavior")).toBe(meleeChaserBehavior);
+    expect(getEnemyBehavior("meleeChaser")).toBe(meleeChaserBehavior);
+  });
+
+  it("has a module for every known behavior id", () => {
+    for (const id of ENEMY_BEHAVIOR_IDS) {
+      expect(typeof getEnemyBehavior(id)).toBe("function");
+    }
   });
 });

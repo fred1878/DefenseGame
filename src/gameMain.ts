@@ -2,23 +2,24 @@ import type Phaser from "phaser";
 import { GAME } from "./config";
 import { markBoot, measureBoot } from "./core/bootPerf";
 import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
-import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
-import { publishE2E } from "./e2e/e2eGlobal";
-import { clampRenderResolution } from "./core/displayScale";
-import { installHiDpiCanvas } from "./core/hiDpiCanvas";
-import { installDefaultUiFont } from "./ui/uiTextStyle";
-import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
+import { publishE2E, seedE2EWindowStub } from "./e2e/e2eGlobal";
+import { setE2EStorageIsolation } from "./core/save/storageKeys";
+import { clampRenderResolution } from "./core/render/displayScale";
+import { installHiDpiCanvas } from "./core/render/hiDpiCanvas";
+import { installDefaultUiFont } from "./ui/layout/uiTextStyle";
+import { installPhaser3VertexRounding } from "./core/render/phaser3PixelParity";
 import {
   DEFAULT_WORLD_PIXEL_SCALE,
   WORLD_PIXEL_SCALE_REGISTRY_KEY,
-} from "./core/worldPixelScale";
-import { bindViewportToScale } from "./ui/screenLayout";
+} from "./config/worldScale";
+import { bindViewportToScale } from "./ui/layout/screenLayout";
 import { BootScene } from "./scenes/BootScene";
 import { TownScene } from "./scenes/TownScene";
 
 const parent = "game";
 const e2eBuild = import.meta.env.VITE_E2E === "true";
 
+setE2EStorageIsolation(isE2EEnabled);
 seedE2EWindowStub();
 
 function hideLoadingSplash(): void {
@@ -27,7 +28,11 @@ function hideLoadingSplash(): void {
 
 async function start(): Promise<void> {
   markBoot("defensegame:phaser-import-start");
+  // E2E installer is its own chunk; production never downloads it. Load it
+  // beside Phaser and before the game exists so hooks attach synchronously.
+  const e2eInstaller = isE2EEnabled() ? import("./e2e/installE2E") : null;
   const { default: PhaserRuntime } = await import("phaser");
+  const e2e = e2eInstaller ? await e2eInstaller : null;
   markBoot("defensegame:phaser-import-end");
   installPhaser3VertexRounding(PhaserRuntime);
   measureBoot(
@@ -86,7 +91,7 @@ async function start(): Promise<void> {
   installHiDpiCanvas(game);
   game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
-  if (isE2EEnabled()) {
+  if (e2e) {
     const e2eTimeScale = (): void => {
       for (const scene of game.scene.scenes) {
         scene.time.timeScale = 2;
@@ -97,7 +102,7 @@ async function start(): Promise<void> {
     if (e2eManualReturnFromQuery()) {
       game.registry.set("e2eManualReturn", true);
     }
-    attachE2EGame(game);
+    e2e.attachE2EGame(game);
     publishE2E({ scene: "Boot", ready: false });
   }
 }

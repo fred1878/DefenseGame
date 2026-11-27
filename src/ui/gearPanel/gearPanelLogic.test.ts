@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import buildingsRaw from "../../../public/data/buildings.json";
-import { normalizeLoot } from "../../core/normalizeLoot";
+import { normalizeLoot } from "../../core/data/normalizeLoot";
 import { sellValue } from "../../gear/itemStats";
 import { blacksmithOffers, offerPrice } from "../../gear/shops";
 import { gearFixture } from "../../test/gearFixture";

@@ -1,15 +1,16 @@
 import type Phaser from "phaser";
+import { PALETTE } from "../ui/theme/uiPalette";
 import type { DefenseObstacleRect } from "../config";
 import type { EnemyInstance } from "../entities/Enemy";
-import type { EnemyTargetKind } from "../ai/EnemyBrain";
+import type { EnemyTargetKind } from "../ai/brainShared";
 import type { NavGrid } from "../pathfinding/grid";
 
-const PATH_COLOR = 0x38bdf8;
-const WALL_TARGET = 0xf97316;
+const PATH_COLOR = PALETTE.sky400;
+const WALL_TARGET = PALETTE.orange500;
 const PLAYER_TARGET = 0x22c55e;
 const BLOCKED_CELL_FILL = 0x334155;
 const BLOCKED_CELL_LINE = 0x64748b;
-const OBSTACLE_RECT_LINE = 0x38bdf8;
+const OBSTACLE_RECT_LINE = PALETTE.sky400;
 
 export class PathDebugDraw {
   private readonly g: Phaser.GameObjects.Graphics;

@@ -33,3 +33,13 @@ export const DEFENSE_RENDER_DEPTH = {
   enemyNameplate: 20,
   damageNumber: 21,
 } as const;
+
+/** Screen-space UI layers in the defense scene (above the world, below modals at 400+). */
+export const DEFENSE_UI_DEPTH = {
+  /** HUD bar, spell bar and touch controls. */
+  hud: 200,
+  /** Buttons layered over the HUD (leave endless, return to town). */
+  hudOverlayButton: 210,
+  /** Night-end buttons and floating consumable messages. */
+  nightEnd: 260,
+} as const;

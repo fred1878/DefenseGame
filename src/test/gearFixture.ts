@@ -1,4 +1,4 @@
-import { normalizeItems } from "../core/normalizeItems";
+import { normalizeItems } from "../core/data/normalizeItems";
 import type { GearCatalog } from "../gear/gearTypes";
 
 /** Small inline `items.json` used by gear unit tests (not the shipped catalog). */
@@ -7,6 +7,11 @@ export function gearFixtureRaw(): Record<string, unknown> {
     armour: { halfReductionAt: 50, maxReductionPct: 60 },
     itemLevelPriceStepPct: 10,
     statCaps: { attackSpeedPct: 50, spellCooldownPct: 40, lifestealPct: 20 },
+    generation: {
+      maxAffixesPerPosition: 2,
+      outdatedBaseLevels: 5,
+      outdatedBaseWeight: 0.35,
+    },
     rarities: {
       common: {
         label: "Common",

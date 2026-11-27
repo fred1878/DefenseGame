@@ -1,6 +1,7 @@
+import { playerTuning } from "../config/player";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createNewSave } from "../core/GameState";
-import { PLAYER_TUNING, SPELL_BAR } from "../config";
+import { createNewSave } from "../core/save/GameState";
+import { SPELL_BAR } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { spellIconTextureKey } from "../content/assets";
 import { getE2EState } from "./e2eGlobal";
@@ -143,18 +144,7 @@ type TownFns = {
   e2eGetSpellSortSlotHitRects: Fn;
   e2eGetSpellSortBarSlots: Fn;
   e2eOpenEndlessPanel: Fn;
-  e2eIsEndlessPanelOpen: Fn;
   e2eStartEndless: Fn;
-  e2eSetEndlessInfiniteHp: Fn;
-  e2eEndlessInfiniteHpEnabled: Fn;
-  e2eScrollEndlessEnemyList: Fn;
-  e2eEndlessEnemyListScrollState: Fn;
-  e2eEndlessSelectedEnemyId: Fn;
-  e2eEndlessSelectedEnemyIds: Fn;
-  e2eEndlessRosterEnemyIds: Fn;
-  e2eEndlessEnemyConcurrentCap: Fn;
-  e2eToggleEndlessEnemy: Fn;
-  e2eSetEndlessEnemyCap: Fn;
 };
 
 function townFns(): TownFns {
@@ -171,7 +161,14 @@ function townFns(): TownFns {
     ]),
     e2eGetSpellSortBarSlots: vi.fn(() => ["fire_bolt"]),
     e2eOpenEndlessPanel: vi.fn(),
-    e2eIsEndlessPanelOpen: vi.fn(() => true),
+    e2eStartEndless: vi.fn(),
+  };
+}
+
+/** Roster hooks on the Endless setup scene (reached when it is the active Town UI host). */
+function endlessSetupFns() {
+  return {
+    e2eIsOpen: vi.fn(() => true),
     e2eStartEndless: vi.fn(),
     e2eSetEndlessInfiniteHp: vi.fn(),
     e2eEndlessInfiniteHpEnabled: vi.fn(() => true),
@@ -192,6 +189,26 @@ function townFns(): TownFns {
     e2eToggleEndlessEnemy: vi.fn(),
     e2eSetEndlessEnemyCap: vi.fn(),
   };
+}
+
+function withEndlessSetup(game: ReturnType<typeof makeGame>) {
+  const fns = endlessSetupFns();
+  const setup = {
+    scene: {
+      key: "TownEndlessSetup",
+      isActive: () => true,
+      isPaused: () => false,
+    },
+    ...fns,
+  };
+  const inner = game.scene.getScene.bind(game.scene);
+  (game.scene as { getScene: (key: string) => unknown }).getScene = (
+    key: string,
+  ) => {
+    if (key === "TownEndlessSetup") return setup;
+    return inner(key);
+  };
+  return fns;
 }
 
 function makeGame(opts: {
@@ -510,10 +527,10 @@ describe("buildApi", () => {
   it("overrides live movement speed and reports texture / fps state", async () => {
     const game = makeGame({});
     const api = buildApi(game as never);
-    const previousSpeed = PLAYER_TUNING.moveSpeedWu;
+    const previousSpeed = playerTuning().moveSpeedWu;
     api.setPlayerMoveSpeedWu(123);
-    expect(PLAYER_TUNING.moveSpeedWu).toBe(123);
-    applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: previousSpeed });
+    expect(playerTuning().moveSpeedWu).toBe(123);
+    applyPlayerTuning({ ...playerTuning(), moveSpeedWu: previousSpeed });
     expect(api.textureLoaded("missing")).toBe(false);
     expect(await api.sampleFps(0)).toBe(60);
 
@@ -581,28 +598,39 @@ describe("buildApi", () => {
     expect(api.getSpellSortSlotHitRects()).toHaveLength(1);
     expect(api.getSpellSortBarSlots()).toEqual(["fire_bolt"]);
     api.openEndlessPanel();
-    expect(api.isEndlessPanelOpen()).toBe(true);
+    expect(game.townMethods.e2eOpenEndlessPanel).toHaveBeenCalled();
+    expect(api.isEndlessPanelOpen()).toBe(false);
     api.startEndless("lobber", true);
     expect(game.townMethods.e2eStartEndless).toHaveBeenCalledWith(
       "lobber",
       true,
     );
     expect(api.getEndlessPanelDefaultConcurrent()).toBe(4);
-    api.setEndlessInfiniteHp(true);
-    expect(api.getEndlessInfiniteHp()).toBe(true);
     expect(api.getPlayerHp()).toBe(33);
+  });
+
+  it("routes endless roster hooks to the active Endless setup scene", () => {
+    const game = makeGame({ townActive: true });
+    const setup = withEndlessSetup(game);
+    const api = buildApi(game as never);
+    expect(api.isEndlessPanelOpen()).toBe(true);
+    api.startEndless("lobber", true);
+    expect(setup.e2eStartEndless).toHaveBeenCalledWith("lobber", true);
+    expect(game.townMethods.e2eStartEndless).not.toHaveBeenCalled();
+    api.setEndlessInfiniteHp(true);
+    expect(setup.e2eSetEndlessInfiniteHp).toHaveBeenCalledWith(true);
+    expect(api.getEndlessInfiniteHp()).toBe(true);
     api.scrollEndlessEnemyList(12);
+    expect(setup.e2eScrollEndlessEnemyList).toHaveBeenCalledWith(12);
     expect(api.getEndlessEnemyListScrollState()?.scrollY).toBe(10);
     expect(api.getEndlessSelectedEnemyId()).toBe("grunt");
     expect(api.getEndlessSelectedEnemyIds()).toEqual(["grunt"]);
     expect(api.getEndlessRosterEnemyIds()).toEqual(["grunt", "lobber"]);
     expect(api.getEndlessEnemyConcurrentCap("grunt")).toBe(2);
     api.toggleEndlessEnemy("lobber");
+    expect(setup.e2eToggleEndlessEnemy).toHaveBeenCalledWith("lobber");
     api.setEndlessEnemyCap("lobber", 3);
-    expect(game.townMethods.e2eSetEndlessEnemyCap).toHaveBeenCalledWith(
-      "lobber",
-      3,
-    );
+    expect(setup.e2eSetEndlessEnemyCap).toHaveBeenCalledWith("lobber", 3);
   });
 
   it("returns town-hook fallbacks when Town is inactive", () => {

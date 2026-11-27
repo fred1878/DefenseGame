@@ -1,9 +1,10 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid, cellToWorldCenter } from "../../pathfinding/grid";
 import { hasLineOfSight } from "../../pathfinding/los";
-import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createEnemyNav } from "../brainShared";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { meleeChaserBehavior } from "./meleeChaser";
 import { wallMeleeStandoffY } from "./movement";
 import { shouldMeleeLosShortcutToPlayer } from "./movement";
@@ -205,7 +206,7 @@ describe("meleeChaserBehavior", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const player = cellToWorldCenter(grid, 10, 10);
     const flank = cellToWorldCenter(grid, 2, 10);
@@ -435,7 +436,7 @@ it("holds at the wall when the player is far away", () => {
   const navGrid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
   const enemy = mockEnemyInstance({
     behavior: "meleeChaser",

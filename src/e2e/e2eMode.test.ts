@@ -1,10 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  E2E_SAVE_STORAGE_KEY,
   e2eCampaignWavesFromQuery,
   e2eManualReturnFromQuery,
   isE2EEnabled,
-  saveStorageKey,
 } from "./e2eMode";
 
 describe("e2eMode", () => {
@@ -16,14 +14,12 @@ describe("e2eMode", () => {
   it("is enabled when VITE_E2E is true", () => {
     vi.stubEnv("VITE_E2E", "true");
     expect(isE2EEnabled()).toBe(true);
-    expect(saveStorageKey()).toBe(E2E_SAVE_STORAGE_KEY);
   });
 
   it("is disabled without window when the env flag is off", () => {
     vi.stubEnv("VITE_E2E", "false");
     vi.stubGlobal("window", undefined);
     expect(isE2EEnabled()).toBe(false);
-    expect(saveStorageKey()).toBe("defensegame_save_v1");
     expect(e2eManualReturnFromQuery()).toBe(false);
     expect(e2eCampaignWavesFromQuery()).toBe(false);
   });
@@ -50,5 +46,19 @@ describe("e2eMode", () => {
     expect(isE2EEnabled()).toBe(false);
     expect(e2eManualReturnFromQuery()).toBe(false);
     expect(e2eCampaignWavesFromQuery()).toBe(false);
+  });
+  it("parses the query once per href and re-reads when it changes", () => {
+    vi.stubEnv("VITE_E2E", "false");
+    const location = { href: "http://localhost/?e2e=1" };
+    vi.stubGlobal("window", { location });
+    const urlSpy = vi.spyOn(globalThis, "URL");
+    expect(isE2EEnabled()).toBe(true);
+    expect(isE2EEnabled()).toBe(true);
+    expect(e2eManualReturnFromQuery()).toBe(false);
+    expect(urlSpy).toHaveBeenCalledTimes(1);
+    location.href = "http://localhost/?e2e=0";
+    expect(isE2EEnabled()).toBe(false);
+    expect(urlSpy).toHaveBeenCalledTimes(2);
+    urlSpy.mockRestore();
   });
 });

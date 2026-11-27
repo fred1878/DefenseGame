@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  anyDebugOverlayOn,
   getDebugFlags,
   setShowCombatRanges,
   setShowEnemyPaths,
@@ -79,5 +80,18 @@ describe("getDebugFlags leftover branches", () => {
     });
     expect(getDebugFlags(reg).showHitboxes).toBe(false);
     expect(getDebugFlags(reg).showCombatRanges).toBe(true);
+  });
+});
+
+describe("anyDebugOverlayOn", () => {
+  it("is false by default and true when any overlay flag is on", () => {
+    const values = new Map<string, unknown>();
+    const registry = {
+      get: (k: string) => values.get(k),
+      set: (k: string, v: unknown) => values.set(k, v),
+    } as unknown as Phaser.Data.DataManager;
+    expect(anyDebugOverlayOn(registry)).toBe(false);
+    setShowCombatRanges(registry, true);
+    expect(anyDebugOverlayOn(registry)).toBe(true);
   });
 });

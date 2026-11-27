@@ -1,14 +1,16 @@
-import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
-import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
-import { worldUnit } from "../../core/worldPixelScale";
+import { tuning } from "../../tuning/gameTuning";
+import { DEFENSE_MAP } from "../../config";
+import { playerAggroRadiusWu } from "../../combat/rules/shadowformRuntime";
+import { worldUnit } from "../../config/worldScale";
 import { hasLineOfSight } from "../../pathfinding/los";
 import {
+  type EnemyTargetKind,
   pathingPeerAgents,
   replanEnemyPath,
   resolveEnemyTarget,
   wallPathingPlayerClearancePx,
-} from "../EnemyBrain";
-import type { EnemyBehavior } from "./types";
+} from "../brainShared";
+import type { EnemyBehavior, EnemyBehaviorContext } from "./types";
 import {
   applyChaseVelocity,
   applyPlayerMeleeHold,
@@ -26,16 +28,7 @@ import {
 } from "./movement";
 
 export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
-  const {
-    enemy,
-    nav,
-    grid,
-    playerX,
-    playerY,
-    deltaMs,
-    peerAgents,
-    peerAllies,
-  } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAllies } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -48,7 +41,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     playerX,
     playerY,
     deltaMs,
-    worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
+    worldUnit(playerAggroRadiusWu(tuning("enemyAi").playerAggroRadiusWu), reg),
     ctx.objective ?? "defendWall",
     reg,
   );
@@ -95,33 +88,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
 
   const pathActive = nav.path.length > 0 && nav.pathIndex < nav.path.length;
   if (!holdAtWall && (nav.replanMs <= 0 || nav.path.length === 0)) {
-    const wasReachable = nav.pathGoalReached;
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      pathingPeerAgents(
-        peerAgents,
-        resolved.targetKind,
-        playerX,
-        playerY,
-        wallPathingPlayerClearancePx(reg),
-      ),
-      enemy,
-    );
-    if (desired === "player") {
-      commitPlayerChasePathGoal(
-        nav,
-        nav.pathGoalReached,
-        wasReachable,
-        shouldHoldAtPlayerMelee(enemy, desired, playerX, playerY),
-      );
-    }
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
+    replanMeleeChasePath(ctx, ex, ey, goal, desired, waypointRadius);
   }
 
   if (holdAtWall) {
@@ -129,58 +96,123 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
 
-  let moveX = goal.x;
-  let moveY = goal.y;
-  if (desired === "player") {
-    const hold = playerMeleeChaseHoldPoint(enemy, packPlayer.x, packPlayer.y);
-    moveX = hold.x;
-    moveY = hold.y;
+  const move = meleeChaseMoveTarget(ctx, {
+    ex,
+    ey,
+    goal,
+    desired,
+    packPlayer,
+    pathActive,
+    chordBlocked,
+    waypointRadius,
+  });
+  if (!move) {
+    applyPlayerMeleeHold(enemy);
+    return { targetX: goal.x, targetY: goal.y, targetKind: desired };
   }
-
-  if (
-    desired === "player" &&
-    shouldMeleeLosShortcutToPlayer(enemy, nav, playerX, playerY) &&
-    hasLineOfSight(grid, ex, ey, playerX, playerY) &&
-    !chordBlocked
-  ) {
-    moveX = playerX;
-    moveY = playerY;
-  } else if (pathActive) {
-    const wp = nav.path[nav.pathIndex]!;
-    const d = Math.hypot(wp.x - ex, wp.y - ey);
-    if (d <= waypointRadius) {
-      nav.pathIndex += 1;
-    }
-    const nextWp = nav.path[nav.pathIndex];
-    if (nextWp) {
-      moveX = nextWp.x;
-      moveY = nextWp.y;
-    }
-  } else if (chordBlocked && desired === "player") {
-    const tail = nav.path[nav.path.length - 1];
-    if (tail && Math.hypot(tail.x - ex, tail.y - ey) > 1) {
-      moveX = tail.x;
-      moveY = tail.y;
-    } else {
-      applyPlayerMeleeHold(enemy);
-      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
-    }
-  } else if (desired === "player" && !nav.pathGoalReached) {
-    const tail = nav.path[nav.path.length - 1];
-    if (tail && Math.hypot(tail.x - ex, tail.y - ey) > 1) {
-      moveX = tail.x;
-      moveY = tail.y;
-    } else if (tail) {
-      applyPlayerMeleeHold(enemy);
-      return { targetX: goal.x, targetY: goal.y, targetKind: desired };
-    } else {
-      const hold = playerMeleeChaseHoldPoint(enemy, packPlayer.x, packPlayer.y);
-      moveX = hold.x;
-      moveY = hold.y;
-    }
-  }
+  const moveX = move.x;
+  const moveY = move.y;
 
   applyChaseVelocity(enemy, moveX, moveY, 1, chaseVelocityOpts);
 
   return { targetX: goal.x, targetY: goal.y, targetKind: desired };
 };
+
+function replanMeleeChasePath(
+  ctx: EnemyBehaviorContext,
+  ex: number,
+  ey: number,
+  goal: { x: number; y: number },
+  desired: EnemyTargetKind,
+  waypointRadius: number,
+): void {
+  const { enemy, nav, playerX, playerY } = ctx;
+  const wasReachable = nav.pathGoalReached;
+  replanEnemyPath(
+    nav,
+    ctx.grid,
+    ex,
+    ey,
+    goal.x,
+    goal.y,
+    waypointRadius,
+    pathingPeerAgents(
+      ctx.peerAgents,
+      desired,
+      playerX,
+      playerY,
+      wallPathingPlayerClearancePx(enemy.sprite.scene.registry),
+    ),
+    enemy,
+  );
+  if (desired === "player") {
+    commitPlayerChasePathGoal(
+      nav,
+      nav.pathGoalReached,
+      wasReachable,
+      shouldHoldAtPlayerMelee(enemy, desired, playerX, playerY),
+    );
+  }
+  nav.replanMs = DEFENSE_MAP.pathReplanMs;
+}
+
+type MeleeChaseFrame = {
+  ex: number;
+  ey: number;
+  goal: { x: number; y: number };
+  desired: EnemyTargetKind;
+  packPlayer: { x: number; y: number };
+  /** Read before this frame's replan. */
+  pathActive: boolean;
+  chordBlocked: boolean;
+  waypointRadius: number;
+};
+
+/** Where a melee chaser steers this frame, or null to hold in place. */
+function meleeChaseMoveTarget(
+  ctx: EnemyBehaviorContext,
+  f: MeleeChaseFrame,
+): { x: number; y: number } | null {
+  const { enemy, nav, playerX, playerY } = ctx;
+  const toPlayer = f.desired === "player";
+  let move = toPlayer
+    ? playerMeleeChaseHoldPoint(enemy, f.packPlayer.x, f.packPlayer.y)
+    : { x: f.goal.x, y: f.goal.y };
+
+  if (
+    toPlayer &&
+    shouldMeleeLosShortcutToPlayer(enemy, nav, playerX, playerY) &&
+    hasLineOfSight(ctx.grid, f.ex, f.ey, playerX, playerY) &&
+    !f.chordBlocked
+  ) {
+    return { x: playerX, y: playerY };
+  }
+  if (f.pathActive) {
+    // `pathActive` was read before this frame's replan; a replan that found no
+    // path leaves `nav.path` empty, so the waypoint can be missing here.
+    const wp = nav.path[nav.pathIndex];
+    if (wp && Math.hypot(wp.x - f.ex, wp.y - f.ey) <= f.waypointRadius) {
+      nav.pathIndex += 1;
+    }
+    const nextWp = nav.path[nav.pathIndex];
+    if (nextWp) move = { x: nextWp.x, y: nextWp.y };
+    return move;
+  }
+  if (!toPlayer) return move;
+  if (f.chordBlocked) {
+    const tail = nav.path[nav.path.length - 1];
+    if (tail && Math.hypot(tail.x - f.ex, tail.y - f.ey) > 1) {
+      return { x: tail.x, y: tail.y };
+    }
+    return null;
+  }
+  if (!nav.pathGoalReached) {
+    const tail = nav.path[nav.path.length - 1];
+    if (tail && Math.hypot(tail.x - f.ex, tail.y - f.ey) > 1) {
+      return { x: tail.x, y: tail.y };
+    }
+    if (tail) return null;
+    return playerMeleeChaseHoldPoint(enemy, f.packPlayer.x, f.packPlayer.y);
+  }
+  return move;
+}

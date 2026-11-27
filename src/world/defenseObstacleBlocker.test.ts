@@ -1,11 +1,9 @@
+import { defenseObstacles } from "../config/defense";
+import { defenseObstaclePlacements } from "../config/defense";
 import type Phaser from "phaser";
 import { describe, expect, it } from "vitest";
-import {
-  DEFENSE_OBSTACLE_PLACEMENTS,
-  DEFENSE_OBSTACLES,
-  defenseObstacleColliderFromPlacement,
-} from "../config/defense";
-import { WORLD_PIXEL_SCALE_REGISTRY_KEY } from "../core/worldPixelScale";
+import { defenseObstacleColliderFromPlacement } from "../config/defense";
+import { WORLD_PIXEL_SCALE_REGISTRY_KEY } from "../config/worldScale";
 import {
   circleRectOverlapDepth,
   circleRectSurfaceGap,
@@ -28,10 +26,10 @@ function fakeRegistry(
 describe("defenseObstacleBlockerRects", () => {
   it("matches placement colliders at default world scale factor (baseline 2×)", () => {
     const rects = defenseObstacleBlockerRects(fakeRegistry());
-    expect(rects.length).toBe(DEFENSE_OBSTACLE_PLACEMENTS.length);
+    expect(rects.length).toBe(defenseObstaclePlacements().length);
     for (let i = 0; i < rects.length; i++) {
       const base = defenseObstacleColliderFromPlacement(
-        DEFENSE_OBSTACLE_PLACEMENTS[i]!,
+        defenseObstaclePlacements()[i]!,
       );
       const rect = rects[i]!;
       expect(rect.x).toBeCloseTo(base.x, 5);
@@ -40,9 +38,9 @@ describe("defenseObstacleBlockerRects", () => {
       expect(rect.h).toBeCloseTo(base.h, 5);
       expect(rect.textureKey).toBe(base.textureKey);
     }
-    for (let i = 0; i < DEFENSE_OBSTACLES.length; i++) {
-      expect(rects[i]!.x).toBeCloseTo(DEFENSE_OBSTACLES[i]!.x, 5);
-      expect(rects[i]!.w).toBeCloseTo(DEFENSE_OBSTACLES[i]!.w, 5);
+    for (let i = 0; i < defenseObstacles().length; i++) {
+      expect(rects[i]!.x).toBeCloseTo(defenseObstacles()[i]!.x, 5);
+      expect(rects[i]!.w).toBeCloseTo(defenseObstacles()[i]!.w, 5);
     }
   });
 

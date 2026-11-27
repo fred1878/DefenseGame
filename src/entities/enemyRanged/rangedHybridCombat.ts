@@ -6,7 +6,7 @@ import {
   type EnemyCombatState,
 } from "../EnemyCombat";
 import type { JavelinSpawnRequest, RangedHybridCombatState } from "./types";
-import { cancelEnemyMeleeFxTimer } from "../../combat/enemyMeleeFxSchedule";
+import { cancelEnemyMeleeFxTimer } from "../../combat/fx/enemyMeleeFxSchedule";
 import { clearEnemyAttackCommit } from "./attackCommit";
 import { updateStationaryRangedCombat } from "./stationaryRangedCombat";
 

@@ -1,0 +1,48 @@
+{
+  "wall": {
+    "baseHp": 100,
+    "hpPerLevel": 50,
+    "campaignWinWear": 2
+  },
+  "nightEnd": {
+    "winHealHp": 10
+  },
+  "waves": {
+    "eliteHpMul": 2
+  },
+  "spawn": {
+    "marginXWu": 36,
+    "southInsetWu": 96,
+    "jitterYWu": 24
+  },
+  "combat": {
+    "dotTickMs": 250,
+    "minSlowSpeedMul": 0.1,
+    "enemyKnockbackDecayMs": 260,
+    "knockbackWeightBaseline": 100,
+    "enemyProjectileKnockbackMul": 0.65,
+    "enemyProjectileHitSlackPx": 6,
+    "playerProjectileHitSlackPx": 6,
+    "lobOvershootPx": 12,
+    "lobMinTravelPx": 80
+  },
+  "feel": {
+    "novaFlashDurationMs": 320,
+    "novaFlashStartAlpha": 0.9,
+    "novaFlashScaleEnd": 1.25,
+    "impactTelegraphMs": 360,
+    "chainLightningHoldMs": 280,
+    "consumableToastHoldMs": 700,
+    "consumableToastFadeMs": 500,
+    "consumableToastRisePx": 24,
+    "townStatusMs": 2200,
+    "resetConfirmWindowMs": 4000
+  },
+  "audio": {
+    "playerMeleeSlashVolume": 0.52,
+    "enemyMeleeSlashVolume": 0.48,
+    "fireWhooshVolume": 0.55,
+    "coinSpendVolume": 0.58,
+    "coinGainVolume": 0.62
+  }
+}

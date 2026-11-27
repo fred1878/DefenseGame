@@ -1,8 +1,8 @@
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
-import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
-import { SHADOWFORM_MECHANICS } from "../../config/shadowformMechanics";
-import { setShadowformRuntimeMults } from "../../config/shadowformRuntime";
-import { shadowformActive } from "../../combat/shadowform";
+import { destroyArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
+import { setShadowformRuntimeMults } from "../../combat/rules/shadowformRuntime";
+import { shadowformActive } from "../../combat/rules/shadowform";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { Player } from "../../entities/Player";
 import {
@@ -12,14 +12,14 @@ import {
   type PlayerProjectile,
 } from "../../entities/Projectile";
 import { destroyDefenseEnemyPool } from "./DefenseEnemySpawner";
-import { destroyEnemyNameplate } from "../../ui/enemyNameplate";
+import { destroyEnemyNameplate } from "../../ui/hud/enemyNameplate";
 import {
   blocksBaseLayerInput,
   INPUT_MODALITY,
   isInputModalityActive,
 } from "../../input/inputModality";
 import { setContainerInputEnabled } from "../../input/setContainerInputEnabled";
-import type { TouchButtonHandle } from "../../ui/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
 
 type Destroyable = { destroy(): void };
 
@@ -102,7 +102,7 @@ export function syncShadowformRuntime(
   nowMs: number,
 ): void {
   const active = shadowformActive(shadowformEndsAt, nowMs);
-  const mechanics = SHADOWFORM_MECHANICS;
+  const mechanics = tuning("shadowform");
   setShadowformRuntimeMults({
     aggroRadiusMult: active ? mechanics.aggroRadiusMult : 1,
     damageTakenMult: active ? mechanics.damageTakenMult : 1,

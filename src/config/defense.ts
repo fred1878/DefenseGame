@@ -1,28 +1,26 @@
+import { tuning } from "../tuning/gameTuning";
 import {
   GROUND_TILE_SIZE,
   OBSTACLE_BLOCKER_FOOTPRINT,
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
 } from "../content/assets";
-import { NORTH_WALL_MELEE_STANDOFF_WU } from "./enemy";
-import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
-import {
-  worldDisplayPx,
-  worldScaleFactor,
-  worldUnit,
-} from "../core/worldPixelScale";
+import { worldDisplayPx, worldScaleFactor, worldUnit } from "./worldScale";
 import type Phaser from "phaser";
 
+let fieldTiles: { cols: number; rows: number } = { cols: 0, rows: 0 };
+let obstaclePlacements: DefenseObstaclePlacement[] = [];
+let obstacleRects: DefenseObstacleRect[] = [];
+
 /** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
-export let DEFENSE_FIELD_TILES: { cols: number; rows: number } = {
-  cols: 0,
-  rows: 0,
-};
+export function defenseFieldTiles(): Readonly<{ cols: number; rows: number }> {
+  return fieldTiles;
+}
 
 export function assertDefenseFieldLoaded(): void {
-  if (DEFENSE_FIELD_TILES.cols < 1 || DEFENSE_FIELD_TILES.rows < 1) {
+  if (fieldTiles.cols < 1 || fieldTiles.rows < 1) {
     throw new Error(
-      "DEFENSE_FIELD_TILES not loaded — Boot must apply public/data/defense-maps.json",
+      "Defense field not loaded — Boot must apply public/data/defense-maps.json",
     );
   }
 }
@@ -43,8 +41,8 @@ export function defenseFieldPx(registry?: Phaser.Data.DataManager): {
   assertDefenseFieldLoaded();
   const step = defenseGroundTileStep(registry);
   return {
-    width: DEFENSE_FIELD_TILES.cols * step,
-    height: DEFENSE_FIELD_TILES.rows * step,
+    width: fieldTiles.cols * step,
+    height: fieldTiles.rows * step,
   };
 }
 
@@ -78,7 +76,7 @@ export function northWallAttackY(registry?: Phaser.Data.DataManager): number {
  */
 export function northWallApproachY(
   registry?: Phaser.Data.DataManager,
-  standoffWu = NORTH_WALL_MELEE_STANDOFF_WU,
+  standoffWu = tuning("enemyAi").northWallMeleeStandoffWu,
 ): number {
   const standoffPx = registry ? worldUnit(standoffWu, registry) : standoffWu;
   return northWallAttackY(registry) + standoffPx;
@@ -161,19 +159,18 @@ export function obstacleDisplaySize(
 export const DEFENSE_MAP = {
   /** 16px nav cells — quarter ground tile — so blocked cells hug sprite mass. */
   cellSize: 16,
-  /**
-   * Inflate obstacle blockers on the nav grid (`staticObstacleNavClearancePx` in `entity-physics.json`).
-   * Lazy — depends on `entity-physics.json` loaded at Boot.
-   */
-  get pathClearancePx(): number {
-    return maxNavObstacleClearancePx();
+  /** How close an enemy must be to a path node before advancing (`enemy-ai.json` `pathing`). */
+  get pathWaypointRadius(): number {
+    return tuning("enemyAi").pathing.waypointRadiusWu;
   },
-  /** How close an enemy must be to a path node before advancing. */
-  pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */
-  pathReplanMs: 450,
+  get pathReplanMs(): number {
+    return tuning("enemyAi").pathing.replanMs;
+  },
   /** No meaningful progress toward the current waypoint for this long → emergency replan. */
-  pathStallMs: 400,
+  get pathStallMs(): number {
+    return tuning("enemyAi").pathing.stallMs;
+  },
 };
 
 export type DefenseObstacleRect = {
@@ -191,7 +188,9 @@ export type DefenseObstaclePlacement = {
 };
 
 /** Tile placements from `defense-maps.json` (empty until Boot). */
-export let DEFENSE_OBSTACLE_PLACEMENTS: DefenseObstaclePlacement[] = [];
+export function defenseObstaclePlacements(): readonly DefenseObstaclePlacement[] {
+  return obstaclePlacements;
+}
 
 export function defenseObstacleSpriteAnchor(
   placement: DefenseObstaclePlacement,
@@ -235,13 +234,9 @@ export function defenseObstacleColliderFromPlacement(
   };
 }
 
-/** Static rock/wall blockers (world coords = Arcade body AABB center + size). */
-export let DEFENSE_OBSTACLES: DefenseObstacleRect[] = [];
-
-function refreshDefenseObstacleColliders(): void {
-  DEFENSE_OBSTACLES = DEFENSE_OBSTACLE_PLACEMENTS.map((p) =>
-    defenseObstacleColliderFromPlacement(p),
-  );
+/** Static rock/wall blockers at default world scale (Arcade body AABB center + size). */
+export function defenseObstacles(): readonly DefenseObstacleRect[] {
+  return obstacleRects;
 }
 
 /** Apply field footprint + obstacles from `public/data/defense-maps.json`. */
@@ -249,7 +244,9 @@ export function applyDefenseMapLayout(
   field: { cols: number; rows: number },
   obstacles: DefenseObstaclePlacement[],
 ): void {
-  DEFENSE_FIELD_TILES = { ...field };
-  DEFENSE_OBSTACLE_PLACEMENTS = obstacles.map((p) => ({ ...p }));
-  refreshDefenseObstacleColliders();
+  fieldTiles = { ...field };
+  obstaclePlacements = obstacles.map((p) => ({ ...p }));
+  obstacleRects = obstaclePlacements.map((p) =>
+    defenseObstacleColliderFromPlacement(p),
+  );
 }

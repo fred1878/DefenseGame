@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import * as touchButton from "../touchButton";
+import * as touchButton from "../touch/touchButton";
 import type { EndlessListLayout, EnemyRow } from "./EndlessModePanelBuild";
 import { collectEndlessModeTouchDebugScreenRects } from "./EndlessModePanelTouchDebug";
 import type { EndlessModePanelScroll } from "./EndlessModePanelScroll";

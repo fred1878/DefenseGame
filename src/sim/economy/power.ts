@@ -1,5 +1,5 @@
 import { basePlayerTuning } from "../../config/player";
-import { pickAutoCastSpell } from "../../combat/spellAutoCast";
+import { pickAutoCastSpell } from "../../combat/rules/spellAutoCast";
 import { autoCastOrder } from "./spellBars";
 import {
   createDefaultSpellBarSlots,

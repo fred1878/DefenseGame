@@ -1,8 +1,14 @@
-import { UI_FONT_FAMILY } from "../../ui/uiTextStyle";
+import { UI_FONT_FAMILY } from "../../ui/layout/uiTextStyle";
 import type Phaser from "phaser";
-import { applyHealAmount, applySpellBlastAt } from "../../combat/SpellEffects";
-import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import type { SaveGame } from "../../core/saveTypes";
+import { tuning } from "../../tuning/gameTuning";
+import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
+import { PALETTE_CSS } from "../../ui/theme/uiPalette";
+import {
+  applyHealAmount,
+  applySpellBlastAt,
+} from "../../combat/rules/SpellEffects";
+import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
+import type { SaveGame } from "../../core/save/saveTypes";
 import type { Player } from "../../entities/Player";
 import {
   consumableButtonState,
@@ -13,9 +19,9 @@ import {
   bombBlastSpellDef,
   quickConsumable,
   spendConsumable,
-  type ConsumableKind,
 } from "../../gear/consumables";
-import type { TouchButtonHandle } from "../../ui/touchButton";
+import type { BombDef, ConsumableKind } from "../../gear/consumableTypes";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
 
 type EnemyTarget = Parameters<typeof applySpellBlastAt>[4][number];
 
@@ -40,8 +46,6 @@ export type DefenseConsumablesHost = {
   /** False once the night has ended or a modal pauses play. */
   canAct: () => boolean;
 };
-
-const THROW_MS = 280;
 
 /**
  * Potion / bomb HUD buttons and Q / E hotkeys. Charges are spent on the run
@@ -99,7 +103,7 @@ export class DefenseConsumables {
         this.toast("No enemy in range");
         return;
       }
-      this.throwBomb(from, target, bomb.projectile, () => {
+      this.throwBomb(from, target, bomb, () => {
         applySpellBlastAt(
           h.scene,
           target.x,
@@ -123,9 +127,10 @@ export class DefenseConsumables {
   private throwBomb(
     from: { x: number; y: number },
     to: { x: number; y: number },
-    texture: string,
+    bomb: BombDef,
     onLand: () => void,
   ): void {
+    const texture = bomb.projectile;
     const scene = this.host.scene;
     if (!scene.textures.exists(texture)) {
       onLand();
@@ -138,7 +143,7 @@ export class DefenseConsumables {
       x: to.x,
       y: to.y,
       angle: 360,
-      duration: THROW_MS,
+      duration: bomb.throwMs,
       onComplete: () => {
         sprite.destroy();
         onLand();
@@ -152,18 +157,19 @@ export class DefenseConsumables {
       .text(potionBtn.container.x, potionBtn.container.y - 40, message, {
         fontFamily: UI_FONT_FAMILY,
         fontSize: "20px",
-        color: "#fde68a",
+        color: PALETTE_CSS.amber200,
       })
       .setOrigin(0, 1)
       .setScrollFactor(0)
-      .setDepth(260);
+      .setDepth(DEFENSE_UI_DEPTH.nightEnd);
     this.host.registerUiDraw(t);
+    const feel = tuning("gameplay").feel;
     scene.tweens.add({
       targets: t,
       alpha: 0,
-      y: t.y - 24,
-      delay: 700,
-      duration: 500,
+      y: t.y - feel.consumableToastRisePx,
+      delay: feel.consumableToastHoldMs,
+      duration: feel.consumableToastFadeMs,
       onComplete: () => t.destroy(),
     });
   }

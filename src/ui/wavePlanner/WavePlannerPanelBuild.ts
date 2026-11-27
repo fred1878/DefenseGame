@@ -1,22 +1,22 @@
 import Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { GAME } from "../../config";
-import type { DataStore } from "../../core/DataStore";
-import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import type { DataStore } from "../../core/data/DataStore";
+import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import { INPUT_MODALITY } from "../../input/inputModality";
 import {
-  acquireModalInput,
-  bindModalDimBackdrop,
+  openModalPanel,
   type ModalInputLease,
 } from "../../input/modalBackdrop";
 import {
   WAVE_PLANNER_COUNT_MIN,
   WAVE_PLANNER_DEFAULT_AT_MS,
   WAVE_PLANNER_DEFAULT_INTERVAL_MS,
-} from "../../systems/wavePlannerTiming";
-import { addRosterListChrome } from "../rosterPanelShared";
-import { createTouchButton } from "../touchButton";
-import { uiTextStyle } from "../uiTextStyle";
-import { createUiRoundedRect } from "../uiRoundedRect";
+} from "../../core/wavePlannerTiming";
+import { addRosterListChrome } from "../panels/rosterPanelShared";
+import { createTouchButton } from "../touch/touchButton";
+import { uiTextStyle } from "../layout/uiTextStyle";
+import { createUiRoundedRect } from "../layout/uiRoundedRect";
 
 const MAX_VISIBLE_ROWS = 5;
 
@@ -82,19 +82,11 @@ export function buildWavePlannerPanelUi(
 ): WavePlannerPanelUi {
   const { counts, atMs, intervalMs } = fields;
   const rows: PlannerRow[] = [];
-  const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
-
-  const dim = scene.add.rectangle(
-    GAME.width / 2,
-    GAME.height / 2,
-    GAME.width,
-    GAME.height,
-    0x000000,
-    0.72,
-  );
-  bindModalDimBackdrop(dim);
-  root.add(dim);
-  const modalLease = acquireModalInput(scene, INPUT_MODALITY.townWavePlanner);
+  const modal = openModalPanel(scene, {
+    token: INPUT_MODALITY.townWavePlanner,
+  });
+  const root = modal.root;
+  const modalLease = modal.lease;
 
   root.add(
     scene.add
@@ -104,7 +96,7 @@ export function buildWavePlannerPanelUi(
         "Wave planner",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(24)}px`,
-          color: "#f4f4f5",
+          color: PALETTE_CSS.zinc100,
         }),
       )
       .setOrigin(0.5),
@@ -118,7 +110,7 @@ export function buildWavePlannerPanelUi(
         "Rows: count · spawn at (ms) · interval (ms) — timing adjusts by 100. Simulated night; no gold or night advance.",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
-          color: "#a1a1aa",
+          color: PALETTE_CSS.zinc400,
           align: "center",
           wordWrap: { width: GAME.width - scaleUiX(36) },
         }),
@@ -148,7 +140,7 @@ export function buildWavePlannerPanelUi(
       listTop + listViewportH / 2,
       rowW,
       listViewportH,
-      0x000000,
+      PALETTE.black,
       0,
     )
     .setInteractive({ draggable: false });
@@ -174,14 +166,17 @@ export function buildWavePlannerPanelUi(
     const nameCx = listLeft + nameColW / 2;
 
     const bg = scene.add
-      .rectangle(nameCx, cy, nameColW, rowH, 0x3f3f46, 1)
-      .setStrokeStyle(2, 0x71717a);
+      .rectangle(nameCx, cy, nameColW, rowH, PALETTE.zinc700, 1)
+      .setStrokeStyle(2, PALETTE.zinc500);
     const check = scene.add
       .text(
         listLeft + scaleUiX(12),
         cy,
         "☐",
-        uiTextStyle(scene, { fontSize: `${scaleUiX(16)}px`, color: "#a1a1aa" }),
+        uiTextStyle(scene, {
+          fontSize: `${scaleUiX(16)}px`,
+          color: PALETTE_CSS.zinc400,
+        }),
       )
       .setOrigin(0.5);
     const text = scene.add
@@ -191,7 +186,7 @@ export function buildWavePlannerPanelUi(
         label,
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(13)}px`,
-          color: "#fafafa",
+          color: PALETTE_CSS.zinc50,
         }),
       )
       .setOrigin(0.5);
@@ -225,12 +220,24 @@ export function buildWavePlannerPanelUi(
       const cx = colCenters[centerIndex]!;
       const btnW = scaleUiX(22);
       const btnH = scaleUiY(26);
-      const m = createUiRoundedRect(scene, btnW, btnH, 0x3f3f46, 0x71717a);
+      const m = createUiRoundedRect(
+        scene,
+        btnW,
+        btnH,
+        PALETTE.zinc700,
+        PALETTE.zinc500,
+      );
       m.setPosition(cx - scaleUiX(22), cy).setInteractive(
         new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
         Phaser.Geom.Rectangle.Contains,
       );
-      const p = createUiRoundedRect(scene, btnW, btnH, 0x3f3f46, 0x71717a);
+      const p = createUiRoundedRect(
+        scene,
+        btnW,
+        btnH,
+        PALETTE.zinc700,
+        PALETTE.zinc500,
+      );
       p.setPosition(cx + scaleUiX(22), cy).setInteractive(
         new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
         Phaser.Geom.Rectangle.Contains,
@@ -258,7 +265,7 @@ export function buildWavePlannerPanelUi(
           initial ?? "0",
           uiTextStyle(scene, {
             fontSize: `${scaleUiX(12)}px`,
-            color: "#e4e4e7",
+            color: PALETTE_CSS.zinc200,
           }),
         )
         .setOrigin(0.5);
@@ -312,7 +319,7 @@ export function buildWavePlannerPanelUi(
       "Challenge rating: 0",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(14)}px`,
-        color: "#fbbf24",
+        color: PALETTE_CSS.amber400,
       }),
     )
     .setOrigin(0.5);
@@ -330,8 +337,8 @@ export function buildWavePlannerPanelUi(
       height: scaleUiY(48),
       depth: 510,
       fontSize: `${scaleUiX(16)}px`,
-      fillColor: 0x15803d,
-      strokeColor: 0x4ade80,
+      fillColor: PALETTE.green700,
+      strokeColor: PALETTE.green400,
     },
   );
   const closeBtn = createTouchButton(
@@ -345,8 +352,8 @@ export function buildWavePlannerPanelUi(
       height: scaleUiY(40),
       depth: 510,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x52525b,
-      strokeColor: 0xa1a1aa,
+      fillColor: PALETTE.zinc600,
+      strokeColor: PALETTE.zinc400,
     },
   );
   root.add([startBtn.container, closeBtn.container]);

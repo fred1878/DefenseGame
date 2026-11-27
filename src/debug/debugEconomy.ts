@@ -1,4 +1,4 @@
-import type { SaveGame } from "../core/saveTypes";
+import type { EconomyPolicy } from "../core/economyPolicy";
 
 export const DEBUG_INFINITE_GOLD_KEY = "debugInfiniteGold";
 export const DEBUG_INFINITE_TALENT_POINTS_KEY = "debugInfiniteTalentPoints";
@@ -29,11 +29,12 @@ export function setDebugInfiniteTalentPoints(
   registry.set(DEBUG_INFINITE_TALENT_POINTS_KEY, value);
 }
 
-export function hasEnoughGold(
-  save: SaveGame,
-  cost: number,
-  registry?: Phaser.Data.DataManager,
-): boolean {
-  if (registry && debugInfiniteGold(registry)) return true;
-  return save.gold >= cost;
+/** Economy overrides for gold / talent rules from this session's debug cheats. */
+export function debugEconomyPolicy(
+  registry: Phaser.Data.DataManager,
+): EconomyPolicy {
+  return {
+    infiniteGold: debugInfiniteGold(registry),
+    infiniteTalentPoints: debugInfiniteTalentPoints(registry),
+  };
 }

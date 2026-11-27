@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import type { SaveGame } from "../src/core/saveTypes";
+import type { SaveGame } from "../src/core/save/saveTypes";
 
 /**
  * Real-fight harness (@manual, driven by `npm run sim:fights`, see
@@ -109,6 +109,27 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
   await page.evaluate(
     ({ attackMode, fullCast }) => {
       const w = window as unknown as { __winModelBot?: number };
+      const isHeal = (id: string | null) =>
+        id === "heal" || id === "flash_heal";
+      const reach = attackMode === "melee" ? 60 : 200;
+      // Heals need the player still (windup / channel): stop for a ready
+      // one when hurt, never walk out of one. Full-cast also holds through
+      // every cast and stops so a ready windup spell can start.
+      const holdStill = (
+        cast: { activeSpellId: string | null; readyWindupSpellIds: string[] },
+        hpFrac: number,
+        nearestDist: number,
+      ): boolean => {
+        if (isHeal(cast.activeSpellId)) return true;
+        if (hpFrac < 0.7 && cast.readyWindupSpellIds.some(isHeal)) return true;
+        if (!fullCast) return false;
+        if (cast.activeSpellId) return true;
+        return (
+          hpFrac >= 0.35 &&
+          cast.readyWindupSpellIds.length > 0 &&
+          nearestDist < reach
+        );
+      };
       w.__winModelBot = window.setInterval(() => {
         const api = window.__DEFENSEGAME_E2E__?.api;
         if (!api || window.__DEFENSEGAME_E2E__?.scene !== "Defense") return;
@@ -139,32 +160,9 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
           window.dispatchEvent(new KeyboardEvent("keydown", { key }));
         if (hpFrac < 0.45) press("q");
         if (enemies.filter((e) => dist(e) < 160).length >= 5) press("e");
-        const cast = api.getSpellCastState();
-        const isHeal = (id: string | null) =>
-          id === "heal" || id === "flash_heal";
-        // Heals need the player still (windup / channel); stop for them
-        // when hurt, and never walk out of one.
-        if (
-          isHeal(cast.activeSpellId) ||
-          (hpFrac < 0.7 && cast.readyWindupSpellIds.some(isHeal))
-        ) {
+        if (holdStill(api.getSpellCastState(), hpFrac, dist(nearest))) {
           api.clearStick();
           return;
-        }
-        if (fullCast) {
-          if (cast.activeSpellId) {
-            api.clearStick();
-            return;
-          }
-          const reach = attackMode === "melee" ? 60 : 200;
-          if (
-            hpFrac >= 0.35 &&
-            cast.readyWindupSpellIds.length > 0 &&
-            dist(nearest) < reach
-          ) {
-            api.clearStick();
-            return;
-          }
         }
         if (hpFrac < 0.35 && dist(nearest) < 160) {
           steer(me.x - nearest.x, me.y - nearest.y - 60);

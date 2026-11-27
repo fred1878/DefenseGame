@@ -1,8 +1,6 @@
-import {
-  consumableCount,
-  getConsumablesConfig,
-  type ConsumableDef,
-} from "../../gear/consumables";
+import { consumableCount, getConsumablesConfig } from "../../gear/consumables";
+import { debugEconomyPolicy } from "../../debug/debugEconomy";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import {
   bagItems,
   equipItem,
@@ -25,8 +23,8 @@ import {
   type GearCatalog,
   type ItemType,
 } from "../../gear/gearTypes";
-import type { SaveGame } from "../../core/saveTypes";
-import type { BuildingDef } from "../../core/DataStore";
+import type { SaveGame } from "../../core/save/saveTypes";
+import type { BuildingDef } from "../../core/data/DataStore";
 import type { Rng } from "../../gear/rng";
 import {
   buyOffer,
@@ -383,17 +381,45 @@ const cleared = (state: GearPanelState): GearPanelState => ({
   status: "",
 });
 
-/** Apply a panel command; returns the next save (unchanged unless gear / gold changed). */
-export function reduceGearPanel(
-  ctx: GearPanelContext,
-  save: SaveGame,
-  state: GearPanelState,
-  cmd: GearPanelCommand,
-  perPage?: number,
-): { save: SaveGame; state: GearPanelState } {
-  const sel = selectedItem(ctx, save, state);
-  const clamp = (s: SaveGame, st: GearPanelState) =>
-    clampPage(ctx, s, st, perPage);
+type GearPanelReduceFrame = {
+  ctx: GearPanelContext;
+  save: SaveGame;
+  state: GearPanelState;
+  sel: ReturnType<typeof selectedItem>;
+  clamp: (s: SaveGame, st: GearPanelState) => GearPanelState;
+};
+
+type GearPanelReduceResult = { save: SaveGame; state: GearPanelState };
+
+type NavCommand = Extract<
+  GearPanelCommand,
+  {
+    type:
+      | "select"
+      | "selectSlot"
+      | "selectConsumable"
+      | "page"
+      | "sort"
+      | "filter"
+      | "view"
+      | "tab"
+      | "selectOffer";
+  }
+>;
+type BagCommand = Extract<
+  GearPanelCommand,
+  { type: "equip" | "unequip" | "sell" }
+>;
+type ShopCommand = Extract<
+  GearPanelCommand,
+  { type: "buy" | "buyEquip" | "upgradeShop" | "reroll" | "fillRequest" }
+>;
+
+/** Selection, paging, sort, filter, view and tab changes (save never changes). */
+function reduceGearPanelNav(
+  { save, state, clamp }: GearPanelReduceFrame,
+  cmd: NavCommand,
+): GearPanelReduceResult {
   switch (cmd.type) {
     case "select":
       return {
@@ -440,6 +466,26 @@ export function reduceGearPanel(
       return { save, state: { ...cleared(state), filter: cmd.filter } };
     case "view":
       return { save, state: { ...cleared(state), view: cmd.view } };
+    case "tab":
+      return { save, state: { ...cleared(state), tab: cmd.tab } };
+    case "selectOffer":
+      return {
+        save,
+        state: {
+          ...state,
+          selectedOffer: cmd.index === state.selectedOffer ? null : cmd.index,
+          status: "",
+        },
+      };
+  }
+}
+
+/** Equip, unequip and sell the selected item. */
+function reduceGearPanelBag(
+  { ctx, save, state, sel, clamp }: GearPanelReduceFrame,
+  cmd: BagCommand,
+): GearPanelReduceResult {
+  switch (cmd.type) {
     case "equip": {
       if (!sel || equippedSlotOf(save.gear, sel.item.uid))
         return { save, state };
@@ -465,58 +511,81 @@ export function reduceGearPanel(
         state: { ...state, status: `Unequipped ${sel.name}` },
       };
     }
-    case "tab":
-      return { save, state: { ...cleared(state), tab: cmd.tab } };
-    case "selectOffer":
-      return {
-        save,
-        state: {
-          ...state,
-          selectedOffer: cmd.index === state.selectedOffer ? null : cmd.index,
-          status: "",
-        },
+    case "sell": {
+      if (!sel) return { save, state };
+      const gold = sellValue(sel.price, ctx.loot.sellBackPct);
+      const next = {
+        ...save,
+        gold: save.gold + gold,
+        gear: removeItem(save.gear, sel.item.uid),
       };
-    case "buy":
-    case "buyEquip": {
-      if (!ctx.shop || state.selectedOffer === null) return { save, state };
-      const offer = shopOffers(save, ctx.shop.ctx, ctx.shop.id)[
-        state.selectedOffer
-      ];
-      const r = buyOffer(
-        save,
-        ctx.shop.ctx,
-        ctx.shop.id,
-        state.selectedOffer,
-        ctx.registry,
-      );
-      let next = r.save;
-      let status = r.message;
-      if (r.ok && cmd.type === "buyEquip" && offer?.kind === "item") {
-        // addItem gives the new item the save's nextUid.
-        const uid = save.gear.nextUid;
-        next = { ...next, gear: equipItem(ctx.catalog, next.gear, uid) };
-        status = `${r.message} and equipped it`;
-      }
-      const offers = shopOffers(next, ctx.shop.ctx, ctx.shop.id);
-      // A limited row bought out is spliced from the list: drop the selection.
-      const stillThere =
-        state.selectedOffer < offers.length && (!r.ok || offer?.qty !== 1);
       return {
         save: next,
         state: clamp(next, {
           ...state,
-          selectedOffer: stillThere ? state.selectedOffer : null,
-          status,
+          selectedUid: null,
+          status: `Sold ${sel.name} for ${gold}g`,
         }),
       };
     }
+  }
+}
+
+/** Buy the selected offer, optionally equipping a bought item. */
+function reduceGearPanelBuy(
+  { ctx, save, state, clamp }: GearPanelReduceFrame,
+  equipAfter: boolean,
+): GearPanelReduceResult {
+  if (!ctx.shop || state.selectedOffer === null) return { save, state };
+  const offer = shopOffers(save, ctx.shop.ctx, ctx.shop.id)[
+    state.selectedOffer
+  ];
+  const r = buyOffer(
+    save,
+    ctx.shop.ctx,
+    ctx.shop.id,
+    state.selectedOffer,
+    ctx.registry && debugEconomyPolicy(ctx.registry),
+  );
+  let next = r.save;
+  let status = r.message;
+  if (r.ok && equipAfter && offer?.kind === "item") {
+    // addItem gives the new item the save's nextUid.
+    const uid = save.gear.nextUid;
+    next = { ...next, gear: equipItem(ctx.catalog, next.gear, uid) };
+    status = `${r.message} and equipped it`;
+  }
+  const offers = shopOffers(next, ctx.shop.ctx, ctx.shop.id);
+  // A limited row bought out is spliced from the list: drop the selection.
+  const stillThere =
+    state.selectedOffer < offers.length && (!r.ok || offer?.qty !== 1);
+  return {
+    save: next,
+    state: clamp(next, {
+      ...state,
+      selectedOffer: stillThere ? state.selectedOffer : null,
+      status,
+    }),
+  };
+}
+
+/** Shop purchases, upgrades, trader rerolls and requests. */
+function reduceGearPanelShop(
+  frame: GearPanelReduceFrame,
+  cmd: ShopCommand,
+): GearPanelReduceResult {
+  const { ctx, save, state, clamp } = frame;
+  switch (cmd.type) {
+    case "buy":
+    case "buyEquip":
+      return reduceGearPanelBuy(frame, cmd.type === "buyEquip");
     case "upgradeShop": {
       if (!ctx.shop?.buildings) return { save, state };
       const r = upgradeShop(
         ctx.shop.buildings,
         save,
         ctx.shop.id,
-        ctx.registry,
+        ctx.registry && debugEconomyPolicy(ctx.registry),
       );
       const next =
         r.result.kind === "upgraded"
@@ -537,7 +606,7 @@ export function reduceGearPanel(
         save,
         ctx.shop.ctx,
         ctx.shop.rng ?? Math.random,
-        ctx.registry,
+        ctx.registry && debugEconomyPolicy(ctx.registry),
       );
       return {
         save: r.save,
@@ -563,22 +632,36 @@ export function reduceGearPanel(
         }),
       };
     }
-    case "sell": {
-      if (!sel) return { save, state };
-      const gold = sellValue(sel.price, ctx.loot.sellBackPct);
-      const next = {
-        ...save,
-        gold: save.gold + gold,
-        gear: removeItem(save.gear, sel.item.uid),
-      };
-      return {
-        save: next,
-        state: clamp(next, {
-          ...state,
-          selectedUid: null,
-          status: `Sold ${sel.name} for ${gold}g`,
-        }),
-      };
-    }
+  }
+}
+
+/** Apply a panel command; returns the next save (unchanged unless gear / gold changed). */
+export function reduceGearPanel(
+  ctx: GearPanelContext,
+  save: SaveGame,
+  state: GearPanelState,
+  cmd: GearPanelCommand,
+  perPage?: number,
+): GearPanelReduceResult {
+  const frame: GearPanelReduceFrame = {
+    ctx,
+    save,
+    state,
+    sel: selectedItem(ctx, save, state),
+    clamp: (s, st) => clampPage(ctx, s, st, perPage),
+  };
+  switch (cmd.type) {
+    case "equip":
+    case "unequip":
+    case "sell":
+      return reduceGearPanelBag(frame, cmd);
+    case "buy":
+    case "buyEquip":
+    case "upgradeShop":
+    case "reroll":
+    case "fillRequest":
+      return reduceGearPanelShop(frame, cmd);
+    default:
+      return reduceGearPanelNav(frame, cmd);
   }
 }

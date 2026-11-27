@@ -1,6 +1,11 @@
 {
   "armour": { "halfReductionAt": 60, "maxReductionPct": 75 },
   "itemLevelPriceStepPct": 8,
+  "generation": {
+    "maxAffixesPerPosition": 2,
+    "outdatedBaseLevels": 5,
+    "outdatedBaseWeight": 0.35
+  },
   "statCaps": {
     "attackSpeedPct": 100,
     "moveSpeedPct": 40,

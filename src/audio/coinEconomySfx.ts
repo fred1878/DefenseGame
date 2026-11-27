@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { ECONOMY_AUDIO } from "../config/audio";
+import { sfxVolumes } from "../config/audio";
 
 export const COIN_SPEND_SFX_KEY = "sfx_coin_spend_01";
 export const COIN_GAIN_SFX_KEY = "sfx_coin_gain_01";
@@ -8,14 +8,14 @@ export const COIN_GAIN_SFX_KEY = "sfx_coin_gain_01";
 export function playCoinSpendSfx(scene: Phaser.Scene): void {
   if (!scene.cache.audio.exists(COIN_SPEND_SFX_KEY)) return;
   scene.sound.play(COIN_SPEND_SFX_KEY, {
-    volume: ECONOMY_AUDIO.coinSpendVolume,
+    volume: sfxVolumes().coinSpendVolume,
   });
 }
 
 /** Plays when gold is earned (night rewards, etc.). */
 export function playCoinGainSfx(scene: Phaser.Scene): void {
   if (!scene.cache.audio.exists(COIN_GAIN_SFX_KEY)) return;
-  scene.sound.play(COIN_GAIN_SFX_KEY, { volume: ECONOMY_AUDIO.coinGainVolume });
+  scene.sound.play(COIN_GAIN_SFX_KEY, { volume: sfxVolumes().coinGainVolume });
 }
 
 /** Plays spend or gain one-shot from a gold balance change. */

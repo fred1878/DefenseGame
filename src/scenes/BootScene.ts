@@ -1,17 +1,18 @@
 import Phaser from "phaser";
-import { GAME } from "../config";
 import { markBoot, measureBoot } from "../core/bootPerf";
 import {
   queueMinimalTownBootAssets,
   runQueuedLoader,
-} from "../core/GameAssetLoader";
-import { DataStore } from "../core/DataStore";
+} from "./loading/GameAssetLoader";
+import { DataStore } from "../core/data/DataStore";
 import { getDebugFlags } from "../debug/DebugState";
-import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
-import { loadSave, persistSave } from "../core/GameState";
+import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
+import { loadSave, persistSave } from "../core/save/saveRepository";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
+import { setDataStore, setSave } from "../core/registryKeys";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -49,12 +50,12 @@ export class BootScene extends Phaser.Scene {
         "defensegame:boot-data-end",
       );
     } catch (err) {
-      this.add
-        .text(GAME.width / 2, GAME.height / 2, "Failed to load data", {
-          color: "#ff6b6b",
-        })
-        .setOrigin(0.5);
-      console.error(err);
+      reportFatal(this, {
+        title: "Failed to load data",
+        message: "Check your connection and try again.",
+        error: err,
+        onRetry: () => this.scene.restart(),
+      });
       return;
     }
     getDebugFlags(this.registry);
@@ -62,8 +63,8 @@ export class BootScene extends Phaser.Scene {
     const save = loadSave();
     persistSave(save);
     applySaveLoadout(save);
-    this.registry.set("dataStore", store);
-    this.registry.set("save", save);
+    setDataStore(this.registry, store);
+    setSave(this.registry, save);
     if (isE2EEnabled()) {
       publishE2E({ scene: "Boot", ready: false, assetsLoaded: false });
     }

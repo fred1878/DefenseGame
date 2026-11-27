@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
 import { defenseHalfWidth } from "../../config/defense";
 import { tickDefenseEnemies } from "./DefenseEnemyTick";

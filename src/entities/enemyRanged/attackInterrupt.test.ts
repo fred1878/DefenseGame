@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { mockEnemyInstance } from "../testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { interruptEnemyAttack } from "./attackInterrupt";
 
 describe("interruptEnemyAttack", () => {

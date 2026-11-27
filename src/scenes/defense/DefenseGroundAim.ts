@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { spellById } from "../../content/spells";
 import type { Player } from "../../entities/Player";
@@ -8,15 +9,15 @@ import {
   pushInputModality,
 } from "../../input/inputModality";
 import type { VirtualStick } from "../../input/VirtualStick";
-import type { GroundTargetReticle } from "../../ui/GroundTargetReticle";
+import type { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
 import {
   cameraWorldPoint,
   defensePlayAreaLayout,
   type SafeInsets,
-} from "../../ui/screenLayout";
-import { scaleUiX } from "../../core/displayScale";
+} from "../../ui/layout/screenLayout";
+import { scaleUiX } from "../../config/uiScale";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../../input/inputTuning";
-import { pressDragExceedsThreshold } from "../../ui/touchButtonGesture";
+import { pressDragExceedsThreshold } from "../../ui/touch/touchButtonGesture";
 import {
   groundAimFromWorldPoint,
   pointerInDefensePlayArea,
@@ -132,7 +133,10 @@ export class DefenseGroundAim {
     );
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
-    const maxR = this.host.wu(def.groundTargetMaxRangeWu ?? 240);
+    const maxR = this.host.wu(
+      def.groundTargetMaxRangeWu ??
+        tuning("spellInput").defaultGroundTargetMaxRangeWu,
+    );
     const aim = groundAimFromWorldPoint(px, py, world.x, world.y, maxR);
     this.host.groundAim = aim;
     this.host.groundReticle.updatePosition(aim.x, aim.y);

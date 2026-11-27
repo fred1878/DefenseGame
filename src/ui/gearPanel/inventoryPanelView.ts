@@ -1,5 +1,5 @@
 /** Inventory panel view model: slots, totals, bag grid, detail and actions. */
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { consumableCount } from "../../gear/consumables";
 import { SLOT_LABELS } from "../../gear/gearText";
 import { EQUIP_SLOTS, type EquipSlot } from "../../gear/gearTypes";

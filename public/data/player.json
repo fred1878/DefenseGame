@@ -24,5 +24,7 @@
   "playerHitInvulnMs": 0,
   "nightSpawnInvulnMs": 1000,
   "endlessPanelDefaultConcurrent": 1,
-  "bodyRadiusWu": 21
+  "bodyRadiusWu": 21,
+  "gearMinAttackSpeedMul": 0.25,
+  "gearMinMoveSpeedMul": 0.5
 }

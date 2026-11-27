@@ -1,3 +1,5 @@
+import { setTuning, tuning } from "../tuning/gameTuning";
+
 export type AttackMode = "melee" | "ranged" | "auto";
 
 export type PlayerTuning = {
@@ -33,36 +35,36 @@ export type PlayerTuning = {
   nightSpawnInvulnMs: number;
   /** Arcade physics circle radius (authored world units). */
   bodyRadiusWu: number;
+  /** Floor on the gear attack-speed multiplier (stops negative attack speed stalling attacks). */
+  gearMinAttackSpeedMul: number;
+  /** Floor on the gear move-speed multiplier. */
+  gearMinMoveSpeedMul: number;
 };
 
-/** Active tuning (from JSON after Boot). Uninitialized until `applyPlayerTuning`. */
-export let PLAYER_TUNING: PlayerTuning = unsetPlayerTuning();
+let activePlayerTuning: PlayerTuning | null = null;
 
-function unsetPlayerTuning(): PlayerTuning {
-  const trap = new Proxy({} as PlayerTuning, {
-    get() {
-      throw new Error(
-        "PLAYER_TUNING not loaded — Boot must apply public/data/player.json",
-      );
-    },
-  });
-  return trap;
+/** Active player tuning: `player.json` plus gear / talents for this run. */
+export function playerTuning(): PlayerTuning {
+  if (!activePlayerTuning) {
+    throw new Error(
+      "player tuning not loaded — Boot must apply public/data/player.json",
+    );
+  }
+  return activePlayerTuning;
 }
 
-let BASE_PLAYER_TUNING: PlayerTuning = PLAYER_TUNING;
-
 /** Replace runtime tuning after `public/data/player.json` loads (Boot). Resets any gear on top. */
-export function applyPlayerTuning(tuning: PlayerTuning): void {
-  BASE_PLAYER_TUNING = { ...tuning };
-  PLAYER_TUNING = { ...tuning };
+export function applyPlayerTuning(next: PlayerTuning): void {
+  setTuning("player", next);
+  activePlayerTuning = { ...next };
 }
 
 /** `player.json` values without gear (weapons fall back to these). */
 export function basePlayerTuning(): PlayerTuning {
-  return BASE_PLAYER_TUNING;
+  return tuning("player");
 }
 
 /** Active tuning with gear applied; the base stays as loaded from JSON. */
-export function applyEffectivePlayerTuning(tuning: PlayerTuning): void {
-  PLAYER_TUNING = { ...tuning };
+export function applyEffectivePlayerTuning(next: PlayerTuning): void {
+  activePlayerTuning = { ...next };
 }

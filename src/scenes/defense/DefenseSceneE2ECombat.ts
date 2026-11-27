@@ -1,21 +1,22 @@
 import type Phaser from "phaser";
+import { PALETTE_CSS } from "../../ui/theme/uiPalette";
 import type { AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
 import { spellRequiresStationary } from "../../content/spellTargeting";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/rules/DamageSystem";
 import { setShowHitboxes } from "../../debug/DebugState";
-import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
+import { showEnemyMeleeSwipe } from "../../combat/fx/MeleeSwipeFx";
 import {
   enemyMeleeFxSpec,
   enemyMeleeFxTransform,
 } from "../../content/meleeFxAssets";
-import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
-import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
-import type { SpellBar } from "../../ui/SpellBar";
+import { showFlashHealPulseFx } from "../../combat/fx/SpellFlashHealFx";
+import { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
+import type { SpellBar } from "../../ui/hud/SpellBar";
 import {
   interactiveObjectScreenRect,
   isTouchButtonVisuallyPressed,
-} from "../../ui/touchButton";
+} from "../../ui/touch/touchButton";
 import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 
 /** E2E hooks: readiness, input, combat, enemies, night/endless state, tap targets. */
@@ -23,7 +24,7 @@ import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 export function defenseSceneE2eIsReady(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return Boolean(scene.player?.sprite);
+  return Boolean(scene.run.player?.sprite);
 }
 
 export function defenseSceneE2eBottomChromeTextureKey(): string | null {
@@ -35,20 +36,20 @@ export function defenseSceneE2eSetStick(
   dx: number,
   dy: number,
 ): void {
-  scene.stick.setE2eOverride(dx, dy);
+  scene.run.stick.setE2eOverride(dx, dy);
 }
 
 export function defenseSceneE2ePlayerPosition(scene: DefenseSceneE2eDelegate): {
   x: number;
   y: number;
 } {
-  return { x: scene.player.sprite.x, y: scene.player.sprite.y };
+  return { x: scene.run.player.sprite.x, y: scene.run.player.sprite.y };
 }
 
 export function defenseSceneE2eAttackPhase(
   scene: DefenseSceneE2eDelegate,
 ): string {
-  return scene.player.attackPhaseNow;
+  return scene.run.player.attackPhaseNow;
 }
 
 /**
@@ -60,9 +61,9 @@ export function defenseSceneE2eSpellCastState(scene: DefenseSceneE2eDelegate): {
   phase: "windup" | "channeling" | null;
   readyWindupSpellIds: string[];
 } {
-  const caster = scene.spellCaster;
-  const auto = new Set(scene.save.spellBar.autoCastSpellIds);
-  const readyWindupSpellIds = scene.save.spellBar.slots.filter((id) => {
+  const caster = scene.run.spellCaster;
+  const auto = new Set(scene.run.save.spellBar.autoCastSpellIds);
+  const readyWindupSpellIds = scene.run.save.spellBar.slots.filter((id) => {
     const def = id && auto.has(id) ? spellById(id) : undefined;
     return (
       !!def &&
@@ -81,14 +82,14 @@ export function defenseSceneE2eSpellCastState(scene: DefenseSceneE2eDelegate): {
 export function defenseSceneE2eAttackMode(
   scene: DefenseSceneE2eDelegate,
 ): string {
-  return scene.player.mode;
+  return scene.run.player.mode;
 }
 
 /** Current HP of every living enemy, in spawn order. */
 export function defenseSceneE2eLivingEnemyHps(
   scene: DefenseSceneE2eDelegate,
 ): number[] {
-  return scene.enemies
+  return scene.run.enemies
     .filter((e) => e.damageable.alive)
     .map((e) => e.damageable.hp);
 }
@@ -98,7 +99,7 @@ export function defenseSceneE2eSetAttackMode(
   scene: DefenseSceneE2eDelegate,
   mode: AttackMode,
 ): void {
-  scene.player.setAttackMode(mode);
+  scene.run.player.setAttackMode(mode);
   scene.refreshModeToggle(mode);
 }
 
@@ -106,7 +107,7 @@ export function defenseSceneE2eSetAttackMode(
 export function defenseSceneE2eLivingEnemyPositions(
   scene: DefenseSceneE2eDelegate,
 ): Array<{ x: number; y: number; hp: number }> {
-  return scene.enemies
+  return scene.run.enemies
     .filter((e) => e.damageable.alive)
     .map((e) => ({ x: e.sprite.x, y: e.sprite.y, hp: e.damageable.hp }));
 }
@@ -114,63 +115,68 @@ export function defenseSceneE2eLivingEnemyPositions(
 export function defenseSceneE2eProjectileCount(
   scene: DefenseSceneE2eDelegate,
 ): number {
-  return scene.projectiles.filter((p) => p.sprite.active).length;
+  return scene.run.projectiles.filter((p) => p.sprite.active).length;
 }
 
 export function defenseSceneE2eEnemyCount(
   scene: DefenseSceneE2eDelegate,
 ): number {
-  return scene.enemies.filter((e) => e.damageable.alive).length;
+  return scene.run.enemies.filter((e) => e.damageable.alive).length;
 }
 
 export function defenseSceneE2eLivingEnemyDefIds(
   scene: DefenseSceneE2eDelegate,
 ): string[] {
-  return scene.enemies.filter((e) => e.damageable.alive).map((e) => e.defId);
+  return scene.run.enemies
+    .filter((e) => e.damageable.alive)
+    .map((e) => e.defId);
 }
 
 export function defenseSceneE2eWallHp(scene: DefenseSceneE2eDelegate): number {
-  return Math.max(0, Math.floor(scene.wallHp));
+  return Math.max(0, Math.floor(scene.run.wallHp));
 }
 
 export function defenseSceneE2eTapMelee(scene: DefenseSceneE2eDelegate): void {
-  scene.player.setAttackMode("melee");
+  scene.run.player.setAttackMode("melee");
   scene.refreshModeToggle("melee");
-  if (scene.enemies.length === 0) {
+  if (scene.run.enemies.length === 0) {
     scene.spawnEnemyAt(
-      scene.player.sprite.x + 48,
-      scene.player.sprite.y,
+      scene.run.player.sprite.x + 48,
+      scene.run.player.sprite.y,
       undefined,
       "grunt",
       1,
     );
   }
-  scene.player.faceToward(scene.player.sprite.x + 48, scene.player.sprite.y);
-  scene.player.tryStartAttack();
+  scene.run.player.faceToward(
+    scene.run.player.sprite.x + 48,
+    scene.run.player.sprite.y,
+  );
+  scene.run.player.tryStartAttack();
 }
 
 export function defenseSceneE2eTapRanged(scene: DefenseSceneE2eDelegate): void {
-  scene.player.setAttackMode("ranged");
+  scene.run.player.setAttackMode("ranged");
   scene.refreshModeToggle("ranged");
-  if (scene.enemies.length === 0) {
+  if (scene.run.enemies.length === 0) {
     scene.spawnEnemyAt(
-      scene.player.sprite.x + 80,
-      scene.player.sprite.y,
+      scene.run.player.sprite.x + 80,
+      scene.run.player.sprite.y,
       undefined,
       "grunt",
       1,
     );
   }
-  const e = scene.enemies[0];
-  if (e) scene.player.faceToward(e.sprite.x, e.sprite.y);
-  scene.player.tryStartAttack();
+  const e = scene.run.enemies[0];
+  if (e) scene.run.player.faceToward(e.sprite.x, e.sprite.y);
+  scene.run.player.tryStartAttack();
 }
 
 export function defenseSceneE2eCastSpellSlot(
   scene: DefenseSceneE2eDelegate,
   slot: number,
 ): Promise<void> {
-  const id = scene.save.spellBar.slots[slot];
+  const id = scene.run.save.spellBar.slots[slot];
   if (!id) return Promise.resolve();
   scene.onSpellCastRequest(id);
   const def = spellById(id);
@@ -187,8 +193,8 @@ export function defenseSceneE2eSpawnEnemy(
   offY = 0,
 ): void {
   scene.spawnEnemyAt(
-    scene.player.sprite.x + offX,
-    scene.player.sprite.y + offY,
+    scene.run.player.sprite.x + offX,
+    scene.run.player.sprite.y + offY,
     undefined,
     "grunt",
     5,
@@ -199,10 +205,10 @@ export function defenseSceneE2eDamagePlayer(
   scene: DefenseSceneE2eDelegate,
   amount: number,
 ): void {
-  if (amount <= 0 || scene.endlessInfiniteHp) return;
-  applyDamage(scene.player.damageable, amount, MELEE_HIT_FLAVOR);
-  if (scene.player.damageable.hp <= 0) {
-    scene.player.damageable.alive = false;
+  if (amount <= 0 || scene.run.endlessInfiniteHp) return;
+  applyDamage(scene.run.player.damageable, amount, MELEE_HIT_FLAVOR);
+  if (scene.run.player.damageable.hp <= 0) {
+    scene.run.player.damageable.alive = false;
     if (scene.isEndlessMode()) {
       scene.endEndlessRun("player");
     } else {
@@ -220,40 +226,40 @@ export function defenseSceneE2eIsEndlessMode(
 export function defenseSceneE2eEndlessEnemyId(
   scene: DefenseSceneE2eDelegate,
 ): string | null {
-  return scene.endlessSelections?.[0]?.enemyId ?? null;
+  return scene.run.endlessSelections?.[0]?.enemyId ?? null;
 }
 
 export function defenseSceneE2eEndlessEnemyIds(
   scene: DefenseSceneE2eDelegate,
 ): string[] {
-  return (scene.endlessSelections ?? []).map((s) => s.enemyId);
+  return (scene.run.endlessSelections ?? []).map((s) => s.enemyId);
 }
 
 export function defenseSceneE2eKillAllEnemies(
   scene: DefenseSceneE2eDelegate,
 ): void {
-  for (const e of scene.enemies) {
+  for (const e of scene.run.enemies) {
     if (e.damageable.alive) {
       e.damageable.alive = false;
       e.damageable.onDeath?.();
     }
   }
-  scene.enemies.length = 0;
+  scene.run.enemies.length = 0;
 }
 
 export function defenseSceneE2eSetSpawnPlanComplete(
   scene: DefenseSceneE2eDelegate,
 ): void {
-  scene.spawnPlanComplete = true;
+  scene.run.spawnPlanComplete = true;
 }
 
 export function defenseSceneE2eForceWinNight(
   scene: DefenseSceneE2eDelegate,
 ): void {
   defenseSceneE2eKillAllEnemies(scene);
-  scene.spawnPlanComplete = true;
-  const living = scene.enemies.filter((e) => e.damageable.alive).length;
-  if (living === 0 && !scene.nightEnded) {
+  scene.run.spawnPlanComplete = true;
+  const living = scene.run.enemies.filter((e) => e.damageable.alive).length;
+  if (living === 0 && !scene.run.nightEnded) {
     scene.endNight(true);
   }
 }
@@ -268,19 +274,22 @@ export function defenseSceneE2eSetManualReturn(
 export function defenseSceneE2eNightEnded(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return scene.nightEnded;
+  return scene.run.nightEnded;
 }
 
 export function defenseSceneE2eHasReturnButton(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return scene.returnToTownBtn !== null;
+  return scene.run.returnToTownBtn !== null;
 }
 
 export function defenseSceneE2eHasLeaveEndlessButton(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return Boolean(scene.leaveEndlessBtn?.container.visible) && !scene.nightEnded;
+  return (
+    Boolean(scene.run.leaveEndlessBtn?.container.visible) &&
+    !scene.run.nightEnded
+  );
 }
 
 export function defenseSceneE2eSimulateScreenTap(
@@ -317,7 +326,7 @@ export function defenseSceneE2eGetUiTapTargets(
   if (mode) out["combat-mode"] = mode;
   const auto = centerOf(scene.autoToggle.container);
   if (auto) out["combat-auto"] = auto;
-  for (const slot of scene.spellBar.e2eSlotTapCenters()) {
+  for (const slot of scene.run.spellBar.e2eSlotTapCenters()) {
     out[`spell-slot-${slot.index}`] = { x: slot.x, y: slot.y };
   }
   const dbg = centerOf(scene.debugBtn.container);
@@ -330,12 +339,12 @@ export function defenseSceneE2eGetUiTapTargets(
     const c = centerOf(btn.container);
     if (c) out[id] = c;
   }
-  if (scene.returnToTownBtn) {
-    const ret = centerOf(scene.returnToTownBtn.container);
+  if (scene.run.returnToTownBtn) {
+    const ret = centerOf(scene.run.returnToTownBtn.container);
     if (ret) out["defense-return-to-town"] = ret;
   }
-  if (scene.leaveEndlessBtn?.container.visible) {
-    const leave = centerOf(scene.leaveEndlessBtn.container);
+  if (scene.run.leaveEndlessBtn?.container.visible) {
+    const leave = centerOf(scene.run.leaveEndlessBtn.container);
     if (leave) out["defense-leave-endless"] = leave;
   }
   return out;
@@ -344,13 +353,13 @@ export function defenseSceneE2eGetUiTapTargets(
 export function defenseSceneE2eGetSpellSlotHitRects(
   scene: DefenseSceneE2eDelegate,
 ): ReturnType<SpellBar["e2eSlotHitRects"]> {
-  return scene.spellBar.e2eSlotHitRects();
+  return scene.run.spellBar.e2eSlotHitRects();
 }
 
 export function defenseSceneE2eAutoAttackEnabled(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return scene.autoAttackEnabled;
+  return scene.run.autoAttackEnabled;
 }
 
 export function defenseSceneE2eIsTouchButtonPressed(
@@ -364,11 +373,11 @@ export function defenseSceneE2eIsTouchButtonPressed(
   };
   const direct = map[testId];
   if (direct) return isTouchButtonVisuallyPressed(direct);
-  if (testId === "defense-return-to-town" && scene.returnToTownBtn) {
-    return isTouchButtonVisuallyPressed(scene.returnToTownBtn.container);
+  if (testId === "defense-return-to-town" && scene.run.returnToTownBtn) {
+    return isTouchButtonVisuallyPressed(scene.run.returnToTownBtn.container);
   }
-  if (testId === "defense-leave-endless" && scene.leaveEndlessBtn) {
-    return isTouchButtonVisuallyPressed(scene.leaveEndlessBtn.container);
+  if (testId === "defense-leave-endless" && scene.run.leaveEndlessBtn) {
+    return isTouchButtonVisuallyPressed(scene.run.leaveEndlessBtn.container);
   }
   return false;
 }
@@ -376,22 +385,25 @@ export function defenseSceneE2eIsTouchButtonPressed(
 export function defenseSceneE2eIsEndlessInfiniteHp(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  return scene.endlessInfiniteHp;
+  return scene.run.endlessInfiniteHp;
 }
 
 export function defenseSceneE2ePlayerHp(
   scene: DefenseSceneE2eDelegate,
 ): number {
-  return Math.floor(scene.player.damageable.hp);
+  return Math.floor(scene.run.player.damageable.hp);
 }
 
 /** Playwright: targeting must see respawned endless enemies after dead culls. */
 export function defenseSceneE2eCanFocusFirstLivingEnemy(
   scene: DefenseSceneE2eDelegate,
 ): boolean {
-  const e = scene.enemies.find((entry) => entry.damageable.alive);
+  const e = scene.run.enemies.find((entry) => entry.damageable.alive);
   if (!e) return false;
-  const pick = scene.targeting.findEnemyNearWorldPoint(e.sprite.x, e.sprite.y);
+  const pick = scene.run.targeting.findEnemyNearWorldPoint(
+    e.sprite.x,
+    e.sprite.y,
+  );
   return pick?.id === e.id;
 }
 
@@ -399,7 +411,7 @@ export function defenseSceneE2eDamageFirstLivingEnemy(
   scene: DefenseSceneE2eDelegate,
   amount: number,
 ): void {
-  const e = scene.enemies.find((entry) => entry.damageable.alive);
+  const e = scene.run.enemies.find((entry) => entry.damageable.alive);
   if (!e) return;
   applyDamage(e.damageable, amount, MELEE_HIT_FLAVOR);
 }
@@ -410,17 +422,21 @@ export function defenseSceneE2ePreviewHolyFx(
   kind: "flash" | "channel",
 ): void {
   defenseSceneE2eKillAllEnemies(scene);
-  const px = scene.player.sprite.x;
-  const py = scene.player.sprite.y;
+  const px = scene.run.player.sprite.x;
+  const py = scene.run.player.sprite.y;
   scene.cameras.main.centerOn(px, py);
   setShowHitboxes(scene.registry, false);
   if (kind === "flash") {
-    showFlashHealPulseFx(scene, px, py, (go) => scene.registerWorldDraw(go));
+    showFlashHealPulseFx(scene, px, py, (go) =>
+      scene.run.registerWorldDraw(go),
+    );
     return;
   }
-  scene.healChannelFx?.destroy();
-  scene.healChannelFx = new SpellHealChannelFx(scene);
-  scene.healChannelFx.start(px, py, (go) => scene.registerWorldDraw(go));
+  scene.run.healChannelFx?.destroy();
+  scene.run.healChannelFx = new SpellHealChannelFx(scene);
+  scene.run.healChannelFx.start(px, py, (go) =>
+    scene.run.registerWorldDraw(go),
+  );
 }
 
 export type EnemyMeleeFxShowcaseResult = {
@@ -447,16 +463,16 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
   offX: number,
 ): EnemyMeleeFxShowcaseResult {
   defenseSceneE2eKillAllEnemies(scene);
-  scene.spawnPlanComplete = false;
-  const px = scene.player.sprite.x;
-  const py = scene.player.sprite.y;
+  scene.run.spawnPlanComplete = false;
+  const px = scene.run.player.sprite.x;
+  const py = scene.run.player.sprite.y;
   scene.cameras.main.centerOn(px, py);
   setShowHitboxes(scene.registry, false);
   const ex = px + offX;
   const ey = py;
   scene.spawnEnemyAt(ex, ey, undefined, enemyDefId, 9999);
   const facingRad = meleeFacingTowardPlayer(ex, ey, px, py);
-  const enemy = scene.enemies.find(
+  const enemy = scene.run.enemies.find(
     (entry) => entry.defId === enemyDefId && entry.damageable.alive,
   );
   if (enemy) {
@@ -473,7 +489,7 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
     fontFamily: "monospace",
     fontSize: "28px",
     color: "#ffee00",
-    stroke: "#000000",
+    stroke: PALETTE_CSS.black,
     strokeThickness: 4,
   });
   label.setDepth(10_000);

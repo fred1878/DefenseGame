@@ -1,7 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/bootstrap.ts",
     "src/test/phaserStub.ts",
     "scripts/**/*.{mjs,cjs}"
   ],
@@ -11,8 +10,6 @@
     "scripts/**/*.{mjs,cjs}"
   ],
   "ignoreDependencies": [
-    "@biomejs/biome",
-    "@capacitor/android",
     "playwright"
   ],
   "ignoreBinaries": [

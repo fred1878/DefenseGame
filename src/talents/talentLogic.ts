@@ -1,7 +1,4 @@
-import {
-  debugInfiniteGold,
-  debugInfiniteTalentPoints,
-} from "../debug/debugEconomy";
+import type { EconomyPolicy } from "../core/economyPolicy";
 import type { OnHitProc, StatBonus, StatModifier } from "../gear/gearTypes";
 import type {
   SaveTalents,
@@ -48,9 +45,9 @@ export function pointsSpent(talents: SaveTalents): number {
 
 export function pointsAvailable(
   talents: SaveTalents,
-  registry?: Phaser.Data.DataManager,
+  policy?: EconomyPolicy,
 ): number {
-  if (registry && debugInfiniteTalentPoints(registry)) {
+  if (policy?.infiniteTalentPoints) {
     return Number.MAX_SAFE_INTEGER;
   }
   return Math.max(0, talents.earned - pointsSpent(talents));
@@ -138,10 +135,10 @@ export function canLearn(
   catalog: TalentCatalog,
   talents: SaveTalents,
   id: string,
-  registry?: Phaser.Data.DataManager,
+  policy?: EconomyPolicy,
 ): boolean {
   const loc = findTalent(catalog, id);
-  if (!loc || pointsAvailable(talents, registry) < 1) return false;
+  if (!loc || pointsAvailable(talents, policy) < 1) return false;
   return lockReason(catalog, talents, loc) === null;
 }
 
@@ -150,9 +147,9 @@ export function learnTalent(
   catalog: TalentCatalog,
   talents: SaveTalents,
   id: string,
-  registry?: Phaser.Data.DataManager,
+  policy?: EconomyPolicy,
 ): SaveTalents {
-  if (!canLearn(catalog, talents, id, registry)) return talents;
+  if (!canLearn(catalog, talents, id, policy)) return talents;
   return {
     ...talents,
     ranks: { ...talents.ranks, [id]: talentRank(talents, id) + 1 },
@@ -163,10 +160,10 @@ export function canResetTalents(
   catalog: TalentCatalog,
   talents: SaveTalents,
   gold: number,
-  registry?: Phaser.Data.DataManager,
+  policy?: EconomyPolicy,
 ): boolean {
   if (pointsSpent(talents) === 0) return false;
-  if (registry && debugInfiniteGold(registry)) return true;
+  if (policy?.infiniteGold) return true;
   return gold >= catalog.config.resetCostGold;
 }
 
@@ -175,9 +172,9 @@ export function resetTalents(
   catalog: TalentCatalog,
   talents: SaveTalents,
   gold: number,
-  registry?: Phaser.Data.DataManager,
+  policy?: EconomyPolicy,
 ): { talents: SaveTalents; gold: number } | null {
-  if (!canResetTalents(catalog, talents, gold, registry)) return null;
+  if (!canResetTalents(catalog, talents, gold, policy)) return null;
   return {
     talents: { ...talents, ranks: {} },
     gold: gold - catalog.config.resetCostGold,

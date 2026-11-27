@@ -1,6 +1,14 @@
 # Refactor plan v2: whole-codebase audit
 
-**Status (2026-11-26):** Proposed. Nothing in this plan has started yet. It was written from `main` at `3b832d8`.
+**Status (2026-11-27): Completed.** Quick wins and Phases 0–9 are done and `refactor/plan-execution` is merged into `main`. Per-item notes, changes against the plan and deferred items are in the [Execution log](#execution-log). The audit below was written from `main` at `3b832d8`; its numbers and paths are the "before" baseline (files have since moved, see P5.3 and P6.8).
+
+**Final summary.**
+- **Behaviour:** Phase 7 is the only intended player-visible change (old saves migrate step by step instead of being wiped; load failures show a Retry screen; a slot written by a newer build is marked and needs confirmation before it is overwritten). Phase 9 moved the hard-coded gameplay numbers into `public/data/*.json` (new `gameplay.json` and `damage-numbers.json`) with every shipped value unchanged (golden enemy-loop digests identical).
+- **Structure:** 17 runtime import cycles → 0 with layer rules enforced in CI (`check:arch`); E2E hooks load only in E2E builds; read-only tuning store; explicit defense run state and pure night-end rules; enemy combat and spell effects go through lookup tables; shared modal / palette / folder layout for UI; `scripts/` split into `build/`, `assets/`, `capture/`.
+- **Checks at merge:** `npm run verify` green (288 files / 1,836 tests); coverage 94.9 / 91.9 / 95.5 / 95.4 % (stmts / branches / funcs / lines; floors raised); Vitest runs in ~6 s (was ~8 s) with shared workers (P8.5); Chromium Playwright green; restyle screens (town, defense top HUD, debug menu, save menu) pixel-identical to `main` before the merge.
+- **Not done (see log):** P2.5, P3.1, P4.3 (optional, low value), and the scene-harness carry-overs P3.7 / P6.4 / P6.5 (DefenseScene under 400 lines and covered; layout specs for SaveMenuPanel / DefenseHudController; TownScene E2E methods). They need a Phaser scene test harness; follow-up work, not blockers.
+- **Manual checks still needed:** the save migration and newer-version slot prompt on a real Android build; a playtest of a full night (feel, HUD) after the restyle merge.
+
 **Scope:** an audit at every level (architecture, systems, files/classes, functions, data, tooling), then a phased plan.
 **Predecessor:** [archive/REFACTOR_PLAN.md](./archive/REFACTOR_PLAN.md) (file splits for DefenseScene, touchButton and EnemyRangedCombat, all finished).
 
@@ -34,6 +42,73 @@ Overall: the codebase is in good shape. Typing is strict (`noUncheckedIndexedAcc
 3. **Per-frame allocation in the defense loop.** Enemy peer lists are O(n²), and `filter`, closures and context objects are rebuilt every frame.
 4. **A behaviour model that is half data-driven.** AI movement uses a registry, but combat dispatch is an `if/else` chain over a free-form `behavior: string` and a flat `behaviorExtra` bag.
 5. **Large imperative UI builders** that hard-code colours and sizes.
+
+## Execution log
+
+Status per item, plus every place where the work differed from the plan and why. Each item is its own commit on `refactor/plan-execution`; `npm run verify` and `npm run test:coverage` were green after every one.
+
+| Item | Status | Notes |
+|---|---|---|
+| QW1–QW3, QW5–QW10 | Done | QW3 proven behaviour-identical by the P0.4 golden snapshot (run against the pre-QW3 code). |
+| QW4 | **Skipped** | Phaser's `Text.setText` already returns early when the string is unchanged, so a cache adds nothing. `dataStore` is cached by QW9. |
+| P0.1 + P0.2 | Done, **changed** | One script, `scripts/check-architecture.mjs` (`npm run check:arch`, in `verify` and CI), does both: TS-AST runtime import graph, cycle detection (SCCs) and folder layer rules. It enforced its baseline from day one instead of being report-only, because a baseline that can only shrink is just as safe and catches regressions sooner. Measured as SCCs there were 6 runtime cycles, not 17 (madge lists every path through one SCC); the `lazyScenes` "cycles" were dynamic `import()`s and are not counted. |
+| P0.3 | Done, **changed** | Vitest 5 has no working `bench()`, so `npm run perf` runs an opt-in `DefenseEnemyTick.perf.test.ts` (`PERF=1`). Numbers are in `docs/TESTING.md`. Finding: past ~60 enemies the frame cost is A* replans, not peer lists, so P3.3 should look at replan budgeting too. |
+| P0.4 | Done | `src/test/defenseTickHarness.ts` + `defenseGolden.test.ts`: seeded headless `tickDefenseEnemies` with every shipped behaviour, digests after N frames. Keyed by a hash of the tuning JSON so balance edits skip it (refresh with `UPDATE_GOLDEN=1`). It found a real crash: `meleeChaser` threw when a replan returned an empty path while `pathActive` was set (fixed in its own commit). |
+| P0.5 | Done | Biome `noExcessiveCognitiveComplexity`: cap 25 for all code; the 19 files that exceed it today are listed in a `biome.json` override capped at 84 (current worst, `tickDefenseEnemies`). Remove files from that list as phases split them. |
+| P1.1 | Done | `ai/brainShared.ts` holds the helpers; `EnemyBrain.ts` only has `updateEnemyBrain`. |
+| P1.2 | Done, **changed** | Pure world-scale lookups moved to `config/worldScale.ts` (not `world/`), because `config/defense` needs them and config may not import core. `DEFENSE_MAP.pathClearancePx` getter removed; callers use `maxNavObstacleClearancePx()`. |
+| P1.3 | Done | `gear/consumableTypes.ts`, `STROKE_PX` in `uiRoundedRect`, direct imports instead of barrels. |
+| P1.4 | Done, **changed** | `lazyScenes` already was a key → `import()` loader. It moved with `GameAssetLoader` to `scenes/loading/` (both start scenes and queue UI icons), which also removed `core → ui/icons`. |
+| P1.5 | Done, **changed** | `core/storageKeys.ts` (not `core/save/`, which does not exist until P6.8). `gameMain` injects the E2E check with `setE2EStorageIsolation(isE2EEnabled)`. |
+| P1.6 | Done | `core/economyPolicy.ts`; UI builds it with `debugEconomyPolicy(registry)`. Also covered `talents/talentLogic`. |
+| P1.7, P1.8 | Done | `scenes/town/TownBuildings.ts`; `core/gameEvents.ts` typed bus, E2E subscribes in `attachE2EGame`. |
+| P1.9 | **Partly done** | `installE2E` / `installE2EApi` / `installE2EDom` are now a lazy chunk loaded only in E2E mode (production `gameMain` no longer contains them). The `DefenseSceneE2E*` host stays static for now: it lives in the already-lazy Defense chunk, and making it async needs the `DefenseRunState` work, so it and the `as unknown as DefenseSceneE2eDelegate` cast move to **P3.2**. |
+| P1.10 | Done | Baseline is empty: 0 cycles, 0 layer violations. `--update-baseline` can now only remove entries. The last violations were fixed by moving `config/defenseMaps` → `core/applyDefenseMaps`, `config/shadowformRuntime` → `combat/`, UI scale helpers → `config/uiScale.ts`, wave-planner and endless limits → `core/`, `nightEndMessaging` → `systems/`. |
+| P2.1 + P2.2 | Done, **changed** | One store, `src/tuning/gameTuning.ts` (`setTuning(key, value)` freezes a copy; `tuning(key)` reads it and names the JSON file when Boot has not loaded it). It is a new top-level folder, not `core/data/tuning/`, because `config/defense` reads it and config may not import core; a new arch rule keeps `tuning/` importing only `config/`. The existing `apply*()` setters were kept as the write API, so DataStore, the test setup and the sim did not change. Player tuning stays two-level: `basePlayerTuning()` (frozen JSON) and `playerTuning()` (with gear and talents for the run). The three defense map arrays became read-only accessors. No `export let` remains in `src/`. Threading tuning through `DefenseServices` instead of a module accessor is left to P3.2. |
+| P2.3 | **Partly done** | Ward post-hold constants are in `enemies.json` (`combat.ward.post*`), and the golden snapshot proved identical behaviour. **Moved on:** the spell `baseDamage ?? n` / `healAmount ?? 20` defaults and the `0.65` splash scale need a per-mechanic "required fields" table, so they go with the spell handler table in **P5.1**. The `rewardGold = 40` default is unreachable with valid data (it only applies when `waves.json` has no night 1); it goes with run-mode state in **P3.5**. The `DefenseNightEnd` colours and depth go with theme tokens in **P6.1**. |
+| P2.4 | Tried, **not adopted** | `isolate: false` saves about 2.5 s of 8 s but gave 0–8 order-dependent failures over 4 runs (shared module state: `lazyScenes` promise cache, `vi.mock` leakage into `GameState` / autocast suites, game-event listeners). The listener leak is fixed; the rest moves to new item **P8.5**. |
+| P2.5 | **Deferred** | Optional. Best done together with P5.1's per-mechanic spell field table. |
+| P3.1 | **Deferred** | About 120 `worldUnit` call sites; each call is one Map lookup, and a scale change restarts the scenes, so a value object buys little now. Revisit only if a profile shows it, or fold it into P6.8 / P9 work that touches those files. |
+| P3.2 | Done | `scenes/defense/DefenseRunState.ts` holds all per-run state and the `DefenseServices` functions and implements the spell-director, player-combat and ground-aim hosts; `buildSceneHost` is gone. The E2E host is lazy (`defenseSceneE2eHook.ts`, registered by the `installE2E` chunk, so E2E helpers ship only in that chunk) and the `as unknown as DefenseSceneE2eDelegate` cast is removed (the delegate is structural over `scene.run`). Tuning is still read through `tuning(...)`, not threaded through services: the store is already read-only, so threading adds churn with no safety gain. |
+| P3.3 | **Partly done** | Dead enemies are pruned in place (`filterDeadEnemies`). Not done: a `Map` by id (≤ 100 enemies, linear scans are cheaper than the upkeep); building tick contexts once (measured as negligible); A* replan budgeting, which P0.3 showed is the real cost past ~60 enemies, changes behaviour, so it belongs with **P7**-style behaviour-change work. |
+| P3.4 | Done, **changed** | Rules live in `systems/nightEndRules.ts` (`evaluateNightEnd`, `evaluateEndlessEnd`, `resolveCampaignNightEndSave`, `resolveRunExitSave`), not `core/save/`, because they depend on gear and core may not. `DefenseNightEnd` is presentation only; the invariant is back in AGENTS.md. **Behaviour note:** on a campaign loss the in-memory `run.save.player.hp` used to be clamped to ≥ 1 through a shared object reference; now the resolver returns a new save and the run object keeps the survived HP. Nothing reads it after the night ends, and the persisted save is identical. |
+| P3.5 | Done | `DefenseRunModes.ts`: campaign / endless / wavePlanner strategies (HUD header, night end, leave). Endless `endNight` deliberately keeps the historical campaign path used by the E2E force-win. `rewardGold` is always a number from `DefenseRunSetup` (`wave?.rewardGold ?? 0`); the `= 40` default is gone. |
+| P3.6 | Done | The `DefenseWaveSpawner` shim is deleted; the scene calls `systems/WaveSpawner` directly. |
+| P3.7 | **Deferred to P8** | `DefenseScene.ts` is 946 lines, down from 1,161 at the start of P3, and still excluded from coverage. Getting it under 400 lines and covered needs a Phaser scene test harness, which fits P8.1. |
+| P4.1, P4.2 | Done | `core/enemyBehaviorIds.ts` (`EnemyBehaviorId`); unknown `behavior` values fail at load with a `ConfigLoadError`. `scenes/defense/enemyCombatModules.ts` is a `Record<EnemyBehaviorId, EnemyCombatTick>`; `tickDefenseEnemies` no longer has the combat chain. The golden snapshot stayed identical. |
+| P4.3 | **Deferred** | A discriminated `behaviorState` touches 49 test references plus pooling/reconfigure, for a type-only gain. Revisit after P9 if a new behaviour needs it. |
+| P4.4 | **Partly done** | `ai/behaviors/shared/pathApproach.ts` (replan, waypoint follow, chase) is used by charger, wallSiege, ward and rangedKite. The meleeChaser/rangedKite chase-start and javelineer/stationaryRanged attack-commit clones differ in small timing details, so merging them risks the golden snapshot for little gain; left as is. |
+| P4.5 | Done, **changed** | `meleeChaser` and `javelineer` are split into steps and, with `DefenseEnemyTick`, left the complexity override list. `ward`, `charger` and `applyRetreatPathing` got shorter through P4.4 and did not need more. |
+| P5.1 | Done | `SPELL_MECHANIC_HANDLERS` table in `DefenseSpellResolve.ts` (the `spell_proj_` id prefix quirk is kept). Damaging mechanics now require `baseDamage`, heal requires `healAmount`, swings require `swingFxSizePx`, and targeted blasts require `burstBlastDamageScale`; missing values fail at load. `spells.json` gained the values the code used to default (`160`, `0.65`). Also covers P2.5's purpose without a schema library. |
+| P5.2 | Done, **changed** | `SpellQueue` and `SpellChannelRunner` already existed as modules; auto-cast targeting moved to `DefenseSpellAutoCastTargets.ts` (director now 443 lines). FX handles are grouped on `DefenseRunState` instead of a separate `SpellFxRegistry`. |
+| P5.3 | Done | `combat/rules/` (hitboxes, damage, knockback, spell casting/effects) and `combat/fx/` (VFX, telegraphs, damage numbers); moves only. |
+| P6.1 | Done, **changed** | `ui/theme/uiPalette.ts` (`PALETTE` ints and `PALETTE_CSS` strings from one table, Tailwind-style names, exact legacy values) replaced 230 hex literals in `ui/`, `scenes/` and `debug/`; 44 one-off colours (mostly single-use VFX/debug tints) stay inline. `DEFENSE_UI_DEPTH` (`config/renderDepth.ts`) names the HUD, overlay-button and night-end depths, including the `DefenseNightEnd` button depth from P2.3. Font sizes were not tokenised: they are already scaled through `scaleUiX`, and a token per size adds nothing. Visual e2e snapshots unchanged. |
+| P6.2 | Done | `openModalPanel(scene, { token, depth?, dimColor?, dimAlpha? })` in `input/modalBackdrop.ts` owns the lease, root, dim and an idempotent `close()`; all 8 panels use it, 5 of them also for teardown. |
+| P6.3 | Done, **changed** | `scenes/town/TownRosterSetupScene.ts` is the shared base for the endless and wave-planner setup scenes (launch data, overlays, shutdown, start/dismiss, E2E ready). The panel-level clones in `EndlessModePanel` / `WavePlannerPanel` (about 70 lines) were left: their row models differ enough that a shared helper would need several callbacks. |
+| P6.4 | **Partly done** | `NightLootSummaryPanel` is now a pure `layoutNightLootSummary` spec plus render (tested), and `TownHeader` buttons go through one `townHeaderButton` helper. Not done: `TalentPanel` (already has `talentPanelLayout`), `SaveMenuPanel` and `DefenseHudController`; each is a large rewrite with only visual-snapshot coverage, so they move to P8 with the scene harness. |
+| P6.5 | **Partly done** | The 12 endless-roster E2E forwarders on `TownScene` are gone: the E2E API routes straight to the active Endless setup scene (`activeEndlessSetupScene`). One `syncSaveFromRegistry` helper replaces the 5 registry re-reads. The remaining `e2e*` methods on `TownScene` are thin and reach private state, so moving them needs the same lazy-host pattern as P3.2; deferred to P8. `TownScene` is 463 lines (was 555). |
+| P6.6 | Done | `reduceGearPanel` is split into nav / bag / shop / buy reducers; `gearText` and `talentText` share `FLAT_STAT_LABELS`. `gearPanelLogic` and `DefenseSpellResolve` left the complexity override list. |
+| P6.7 | Done | `DebugMenuScene` rows are toggle specs built by section (overlays, rendering, economy); `debug/debugShapes.ts` removes the `CombatRange` / `Hitbox` draw clones; `isPointerOverInteractive` moved to `input/` (was in `TownTouchDebug`, used by 4 scenes). The "gate debug draws when all flags are off" part was already done by QW. |
+| P6.8 | Done | `ui/` root → `hud/`, `panels/`, `touch/`, `layout/`; `core/` → `data/`, `save/`, `render/` (115 files, moves only). Docs, `.cursor/rules` and `biome.json` paths updated; this plan's audit sections keep the old paths on purpose. Done before P7 so the save work landed in `core/save/`. |
+| P7.1 + P7.2 | Done (**behaviour change**) | `core/save/saveRepository.ts`: one validator, `parseStoredSave`, for the autosave and the slots (envelope, shape check, migration chain, normalize), plus `loadSave` / `persistSave` / `resetSaveAndReload`. `core/save/migrations.ts`: `SAVE_MIGRATIONS` keyed by from-version (v1 → v2 drops `player.weaponId`; gear starts empty), with `fixtures/save-v1.json` and `save-v2.json` and a test that fails if a step is missing. **What changes for players:** v1 saves (autosave and slots) now load instead of being reset or deleted; a slot written by a newer build is kept in storage (shown as empty) instead of deleted; corrupt slots are still deleted. Smoke-tested in a production build: a seeded v1 autosave opened Town on night 5 with 120 gold. Not tested on the Android build. |
+| P7.3 | Done (**behaviour change**) | `ui/panels/FatalErrorPanel.ts` + `reportFatal()` (logs, then a blocking Retry / optional Close panel at depth 950). Used for boot data/asset failure (Retry restarts Boot), town prefetch failure, night readiness failure (Retry re-runs the transition) and the endless / wave-planner setup readiness (the wave planner had no error handling at all). The old auto-dismissed "Try again" messages are gone. Smoke-tested: with data requests blocked, Boot shows the panel; unblocking and tapping Retry reaches Town. |
+| P9 | **Added** | Owner request: move every tunable gameplay value still hard-coded in TS into `public/data/*.json`. See Phase 9. |
+| P7 follow-up | Done (**behaviour change**) | A slot written by a newer build is now listed as "Saved by a newer version" (`NewerVersionSaveSlotView`, `isNewerVersionSlot`) instead of "Empty". Saving over it asks "… was saved by a newer version. Overwrite it anyway?" (`overwriteNewer` confirm); it cannot be loaded but can be deleted. Tested in `saveMenuLogic.test.ts` and `saveSlots.test.ts`. |
+| P9.1 | Done | `enemy-ai.json` gained `pathing` (waypoint radius, replan, stall; `DEFENSE_MAP.path*` are now getters), `retreat` (probe, default goal, sidestep, blend reach) and per-behaviour movement sections (`javelineer`, `stationaryRanged`, `arrowRainArcher`, `rangedHybrid`, `lobber`, `ward`). The dead `?? 2.2` / `?? 1400` fallbacks are gone (those fields were already required in `enemies.json`). |
+| P9.2 | Done, **changed** | New `public/data/gameplay.json` (`tuning("gameplay")`, loaded with the town data, by the test setup and by the economy sim from the bundled copy) for global rules with no per-row home: `wall` (base HP 100, +50 per level, win wear 2), `waves.eliteHpMul`, `spawn` band. A new file instead of `waves.json` / `defense.json`: `waves.json` is keyed by night number and there is no `defense.json`. |
+| P9.3 | Done | `gameplay.json` `combat`: DoT tick, slow floor, knockback decay and weight baseline, enemy projectile knockback (`0.65`), projectile hit slack, lob travel. `channeled_cone` strike count is now `channelMs / channelTickMs` (750 / 250 = 3, same as the old constant) so editing `channelMs` changes the strike count. |
+| P9.4 | Done | `spell_input.json`: default ground range (240), no-enemy aim fraction (0.55), ground-aim enemy radius (0.25), instant-target fallback (40), enemy tap radius (26). `spells.json`: `blinkEdgeInsetWu`, `iceWallBlockGapWu`, `iceWallBlockSizeWu` (required for those mechanics). |
+| P9.5 | Done | `player.json` `gearMinAttackSpeedMul` / `gearMinMoveSpeedMul`; `items.json` `generation` (affixes per position, outdated base levels / weight); `consumables.json` bomb `throwMs`; `gameplay.json` `nightEnd.winHealHp`. |
+| P9.6 | Done, **changed** | New `public/data/damage-numbers.json` (whole floating-number config, defense data load; font stays in code with its asset). `gameplay.json` `feel` (blast flash defaults, impact ring, chain lightning hold, potion/bomb toast, town status and reset-confirm windows) and `audio` (5 SFX volumes). No screen shake or camera flash exists in the code, so none moved. |
+| P9 kept in code | Reason | Input thresholds (`inputTuning.ts`, `VirtualStick` defaults): touch buttons exist before data loads (boot error panel). UI layout px, font sizes, depths, palette, asset display sizes / frame counts / alphas, modal dim: presentation, not gameplay. Nav `cellSize`, epsilons, hash constants, retry counts, `SAVE_SLOT_COUNT`, editor limits/defaults (`wavePlannerTiming`, `endlessLimits`): technical. `spellGroundZone` / `spellChannelTickMs` fallbacks (`?? 2500`, `?? 250`): no shipped spell reaches them. |
+| P9 boundary merge | origin/main #385–387 (UI restyle) | Kept main's visuals; moved new `ui/defenseTopHud` → `ui/hud/`, `ui/uiFrame` → `ui/layout/`; took main's redesigned `DebugMenuScene` (sectioned, tooltips) over the P6.7 version, imports remapped; top-HUD subtitle added to run-mode strategies (`hudSubtitle`); damage-number font stack (DG Digits) kept in code with the font asset; HUD depths use `DEFENSE_UI_DEPTH.hud`. |
+| P8.1 | Done | Complexity override ceiling 84 → 52 (the current maximum, `win-model.spec.ts`); global limit stays 25. `DefenseTargeting`, `TownSceneE2E` and `TownTouchDebug` came out of the coverage excludes with host-fake tests; floors raised to lines 95 / branches 91. |
+| P8.2 | Done | `scripts/` → `build/` (Phaser bundle, install, size + PWA asserts, version), `assets/` (icons, MobileRPG sync, PWA icons), `capture/` (+ `capture/lib/`); repo-root paths, `package.json`, CI workflows and docs updated; `npm run build` green. Capture specs stay in `e2e/` (already `@manual` / CI-skipped) instead of moving: their proof copies now go through `e2e/helpers/artifacts.ts`, which skips an unwritable artifacts folder. That fixed the 4 local `obstacle-bump-capture` failures (EACCES on `/opt/cursor/artifacts`, after the assertions had passed). No capture script was deleted (no usage data). |
+| P8.3 | Done, **changed** | Chose checksum over Git LFS (LFS would change clone/CI/Android setup and bandwidth): `phaser-defense.manifest.json` records the bundle's sha256, `build:phaser` writes it, `install-phaser-defense.mjs` (postinstall and every build) fails on a mismatch; `.gitattributes` marks the bundle `-text` so checkouts stay byte-exact. |
+| P8.4 | Done | `docs/AGENTS.md` layout (scripts/, vendor), `docs/TESTING.md` (coverage floors and excludes, artifact copies), `.cursor/rules` (normalize glob, capture path, shared Vitest workers). Plan kept at this path and marked completed rather than archived (`docs/archive/REFACTOR_PLAN.md` is v1). |
+| P8.5 | Done | Vitest `projects`: `shared` (`isolate: false`) for every file without `vi.mock` / `vi.doMock`, `isolated` for those 8 (found by scanning, so new ones isolate automatically). `src/test/bootPublicConfig.ts` resets runtime module state per file (gear runtime, shadowform mults, vertex snap scale, catalogs, storage isolation, combat tally) and unstubs globals. Fixed two leaking tests (lazy scene import outliving `GameAssetLoader.test`, E2E hook factory). 15/15 consecutive runs green; Vitest wall time ~8 s → ~6 s. |
+| P3.7 / P6.4 / P6.5 carry-overs | **Not done** | Getting `DefenseScene` (952 lines; `create()` alone is ~370) under 400 lines and into coverage, the `SaveMenuPanel` / `DefenseHudController` layout specs, and moving `TownScene`'s ~70 lines of `e2e*` methods behind a lazy host all need a Phaser scene test harness first; without it the moves are untested rewrites of the most-played screens. Left for a follow-up (build the harness, then split). |
+| P8 boundary | Merge | `origin/main` had no new commits after the P9 boundary merge. Restyle check: `main` and the branch built as E2E bundles and captured with the visual-spec determinism (seeded random, frozen loop, pinned fonts): town, defense (full + top HUD), debug menu (defense and town), save menu — all pixel-identical. |
 
 ---
 
@@ -395,10 +470,10 @@ Every phase leaves the game shippable. Effort: **S** is up to half a day, **M** 
 | ID | Item | Files | Risk | Effort | Depends on |
 |---|---|---|---|---|---|---|
 | P3.1 | `WorldScale` value object resolved per scene; replace the `wu()` / `worldUnit(x, registry)` hot-path calls | `core/worldPixelScale.ts`, `scenes/defense/*`, `ai/*`, `entities/*` | Med (debug scale toggle must still rescale) | M | P1.2 |
-| P3.2 | `DefenseRunState` + `DefenseServices` types; delete `buildSceneHost` getters/setters; helpers take `(state, services)` | `scenes/DefenseScene.ts`, all `scenes/defense/*Host` types | High (wide change; land it per helper: targeting → ground aim → player combat → spell director) | L | P0.3, P0.4 |
+| P3.2 | `DefenseRunState` + `DefenseServices` types; delete `buildSceneHost` getters/setters; helpers take `(state, services)` | `scenes/DefenseScene.ts`, all `scenes/defense/*Host` types | High (wide change; land it per helper: targeting → ground aim → player combat → spell director). Also takes over from P1.9: make the `DefenseSceneE2E*` host lazy and remove the `as unknown as DefenseSceneE2eDelegate` cast. | L | P0.3, P0.4 |
 | P3.3 | Build tick contexts once; in-place array mutation in projectile and enemy ticks; `Map` index for enemies by id | `DefenseProjectileTick.ts`, `DefenseEnemyTick.ts`, `DefenseTargeting.ts`, `DefenseEnemySpawner.ts` | Med | M | P3.2 |
 | P3.4 | Night-end rules → pure `core/save/nightEnd.ts`; `DefenseNightEnd` keeps only presentation; restore or re-document the invariant | `scenes/defense/DefenseNightEnd.ts`, `core/GameState.ts` | Med | M | P3.2 |
-| P3.5 | `DefenseRunMode` strategy (campaign / endless / wavePlanner) replaces mode flags in the scene | `scenes/DefenseScene.ts`, `DefenseRunSetup.ts`, `DefenseEndlessSpawn.ts`, `DefenseWaveSpawner.ts`, `core/defenseRunMode.ts` | Med | M | P3.2 |
+| P3.5 | `DefenseRunMode` strategy (campaign / endless / wavePlanner) replaces mode flags in the scene; drop the unreachable `rewardGold = 40` default (from P2.3) | `scenes/DefenseScene.ts`, `DefenseRunSetup.ts`, `DefenseEndlessSpawn.ts`, `DefenseWaveSpawner.ts`, `core/defenseRunMode.ts` | Med | M | P3.2 |
 | P3.6 | Move wave scheduling into `systems/WaveSpawner.ts` and merge it with `scenes/defense/DefenseWaveSpawner.ts` (the v1 follow-up) | | Low | S | P3.5 |
 | P3.7 | Bring `DefenseScene.ts` back into coverage; target under 400 lines | `vitest.config.ts` | Low | S | P3.2–P3.5 |
 
@@ -416,15 +491,36 @@ Every phase leaves the game shippable. Effort: **S** is up to half a day, **M** 
 
 | ID | Item | Files | Risk | Effort | Depends on |
 |---|---|---|---|---|---|---|
-| P5.1 | `SpellMechanicHandler` table; one module per mechanic family (projectile, blast/cone, channel, utility: blink/buff/ice wall/heal) | `scenes/defense/DefenseSpellResolve.ts`, `combat/SpellEffects.ts` | Med | M | P2.3, P3.2 |
+| P5.1 | `SpellMechanicHandler` table; one module per mechanic family (projectile, blast/cone, channel, utility: blink/buff/ice wall/heal). From P2.3: each handler declares its required `spells.json` fields, replacing the `baseDamage ?? n`, `healAmount ?? 20`, `0.65` splash and `160` swipe-size literals with data. | `scenes/defense/DefenseSpellResolve.ts`, `combat/SpellEffects.ts` | Med | M | P2.3, P3.2 |
 | P5.2 | Split `DefenseSpellDirector` into `SpellQueue`, `SpellAutoCaster`, `SpellChannelRunner`; `SpellFxRegistry` owns the nullable FX handles | `scenes/defense/DefenseSpellDirector.ts`, `DefenseSpellChannel.ts`, `DefenseSpellTelegraphs.ts`, `DefenseSpellWorldTick.ts` | Med | M | P5.1 |
 | P5.3 | Split `combat/` into `combat/rules/` and `combat/fx/` (moves only) | 47 files + imports | Low | S | P1.10 |
+
+### Phase 9: All tunable values in JSON (added during execution; done after Phase 7, before Phase 8)
+
+Owner request: every value someone might want to balance lives in `public/data/*.json` and is read through the tuning store (`tuning(...)` / the existing `apply*()` setters), so it can be edited without touching TS. Rules:
+
+- Same values, so behaviour stays identical; the golden snapshot is refreshed only for its tuning hash.
+- Both the bundled and the runtime-fetched JSON paths keep working (§5.2).
+- Each new field is validated in its `normalize*` loader and documented in `docs/DATA_FIELDS.md` (`dataFieldsDoc.test.ts` keeps them in sync).
+- Purely technical constants stay in code: array sizes, layer and depth ids, enum-like values, pool sizes, epsilons.
+- One commit per system, `npm run verify` after each.
+
+| ID | System | Examples found so far | Target file |
+|---|---|---|---|
+| P9.1 | Enemy behaviours | charger `dashSpeedMul ?? 2.2`; javelineer `orbitFlipMs ?? 1400`, orbit/standoff distances (48/72/56/40/64 wu), blend constants and speed muls (1.1/1.08/1.02/1.05); ward speed 0.82; rangedKite/retreat blend reach 72; wallSiege / EnemyBrain `worldUnit(3)` | `enemies.json` (`combat.<behavior>` blocks) |
+| P9.2 | Waves and spawning | `ELITE_HP_MUL = 2`; spawn spacing and timings in `WaveSpawner` / endless spawn | `waves.json` / `defense.json` |
+| P9.3 | Projectiles and combat | ranged knockback `* 0.65` in `DefenseProjectileTick`; hit/melee timings | `enemies.json` / `player.json` |
+| P9.4 | Spells and aiming | `groundTargetMaxRangeWu ?? 240`; aim radius `displayWidth * 0.25`; instant-target fallback offset 40 | `spells.json` / `spellInput` tuning |
+| P9.5 | Player, economy and town | remaining cooldowns, costs, rewards and potion/bomb numbers in TS | `player.json`, `items.json`, `economy` tuning |
+| P9.6 | Feel | screen shake / flash durations and intensities, damage-number timings | a `feel` section in an existing JSON file |
+
+Method: grep each folder for numeric literals in gameplay code, sort them into tunable vs technical, and log anything left in code with a reason.
 
 ### Phase 6: UI, town and debug
 
 | ID | Item | Files | Risk | Effort | Depends on |
 |---|---|---|---|---|---|---|
-| P6.1 | Theme tokens for colours, fonts and depths; replace the 247 hex literals (folder by folder) | `ui/theme/dgTheme.ts`, `ui/**`, `scenes/**`, `debug/**` | Low (visual snapshots in `e2e/visual-screens.spec.ts`) | M | – |
+| P6.1 | Theme tokens for colours, fonts and depths; replace the 247 hex literals (folder by folder), including the `DefenseNightEnd` button colours and depth from P2.3 | `ui/theme/dgTheme.ts`, `ui/**`, `scenes/**`, `debug/**` | Low (visual snapshots in `e2e/visual-screens.spec.ts`) | M | – |
 | P6.2 | `openModalPanel` helper (input acquire, backdrop, depth, teardown) adopted by the 8 modal panels | `input/modalBackdrop.ts`, panels listed in §2.8 | Med | M | – |
 | P6.3 | Shared roster setup: `EndlessModeSetupScene` / `WavePlannerSetupScene` and their panel builders | `scenes/*SetupScene.ts`, `ui/endlessMode/*`, `ui/wavePlanner/*`, `ui/rosterPanelShared.ts` | Med | M | P1.4, P6.2 |
 | P6.4 | Builders → `layout()` spec + `render()`: TalentPanel, SaveMenuPanel, NightLootSummary, DefenseHudController, TownHeader | listed files | Med | L | P6.1 |
@@ -449,6 +545,7 @@ Every phase leaves the game shippable. Effort: **S** is up to half a day, **M** 
 | P8.2 | Reorganise `scripts/` (`build/`, `assets/`, `capture/`); move local-only capture specs to `e2e/manual/` or delete them | Low | S | – |
 | P8.3 | Vendored Phaser: Git LFS, or CI build plus checksum | Med | M | – |
 | P8.4 | Refresh `docs/AGENTS.md` layout, `.cursor/rules/*.mdc` and `README.md` to match the new tree; archive this plan when done | Low | S | all |
+| P8.5 | Make Vitest `isolate: false` stable: reset `lazyScenes` and other module caches between files, stop `vi.mock` factories leaking, then turn it on (from P2.4) | Low | S | P2.4 |
 
 ### Dependency graph (phases)
 
@@ -469,6 +566,8 @@ flowchart LR
   P5 --> P8
   P6 --> P8
   P7 --> P8
+  P5 --> P9[P9 tunables to JSON]
+  P9 --> P6
 ```
 
 Phase 6 can run in parallel with Phases 2–5 because it touches different files, except for P6.8 (the big folder move), which must go last.
@@ -481,7 +580,7 @@ Phase 6 can run in parallel with Phases 2–5 because it touches different files
 4. **P3.2 + P3.4: `DefenseRunState` / `DefenseServices` and pure night-end rules.** They remove the 149-line host proxy and restore the documented scene/rules invariant.
 5. **P4.1–P4.3: enemy behaviour registry with typed per-behaviour state.** It is the biggest maintainability win for adding enemies, which is the main content-growth path.
 
-**Totals:** 10 quick wins plus 9 phases (P0–P8) with 50 phased items.
+**Totals:** 10 quick wins plus 10 phases (P0–P9) with 57 phased items (P8.5 and Phase 9 added during execution).
 
 ---
 

@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import type { DataStore, EnemyDef } from "../../core/DataStore";
+import type { DataStore, EnemyDef } from "../../core/data/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 import type { EnemyInstance } from "../../entities/Enemy";
 import {

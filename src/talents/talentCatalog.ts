@@ -1,5 +1,5 @@
 import bundledTalents from "../../public/data/talents.json";
-import { normalizeTalents } from "../core/normalizeTalents";
+import { normalizeTalents } from "../core/data/normalizeTalents";
 import type { TalentCatalog } from "./talentTypes";
 
 let activeCatalog: TalentCatalog | null = null;

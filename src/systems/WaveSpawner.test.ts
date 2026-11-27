@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DataStore, EnemyDef, WaveDef } from "../core/DataStore";
+import type { DataStore, EnemyDef, WaveDef } from "../core/data/DataStore";
 import { asScene, fakeScene } from "../test/fakeScene";
 import {
-  ELITE_HP_MUL,
+  eliteHpMul,
   groupDamageMul,
   groupHpMul,
   scaledEnemyDef,
@@ -13,7 +13,7 @@ const grunt: EnemyDef = {
   hp: 10,
   speedWu: 40,
   damage: 3,
-  behavior: "melee",
+  behavior: "meleeChaser",
   textureKey: "enemy_grunt",
   displayName: "Grunt",
 } as EnemyDef;
@@ -168,7 +168,7 @@ describe("wave hpMul helpers", () => {
   it("returns the same def at 1× and never drops below 1 HP", () => {
     expect(scaledEnemyDef(grunt, 1)).toBe(grunt);
     expect(scaledEnemyDef(grunt, 0.01).hp).toBe(1);
-    expect(scaledEnemyDef(grunt, ELITE_HP_MUL).displayName).toBe("Elite Grunt");
+    expect(scaledEnemyDef(grunt, eliteHpMul()).displayName).toBe("Elite Grunt");
     expect(grunt.hp).toBe(10);
   });
 });

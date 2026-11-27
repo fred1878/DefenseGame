@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createNewSave } from "../core/GameState";
-import { normalizeLoot } from "../core/normalizeLoot";
+import { createNewSave } from "../core/save/GameState";
+import { normalizeLoot } from "../core/data/normalizeLoot";
 import { gearFixture } from "../test/gearFixture";
 import type { ItemDraft } from "./itemGen";
 import {

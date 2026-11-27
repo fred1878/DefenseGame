@@ -1,10 +1,8 @@
 import type Phaser from "phaser";
-import {
-  createDefaultSpellBarAutoCast,
-  createDefaultSpellBarSlots,
-} from "../../content/spells";
-import type { DataStore, WaveDef } from "../../core/DataStore";
-import type { SaveGame } from "../../core/saveTypes";
+import { createDefaultAutoCastSpellIds } from "../../content/spellBarAutoCast";
+import { createDefaultSpellBarSlots } from "../../content/spells";
+import type { DataStore, WaveDef } from "../../core/data/DataStore";
+import type { SaveGame } from "../../core/save/saveTypes";
 import {
   type EndlessRunSelection,
   readDefenseRunMode,
@@ -18,8 +16,8 @@ export type DefenseRunSetup = {
   endlessInfiniteHp: boolean;
   /** Wave to schedule (campaign night or wave planner); undefined for endless. */
   wave: WaveDef | undefined;
-  /** New reward gold, or undefined to keep the scene's current value. */
-  rewardGold: number | undefined;
+  /** Gold paid for winning (0 for endless / wave planner / no wave data). */
+  rewardGold: number;
 };
 
 /** Resolve run mode (campaign night, endless, wave planner) at `DefenseScene.create`. */
@@ -56,7 +54,7 @@ export function resolveDefenseRunSetup(
     endlessSelections: null,
     endlessInfiniteHp: false,
     wave,
-    rewardGold: wave ? wave.rewardGold : undefined,
+    rewardGold: wave?.rewardGold ?? 0,
   };
 }
 
@@ -65,10 +63,10 @@ export function ensureDefenseSaveSpellBar(save: SaveGame): void {
   if (!save.spellBar?.slots?.length) {
     save.spellBar = {
       slots: createDefaultSpellBarSlots(),
-      autoCastSpellIds: createDefaultSpellBarAutoCast(),
+      autoCastSpellIds: createDefaultAutoCastSpellIds(),
     };
   }
   if (!save.spellBar.autoCastSpellIds) {
-    save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
+    save.spellBar.autoCastSpellIds = createDefaultAutoCastSpellIds();
   }
 }

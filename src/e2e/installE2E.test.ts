@@ -2,10 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import Phaser from "phaser";
 import {
   attachE2EGame,
-  markE2EAssetsLoaded,
-  seedE2EWindowStub,
+  subscribeE2EGameEvents,
+  unsubscribeE2EGameEvents,
 } from "./installE2E";
-import { getE2EState } from "./e2eGlobal";
+import { markE2EAssetsLoaded } from "./e2eAssets";
+import { emitGameEvent } from "../core/gameEvents";
+import { getE2EState, seedE2EWindowStub } from "./e2eGlobal";
 import type { DefenseGameE2EApi } from "./e2eGlobal";
 
 function windowStub(href = "http://localhost/?e2e=1") {
@@ -19,6 +21,7 @@ function windowStub(href = "http://localhost/?e2e=1") {
 
 describe("installE2E", () => {
   afterEach(() => {
+    unsubscribeE2EGameEvents();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
@@ -44,6 +47,36 @@ describe("installE2E", () => {
       scene: "boot",
       api: null,
     });
+  });
+
+  it("mirrors melee FX game events into E2E flags", () => {
+    vi.stubEnv("VITE_E2E", "true");
+    windowStub();
+    seedE2EWindowStub();
+    subscribeE2EGameEvents();
+    subscribeE2EGameEvents();
+    emitGameEvent("playerMeleeFx", {});
+    emitGameEvent("enemyMeleeFx", {
+      enemyDefId: "grunt",
+      facingRad: 0.5,
+      rotation: 1.25,
+      flipX: true,
+    });
+    expect(getE2EState().flags).toMatchObject({
+      meleeFxSpawned: 1,
+      enemyMeleeFxSpawned: 1,
+      lastEnemyMeleeFxDef: "grunt",
+      lastEnemyMeleeFxFacing: 0.5,
+      lastEnemyMeleeFxRot: 1.25,
+      lastEnemyMeleeFxFlipX: 1,
+    });
+    emitGameEvent("enemyMeleeFx", {
+      enemyDefId: "grunt",
+      facingRad: 0,
+      rotation: 0,
+      flipX: false,
+    });
+    expect(getE2EState().flags.lastEnemyMeleeFxFlipX).toBe(0);
   });
 
   it("is a no-op when attaching or marking assets without e2e", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { spellById } from "../../content/spells";
 import { spellCastMs } from "../../content/spellTargeting";
-import { SpellCastController } from "../../combat/SpellCastController";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
 import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,

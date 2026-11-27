@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "savedAt": 1764000000000,
+  "save": {
+    "night": 5,
+    "gold": 120,
+    "buildings": { "wall": 1 },
+    "townWallHp": 130,
+    "townWallHpMax": 150,
+    "player": { "hp": 80, "hpMax": 100, "weaponId": "sword" },
+    "spellBar": {
+      "slots": ["fire_bolt", "ice_bolt", "nova", "", "", "", "", ""],
+      "autoCastSpellIds": ["fire_bolt"]
+    },
+    "flags": ["met_blacksmith"]
+  }
+}

@@ -1,6 +1,6 @@
-import { applyDamage } from "../../combat/DamageSystem";
-import { updateSpellGroundAoeTelegraph } from "../../combat/SpellGroundAoeTelegraph";
-import { tickSpellGroundZones } from "../../combat/spellGroundZone";
+import { applyDamage } from "../../combat/rules/DamageSystem";
+import { updateSpellGroundAoeTelegraph } from "../../combat/fx/SpellGroundAoeTelegraph";
+import { tickSpellGroundZones } from "../../combat/rules/spellGroundZone";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
 
 type SpellWorldDirector = {

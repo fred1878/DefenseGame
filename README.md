@@ -44,7 +44,7 @@ Verified against the current codebase (not a wish list):
 | **Gear & inventory** | 11 equipment slots, 40-slot bag, compare/sell/equip; night drops from `loot.json`; stats and procs from `items.json` ([#362](https://github.com/fred1878/DefenseGame/pull/362)–[#363](https://github.com/fred1878/DefenseGame/pull/363)) |
 | **Shops & consumables** | Trader (random stock, rerolls each night) and blacksmith catalogue (unlock by night); potions/bombs in combat ([#364](https://github.com/fred1878/DefenseGame/pull/364)) |
 | **Endless / wave planner** | Haunted Well opens endless training (pick enemies + caps); Plague Clinic opens the wave planner (build a custom night) |
-| **Save menu** | Daylit Market Stall opens five manual slots (save / load / delete). A slot whose schema version differs from `SAVE_VERSION` is deleted, not migrated. |
+| **Save menu** | Daylit Market Stall opens five manual slots (save / load / delete). Older slots (and the autosave) are migrated to the current `SAVE_VERSION` through `src/core/save/migrations.ts`; a slot written by a newer build is kept but shown as empty. |
 | **Night loot summary** | Campaign end-of-night overlay: result, gold, rarity-coloured drops, wall HP ([#366](https://github.com/fred1878/DefenseGame/pull/366)) |
 | **Audio** | SFX for melee slashes, fire whoosh and coin gain/spend (`src/audio/`, `public/assets/audio/sfx/`) |
 | **Performance** | Enemy and projectile pooling in Defense |
@@ -157,7 +157,8 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `defense-maps.json` | `defaultMapId`, per-map `field` (cols/rows) + obstacle placements (`tileX`/`tileY`/`textureKey`); `selectDefenseMapId` for future map pick |
 | `entity-physics.json` | Nav clearance margins + `knockbackVelocityCapMult` |
 | `player.json` / `enemies.json` | Required `bodyRadius` per player / enemy (arcade collision) |
-| `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffPx`) |
+| `enemy-ai.json` | Global chase/aggro (`playerAggroRadiusWu`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffWu`), pathing and per-behaviour movement |
+| `gameplay.json` | Global rules: wall HP, wave spawn band, elite label threshold, shared combat timings, feel |
 | `enemies.json` | HP, speed, damage, `behavior`, required explicit `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
 | `items.json` | Gear templates: slots, rarities, affixes, uniques |

@@ -1,4 +1,4 @@
-import { GROUND_TAP_AUTO_CAST_SPELL_IDS } from "../config/spellInput";
+import { tuning } from "../tuning/gameTuning";
 import type { SpellDefinition } from "./spells";
 import { spellById } from "./spells";
 import { spellUsesManualGroundAim } from "./spellTargeting";
@@ -20,5 +20,5 @@ export function deriveGroundTapAutoCastSpellIds(
 export function spellGroundTapAutoCasts(spellId: string): boolean {
   const def = spellById(spellId);
   if (def) return spellGroundTapAutoCastsForDef(def);
-  return GROUND_TAP_AUTO_CAST_SPELL_IDS.includes(spellId);
+  return tuning("spellInput").groundTapAutoCastSpellIds.includes(spellId);
 }
