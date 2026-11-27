@@ -189,6 +189,9 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
   `step(frames)` advances fixed 1/60 s frames via `game.headlessStep`;
   `stepUntil(pred)` also yields to the event loop for real I/O; `tap(x, y)`
   dispatches DOM mouse events on the canvas (full InputManager hit testing);
+  `drag(path, { holdFrames, beforeRelease })` presses, moves and releases
+  (ground-spell aim, stick drags; long presses skew `performance.now` in
+  `beforeRelease` because `bindTapOrLongPress` times on the wall clock);
   `renderPng()` runs one frame through the Canvas renderer.
 - `src/test/scene/townBoot.ts` `bootToTown()` runs Boot -> Town (the
   production scene list) and `seedMathRandom(seed)` makes runs replayable.
@@ -201,14 +204,19 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
   this and uploads them as the `scene-snapshots` artifact).
 - Rendering uses Phaser's **Canvas** renderer, not WebGL: WebGL-only paths are
   not exercised and pixels will not match the game exactly.
-- Coverage: scene files are counted (see "Coverage notes"); only E2E-only
-  adapters, Capacitor stubs and scenes still waiting on tests are excluded.
+- Coverage: every scene file is counted (see "Coverage notes"); only
+  production entries, E2E-only adapters and Capacitor stubs are excluded.
 - Cameras: frames are update-only (`headlessStep`), but the harness runs each
   camera's `preRender()` so follow / scroll match a rendered frame and
   `worldPointToScreen` taps land where expected.
 - `sceneFlow.ts`: `waitForScene`, `waitForDefense`, `tapTown` / `tapDefense`
   (by e2e target id), `tapText` (by label), `startNightFromTown`.
-- `bootToTown({ save })` seeds the localStorage save BootScene loads.
+- `bootToTown({ save, beforeBoot })` seeds the localStorage save BootScene
+  loads; `beforeBoot(server)` can `server.hold(re)` responses before the
+  game starts. The returned release serves them (`release()`) or fails them
+  (`release(404)`) for deterministic loading / load-error states.
+- E2E mode: `E2EMode.scene.test.ts` stubs `VITE_E2E=true` and drives
+  `window.__DEFENSEGAME_E2E__.api` like Playwright does.
 
 ## Coverage notes
 
@@ -216,12 +224,12 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines | 97% | ~97.3% (scene files counted via real-Phaser scene tests) |
-| statements | 96.5% | ~96.7% |
-| functions | 96.5% | ~96.7% |
-| branches | 92% | ~92.2% |
+| lines | 98% | ~98.4% (scene files counted via real-Phaser scene tests) |
+| statements | 97.5% | ~97.7% |
+| functions | 97.5% | ~98.1% |
+| branches | 93% | ~93.6% |
 
-**Excluded from coverage:** `DebugMenuScene` and `EndlessModeSetupScene` (until their scene tests land), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), and Capacitor update stubs. `BootScene`, `TownScene`, `DefenseScene`, `WavePlannerSetupScene` and the Phaser-heavy defense/town modules are counted, covered by `*.scene.test.ts`. Floors only go up: add tests rather than lowering them. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), and Capacitor update stubs. `BootScene`, `TownScene`, `DefenseScene`, `DebugMenuScene`, `EndlessModeSetupScene`, `WavePlannerSetupScene` and the Phaser-heavy defense/town modules are counted, covered by `*.scene.test.ts`. Floors only go up: add tests rather than lowering them. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 
 ## Visual checks (screenshot baselines)
 

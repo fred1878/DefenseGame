@@ -207,9 +207,15 @@ export function ensureTownFluffLoaded(scene: Phaser.Scene): Promise<void> {
   const base = import.meta.env.BASE_URL;
   townFluffPromise = runQueuedLoader(scene, (loader) =>
     queueTownFluffAssets(loader, base),
-  ).then(() => {
-    scene.game.registry.set(TOWN_FLUFF_READY_KEY, true);
-  });
+  )
+    .then(() => {
+      scene.game.registry.set(TOWN_FLUFF_READY_KEY, true);
+    })
+    .catch((err) => {
+      // Drop the failed load so a Retry queues the files again.
+      townFluffPromise = null;
+      throw err;
+    });
   return townFluffPromise;
 }
 
@@ -221,10 +227,16 @@ export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   const base = import.meta.env.BASE_URL;
   defenseLoadPromise = runQueuedLoader(scene, (loader) =>
     queueDefenseBootAssets(loader, base),
-  ).then(() => {
-    afterDefenseAssetsLoaded(scene);
-    scene.game.registry.set(DEFENSE_ASSETS_READY_KEY, true);
-  });
+  )
+    .then(() => {
+      afterDefenseAssetsLoaded(scene);
+      scene.game.registry.set(DEFENSE_ASSETS_READY_KEY, true);
+    })
+    .catch((err) => {
+      // Drop the failed load so a Retry queues the files again.
+      defenseLoadPromise = null;
+      throw err;
+    });
   return defenseLoadPromise;
 }
 

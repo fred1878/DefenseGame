@@ -33,7 +33,11 @@ export function seedMathRandom(seed: number): void {
  * textures over HTTP, then hands off to TownScene (same scene list as gameMain).
  */
 export async function bootToTown(
-  opts: { save?: (save: SaveGame) => SaveGame } = {},
+  opts: {
+    save?: (save: SaveGame) => SaveGame;
+    /** Runs once the server is up, before the game boots (e.g. `hold`). */
+    beforeBoot?: (server: StaticServer) => void;
+  } = {},
 ): Promise<TownBoot> {
   if (opts.save) {
     // BootScene reads the save from localStorage, like a returning player.
@@ -43,6 +47,7 @@ export async function bootToTown(
   resetLazyScenesForTests();
   const server = await startPublicServer();
   vi.stubEnv("BASE_URL", server.url);
+  opts.beforeBoot?.(server);
   const h = await bootHeadlessGame({ scene: [BootScene, TownScene] });
   await h.stepUntil(() => h.game.scene.isActive("Town"), { maxFrames: 1200 });
   const town = h.game.scene.getScene("Town") as TownScene;

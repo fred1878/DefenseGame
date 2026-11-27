@@ -113,3 +113,13 @@ export function tapText(
   const b = t.getBounds();
   h.tap(b.centerX, b.centerY);
 }
+
+/** Interactive objects currently registered with `scene`'s input plugin. */
+export function interactiveObjects(
+  scene: Phaser.Scene,
+): Phaser.GameObjects.GameObject[] {
+  const input = scene.input as unknown as {
+    _list: Phaser.GameObjects.GameObject[];
+  };
+  return [...input._list];
+}
