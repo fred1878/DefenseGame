@@ -2,7 +2,9 @@ import Phaser from "phaser";
 import { describe, expect, it } from "vitest";
 import { PLAYER_TEXTURE, SPELL_FX_ASSETS } from "../content/assets";
 import {
+  DEBUG_WORLD_TEXTURE_FILTER_KEY,
   getDebugWorldTextureFilter,
+  installNearestTextureDefault,
   HYBRID_LINEAR_TEXTURE_KEYS,
   isHybridLinearTextureKey,
   textureFilterForKey,
@@ -46,5 +48,42 @@ describe("pixelArtTextures filter debug", () => {
     expect(textureFilterForKey(playerKey, "hybrid")).toBe(
       Phaser.Textures.FilterMode.NEAREST,
     );
+  });
+});
+
+describe("installNearestTextureDefault", () => {
+  function setup(store: Record<string, unknown> = {}) {
+    let handler: ((key: string, tex: unknown) => void) | null = null;
+    const game = {
+      registry: fakeRegistry(store),
+      textures: {
+        on: (event: string, fn: (key: string, tex: unknown) => void) => {
+          expect(event).toBe("addtexture");
+          handler = fn;
+        },
+      },
+    } as unknown as Phaser.Game;
+    installNearestTextureDefault(game);
+    const add = (key: string) => {
+      const calls: number[] = [];
+      handler!(key, { setFilter: (m: number) => calls.push(m) });
+      return calls;
+    };
+    return add;
+  }
+
+  it("starts every added texture NEAREST", () => {
+    const add = setup();
+    expect(add("some_new_sheet")).toEqual([Phaser.Textures.FilterMode.NEAREST]);
+  });
+
+  it("leaves vector talent icons on the renderer default", () => {
+    const add = setup();
+    expect(add("talent_icon_star")).toEqual([]);
+  });
+
+  it("follows the debug linear filter mode", () => {
+    const add = setup({ [DEBUG_WORLD_TEXTURE_FILTER_KEY]: "linear" });
+    expect(add("some_new_sheet")).toEqual([Phaser.Textures.FilterMode.LINEAR]);
   });
 });

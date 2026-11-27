@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { computeBackingSize } from "./hiDpiCanvas";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  computeBackingSize,
+  installHiDpiCanvas,
+  textResolutionForBackingScale,
+} from "./hiDpiCanvas";
 import { snapQuadLikePhaser3 } from "./phaser3PixelParity";
 
 describe("computeBackingSize", () => {
@@ -52,5 +56,159 @@ describe("snapQuadLikePhaser3 backing scale", () => {
     expect(Math.abs(px - Math.round(px))).toBeLessThan(1e-6);
     // Quad size is preserved.
     expect((q[2] ?? 0) - (q[0] ?? 0)).toBeCloseTo(10);
+  });
+});
+
+/** Minimal stand-in for Phaser 4's DrawingContext (only what the patch touches). */
+class FakeDrawingContext {
+  width = 0;
+  height = 0;
+  state = { scissor: { box: [0, 0, 0, 0] }, viewport: [0, 0, 0, 0] };
+  constructor(readonly useCanvas: boolean) {}
+  resize(width: number, height: number): void {
+    this.width = width;
+    this.height = height;
+    this.state.scissor.box = [0, 0, width, height];
+    this.state.viewport = [0, 0, width, height];
+  }
+  setScissorBox(x: number, y: number, width: number, height: number): void {
+    this.state.scissor.box = [x, this.height - y - height, width, height];
+  }
+}
+
+function fakeGame(opts: {
+  css: { width: number; height: number };
+  withBase?: boolean;
+}) {
+  const store: Record<string, unknown> = {};
+  const text = {
+    type: "Text",
+    style: { resolution: 1 },
+    setResolution: vi.fn(function (
+      this: { style: { resolution: number } },
+      r: number,
+    ) {
+      this.style.resolution = r;
+    }),
+  };
+  const nested = { ...text, style: { resolution: 1 }, setResolution: vi.fn() };
+  const container = { type: "Container", list: [nested] };
+  const base = new FakeDrawingContext(true);
+  base.resize(540, 1200);
+  let texturesReady: (() => void) | null = null;
+  const updateScale = vi.fn();
+  const game = {
+    canvas: {
+      width: 540,
+      height: 1200,
+      getBoundingClientRect: () => opts.css,
+    },
+    renderer: {
+      gl: { drawingBufferHeight: 0 },
+      drawingBufferHeight: 0,
+      baseDrawingContext: opts.withBase === false ? null : base,
+    },
+    scale: { displaySize: opts.css, updateScale },
+    registry: {
+      get: (k: string) => store[k],
+      set: (k: string, v: unknown) => {
+        store[k] = v;
+      },
+    },
+    scene: {
+      scenes: [{ sys: { displayList: { list: [text, container] } } }],
+    },
+    textures: {
+      once: (_e: string, fn: () => void) => {
+        texturesReady = fn;
+      },
+    },
+  };
+  return {
+    game,
+    base,
+    text,
+    nested,
+    store,
+    updateScale,
+    fireTexturesReady: () => texturesReady?.(),
+  };
+}
+
+describe("installHiDpiCanvas", () => {
+  let listeners: Array<() => void> = [];
+  beforeEach(() => {
+    listeners = [];
+    vi.stubGlobal("window", {
+      devicePixelRatio: 2,
+      matchMedia: () => ({
+        addEventListener: (_e: string, fn: () => void) => listeners.push(fn),
+        removeEventListener: vi.fn(),
+      }),
+    });
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("sizes the backing store and scales viewport + scissor, keeping logical size", () => {
+    const g = fakeGame({ css: { width: 540, height: 1200 } });
+    const dispose = installHiDpiCanvas(g.game as never);
+    expect(g.game.canvas.width).toBe(1080);
+    expect(g.game.canvas.height).toBe(2400);
+    expect(g.base.width).toBe(540);
+    expect(g.base.state.viewport).toEqual([0, 0, 1080, 2400]);
+    g.base.setScissorBox(10, 20, 100, 50);
+    expect(g.base.state.scissor.box).toEqual([20, 2260, 200, 100]);
+    expect(g.store.renderResolution).toBe(2);
+    expect(g.text.setResolution).toHaveBeenCalledWith(2);
+    expect(g.nested.setResolution).toHaveBeenCalledWith(2);
+    dispose();
+  });
+
+  it("leaves framebuffer contexts in logical pixels", () => {
+    const g = fakeGame({ css: { width: 540, height: 1200 } });
+    installHiDpiCanvas(g.game as never);
+    const fb = new FakeDrawingContext(false);
+    fb.resize(300, 200);
+    fb.setScissorBox(0, 0, 300, 200);
+    expect(fb.state.viewport).toEqual([0, 0, 300, 200]);
+    expect(fb.state.scissor.box).toEqual([0, 0, 300, 200]);
+  });
+
+  it("re-sizes after the scale manager updates and on DPR change", () => {
+    const g = fakeGame({ css: { width: 540, height: 1200 } });
+    installHiDpiCanvas(g.game as never);
+    const css = g.game.canvas.getBoundingClientRect();
+    css.width = 270;
+    css.height = 600;
+    g.game.scale.updateScale();
+    expect(g.updateScale).toHaveBeenCalled();
+    expect(g.game.canvas.width).toBe(540);
+    (window as { devicePixelRatio: number }).devicePixelRatio = 3;
+    for (const fn of [...listeners]) fn();
+    expect(g.game.canvas.width).toBe(810);
+  });
+
+  it("waits for the renderer's drawing context", () => {
+    const g = fakeGame({ css: { width: 540, height: 1200 }, withBase: false });
+    installHiDpiCanvas(g.game as never);
+    expect(g.game.canvas.width).toBe(540);
+    g.game.renderer.baseDrawingContext = g.base;
+    g.fireTexturesReady();
+    expect(g.game.canvas.width).toBe(1080);
+  });
+
+  it("is a no-op without WebGL", () => {
+    const g = fakeGame({ css: { width: 540, height: 1200 } });
+    (g.game.renderer as { gl: unknown }).gl = undefined;
+    installHiDpiCanvas(g.game as never)();
+    expect(g.game.canvas.width).toBe(540);
+  });
+});
+
+describe("textResolutionForBackingScale", () => {
+  it("rounds to 3 decimals", () => {
+    expect(textResolutionForBackingScale(1418 / 540)).toBe(2.626);
   });
 });

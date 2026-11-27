@@ -122,8 +122,9 @@ const SMOOTH_TEXTURE_PREFIXES = ["talent_icon_"] as const;
  * (e.g. `uiIconFrame`) still call `setFilter(LINEAR)` on first use.
  */
 export function installNearestTextureDefault(game: Phaser.Game): void {
+  // Phaser.Textures.Events.ADD
   game.textures.on(
-    Phaser.Textures.Events.ADD,
+    "addtexture",
     (key: string, texture: Phaser.Textures.Texture) => {
       if (SMOOTH_TEXTURE_PREFIXES.some((p) => key.startsWith(p))) return;
       const mode = getDebugWorldTextureFilter(game.registry);
