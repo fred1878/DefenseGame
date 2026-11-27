@@ -487,7 +487,12 @@
       "ward": {
         "protectRadiusWu": 230,
         "screenOffsetWu": 80,
-        "playerAggroRadiusWu": 110
+        "playerAggroRadiusWu": 110,
+        "postHoldRadiusWu": 22,
+        "postHoldExitRadiusWu": 34,
+        "postBreakMoveWu": 44,
+        "postGraceMs": 1600,
+        "postFacingSlackDeg": 14
       }
     },
     "weight": 300,

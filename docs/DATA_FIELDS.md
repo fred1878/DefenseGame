@@ -246,6 +246,11 @@ Telegraphed ground zone ticks.
 | `protectRadiusWu` | px | Px radius allies are protected by ward. |
 | `screenOffsetWu` | WU | WU offset for ward screening position. |
 | `playerAggroRadiusWu` | px | Px radius to prefer chasing player over objective. |
+| `postHoldRadiusWu` | WU | Within this distance of the screen goal the ward counts as "at post" and holds. |
+| `postHoldExitRadiusWu` | WU | Hysteresis: keep holding until this far from the anchored goal. |
+| `postBreakMoveWu` | WU | Player or protectee movement beyond this ends the hold grace window. |
+| `postGraceMs` | ms | How long to stand still at post before allowing a full reposition. |
+| `postFacingSlackDeg` | deg | Ignore aim changes smaller than this while holding (stops jitter). |
 
 #### `combat.hybrid` (`rangedHybrid`)
 

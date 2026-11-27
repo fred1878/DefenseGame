@@ -165,6 +165,11 @@ export type EnemyCombatPartial = {
     protectRadiusWu?: number;
     screenOffsetWu?: number;
     playerAggroRadiusWu?: number;
+    postHoldRadiusWu?: number;
+    postHoldExitRadiusWu?: number;
+    postBreakMoveWu?: number;
+    postGraceMs?: number;
+    postFacingSlackDeg?: number;
   };
   /** Close-in melee burst then retreat (`rangedHybrid` behavior). */
   hybrid?: {
@@ -311,6 +316,16 @@ export type EnemyWardCombat = {
   protectRadiusWu: number;
   screenOffsetWu: number;
   playerAggroRadiusWu: number;
+  /** Within this distance of the screen goal counts as "at post". */
+  postHoldRadiusWu: number;
+  /** Hysteresis: stay "at post" until this far from the anchored goal. */
+  postHoldExitRadiusWu: number;
+  /** Player / protectee motion above this ends the grace window. */
+  postBreakMoveWu: number;
+  /** Ms to stand still at post before allowing a full reposition. */
+  postGraceMs: number;
+  /** Ignore aim jitter below this angle while holding (degrees). */
+  postFacingSlackDeg: number;
 };
 
 export type EnemyHybridCombat = {

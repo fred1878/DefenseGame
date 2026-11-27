@@ -121,6 +121,11 @@ export const ENEMY_COMBAT_WARD_KEYS = [
   "protectRadiusWu",
   "screenOffsetWu",
   "playerAggroRadiusWu",
+  "postHoldRadiusWu",
+  "postHoldExitRadiusWu",
+  "postBreakMoveWu",
+  "postGraceMs",
+  "postFacingSlackDeg",
 ] as const;
 export const ENEMY_COMBAT_HYBRID_KEYS = [
   "closeMeleeRadiusWu",
