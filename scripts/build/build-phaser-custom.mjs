@@ -3,6 +3,7 @@
  * Build vendor/phaser-defense.js from the installed phaser package + trim manifests
  * under vendor/phaser-trim/. Re-run after bumping the phaser dependency.
  */
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -99,10 +100,14 @@ async function main() {
 
   const version = readPhaserVersion();
   const bytes = fs.statSync(outFile).size;
+  const sha256 = createHash("sha256")
+    .update(fs.readFileSync(outFile))
+    .digest("hex");
   const manifest = {
     phaserVersion: version,
     builtAt: new Date().toISOString(),
     bytes,
+    sha256,
     entry: "vendor/phaser-trim/phaser-defense-entry.js",
     trims: [
       "physics: arcade-only (entry)",

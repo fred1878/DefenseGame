@@ -3,6 +3,7 @@
  * Copies the committed custom Phaser UMD into node_modules so Vite resolves it like
  * the official phaser dist builds (vendor-only paths break CJS default interop).
  */
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +21,22 @@ const dest = path.join(
 if (!fs.existsSync(src)) {
   console.error(
     `Missing ${src} — run npm run build:phaser and commit vendor/phaser-defense.js`,
+  );
+  process.exit(1);
+}
+
+// The bundle is committed (6.5 MB); its checksum in the manifest catches a
+// stale, truncated or hand-edited copy before it reaches a build.
+const manifest = JSON.parse(
+  fs.readFileSync(
+    path.join(repoRoot, "vendor/phaser-defense.manifest.json"),
+    "utf8",
+  ),
+);
+const actual = createHash("sha256").update(fs.readFileSync(src)).digest("hex");
+if (manifest.sha256 && manifest.sha256 !== actual) {
+  console.error(
+    `vendor/phaser-defense.js sha256 ${actual} does not match the manifest (${manifest.sha256}). Rebuild it with npm run build:phaser.`,
   );
   process.exit(1);
 }
