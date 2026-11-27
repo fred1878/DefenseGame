@@ -37,11 +37,8 @@ export default defineConfig({
         "src/scenes/defense/DamageNumberFx.ts",
         "src/scenes/defense/DefenseSpellWorldTick.ts",
         "src/scenes/defense/DefenseSpellResolve.ts",
-        "src/scenes/defense/DefenseTargeting.ts",
         "src/scenes/town/TownOverlays.ts",
         "src/scenes/town/TownHeader.ts",
-        "src/scenes/town/TownTouchDebug.ts",
-        "src/scenes/town/TownSceneE2E.ts",
         "src/appUpdate/apkInstallerPlugin.ts",
         "src/appUpdate/runCheckForUpdate.ts",
         "src/world/defenseCamera.ts",
@@ -51,9 +48,9 @@ export default defineConfig({
       // floors as more scene tests land (pre-expansion was ~98% / ~96%).
       thresholds: {
         // Floors after scenes/world inclusion (orchestrators still excluded above).
-        lines: 94,
+        lines: 95,
         functions: 95,
-        branches: 90,
+        branches: 91,
         statements: 94,
       },
     },
