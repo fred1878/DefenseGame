@@ -15,9 +15,9 @@ export function defenseSceneE2eHudLayoutProbe(scene: DefenseSceneE2eDelegate): {
   hudText: { x: number; y: number };
   minimap: ReturnType<typeof defenseMinimapLayout>;
 } {
-  const playArea = defensePlayAreaLayout(scene, scene.safe);
-  const chrome = combatChromeLayout(scene, scene.safe);
-  const hud = hudTextPosition(scene.safe);
+  const playArea = defensePlayAreaLayout(scene, scene.run.safe);
+  const chrome = combatChromeLayout(scene, scene.run.safe);
+  const hud = hudTextPosition(scene.run.safe);
   return {
     playArea,
     chrome,

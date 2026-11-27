@@ -22,24 +22,25 @@ export function defenseSceneE2eSetPlayerPosition(
   x: number,
   y: number,
 ): void {
-  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
+  const body = scene.run.player.sprite
+    .body as Phaser.Physics.Arcade.Body | null;
   if (body) {
     const ddx = x - body.center.x;
     const ddy = y - body.center.y;
-    scene.player.sprite.setPosition(
-      scene.player.sprite.x + ddx,
-      scene.player.sprite.y + ddy,
+    scene.run.player.sprite.setPosition(
+      scene.run.player.sprite.x + ddx,
+      scene.run.player.sprite.y + ddy,
     );
-    body.reset(scene.player.sprite.x, scene.player.sprite.y);
+    body.reset(scene.run.player.sprite.x, scene.run.player.sprite.y);
     body.setVelocity(0, 0);
     body.updateCenter();
   } else {
-    scene.player.sprite.setPosition(x, y);
+    scene.run.player.sprite.setPosition(x, y);
   }
-  scene.physics.world.collide(scene.player.sprite, scene.obstacleGroup);
+  scene.physics.world.collide(scene.run.player.sprite, scene.run.obstacleGroup);
   // E2E teleports skip follow lerp — tests assert scroll vs position, not easing.
-  const cx = body?.center.x ?? scene.player.sprite.x;
-  const cy = body?.center.y ?? scene.player.sprite.y;
+  const cx = body?.center.x ?? scene.run.player.sprite.x;
+  const cy = body?.center.y ?? scene.run.player.sprite.y;
   scene.cameras.main.centerOn(cx, cy);
 }
 
@@ -47,7 +48,7 @@ export function defenseSceneE2eObstacleBlockerAabb(
   scene: DefenseSceneE2eDelegate,
   index: number,
 ): DefenseObstacleBlockerAabb {
-  const blocker = scene.obstacleBlockers[index];
+  const blocker = scene.run.obstacleBlockers[index];
   if (!blocker) {
     throw new Error(`obstacle blocker index ${index} out of range`);
   }
@@ -58,7 +59,7 @@ export function defenseSceneE2eObstacleArcadeBodyAabb(
   scene: DefenseSceneE2eDelegate,
   index: number,
 ): DefenseObstacleBlockerAabb {
-  const child = scene.obstacleGroup.getChildren()[index] as
+  const child = scene.run.obstacleGroup.getChildren()[index] as
     | Phaser.GameObjects.Rectangle
     | undefined;
   const body = child?.body as
@@ -74,7 +75,8 @@ export function defenseSceneE2eObstacleArcadeBodyAabb(
 export function defenseSceneE2ePlayerBodyRadius(
   scene: DefenseSceneE2eDelegate,
 ): number {
-  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
+  const body = scene.run.player.sprite
+    .body as Phaser.Physics.Arcade.Body | null;
   return body?.halfWidth ?? 0;
 }
 
@@ -82,15 +84,16 @@ export function defenseSceneE2eMaxPlayerObstacleOverlapPx(
   scene: DefenseSceneE2eDelegate,
   obstacleIndex?: number,
 ): number {
-  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body | null;
+  const body = scene.run.player.sprite
+    .body as Phaser.Physics.Arcade.Body | null;
   if (!body) return 0;
   const cx = body.center.x;
   const cy = body.center.y;
   const r = body.halfWidth;
   const blockers =
     obstacleIndex === undefined
-      ? scene.obstacleBlockers
-      : [scene.obstacleBlockers[obstacleIndex]!].filter(Boolean);
+      ? scene.run.obstacleBlockers
+      : [scene.run.obstacleBlockers[obstacleIndex]!].filter(Boolean);
   let max = 0;
   for (const obs of blockers) {
     if (!obs) continue;
@@ -115,11 +118,11 @@ export function defenseSceneE2eObstacleBumpProbe(
   obstacleIndex: number,
   approach: DefenseObstacleBumpCardinal,
 ): DefenseObstacleBumpProbe {
-  const blocker = scene.obstacleBlockers[obstacleIndex];
+  const blocker = scene.run.obstacleBlockers[obstacleIndex];
   if (!blocker) {
     throw new Error(`obstacle blocker index ${obstacleIndex} out of range`);
   }
-  const body = scene.player.sprite.body as Phaser.Physics.Arcade.Body;
+  const body = scene.run.player.sprite.body as Phaser.Physics.Arcade.Body;
   const cx = body.center.x;
   const cy = body.center.y;
   const r = body.halfWidth;
@@ -158,13 +161,13 @@ export function defenseSceneE2eResolvePlayerObstacleOverlap(
   scene: DefenseSceneE2eDelegate,
 ): void {
   correctPlayerObstacleBlockerOverlap(
-    scene.player.sprite,
-    scene.obstacleBlockers,
+    scene.run.player.sprite,
+    scene.run.obstacleBlockers,
   );
-  scene.physics.world.collide(scene.player.sprite, scene.obstacleGroup);
+  scene.physics.world.collide(scene.run.player.sprite, scene.run.obstacleGroup);
   correctPlayerObstacleBlockerOverlap(
-    scene.player.sprite,
-    scene.obstacleBlockers,
+    scene.run.player.sprite,
+    scene.run.obstacleBlockers,
   );
 }
 

@@ -24,7 +24,7 @@ describe("createDefenseSceneE2eHost", () => {
     const alive = { damageable: { alive: true, hp: 3 }, defId: "grunt" };
     const dead = { damageable: { alive: false, hp: 0 }, defId: "grunt" };
     const scene = {
-      enemies: [alive, dead, alive],
+      run: { enemies: [alive, dead, alive] },
     } as unknown as DefenseSceneE2eDelegate;
     const host = createDefenseSceneE2eHost(scene);
     expect(host.enemyCount()).toBe(2);
