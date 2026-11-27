@@ -15,7 +15,7 @@ type Internals = {
   cancelBtn: { container: FakeGameObject };
   closeBtn: { container: FakeGameObject };
   rows: Array<{ index: number; bg: FakeGameObject; meta: FakeGameObject }>;
-  root: FakeGameObject;
+  modal: { root: FakeGameObject };
 };
 
 function stubStorage(): void {
@@ -144,7 +144,7 @@ describe("SaveMenuPanel leftover branches", () => {
   it("destroy skips an inactive root and is a no-op the second time", () => {
     stubStorage();
     const { panel, ui, onDismiss } = openPanel();
-    ui.root.active = false;
+    ui.modal.root.active = false;
     panel.destroy();
     expect(onDismiss).toHaveBeenCalledTimes(1);
     panel.destroy();

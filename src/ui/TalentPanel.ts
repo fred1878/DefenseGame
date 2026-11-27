@@ -5,11 +5,7 @@ import { GAME } from "../config";
 import { DAMAGE_NUMBER_FONT_FAMILY } from "../config/damageNumbers";
 import type { SaveGame } from "../core/saveTypes";
 import { INPUT_MODALITY } from "../input/inputModality";
-import {
-  acquireModalInput,
-  bindModalDimBackdrop,
-  type ModalInputLease,
-} from "../input/modalBackdrop";
+import { openModalPanel, type ModalPanel } from "../input/modalBackdrop";
 import { getTalentCatalog } from "../talents/talentCatalog";
 import {
   branchPointsSpent,
@@ -124,7 +120,7 @@ const STATE_RING: Record<TalentNodeState, { fill: number; stroke: number }> = {
  */
 export class TalentPanel {
   private readonly root: Phaser.GameObjects.Container;
-  private readonly modalLease: ModalInputLease;
+  private readonly modal: ModalPanel;
   private readonly catalog: TalentCatalog;
   private readonly layout: TalentTreeLayout;
   private readonly chrome: Phaser.GameObjects.Graphics;
@@ -160,19 +156,14 @@ export class TalentPanel {
   ) {
     this.catalog = catalog;
     this.layout = layoutTalentTree(catalog, GAME.width, GAME.height);
-    const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
+    const modal = openModalPanel(scene, {
+      token: INPUT_MODALITY.townTalents,
+      dimColor: DG.abyss,
+      dimAlpha: 0.97,
+    });
+    const root = modal.root;
     this.root = root;
-    const dim = scene.add.rectangle(
-      GAME.width / 2,
-      GAME.height / 2,
-      GAME.width,
-      GAME.height,
-      DG.abyss,
-      0.97,
-    );
-    bindModalDimBackdrop(dim);
-    root.add(dim);
-    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townTalents);
+    this.modal = modal;
 
     this.chrome = scene.add.graphics();
     this.tree = scene.add.graphics();
@@ -788,8 +779,7 @@ export class TalentPanel {
     if (this.tornDown) return;
     this.tornDown = true;
     this.scene.textures.off("addtexture", this.onTextureAdded);
-    this.modalLease.release();
-    if (this.root.active) this.root.destroy();
+    this.modal.close();
     this.onDismiss?.();
   }
 

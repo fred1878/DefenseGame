@@ -4,8 +4,7 @@ import type { DataStore } from "../../core/DataStore";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import { INPUT_MODALITY } from "../../input/inputModality";
 import {
-  acquireModalInput,
-  bindModalDimBackdrop,
+  openModalPanel,
   type ModalInputLease,
 } from "../../input/modalBackdrop";
 import { addRosterListChrome } from "../rosterPanelShared";
@@ -105,19 +104,9 @@ export function buildEndlessModePanelUi(
   caps: Map<string, number>,
   h: EndlessModePanelBuildHandlers,
 ): EndlessModePanelUi {
-  const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
-
-  const dim = scene.add.rectangle(
-    GAME.width / 2,
-    GAME.height / 2,
-    GAME.width,
-    GAME.height,
-    0x000000,
-    0.72,
-  );
-  bindModalDimBackdrop(dim);
-  root.add(dim);
-  const modalLease = acquireModalInput(scene, INPUT_MODALITY.townEndless);
+  const modal = openModalPanel(scene, { token: INPUT_MODALITY.townEndless });
+  const root = modal.root;
+  const modalLease = modal.lease;
 
   const title = scene.add
     .text(

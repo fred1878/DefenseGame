@@ -3,11 +3,9 @@
  * modal root, card widgets, the detail + compare box and the action bar.
  */
 import type Phaser from "phaser";
-import { GAME } from "../../config";
 import { INPUT_MODALITY } from "../../input/inputModality";
 import {
-  acquireModalInput,
-  bindModalDimBackdrop,
+  openModalPanel,
   type ModalInputLease,
 } from "../../input/modalBackdrop";
 import { DG_ICON_TINT, DG_THEME, hexToInt } from "../theme/dgTheme";
@@ -29,18 +27,13 @@ export type OverlayRoot = {
 
 /** Full-screen container (depth 500) over a dark backdrop, holding the modal lease. */
 export function createOverlayRoot(scene: Phaser.Scene): OverlayRoot {
-  const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
-  const dim = scene.add.rectangle(
-    GAME.width / 2,
-    GAME.height / 2,
-    GAME.width,
-    GAME.height,
-    0x0c0a09,
-    1,
-  );
-  bindModalDimBackdrop(dim);
-  root.add(dim);
-  const lease = acquireModalInput(scene, INPUT_MODALITY.townGear);
+  const modal = openModalPanel(scene, {
+    token: INPUT_MODALITY.townGear,
+    dimColor: 0x0c0a09,
+    dimAlpha: 1,
+  });
+  const root = modal.root;
+  const lease = modal.lease;
   return { root, kit: new DgKit(scene, root), lease };
 }
 

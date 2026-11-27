@@ -2,11 +2,7 @@ import type Phaser from "phaser";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { INPUT_MODALITY } from "../input/inputModality";
-import {
-  acquireModalInput,
-  bindModalDimBackdrop,
-  type ModalInputLease,
-} from "../input/modalBackdrop";
+import { openModalPanel, type ModalPanel } from "../input/modalBackdrop";
 import { uiTextStyle } from "./uiTextStyle";
 
 const BOOT_BG = 0x0f1014;
@@ -16,26 +12,18 @@ const BOOT_BG = 0x0f1014;
  */
 export class TownDefenseLoadingOverlay {
   private readonly root: Phaser.GameObjects.Container;
-  private readonly modalLease: ModalInputLease;
+  private readonly modal: ModalPanel;
   private readonly statusText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
-    this.modalLease = acquireModalInput(
-      scene,
-      INPUT_MODALITY.townDefenseLoading,
-    );
-    this.root = scene.add.container(0, 0).setDepth(900).setScrollFactor(0);
-
-    const bg = scene.add.rectangle(
-      GAME.width / 2,
-      GAME.height / 2,
-      GAME.width,
-      GAME.height,
-      BOOT_BG,
-      1,
-    );
-    bindModalDimBackdrop(bg);
-    this.root.add(bg);
+    const modal = openModalPanel(scene, {
+      token: INPUT_MODALITY.townDefenseLoading,
+      depth: 900,
+      dimColor: BOOT_BG,
+      dimAlpha: 1,
+    });
+    this.root = modal.root;
+    this.modal = modal;
 
     const title = scene.add
       .text(
@@ -70,7 +58,6 @@ export class TownDefenseLoadingOverlay {
   }
 
   destroy(): void {
-    this.modalLease.release();
-    this.root.destroy();
+    this.modal.close();
   }
 }

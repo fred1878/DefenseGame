@@ -2,11 +2,7 @@ import type Phaser from "phaser";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { INPUT_MODALITY } from "../input/inputModality";
-import {
-  acquireModalInput,
-  bindModalDimBackdrop,
-  type ModalInputLease,
-} from "../input/modalBackdrop";
+import { openModalPanel, type ModalPanel } from "../input/modalBackdrop";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { uiTextStyle } from "./uiTextStyle";
 
@@ -18,26 +14,16 @@ export const ENDLESS_PANEL_LOADING_SKELETON_ROWS = 5;
  */
 export class EndlessModePanelLoadingSkeleton {
   private readonly root: Phaser.GameObjects.Container;
-  private readonly modalLease: ModalInputLease;
+  private readonly modal: ModalPanel;
   private readonly statusText: Phaser.GameObjects.Text;
   private readonly closeBtn: ReturnType<typeof createTouchButton>;
   private readonly onDismiss: (() => void) | undefined;
 
   constructor(scene: Phaser.Scene, onDismiss?: () => void) {
     this.onDismiss = onDismiss;
-    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townEndless);
-    this.root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
-
-    const dim = scene.add.rectangle(
-      GAME.width / 2,
-      GAME.height / 2,
-      GAME.width,
-      GAME.height,
-      0x000000,
-      0.72,
-    );
-    bindModalDimBackdrop(dim);
-    this.root.add(dim);
+    const modal = openModalPanel(scene, { token: INPUT_MODALITY.townEndless });
+    this.root = modal.root;
+    this.modal = modal;
 
     const title = scene.add
       .text(
@@ -174,7 +160,6 @@ export class EndlessModePanelLoadingSkeleton {
   }
 
   destroy(): void {
-    this.modalLease.release();
-    this.root.destroy();
+    this.modal.close();
   }
 }

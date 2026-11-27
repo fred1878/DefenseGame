@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME, SPELL_BAR, townSpellBarIconDisplayPx } from "../config";
+import { SPELL_BAR, townSpellBarIconDisplayPx } from "../config";
 import {
   autoCastFlagsForSlots,
   pruneAutoCastSpellIdsForSlots,
@@ -16,11 +16,7 @@ import {
 import { spellById, type SpellId } from "../content/spells";
 import { spellIconTextureKey } from "../content/assets";
 import { INPUT_MODALITY } from "../input/inputModality";
-import {
-  acquireModalInput,
-  bindModalDimBackdrop,
-  type ModalInputLease,
-} from "../input/modalBackdrop";
+import { openModalPanel, type ModalPanel } from "../input/modalBackdrop";
 import type { createTouchButton } from "./touchButton";
 import {
   buildSpellBarSortPanelUi,
@@ -53,7 +49,7 @@ export class SpellBarSortPanel {
   private readonly poolChips: PoolChip[];
   private readonly dragCtl: SpellBarSortDrag;
   private clearAllBtn: ReturnType<typeof createTouchButton> | null = null;
-  private readonly modalLease: ModalInputLease;
+  private readonly modal: ModalPanel;
 
   constructor(
     scene: Phaser.Scene,
@@ -67,19 +63,11 @@ export class SpellBarSortPanel {
     while (this.slots.length < SPELL_BAR.slotCount) this.slots.push("");
     this.autoCastSpellIds = [...autoCastSpellIds];
 
-    this.root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
-
-    const dim = scene.add.rectangle(
-      GAME.width / 2,
-      GAME.height / 2,
-      GAME.width,
-      GAME.height,
-      0x000000,
-      0.72,
-    );
-    bindModalDimBackdrop(dim);
-    this.root.add(dim);
-    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townSpellSort);
+    const modal = openModalPanel(scene, {
+      token: INPUT_MODALITY.townSpellSort,
+    });
+    this.root = modal.root;
+    this.modal = modal;
 
     const ui = buildSpellBarSortPanelUi(
       scene,
@@ -236,8 +224,7 @@ export class SpellBarSortPanel {
   destroy(): void {
     this.dragCtl.reset();
     this.finishCleanup();
-    this.modalLease.release();
-    this.root.destroy();
+    this.modal.close();
   }
 
   /** E2E: slot centers in game coords (540×1200). */

@@ -10,11 +10,7 @@ import {
   deleteSaveSlot,
 } from "../core/saveSlots";
 import { INPUT_MODALITY } from "../input/inputModality";
-import {
-  acquireModalInput,
-  bindModalDimBackdrop,
-  type ModalInputLease,
-} from "../input/modalBackdrop";
+import { openModalPanel, type ModalPanel } from "../input/modalBackdrop";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
 import { uiTextStyle } from "./uiTextStyle";
 import {
@@ -41,8 +37,7 @@ type SlotRow = {
  * Incompatible slot versions are purged when the list is read.
  */
 export class SaveMenuPanel {
-  private readonly root: Phaser.GameObjects.Container;
-  private readonly modalLease: ModalInputLease;
+  private readonly modal: ModalPanel;
   private readonly rows: SlotRow[] = [];
   private readonly promptText: Phaser.GameObjects.Text;
   private readonly saveBtn: ReturnType<typeof createTouchButton>;
@@ -68,20 +63,9 @@ export class SaveMenuPanel {
     this.onDismiss = onDismiss;
     this.state = createSaveMenuState(listSaveSlots());
 
-    const root = scene.add.container(0, 0).setDepth(500).setScrollFactor(0);
-    this.root = root;
-
-    const dim = scene.add.rectangle(
-      GAME.width / 2,
-      GAME.height / 2,
-      GAME.width,
-      GAME.height,
-      0x000000,
-      0.72,
-    );
-    bindModalDimBackdrop(dim);
-    root.add(dim);
-    this.modalLease = acquireModalInput(scene, INPUT_MODALITY.townSaves);
+    const modal = openModalPanel(scene, { token: INPUT_MODALITY.townSaves });
+    const root = modal.root;
+    this.modal = modal;
 
     root.add(
       scene.add
@@ -345,8 +329,7 @@ export class SaveMenuPanel {
   destroy(): void {
     if (this.tornDown) return;
     this.tornDown = true;
-    this.modalLease.release();
-    if (this.root.active) this.root.destroy();
+    this.modal.close();
     this.onDismiss?.();
   }
 
