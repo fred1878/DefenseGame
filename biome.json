@@ -56,12 +56,10 @@
         "src/scenes/defense/DefenseDebugDraw.ts",
         "src/scenes/defense/DefenseProjectileTick.ts",
         "src/scenes/defense/DefenseSpellChannel.ts",
-        "src/scenes/defense/DefenseSpellResolve.ts",
         "src/sim/economy/aggregate.ts",
         "src/ui/TalentPanel.ts",
         "src/ui/gearPanel/dgPanelKit.ts",
-        "src/ui/gearPanel/gearPanelChrome.ts",
-        "src/ui/gearPanel/gearPanelLogic.ts"
+        "src/ui/gearPanel/gearPanelChrome.ts"
       ],
       "linter": {
         "rules": {
