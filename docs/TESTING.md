@@ -121,18 +121,39 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
 | `obstacle-bump-capture.spec.ts` | Player–obstacle separation (stick push cardinals) |
 
-**Workers:** `playwright.config.ts` uses `E2E_WORKERS` when set; otherwise **6** in CI (`CI` set) and **1** locally. GitHub Actions sets `E2E_WORKERS=8` on the Playwright step.
+**Parallel by default:** `fullyParallel: true` everywhere (specs that share one booted page use `test.describe.configure({ mode: "serial" })`). Workers: `E2E_WORKERS` when set; otherwise **3** in CI (`CI` set) and **one per core** locally (`os.availableParallelism()`). CI splits the suite into **3 shards** (`e2e (shard n/3)` jobs, 3 workers each); the `e2e` job is the single pass/fail status. For timing-sensitive `@manual` probes such as `fps.spec.ts`, run with `E2E_WORKERS=1`.
 
-**Expected CI e2e wall-clock (Chromium, 8 workers, `timeScale` 2):** about **3–6 minutes** on `ubuntu-24.04` after the `@manual` trim (~47 gate tests). Full local suite (~60 tests) is typically **8–12 minutes** (still 1 worker unless you set `E2E_WORKERS`). Verify job still downloads `dist-e2e` from `verify` (no duplicate E2E build in the e2e job).
+**Benchmark (Nov 2026, Chromium, 66 gated tests, `CI=1`, fresh `build:e2e`).** Times are the Playwright step only; each CI job also spends about 1 min on checkout, `npm ci` and browser install.
 
-**VM benchmark (gated Chromium, same `ubuntu-24.04` class runner, post-`npm run build:e2e`):** Nov 2026 cloud-agent VM, **47** gated tests (`grepInvert @manual`):
+Local box (8 cores, shared with other agents, so expect some noise):
 
-| Workers | Wall-clock (s) | Playwright reported | Flakes/retries |
-|--------:|---------------:|---------------------|----------------|
-| 6 | 67 | 1.1m | none (47/47) |
-| **8** (CI default) | **62** | 1.0m | none (47/47) |
+| Workers | Wall-clock | Flakes / timeouts |
+|--------:|-----------:|-------------------|
+| 1 | 654 s (10.9 min) | none |
+| 2 | 389 s (6.4 min) | none |
+| 3 | 296 s (4.9 min) | none |
+| 4 | 246 s (4.1 min) | none |
+| 6 | 180 s (3.0 min) | none |
+| **8** (local default) | **160 s (2.6 min)** | none |
 
-GitHub `ubuntu-24.04` free runners are typically slower — use the **ratio** (~8% faster at 8 vs 6 workers here), not these absolute seconds, for CI planning.
+GitHub `ubuntu-24.04` (4 vCPU), single job vs shards (slowest shard shown; run 1 had 19 jobs at once, run 2 had 14):
+
+| Layout | Run 1 (s) | Run 2 (s) | Flakes / timeouts |
+|--------|----------:|----------:|-------------------|
+| 1 job × 1 worker | 387 | | 1 flaky (ranged projectile, since fixed) |
+| 1 job × 2 workers | 272 | | none |
+| 1 job × 3 workers | 202 | | ranged projectile failed twice (since fixed) |
+| 1 job × 4 workers | 285 | 176 | none |
+| 1 job × 6 workers | 177 | | none |
+| 1 job × 8 workers (old CI) | 185 | 181 | none |
+| 2 shards × 2 workers | 124 | | none |
+| 2 shards × 3 workers | 178 | | none |
+| 2 shards × 4 workers | 116 | 128 | none |
+| 3 shards × 2 workers | | 80 | none |
+| **3 shards × 3 workers** (CI default) | **98** | **75** | none |
+| 4 shards × 2 workers | 89 | 75 | none |
+
+More than 4 workers on a 4-vCPU runner gives nothing; sharding is what helps. 3 × 3 matched 4 × 2 with one fewer job of setup overhead.
 
 Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file parallelism inside a job increases with worker count.
 
@@ -148,7 +169,7 @@ Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file para
 | `town-spell-panel-layout.spec.ts`, `town-spell-panel-drag.spec.ts` | Redundant with tap-toggle behavior |
 | `fps.spec.ts` | Weak threshold (`> 5` fps); hook smoke only |
 
-CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=true` and `E2E_WORKERS=8` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
+CI runs **Chromium only** (`npm run test:e2e -- --project=chromium --shard=n/3` with `CI=true` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
 
 ## Manual review captures vs e2e
 
