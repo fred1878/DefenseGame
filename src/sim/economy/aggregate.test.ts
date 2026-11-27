@@ -38,7 +38,8 @@ describe("aggregate", () => {
     expect(hard.nights.every((n) => n.flag === "too hard")).toBe(true);
     const none = aggregateRuns("balanced", runs, data, { easy: 99, hard: 0 });
     expect(none.nights.every((n) => n.flag === "")).toBe(true);
-  });
+    // 20 simulated runs take ~5s on CI under coverage instrumentation.
+  }, 20_000);
 
   it("handles an empty run list and unreached nights", () => {
     const s = aggregateRuns("no-spend", [], data);
