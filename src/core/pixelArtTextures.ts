@@ -22,12 +22,6 @@ export type WorldTextureFilterMode = "nearest" | "linear" | "hybrid";
 
 export const DEBUG_WORLD_TEXTURE_FILTER_KEY = "debugWorldTextureFilter";
 
-const TEXTURE_FILTER_CYCLE: WorldTextureFilterMode[] = [
-  "nearest",
-  "linear",
-  "hybrid",
-];
-
 export function getDebugWorldTextureFilter(
   registry: Phaser.Data.DataManager,
 ): WorldTextureFilterMode {
@@ -36,16 +30,6 @@ export function getDebugWorldTextureFilter(
     | undefined;
   if (v === "linear" || v === "hybrid") return v;
   return "nearest";
-}
-
-export function cycleDebugWorldTextureFilter(
-  registry: Phaser.Data.DataManager,
-): WorldTextureFilterMode {
-  const cur = getDebugWorldTextureFilter(registry);
-  const i = TEXTURE_FILTER_CYCLE.indexOf(cur);
-  const next = TEXTURE_FILTER_CYCLE[(i + 1) % TEXTURE_FILTER_CYCLE.length]!;
-  registry.set(DEBUG_WORLD_TEXTURE_FILTER_KEY, next);
-  return next;
 }
 
 const GAME_SPRITE_KEYS = [

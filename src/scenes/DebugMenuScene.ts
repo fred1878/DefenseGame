@@ -233,12 +233,12 @@ export class DebugMenuScene extends Phaser.Scene {
         });
       };
       paint();
-      options.forEach((o, i) =>
+      options.forEach((o, i) => {
         this.zone(x0 + 6 + segW * i, y - L.rowH / 2, segW, L.rowH, () => {
           set(o.value);
           paint();
-        }),
-      );
+        });
+      });
       this.infoButton(id, right - INFO_R, y, L.rowH);
     };
 
