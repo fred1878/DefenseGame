@@ -48,7 +48,7 @@ import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 import {
   spawnTownBuildingControls,
   type TownBuildingControl,
-} from "../systems/TownBuildings";
+} from "./town/TownBuildings";
 import {
   formatTownBuildingButtonLabel,
   handleTownBuildingTap,

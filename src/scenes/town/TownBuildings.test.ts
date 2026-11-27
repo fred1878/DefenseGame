@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { scaleUiX } from "../core/displayScale";
-import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
-import { asScene, fakeScene } from "../test/fakeScene";
+import { scaleUiX } from "../../core/displayScale";
+import type {
+  TownBuildingDef,
+  TownLayoutDef,
+} from "../../core/townBuildingTypes";
+import { asScene, fakeScene } from "../../test/fakeScene";
 import {
   spawnTownBuildingControls,
   townBuildingFootprintHitArea,

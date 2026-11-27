@@ -1,9 +1,12 @@
 import Phaser from "phaser";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
-import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
-import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
-import { bindContainerPress } from "../ui/touchButton";
-import { uiSmallLabelShadow, uiTextStyle } from "../ui/uiTextStyle";
+import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import type {
+  TownBuildingDef,
+  TownLayoutDef,
+} from "../../core/townBuildingTypes";
+import { setContainerInputEnabled } from "../../input/setContainerInputEnabled";
+import { bindContainerPress } from "../../ui/touchButton";
+import { uiSmallLabelShadow, uiTextStyle } from "../../ui/uiTextStyle";
 
 function townBuildingDisplayWidth(
   def: TownBuildingDef,

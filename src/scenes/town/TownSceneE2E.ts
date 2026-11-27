@@ -1,5 +1,5 @@
 import type { DataStore } from "../../core/DataStore";
-import type { TownBuildingControl } from "../../systems/TownBuildings";
+import type { TownBuildingControl } from "./TownBuildings";
 import { isTouchButtonVisuallyPressed } from "../../ui/touchButton";
 import type { TownOverlays } from "./TownOverlays";
 
