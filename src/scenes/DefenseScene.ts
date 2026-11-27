@@ -69,7 +69,7 @@ import {
   spawnDefenseEnemyAt,
   type DefenseEnemySpawnerHost,
 } from "./defense/DefenseEnemySpawner";
-import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
+import { scheduleWave } from "../systems/WaveSpawner";
 import {
   checkDefenseRunEnd,
   runDefenseEndlessNightEnd,
@@ -448,7 +448,7 @@ export class DefenseScene extends Phaser.Scene {
       // E2E skips campaign waves (tests spawn their own enemies), but a wave
       // planner run is an explicit player-built plan, so it always runs, and
       // `campaignWaves=1` opts a validation run into the real night.
-      scheduleDefenseWave(
+      scheduleWave(
         this,
         store,
         wave,
