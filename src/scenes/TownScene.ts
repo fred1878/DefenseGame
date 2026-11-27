@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { createDefaultAutoCastSpellIds } from "../content/spellBarAutoCast";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore } from "../core/DataStore";
 import {
@@ -42,7 +43,6 @@ import {
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
 import type { WaveGroup } from "../core/DataStore";
-import { createDefaultSpellBarAutoCast } from "../content/spells";
 import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
 import {
   spawnTownBuildingControls,
@@ -123,7 +123,7 @@ export class TownScene extends Phaser.Scene {
     applyPixelRenderDebugSettings(this.game);
     this.save = getSave(this.registry);
     if (!this.save.spellBar.autoCastSpellIds) {
-      this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
+      this.save.spellBar.autoCastSpellIds = createDefaultAutoCastSpellIds();
     }
     const store = getDataStore(this.registry);
     applySaveLoadout(this.save);

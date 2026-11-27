@@ -24,11 +24,11 @@ import {
   bottomHudStripLayout,
   combatChromeLayout,
   combatDebugButtonPosition,
-  hudTextPosition,
   nightReturnButtonPosition,
   readSafeInsets,
   type SafeInsets,
 } from "../../ui/screenLayout";
+import { hudTextPosition } from "../../ui/defenseHudLayout";
 import {
   createTouchButton,
   createTouchCircleButton,

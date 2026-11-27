@@ -7,13 +7,13 @@ import {
 } from "./uiTextStyle";
 import {
   type BgVisual,
-  STROKE_PX,
   MEDIEVAL_LABEL,
   bindPress,
   darkenColor,
   darkenTint,
   isImageBg,
 } from "./touchButtonPress";
+import { STROKE_PX } from "./uiRoundedRect";
 import {
   createUiRoundedRect,
   isUiRoundedRect,

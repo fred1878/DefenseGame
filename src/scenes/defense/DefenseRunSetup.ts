@@ -1,8 +1,6 @@
 import type Phaser from "phaser";
-import {
-  createDefaultSpellBarAutoCast,
-  createDefaultSpellBarSlots,
-} from "../../content/spells";
+import { createDefaultAutoCastSpellIds } from "../../content/spellBarAutoCast";
+import { createDefaultSpellBarSlots } from "../../content/spells";
 import type { DataStore, WaveDef } from "../../core/DataStore";
 import type { SaveGame } from "../../core/saveTypes";
 import {
@@ -65,10 +63,10 @@ export function ensureDefenseSaveSpellBar(save: SaveGame): void {
   if (!save.spellBar?.slots?.length) {
     save.spellBar = {
       slots: createDefaultSpellBarSlots(),
-      autoCastSpellIds: createDefaultSpellBarAutoCast(),
+      autoCastSpellIds: createDefaultAutoCastSpellIds(),
     };
   }
   if (!save.spellBar.autoCastSpellIds) {
-    save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
+    save.spellBar.autoCastSpellIds = createDefaultAutoCastSpellIds();
   }
 }

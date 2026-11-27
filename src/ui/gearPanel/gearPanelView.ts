@@ -6,11 +6,8 @@
  */
 import { basePlayerTuning } from "../../config/player";
 import type { SaveGame } from "../../core/saveTypes";
-import {
-  consumableCount,
-  consumableEffectLine,
-  type ConsumableDef,
-} from "../../gear/consumables";
+import { consumableCount, consumableEffectLine } from "../../gear/consumables";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import { compareGear, type CompareRow } from "../../gear/gearCompare";
 import { itemTypeLabel, modifierLabel, procLabel } from "../../gear/gearText";
 import {

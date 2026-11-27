@@ -20,10 +20,8 @@ import { normalizeSpellCatalog } from "../../core/normalizeSpells";
 import { normalizeTalents } from "../../core/normalizeTalents";
 import { setTalentCatalog } from "../../talents/talentCatalog";
 import type { TalentCatalog } from "../../talents/talentTypes";
-import {
-  setConsumablesConfig,
-  type ConsumablesConfig,
-} from "../../gear/consumables";
+import { setConsumablesConfig } from "../../gear/consumables";
+import type { ConsumablesConfig } from "../../gear/consumableTypes";
 import { setGearCatalog } from "../../gear/gearCatalog";
 import type { GearCatalog } from "../../gear/gearTypes";
 import { setLootConfig, type LootConfig } from "../../gear/loot";

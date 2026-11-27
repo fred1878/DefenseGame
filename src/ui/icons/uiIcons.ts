@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { ConsumableDef } from "../../gear/consumables";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import type { EquipSlot, ItemType } from "../../gear/gearTypes";
 
 /**

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { scaleUiX } from "../core/displayScale";
-import { STROKE_PX } from "./touchButtonPress";
+
+export const STROKE_PX = Math.max(2, scaleUiX(2));
 
 /** Uniform corner radius for vector HUD / panel touch controls (screen px). */
 export const UI_TOUCH_CORNER_RADIUS_PX = scaleUiX(6);

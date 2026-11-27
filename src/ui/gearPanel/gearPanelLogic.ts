@@ -1,8 +1,5 @@
-import {
-  consumableCount,
-  getConsumablesConfig,
-  type ConsumableDef,
-} from "../../gear/consumables";
+import { consumableCount, getConsumablesConfig } from "../../gear/consumables";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import {
   bagItems,
   equipItem,

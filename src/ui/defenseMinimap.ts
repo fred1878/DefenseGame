@@ -7,7 +7,7 @@ import {
 import { scaleUiX, scaleUiY } from "../core/displayScale";
 import type { EnemyInstance } from "../entities/Enemy";
 import type { SafeInsets, ScreenRect } from "./screenLayout";
-import { hudTextPosition } from "./screenLayout";
+import { hudTextPosition } from "./defenseHudLayout";
 
 const BORDER_COLOR = 0xffffff;
 const PLAYER_DOT = 0xffffff;

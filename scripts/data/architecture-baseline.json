@@ -1,10 +1,5 @@
 {
-  "cycles": [
-    "content/spellBarAutoCast.ts <-> content/spells.ts",
-    "core/normalizeConsumables.ts <-> gear/consumables.ts",
-    "ui/defenseMinimap.ts <-> ui/fpsHudLayout.ts <-> ui/screenLayout.ts",
-    "ui/touchButtonPress.ts <-> ui/uiRoundedRect.ts"
-  ],
+  "cycles": [],
   "layerViolations": [
     "config-is-constants-only: config/defenseMaps.ts -> core/normalizeDefenseMaps.ts",
     "config-is-constants-only: config/shadowformRuntime.ts -> gear/gearRuntime.ts",

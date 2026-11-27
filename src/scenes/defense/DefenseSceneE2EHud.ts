@@ -3,8 +3,8 @@ import type { defenseMinimapLayout } from "../../ui/defenseMinimap";
 import {
   combatChromeLayout,
   defensePlayAreaLayout,
-  hudTextPosition,
 } from "../../ui/screenLayout";
+import { hudTextPosition } from "../../ui/defenseHudLayout";
 import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 
 /** E2E hooks: HUD layout probe and HUD band pixel sampling. */

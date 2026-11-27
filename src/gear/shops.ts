@@ -2,11 +2,8 @@ import { hasEnoughGold } from "../debug/debugEconomy";
 import bundledShops from "../../public/data/shops.json";
 import { normalizeShops } from "../core/normalizeShops";
 import type { SaveGame } from "../core/saveTypes";
-import {
-  addConsumable,
-  getConsumablesConfig,
-  type ConsumablesConfig,
-} from "./consumables";
+import { addConsumable, getConsumablesConfig } from "./consumables";
+import type { ConsumablesConfig } from "./consumableTypes";
 import {
   fillBuyRequest,
   normalizeSaveRequests,

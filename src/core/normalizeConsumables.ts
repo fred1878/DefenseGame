@@ -5,7 +5,7 @@ import {
   type BombDef,
   type ConsumableDef,
   type ConsumablesConfig,
-} from "../gear/consumables";
+} from "../gear/consumableTypes";
 import {
   ConfigLoadError,
   optionalFiniteNumber,

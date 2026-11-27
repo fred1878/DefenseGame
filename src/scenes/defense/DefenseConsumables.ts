@@ -12,8 +12,8 @@ import {
   bombBlastSpellDef,
   quickConsumable,
   spendConsumable,
-  type ConsumableKind,
 } from "../../gear/consumables";
+import type { ConsumableKind } from "../../gear/consumableTypes";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 
 type EnemyTarget = Parameters<typeof applySpellBlastAt>[4][number];

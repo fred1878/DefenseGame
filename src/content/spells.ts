@@ -109,8 +109,6 @@ export function createDefaultSpellBarSlots(): SpellId[] {
   return slots;
 }
 
-export { createDefaultAutoCastSpellIds as createDefaultSpellBarAutoCast } from "./spellBarAutoCast";
-
 export function spellById(id: SpellId): SpellDefinition | undefined {
   if (!id) return undefined;
   return getSpellCatalog().find((s) => s.id === id);

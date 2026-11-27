@@ -8,7 +8,6 @@ import {
   DEFENSE_TOP_CHROME_TRIM_PX,
   bindViewportToScale,
   hudBandHeight,
-  hudTextPosition,
   nightReturnButtonPosition,
   spellBarCenterY,
   spellBarSlotOrigin,
@@ -24,6 +23,7 @@ import {
   townStatusTextTopY,
   townTitleY,
 } from "./screenLayout";
+import { hudTextPosition } from "./defenseHudLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
 import { defenseMinimapLayout } from "./defenseMinimap";
 import { scaleUiX, scaleUiY } from "../core/displayScale";

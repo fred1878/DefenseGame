@@ -39,7 +39,6 @@ export type PressVisual = {
   textured?: boolean;
 };
 
-export const STROKE_PX = Math.max(2, scaleUiX(2));
 export const MEDIEVAL_LABEL = {
   color: "#e8dcc8",
   stroke: "#1a1612",
