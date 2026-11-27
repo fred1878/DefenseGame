@@ -4,6 +4,7 @@ import { markBoot, measureBoot } from "./core/bootPerf";
 import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
 import { publishE2E } from "./e2e/e2eGlobal";
+import { setE2EStorageIsolation } from "./core/storageKeys";
 import { clampRenderResolution } from "./core/displayScale";
 import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
 import {
@@ -17,6 +18,7 @@ import { TownScene } from "./scenes/TownScene";
 const parent = "game";
 const e2eBuild = import.meta.env.VITE_E2E === "true";
 
+setE2EStorageIsolation(isE2EEnabled);
 seedE2EWindowStub();
 
 function hideLoadingSplash(): void {

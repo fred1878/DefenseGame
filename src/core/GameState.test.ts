@@ -6,7 +6,7 @@ import {
   type DefenseSpellDirectorHost,
 } from "../scenes/defense/DefenseSpellDirector";
 import { SAVE_VERSION, type SaveGame } from "./saveTypes";
-import { saveStorageKey } from "../e2e/e2eMode";
+import { saveStorageKey } from "./storageKeys";
 import {
   applyEndlessRunExit,
   applyNightResult,

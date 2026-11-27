@@ -17,7 +17,7 @@ import {
   type SaveGame,
   type SaveSpellBar,
 } from "./saveTypes";
-import { saveStorageKey } from "../e2e/e2eMode";
+import { saveStorageKey } from "./storageKeys";
 import { getTalentCatalog } from "../talents/talentCatalog";
 import {
   awardNightTalentPoints,

@@ -1,10 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  E2E_SAVE_STORAGE_KEY,
   e2eCampaignWavesFromQuery,
   e2eManualReturnFromQuery,
   isE2EEnabled,
-  saveStorageKey,
 } from "./e2eMode";
 
 describe("e2eMode", () => {
@@ -16,14 +14,12 @@ describe("e2eMode", () => {
   it("is enabled when VITE_E2E is true", () => {
     vi.stubEnv("VITE_E2E", "true");
     expect(isE2EEnabled()).toBe(true);
-    expect(saveStorageKey()).toBe(E2E_SAVE_STORAGE_KEY);
   });
 
   it("is disabled without window when the env flag is off", () => {
     vi.stubEnv("VITE_E2E", "false");
     vi.stubGlobal("window", undefined);
     expect(isE2EEnabled()).toBe(false);
-    expect(saveStorageKey()).toBe("defensegame_save_v1");
     expect(e2eManualReturnFromQuery()).toBe(false);
     expect(e2eCampaignWavesFromQuery()).toBe(false);
   });

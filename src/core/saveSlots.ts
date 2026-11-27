@@ -1,5 +1,5 @@
 import { SAVE_VERSION, type SaveGame } from "./saveTypes";
-import { saveSlotStorageKey } from "../e2e/e2eMode";
+import { saveSlotStorageKey } from "./storageKeys";
 import { normalizeSave } from "./GameState";
 
 export const SAVE_SLOT_COUNT = 5;

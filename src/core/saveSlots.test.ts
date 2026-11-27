@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createNewSave, normalizeSave } from "./GameState";
 import { SAVE_VERSION } from "./saveTypes";
-import { saveSlotStorageKey } from "../e2e/e2eMode";
+import { saveSlotStorageKey } from "./storageKeys";
 import {
   SAVE_SLOT_COUNT,
   deleteSaveSlot,
