@@ -4,7 +4,7 @@ import type { DefenseObstacleRect } from "../config/defense";
 import { SHADOWFORM_MECHANICS } from "../config/shadowformMechanics";
 import { resetShadowformRuntimeMults } from "../config/shadowformRuntime";
 import type { SaveGame } from "../core/saveTypes";
-import type { DataStore, EnemyDef } from "../core/DataStore";
+import type { EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
@@ -140,6 +140,7 @@ import {
   syncDefenseBaseInput,
   syncShadowformRuntime,
 } from "./defense/DefenseSceneLifecycle";
+import { getDataStore, getSave } from "../core/registryKeys";
 
 export class DefenseScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -354,13 +355,13 @@ export class DefenseScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     applyPixelRenderDebugSettings(this.game);
-    this.save = { ...(this.registry.get("save") as SaveGame) };
+    this.save = { ...getSave(this.registry) };
     ensureDefenseSaveSpellBar(this.save);
     applySaveLoadout(this.save);
     this.resetDefenseRunState();
     this.wallHp = Math.max(0, this.save.townWallHp);
     this.wallHpStart = this.wallHp;
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const setup = resolveDefenseRunSetup(this.registry, store, this.save.night);
     const { endless, wavePlanner, wave } = setup;
     this.endlessSelections = setup.endlessSelections;
@@ -695,7 +696,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private refreshHudText(living: number): void {
-    const dataStore = this.registry.get("dataStore") as DataStore;
+    const dataStore = getDataStore(this.registry);
     const focusId = this.targeting.focusEnemyId;
     this.hudText.setText(
       formatDefenseHudText({
@@ -1054,7 +1055,7 @@ export class DefenseScene extends Phaser.Scene {
     ensureEndlessSpawnCap({
       selections: this.endlessSelections,
       nightEnded: this.nightEnded,
-      store: this.registry.get("dataStore") as DataStore,
+      store: getDataStore(this.registry),
       enemies: this.enemies,
       e2e: isE2EEnabled(),
       registry: this.registry,
@@ -1068,7 +1069,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private enemySpawnerHost(): DefenseEnemySpawnerHost {
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     return {
       scene: this,
       dataStore: store,

@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import type { DataStore, WaveGroup } from "../../core/DataStore";
+import type { WaveGroup } from "../../core/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
 import type { SaveGame } from "../../core/saveTypes";
 import {
@@ -30,6 +30,7 @@ import {
   openEndlessModeSetupScene,
   openWavePlannerSetupScene,
 } from "./townSetupSceneLifecycle";
+import { getDataStore } from "../../core/registryKeys";
 
 /** Scene callbacks the Town overlays need (save access + run launch). */
 export type TownOverlaysHost = {
@@ -62,7 +63,7 @@ export class TownOverlays {
 
   openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
-    const store = this.scene.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.scene.registry);
     if (isTownReachableReady(this.scene.game, store)) {
       this.createSpellSortPanel();
       return;
@@ -118,7 +119,7 @@ export class TownOverlays {
       registry: this.scene.registry,
     };
     if (shop) {
-      const store = this.scene.registry.get("dataStore") as DataStore;
+      const store = getDataStore(this.scene.registry);
       const rng = createRng(randomSeed());
       ctx.shop = {
         id: shop,
@@ -164,7 +165,7 @@ export class TownOverlays {
   }
 
   launchDebugMenu(): void {
-    const store = this.scene.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.scene.registry);
     const launch = () => launchDebugMenuFromHost(this.scene);
     if (isTownReachableReady(this.scene.game, store)) {
       launch();
@@ -188,7 +189,7 @@ export class TownOverlays {
 
   /** Run `run` once night assets are ready, showing a loading overlay meanwhile. */
   transitionToDefense(run: () => void): void {
-    const store = this.scene.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.scene.registry);
     if (isTownReachableReady(this.scene.game, store)) {
       run();
       return;

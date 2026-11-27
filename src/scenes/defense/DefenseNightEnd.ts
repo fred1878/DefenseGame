@@ -24,6 +24,7 @@ import {
   trainingEndHeadline,
   trainingEndHudLines,
 } from "./nightEndMessaging";
+import { setSave } from "../../core/registryKeys";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -82,7 +83,7 @@ function persistRunExit(ctx: DefenseNightEndShared): SaveGame {
   const next = applyEndlessRunExit(ctx.save, finalWallHp, survivedHp);
   ctx.save.player.hp = next.player.hp;
   persistSave(next);
-  ctx.registry.set("save", next);
+  setSave(ctx.registry, next);
   clearDefenseRunMode(ctx.registry);
   return next;
 }
@@ -207,7 +208,7 @@ export function runDefenseCampaignNightEnd(
   ctx.save.player.hp = survivedHp;
   next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
   persistSave(next);
-  ctx.registry.set("save", next);
+  setSave(ctx.registry, next);
 
   if (e2eAutoReturnToTown(ctx)) return;
 

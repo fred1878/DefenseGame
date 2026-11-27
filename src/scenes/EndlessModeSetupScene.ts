@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import type { DataStore } from "../core/DataStore";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
@@ -19,6 +18,7 @@ import {
   type EndlessModeSetupLaunchData,
   TOWN_ENDLESS_SETUP_SCENE_KEY,
 } from "./town/townSetupSceneLifecycle";
+import { getDataStore } from "../core/registryKeys";
 
 export class EndlessModeSetupScene extends Phaser.Scene {
   private panel: EndlessModePanel | null = null;
@@ -42,7 +42,7 @@ export class EndlessModeSetupScene extends Phaser.Scene {
     this.touchDebug = new TouchInputDebugDraw(this);
     this.fpsOverlay = new FpsDebugOverlay(this);
 
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const openPanel = (): void => {
       this.loading?.destroy();
       this.loading = null;

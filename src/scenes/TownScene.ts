@@ -73,6 +73,7 @@ import {
   collectTownTouchDebugUiRects,
   isPointerOverInteractive,
 } from "./town/TownTouchDebug";
+import { getDataStore, getSave, setSave } from "../core/registryKeys";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -93,7 +94,7 @@ export class TownScene extends Phaser.Scene {
     onSpellBarSorted: (result) => {
       this.save.spellBar = result;
       persistSave(this.save);
-      this.registry.set("save", this.save);
+      setSave(this.registry, this.save);
     },
     onStartEndless: (selections, infiniteHp) =>
       this.overlays.transitionToDefense(() =>
@@ -120,11 +121,11 @@ export class TownScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     applyPixelRenderDebugSettings(this.game);
-    this.save = this.registry.get("save") as SaveGame;
+    this.save = getSave(this.registry);
     if (!this.save.spellBar.autoCastSpellIds) {
       this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
     }
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     applySaveLoadout(this.save);
 
     this.statusText = createTownHeader(this);
@@ -152,11 +153,11 @@ export class TownScene extends Phaser.Scene {
       onDebug: () => this.overlays.launchDebugMenu(),
       onGear: () => {
         // e2e `setSave` writes the registry only; reopen on the latest save.
-        this.save = this.registry.get("save") as SaveGame;
+        this.save = getSave(this.registry);
         this.overlays.openGearPanel();
       },
       onTalents: () => {
-        this.save = this.registry.get("save") as SaveGame;
+        this.save = getSave(this.registry);
         this.overlays.openTalentPanel();
       },
       onReset: () => this.onResetTap(),
@@ -219,7 +220,7 @@ export class TownScene extends Phaser.Scene {
     if (host instanceof WavePlannerSetupScene) {
       return host.e2eGetUiTapTargets();
     }
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const out = collectTownUiTapTargets(
       store,
       this.buildingControls,
@@ -269,7 +270,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eOpenSpellSortPanel(): void {
-    this.save = this.registry.get("save") as SaveGame;
+    this.save = getSave(this.registry);
     this.overlays.openSpellSortPanel();
   }
 
@@ -299,7 +300,7 @@ export class TownScene extends Phaser.Scene {
       host.e2eStartEndless(enemyId, infiniteHp);
       return;
     }
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const cap = clampEndlessConcurrent(
       store.player.endlessPanelDefaultConcurrent,
     );
@@ -407,16 +408,16 @@ export class TownScene extends Phaser.Scene {
   private applyGearChange(save: SaveGame): void {
     this.save = syncPlayerHpMax(save);
     persistSave(this.save);
-    this.registry.set("save", this.save);
+    setSave(this.registry, this.save);
     applySaveLoadout(this.save);
-    this.refreshStatus(this.registry.get("dataStore") as DataStore);
+    this.refreshStatus(getDataStore(this.registry));
   }
 
   /** Write the slot into the live autosave and restart Town on that state. */
   private applyLoadedSave(save: SaveGame): void {
     const next = normalizeSave(save);
     persistSave(next);
-    this.registry.set("save", next);
+    setSave(this.registry, next);
     this.time.delayedCall(0, () => this.scene.restart());
   }
 
@@ -442,7 +443,7 @@ export class TownScene extends Phaser.Scene {
     dismissTownSetupScenes(this.game);
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
-    this.registry.set("save", this.save);
+    setSave(this.registry, this.save);
     setRunMode();
     this.scene.start("Defense");
   }
@@ -510,7 +511,7 @@ export class TownScene extends Phaser.Scene {
       return;
     }
     if (result.kind === "openShop") {
-      this.save = this.registry.get("save") as SaveGame;
+      this.save = getSave(this.registry);
       this.overlays.openGearPanel(result.shop);
       return;
     }
@@ -518,7 +519,7 @@ export class TownScene extends Phaser.Scene {
       this.save = save;
       playCoinDeltaSfx(this, goldBefore, save.gold);
       persistSave(this.save);
-      this.registry.set("save", this.save);
+      setSave(this.registry, this.save);
       this.refreshBuildingOverlays(store);
       this.refreshStatus(store);
     }

@@ -12,6 +12,7 @@ import { loadSave, persistSave } from "../core/GameState";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
+import { setDataStore, setSave } from "../core/registryKeys";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -62,8 +63,8 @@ export class BootScene extends Phaser.Scene {
     const save = loadSave();
     persistSave(save);
     applySaveLoadout(save);
-    this.registry.set("dataStore", store);
-    this.registry.set("save", save);
+    setDataStore(this.registry, store);
+    setSave(this.registry, save);
     if (isE2EEnabled()) {
       publishE2E({ scene: "Boot", ready: false, assetsLoaded: false });
     }

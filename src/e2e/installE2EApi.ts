@@ -3,7 +3,6 @@ import { PLAYER_TUNING, SPELL_BAR, type AttackMode } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
 import type { SaveGame } from "../core/saveTypes";
-import type { DataStore } from "../core/DataStore";
 import { spellIconTextureKey } from "../content/assets";
 import { setShowHitboxes, setShowTouchInput } from "../debug/DebugState";
 import {
@@ -23,6 +22,7 @@ import { activeTownUiHost } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { positionDomMirrors } from "./installE2EDom";
 import { combatTally, resetCombatTally } from "./combatTally";
+import { peekDataStore, peekSave, setSave } from "../core/registryKeys";
 
 /** `window.__DEFENSEGAME_E2E__.api` implementation (Town + Defense hooks). */
 export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
@@ -59,11 +59,11 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       await defense.e2e.castSpellSlot(slot);
     },
     getSave() {
-      const save = game.registry.get("save") as SaveGame | undefined;
+      const save = peekSave(game.registry);
       return save ? structuredClone(save) : null;
     },
     setSave(partial: Partial<SaveGame>) {
-      const cur = game.registry.get("save") as SaveGame | undefined;
+      const cur = peekSave(game.registry);
       if (!cur) return;
       const next = structuredClone({
         ...cur,
@@ -76,7 +76,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
         spellBar: partial.spellBar ?? cur.spellBar,
         flags: partial.flags ?? cur.flags,
       });
-      game.registry.set("save", next);
+      setSave(game.registry, next);
       persistSave(next);
     },
     setPlayerMoveSpeedWu(moveSpeedWu: number) {
@@ -108,7 +108,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       return game.textures.exists(key);
     },
     auditSpellBarTextures() {
-      const save = game.registry.get("save") as SaveGame | undefined;
+      const save = peekSave(game.registry);
       const slots = save?.spellBar?.slots ?? [];
       const out: ReturnType<DefenseGameE2EApi["auditSpellBarTextures"]> = [];
       for (let slot = 0; slot < SPELL_BAR.slotCount; slot++) {
@@ -371,7 +371,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       townForE2E(game)?.e2eStartEndless(enemyId, infiniteHp);
     },
     getEndlessPanelDefaultConcurrent() {
-      const store = game.registry.get("dataStore") as DataStore | undefined;
+      const store = peekDataStore(game.registry);
       return store?.player.endlessPanelDefaultConcurrent ?? 1;
     },
     setEndlessInfiniteHp(enabled: boolean) {
@@ -388,7 +388,7 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       if (defense) return defense.e2e.playerHp();
       const town = game.scene.getScene("Town") as TownScene | null;
       if (!town?.scene.isActive()) return 0;
-      const save = game.registry.get("save") as { player?: { hp?: number } };
+      const save = peekSave(game.registry);
       return Math.floor(save?.player?.hp ?? 0);
     },
     scrollEndlessEnemyList(deltaY: number) {

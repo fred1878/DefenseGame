@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { DataStore, WaveGroup } from "../core/DataStore";
+import type { WaveGroup } from "../core/DataStore";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
@@ -18,6 +18,7 @@ import {
   type WavePlannerSetupLaunchData,
 } from "./town/townSetupSceneLifecycle";
 import { isPointerOverInteractive } from "./town/TownTouchDebug";
+import { getDataStore } from "../core/registryKeys";
 
 export class WavePlannerSetupScene extends Phaser.Scene {
   private panel: WavePlannerPanel | null = null;
@@ -40,7 +41,7 @@ export class WavePlannerSetupScene extends Phaser.Scene {
     this.touchDebug = new TouchInputDebugDraw(this);
     this.fpsOverlay = new FpsDebugOverlay(this);
 
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const open = (): void => {
       if (this.panel) return;
       this.panel = new WavePlannerPanel(
