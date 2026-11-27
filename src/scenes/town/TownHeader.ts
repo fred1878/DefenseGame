@@ -69,6 +69,30 @@ export type TownHeaderButtons = {
 };
 
 /** Debug, gear, talents, fullscreen and reset-save buttons (created in that order). */
+type TownHeaderButtonStyle = Partial<
+  Parameters<typeof createTouchButton>[5]
+> & {
+  fillColor: number;
+  strokeColor: number;
+};
+
+/** Header button with the shared size (88×36), depth and font; `style` overrides. */
+function townHeaderButton(
+  scene: Phaser.Scene,
+  pos: { x: number; y: number },
+  label: string,
+  onTap: () => void,
+  style: TownHeaderButtonStyle,
+): TouchButton {
+  return createTouchButton(scene, pos.x, pos.y, label, onTap, {
+    width: scaleUiX(88),
+    height: scaleUiX(36),
+    depth: 200,
+    fontSize: `${scaleUiX(14)}px`,
+    ...style,
+  });
+}
+
 export function createTownHeaderButtons(
   scene: Phaser.Scene,
   handlers: {
@@ -79,75 +103,40 @@ export function createTownHeaderButtons(
   },
 ): TownHeaderButtons {
   const safe = readSafeInsets();
-  const dbgPos = debugButtonPosition(scene, safe);
-  const debugButton = createTouchButton(
+  const debugButton = townHeaderButton(
     scene,
-    dbgPos.x,
-    dbgPos.y,
+    debugButtonPosition(scene, safe),
     "Debug",
-    () => {
-      handlers.onDebug();
-    },
-    {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: PALETTE.zinc700,
-      strokeColor: PALETTE.zinc400,
-    },
+    () => handlers.onDebug(),
+    { fillColor: PALETTE.zinc700, strokeColor: PALETTE.zinc400 },
   );
-
-  const gearPos = townGearButtonPosition(scene, safe);
-  const gearButton = createTouchButton(
+  const gearButton = townHeaderButton(
     scene,
-    gearPos.x,
-    gearPos.y,
+    townGearButtonPosition(scene, safe),
     "Gear",
     () => handlers.onGear(),
-    {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x713f12,
-      strokeColor: PALETTE.amber400,
-    },
+    { fillColor: 0x713f12, strokeColor: PALETTE.amber400 },
   );
   gearButton.container.setData("testid", "town-gear");
-
-  const talentsPos = townTalentsButtonPosition(scene, safe);
-  const talentsButton = createTouchButton(
+  const talentsButton = townHeaderButton(
     scene,
-    talentsPos.x,
-    talentsPos.y,
+    townTalentsButtonPosition(scene, safe),
     "Talents",
     () => handlers.onTalents(),
-    {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x3a322b,
-      strokeColor: 0xd4a64a,
-    },
+    { fillColor: 0x3a322b, strokeColor: 0xd4a64a },
   );
   talentsButton.container.setData("testid", "town-talents");
 
   const fsWidth = scaleUiX(168);
   const fsHeight = scaleUiX(36);
-  const fsPos = townFullscreenButtonPosition(scene, safe, fsWidth, fsHeight);
-  const fsLabel = fullscreenButtonLabel(scene.scale);
-  const fullscreenButton = createTouchButton(
+  const fullscreenButton = townHeaderButton(
     scene,
-    fsPos.x,
-    fsPos.y,
-    fsLabel,
+    townFullscreenButtonPosition(scene, safe, fsWidth, fsHeight),
+    fullscreenButtonLabel(scene.scale),
     () => toggleFullscreen(scene.scale),
     {
       width: fsWidth,
       height: fsHeight,
-      depth: 200,
       fontSize: `${scaleUiX(13)}px`,
       fillColor: PALETTE.deepNavy,
       strokeColor: PALETTE.blue400,
@@ -157,23 +146,14 @@ export function createTownHeaderButtons(
 
   const resetWidth = scaleUiX(118);
   const resetHeight = scaleUiX(36);
-  const resetPos = townResetSaveButtonPosition(
+  const resetButton = townHeaderButton(
     scene,
-    safe,
-    resetWidth,
-    resetHeight,
-  );
-  const resetButton = createTouchButton(
-    scene,
-    resetPos.x,
-    resetPos.y,
+    townResetSaveButtonPosition(scene, safe, resetWidth, resetHeight),
     "Reset save",
     () => handlers.onReset(),
     {
       width: resetWidth,
       height: resetHeight,
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
       fillColor: PALETTE.red900,
       strokeColor: PALETTE.red400,
     },

@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { assembleNightLootSummary } from "../gear/nightLootSummary";
 import { gearFixture } from "../test/gearFixture";
 import { asScene, fakeScene, type FakeGameObject } from "../test/fakeScene";
-import { NightLootSummaryPanel } from "./NightLootSummaryPanel";
+import {
+  layoutNightLootSummary,
+  NightLootSummaryPanel,
+} from "./NightLootSummaryPanel";
 
 const catalog = gearFixture();
 
@@ -167,5 +170,23 @@ describe("NightLootSummaryPanel", () => {
     scene.events.emit("shutdown");
     expect((panel.root as unknown as FakeGameObject).destroyed).toBe(true);
     expect(listeners.has("keydown")).toBe(false);
+  });
+});
+
+describe("layoutNightLootSummary", () => {
+  it("stacks labels top to bottom and sizes the card around them", () => {
+    const L = layoutNightLootSummary(summaryWon());
+    const ys = L.labels.map((l) => l.y);
+    expect([...ys].sort((a, b) => a - b)).toEqual(ys);
+    expect(L.labels.at(-1)?.text).toBe("Enter or Space");
+    expect(L.button.localY).toBeGreaterThan(L.wallBar.y);
+    expect(L.cardH).toBeGreaterThan(L.button.localY + L.button.h / 2);
+    expect(L.wallBar.fillW).toBeCloseTo(L.wallBar.w * 0.82);
+  });
+
+  it("shows the empty-loot line and no wall fill on a lost night", () => {
+    const L = layoutNightLootSummary(summaryLostEmpty());
+    expect(L.wallBar.fillW).toBe(0);
+    expect(L.labels.some((l) => l.text.startsWith("•"))).toBe(false);
   });
 });
