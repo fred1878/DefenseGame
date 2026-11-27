@@ -61,15 +61,18 @@ import type { DefenseSceneE2eHost } from "./defense/DefenseSceneE2EHost";
 import { createRegisteredDefenseSceneE2eHost } from "./defense/defenseSceneE2eHook";
 import { DefenseRunState } from "./defense/DefenseRunState";
 import {
+  type DefenseRunModeContext,
+  type DefenseRunModeStrategy,
+  defenseRunModeStrategy,
+} from "./defense/DefenseRunModes";
+import {
   spawnDefenseEnemyAt,
   type DefenseEnemySpawnerHost,
 } from "./defense/DefenseEnemySpawner";
 import { scheduleDefenseWave } from "./defense/DefenseWaveSpawner";
 import {
   checkDefenseRunEnd,
-  runDefenseCampaignNightEnd,
   runDefenseEndlessNightEnd,
-  runDefenseSimulatedNightEnd,
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
 import type { CampaignNightLossReason } from "../systems/nightEndMessaging";
@@ -101,10 +104,7 @@ import {
   DefenseGroundAim,
   syncDefenseGroundAimModality,
 } from "./defense/DefenseGroundAim";
-import {
-  endlessHudHeader,
-  ensureEndlessSpawnCap,
-} from "./defense/DefenseEndlessSpawn";
+import { ensureEndlessSpawnCap } from "./defense/DefenseEndlessSpawn";
 import {
   ensureDefenseSaveSpellBar,
   resolveDefenseRunSetup,
@@ -306,7 +306,14 @@ export class DefenseScene extends Phaser.Scene {
     this.run.endlessSelections = setup.endlessSelections;
     this.run.endlessInfiniteHp = setup.endlessInfiniteHp;
     this.run.wavePlannerMode = wavePlanner;
-    if (setup.rewardGold !== undefined) this.run.rewardGold = setup.rewardGold;
+    this.runMode = defenseRunModeStrategy(
+      wavePlanner
+        ? "wavePlanner"
+        : (setup.endlessSelections?.length ?? 0) > 0
+          ? "endless"
+          : "campaign",
+    );
+    this.run.rewardGold = setup.rewardGold;
 
     const world = bootstrapDefenseWorld({
       scene: this,
@@ -645,11 +652,7 @@ export class DefenseScene extends Phaser.Scene {
     const focusId = this.run.targeting.focusEnemyId;
     this.hudText.setText(
       formatDefenseHudText({
-        header: this.isEndlessMode()
-          ? endlessHudHeader(dataStore, this.run.endlessSelections)
-          : this.isWavePlannerMode()
-            ? "Wave planner"
-            : `Night ${this.run.save.night}`,
+        header: this.runMode.hudHeader(this.runModeContext(dataStore)),
         wallHp: this.run.wallHp,
         playerHp: this.run.player.damageable.hp,
         playerHpMax: this.run.player.damageable.maxHp,
@@ -716,6 +719,7 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private spellDirector!: DefenseSpellDirector;
+  private runMode: DefenseRunModeStrategy = defenseRunModeStrategy("campaign");
 
   onSpellCastRequest(spellId: string): void {
     // A short spell-bar tap arms on press; clear that arm before auto-casting.
@@ -910,14 +914,7 @@ export class DefenseScene extends Phaser.Scene {
 
   leaveTrainingRun(): void {
     if (this.run.nightEnded) return;
-    if (this.isWavePlannerMode()) {
-      runDefenseSimulatedNightEnd(this.nightEndContext(), {
-        won: false,
-        quit: true,
-      });
-      return;
-    }
-    this.endEndlessRun("quit");
+    this.runMode.leave(this.runModeContext());
   }
 
   endEndlessRun(reason: "quit" | "player" | "wall"): void {
@@ -927,18 +924,13 @@ export class DefenseScene extends Phaser.Scene {
 
   endNight(won: boolean, lossReason?: CampaignNightLossReason): void {
     if (this.run.nightEnded) return;
-    if (this.isWavePlannerMode()) {
-      runDefenseSimulatedNightEnd(this.nightEndContext(), { won });
-      return;
-    }
-    runDefenseCampaignNightEnd(this.nightEndContext(), {
-      won,
-      ...(!won && lossReason !== undefined ? { lossReason } : {}),
-      wallHp: this.run.wallHp,
-      wallHpStart: this.run.wallHpStart,
-      rewardGold: this.run.rewardGold,
-      save: this.run.save,
-    });
+    this.runMode.endNight(this.runModeContext(), won, lossReason);
+  }
+
+  private runModeContext(
+    store = getDataStore(this.registry),
+  ): DefenseRunModeContext {
+    return { run: this.run, store, nightEnd: () => this.nightEndContext() };
   }
 
   /**

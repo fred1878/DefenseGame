@@ -102,7 +102,7 @@ export class DefenseRunState
   focusTapFlash: FocusTapFlash | null = null;
 
   // Run mode / outcome.
-  rewardGold = 40;
+  rewardGold = 0;
   spawnPlanComplete = false;
   nightEnded = false;
   endlessSelections: EndlessRunSelection[] | null = null;

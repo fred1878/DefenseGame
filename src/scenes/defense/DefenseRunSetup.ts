@@ -16,8 +16,8 @@ export type DefenseRunSetup = {
   endlessInfiniteHp: boolean;
   /** Wave to schedule (campaign night or wave planner); undefined for endless. */
   wave: WaveDef | undefined;
-  /** New reward gold, or undefined to keep the scene's current value. */
-  rewardGold: number | undefined;
+  /** Gold paid for winning (0 for endless / wave planner / no wave data). */
+  rewardGold: number;
 };
 
 /** Resolve run mode (campaign night, endless, wave planner) at `DefenseScene.create`. */
@@ -54,7 +54,7 @@ export function resolveDefenseRunSetup(
     endlessSelections: null,
     endlessInfiniteHp: false,
     wave,
-    rewardGold: wave ? wave.rewardGold : undefined,
+    rewardGold: wave?.rewardGold ?? 0,
   };
 }
 

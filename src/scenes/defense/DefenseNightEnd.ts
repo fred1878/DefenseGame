@@ -63,7 +63,7 @@ type DefenseNightEndUi = {
   onReturnToTown: () => void;
 };
 
-type DefenseNightEndShared = DefenseNightEndUi & {
+export type DefenseNightEndShared = DefenseNightEndUi & {
   registry: Phaser.Data.DataManager;
   save: SaveGame;
   player: Player;
