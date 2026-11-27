@@ -1,4 +1,8 @@
-import { type EconomyPolicy, hasEnoughGold } from "../core/economyPolicy";
+import {
+  type EconomyPolicy,
+  hasEnoughGold,
+  spendGold,
+} from "../core/economyPolicy";
 import bundledShops from "../../public/data/shops.json";
 import { normalizeShops } from "../core/data/normalizeShops";
 import type { SaveGame } from "../core/save/saveTypes";
@@ -267,7 +271,7 @@ export function rerollTrader(
   return {
     save: {
       ...save,
-      gold: save.gold - cost,
+      gold: spendGold(save.gold, cost, policy),
       shops: {
         ...save.shops,
         trader: rollTraderStock(ctx, save.night, rng, level),
@@ -394,7 +398,7 @@ export function buyOffer(
     next = r.save;
     name = ctx.consumables.items[offer.id]!.name;
   }
-  next = { ...next, gold: next.gold - price };
+  next = { ...next, gold: spendGold(next.gold, price, policy) };
   if (offer.qty !== null) {
     // Limited rows live in the saved stock (trader list / blacksmith masterworks first).
     // Only saved stock rows (trader list, blacksmith masterworks) have a qty.

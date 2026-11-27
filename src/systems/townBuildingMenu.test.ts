@@ -208,13 +208,14 @@ describe("townBuildingMenu", () => {
         storeReg[k] = v;
       },
     } as Phaser.Data.DataManager;
-    const { result } = handleTownBuildingTap(
+    const { result, save: next } = handleTownBuildingTap(
       store,
       save,
       def,
       debugEconomyPolicy(registry),
     );
     expect(result.kind).toBe("upgraded");
+    expect(next.gold).toBe(10);
   });
 
   it("covers max-level, missing hook, and generic upgrade copy", () => {

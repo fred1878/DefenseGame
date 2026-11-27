@@ -4,7 +4,11 @@ import type { SaveGame } from "../core/save/saveTypes";
 import type { TownBuildingDef } from "../core/data/townBuildingTypes";
 import { wallHpBonusFromBuildings } from "../core/save/GameState";
 import type { BuildingDef } from "../core/data/DataStore";
-import { type EconomyPolicy, hasEnoughGold } from "../core/economyPolicy";
+import {
+  type EconomyPolicy,
+  hasEnoughGold,
+  spendGold,
+} from "../core/economyPolicy";
 
 import type { TownPlateInfo } from "../ui/hud/townBuildingPlate";
 
@@ -184,7 +188,7 @@ function tryApplyBuildingUpgrade(
 
   const next: SaveGame = {
     ...save,
-    gold: save.gold - cost,
+    gold: spendGold(save.gold, cost, policy),
     buildings: { ...save.buildings, [id]: level + 1 },
   };
   if (def.effect === "wallHpMax") {

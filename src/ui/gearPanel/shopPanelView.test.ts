@@ -9,7 +9,11 @@ import {
   shippedLoot,
   shopPanelCtx,
 } from "../../test/gearPanelFixture";
-import { createGearPanelState, type GearPanelState } from "./gearPanelLogic";
+import {
+  createGearPanelState,
+  type GearPanelContext,
+  type GearPanelState,
+} from "./gearPanelLogic";
 import {
   filterChips,
   lockedCards,
@@ -23,6 +27,19 @@ import {
 
 const smith = shopPanelCtx("blacksmith", true);
 const trader = shopPanelCtx("trader", true);
+
+function withInfiniteGold(ctx: GearPanelContext): GearPanelContext {
+  const store: Record<string, unknown> = { debugInfiniteGold: true };
+  return {
+    ...ctx,
+    registry: {
+      get: (key: string) => store[key],
+      set: (key: string, value: unknown) => {
+        store[key] = value;
+      },
+    } as Phaser.Data.DataManager,
+  };
+}
 const buy = (o: Partial<GearPanelState> = {}): GearPanelState => ({
   ...createGearPanelState("shop"),
   ...o,
@@ -249,6 +266,17 @@ describe("shopPanelView", () => {
     expect(shopActions(smith, bag, sell({ selectedUid: 2 }))[0]!.label).toMatch(
       /^Sell · \d+g$/,
     );
+  });
+
+  it("treats shop offers as affordable when debug infinite gold is on", () => {
+    const broke = panelSave(1, 1);
+    const ctx = withInfiniteGold(smith);
+    const cards = shopCards(ctx, broke, buy());
+    const dear = cards.find((c) => Number.parseInt(c.price, 10) > 1);
+    expect(dear).toBeDefined();
+    expect(dear!.priceColor).toBe(DG_THEME.accentGoldBright);
+    const actions = shopActions(ctx, broke, buy({ selectedOffer: dear!.key }));
+    expect(actions[0]!.enabled).toBe(true);
   });
 
   it("shows the status or a sell-back hint under the bar", () => {
