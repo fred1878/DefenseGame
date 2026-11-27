@@ -121,18 +121,39 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
 | `obstacle-bump-capture.spec.ts` | Player–obstacle separation (stick push cardinals) |
 
-**Workers:** `playwright.config.ts` uses `E2E_WORKERS` when set; otherwise **6** in CI (`CI` set) and **1** locally. GitHub Actions sets `E2E_WORKERS=8` on the Playwright step.
+**Parallel by default:** `fullyParallel: true` everywhere (specs that share one booted page use `test.describe.configure({ mode: "serial" })`). Workers: `E2E_WORKERS` when set; otherwise **3** in CI (`CI` set) and **one per core** locally (`os.availableParallelism()`). CI splits the suite into **3 shards** (`e2e (shard n/3)` jobs, 3 workers each); the `e2e` job is the single pass/fail status. For timing-sensitive `@manual` probes such as `fps.spec.ts`, run with `E2E_WORKERS=1`.
 
-**Expected CI e2e wall-clock (Chromium, 8 workers, `timeScale` 2):** about **3–6 minutes** on `ubuntu-24.04` after the `@manual` trim (~47 gate tests). Full local suite (~60 tests) is typically **8–12 minutes** (still 1 worker unless you set `E2E_WORKERS`). Verify job still downloads `dist-e2e` from `verify` (no duplicate E2E build in the e2e job).
+**Benchmark (Nov 2026, Chromium, 66 gated tests, `CI=1`, fresh `build:e2e`).** Times are the Playwright step only; each CI job also spends about 1 min on checkout, `npm ci` and browser install.
 
-**VM benchmark (gated Chromium, same `ubuntu-24.04` class runner, post-`npm run build:e2e`):** Nov 2026 cloud-agent VM, **47** gated tests (`grepInvert @manual`):
+Local box (8 cores, shared with other agents, so expect some noise):
 
-| Workers | Wall-clock (s) | Playwright reported | Flakes/retries |
-|--------:|---------------:|---------------------|----------------|
-| 6 | 67 | 1.1m | none (47/47) |
-| **8** (CI default) | **62** | 1.0m | none (47/47) |
+| Workers | Wall-clock | Flakes / timeouts |
+|--------:|-----------:|-------------------|
+| 1 | 654 s (10.9 min) | none |
+| 2 | 389 s (6.4 min) | none |
+| 3 | 296 s (4.9 min) | none |
+| 4 | 246 s (4.1 min) | none |
+| 6 | 180 s (3.0 min) | none |
+| **8** (local default) | **160 s (2.6 min)** | none |
 
-GitHub `ubuntu-24.04` free runners are typically slower — use the **ratio** (~8% faster at 8 vs 6 workers here), not these absolute seconds, for CI planning.
+GitHub `ubuntu-24.04` (4 vCPU), single job vs shards (slowest shard shown; run 1 had 19 jobs at once, run 2 had 14):
+
+| Layout | Run 1 (s) | Run 2 (s) | Flakes / timeouts |
+|--------|----------:|----------:|-------------------|
+| 1 job × 1 worker | 387 | | 1 flaky (ranged projectile, since fixed) |
+| 1 job × 2 workers | 272 | | none |
+| 1 job × 3 workers | 202 | | ranged projectile failed twice (since fixed) |
+| 1 job × 4 workers | 285 | 176 | none |
+| 1 job × 6 workers | 177 | | none |
+| 1 job × 8 workers (old CI) | 185 | 181 | none |
+| 2 shards × 2 workers | 124 | | none |
+| 2 shards × 3 workers | 178 | | none |
+| 2 shards × 4 workers | 116 | 128 | none |
+| 3 shards × 2 workers | | 80 | none |
+| **3 shards × 3 workers** (CI default) | **98** | **75** | none |
+| 4 shards × 2 workers | 89 | 75 | none |
+
+More than 4 workers on a 4-vCPU runner gives nothing; sharding is what helps. 3 × 3 matched 4 × 2 with one fewer job of setup overhead.
 
 Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file parallelism inside a job increases with worker count.
 
@@ -148,7 +169,7 @@ Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file para
 | `town-spell-panel-layout.spec.ts`, `town-spell-panel-drag.spec.ts` | Redundant with tap-toggle behavior |
 | `fps.spec.ts` | Weak threshold (`> 5` fps); hook smoke only |
 
-CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=true` and `E2E_WORKERS=8` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
+CI runs **Chromium only** (`npm run test:e2e -- --project=chromium --shard=n/3` with `CI=true` in `.github/workflows/ci.yml`). The `mobile-chrome` project is optional for local device checks. Traces: **on-first-retry** in CI; **retain-on-failure** locally.
 
 ## Manual review captures vs e2e
 
@@ -189,6 +210,9 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
   `step(frames)` advances fixed 1/60 s frames via `game.headlessStep`;
   `stepUntil(pred)` also yields to the event loop for real I/O; `tap(x, y)`
   dispatches DOM mouse events on the canvas (full InputManager hit testing);
+  `drag(path, { holdFrames, beforeRelease })` presses, moves and releases
+  (ground-spell aim, stick drags; long presses skew `performance.now` in
+  `beforeRelease` because `bindTapOrLongPress` times on the wall clock);
   `renderPng()` runs one frame through the Canvas renderer.
 - `src/test/scene/townBoot.ts` `bootToTown()` runs Boot -> Town (the
   production scene list) and `seedMathRandom(seed)` makes runs replayable.
@@ -201,14 +225,19 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
   this and uploads them as the `scene-snapshots` artifact).
 - Rendering uses Phaser's **Canvas** renderer, not WebGL: WebGL-only paths are
   not exercised and pixels will not match the game exactly.
-- Coverage: scene files are counted (see "Coverage notes"); only E2E-only
-  adapters, Capacitor stubs and scenes still waiting on tests are excluded.
+- Coverage: every scene file is counted (see "Coverage notes"); only
+  production entries, E2E-only adapters and Capacitor stubs are excluded.
 - Cameras: frames are update-only (`headlessStep`), but the harness runs each
   camera's `preRender()` so follow / scroll match a rendered frame and
   `worldPointToScreen` taps land where expected.
 - `sceneFlow.ts`: `waitForScene`, `waitForDefense`, `tapTown` / `tapDefense`
   (by e2e target id), `tapText` (by label), `startNightFromTown`.
-- `bootToTown({ save })` seeds the localStorage save BootScene loads.
+- `bootToTown({ save, beforeBoot })` seeds the localStorage save BootScene
+  loads; `beforeBoot(server)` can `server.hold(re)` responses before the
+  game starts. The returned release serves them (`release()`) or fails them
+  (`release(404)`) for deterministic loading / load-error states.
+- E2E mode: `E2EMode.scene.test.ts` stubs `VITE_E2E=true` and drives
+  `window.__DEFENSEGAME_E2E__.api` like Playwright does.
 
 ## Coverage notes
 
@@ -216,12 +245,12 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines | 97% | ~97.3% (scene files counted via real-Phaser scene tests) |
-| statements | 96.5% | ~96.7% |
-| functions | 96.5% | ~96.7% |
-| branches | 92% | ~92.2% |
+| lines | 98% | ~98.4% (scene files counted via real-Phaser scene tests) |
+| statements | 97.5% | ~97.7% |
+| functions | 97.5% | ~98.1% |
+| branches | 93% | ~93.6% |
 
-**Excluded from coverage:** `DebugMenuScene` and `EndlessModeSetupScene` (until their scene tests land), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), and Capacitor update stubs. `BootScene`, `TownScene`, `DefenseScene`, `WavePlannerSetupScene` and the Phaser-heavy defense/town modules are counted, covered by `*.scene.test.ts`. Floors only go up: add tests rather than lowering them. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), and Capacitor update stubs. `BootScene`, `TownScene`, `DefenseScene`, `DebugMenuScene`, `EndlessModeSetupScene`, `WavePlannerSetupScene` and the Phaser-heavy defense/town modules are counted, covered by `*.scene.test.ts`. Floors only go up: add tests rather than lowering them. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 
 ## Visual checks (screenshot baselines)
 

@@ -203,4 +203,12 @@ describe("TownScene flows (real Phaser)", () => {
     town.e2eStartNight();
     await waitForDefense(h());
   });
+  it("a fully upgraded town reads as the max growth stage", async () => {
+    const save = getSave(town.registry);
+    save.buildings = { ...save.buildings, wall: 8, trader: 3, blacksmith: 3 };
+    await restartTown();
+    const texts = town.children.list.flatMap(textsUnder);
+    expect(texts).toContain("Town Lv 6");
+    expect(texts.some((t) => t.includes("Max stage"))).toBe(true);
+  });
 });

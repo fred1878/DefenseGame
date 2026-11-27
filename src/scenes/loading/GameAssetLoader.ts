@@ -14,9 +14,10 @@ import {
   UI_ASSETS,
 } from "../../content/assets";
 import {
-  TOWN_BUILDING_ASSET_ROOT,
-  TOWN_BUILDING_ASSETS,
-} from "../../content/townBuildingAssets";
+  TOWN_ISO_ATLAS_FILES,
+  TOWN_ISO_IMAGE_ASSETS,
+  TOWN_ISO_ROOT,
+} from "../../content/townIsoAssets";
 import {
   HOLY_FX_ASSETS,
   HOLY_FX_ROOT,
@@ -62,15 +63,26 @@ let defenseLoadPromise: Promise<void> | null = null;
 let townFluffPromise: Promise<void> | null = null;
 let townReachablePromise: Promise<void> | null = null;
 
-/** First paint Town: building sprites only. */
+/** First paint Town: isometric town atlases, its overlays, the UI parts its HUD uses and the UI fonts. */
 export function queueMinimalTownBootAssets(
   loader: Phaser.Loader.LoaderPlugin,
   baseUrl: string,
 ): void {
   loader.setBaseURL(baseUrl);
-  for (const { key, file } of TOWN_BUILDING_ASSETS) {
-    loader.image(key, `${TOWN_BUILDING_ASSET_ROOT}/${file}`);
+  for (const { key, json } of TOWN_ISO_ATLAS_FILES) {
+    loader.multiatlas(key, `${TOWN_ISO_ROOT}/${json}`, TOWN_ISO_ROOT);
   }
+  for (const { key, path } of TOWN_ISO_IMAGE_ASSETS) {
+    loader.image(key, path);
+  }
+  for (const { key, file } of UI_PART_ASSETS) {
+    loader.image(key, `${UI_PART_ROOT}/${file}`);
+  }
+  // Pixelify Sans + Departure Mono digits before the Town HUD and name plates rasterise.
+  const assetRev = import.meta.env.VITE_BUILD_ID ?? "";
+  const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+  queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
+  queueDigitFont(loader, `${DIGIT_FONT_PATH}${fontQ}`);
 }
 
 /** Post–Town-ready: HUD art, spell icons, all SFX (prefetch). */
@@ -87,14 +99,8 @@ export function queueTownFluffAssets(
   for (const { key, file } of UI_ASSETS) {
     loader.image(key, `${UI_ASSET_ROOT}/${file}`);
   }
-  for (const { key, file } of UI_PART_ASSETS) {
-    loader.image(key, `${UI_PART_ROOT}/${file}`);
-  }
-  // Gear / shop panels: line icons and the Pixelify Sans titles.
+  // Gear / shop panels: line icons.
   queueUiIcons(loader);
-  const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
-  queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
-  queueDigitFont(loader, `${DIGIT_FONT_PATH}${fontQ}`);
   for (const { key, file } of SFX_ASSETS) {
     loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
   }
@@ -207,9 +213,15 @@ export function ensureTownFluffLoaded(scene: Phaser.Scene): Promise<void> {
   const base = import.meta.env.BASE_URL;
   townFluffPromise = runQueuedLoader(scene, (loader) =>
     queueTownFluffAssets(loader, base),
-  ).then(() => {
-    scene.game.registry.set(TOWN_FLUFF_READY_KEY, true);
-  });
+  )
+    .then(() => {
+      scene.game.registry.set(TOWN_FLUFF_READY_KEY, true);
+    })
+    .catch((err) => {
+      // Drop the failed load so a Retry queues the files again.
+      townFluffPromise = null;
+      throw err;
+    });
   return townFluffPromise;
 }
 
@@ -221,10 +233,16 @@ export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
   const base = import.meta.env.BASE_URL;
   defenseLoadPromise = runQueuedLoader(scene, (loader) =>
     queueDefenseBootAssets(loader, base),
-  ).then(() => {
-    afterDefenseAssetsLoaded(scene);
-    scene.game.registry.set(DEFENSE_ASSETS_READY_KEY, true);
-  });
+  )
+    .then(() => {
+      afterDefenseAssetsLoaded(scene);
+      scene.game.registry.set(DEFENSE_ASSETS_READY_KEY, true);
+    })
+    .catch((err) => {
+      // Drop the failed load so a Retry queues the files again.
+      defenseLoadPromise = null;
+      throw err;
+    });
   return defenseLoadPromise;
 }
 

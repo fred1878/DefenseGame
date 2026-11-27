@@ -1,36 +1,21 @@
 import { playerTuning } from "../config/player";
-import { tuning } from "../tuning/gameTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import Phaser from "phaser";
 import { splitHudHeader, type DefenseTopHud } from "../ui/hud/defenseTopHud";
-import { waveSpawnTotal } from "../systems/WaveSpawner";
 import { DEFENSE_MAP, type AttackMode } from "../config";
-import { resetShadowformRuntimeMults } from "../combat/rules/shadowformRuntime";
 import type { EnemyDef } from "../core/data/DataStore";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
 import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
 import { worldUnit } from "../config/worldScale";
-import {
-  shadowformActive,
-  shadowformMoveSpeedMultiplier,
-} from "../combat/rules/shadowform";
-import { SpellInputQueue } from "../combat/rules/spellInputQueue";
-import { SpellCastController } from "../combat/rules/SpellCastController";
-import { EnemySpellStatusMap } from "../combat/rules/enemySpellStatus";
 import { DefenseConsumables } from "./defense/DefenseConsumables";
 import { buildNavGrid, type NavGrid } from "../pathfinding/grid";
-import { anyDebugOverlayOn, showTouchInput } from "../debug/DebugState";
+import { showTouchInput } from "../debug/DebugState";
 import {
   DEBUG_MENU_CLOSE,
   openDebugMenuFromHost,
   resumeFromDebugMenu,
 } from "../debug/debugMenuLifecycle";
-import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
-import type { CombatRangeDebugDraw } from "../debug/CombatRangeDebugDraw";
-import type { HitboxDebugDraw } from "../debug/HitboxDebugDraw";
-import type { PathDebugDraw } from "../debug/PathDebugDraw";
-import type { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import {
   blocksBaseLayerInput,
   clearInputModalities,
@@ -39,11 +24,6 @@ import {
   popInputModality,
 } from "../input/inputModality";
 import { configureSceneInput } from "../input/inputTuning";
-import {
-  enemyCollisionBodyRadius,
-  playerBodyRadiusPx,
-} from "../entities/entityPhysics";
-import type { EnemyInstance } from "../entities/Enemy";
 import type {
   createTouchToggleButton,
   TouchButtonHandle,
@@ -56,9 +36,7 @@ import type {
   DefenseMinimap,
   defenseMinimapLayout,
 } from "../ui/hud/defenseMinimap";
-import { recordCombatDamage } from "../e2e/combatTally";
-import { e2eCampaignWavesFromQuery, isE2EEnabled } from "../e2e/e2eMode";
-import { publishE2E } from "../e2e/e2eGlobal";
+import { isE2EEnabled } from "../e2e/e2eMode";
 import type { DefenseSceneE2eHost } from "./defense/DefenseSceneE2EHost";
 import { createRegisteredDefenseSceneE2eHost } from "./defense/defenseSceneE2eHook";
 import { DefenseRunState } from "./defense/DefenseRunState";
@@ -67,11 +45,7 @@ import {
   type DefenseRunModeStrategy,
   defenseRunModeStrategy,
 } from "./defense/DefenseRunModes";
-import {
-  spawnDefenseEnemyAt,
-  type DefenseEnemySpawnerHost,
-} from "./defense/DefenseEnemySpawner";
-import { scheduleWave } from "../systems/WaveSpawner";
+import { spawnDefenseEnemyAt } from "./defense/DefenseEnemySpawner";
 import {
   checkDefenseRunEnd,
   runDefenseEndlessNightEnd,
@@ -85,19 +59,8 @@ import {
   bootstrapDefenseWorld,
 } from "./defense/DefenseWorldBootstrap";
 import type { DamageNumberFx } from "./defense/DamageNumberFx";
-import { tickDefenseProjectiles } from "./defense/DefenseProjectileTick";
-import {
-  syncDefenseEnemyNameplates,
-  tickDefenseEnemies,
-} from "./defense/DefenseEnemyTick";
+import { syncDefenseEnemyNameplates } from "./defense/DefenseEnemyTick";
 import { DefenseSpellDirector } from "./defense/DefenseSpellDirector";
-import { tickDefenseSpellWorld } from "./defense/DefenseSpellWorldTick";
-import {
-  createDefenseDebugDrawers,
-  drawDefenseCombatDebug,
-  drawDefenseEnemyPaths,
-  drawDefenseTouchDebug,
-} from "./defense/DefenseDebugDraw";
 import { DefensePlayerCombat } from "./defense/DefensePlayerCombat";
 import {
   DefenseGroundAim,
@@ -110,27 +73,40 @@ import {
 } from "./defense/DefenseRunSetup";
 import {
   destroyDefenseSceneObjects,
-  syncShadowformPlayerFx,
   syncDefenseBaseInput,
-  syncShadowformRuntime,
 } from "./defense/DefenseSceneLifecycle";
 import { getDataStore, getSave } from "../core/registryKeys";
+import { DefenseDebugOverlays } from "./defense/DefenseDebugOverlays";
+import { resetDefenseRun } from "./defense/DefenseRunReset";
+import {
+  type DefenseWaveProgress,
+  startDefenseSpawnPlan,
+} from "./defense/DefenseSpawnPlan";
+import {
+  type DefenseFrameHost,
+  tickDefensePlayer,
+  tickDefenseWorld,
+} from "./defense/DefenseFrameTick";
+import {
+  defenseEnemyTarget,
+  defenseEnemyTargets,
+} from "./defense/DefenseEnemyTargets";
+import {
+  defenseEnemySpawnerHost,
+  defenseNightEndContext,
+  publishDefenseE2eState,
+} from "./defense/DefenseSceneHosts";
 
 export class DefenseScene extends Phaser.Scene {
   private hudText!: Phaser.GameObjects.Text;
   private topHud!: DefenseTopHud;
-  private waveSpawned = 0;
-  private waveSpawnTotal = 0;
+  private readonly waveProgress: DefenseWaveProgress = { spawned: 0, total: 0 };
   attackButton!: Phaser.GameObjects.Container;
   autoToggle!: ReturnType<typeof createTouchToggleButton>;
   modeToggle!: ReturnType<typeof createTouchToggleButton>;
   private uiBlockers: Phaser.GameObjects.GameObject[] = [];
   private navGrid!: NavGrid;
-  private hitboxDebug!: HitboxDebugDraw;
-  private rangeDebug!: CombatRangeDebugDraw;
-  private pathDebug!: PathDebugDraw;
-  private touchDebug!: TouchInputDebugDraw;
-  private fpsOverlay!: FpsDebugOverlay;
+  private debugOverlays!: DefenseDebugOverlays;
   private targetIndicator!: TargetIndicator;
   debugBtn!: TouchButtonHandle;
   potionBtn?: TouchButtonHandle;
@@ -180,11 +156,8 @@ export class DefenseScene extends Phaser.Scene {
       },
       castBar: this.run.castBar,
       spellBar: this.run.spellBar,
-      hitboxDebug: this.hitboxDebug,
-      rangeDebug: this.rangeDebug,
-      pathDebug: this.pathDebug,
-      touchDebug: this.touchDebug,
-      fpsOverlay: this.fpsOverlay,
+      ...this.debugOverlays?.drawers,
+      fpsOverlay: this.debugOverlays?.fpsOverlay,
       minimap: this.minimap,
       returnToTownBtn: this.run.returnToTownBtn,
       leaveEndlessBtn: this.run.leaveEndlessBtn,
@@ -215,6 +188,8 @@ export class DefenseScene extends Phaser.Scene {
   });
   private readonly combat = new DefensePlayerCombat(this.run);
   private readonly groundAimCtl = new DefenseGroundAim(this.run);
+  /** Services for the per-frame player / world ticks (`DefenseFrameTick`). */
+  private frameHost!: DefenseFrameHost;
   private enemyGroup!: Phaser.Physics.Arcade.Group;
   hudChrome!: CombatHudChrome;
   private minimap!: DefenseMinimap;
@@ -230,45 +205,6 @@ export class DefenseScene extends Phaser.Scene {
 
   private wu(atDefault2x: number): number {
     return worldUnit(atDefault2x, this.registry);
-  }
-
-  /** Phaser reuses scene instances; clear per-night state when a new defense run starts. */
-  private resetDefenseRunState(): void {
-    this.run.nightEnded = false;
-    this.run.spawnPlanComplete = false;
-    this.run.returnToTownBtn = null;
-    this.run.enemies = [];
-    this.run.projectiles = [];
-    this.run.enemyProjectiles = [];
-    this.run.projectileSerial = 0;
-    this.run.enemyPathGoals.clear();
-    this.run.targeting?.resetForNewRun();
-    this.run.focusTapFlash = null;
-    this.combat.resetForNewRun();
-    this.run.autoAttackEnabled = true;
-    this.run.playerInvulnMs = 0;
-    this.run.spellCaster = new SpellCastController();
-    this.run.spellInputQueue = new SpellInputQueue();
-    this.run.enemySpellStatus = new EnemySpellStatusMap();
-    this.run.enemyIceRootFx.reset();
-    this.run.enemyIceStunFx.reset();
-    this.run.iceCastWindupFx?.stop();
-    this.run.iceCastWindupFx = null;
-    this.run.spellChannelArea = null;
-    this.run.spellGroundZones = [];
-    this.run.pendingGroundCast = null;
-    this.run.groundAim = null;
-    this.groundAimCtl.resetForNewRun();
-    this.run.shadowformEndsAt = 0;
-    resetShadowformRuntimeMults();
-    syncShadowformPlayerFx(this.run.player, false);
-    for (const wall of this.run.iceWallExpires) wall.sprite.destroy();
-    this.run.iceWallExpires = [];
-    this.run.endlessSelections = null;
-    this.run.wavePlannerMode = false;
-    this.run.leaveEndlessBtn = null;
-    this.run.endlessInfiniteHp = false;
-    this.debugOverlaysActive = true;
   }
 
   /** Lifesteal and gear on-hit procs for player auto-attacks. */
@@ -295,7 +231,10 @@ export class DefenseScene extends Phaser.Scene {
     this.run.save = { ...getSave(this.registry) };
     ensureDefenseSaveSpellBar(this.run.save);
     applySaveLoadout(this.run.save);
-    this.resetDefenseRunState();
+    resetDefenseRun(this.run, {
+      combat: this.combat,
+      groundAim: this.groundAimCtl,
+    });
     this.run.wallHp = Math.max(0, this.run.save.townWallHp);
     this.run.wallHpStart = this.run.wallHp;
     const store = getDataStore(this.registry);
@@ -420,17 +359,26 @@ export class DefenseScene extends Phaser.Scene {
     this.run.groundReticle = new GroundTargetReticle(this);
     this.registerWorldDraw(this.run.groundReticle.worldGraphics());
     this.spellDirector = new DefenseSpellDirector(this.run);
-    ({
-      hitboxDebug: this.hitboxDebug,
-      rangeDebug: this.rangeDebug,
-      pathDebug: this.pathDebug,
-      touchDebug: this.touchDebug,
-    } = createDefenseDebugDrawers(
-      this,
-      this.registerWorldDraw,
-      this.registerUiDraw,
-    ));
-    this.fpsOverlay = new FpsDebugOverlay(this, this.registerUiDraw);
+    this.frameHost = {
+      scene: this,
+      run: this.run,
+      combat: this.combat,
+      spellDirector: this.spellDirector,
+      navGrid: () => this.navGrid,
+      wu: (n) => this.wu(n),
+      onWeaponHit: (enemyId, damage) => this.onWeaponHit(enemyId, damage),
+      enemyTarget: (e) => defenseEnemyTarget(e, (n) => this.wu(n)),
+      enemyTargets: () => this.enemyTargets(),
+      registerWorldDraw: (go) => this.registerWorldDraw(go),
+    };
+    this.debugOverlays = new DefenseDebugOverlays({
+      scene: this,
+      run: this.run,
+      navGrid: () => this.navGrid,
+      wu: (n) => this.wu(n),
+      registerWorldDraw: this.registerWorldDraw,
+      registerUiDraw: this.registerUiDraw,
+    });
     for (const go of this.run.castBar.worldRoots()) {
       this.registerWorldDraw(go);
     }
@@ -441,178 +389,34 @@ export class DefenseScene extends Phaser.Scene {
     this.events.on(INPUT_MODALITY_CHANGED, this.onInputModalityChanged);
     this.game.events.on(DEBUG_MENU_CLOSE, this.onDebugMenuClose);
 
-    if (endless) {
-      this.run.spawnPlanComplete = true;
-      this.ensureEndlessSpawnCap();
-    } else if (
-      wave &&
-      (!isE2EEnabled() || wavePlanner || e2eCampaignWavesFromQuery())
-    ) {
-      // E2E skips campaign waves (tests spawn their own enemies), but a wave
-      // planner run is an explicit player-built plan, so it always runs, and
-      // `campaignWaves=1` opts a validation run into the real night.
-      this.waveSpawned = 0;
-      this.waveSpawnTotal = waveSpawnTotal(store, wave);
-      scheduleWave(
-        this,
-        store,
-        wave,
-        {
-          spawnEnemy: (x, y, def, defId) => {
-            this.waveSpawned += 1;
-            return this.spawnEnemyAt(x, y, def, defId);
-          },
-          markSpawnPlanComplete: () => {
-            this.run.spawnPlanComplete = true;
-          },
-        },
-        isE2EEnabled() && !e2eCampaignWavesFromQuery(),
-      );
-    } else if (isE2EEnabled()) {
-      this.run.spawnPlanComplete = false;
-    } else {
-      this.run.spawnPlanComplete = true;
-    }
+    startDefenseSpawnPlan({
+      scene: this,
+      store,
+      wave,
+      endless,
+      wavePlanner,
+      progress: this.waveProgress,
+      setSpawnPlanComplete: (done) => {
+        this.run.spawnPlanComplete = done;
+      },
+      spawnEnemyAt: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
+      ensureEndlessSpawnCap: () => this.ensureEndlessSpawnCap(),
+    });
 
-    const e2e = isE2EEnabled() ? this.e2e : null;
-    if (e2e) {
-      publishE2E({
-        scene: "Defense",
-        ready: true,
-        player: e2e.playerPosition(),
-      });
-    }
+    if (isE2EEnabled()) publishDefenseE2eState(this.e2e, false);
 
     this.events.off("shutdown", this.onDefenseShutdown);
     this.events.once("shutdown", this.onDefenseShutdown);
   }
 
   override update(_time: number, delta: number): void {
-    this.run.spellCaster.tickCooldowns(delta);
-    syncShadowformRuntime(
-      this.run.player,
-      this.run.shadowformEndsAt,
-      this.time.now,
-    );
-    const dir = this.run.stick.getDirection();
-    const px = this.run.player.sprite.x;
-    const py = this.run.player.sprite.y;
-    const moveSpeed = shadowformMoveSpeedMultiplier(
-      shadowformActive(this.run.shadowformEndsAt, this.time.now),
-      tuning("shadowform"),
-    );
-
-    if (this.run.spellCaster.isChanneling()) {
-      this.spellDirector.updateChanneling(delta, dir, () =>
-        this.combat.shouldLockMeleeAimFacing(),
-      );
-    } else {
-      const lockMeleeAim = this.combat.shouldLockMeleeAimFacing();
-      this.run.player.setVelocityFromStick(
-        dir.x,
-        dir.y,
-        this.wu(playerTuning().moveSpeedWu) * moveSpeed,
-        {
-          lockMeleeAim,
-        },
-      );
-      if (lockMeleeAim) {
-        const target = this.run.targeting.facingTarget("melee", false);
-        if (target) this.run.player.faceToward(target.x, target.y);
-      }
-      this.run.castBar.setVisible(false);
-    }
-
-    if (!this.run.spellCaster.isChanneling()) {
-      this.combat.tryAutoAttack();
-    }
-    this.run.player.updateAttack(delta);
-    if (!this.run.spellCaster.isChanneling()) {
-      this.spellDirector.tryFlushQueuedSpellCast(dir.x, dir.y);
-      this.spellDirector.tryAutoCastSpells(dir.x, dir.y);
-    }
-    this.combat.syncMeleeSwipeFx();
-
-    // Skips dead enemies itself; no per-frame filtered copy needed.
-    this.run.player.damageEnemiesInArc(
-      this.run.enemies,
-      playerTuning().meleeDamage,
-      this.wu(playerTuning().meleeKnockbackWu),
-      (enemy, damage) => this.onWeaponHit(enemy.id, damage),
-    );
-
-    if (this.run.player.consumeRangedShot()) {
-      this.combat.fireProjectile(playerTuning().rangedDamage);
-    }
-
-    const projTick = tickDefenseProjectiles(
-      {
-        scene: this,
-        registry: this.registry,
-        player: this.run.player,
-        playerInvulnMs: this.run.playerInvulnMs,
-        projectiles: this.run.projectiles,
-        enemyProjectiles: this.run.enemyProjectiles,
-        enemyTargets: () => this.enemyTargets(),
-        spellDamageMult: (def) => this.spellDirector.spellDamageMult(def),
-        onWeaponHit: (enemyId, damage) => this.onWeaponHit(enemyId, damage),
-        wu: (n) => this.wu(n),
-        findEnemy: (id) => {
-          const e = this.run.targeting.getEnemyById(id);
-          return e ? this.enemyTarget(e) : undefined;
-        },
-        flashNova: (x, y, r, def) => this.combat.flashNova(x, y, r, def),
-        endlessInfiniteHp: this.run.endlessInfiniteHp,
-        enemySpellStatus: this.run.enemySpellStatus,
-        findEnemyInstance: (id) => this.run.enemies.find((en) => en.id === id),
-        registerWorldDraw: (go) => this.registerWorldDraw(go),
-      },
-      delta,
-    );
-    this.run.projectiles = projTick.projectiles;
-    this.run.enemyProjectiles = projTick.enemyProjectiles;
-    this.run.playerInvulnMs = projTick.playerInvulnMs;
-
-    this.run.playerInvulnMs = Math.max(0, this.run.playerInvulnMs - delta);
-
-    const playerHurtbox = {
-      x: px,
-      y: py,
-      radius: this.wu(playerBodyRadiusPx()),
-      damageable: this.run.player.damageable,
-    };
-    this.run.targeting.focusSelectLockMs = Math.max(
-      0,
-      this.run.targeting.focusSelectLockMs - delta,
-    );
-    tickDefenseSpellWorld(this.run, this.spellDirector, delta);
-
-    const enemyTick = tickDefenseEnemies(
-      {
-        scene: this,
-        registry: this.registry,
-        navGrid: this.navGrid,
-        enemies: this.run.enemies,
-        enemyProjectiles: this.run.enemyProjectiles,
-        enemySpellStatus: this.run.enemySpellStatus,
-        enemyPathGoals: this.run.enemyPathGoals,
-        wallHp: this.run.wallHp,
-        playerInvulnMs: this.run.playerInvulnMs,
-        playerHurtbox,
-        nextProjectileId: (prefix) => `${prefix}${this.run.projectileSerial++}`,
-        maskWorldObject: (go) => this.registerWorldDraw(go),
-        endlessInfiniteHp: this.run.endlessInfiniteHp,
-      },
-      delta,
-    );
-    this.run.wallHp = enemyTick.wallHp;
-    this.run.playerInvulnMs = enemyTick.playerInvulnMs;
-    this.run.enemyProjectiles = enemyTick.enemyProjectiles;
+    const { px, py } = tickDefensePlayer(this.frameHost, delta);
+    tickDefenseWorld(this.frameHost, delta, px, py);
 
     syncDefenseEnemyNameplates(this.run.enemies, this.registry);
     this.damageNumbers.update();
 
-    this.drawDebugOverlays(delta);
+    this.debugOverlays.draw(delta);
     this.minimap.draw(
       this.minimapLayout,
       this.run.player.sprite.x,
@@ -640,19 +444,7 @@ export class DefenseScene extends Phaser.Scene {
       onNightEnd: (won, lossReason) => this.endNight(won, lossReason),
     });
 
-    const e2e = isE2EEnabled() ? this.e2e : null;
-    if (e2e) {
-      publishE2E({
-        scene: "Defense",
-        ready: true,
-        player: e2e.playerPosition(),
-        flags: {
-          attackPhase: e2e.attackPhase(),
-          projectileCount: e2e.projectileCount(),
-          enemyCount: e2e.enemyCount(),
-        },
-      });
-    }
+    if (isE2EEnabled()) publishDefenseE2eState(this.e2e, true);
   }
 
   private refreshHudText(living: number): void {
@@ -671,56 +463,9 @@ export class DefenseScene extends Phaser.Scene {
       playerHp: this.run.player.damageable.hp,
       playerHpMax: this.run.player.damageable.maxHp,
       heroTag: this.run.endlessInfiniteHp ? " ∞" : "",
-      spawned: this.waveSpawned,
-      spawnTotal: this.waveSpawnTotal,
+      spawned: this.waveProgress.spawned,
+      spawnTotal: this.waveProgress.total,
     });
-  }
-
-  /**
-   * Debug overlays only clear/hide themselves while every flag is off, so after
-   * one clearing pass they are skipped until a flag turns on again.
-   */
-  private debugOverlaysActive = true;
-
-  private drawDebugOverlays(delta: number): void {
-    const anyOn = anyDebugOverlayOn(this.registry);
-    if (!anyOn && !this.debugOverlaysActive) {
-      // Touch debug drops the tap flash while it is off.
-      this.run.focusTapFlash = null;
-      return;
-    }
-    this.debugOverlaysActive = anyOn;
-    drawDefenseCombatDebug({
-      registry: this.registry,
-      rangeDebug: this.rangeDebug,
-      hitboxDebug: this.hitboxDebug,
-      player: this.run.player,
-      enemies: this.run.enemies,
-      projectiles: this.run.projectiles,
-      enemyProjectiles: this.run.enemyProjectiles,
-      obstacleBlockers: this.run.obstacleBlockers,
-      wu: (n) => this.wu(n),
-    });
-    drawDefenseEnemyPaths({
-      registry: this.registry,
-      pathDebug: this.pathDebug,
-      navGrid: this.navGrid,
-      obstacleBlockers: this.run.obstacleBlockers,
-      enemies: this.run.enemies,
-      enemyPathGoals: this.run.enemyPathGoals,
-    });
-    this.run.focusTapFlash = drawDefenseTouchDebug(
-      {
-        scene: this,
-        registry: this.registry,
-        touchDebug: this.touchDebug,
-        stick: this.run.stick,
-        focusTapFlash: this.run.focusTapFlash,
-        pointerUiBlocked: (p) => this.run.targeting.isPointerOverUi(p),
-      },
-      delta,
-    );
-    this.fpsOverlay.tick(this.registry, delta, this.game);
   }
 
   private spellDirector!: DefenseSpellDirector;
@@ -814,55 +559,18 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private nightEndContext() {
-    return {
+    return defenseNightEndContext({
       scene: this,
-      registry: this.registry,
-      save: this.run.save,
-      player: this.run.player,
-      wallHp: this.run.wallHp,
+      run: this.run,
       hudText: this.hudText,
-      safe: this.run.safe,
-      markNightEnded: () => {
-        this.run.nightEnded = true;
-        this.topHud.setVisible(false);
-      },
-      setEndlessSelectionsNull: () => {
-        this.run.endlessSelections = null;
-      },
-      hideLeaveEndlessBtn: () => {
-        if (this.run.leaveEndlessBtn) {
-          this.run.leaveEndlessBtn.container.setVisible(false);
-          this.run.leaveEndlessBtn.container.disableInteractive();
-        }
-      },
-      registerUiDraw: (go: Phaser.GameObjects.GameObject) =>
-        this.registerUiDraw(go),
-      setReturnToTownBtn: (btn: TouchButtonHandle | null) => {
-        if (this.run.returnToTownBtn && this.run.returnToTownBtn !== btn) {
-          this.run.returnToTownBtn.container.destroy();
-        }
-        this.run.returnToTownBtn = btn;
-      },
+      topHud: this.topHud,
+      registerUiDraw: (go) => this.registerUiDraw(go),
       onReturnToTown: () => this.transitionToTown(),
-    };
-  }
-
-  private enemyTarget(e: EnemyInstance) {
-    return {
-      id: e.id,
-      x: e.sprite.x,
-      y: e.sprite.y,
-      radius: this.wu(enemyCollisionBodyRadius(e.defId)),
-      damageable: e.damageable,
-      sprite: e.sprite,
-      enemy: e,
-    };
+    });
   }
 
   private enemyTargets() {
-    return this.run.enemies
-      .filter((e) => e.damageable.alive)
-      .map((e) => this.enemyTarget(e));
+    return defenseEnemyTargets(this.run.enemies, (n) => this.wu(n));
   }
 
   refreshModeToggle!: (mode: AttackMode) => void;
@@ -884,28 +592,16 @@ export class DefenseScene extends Phaser.Scene {
     this.time.delayedCall(0, () => this.ensureEndlessSpawnCap());
   }
 
-  private enemySpawnerHost(): DefenseEnemySpawnerHost {
-    const store = getDataStore(this.registry);
-    return {
+  private enemySpawnerHost() {
+    return defenseEnemySpawnerHost({
       scene: this,
-      dataStore: store,
-      enemies: this.run.enemies,
+      store: getDataStore(this.registry),
+      run: this.run,
       enemyGroup: this.enemyGroup,
-      hooks: {
-        onRemovedFromPlay: () => this.scheduleEndlessRespawn(),
-        onFocusEnemy: (id) => this.run.targeting.setFocusEnemy(id),
-      },
-      maskWorldObject: (go) => this.registerWorldDraw(go),
-      notifyDamaged: (enemy, amount, flavor, source) => {
-        if (isE2EEnabled()) recordCombatDamage(flavor, amount, source);
-        this.damageNumbers.floatFromSource(
-          enemy.damageable.id,
-          enemy.sprite,
-          amount,
-          { flavor },
-        );
-      },
-    };
+      damageNumbers: this.damageNumbers,
+      registerWorldDraw: (go) => this.registerWorldDraw(go),
+      onRemovedFromPlay: () => this.scheduleEndlessRespawn(),
+    });
   }
 
   spawnEnemyAt(

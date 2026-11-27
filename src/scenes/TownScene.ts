@@ -28,10 +28,7 @@ import {
   popInputModality,
 } from "../input/inputModality";
 import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
-import {
-  type createTouchButton,
-  interactiveObjectScreenRect,
-} from "../ui/touch/touchButton";
+import type { createTouchButton } from "../ui/touch/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import type { SpellBarSortPanel } from "../ui/panels/SpellBarSortPanel";
@@ -42,16 +39,22 @@ import {
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
 import type { WaveGroup } from "../core/data/DataStore";
-import { clampEndlessConcurrent } from "../core/endlessLimits";
 import {
   spawnTownBuildingControls,
   type TownBuildingControl,
 } from "./town/TownBuildings";
 import {
-  formatTownBuildingButtonLabel,
   handleTownBuildingTap,
-  townBuildingSubtitle,
+  townBuildingPlateInfo,
 } from "../systems/townBuildingMenu";
+import type { TownBuildingDef } from "../core/data/townBuildingTypes";
+import {
+  townBuildingArtTier,
+  townGrowthView,
+  type TownGrowthView,
+} from "../world/townIso/townGrowth";
+import { TOWN_ISO_BUILDING_TIERS } from "../world/townIso/townIsoStageData";
+import { TownIsoWorld } from "./town/TownIsoWorld";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { playUiSfx } from "../audio/uiSfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
@@ -62,12 +65,14 @@ import {
   createTownHeader,
   createTownHeaderButtons,
   formatTownStatus,
+  type TownHud,
 } from "./town/TownHeader";
 import { TownOverlays } from "./town/TownOverlays";
 import { dismissTownSetupScenes } from "./town/townSetupSceneLifecycle";
 import {
   collectTownUiTapTargets,
   isTownTouchButtonPressed,
+  e2eEndlessSelections,
 } from "./town/TownSceneE2E";
 import { collectTownTouchDebugUiRects } from "./town/TownTouchDebug";
 import { isPointerOverInteractive } from "../input/pointerOverInteractive";
@@ -76,6 +81,8 @@ import { getDataStore, getSave, setSave } from "../core/registryKeys";
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
   private statusText!: Phaser.GameObjects.Text;
+  private hud!: TownHud;
+  private world!: TownIsoWorld;
   private resetArmed = false;
   private resetButton!: ReturnType<typeof createTouchButton>;
   private debugButton!: ReturnType<typeof createTouchButton>;
@@ -126,19 +133,19 @@ export class TownScene extends Phaser.Scene {
     const store = getDataStore(this.registry);
     applySaveLoadout(this.save);
 
-    this.statusText = createTownHeader(this);
-    this.refreshStatus(store);
+    this.hud = createTownHeader(this);
+    this.statusText = this.hud.statusText;
+    this.world = new TownIsoWorld(this);
+    const growth = townGrowthView(this.save.buildings);
+    this.world.build(growth.stage, growth.nextStageTownLevel);
 
     const controls = spawnTownBuildingControls(
       this,
       store.townBuildings,
       store.townLayout,
       {
-        labelFor: (def) =>
-          formatTownBuildingButtonLabel(
-            def,
-            townBuildingSubtitle(store, this.save, def),
-          ),
+        viewFor: (buildingId, def) =>
+          this.buildingView(store, buildingId, def, growth),
         onTap: (buildingId, def) =>
           this.onTownBuildingTap(store, buildingId, def),
       },
@@ -146,6 +153,7 @@ export class TownScene extends Phaser.Scene {
     for (const c of controls) {
       this.buildingControls.set(c.buildingId, c);
     }
+    this.refreshStatus(store);
 
     const buttons = createTownHeaderButtons(this, {
       onDebug: () => this.overlays.launchDebugMenu(),
@@ -180,6 +188,7 @@ export class TownScene extends Phaser.Scene {
       }
       this.overlays.teardown();
       this.buildingControls.clear();
+      this.world.destroy();
       this.touchDebug.destroy();
       this.fpsOverlay.destroy();
     });
@@ -196,23 +205,17 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const store = getDataStore(this.registry);
-    const out = collectTownUiTapTargets(
-      store,
+    return collectTownUiTapTargets(
+      getDataStore(this.registry),
       this.buildingControls,
       this.overlays,
+      blocksBaseLayerInput(this)
+        ? []
+        : [
+            ["town-gear", this.gearButton.container],
+            ["town-talents", this.talentsButton.container],
+          ],
     );
-    const header: Array<[string, ReturnType<typeof createTouchButton>]> = [
-      ["town-gear", this.gearButton],
-      ["town-talents", this.talentsButton],
-    ];
-    for (const [id, btn] of header) {
-      const r = interactiveObjectScreenRect(btn.container);
-      if (r && !blocksBaseLayerInput(this)) {
-        out[id] = { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-      }
-    }
-    return out;
   }
 
   e2eGetSpellSortSlotHitRects(): ReturnType<
@@ -252,11 +255,10 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
-    const store = getDataStore(this.registry);
-    const cap = clampEndlessConcurrent(
-      store.player.endlessPanelDefaultConcurrent,
+    const selections = e2eEndlessSelections(
+      getDataStore(this.registry),
+      enemyId,
     );
-    const selections: EndlessRunSelection[] = [{ enemyId, concurrentCap: cap }];
     this.overlays.transitionToDefense(() =>
       this.beginEndlessDefense(selections, infiniteHp),
     );
@@ -358,6 +360,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
+    this.world.tick(delta);
     this.fpsOverlay.tick(this.registry, delta, this.game);
     if (!showTouchInput(this.registry)) {
       this.touchDebug.clear();
@@ -433,23 +436,46 @@ export class TownScene extends Phaser.Scene {
       playUiSfx(this, "upgrade");
       persistSave(this.save);
       setSave(this.registry, this.save);
-      this.refreshBuildingOverlays(store);
       this.refreshStatus(store);
     }
     this.flashTransientStatus(result.message, store);
   }
 
+  /** Art tier + name plate for one building at the current town growth. */
+  private buildingView(
+    store: DataStore,
+    buildingId: string,
+    def: TownBuildingDef,
+    growth: TownGrowthView,
+  ) {
+    const tiers = TOWN_ISO_BUILDING_TIERS[buildingId] ?? [];
+    const idx = townBuildingArtTier(def, this.save.buildings, growth.stage);
+    const tier = tiers[idx] ?? tiers[tiers.length - 1];
+    if (!tier) throw new Error(`No isometric art for ${buildingId}`);
+    return {
+      tier,
+      plate: townBuildingPlateInfo(
+        store,
+        this.save,
+        def,
+        debugEconomyPolicy(this.registry),
+      ),
+    };
+  }
+
+  /** Town growth (stage scenery), building tiers and plates from the current save. */
   private refreshBuildingOverlays(store: DataStore): void {
+    const growth = townGrowthView(this.save.buildings);
+    this.world.build(growth.stage, growth.nextStageTownLevel);
     for (const [id, control] of this.buildingControls) {
       const def = store.townBuildings[id];
       if (!def) continue;
-      control.setLabel(
-        formatTownBuildingButtonLabel(
-          def,
-          townBuildingSubtitle(store, this.save, def),
-        ),
-      );
+      control.update(this.buildingView(store, id, def, growth));
     }
+    this.world.bake(
+      [...this.buildingControls.values()].map((c) => c.bakeArt()),
+    );
+    this.hud.update(this.save, growth);
   }
 
   private flashTransientStatus(message: string, store: DataStore): void {
@@ -468,5 +494,6 @@ export class TownScene extends Phaser.Scene {
 
   private refreshStatus(store: DataStore): void {
     this.statusText.setText(formatTownStatus(this.save, store));
+    this.refreshBuildingOverlays(store);
   }
 }

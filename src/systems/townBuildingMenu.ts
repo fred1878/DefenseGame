@@ -6,13 +6,7 @@ import { wallHpBonusFromBuildings } from "../core/save/GameState";
 import type { BuildingDef } from "../core/data/DataStore";
 import { type EconomyPolicy, hasEnoughGold } from "../core/economyPolicy";
 
-const UNIMPLEMENTED_SUBTITLE = "— Not available yet";
-const START_NIGHT_SUBTITLE = "— Start night";
-const SPELL_BAR_SUBTITLE = "— Spell bar";
-const ENDLESS_MODE_SUBTITLE = "— Endless training";
-const WAVE_PLANNER_SUBTITLE = "— Wave planner";
-const SAVE_MENU_SUBTITLE = "— Saves";
-const SHOP_SUBTITLE = { trader: "— Trader", blacksmith: "— Blacksmith" };
+import type { TownPlateInfo } from "../ui/hud/townBuildingPlate";
 
 function upgradeEffectLabel(effect: string): string {
   if (effect === "wallHpMax") return "Wall HP";
@@ -20,53 +14,48 @@ function upgradeEffectLabel(effect: string): string {
   return effect;
 }
 
-/** Second line under the building name on town menu buttons. */
-export function townBuildingSubtitle(
+/** Short action on a building's name plate (what a tap does). */
+function townBuildingAction(def: TownBuildingDef): string {
+  if (def.startsNight) return "Start night";
+  if (def.opensSpellBar) return "Spells";
+  if (def.opensEndlessMode) return "Endless";
+  if (def.opensWavePlanner) return "Wave plan";
+  if (def.opensSaveMenu) return "Save";
+  if (def.opensShop === "trader") return "Trader";
+  if (def.opensShop === "blacksmith") return "Blacksmith";
+  if (def.upgradeId === "wall") return "Wall";
+  if (def.upgradeId) return "Upgrade";
+  return "Not available yet";
+}
+
+/**
+ * Name plate for a town building: name, level / max for buildings with an upgrade or shop
+ * level (`buildings.json`), the tap action, and whether the next level is affordable.
+ */
+export function townBuildingPlateInfo(
   store: DataStore,
   save: SaveGame,
   def: TownBuildingDef,
-): string {
-  if (def.startsNight) return START_NIGHT_SUBTITLE;
-  if (def.opensSpellBar) return SPELL_BAR_SUBTITLE;
-  if (def.opensEndlessMode) return ENDLESS_MODE_SUBTITLE;
-  if (def.opensWavePlanner) return WAVE_PLANNER_SUBTITLE;
-  if (def.opensSaveMenu) return SAVE_MENU_SUBTITLE;
-  if (def.opensShop) {
-    const level = save.buildings[def.opensShop] ?? 0;
-    return level > 0
-      ? `${SHOP_SUBTITLE[def.opensShop]} L${level}`
-      : SHOP_SUBTITLE[def.opensShop];
-  }
-
-  const upgradeId = def.upgradeId;
-  if (!upgradeId) return UNIMPLEMENTED_SUBTITLE;
-
-  const up = store.buildings[upgradeId];
-  if (!up) return UNIMPLEMENTED_SUBTITLE;
-
-  const level = save.buildings[upgradeId] ?? 0;
-  if (upgradeId === "wall") {
-    if (level >= up.maxLevel) {
-      return `— Wall max (L${level}, HP ${save.townWallHp}/${save.townWallHpMax})`;
-    }
-    const cost = up.costByLevel[level];
-    const next = cost !== undefined ? `, next ${cost}g` : "";
-    return `— Upgrade wall (L${level}${next})`;
-  }
-
-  if (level >= up.maxLevel) {
-    return `— ${upgradeEffectLabel(up.effect)} · max level`;
-  }
+  policy?: EconomyPolicy,
+): TownPlateInfo {
+  const info: TownPlateInfo = {
+    name: def.label,
+    action: townBuildingAction(def),
+  };
+  const id = def.upgradeId ?? def.opensShop;
+  const up = id ? store.buildings[id] : undefined;
+  if (!id || !up) return info;
+  const level = save.buildings[id] ?? 0;
   const cost = up.costByLevel[level];
-  if (cost === undefined) return `— ${upgradeEffectLabel(up.effect)}`;
-  return `— Upgrade (${upgradeId} L${level}, next ${cost}g)`;
-}
-
-export function formatTownBuildingButtonLabel(
-  def: TownBuildingDef,
-  subtitle: string,
-): string {
-  return `${def.label}\n${subtitle}`;
+  return {
+    ...info,
+    level,
+    maxLevel: up.maxLevel,
+    upgradeReady:
+      level < up.maxLevel &&
+      cost !== undefined &&
+      hasEnoughGold(save, cost, policy),
+  };
 }
 
 export type TownBuildingTapResult =

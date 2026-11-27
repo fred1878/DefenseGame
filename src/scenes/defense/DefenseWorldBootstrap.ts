@@ -58,7 +58,7 @@ export type DefenseWorldBootstrapInput = {
   endless: boolean;
 };
 
-/** Nav, ground, obstacles, player, play-area camera viewport (REFACTOR_PLAN PR #125). */
+/** Nav, ground, obstacles, player, play-area camera viewport. */
 export function bootstrapDefenseWorld(
   input: DefenseWorldBootstrapInput,
 ): DefenseWorldBootstrapResult {

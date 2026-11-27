@@ -265,7 +265,6 @@ export function emptyRarityCounts(): RarityCounts {
 
 const WALL_BUILDING: TownBuildingDef = {
   label: "Wall",
-  textureKey: "",
   width: 0,
   height: 0,
   upgradeId: "wall",

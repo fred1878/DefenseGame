@@ -34,7 +34,6 @@ const E2E_METHODS = [
   "isTouchButtonPressed",
   "autoAttackEnabled",
   "setAutoAttackEnabled",
-  "simulateScreenTap",
   "wallHp",
   "bottomChromeTextureKey",
   "setSpawnPlanComplete",
@@ -314,15 +313,12 @@ describe("buildApi", () => {
     api.forceWinNight();
     api.setManualReturnToTown(true);
     api.returnToTown();
-    api.tapDomMirror("combat-atk");
-    api.simulateScreenTap(1, 2);
     api.setSpawnPlanComplete();
     api.setPlayerPosition(3, 4);
     api.centerDefenseCameraOn(5, 6);
     api.resolvePlayerObstacleOverlap();
     api.setShowEnemyPaths(true);
     api.setShowHitboxes(true);
-    api.syncDomMirrors();
     api.damageFirstLivingEnemy(2);
     api.previewHolyFx("flash");
     api.showcaseEnemyMeleeSwipe("grunt", 10);
@@ -426,10 +422,6 @@ describe("buildApi", () => {
     api.forceWinNight();
     api.setManualReturnToTown(true);
     api.returnToTown();
-    api.syncDomMirrors();
-    api.tapDomMirror("combat-atk");
-    api.tapDomMirror("missing");
-    api.simulateScreenTap(9, 8);
     api.setSpawnPlanComplete();
     api.setPlayerPosition(11, 12);
     api.centerDefenseCameraOn(13, 14);
@@ -596,7 +588,6 @@ describe("buildApi", () => {
     const api = buildApi(game as never);
     expect(api.getUiTapTargets()).toEqual({ "start-night": { x: 20, y: 30 } });
     expect(api.isUiButtonPressed("start-night")).toBe(true);
-    api.syncDomMirrors();
     expect(api.getTownBuildingDebugRectCount()).toBe(3);
     expect(api.getTownTouchDebugRectCount()).toBe(4);
     api.openSpellSortPanel();

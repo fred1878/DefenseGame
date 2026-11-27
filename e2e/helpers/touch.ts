@@ -121,3 +121,44 @@ export async function waitForTapTargets(
     )
     .toBe(true);
 }
+
+/**
+ * Tap a game button through the real Phaser input path: wait until the game reports
+ * the button's tap target (it only reports buttons that are on screen) at the same
+ * spot on two reads in a row (no tween / layout still moving it), then press and
+ * release on the canvas there. A broken button handler fails the caller's assertion,
+ * unlike calling the e2e API directly.
+ */
+export async function tapGameButton(
+  page: Page,
+  testId: string,
+  { timeout = 20_000 }: { timeout?: number } = {},
+): Promise<{ x: number; y: number }> {
+  let last: { x: number; y: number } | null = null;
+  let stable: { x: number; y: number } | null = null;
+  await expect
+    .poll(
+      async () => {
+        const pt = await page.evaluate(
+          (id) =>
+            window.__DEFENSEGAME_E2E__?.api?.getUiTapTargets()?.[id] ?? null,
+          testId,
+        );
+        if (pt && last && pt.x === last.x && pt.y === last.y) {
+          stable = pt;
+          return true;
+        }
+        last = pt;
+        return false;
+      },
+      {
+        timeout,
+        intervals: [50, 100, 200],
+        message: `tap target "${testId}" never settled on screen`,
+      },
+    )
+    .toBe(true);
+  const pt = stable as unknown as { x: number; y: number };
+  await tapCanvas(page, pt.x, pt.y);
+  return pt;
+}

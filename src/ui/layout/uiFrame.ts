@@ -11,6 +11,14 @@ export function hasUiPart(scene: Phaser.Scene, part: UiPartName): boolean {
   return !!scene.textures?.exists?.(uiPartKey(part));
 }
 
+/** Phaser.CANVAS: NineSlice is WebGL only (its canvas renderer is a no-op). */
+const CANVAS_RENDERER = 1;
+
+/** True when nine-slice frames can draw: the WebGL renderer (Canvas fallback cannot). */
+function canDrawNineSlice(scene: Phaser.Scene): boolean {
+  return scene.game?.renderer?.type !== CANVAS_RENDERER;
+}
+
 /**
  * Lay a nine-slice frame over the box `x, y, w, h` (logical px). The frame is drawn at
  * its spec scale (whole source pixels stay square) and a crest extends above the box.
@@ -34,7 +42,10 @@ export function layoutUiFrame(
   ns.setPosition(x, y - ext);
 }
 
-/** Nine-slice frame object (origin top-left), or null without the texture. */
+/**
+ * Nine-slice frame object (origin top-left), or null without the texture or on the Canvas
+ * renderer (callers then draw their vector fallback instead of an invisible frame).
+ */
 export function addUiFrame(
   scene: Phaser.Scene,
   name: UiFrameName,
@@ -45,6 +56,7 @@ export function addUiFrame(
 ): Phaser.GameObjects.NineSlice | null {
   const f = UI_FRAMES[name];
   if (!hasUiPart(scene, f.part) || !scene.add?.nineslice) return null;
+  if (!canDrawNineSlice(scene)) return null;
   const ns = scene.add
     .nineslice(
       x,

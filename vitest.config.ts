@@ -79,8 +79,6 @@ export default defineConfig({
         "src/vite-env.d.ts",
         "src/bootstrap.ts",
         "src/gameMain.ts",
-        "src/scenes/DebugMenuScene.ts",
-        "src/scenes/EndlessModeSetupScene.ts",
         "src/scenes/defense/DefenseSceneE2ECombat.ts",
         "src/scenes/defense/DefenseSceneE2EHud.ts",
         "src/scenes/defense/DefenseSceneE2EObstacles.ts",
@@ -88,13 +86,13 @@ export default defineConfig({
         "src/appUpdate/runCheckForUpdate.ts",
       ],
       // Scene files are covered by the real-Phaser `scenes` project; the ones
-      // above are E2E-only adapters, Capacitor stubs, or still need scene
-      // tests. Floors only ratchet up: add tests, never lower them.
+      // above are production entries, E2E-only adapters and Capacitor stubs.
+      // Floors only ratchet up: add tests, never lower them.
       thresholds: {
-        lines: 97,
-        functions: 96.5,
-        branches: 92,
-        statements: 96.5,
+        lines: 98,
+        functions: 97.5,
+        branches: 93,
+        statements: 97.5,
       },
     },
   },
