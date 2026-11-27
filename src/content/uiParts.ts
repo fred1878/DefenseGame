@@ -1,7 +1,8 @@
 /**
  * Pixel-art UI pieces cut from free itch.io packs (`public/assets/ui/itch/`, credits in
  * CREDITS.md): `da-*` Dark Ages UI (Hypnobius), `gp-*` Gothic Pixel UI (AbyssOwl,
- * credit required), `ed-*` Edinnu UI (rowdy41). Only the cut pieces used ship.
+ * credit required), `ed-*` Edinnu UI (rowdy41). Only the cut pieces used ship. `dg-*` are
+ * DefenseGame originals (red close button, coin, compare arrows, info "i").
  */
 export const UI_PART_ROOT = "assets/ui/itch";
 
@@ -27,6 +28,14 @@ export const UI_PART_FILES = [
   "gp-toggle-off",
   "ed-heart",
   "ed-moon",
+  "dg-close-red",
+  "dg-coin",
+  "dg-v-up",
+  "dg-v-down",
+  "dg-v-same",
+  "dg-v-mixed",
+  "dg-v-new",
+  "dg-info-i",
 ] as const;
 
 export type UiPartName = (typeof UI_PART_FILES)[number];
