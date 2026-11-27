@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { DG_THEME as SHARED_THEME, themeInt } from "./theme/dgTheme";
 import { GAME } from "../config";
 import { DAMAGE_NUMBER_FONT_FAMILY } from "../config/damageNumbers";
@@ -527,7 +528,7 @@ export class TalentPanel {
   private learn(): void {
     const save = this.getSave();
     const id = this.selectedId;
-    const reg = this.scene.registry;
+    const reg = debugEconomyPolicy(this.scene.registry);
     if (!canLearn(this.catalog, save.talents, id, reg)) {
       const loc = findTalent(this.catalog, id)!;
       this.statusText.setText(
@@ -550,7 +551,7 @@ export class TalentPanel {
   private reset(): void {
     const save = this.getSave();
     const cost = this.catalog.config.resetCostGold;
-    const reg = this.scene.registry;
+    const reg = debugEconomyPolicy(this.scene.registry);
     if (!canResetTalents(this.catalog, save.talents, save.gold, reg)) {
       this.resetArmed = false;
       this.statusText.setText(
@@ -593,7 +594,10 @@ export class TalentPanel {
     const save = this.getSave();
     const talents = save.talents;
     const cat = this.catalog;
-    const free = pointsAvailable(talents, this.scene.registry);
+    const free = pointsAvailable(
+      talents,
+      debugEconomyPolicy(this.scene.registry),
+    );
     this.pointsPill.setText(`✦ ${free} pts`);
     this.summary.setText(
       `${pointsSpent(talents)} spent · ${talents.earned} earned · ${save.gold}g`,
@@ -758,7 +762,7 @@ export class TalentPanel {
       this.catalog,
       talents,
       loc.node.id,
-      this.scene.registry,
+      debugEconomyPolicy(this.scene.registry),
     );
     this.learnBtn.setLabel(
       rank >= loc.node.maxRank ? "Maxed" : "↑ Learn · 1 pt",
@@ -769,7 +773,12 @@ export class TalentPanel {
       this.resetArmed ? `Confirm · ${cost}g` : `⟳ Reset · ${cost}g`,
     );
     this.resetBtn.container.setAlpha(
-      canResetTalents(this.catalog, talents, save.gold, this.scene.registry)
+      canResetTalents(
+        this.catalog,
+        talents,
+        save.gold,
+        debugEconomyPolicy(this.scene.registry),
+      )
         ? 1
         : DISABLED_ALPHA,
     );

@@ -1,4 +1,5 @@
 import { consumableCount, getConsumablesConfig } from "../../gear/consumables";
+import { debugEconomyPolicy } from "../../debug/debugEconomy";
 import type { ConsumableDef } from "../../gear/consumableTypes";
 import {
   bagItems,
@@ -484,7 +485,7 @@ export function reduceGearPanel(
         ctx.shop.ctx,
         ctx.shop.id,
         state.selectedOffer,
-        ctx.registry,
+        ctx.registry && debugEconomyPolicy(ctx.registry),
       );
       let next = r.save;
       let status = r.message;
@@ -513,7 +514,7 @@ export function reduceGearPanel(
         ctx.shop.buildings,
         save,
         ctx.shop.id,
-        ctx.registry,
+        ctx.registry && debugEconomyPolicy(ctx.registry),
       );
       const next =
         r.result.kind === "upgraded"
@@ -534,7 +535,7 @@ export function reduceGearPanel(
         save,
         ctx.shop.ctx,
         ctx.shop.rng ?? Math.random,
-        ctx.registry,
+        ctx.registry && debugEconomyPolicy(ctx.registry),
       );
       return {
         save: r.save,

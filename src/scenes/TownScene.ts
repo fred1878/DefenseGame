@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { createDefaultAutoCastSpellIds } from "../content/spellBarAutoCast";
 import type { SaveGame } from "../core/saveTypes";
 import type { DataStore } from "../core/DataStore";
@@ -488,7 +489,7 @@ export class TownScene extends Phaser.Scene {
       store,
       this.save,
       def,
-      this.registry,
+      debugEconomyPolicy(this.registry),
     );
     if (result.kind === "startNight") {
       this.overlays.transitionToDefense(() => this.beginDefenseNight());

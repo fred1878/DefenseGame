@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { DataStore } from "../core/DataStore";
 import type { TownBuildingDef } from "../core/townBuildingTypes";
 import { createNewSave } from "../core/GameState";
@@ -214,7 +215,12 @@ describe("townBuildingMenu", () => {
         storeReg[k] = v;
       },
     } as Phaser.Data.DataManager;
-    const { result } = handleTownBuildingTap(store, save, def, registry);
+    const { result } = handleTownBuildingTap(
+      store,
+      save,
+      def,
+      debugEconomyPolicy(registry),
+    );
     expect(result.kind).toBe("upgraded");
   });
 
