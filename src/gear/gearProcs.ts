@@ -18,7 +18,13 @@ export function applyWeaponHitEffects(opts: {
   for (const proc of gearWeaponProcs()) {
     if (rng() * 100 >= proc.chancePct) continue;
     if (proc.kind === "dot") {
-      opts.status.applyDot(opts.enemyId, proc.dps, proc.ms, proc.flavor);
+      opts.status.applyDot(
+        opts.enemyId,
+        proc.dps,
+        proc.ms,
+        proc.flavor,
+        "proc",
+      );
     } else if (proc.kind === "slow") {
       opts.status.applySlow(opts.enemyId, proc.slowPct, proc.ms);
     } else {

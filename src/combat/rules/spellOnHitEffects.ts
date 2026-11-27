@@ -7,6 +7,8 @@ export function applySpellOnHitEffects(
   enemyId: string,
   onHit: SpellOnHitEffects,
   dotFlavor: DamageFlavor,
+  /** Spell id the DoT's damage is credited to. */
+  source?: string,
 ): void {
   if (onHit.rootMs && onHit.rootMs > 0) {
     status.applyRoot(enemyId, onHit.rootMs);
@@ -18,6 +20,6 @@ export function applySpellOnHitEffects(
     status.applySlow(enemyId, onHit.slowPct, onHit.slowMs);
   }
   if (onHit.dotDps && onHit.dotDps > 0 && onHit.dotMs && onHit.dotMs > 0) {
-    status.applyDot(enemyId, onHit.dotDps, onHit.dotMs, dotFlavor);
+    status.applyDot(enemyId, onHit.dotDps, onHit.dotMs, dotFlavor, source);
   }
 }

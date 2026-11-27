@@ -213,6 +213,7 @@ export function updateProjectile(
         firstTarget.damageable,
         projectile.damage,
         projectile.damageFlavor,
+        projectile.spellId ?? "ranged",
       );
       if (behavior !== "aoe_on_hit") {
         // Push away from where the projectile struck, not from where it ended

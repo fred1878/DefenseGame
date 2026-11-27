@@ -896,8 +896,8 @@ export class DefenseScene extends Phaser.Scene {
         onFocusEnemy: (id) => this.run.targeting.setFocusEnemy(id),
       },
       maskWorldObject: (go) => this.registerWorldDraw(go),
-      notifyDamaged: (enemy, amount, flavor) => {
-        if (isE2EEnabled()) recordCombatDamage(flavor, amount);
+      notifyDamaged: (enemy, amount, flavor, source) => {
+        if (isE2EEnabled()) recordCombatDamage(flavor, amount, source);
         this.damageNumbers.floatFromSource(
           enemy.damageable.id,
           enemy.sprite,

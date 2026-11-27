@@ -73,13 +73,14 @@ export function applyNova(
     if (!e.damageable.alive) continue;
     const d = Phaser.Math.Distance.Between(playerX, playerY, e.x, e.y);
     if (d <= radius + e.radius) {
-      applyDamage(e.damageable, damage, def.damageFlavor ?? "fire");
+      applyDamage(e.damageable, damage, def.damageFlavor ?? "fire", def.id);
       if (status && def.onHit) {
         applySpellOnHitEffects(
           status,
           e.id,
           def.onHit,
           def.damageFlavor ?? "fire",
+          def.id,
         );
       }
     }
@@ -189,12 +190,12 @@ export function applySpellBlastAt(
   for (const e of enemiesInDisk(centerX, centerY, r, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
-    applyDamage(full.damageable, damage, flavor);
+    applyDamage(full.damageable, damage, flavor, def.id);
     if (knockbackPx > 0 && !knockbackExcludeIds?.has(full.id)) {
       applyEnemyKnockbackFrom(full.enemy, centerX, centerY, knockbackPx);
     }
     if (status && def.onHit) {
-      applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+      applySpellOnHitEffects(status, full.id, def.onHit, flavor, def.id);
     }
   }
 }
@@ -224,7 +225,7 @@ export function applySpellSwing(
   )) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
-    applyDamage(full.damageable, damage, flavor);
+    applyDamage(full.damageable, damage, flavor, def.id);
     applyEnemyKnockbackFrom(
       full.enemy,
       playerX,
@@ -232,7 +233,7 @@ export function applySpellSwing(
       worldUnit(spellDirectKnockback(def), scene.registry),
     );
     if (status && def.onHit) {
-      applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+      applySpellOnHitEffects(status, full.id, def.onHit, flavor, def.id);
     }
   }
 }
@@ -261,7 +262,7 @@ export function strikeSpellCone(
   )) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
-    applyDamage(full.damageable, damage, flavor);
+    applyDamage(full.damageable, damage, flavor, def.id);
     applyEnemyKnockbackFrom(
       full.enemy,
       playerX,
@@ -269,7 +270,7 @@ export function strikeSpellCone(
       worldUnit(spellDirectKnockback(def), scene.registry),
     );
     if (status && def.onHit) {
-      applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+      applySpellOnHitEffects(status, full.id, def.onHit, flavor, def.id);
     }
   }
 }
@@ -357,7 +358,7 @@ export function applyInstantTargeted(
   const hitDamage = (def.baseDamage ?? 0) * damageMult;
   const blastKnockbackExclude = new Set<string>([full.id]);
   if (hitDamage > 0) {
-    applyDamage(full.damageable, hitDamage, flavor);
+    applyDamage(full.damageable, hitDamage, flavor, def.id);
     applyEnemyKnockbackFrom(
       full.enemy,
       playerX,
@@ -368,7 +369,7 @@ export function applyInstantTargeted(
     blastKnockbackExclude.delete(full.id);
   }
   if (def.burstDamage && def.burstDamage > 0) {
-    applyDamage(full.damageable, def.burstDamage * damageMult, flavor);
+    applyDamage(full.damageable, def.burstDamage * damageMult, flavor, def.id);
     if (def.blastRadiusWu) {
       applySpellBlastAt(
         scene,
@@ -403,7 +404,7 @@ export function applyInstantTargeted(
     );
   }
   if (status && def.onHit) {
-    applySpellOnHitEffects(status, full.id, def.onHit, flavor);
+    applySpellOnHitEffects(status, full.id, def.onHit, flavor, def.id);
   }
   return full.id;
 }
@@ -436,11 +437,11 @@ export function applyChainLightning(
   const flavor = def.damageFlavor ?? "fire";
   const applyHopHit = (enemyId: string) => {
     if (status && def.onHit) {
-      applySpellOnHitEffects(status, enemyId, def.onHit, flavor);
+      applySpellOnHitEffects(status, enemyId, def.onHit, flavor, def.id);
     }
   };
   const startFull = living.find((e) => e.id === start.id)!;
-  applyDamage(startFull.damageable, damage, flavor);
+  applyDamage(startFull.damageable, damage, flavor, def.id);
   applyEnemyKnockbackFrom(
     startFull.enemy,
     playerX,
@@ -453,7 +454,7 @@ export function applyChainLightning(
   for (const hop of chain) {
     const full = living.find((e) => e.id === hop.id);
     if (!full) continue;
-    applyDamage(full.damageable, damage, flavor);
+    applyDamage(full.damageable, damage, flavor, def.id);
     applyEnemyKnockbackFrom(
       full.enemy,
       fromX,

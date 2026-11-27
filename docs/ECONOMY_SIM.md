@@ -165,8 +165,10 @@ is ready (and never moves during a heal, which needs the player still),
 drinks a potion (Q) under 45% HP and throws a bomb (E) when 5+ enemies are
 within 160 px. A night is won if `save.night`
 advanced. Each fight also records the game's damage tally by flavour
-(physical = weapon; elements = spells, procs, bombs), the casts started per
-spell, the HP the player regained and the bar it used.
+(physical = weapon; elements = spells, procs, bombs), the same damage by
+source (`bySource`: a spell id, its DoTs included; `melee` / `ranged`
+weapon hits; `proc` for gear DoTs; bombs under their own id), the casts
+started per spell, the HP the player regained and the bar it used.
 
 ### Spell bars
 

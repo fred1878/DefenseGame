@@ -112,9 +112,15 @@ export function tickSpellGroundZones(
       for (const e of inZone) {
         const full = enemies.find((x) => x.id === e.id);
         if (!full?.damageable.alive) continue;
-        applyDamage(full.damageable, z.burstDamage, z.damageFlavor);
+        applyDamage(full.damageable, z.burstDamage, z.damageFlavor, z.spellId);
         if (z.onHit)
-          applySpellOnHitEffects(status, full.id, z.onHit, z.damageFlavor);
+          applySpellOnHitEffects(
+            status,
+            full.id,
+            z.onHit,
+            z.damageFlavor,
+            z.spellId,
+          );
       }
     }
     while (z.tickAccumMs >= z.tickEveryMs) {
@@ -141,9 +147,15 @@ export function tickSpellGroundZones(
       for (const e of inZone) {
         const full = enemies.find((x) => x.id === e.id);
         if (!full?.damageable.alive) continue;
-        applyDamage(full.damageable, tickDmg, z.damageFlavor);
+        applyDamage(full.damageable, tickDmg, z.damageFlavor, z.spellId);
         if (z.onHit && !z.lingerDotDps) {
-          applySpellOnHitEffects(status, full.id, z.onHit, z.damageFlavor);
+          applySpellOnHitEffects(
+            status,
+            full.id,
+            z.onHit,
+            z.damageFlavor,
+            z.spellId,
+          );
         }
       }
     }

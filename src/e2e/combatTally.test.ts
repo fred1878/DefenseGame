@@ -35,10 +35,28 @@ describe("combatTally", () => {
     recordPlayerHealed(12);
     recordPlayerHealed(-4);
     const t = castTally();
-    expect(t).toEqual({ casts: { heal: 2, fire_bolt: 1 }, healed: 12 });
+    expect(t).toEqual({
+      casts: { heal: 2, fire_bolt: 1 },
+      healed: 12,
+      bySource: {},
+    });
     t.casts.heal = 0;
     expect(castTally().casts.heal).toBe(2);
     resetCombatTally();
-    expect(castTally()).toEqual({ casts: {}, healed: 0 });
+    expect(castTally()).toEqual({ casts: {}, healed: 0, bySource: {} });
+  });
+
+  it("sums damage by source, other by default", () => {
+    recordCombatDamage("fire", 10, "fire_bolt");
+    recordCombatDamage("fire", 4, "fire_bolt");
+    recordCombatDamage("physical", 7, "melee");
+    recordCombatDamage("frost", 2);
+    expect(castTally().bySource).toEqual({
+      fire_bolt: { damage: 14, hits: 2 },
+      melee: { damage: 7, hits: 1 },
+      other: { damage: 2, hits: 1 },
+    });
+    resetCombatTally();
+    expect(castTally().bySource).toEqual({});
   });
 });

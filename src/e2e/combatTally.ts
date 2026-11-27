@@ -6,15 +6,25 @@
  */
 export type CombatTally = Record<string, { damage: number; hits: number }>;
 
-/** Spell casts started (by spell id) and HP the player regained. */
-export type CastTally = { casts: Record<string, number>; healed: number };
+/**
+ * Spell casts started (by spell id), HP the player regained, and damage to
+ * enemies by source: a spell id (its DoTs included), "melee" / "ranged"
+ * weapon hits, "proc" (gear on-hit DoTs) or "other".
+ */
+export type CastTally = {
+  casts: Record<string, number>;
+  healed: number;
+  bySource: CombatTally;
+};
 
 let tally: CombatTally = {};
+let bySource: CombatTally = {};
 let casts: Record<string, number> = {};
 let healed = 0;
 
 export function resetCombatTally(): void {
   tally = {};
+  bySource = {};
   casts = {};
   healed = 0;
 }
@@ -29,16 +39,24 @@ export function recordPlayerHealed(amount: number): void {
 
 /** Copy of the cast / heal tally since the last reset. */
 export function castTally(): CastTally {
-  return { casts: { ...casts }, healed };
+  return { casts: { ...casts }, healed, bySource: structuredClone(bySource) };
 }
 
-export function recordCombatDamage(flavor: string | undefined, amount: number) {
-  if (!(amount > 0)) return;
-  const key = flavor || "physical";
-  const row = tally[key] ?? { damage: 0, hits: 0 };
+function add(into: CombatTally, key: string, amount: number): void {
+  const row = into[key] ?? { damage: 0, hits: 0 };
   row.damage += amount;
   row.hits += 1;
-  tally[key] = row;
+  into[key] = row;
+}
+
+export function recordCombatDamage(
+  flavor: string | undefined,
+  amount: number,
+  source?: string,
+) {
+  if (!(amount > 0)) return;
+  add(tally, flavor || "physical", amount);
+  add(bySource, source || "other", amount);
 }
 
 /** Copy of the tally since the last reset. */

@@ -92,7 +92,7 @@ describe("Player melee swing hitbox", () => {
     expect(onHit).toHaveBeenCalledWith(east, 10);
     expect(onHit).toHaveBeenCalledTimes(1);
     expect(east.damageable.hp).toBeLessThan(100);
-    expect(onDamaged).toHaveBeenCalledWith(10, "physical");
+    expect(onDamaged).toHaveBeenCalledWith(10, "physical", "melee");
     expect(south.damageable.hp).toBe(100);
     expect(player.meleeHitboxFacingRad()).toBeCloseTo(0);
   });

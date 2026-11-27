@@ -30,6 +30,7 @@ export type DefenseEnemySpawnerHost = {
     enemy: EnemyInstance,
     amount: number,
     flavor: DamageFlavor,
+    source?: string,
   ) => void;
 };
 
@@ -132,9 +133,9 @@ export function spawnDefenseEnemyAt(
     enemy = spawnEnemy(host.scene, id, x, y, spawnDef, defId, onDeath, onTap);
   }
 
-  enemy.damageable.onDamaged = (amount, flavor) => {
+  enemy.damageable.onDamaged = (amount, flavor, source) => {
     flashSpriteTint(host.scene, enemy.sprite, flavor);
-    host.notifyDamaged?.(enemy, amount, flavor);
+    host.notifyDamaged?.(enemy, amount, flavor, source);
   };
   host.enemyGroup.add(enemy.sprite);
   host.maskWorldObject?.(enemy.sprite);

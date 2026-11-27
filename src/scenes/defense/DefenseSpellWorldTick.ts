@@ -15,9 +15,9 @@ export function tickDefenseSpellWorld(
   director: SpellWorldDirector,
   delta: number,
 ): void {
-  host.enemySpellStatus.tick(delta, (enemyId, amount, flavor) => {
+  host.enemySpellStatus.tick(delta, (enemyId, amount, flavor, source) => {
     const e = host.targeting.getEnemyById(enemyId);
-    if (e?.damageable.alive) applyDamage(e.damageable, amount, flavor);
+    if (e?.damageable.alive) applyDamage(e.damageable, amount, flavor, source);
   });
   for (const e of host.enemies) {
     e.statusSpeedMul = host.enemySpellStatus.moveSpeedMultiplier(e.id);

@@ -233,6 +233,7 @@ test.describe("win model validation @manual", () => {
             window.__DEFENSEGAME_E2E__?.api?.getCastTally() ?? {
               casts: {},
               healed: 0,
+              bySource: {},
             },
         );
         const won = (after?.night ?? 0) > snap.night;
@@ -249,6 +250,7 @@ test.describe("win model validation @manual", () => {
           tally,
           casts: cast.casts,
           healed: Math.round(cast.healed),
+          bySource: cast.bySource,
           bar: snap.save.spellBar.slots.filter(Boolean),
           strategy: snap.strategy ?? "balanced",
           bot: fullCast ? "full-cast" : "default",

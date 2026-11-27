@@ -241,7 +241,7 @@ export class Player {
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);
-        applyDamage(e.damageable, damage, MELEE_HIT_FLAVOR);
+        applyDamage(e.damageable, damage, MELEE_HIT_FLAVOR, "melee");
         applyEnemyKnockbackFrom(e, this.sprite.x, this.sprite.y, knockback);
         onHit?.(e, damage);
       }

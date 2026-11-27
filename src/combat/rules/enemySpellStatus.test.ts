@@ -52,6 +52,27 @@ describe("EnemySpellStatusMap", () => {
     expect(onDamaged).toHaveBeenCalledWith(5, "fire");
   });
 
+  it("credits DOT ticks to whoever applied the strongest DOT", () => {
+    const m = new EnemySpellStatusMap();
+    m.applyDot("e1", 20, 2000, "fire", "combustion");
+    m.applyDot("e1", 8, 3000, "fire", "proc");
+    const sources: (string | undefined)[] = [];
+    m.tick(250, (_id, _amount, _flavor, source) => sources.push(source));
+    m.applyDot("e1", 30, 2000, "fire", "flamestrike");
+    m.tick(250, (_id, _amount, _flavor, source) => sources.push(source));
+    expect(sources).toEqual(["combustion", "flamestrike"]);
+    const onDamaged = vi.fn();
+    m.applyDotTickToDamageable("e1", {
+      id: "e1",
+      hp: 100,
+      maxHp: 100,
+      alive: true,
+      team: "enemy",
+      onDamaged,
+    });
+    expect(onDamaged).toHaveBeenCalledWith(7.5, "fire", "flamestrike");
+  });
+
   it("clears a finished DOT after the last tick", () => {
     const m = new EnemySpellStatusMap();
     m.applyDot("e1", 20, 200, "fire");

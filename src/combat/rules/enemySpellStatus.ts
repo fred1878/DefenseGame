@@ -13,6 +13,8 @@ export type EnemySpellStatus = {
   dotDps: number;
   dotRemainingMs: number;
   dotFlavor: DamageFlavor;
+  /** Who applied the strongest running DoT (see applyDot). */
+  dotSource?: string | undefined;
   dotTickAccumMs: number;
 };
 
@@ -63,8 +65,10 @@ export class EnemySpellStatusMap {
     dotDps: number,
     durationMs: number,
     flavor: DamageFlavor,
+    source?: string,
   ): void {
     const s = this.ensure(enemyId);
+    if (dotDps >= s.dotDps) s.dotSource = source;
     s.dotDps = Math.max(dotDps, s.dotDps);
     s.dotRemainingMs = Math.max(durationMs, s.dotRemainingMs);
     s.dotFlavor = flavor;
@@ -90,6 +94,7 @@ export class EnemySpellStatusMap {
       enemyId: string,
       amount: number,
       flavor: DamageFlavor,
+      source?: string,
     ) => void,
   ): void {
     for (const [id, status] of this.byEnemyId) {
@@ -105,7 +110,7 @@ export class EnemySpellStatusMap {
         while (status.dotTickAccumMs >= tickMs) {
           status.dotTickAccumMs -= tickMs;
           const amt = status.dotDps * (tickMs / 1000);
-          applyDotDamage(id, amt, status.dotFlavor);
+          applyDotDamage(id, amt, status.dotFlavor, status.dotSource);
         }
         if (status.dotRemainingMs <= 0) {
           status.dotDps = 0;
@@ -128,6 +133,11 @@ export class EnemySpellStatusMap {
   applyDotTickToDamageable(enemyId: string, damageable: Damageable): void {
     const s = this.byEnemyId.get(enemyId);
     if (!s || s.dotDps <= 0) return;
-    applyDamage(damageable, s.dotDps * (dotTickMs() / 1000), s.dotFlavor);
+    applyDamage(
+      damageable,
+      s.dotDps * (dotTickMs() / 1000),
+      s.dotFlavor,
+      s.dotSource,
+    );
   }
 }
