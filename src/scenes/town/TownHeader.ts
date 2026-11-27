@@ -115,8 +115,8 @@ export function createTownHeader(scene: Phaser.Scene): TownHud {
     .setOrigin(0, 0)
     .setDepth(HUD_DEPTH + 1);
 
-  const goldW = 124;
-  const goldH = 34;
+  const goldW = 108;
+  const goldH = 30;
   const goldX = GAME.width - 14 - goldW;
   const goldPill = addUiFrame(
     scene,
@@ -128,11 +128,11 @@ export function createTownHeader(scene: Phaser.Scene): TownHud {
   );
   goldPill?.setDepth(HUD_DEPTH + 1);
   scene.add
-    .image(goldX + 18, titleY, uiPartKey("da-gem-gold"))
-    .setDisplaySize(16, 15)
+    .image(goldX + 16, titleY, uiPartKey("da-gem-gold"))
+    .setDisplaySize(14, 13)
     .setDepth(HUD_DEPTH + 2);
   const goldText = scene.add
-    .text(goldX + goldW - 12, titleY, "0", hudText(scene, 20, "#FBBF24"))
+    .text(goldX + goldW - 12, titleY, "0", hudText(scene, 17, "#FBBF24"))
     .setOrigin(1, 0.5)
     .setDepth(HUD_DEPTH + 2);
 

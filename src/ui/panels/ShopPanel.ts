@@ -5,7 +5,6 @@ import type { SaveGame } from "../../core/save/saveTypes";
 import type { ModalInputLease } from "../../input/modalBackdrop";
 import { DG_THEME } from "../theme/dgTheme";
 import {
-  fitPurse,
   fitText,
   type Box,
   type DgKit,
@@ -112,7 +111,6 @@ export class ShopPanel {
       shopHeader(ctx, getSave()).title,
       () => this.destroy(),
       ctx.shop.id === "blacksmith" ? "hammer" : "coins",
-      { purse: true },
     );
     this.subtitle = head.subtitle;
     this.goldText = head.gold;
@@ -242,8 +240,8 @@ export class ShopPanel {
     const ctx = this.ctx;
     const st = this.state;
     const head = shopHeader(ctx, save);
-    fitText(this.subtitle, head.subtitle, 224);
-    fitPurse(this.goldText, head.gold);
+    fitText(this.subtitle, head.subtitle, 270);
+    this.goldText.setText(head.gold);
     const wants = st.tab === "requests";
     this.tabs.set(st.tab === "shop" ? 0 : wants ? 2 : 1, [
       head.buyCount,

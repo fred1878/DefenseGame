@@ -473,15 +473,11 @@ export class DgKit {
     this.icon(cx, cy, icon, 26, DG_THEME.accentGoldBright);
   }
 
-  /**
-   * Header card: crimson emblem, Pixelify title, subtitle, gold, red enamel close (×).
-   * `purse` (Blacksmith / Trader) shows the gold larger in a crested gold frame.
-   */
+  /** Header card: crimson emblem, Pixelify title, subtitle, gold pill, red enamel close (×). */
   header(
     title: string,
     onClose: () => void,
     emblem: UiIconName,
-    opts: { purse?: boolean } = {},
   ): {
     title: Phaser.GameObjects.Text;
     subtitle: Phaser.GameObjects.Text;
@@ -501,64 +497,29 @@ export class DgKit {
       size: 13,
       color: DG_THEME.textMuted,
     });
-    const gold = opts.purse ? this.purse() : this.goldPill();
+    const gold = this.goldPill();
     this.closeButton(492, 60);
     // Generous hit area for the close button (touch).
     const close = this.tap(464, 28, 60, 64, onClose);
     return { title: titleText, subtitle, gold, close };
   }
 
+  /** Current-gold pill in the header (shared by Blacksmith, Trader and Inventory). */
   private goldPill(): Phaser.GameObjects.Text {
-    this.box(370, 42, 92, 36, {
+    this.box(376, 44, 84, 32, {
       fill: DG_THEME.bgSlot,
       stroke: DG_THEME.accentGold,
       strokeWidth: 1,
-      radius: 16,
+      radius: 14,
       frame: "dark",
     });
-    this.icon(390, 60, "coins", 18, DG_THEME.accentGold);
-    return this.text(404, 60, "", {
-      size: 16,
+    this.icon(393, 60, "coins", 16, DG_THEME.accentGold);
+    return this.text(405, 60, "", {
+      size: 15,
       title: true,
       color: DG_THEME.accentGoldBright,
       originY: 0.5,
     });
-  }
-
-  /** Shop purse: "YOUR GOLD" over a pixel coin and 26px gold digits (right-aligned). */
-  private purse(): Phaser.GameObjects.Text {
-    const x = 328;
-    const w = 132;
-    this.box(x, 38, w, 50, {
-      fill: DG_THEME.bgSlot,
-      stroke: DG_THEME.accentGold,
-      strokeWidth: 1.5,
-      radius: 8,
-      frame: "slotGold",
-    });
-    this.text(x + w - 10, 50, "YOUR GOLD", {
-      size: 10,
-      bold: true,
-      color: DG_THEME.accentGold,
-      originX: 1,
-      originY: 0.5,
-    }).setLetterSpacing(1.2);
-    if (hasUiPart(this.scene, "dg-coin")) {
-      this.root.add(
-        this.scene.add
-          .image(x + 20, 72, uiPartKey("dg-coin"))
-          .setDisplaySize(21, 20),
-      );
-    } else {
-      this.icon(x + 20, 72, "coins", 18, DG_THEME.accentGold);
-    }
-    return this.text(x + w - 10, 72, "", {
-      size: 26,
-      title: true,
-      color: DG_THEME.accentGoldBright,
-      originX: 1,
-      originY: 0.5,
-    }).setStroke("#000000", 3);
   }
 
   /** Red enamel close (×) in a gold frame; falls back to the plain button frame. */
@@ -721,11 +682,4 @@ export function fitText(
     s = s.slice(0, -1);
     t.setText(`${s.trimEnd()}…`);
   }
-}
-
-/** Shrink the shop purse digits to fit beside the coin (5+ digit purses). */
-export function fitPurse(t: Phaser.GameObjects.Text, str: string): void {
-  t.setScale(1).setText(str);
-  const max = 98;
-  if ((t.width || 0) > max) t.setScale(max / t.width);
 }
