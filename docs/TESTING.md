@@ -245,7 +245,7 @@ npx playwright test e2e/visual-screens.spec.ts --project=chromium --update-snaps
 
 If your local renderer differs from CI, take the `actual` PNGs from the failed CI run's `playwright-report` artifact instead.
 
-## Defense enemy-loop safety net (refactor plan P0.3 / P0.4)
+## Defense enemy-loop safety net
 
 `src/test/defenseTickHarness.ts` runs the real `tickDefenseEnemies` headless: N enemies cycling every shipped behaviour, a fixed player, the wall, and sprite positions integrated from the AI's velocities (fake scene, all FX textures "exist").
 
@@ -267,6 +267,6 @@ At 60+ enemies the cost is dominated by A* replans with peer agents (`pathfindin
 
 Biome's `noExcessiveCognitiveComplexity` runs as an error with a cap of
 **25** per function. Nineteen legacy files (listed in the `overrides` block of
-`biome.json`) are held at the current worst score (84, `tickDefenseEnemies`)
-until they are split up by the refactor plan; remove a file from that list
-once its functions are under 25. Never add new files to it.
+`biome.json`) are held at the current worst score (84, `tickDefenseEnemies`);
+remove a file from that list once its functions are under 25. Never add new
+files to it.

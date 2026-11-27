@@ -1,6 +1,6 @@
 # `public/data/` field reference
 
-Boot loads every file here in `DataStore.loadAll`. Missing boot-required fields throw `ConfigLoadError` with a JSON path.
+Boot loads every file here in `DataStore.loadAll` (fetched at runtime). The economy sim and some tests also import the same files; that double path is **intentional**, so gameplay numbers stay easy to edit here. After load, values are frozen in the read-only store [`src/tuning/gameTuning.ts`](../src/tuning/gameTuning.ts) (`tuning(key)` / `setTuning`). Missing boot-required fields throw `ConfigLoadError` with a JSON path.
 
 ## Documentation format (CI)
 
@@ -838,7 +838,7 @@ Each group:
 | `enemyId` | Key referencing a row in enemies.json. |
 | `count` | Number of enemies to spawn in this group. |
 | `intervalMs` | Ms between consecutive spawns within the group. |
-| `hpMul` | Optional HP multiplier for every enemy in the group (default 1). At 2× or more the enemies spawn as "Elite" (nameplate prefix). Used for late-night elites. |
+| `hpMul` | Optional HP multiplier for every enemy in the group (default 1). At `gameplay.json` `waves.eliteHpMul` or more the enemies spawn as "Elite" (nameplate prefix). Used for late-night elites. |
 | `damageMul` | Optional damage multiplier for every enemy in the group (default 1): scales the enemy's hit (`damage`), wall hit and ranged / charge damage (`combat` keys named `damage` or ending in `Damage`). Used for late-night tough groups and elites. |
 
 `DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`. The campaign has nights 1–20; after night 20 the night-20 wave repeats (there is no end screen yet).
