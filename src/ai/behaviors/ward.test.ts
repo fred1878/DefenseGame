@@ -1,3 +1,4 @@
+import type { EnemyPeerAlly } from "./types";
 import { describe, expect, it, vi } from "vitest";
 import { createEnemyNav } from "../brainShared";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
@@ -45,7 +46,7 @@ function freshWardExtra(): EnemyBehaviorExtra {
 
 describe("ward behavior helpers", () => {
   it("picks the nearest ranged ally within protect radius", () => {
-    const allies = [
+    const allies: EnemyPeerAlly[] = [
       { id: "a", behavior: "meleeChaser", defId: "grunt", x: 50, y: 0 },
       { id: "b", behavior: "javelineer", defId: "javelineer", x: 80, y: 0 },
       {

@@ -1,3 +1,4 @@
+import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import { describe, expect, it, vi } from "vitest";
 import type { EnemyDef } from "../core/DataStore";
 import { shippedEnemyCombatForBehavior } from "../test/shippedEnemyCombat";
@@ -45,7 +46,7 @@ function sceneWithBody(): ReturnType<typeof fakeScene> {
   return scene;
 }
 
-function defFor(behavior: string, defId: string): EnemyDef {
+function defFor(behavior: EnemyBehaviorId, defId: string): EnemyDef {
   return {
     hp: 12,
     speedWu: 40,
@@ -64,7 +65,7 @@ describe("spawnEnemy", () => {
   it("binds behavior substate and optional tap handlers", () => {
     const scene = sceneWithBody();
     const behaviors: Array<
-      [string, string, keyof import("./Enemy").EnemyInstance]
+      [EnemyBehaviorId, string, keyof import("./Enemy").EnemyInstance]
     > = [
       ["arrowRainArcher", "arrow_rain_archer", "arrowRain"],
       ["javelineer", "javelineer", "javelineer"],

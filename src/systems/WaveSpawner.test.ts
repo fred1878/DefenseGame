@@ -13,7 +13,7 @@ const grunt: EnemyDef = {
   hp: 10,
   speedWu: 40,
   damage: 3,
-  behavior: "melee",
+  behavior: "meleeChaser",
   textureKey: "enemy_grunt",
   displayName: "Grunt",
 } as EnemyDef;

@@ -5,6 +5,7 @@ import {
   type EnemyCombatPartial,
 } from "./enemyTuning";
 import type { EnemyDef } from "./DataStore";
+import { ENEMY_BEHAVIOR_IDS, isEnemyBehaviorId } from "./enemyBehaviorIds";
 
 /** Boot-required top-level keys on each `enemies.json` row (see `DATA_FIELDS.md`). */
 export const ENEMY_ROW_BOOT_KEYS = [
@@ -64,6 +65,11 @@ export function normalizeEnemyRow(id: string, raw: EnemyDefInput): EnemyDef {
   }
   if (!raw.combat) {
     throw new ConfigLoadError(`Expected object at ${path}.combat`);
+  }
+  if (!isEnemyBehaviorId(raw.behavior)) {
+    throw new ConfigLoadError(
+      `Unknown behavior "${String(raw.behavior)}" at ${path}.behavior (expected one of ${ENEMY_BEHAVIOR_IDS.join(", ")})`,
+    );
   }
   const challengeRating = requireFiniteNumber(
     raw.challengeRating,

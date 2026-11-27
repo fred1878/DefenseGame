@@ -1,3 +1,4 @@
+import type { EnemyBehaviorId } from "./enemyBehaviorIds";
 import { deriveGroundTapAutoCastSpellIds } from "../content/spellGroundTapCast";
 import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
@@ -61,7 +62,7 @@ export type EnemyDef = {
   damage: number;
   weight: number;
   challengeRating: number;
-  behavior: string;
+  behavior: EnemyBehaviorId;
   textureKey: string;
   displayName: string;
   bodyRadiusWu: number;

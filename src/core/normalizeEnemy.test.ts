@@ -35,6 +35,15 @@ describe("normalizeEnemyRow", () => {
     ).toBe("Grunt");
   });
 
+  it("rejects an unknown behavior instead of falling back to meleeChaser", () => {
+    expect(() =>
+      normalizeEnemyRow("x", baseRow({ behavior: "melee" })),
+    ).toThrow(ConfigLoadError);
+    expect(() =>
+      normalizeEnemyRow("x", baseRow({ behavior: "melee" })),
+    ).toThrow(/Unknown behavior "melee" at enemies\.x\.behavior/);
+  });
+
   it("rejects missing or invalid required fields", () => {
     const required = [
       "hp",

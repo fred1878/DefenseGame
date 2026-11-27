@@ -84,7 +84,7 @@ Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`e
 | `bodyRadiusWu` | number (px) | Arcade circle radius, contact distance, nav clearance |
 | `weight` | number (dimensionless) | Knockback resistance (`100` = full authored knockback) |
 | `challengeRating` | number (≥ 0) | Endless / wave UI threat tier (not combat math) |
-| `behavior` | string | AI module in `src/ai/behaviors/` |
+| `behavior` | string | AI module in `src/ai/behaviors/`; one of `meleeChaser`, `bruiser`, `arrowRainArcher`, `javelineer`, `stationaryRanged`, `wallSiege`, `charger`, `lobber`, `rangedHybrid`, `ward` (unknown values fail at load) |
 | `textureKey` | string | Boot texture key (`enemy_<id>` unless art reuse) |
 | `displayName` | string optional | HUD nameplate; defaults from id if omitted |
 | `combat` | object | Passed to `resolveEnemyCombat` (see below) |

@@ -1,3 +1,4 @@
+import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import Phaser from "phaser";
 import {
   SPRITE_DISPLAY,
@@ -73,7 +74,7 @@ export type EnemyBehaviorExtra = {
 export type EnemyInstance = {
   id: string;
   defId: string;
-  behavior: string;
+  behavior: EnemyBehaviorId;
   speedWu: number;
   damage: number;
   weight: number;
@@ -127,7 +128,7 @@ function defaultBehaviorExtra(
 
 function bindEnemyBehaviorSubstate(
   enemy: EnemyInstance,
-  behavior: string,
+  behavior: EnemyBehaviorId,
 ): void {
   delete enemy.arrowRain;
   delete enemy.javelineer;

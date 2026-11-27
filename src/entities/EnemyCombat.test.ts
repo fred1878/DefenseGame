@@ -1,3 +1,4 @@
+import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../config/defense";
 import {
@@ -23,7 +24,7 @@ function mockEnemy(
   y: number,
   combat?: EnemyCombatState,
   defId = "grunt",
-  behavior = "meleeChaser",
+  behavior: EnemyBehaviorId = "meleeChaser",
 ) {
   return mockEnemyInstance({
     defId,
