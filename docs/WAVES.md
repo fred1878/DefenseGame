@@ -27,8 +27,9 @@ Counts below are per-night totals (grunt groups summed). Nights **1–2** are a 
 | 19 | 320 | 100 enemies, 33,091 HP; HP ×3.27, damage ×3.8; elite bruisers ×3, chargers ×3, wards ×2, siege ×3 |
 | 20 | 360 | Finale: 113 enemies, 50,618 HP in a 19 s spawn window; HP ×3.78, damage ×4.2; 6 elite bruisers (3 at ×9.8 HP), chargers ×3, wards ×2, siege ×4 |
 
-**Group multipliers.** A group can set `hpMul` (enemy HP; at ×2 or more the
-enemy is an **elite** and its nameplate reads "Elite …") and `damageMul`
+**Group multipliers.** A group can set `hpMul` (enemy HP; at `gameplay.json`
+`waves.eliteHpMul` or more — currently ×2 — the enemy is an **elite** and its
+nameplate reads "Elite …") and `damageMul`
 (its `damage` and every combat `…Damage` number, e.g. charge or wall damage;
 not `…DamageScale`). Elite groups (HP ×2.0–2.8) also hit 1.25× harder than
 the rest of the night.

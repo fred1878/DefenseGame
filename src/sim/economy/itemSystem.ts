@@ -1,6 +1,6 @@
 /**
  * Plain-English explainer of the rarity / item level system, embedded in the
- * HTML report. Mirrors docs/ITEMS.md — keep both in sync with src/gear/ (itemGen, loot, shops, stats).
+ * HTML report. Mirrors docs/ITEMS.md — keep both in sync with src/gear/ (itemGen, loot, shops, itemStats).
  */
 export const ITEM_SYSTEM_HTML = `<h2>How rarity and item level work</h2>
 <ul>

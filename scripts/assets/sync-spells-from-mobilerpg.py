@@ -119,7 +119,7 @@ def main() -> None:
     c_path = ROOT / "scripts" / "data" / "mobilerpg-spells_data.c"
     if not c_path.exists():
         raise SystemExit(
-            f"Missing {c_path}; copy MobileRPG src/spells_data.c there (see docs/mobilerpg-spell-port-plan.md).",
+            f"Missing {c_path}; copy MobileRPG src/spells_data.c there.",
         )
     text = c_path.read_text(encoding="utf-8", errors="replace")
     parsed: dict[str, dict] = {}

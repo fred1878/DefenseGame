@@ -17,7 +17,7 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 | **Phaser 4.2.1** | Custom trimmed vendor chunk; Vite 8 / Vitest 5 |
 | **Strict TypeScript** | `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `allowImportingTsExtensions` |
 | **Nights 13–20, buy requests** | 20-night campaign (`hpMul` / `damageMul` / elite groups), item tables to ilvl ~19, worse night drops, cheaper shop upgrades and rerolls, 8 wall levels, trader buy requests (Wants tab, 150% payout), win model re-weighted from real-combat runs (`e2e/win-model.spec.ts`) — see `docs/ECONOMY_SIM.md`, `docs/ITEMS.md`, `docs/WAVES.md` |
-| **Test coverage** | Around 98% lines, 96% branches; thresholds 95 / 95 / 95, branches 90 |
+| **Test coverage** | Floors live in `vitest.config.ts` and only ever go up (see [TESTING.md](docs/TESTING.md)); real-Phaser scene tests run under jsdom + `@napi-rs/canvas` |
 | **Combat targeting fixes** | [#340](https://github.com/fred1878/DefenseGame/pull/340) — chain-lightning first hop, nearest-enemy fallback skips dead enemies, projectile knockback at the impact point |
 | **Installable PWA** | Web app manifest + service worker on GitHub Pages; precaches JS chunks (including Phaser and lazy scenes), data, images and audio. A new deploy activates on the next load |
 | **Damage numbers** | Pixelify Sans popups styled by damage type, pooled and combined per target |
@@ -28,6 +28,7 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 | **Economy / progression sim** | [#367](https://github.com/fred1878/DefenseGame/pull/367) — `npm run sim:economy` Monte Carlo over real gear/loot/shop code; [docs/ECONOMY_SIM.md](./docs/ECONOMY_SIM.md) and [docs/ITEMS.md](./docs/ITEMS.md) |
 | **Economy rebalance + shop upgrades** | [#371](https://github.com/fred1878/DefenseGame/pull/371) — Sell-back 30%, lost nights pay 15% and drop nothing, night 10 reward 170, cheaper late blacksmith items, stronger potions / bombs; Trader and Blacksmith upgrade 3 levels each in their shop panel (more / better stock, lower prices, masterwork items, paid trader reroll); 8 more sim profiles |
 | **Talents (Milestone I)** | [#374](https://github.com/fred1878/DefenseGame/pull/374) — Talents screen from town: three branches (Blade, Marksman, Sorcery), 5 tiers opened by points spent in the branch, pick-one tier III, ranks with per-rank stat modifiers and procs that stack into gear stats (combat, Gear totals, economy sim), 1 point per night won, reset for 50g; data in `public/data/talents.json` ([docs/TALENTS.md](./docs/TALENTS.md)) |
+| **Code structure** | Import-cycle / layer gate (`npm run check:arch`), read-only tuning store (`src/tuning/gameTuning.ts` from `public/data/*.json`, including `gameplay.json` and `damage-numbers.json`), step-by-step save migrations, `scripts/` split into `build/` / `assets/` / `capture/` |
 
 ---
 
@@ -52,24 +53,7 @@ Spell interactions come next after remaining campaign polish because they sit on
 | **10** | Milestone **D** — UX, audio, meta | L–XL |
 | **11** | Milestone **F** — Capacitor + stores | XL |
 
-### Refactor checklist (Milestone E detail)
-
-Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done):
-
-- [x] PR1 — `DefenseSceneE2E.ts` ([#116](https://github.com/fred1878/DefenseGame/pull/116))
-- [x] PR2 — `DefenseWaveSpawner.ts` ([#128](https://github.com/fred1878/DefenseGame/pull/128))
-- [x] PR3 — `DefenseEnemySpawner.ts` ([#129](https://github.com/fred1878/DefenseGame/pull/129))
-- [x] PR4 — `DefenseNightEnd.ts` ([#130](https://github.com/fred1878/DefenseGame/pull/130))
-- [x] PR5 — `DefenseTargeting.ts` (direct `main`, `0688dbc`)
-- [x] PR6 — `DefenseHudController.ts` (direct `main`, `53801f7`)
-- [x] PR7 — `DefenseWorldBootstrap.ts` (`main`)
-- [x] PR8 — `DefenseProjectileTick.ts`
-- [x] PR9 — `DefenseEnemyTick.ts`
-- [x] PR10 — `DefenseSpellDirector.ts` ([#131](https://github.com/fred1878/DefenseGame/pull/131))
-- [x] PR11 — `systems/WaveSpawner.ts` promotion
-- [x] PR12 — Pooling (enemy + projectile pools; `DefenseEnemySpawner`, `projectilePool.ts`)
-- [x] P1 — `touchButtonPress.ts`, `touchButtonFactories.ts`, `touchButtonGeometry.ts` ([#133](https://github.com/fred1878/DefenseGame/pull/133))
-- [x] P2 — `enemyRanged/*` per-behavior modules ([#134](https://github.com/fred1878/DefenseGame/pull/134))
+The 2026 DefenseScene / touch-button / enemy-ranged file splits are done; history is in [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md).
 
 ---
 
@@ -79,7 +63,7 @@ Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done)
 |------|--------|----------------|----------------|
 | Boot → Town → Defense loop | M | Yes | Endless training mode UX copy; scene transition polish |
 | Portrait 540×1200 + touch input | M | Yes | Keyboard hints; accessibility |
-| `localStorage` saves | S | Yes | Migration tests for future `SAVE_VERSION` bumps |
+| `localStorage` saves | S | Yes | Migrations and `fixtures/save-vN.json` are in place; add a fixture and a step in `core/save/migrations.ts` whenever `SAVE_VERSION` is bumped |
 | CI + Pages deploy | S | Yes | Keep green under later feature PRs |
 | **Installable PWA** | M | **Yes** | Manifest + service worker; offline after first load; updates on next load. Further polish only (install prompt UX) |
 | Tag `v0.1.0` | S | No | Cut tag when ready for a named web release |
@@ -113,7 +97,7 @@ Track [REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) merge table (all done)
 | **Cone / cone-of-fire VFX** | S | Gameplay only | Replace `SpellConeFx.ts` Graphics wedge with art |
 | **Enemy + projectile pooling** | L | Yes | Landed (`projectilePool.ts`, `DefenseEnemySpawner`); profile on low-end phones |
 | **Spell interactions / combos** | L | No | Spells affect each other: freeze + lightning shatters, fire spreads through groups, rain boosts lightning, and similar combos. Reward spell-bar order and timing |
-| **Damage numbers** | M | Yes | Tuning only (`src/config/damageNumbers.ts`) |
+| **Damage numbers** | M | Yes | Tuning only (`public/data/damage-numbers.json`, applied via `src/config/damageNumbers.ts`) |
 
 ---
 
@@ -196,13 +180,13 @@ Leave town during the day, then bring the proceeds back for the night's defense.
 
 | Item | Effort | Baseline today | Remaining work |
 |------|--------|----------------|----------------|
-| `DefenseScene` decomposition | L | Done (see execution order steps 0–1) | Further splits are follow-up work; archived plan line counts are stale |
+| `DefenseScene` decomposition | L | Done (see execution order steps 0–1) | Further splits and scene-test coverage are follow-up; archived plan line counts are stale |
 | `touchButton` / `EnemyRangedCombat` splits | — | Done ([#133](https://github.com/fred1878/DefenseGame/pull/133), [#134](https://github.com/fred1878/DefenseGame/pull/134)) | — |
 | `defenseNightLogic` pure guard | S | Yes | Keep covered when moving `endNight` |
-| Strict TypeScript + coverage floors | M | Yes | Vitest **94 / 95 / 94**, branches **90** with scene orchestrators + Phaser HUD glue excluded; `scenes/defense/*` modules and `world/**` in scope (`vitest.config.ts`) |
-| `SAVE_VERSION` migration tests | S | Partial | v2 load guards exist; add fixture tests before the next schema bump |
+| Strict TypeScript + coverage floors | M | Yes | Floors are in `vitest.config.ts` and only ever go up; see [TESTING.md](./docs/TESTING.md) |
+| `SAVE_VERSION` migration tests | S | **Yes** | `migrations.ts` plus `fixtures/save-v1.json` / `save-v2.json`; add a fixture and a step when bumping the version |
 | Deprecated API cleanup | S | Partial | `@deprecated` shims (`DefenseWaveSpawner`, legacy save `autoCast`, spell spawn helpers) — `main.ts` removed |
-| Vitest worker reuse | S | No | Enable `poolOptions.threads.isolate: false` when safe (~5s+ off local/CI unit runs per Vitest hint) |
+| Vitest worker reuse | S | **Yes** | Shared-worker project uses `isolate: false`; files that call `vi.mock` / `vi.doMock` run in the isolated project |
 | Balance tooling | S | **Yes** | `sim:economy` for tuning; keep wave/loot docs in sync with sim defaults |
 
 ---
@@ -228,7 +212,7 @@ Candidates not yet in a milestone table above. Pull into execution order when a 
 | **Spell cooldown / error UX** | S | Clear feedback when cast fails (OOM, channel interrupted, no target) |
 | **Lose-night UX** | S | **Done** — wall/player campaign copy, progress notes, training/sim HUD lines |
 | **PWA install prompt polish** | S | Gentle “install app” hint after first successful night on mobile browsers |
-| **Expand Vitest into scenes** | L | Selective tests for `defenseNightLogic` adapters without full Phaser; avoid bloating excludes forever |
+| **Expand Vitest into scenes** | L | Real-Phaser scene tests exist (`src/**/*.scene.test.ts`, jsdom + `@napi-rs/canvas`); add more coverage of the scene orchestrators |
 | **iOS Capacitor smoke** | M | Parity with Android stub; no store submit yet |
 | **Dependabot + secret scanning** | S | Repo settings — keep `package-lock.json` patchable without manual audit |
 | **Accessibility pass** | M | Touch targets audit, contrast on HUD text, reduced motion for screen shake |
@@ -236,6 +220,13 @@ Candidates not yet in a milestone table above. Pull into execution order when a 
 | **Night 20+ telemetry hooks** | S | Debug-only counters for how many saves sit past night 20 (informs ending design) |
 
 ---
+
+## Optional leftovers
+
+These were looked at in the 2026 structure work and deferred as low value. Do not treat them as open plan items:
+
+- A `WorldScale` value object for the many `worldUnit` call sites (each call is one Map lookup; a scale change already restarts the scenes).
+- A discriminated `behaviorState` on enemies in place of the optional per-behaviour fields (a type-only gain that would touch pooling, reconfigure, and many tests).
 
 ## Related docs
 
