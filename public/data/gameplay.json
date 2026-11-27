@@ -1,0 +1,15 @@
+{
+  "wall": {
+    "baseHp": 100,
+    "hpPerLevel": 50,
+    "campaignWinWear": 2
+  },
+  "waves": {
+    "eliteHpMul": 2
+  },
+  "spawn": {
+    "marginXWu": 36,
+    "southInsetWu": 96,
+    "jitterYWu": 24
+  }
+}

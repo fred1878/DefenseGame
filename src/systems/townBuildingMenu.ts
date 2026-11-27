@@ -1,3 +1,4 @@
+import { tuning } from "../tuning/gameTuning";
 import type { DataStore } from "../core/data/DataStore";
 import type { SaveGame } from "../core/save/saveTypes";
 import type { TownBuildingDef } from "../core/data/townBuildingTypes";
@@ -200,7 +201,7 @@ function tryApplyBuildingUpgrade(
   if (def.effect === "wallHpMax") {
     const prevMax = save.townWallHpMax;
     const bonus = wallHpBonusFromBuildings(next.buildings);
-    const max = 100 + bonus;
+    const max = tuning("gameplay").wall.baseHp + bonus;
     const maxDelta = max - prevMax;
     next.townWallHpMax = max;
     // Same HP bonus applied to current wall HP (not just the cap).

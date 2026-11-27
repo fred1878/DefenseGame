@@ -42,6 +42,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `town_buildings.json` | yes (no schema validator) |
 | `town_layout.json` | yes (`normalizeTownLayout`) |
 | `waves.json` | yes (no schema validator) |
+| `gameplay.json` | yes (`normalizeGameplay`) |
 
 ### TypeScript types
 
@@ -63,6 +64,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `town_buildings.json` | — | [TownBuildingDef](../src/core/data/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
 | `town_layout.json` | [TownLayoutInput](../src/core/data/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/data/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/data/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
 | `waves.json` | — | [WaveDef](../src/core/data/DataStore.ts), [WaveGroup](../src/core/data/DataStore.ts) | [DataStore.ts](../src/core/data/DataStore.ts) |
+| `gameplay.json` | — | [GameplayTuning](../src/core/data/normalizeGameplay.ts) | [normalizeGameplay.ts](../src/core/data/normalizeGameplay.ts), [gameplay.ts](../src/config/gameplay.ts) |
 
 **Removed (do not re-add):** `enemy-combat-defaults.json`, `spell-mechanics.json` — combat is fully per row in `enemies.json`; Shadowform tuning lives on the `shadowform` spell row.
 
@@ -818,6 +820,36 @@ Each group:
 | `damageMul` | Optional damage multiplier for every enemy in the group (default 1): scales the enemy's hit (`damage`), wall hit and ranged / charge damage (`combat` keys named `damage` or ending in `Damage`). Used for late-night tough groups and elites. |
 
 `DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`. The campaign has nights 1–20; after night 20 the night-20 wave repeats (there is no end screen yet).
+
+---
+
+## gameplay.json
+
+**TypeScript:** [GameplayTuning](../src/core/data/normalizeGameplay.ts) — [normalizeGameplay.ts](../src/core/data/normalizeGameplay.ts), [gameplay.ts](../src/config/gameplay.ts).
+
+Global rules with no per-row home, loaded with the town data at Boot (`applyGameplay` → `tuning("gameplay")`) and by the economy sim from the bundled copy. Every field is a required number; sections are objects.
+
+### `wall`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `baseHp` | dimensionless | Town wall max HP on a new save and at wall level 0. |
+| `hpPerLevel` | dimensionless | Extra wall max HP per `wall` building level. |
+| `campaignWinWear` | dimensionless | Wall HP lost at the end of a won campaign night. |
+
+### `waves`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `eliteHpMul` | dimensionless | Wave group `hpMul` at or above which enemies get the "Elite" name prefix. |
+
+### `spawn`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `marginXWu` | WU | Horizontal inset from the field edges for random wave spawn points. |
+| `southInsetWu` | WU | Distance north of the south field edge where waves spawn. |
+| `jitterYWu` | WU | Random vertical spread (±) around the spawn line. |
 
 ---
 

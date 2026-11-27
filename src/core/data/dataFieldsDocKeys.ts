@@ -61,4 +61,5 @@ export const SHIPPED_DATA_JSON_FILES = [
   "town_buildings.json",
   "town_layout.json",
   "waves.json",
+  "gameplay.json",
 ] as const;

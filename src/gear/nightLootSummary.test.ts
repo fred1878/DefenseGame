@@ -1,3 +1,4 @@
+import { tuning } from "../tuning/gameTuning";
 import { describe, expect, it } from "vitest";
 import { createNewSave } from "../core/save/GameState";
 import { gearFixture } from "../test/gearFixture";
@@ -7,7 +8,6 @@ import {
   assembleNightLootSummary,
   campaignNightFinalWallHp,
   campaignNightGoldEarned,
-  CAMPAIGN_WIN_WALL_PENALTY,
   isNightSummaryReturnKey,
   resolveCampaignNightEnd,
   soldLootNote,
@@ -42,7 +42,7 @@ describe("campaign night gold and wall", () => {
   });
 
   it("applies the win wear penalty and floors at zero", () => {
-    expect(CAMPAIGN_WIN_WALL_PENALTY).toBe(2);
+    expect(tuning("gameplay").wall.campaignWinWear).toBe(2);
     expect(campaignNightFinalWallHp(true, 80)).toBe(78);
     expect(campaignNightFinalWallHp(false, 80)).toBe(80);
     expect(campaignNightFinalWallHp(true, 1)).toBe(0);

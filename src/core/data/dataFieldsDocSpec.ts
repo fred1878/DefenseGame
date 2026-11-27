@@ -35,6 +35,7 @@ import {
   ENEMY_AI_SECTION_DOC_KEYS,
 } from "./normalizeEnemyAi";
 import { ENTITY_PHYSICS_BOOT_KEYS } from "./normalizeEntityPhysics";
+import { GAMEPLAY_DOC_KEYS } from "./normalizeGameplay";
 import {
   HIT_FLASH_BOOT_KEYS,
   HIT_FLASH_FLAVOR_BOOT_KEYS,
@@ -140,6 +141,7 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
     ...SPELL_KNOCKBACK_BOOT_FIELDS,
   ]),
   "waves.json": [...WAVES_DOC_KEYS],
+  "gameplay.json": GAMEPLAY_DOC_KEYS,
   "buildings.json": [...BUILDINGS_DOC_KEYS],
   "town_buildings.json": [...TOWN_BUILDINGS_DOC_KEYS],
   "town_layout.json": [...TOWN_LAYOUT_DOC_KEYS],

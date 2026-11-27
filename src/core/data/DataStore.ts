@@ -1,3 +1,5 @@
+import { applyGameplay } from "../../config/gameplay";
+import { normalizeGameplay } from "./normalizeGameplay";
 import type { EnemyBehaviorId } from "../enemyBehaviorIds";
 import { deriveGroundTapAutoCastSpellIds } from "../../content/spellGroundTapCast";
 import type { SpellDefinition } from "../../content/spells";
@@ -127,6 +129,7 @@ export class DataStore {
       lootFile,
       consumablesFile,
       shopsFile,
+      gameplayFile,
     ] = await Promise.all([
       fetchJson<Record<string, BuildingDef>>(`${prefix}data/buildings.json`),
       fetchJson<Record<string, TownBuildingDef>>(
@@ -138,7 +141,9 @@ export class DataStore {
       fetchJson<unknown>(`${prefix}data/loot.json`),
       fetchJson<unknown>(`${prefix}data/consumables.json`),
       fetchJson<unknown>(`${prefix}data/shops.json`),
+      fetchJson<unknown>(`${prefix}data/gameplay.json`),
     ]);
+    applyGameplay(normalizeGameplay(gameplayFile));
     this.buildings = buildings;
     this.townBuildings = townBuildings;
     this.townLayout = normalizeTownLayout(townLayout);

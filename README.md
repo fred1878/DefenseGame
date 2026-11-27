@@ -157,7 +157,8 @@ Loaded at runtime in `BootScene` via `DataStore`:
 | `defense-maps.json` | `defaultMapId`, per-map `field` (cols/rows) + obstacle placements (`tileX`/`tileY`/`textureKey`); `selectDefenseMapId` for future map pick |
 | `entity-physics.json` | Nav clearance margins + `knockbackVelocityCapMult` |
 | `player.json` / `enemies.json` | Required `bodyRadius` per player / enemy (arcade collision) |
-| `enemy-ai.json` | Global chase/aggro (`playerAggroRadius`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffPx`) |
+| `enemy-ai.json` | Global chase/aggro (`playerAggroRadiusWu`, `playerChaseMemoryMs`, `wallVelocityBlendMs`, `northWallMeleeStandoffWu`), pathing and per-behaviour movement |
+| `gameplay.json` | Global rules: wall HP, wave spawn band, elite label threshold, shared combat timings, feel |
 | `enemies.json` | HP, speed, damage, `behavior`, required explicit `combat` tuning, textures |
 | `waves.json` | Per-night spawn groups (`atMs`, `enemyId`, `count`, `intervalMs`) and `rewardGold` |
 | `items.json` | Gear templates: slots, rarities, affixes, uniques |

@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { applyDefenseMaps } from "../core/data/applyDefenseMaps";
 import { applyEnemyAi } from "../config/enemy";
+import { applyGameplay } from "../config/gameplay";
+import { normalizeGameplay } from "../core/data/normalizeGameplay";
 import { applyHitFlashConfig } from "../config/hitFlash";
 import { applySpellInputTuning } from "../config/spellInput";
 import { applyPlayerTuning } from "../config/player";
@@ -30,6 +32,7 @@ function readPublicJson<T>(name: string): T {
 
 /** Mirror BootScene config apply using shipped `public/data/*.json`. */
 export function bootPublicConfigFixtures(): void {
+  applyGameplay(normalizeGameplay(readPublicJson("gameplay.json")));
   applyDefenseMaps(readPublicJson("defense-maps.json"));
   const enemiesRaw =
     readPublicJson<Record<string, EnemyDefInput>>("enemies.json");

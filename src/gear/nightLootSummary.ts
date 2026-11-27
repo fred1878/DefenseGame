@@ -1,3 +1,4 @@
+import { tuning } from "../tuning/gameTuning";
 import type { NightResult, SaveGame } from "../core/save/saveTypes";
 import type { CampaignNightLossReason } from "../systems/nightEndMessaging";
 import {
@@ -11,9 +12,6 @@ import type { ItemDraft } from "./itemGen";
 import { resolveItem } from "./itemStats";
 import type { GearCatalog } from "./gearTypes";
 import { getLootConfig, type LootConfig } from "./loot";
-
-/** Campaign nights shave 2 wall HP on a win (existing end-of-night wear). */
-export const CAMPAIGN_WIN_WALL_PENALTY = 2;
 
 export type NightLootSummaryItem = {
   name: string;
@@ -56,7 +54,8 @@ export function campaignNightGoldEarned(
 
 /** Wall HP left after the night, including the win wear penalty. */
 export function campaignNightFinalWallHp(won: boolean, wallHp: number): number {
-  const penalty = won ? CAMPAIGN_WIN_WALL_PENALTY : 0;
+  // Campaign nights wear the wall a little even on a win (`gameplay.json` wall).
+  const penalty = won ? tuning("gameplay").wall.campaignWinWear : 0;
   return Math.max(0, Math.floor(wallHp) - penalty);
 }
 

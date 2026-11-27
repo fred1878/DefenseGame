@@ -9,6 +9,9 @@ import spellsJson from "../../../public/data/spells.json";
 import talentsJson from "../../../public/data/talents.json";
 import wavesJson from "../../../public/data/waves.json";
 import { applyPlayerTuning } from "../../config/player";
+import { applyGameplay } from "../../config/gameplay";
+import { normalizeGameplay } from "../../core/data/normalizeGameplay";
+import gameplayJson from "../../../public/data/gameplay.json";
 import { setSpellCatalog, type SpellDefinition } from "../../content/spells";
 import type { BuildingDef } from "../../core/data/DataStore";
 import { normalizeConsumables } from "../../core/data/normalizeConsumables";
@@ -232,6 +235,7 @@ export function loadSimData(raw: SimRawData): SimData {
   setShopsConfig(shops);
   setConsumablesConfig(consumables);
   applyPlayerTuning(tuning);
+  applyGameplay(normalizeGameplay(gameplayJson));
   setSpellCatalog(spells);
   setTalentCatalog(talents);
   return {

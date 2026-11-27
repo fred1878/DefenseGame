@@ -1,3 +1,4 @@
+import { tuning } from "../tuning/gameTuning";
 import type Phaser from "phaser";
 import type {
   DataStore,
@@ -12,8 +13,10 @@ export type WaveSpawnerCallbacks = {
   markSpawnPlanComplete: () => void;
 };
 
-/** HP multiplier at or above which a group's enemies are labelled "Elite". */
-export const ELITE_HP_MUL = 2;
+/** HP multiplier at or above which a group's enemies are labelled "Elite" (`gameplay.json`). */
+export function eliteHpMul(): number {
+  return tuning("gameplay").waves.eliteHpMul;
+}
 
 function validMul(mul: number | undefined): number {
   return typeof mul === "number" && Number.isFinite(mul) && mul > 0 ? mul : 1;
@@ -49,7 +52,7 @@ function scaleDamageFields<T>(value: T, mul: number): T {
 
 /**
  * Enemy def with a group's HP and damage multipliers applied (same object at
- * 1× / 1×). HP ≥ `ELITE_HP_MUL` adds the "Elite" nameplate prefix.
+ * 1× / 1×). HP ≥ `eliteHpMul()` adds the "Elite" nameplate prefix.
  */
 export function scaledEnemyDef(
   def: EnemyDef,
@@ -61,7 +64,7 @@ export function scaledEnemyDef(
     ...def,
     hp: Math.max(1, Math.round(def.hp * hpMul)),
     displayName:
-      hpMul >= ELITE_HP_MUL ? `Elite ${def.displayName}` : def.displayName,
+      hpMul >= eliteHpMul() ? `Elite ${def.displayName}` : def.displayName,
   };
   if (damageMul === 1) return scaled;
   return {

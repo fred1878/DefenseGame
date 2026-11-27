@@ -70,7 +70,7 @@ Prefer a new JSON row + a small behavior module over growing scene files.
 |-------|------|--------|
 | Tuning | `src/config/` | Canvas/layout, HUD px, render depths. **No gameplay numbers.** |
 | Code content | `src/content/` | Texture keys/paths (`assets.ts`), spell ids (`spells.ts`) |
-| Runtime JSON | `public/data/` | enemies, enemy-ai, player, defense-maps, spell_input, spells, entity-physics, waves, buildings, items, loot, consumables, shops, talents… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). Talents: [TALENTS.md](./TALENTS.md). |
+| Runtime JSON | `public/data/` | enemies, enemy-ai, gameplay, player, defense-maps, spell_input, spells, entity-physics, waves, buildings, items, loot, consumables, shops, talents… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). Talents: [TALENTS.md](./TALENTS.md). |
 
 Save shapes: `src/core/save/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). Reading stored saves goes through `saveRepository.parseStoredSave` (one validator for the autosave and slots). **Bumping `SAVE_VERSION` needs a step in `core/save/migrations.ts` plus a `fixtures/save-vN.json` fixture**; `migrations.test.ts` fails if a step is missing.
 

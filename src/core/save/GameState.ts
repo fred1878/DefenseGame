@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import { SPELL_BAR } from "../../config";
 import { basePlayerTuning } from "../../config/player";
 import { getGearCatalog } from "../../gear/gearCatalog";
@@ -21,7 +22,7 @@ import {
 import { saveTalentBonus } from "../../talents/talentRuntime";
 
 export function createNewSave(): SaveGame {
-  const wallMax = 100;
+  const wallMax = tuning("gameplay").wall.baseHp;
   return {
     night: 1,
     gold: 0,
@@ -243,5 +244,5 @@ export function wallHpBonusFromBuildings(
   buildings: Record<string, number>,
 ): number {
   const wallLevel = buildings.wall ?? 0;
-  return wallLevel * 50;
+  return wallLevel * tuning("gameplay").wall.hpPerLevel;
 }
