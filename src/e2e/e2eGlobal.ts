@@ -73,6 +73,8 @@ export type DefenseGameE2EApi = {
   }>;
   isUiButtonPressed(testId: string): boolean;
   getAutoAttackEnabled(): boolean;
+  /** Turn the HUD auto attack on or off (Defense only). */
+  setAutoAttackEnabled(on: boolean): void;
   syncDomMirrors(): void;
   tapDomMirror(testId: string): void;
   simulateScreenTap(x: number, y: number): void;

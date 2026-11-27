@@ -226,6 +226,9 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getAutoAttackEnabled() {
       return activeDefenseE2e(game)?.autoAttackEnabled() ?? false;
     },
+    setAutoAttackEnabled(on: boolean) {
+      activeDefenseE2e(game)?.setAutoAttackEnabled(on);
+    },
     syncDomMirrors() {
       const defense = activeDefense(game);
       if (defense) {

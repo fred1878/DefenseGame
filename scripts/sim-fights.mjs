@@ -5,6 +5,8 @@
 //       [--tiers p10,p50,p90] [--behind] [--repeats 1] [--runs 150]
 //       [--overrides candidate.json] [--out sim-output/fights/NAME]
 //       [--workers 8] [--build] [--full-cast] [--bars cooldown,frost,lightning]
+//       [--schools generic,fire,frost,lightning] [--no-auto-attack]
+//       [--saves DIR/snapshots.json] [--resume]
 //   npm run sim:fights -- report DIR [DIR...]   predicted vs real (current model)
 //   npm run sim:fights -- fit DIR [DIR...]      refit the model knobs
 //       [--min-night 13] [--model start.json] [--fix knob=v,...] [--out fitted.json]
@@ -25,6 +27,12 @@
 // spells: cooldown spells longest first, heals, one filler last; default),
 // frost or lightning (an element-focused bar, src/sim/economy/spellBars.ts).
 // Extra bars are labelled strategy/bar; gear and talents are the save's own.
+// --schools: replay each save once per school build: generic (the save
+// as it is, cooldown bar) or fire / frost / lightning (the same items and
+// talent points rebuilt for that school, src/sim/economy/schoolBuilds.ts).
+// Labelled strategy/school; replaces --bars.
+// --no-auto-attack: the bot turns the HUD auto attack off, so the
+// player never swings or shoots (only spells, bombs and potions).
 // --saves DIR/snapshots.json: replay an earlier run's saves instead of
 // playing the sim again (same gear, talents and gold; bars rebuilt).
 // --resume: keep the out folder's results and play only the missing fights.
@@ -44,7 +52,7 @@ const entry = path.join(
 );
 fs.writeFileSync(
   entry,
-  ["simulate", "simData", "power", "fights", "spellBars"]
+  ["simulate", "simData", "power", "fights", "spellBars", "schoolBuilds"]
     .map(
       (m) =>
         `export * as ${m} from ${JSON.stringify(path.join(root, "src/sim/economy", `${m}.ts`))};`,
@@ -56,7 +64,7 @@ const { module: lib } = await runnerImport(entry, {
   configFile: false,
   logLevel: "error",
 });
-const { simulate: sim, simData, power, fights, spellBars } = lib;
+const { simulate: sim, simData, power, fights, spellBars, schoolBuilds } = lib;
 
 const argv = process.argv.slice(2);
 const command = ["run", "report", "fit", "tally"].includes(argv[0])
@@ -67,7 +75,15 @@ const positional = [];
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (!a.startsWith("--")) positional.push(a);
-  else if (["--behind", "--build", "--full-cast"].includes(a))
+  else if (
+    [
+      "--behind",
+      "--build",
+      "--full-cast",
+      "--no-auto-attack",
+      "--resume",
+    ].includes(a)
+  )
     flags.set(a, "1");
   else flags.set(a, argv[++i]);
 }
@@ -136,6 +152,26 @@ function withBars(snaps, bars) {
         },
       };
     }),
+  );
+}
+
+/** Copies of each snapshot per `--schools` build, labelled strategy/school. */
+function withSchools(data, snaps, schools) {
+  return schools.flatMap((school) =>
+    snaps.map((snap) => ({
+      ...snap,
+      id: snap.id.replace(snap.strategy, `${snap.strategy}/${school}`),
+      strategy: `${snap.strategy}/${school}`,
+      save:
+        school === "generic"
+          ? snap.save
+          : schoolBuilds.schoolSave(
+              data.catalog,
+              data.talents,
+              snap.save,
+              school,
+            ),
+    })),
   );
 }
 
@@ -308,7 +344,9 @@ function runFights() {
           flags.has("--behind") && i === 0,
         ),
       );
-  const snaps = withBars(base, list("--bars", "cooldown"));
+  const snaps = flags.has("--schools")
+    ? withSchools(data, base, list("--schools", ""))
+    : withBars(base, list("--bars", "cooldown"));
   fs.writeFileSync(
     path.join(out, "snapshots.json"),
     `${JSON.stringify(snaps)}\n`,
@@ -369,6 +407,7 @@ function runFights() {
         ...process.env,
         E2E_WORKERS: flag("--workers", "8"),
         WIN_MODEL_FULL_CAST: flags.has("--full-cast") ? "1" : "",
+        WIN_MODEL_AUTO_ATTACK: flags.has("--no-auto-attack") ? "0" : "1",
         WIN_MODEL_SNAPSHOTS: toPlay,
         WIN_MODEL_RESULTS: results,
         WIN_MODEL_REPEATS: String(repeats),

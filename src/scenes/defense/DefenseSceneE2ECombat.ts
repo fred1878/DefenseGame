@@ -362,6 +362,14 @@ export function defenseSceneE2eAutoAttackEnabled(
   return scene.run.autoAttackEnabled;
 }
 
+/** HUD auto-attack toggle without a tap (headless bots). */
+export function defenseSceneE2eSetAutoAttackEnabled(
+  scene: DefenseSceneE2eDelegate,
+  on: boolean,
+): void {
+  scene.run.autoAttackEnabled = on;
+}
+
 export function defenseSceneE2eIsTouchButtonPressed(
   scene: DefenseSceneE2eDelegate,
   testId: string,

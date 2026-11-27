@@ -180,6 +180,9 @@ harness use:
 - **cooldown** (default): the save's own spells, every cooldown spell
   (damage, control and heals) longest cooldown first, then the save's
   highest-DPS filler; other fillers are dropped.
+- **fire** (`--schools fire`): `cone_of_fire`, `flamestrike`,
+  `combustion`, `arc_bomb`, `fire_nova` (fire's five best cooldown spells
+  by damage per cooldown second), heals, then `fire_bolt`.
 - **frost**, **frost-bolt**, **lightning** (`--bars`): an element-focused bar
   for the same save: the element's spells first (frost: `frost_nova`,
   `deep_freeze`, `cone_of_cold`; `ice_wall` is not pool-selectable yet;
@@ -210,6 +213,30 @@ per bar above (gear and talents stay the save's own, labelled
 run's saves instead of playing the sim again, so a rerun uses the very same
 saves. `--resume` keeps the out folder's results and plays only the
 fights still missing one (use it with `--saves` so the snapshots match).
+
+`--no-auto-attack` turns the HUD auto attack off for the night (the bot
+never taps attack either), so the player makes no weapon attacks; the
+result rows carry `autoAttack`.
+
+`--schools generic,fire,frost,lightning` replays each save once per school
+build (`src/sim/economy/schoolBuilds.ts`), labelled `strategy/fire` etc.;
+`generic` is the save as it is. A school build keeps the save's items
+(base, rarity, item level, affix count) and its talent points:
+
+- **Gear**: Sturdy, Vital, of Speed, uniques and affixes already in the
+  school's pool (Mastery / Quickening re-keyed to its spells) stay. Every
+  other affix on an equipped item becomes the school's first legal pick for its position
+  and item type: prefixes the element (Fiery / Icy / Shocking), then
+  Arcane; suffixes of Mastery and of Quickening keyed to the school's
+  spells (frost: Quickening first), then the school's weapon proc (of
+  Embers / of Frost / of Thunder). The new roll sits at the same point of
+  its tier for the item level as the old one. With no legal unused pick
+  (e.g. Sharp on gloves) the old affix stays, so no item has an affix twice.
+- **Talents**: Sorcery first: Arcane Study 3, Kindling 2, Deep Winter
+  (frost) or Overcharge (lightning; fire takes it too, only to reach the
+  next tiers), Focus 3, Meteor Storm 1. Points left keep the save's other
+  talents, shallowest tiers first.
+- **Bar**: the school's bar above (generic: cooldown).
 
 Superseded first full-cast check (spell-caster saves, nights 7–20 ×
 p10/p50/p90, one fight each; the default bot lost one fight's result at
