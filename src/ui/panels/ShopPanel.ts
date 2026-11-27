@@ -240,7 +240,7 @@ export class ShopPanel {
     const ctx = this.ctx;
     const st = this.state;
     const head = shopHeader(ctx, save);
-    fitText(this.subtitle, head.subtitle, 270);
+    fitText(this.subtitle, head.subtitle, 244);
     this.goldText.setText(head.gold);
     const wants = st.tab === "requests";
     this.tabs.set(st.tab === "shop" ? 0 : wants ? 2 : 1, [

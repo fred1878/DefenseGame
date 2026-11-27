@@ -506,16 +506,16 @@ export class DgKit {
 
   /** Current-gold pill in the header (shared by Blacksmith, Trader and Inventory). */
   private goldPill(): Phaser.GameObjects.Text {
-    this.box(376, 44, 84, 32, {
+    this.box(350, 38, 110, 44, {
       fill: DG_THEME.bgSlot,
       stroke: DG_THEME.accentGold,
       strokeWidth: 1,
-      radius: 14,
+      radius: 16,
       frame: "dark",
     });
-    this.icon(393, 60, "coins", 16, DG_THEME.accentGold);
-    return this.text(405, 60, "", {
-      size: 15,
+    this.icon(370, 60, "coins", 20, DG_THEME.accentGold);
+    return this.text(385, 60, "", {
+      size: 22,
       title: true,
       color: DG_THEME.accentGoldBright,
       originY: 0.5,
