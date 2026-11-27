@@ -893,6 +893,16 @@ Global rules with no per-row home, loaded with the town data at Boot (`applyGame
 | `lobOvershootPx` | px | Extra travel past the aim point for lobbed enemy projectiles. |
 | `lobMinTravelPx` | px | Minimum travel distance for lobbed enemy projectiles. |
 
+### `audio`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `playerMeleeSlashVolume` | dimensionless | Volume (0–1) of the player melee swing sound. |
+| `enemyMeleeSlashVolume` | dimensionless | Volume (0–1) of enemy melee swing sounds. |
+| `fireWhooshVolume` | dimensionless | Volume (0–1) of the fire spell whoosh. |
+| `coinSpendVolume` | dimensionless | Volume (0–1) of the coin sound when spending gold. |
+| `coinGainVolume` | dimensionless | Volume (0–1) of the coin sound when earning gold. |
+
 ### `feel`
 
 | Field | Unit | Meaning |

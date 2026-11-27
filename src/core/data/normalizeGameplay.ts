@@ -26,6 +26,13 @@ export const GAMEPLAY_SECTION_KEYS = {
     "lobOvershootPx",
     "lobMinTravelPx",
   ],
+  audio: [
+    "playerMeleeSlashVolume",
+    "enemyMeleeSlashVolume",
+    "fireWhooshVolume",
+    "coinSpendVolume",
+    "coinGainVolume",
+  ],
   feel: [
     "novaFlashDurationMs",
     "novaFlashStartAlpha",

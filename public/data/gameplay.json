@@ -37,5 +37,12 @@
     "consumableToastRisePx": 24,
     "townStatusMs": 2200,
     "resetConfirmWindowMs": 4000
+  },
+  "audio": {
+    "playerMeleeSlashVolume": 0.52,
+    "enemyMeleeSlashVolume": 0.48,
+    "fireWhooshVolume": 0.55,
+    "coinSpendVolume": 0.58,
+    "coinGainVolume": 0.62
   }
 }
