@@ -18,6 +18,7 @@ import {
 } from "../../ui/hud/townBuildingPlate";
 import type {
   TownIsoLightColor,
+  TownIsoStageData,
   TownStageIndex,
 } from "../../world/townIso/townIsoTypes";
 
@@ -106,9 +107,9 @@ export class TownIsoWorld {
     this.builtStage = stage;
     const data = TOWN_ISO_STAGES[stage];
     if (!data) return;
-    this.buildGround(stage);
-    this.buildScenery(stage);
-    this.buildLights(stage);
+    this.buildGround(stage, data);
+    this.buildScenery(data);
+    this.buildLights(data);
     for (const [x, y] of data.smoke) this.addSmokeSource(x, y);
     if (unlockTownLevel !== null) this.buildLockedPlot(unlockTownLevel);
     this.trackStatic(
@@ -170,9 +171,9 @@ export class TownIsoWorld {
     }
     for (const o of items) o.setVisible(true);
     // Stable sort keeps creation order for equal depths, like the display list.
-    items.sort((a, b) => (a.depth ?? 0) - (b.depth ?? 0));
+    items.sort((a, b) => a.depth - b.depth);
     const sortedPlates = [...plates].sort(
-      (a, b) => (a.container.depth ?? 0) - (b.container.depth ?? 0),
+      (a, b) => a.container.depth - b.container.depth,
     );
     for (const p of sortedPlates) p.setBaked(false);
     rt.clear();
@@ -278,9 +279,7 @@ export class TownIsoWorld {
     this.lockedPlate = plate;
   }
 
-  private buildGround(stage: TownStageIndex): void {
-    const data = TOWN_ISO_STAGES[stage];
-    if (!data) return;
+  private buildGround(stage: TownStageIndex, data: TownIsoStageData): void {
     const V = TOWN_ISO_VIEW;
     const rt = this.trackStatic(
       this.scene.add
@@ -310,9 +309,7 @@ export class TownIsoWorld {
     );
   }
 
-  private buildScenery(stage: TownStageIndex): void {
-    const data = TOWN_ISO_STAGES[stage];
-    if (!data) return;
+  private buildScenery(data: TownIsoStageData): void {
     for (const row of data.scenery) {
       const [key, wx, wy, tint] = row;
       const flags = row[4] ?? {};
@@ -333,9 +330,7 @@ export class TownIsoWorld {
     }
   }
 
-  private buildLights(stage: TownStageIndex): void {
-    const data = TOWN_ISO_STAGES[stage];
-    if (!data) return;
+  private buildLights(data: TownIsoStageData): void {
     for (const [wx, wy, color, rad, k] of data.lights) {
       const s = isoWorldToScreen(wx, wy);
       this.trackStatic(
