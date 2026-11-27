@@ -158,12 +158,38 @@ the p10 / p50 / p90 power ratio (and with `--behind`, a median save from
 three nights earlier), then replays every save in the real game through the
 manual Playwright spec `e2e/win-model.spec.ts` (`@manual`, not in CI;
 headless Chromium, `/?e2e=1&campaignWaves=1`, 8 workers). The bot
-auto-attacks with the better weapon mode, auto-casts the whole bar (longest
-cooldown first), targets the enemy nearest the north wall, kites in ranged
-mode, backs off under 35% HP, drinks a potion (Q) under 45% HP and throws a
-bomb (E) when 5+ enemies are within 160 px. A night is won if `save.night`
+auto-attacks with the better weapon mode, auto-casts the whole bar (see
+"Spell bars" below), targets the enemy nearest the north wall, kites in
+ranged mode, backs off under 35% HP, stands still under 70% HP while a heal
+is ready (and never moves during a heal, which needs the player still),
+drinks a potion (Q) under 45% HP and throws a bomb (E) when 5+ enemies are
+within 160 px. A night is won if `save.night`
 advanced. Each fight also records the game's damage tally by flavour
-(physical = weapon; elements = spells, procs, bombs).
+(physical = weapon; elements = spells, procs, bombs), the casts started per
+spell, the HP the player regained and the bar it used.
+
+### Spell bars
+
+Auto-cast takes the first ready slot from the left. A filler, a damage
+spell that is ready again as soon as it finishes (`fire_bolt`, `ice_bolt`,
+`water_bolt` at 150 ms, and `blizzard`, whose 1.5 s cooldown runs out during
+its own 4 s channel), starves every slot after it, so a bar has exactly one
+filler, last. `src/sim/economy/spellBars.ts` builds the bars the sim and the
+harness use:
+
+- **cooldown** (default): the save's own spells, every cooldown spell
+  (damage, control and heals) longest cooldown first, then the save's
+  highest-DPS filler; other fillers are dropped.
+- **frost**, **frost-bolt**, **lightning** (`--bars`): an element-focused bar
+  for the same save: the element's spells first (frost: `frost_nova`,
+  `deep_freeze`, `cone_of_cold`; `ice_wall` is not pool-selectable yet;
+  lightning: `chain_lightning`, `lightning_bolt`), then `heal`,
+  `flash_heal` and the save's other cooldown spells in cooldown order, then
+  one filler: `blizzard` (frost), `ice_bolt` (frost-bolt) or the save's own
+  (lightning). Every spell up to implementation phase 4 can be put on the
+  bar from night 1, so these bars are legal on every night.
+
+Heals in the game auto-cast whenever they are ready, at any HP.
 
 ```bash
 # real fights on the shipped data (builds dist with build:e2e if missing; --build forces it)
@@ -178,18 +204,41 @@ npm run sim:fights -- fit sim-output/fights/* --fix steepness=2 --out fitted.jso
 Two replay options change the bot, not the game: `--full-cast` makes it
 finish every cast (it holds still through windups and channels, and stops
 when a windup spell is ready and an enemy is in reach, so auto-cast can start
-it), and `--bars cooldown,frost,lightning` replays each save once per
-spell-bar priority (frost / lightning puts that element's spells first; gear
-and talents stay the save's own, labelled `strategy/frost` etc.).
+it), and `--bars cooldown,frost,frost-bolt,lightning` replays each save once
+per bar above (gear and talents stay the save's own, labelled
+`strategy/frost` etc.). `--saves DIR/snapshots.json` replays an earlier
+run's saves instead of playing the sim again, so a rerun uses the very same
+saves. `--resume` keeps the out folder's results and plays only the
+fights still missing one (use it with `--saves` so the snapshots match).
 
-First full-cast check (spell-caster saves, nights 7–20 × p10/p50/p90, one
-fight each; the default bot lost one fight's result at night 20 p90):
+Superseded first full-cast check (spell-caster saves, nights 7–20 ×
+p10/p50/p90, one fight each; the default bot lost one fight's result at
+night 20 p90). Its bars were flawed: every slot sorted by cooldown with all
+three fillers kept, so `water_bolt` starved the slots after it and the heals
+never fired, and "frost first" put the no-cooldown `ice_bolt` in front,
+which then was the only spell cast:
 
 | Bar order | Default bot won | Full-cast bot won | Frost / lightning share of damage (full-cast) |
 |---|---|---|---|
 | cooldown | 30/41 | 31/42 | 0% / 1.9% |
 | frost first | 35/42 | 1/42 | 42.0% / 0% |
 | lightning first | 37/42 | 31/42 | 0% / 2.3% |
+
+Rerun with the fixed bars (the same 42 spell-caster saves, nights 7–20 ×
+p10/p50/p90, one fight each; a few fights wrote no result):
+
+| Bar | Current bot won | Full-cast bot won | Frost / lightning / fire share (full-cast) |
+|---|---|---|---|
+| cooldown | 25/42 | 24/40 | 0% / 0% / 18.7% |
+| frost (blizzard filler) | 31/42 | 33/42 | 12.7% / 0% / 17.0% |
+| frost-bolt (ice_bolt filler) | 29/41 | 30/42 | 14.3% / 0% / 16.5% |
+| lightning | 29/42 | 27/41 | 0% / 4.2% / 18.3% |
+
+The rest was physical (weapon) damage. Heals now fire about 4–5 times a
+fight. The same saves for balanced, ranged and no-spend (from the final
+batch) won 21/32, 21/33 and 9/31 with the fixed bar, against 26/32, 26/33
+and 12/31 with the old one (which spammed the instant `water_bolt`, castable
+while moving).
 
 `fit` does coordinate descent on the model knobs by log loss over nights ≥
 `--min-night` (13); earlier nights are held out and only scored.

@@ -2,6 +2,8 @@ import { defenseObstaclePlacements } from "../../config/defense";
 import { PALETTE } from "../../ui/theme/uiPalette";
 import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
+import { recordPlayerHealed } from "../../e2e/combatTally";
+import { isE2EEnabled } from "../../e2e/e2eMode";
 import {
   DEFENSE_RENDER_DEPTH,
   type DefenseObstacleRect,
@@ -84,6 +86,7 @@ export function bootstrapDefenseWorld(
     });
   };
   player.damageable.onHealed = (amount) => {
+    if (isE2EEnabled()) recordPlayerHealed(amount);
     damageNumbers.floatFromSource(player.damageable.id, player.sprite, amount, {
       heal: true,
     });
