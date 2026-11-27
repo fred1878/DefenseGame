@@ -208,3 +208,21 @@ npx playwright test e2e/visual-screens.spec.ts --project=chromium --update-snaps
 ```
 
 If your local renderer differs from CI, take the `actual` PNGs from the failed CI run's `playwright-report` artifact instead.
+
+## Defense enemy-loop safety net (refactor plan P0.3 / P0.4)
+
+`src/test/defenseTickHarness.ts` runs the real `tickDefenseEnemies` headless: N enemies cycling every shipped behaviour, a fixed player, the wall, and sprite positions integrated from the AI's velocities (fake scene, all FX textures "exist").
+
+| Check | Command | Notes |
+|---|---|---|
+| Golden behaviour snapshot | part of `npm run test` (`src/scenes/defense/defenseGolden.test.ts`) | Digests of positions, HP, combat phase, wall/player HP and projectile count after 10×600, 30×300 and 60×120 frames. Keyed by a hash of the shipped `public/data` tuning files: after a balance edit the comparison is **skipped** until refreshed with `UPDATE_GOLDEN=1 npx vitest run defenseGolden`. A refactor that changes a digest while the data hash is unchanged is a behaviour change. |
+| Enemy-loop perf | `npm run perf` | Opt-in (PERF=1). Prints median ms per frame for 20 / 60 / 120 enemies. Compare on the same machine only. |
+
+Baseline on the agent box (2026-11-27, Node 24; noisy, medians of 5 × 120 frames):
+
+| Code | 20 enemies | 60 enemies | 120 enemies |
+|---|---:|---:|---:|
+| Before QW3 (per-pair peer rows) | 0.50 ms | 14.4 ms | 17.2 ms |
+| After QW3 (per-frame peer rows) | 0.30 ms | 14.6 ms | 12.0 ms |
+
+At 60+ enemies the cost is dominated by A* replans with peer agents (`pathfinding/astar.ts`), not allocation.

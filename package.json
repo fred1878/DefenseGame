@@ -19,6 +19,7 @@
     "knip": "knip",
     "check:arch": "node scripts/check-architecture.mjs",
     "test": "vitest run",
+    "perf": "PERF=1 vitest run src/scenes/defense/DefenseEnemyTick.perf.test.ts",
     "verify": "npm run typecheck && npm run lint && npm run knip && npm run check:arch && npm run test",
     "test:coverage": "vitest run --coverage",
     "sim:economy": "node scripts/econ-sim.mjs",
