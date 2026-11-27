@@ -227,7 +227,9 @@ same save then plays the same fight however busy the machine is: 12 fights
 (4 saves × 3 copies) gave one result per save at 8, 2 and 1 workers.
 Result rows carry `stepping: "fixed"`, `seed`, `gameSeconds`, and
 `endWallHp` / `endPlayerHp` (HP on the night's last frame, which shows
-whether the wall or the player fell).
+whether the wall or the player fell). A night still running after 20
+minutes of game time (e.g. one enemy the bot cannot reach) is written with
+`timedOut: true` and counts as not won.
 
 `--realtime` runs the old real-time loop (bot on a wall-clock timer, game at
 whatever frame rate the machine manages; rows record `fps` instead). Those
