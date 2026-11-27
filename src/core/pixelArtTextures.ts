@@ -1,3 +1,4 @@
+import { UI_PART_ASSETS } from "../content/uiParts";
 import Phaser from "phaser";
 import {
   COMBAT_FX_ASSETS,
@@ -77,6 +78,7 @@ export function allPixelArtTextureKeys(): readonly string[] {
     ...GROUND_DECOR_ASSETS.map((a) => a.key),
     ...DEFENSE_OBSTACLE_ASSETS.map((a) => a.key),
     ...UI_ASSETS.map((a) => a.key),
+    ...UI_PART_ASSETS.map((a) => a.key),
     ...TOWN_BUILDING_ASSETS.map((a) => a.key),
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),

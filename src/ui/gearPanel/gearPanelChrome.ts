@@ -40,6 +40,13 @@ export function createOverlayRoot(scene: Phaser.Scene): OverlayRoot {
   );
   bindModalDimBackdrop(dim);
   root.add(dim);
+  // Mockup `.screen` background: warm near-black vertical gradient.
+  const grad = scene.add.graphics();
+  grad.fillGradientStyle(0x1b1511, 0x1b1511, 0x0f0c0a, 0x0f0c0a, 1);
+  grad.fillRect(0, 0, GAME.width, GAME.height * 0.45);
+  grad.fillGradientStyle(0x0f0c0a, 0x0f0c0a, 0x0a0807, 0x0a0807, 1);
+  grad.fillRect(0, GAME.height * 0.45, GAME.width, GAME.height * 0.55);
+  root.add(grad);
   const lease = acquireModalInput(scene, INPUT_MODALITY.townGear);
   return { root, kit: new DgKit(scene, root), lease };
 }
@@ -71,6 +78,7 @@ export function createCard(
     fill: DG_THEME.bgRaised,
     stroke: DG_THEME.borderIron,
     radius: 10,
+    frame: "dark",
   });
   const tile = kit.tile(x + 8, y + 8, 54, null);
   const lock = kit.icon(x + 35, y + 35, "lock", 30, DG_THEME.textMuted);
@@ -123,11 +131,13 @@ export function createCard(
               stroke: DG_THEME.accentGoldBright,
               strokeWidth: 2,
               radius: 10,
+              frame: "ornate",
             }
           : {
               fill: v.locked ? DG_THEME.bgSlot : DG_THEME.bgRaised,
               stroke: DG_THEME.borderIron,
               radius: 10,
+              frame: "dark",
             },
       );
       tile.show(v.tile, { dim: v.locked });
@@ -171,6 +181,7 @@ export function createDetailBox(
     stroke: DG_THEME.accentGold,
     strokeWidth: 1.5,
     radius: 14,
+    frame: "dark",
   });
   const tile = kit.tile(32, top + 16, 60, null);
   const name = kit.text(106, top + 15, "", { size: 24, title: true });
@@ -194,6 +205,7 @@ export function createDetailBox(
       stroke: DG_THEME.borderIron,
       strokeWidth: 1,
       radius: 10,
+      frame: "plate",
     }),
     icon: kit.icon(0, 0, "star", 14),
     text: kit.text(0, 0, "", { size: 12, bold: true, originY: 0.5 }),
@@ -283,6 +295,7 @@ export function createDetailBox(
         stroke: d.borderColor ?? DG_THEME.accentGold,
         strokeWidth: 1.5,
         radius: 14,
+        frame: "dark",
       });
       name.setColor(d.nameColor);
       fitText(name, d.name, 508 - textX - 16);

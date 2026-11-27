@@ -109,6 +109,7 @@ export class InventoryPanel {
       fill: DG_THEME.bgPanel,
       stroke: DG_THEME.borderIron,
       radius: 14,
+      frame: "dark",
     });
     kit.box(98, 190, 344, 100, {
       fill: DG_THEME.bgSelected,
@@ -161,10 +162,11 @@ export class InventoryPanel {
 
     // Bag.
     this.bagLabel = kit.section(586);
-    kit.box(428, 572, 96, 28, {
+    kit.box(428, 570, 96, 32, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       radius: 8,
+      frame: "btn",
     });
     kit.icon(446, 586, "sort", 16);
     this.sortText = kit.text(458, 586, "", { size: 13, originY: 0.5 });
