@@ -36,10 +36,6 @@ const VOLUME: Record<UiSfx, (v: AudioVolumes) => number> = {
   error: (v) => v.uiErrorVolume,
 };
 
-export function uiSfxKey(id: UiSfx): string {
-  return KEYS[id];
-}
-
 /** Play a town menu sound; silent when the clip has not loaded (tests, slow loads). */
 export function playUiSfx(scene: Phaser.Scene, id: UiSfx): void {
   const key = KEYS[id];

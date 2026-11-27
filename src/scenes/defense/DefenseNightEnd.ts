@@ -31,7 +31,16 @@ import {
   trainingEndHeadline,
   trainingEndHudLines,
 } from "../../systems/nightEndMessaging";
-import { setSave } from "../../core/registryKeys";
+import { peekDataStore, setSave } from "../../core/registryKeys";
+import { tuning } from "../../tuning/gameTuning";
+import type { DataStore } from "../../core/data/DataStore";
+import type { GearCatalog } from "../../gear/gearTypes";
+import {
+  equipNightDrop,
+  keptDropUids,
+  nightLossTips,
+  type NightTip,
+} from "../../ui/gearPanel/nightDropView";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -223,10 +232,26 @@ export function runDefenseCampaignNightEnd(
 
   // The summary panel replaces the old HUD banner + floating return button.
   ctx.hudText.setVisible(false);
+  let current = next;
   const panel = new NightLootSummaryPanel(
     ctx.scene,
     resolved.summary,
     ctx.onReturnToTown,
+    {
+      drops: {
+        catalog,
+        uids: keptDropUids(input.save.gear, next.gear),
+        getSave: () => current,
+        equip: (uid) => {
+          // A swap: the worn item goes back to the bag, so a full bag is fine.
+          current = equipNightDrop(catalog, current, uid);
+          persistSave(current);
+          setSave(ctx.registry, current);
+          return current;
+        },
+      },
+      tips: input.won ? [] : lossTips(ctx.registry, next, catalog),
+    },
   );
   ctx.registerUiDraw(panel.root);
   ctx.registerUiDraw(panel.returnBtn.container);
@@ -271,4 +296,36 @@ export function checkDefenseRunEnd(input: DefenseRunEndCheck): void {
   if (!nightEnd) return;
   if (nightEnd.won) input.onNightEnd(true);
   else input.onNightEnd(false, nightEnd.lossReason);
+}
+
+/** Town menu name without the "(Night)" / "(Daylit)" variant suffix. */
+function townLabel(
+  store: DataStore,
+  pick: (def: DataStore["townBuildings"][string]) => boolean,
+  fallback: string,
+): string {
+  const def = Object.values(store.townBuildings).find(pick);
+  return def ? def.label.replace(/\s*\((Night|Daylit)\)$/, "") : fallback;
+}
+
+function lossTips(
+  registry: Phaser.Data.DataManager,
+  save: SaveGame,
+  catalog: GearCatalog,
+): NightTip[] {
+  const store = peekDataStore(registry);
+  if (!store) return [];
+  return nightLossTips({
+    save,
+    catalog,
+    buildings: store.buildings,
+    wallHpPerLevel: tuning("gameplay").wall.hpPerLevel,
+    wallBuildingName: townLabel(store, (d) => d.upgradeId === "wall", "Wall"),
+    blacksmithName: townLabel(
+      store,
+      (d) => d.opensShop === "blacksmith",
+      "Blacksmith",
+    ),
+    traderName: townLabel(store, (d) => d.opensShop === "trader", "Trader"),
+  });
 }
