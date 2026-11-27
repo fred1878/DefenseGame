@@ -13,7 +13,7 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 
 | Work | Notes |
 |------|--------|
-| Crowd-aware sim win model + real-fight harness | `npm run sim:fights` replays sim saves in headless Chromium and fits the model (auto-cast rotation, weapon uptime, crowd, exposure); nights 13–20 retuned on real fights so median spenders win ~75% of late nights ([ECONOMY_SIM.md](docs/ECONOMY_SIM.md)) |
+| Crowd-aware sim win model + real-fight harness | `npm run sim:fights` replays sim saves in headless Chromium and fits the model (auto-cast rotation, weapon uptime, crowd, exposure); nights 13–20 retuned and checked in real fights ([ECONOMY_SIM.md](docs/ECONOMY_SIM.md)) |
 | **Phaser 4.2.1** | Custom trimmed vendor chunk; Vite 8 / Vitest 5 |
 | **Strict TypeScript** | `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `allowImportingTsExtensions` |
 | **Nights 13–20, buy requests** | 20-night campaign (`hpMul` / `damageMul` / elite groups), item tables to ilvl ~19, worse night drops, cheaper shop upgrades and rerolls, 8 wall levels, trader buy requests (Wants tab, 150% payout), win model re-weighted from real-combat runs (`e2e/win-model.spec.ts`) — see `docs/ECONOMY_SIM.md`, `docs/ITEMS.md`, `docs/WAVES.md` |
