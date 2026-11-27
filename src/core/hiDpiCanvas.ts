@@ -6,8 +6,9 @@
  * and the browser stretches it to the screen, which smears or drops thin glyph stems
  * at non-integer factors (e.g. 2.625×).
  *
- * This module resizes only the canvas *backing store* to the on-screen CSS size × DPR
- * (DPR capped at `GAME.renderResolutionCap`) and scales the main WebGL drawing
+ * This module resizes only the canvas *backing store* to the exact on-screen
+ * device-pixel box (ResizeObserver `device-pixel-content-box`, else CSS size × DPR)
+ * and scales the main WebGL drawing
  * context's viewport and scissor to match. The projection matrix stays in logical
  * units, so every game coordinate, camera and pointer mapping is unchanged; the GPU
  * simply rasterises the same scene with more pixels. Pixel-art textures keep NEAREST
@@ -28,29 +29,48 @@ const MIN_BACKING_SCALE = 0.5;
 export type BackingSize = { width: number; height: number; scale: number };
 
 /**
- * Backing-store pixel size for a canvas shown at `cssWidth × cssHeight` CSS px.
- * Keeps the logical aspect ratio and returns the effective scale (backing px per game unit).
+ * Backing-store pixel size for a canvas that covers `deviceWidth × deviceHeight`
+ * physical (device) pixels on screen.
+ *
+ * The backing store must match the device-pixel box exactly: any mismatch makes the
+ * browser resample the whole frame, and with `image-rendering: auto` that is a
+ * bilinear blur over every sprite and tile (the regression after #381, e.g. 1079×2398
+ * backing shown in a 1079×2402 box at DPR 2.625, or DPR 3.5 capped to 3 and stretched
+ * 1.17×). Only when the box is larger than {@link MAX_BACKING_SCALE} × the logical size
+ * do we render smaller, at a whole-number divisor so the CSS upscale stays an even
+ * pixel-art (nearest) stretch.
  */
 export function computeBackingSize(
-  cssWidth: number,
-  cssHeight: number,
-  devicePixelRatio: number,
-  dprCap: number = GAME.renderResolutionCap,
+  deviceWidth: number,
+  deviceHeight: number,
   logicalWidth: number = GAME.width,
   logicalHeight: number = GAME.height,
 ): BackingSize {
-  const dpr = Math.min(Math.max(devicePixelRatio || 1, 1), dprCap);
-  const fit =
-    cssWidth > 0 && cssHeight > 0
-      ? Math.min(cssWidth / logicalWidth, cssHeight / logicalHeight)
-      : 1;
-  const raw = Math.min(
-    Math.max(fit * dpr, MIN_BACKING_SCALE),
-    MAX_BACKING_SCALE,
-  );
-  const width = Math.max(1, Math.round(logicalWidth * raw));
-  const height = Math.max(1, Math.round(logicalHeight * raw));
-  return { width, height, scale: width / logicalWidth };
+  let w = Math.max(1, Math.round(deviceWidth || logicalWidth));
+  let h = Math.max(1, Math.round(deviceHeight || logicalHeight));
+  const fit = Math.min(w / logicalWidth, h / logicalHeight);
+  if (fit > MAX_BACKING_SCALE) {
+    const divisor = Math.ceil(fit / MAX_BACKING_SCALE);
+    w = Math.max(1, Math.round(w / divisor));
+    h = Math.max(1, Math.round(h / divisor));
+  } else if (fit < MIN_BACKING_SCALE) {
+    w = Math.round(logicalWidth * MIN_BACKING_SCALE);
+    h = Math.round(logicalHeight * MIN_BACKING_SCALE);
+  }
+  return { width: w, height: h, scale: w / logicalWidth };
+}
+
+/** Device-pixel box of a canvas from its CSS rect (fallback when ResizeObserver lacks device-pixel sizes). */
+export function deviceBoxFromCss(
+  cssWidth: number,
+  cssHeight: number,
+  devicePixelRatio: number,
+): { width: number; height: number } {
+  const dpr = devicePixelRatio > 0 ? devicePixelRatio : 1;
+  return {
+    width: Math.round(cssWidth * dpr),
+    height: Math.round(cssHeight * dpr),
+  };
 }
 
 type CanvasDrawingContext = {
@@ -166,22 +186,34 @@ export function installHiDpiCanvas(game: Phaser.Game): () => void {
   const canvas = game.canvas;
   let lastKey = "";
 
+  /** Exact device-pixel box reported by ResizeObserver (Chromium / Firefox). */
+  let observedDevice: { width: number; height: number } | null = null;
+
   const apply = (): void => {
     const rect = canvas.getBoundingClientRect();
     const cssW = rect.width || game.scale.displaySize.width;
     const cssH = rect.height || game.scale.displaySize.height;
-    const size = computeBackingSize(cssW, cssH, window.devicePixelRatio);
+    const estimate = deviceBoxFromCss(cssW, cssH, window.devicePixelRatio);
+    // Trust the observer only when it agrees with CSS × DPR to within the browser's
+    // pixel snapping (emulated DPR in headless Chromium reports CSS px here).
+    const device =
+      observedDevice &&
+      Math.abs(observedDevice.width - estimate.width) <= 2 &&
+      Math.abs(observedDevice.height - estimate.height) <= 2
+        ? observedDevice
+        : estimate;
+    const size = computeBackingSize(device.width, device.height);
+    // Any leftover backing ↔ screen mismatch (Safari rounding, huge displays) must
+    // resample as nearest, never bilinear: a bilinear pass blurs all pixel art.
+    canvas.style.imageRendering = "pixelated";
     const key = `${size.width}x${size.height}`;
     if (key === lastKey) return;
     lastKey = key;
-    // Backing store ≈ display size: no CSS pixelated upscale (it could drop a
-    // column when CSS px × DPR is fractional).
-    canvas.style.imageRendering = "auto";
     if (canvas.width !== size.width) canvas.width = size.width;
     if (canvas.height !== size.height) canvas.height = size.height;
     backing.sx = size.width / GAME.width;
     backing.sy = size.height / GAME.height;
-    setVertexSnapScale(backing.sx);
+    setVertexSnapScale(backing.sx, backing.sy);
     base.resize(GAME.width, GAME.height);
     if (renderer.gl)
       renderer.drawingBufferHeight = renderer.gl.drawingBufferHeight;
@@ -215,9 +247,25 @@ export function installHiDpiCanvas(game: Phaser.Game): () => void {
     apply();
   }
   watchDpr();
+
+  let observer: ResizeObserver | null = null;
+  if (typeof ResizeObserver !== "undefined") {
+    observer = new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.devicePixelContentBoxSize?.[0];
+      if (!box) return;
+      observedDevice = { width: box.inlineSize, height: box.blockSize };
+      apply();
+    });
+    try {
+      observer.observe(canvas, { box: "device-pixel-content-box" });
+    } catch {
+      observer.observe(canvas);
+    }
+  }
   apply();
 
   return () => {
+    observer?.disconnect();
     scale.updateScale = updateScale;
     dprQuery?.removeEventListener("change", onDprChange);
   };
