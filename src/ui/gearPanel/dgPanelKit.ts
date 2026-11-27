@@ -536,7 +536,7 @@ export class DgKit {
       radius: 8,
       frame: "slotGold",
     });
-    this.text(x + w - 10, 47, "YOUR GOLD", {
+    this.text(x + w - 10, 50, "YOUR GOLD", {
       size: 10,
       bold: true,
       color: DG_THEME.accentGold,
@@ -546,13 +546,13 @@ export class DgKit {
     if (hasUiPart(this.scene, "dg-coin")) {
       this.root.add(
         this.scene.add
-          .image(x + 22, 70, uiPartKey("dg-coin"))
+          .image(x + 20, 72, uiPartKey("dg-coin"))
           .setDisplaySize(21, 20),
       );
     } else {
-      this.icon(x + 22, 70, "coins", 18, DG_THEME.accentGold);
+      this.icon(x + 20, 72, "coins", 18, DG_THEME.accentGold);
     }
-    return this.text(x + w - 10, 70, "", {
+    return this.text(x + w - 10, 72, "", {
       size: 26,
       title: true,
       color: DG_THEME.accentGoldBright,
@@ -721,4 +721,11 @@ export function fitText(
     s = s.slice(0, -1);
     t.setText(`${s.trimEnd()}…`);
   }
+}
+
+/** Shrink the shop purse digits to fit beside the coin (5+ digit purses). */
+export function fitPurse(t: Phaser.GameObjects.Text, str: string): void {
+  t.setScale(1).setText(str);
+  const max = 98;
+  if ((t.width || 0) > max) t.setScale(max / t.width);
 }

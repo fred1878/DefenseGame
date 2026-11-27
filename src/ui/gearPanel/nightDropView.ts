@@ -95,7 +95,7 @@ export function nightDropRow(
     name: r.name,
     color: r.rarity.color,
     sub: equipped
-      ? "Equipped · old item moved to bag"
+      ? "Equipped"
       : `${r.rarity.label} ${itemTypeShort(r.base.type).toLowerCase()} · ilvl ${r.item.itemLevel}`,
     stat: itemKeyStat(r),
     tile: itemTile(r),
@@ -201,7 +201,7 @@ export function nightLossTips(input: NightTipsInput): NightTip[] {
       tips.push({
         icon: "hammer",
         title: `Upgrade the ${id === "blacksmith" ? "Blacksmith" : "Trader"}`,
-        body: `${name} · next level ${cost}g · better stock`,
+        body: `${name} · next level ${cost}g · you can afford it`,
       });
     }
   }
