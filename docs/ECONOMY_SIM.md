@@ -216,6 +216,13 @@ run's saves instead of playing the sim again, so a rerun uses the very same
 saves. `--resume` keeps the out folder's results and plays only the
 fights still missing one (use it with `--saves` so the snapshots match).
 
+Fights are real time, so a busy machine changes them: at about 10 rendered
+frames per second (8 fight workers plus other heavy jobs on an 8-core box)
+the same saves that won 12 of 12 lost 9 of 12. Each result row records the
+fight's `fps` and the machine's 1-minute load (`load1`); compare runs only
+at similar fps. Variants of one save (`--bars`, `--schools`) are queued next
+to each other so fights running at the same time are of different variants.
+
 `--no-auto-attack` turns the HUD auto attack off for the night (the bot
 never taps attack either), so the player makes no weapon attacks; the
 result rows carry `autoAttack`.

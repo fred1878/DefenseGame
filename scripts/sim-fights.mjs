@@ -132,46 +132,62 @@ function barOrder(slots, bar) {
   ];
 }
 
+/**
+ * Variants of one save next to each other, so fights that run at the same
+ * time (and share the machine's load) are of different variants, not one
+ * variant early and another late.
+ */
+function interleave(variants) {
+  const n = Math.max(0, ...variants.map((v) => v.length));
+  return Array.from({ length: n }, (_, i) =>
+    variants.map((v) => v[i]).filter(Boolean),
+  ).flat();
+}
+
 /** Copies of each snapshot per extra `--bars` order, labelled strategy/bar. */
 function withBars(snaps, bars) {
-  return bars.flatMap((bar) =>
-    snaps.map((snap) => {
-      if (bar === "cooldown") return snap;
-      const slots = barOrder(snap.save.spellBar.slots, bar);
-      return {
-        ...snap,
-        id: snap.id.replace(snap.strategy, `${snap.strategy}/${bar}`),
-        strategy: `${snap.strategy}/${bar}`,
-        save: {
-          ...snap.save,
-          spellBar: {
-            ...snap.save.spellBar,
-            slots,
-            autoCastSpellIds: [...slots],
+  return interleave(
+    bars.map((bar) =>
+      snaps.map((snap) => {
+        if (bar === "cooldown") return snap;
+        const slots = barOrder(snap.save.spellBar.slots, bar);
+        return {
+          ...snap,
+          id: snap.id.replace(snap.strategy, `${snap.strategy}/${bar}`),
+          strategy: `${snap.strategy}/${bar}`,
+          save: {
+            ...snap.save,
+            spellBar: {
+              ...snap.save.spellBar,
+              slots,
+              autoCastSpellIds: [...slots],
+            },
           },
-        },
-      };
-    }),
+        };
+      }),
+    ),
   );
 }
 
 /** Copies of each snapshot per `--schools` build, labelled strategy/school. */
 function withSchools(data, snaps, schools) {
-  return schools.flatMap((school) =>
-    snaps.map((snap) => ({
-      ...snap,
-      id: snap.id.replace(snap.strategy, `${snap.strategy}/${school}`),
-      strategy: `${snap.strategy}/${school}`,
-      save:
-        school === "generic"
-          ? snap.save
-          : schoolBuilds.schoolSave(
-              data.catalog,
-              data.talents,
-              snap.save,
-              school,
-            ),
-    })),
+  return interleave(
+    schools.map((school) =>
+      snaps.map((snap) => ({
+        ...snap,
+        id: snap.id.replace(snap.strategy, `${snap.strategy}/${school}`),
+        strategy: `${snap.strategy}/${school}`,
+        save:
+          school === "generic"
+            ? snap.save
+            : schoolBuilds.schoolSave(
+                data.catalog,
+                data.talents,
+                snap.save,
+                school,
+              ),
+      })),
+    ),
   );
 }
 
