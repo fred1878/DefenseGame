@@ -34,9 +34,6 @@ import {
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
 import type { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
-import { EndlessModeSetupScene } from "./EndlessModeSetupScene";
-import { WavePlannerSetupScene } from "./WavePlannerSetupScene";
-import { activeTownUiHost } from "../e2e/townUiHost";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
@@ -120,7 +117,7 @@ export class TownScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     applyPixelRenderDebugSettings(this.game);
-    this.save = getSave(this.registry);
+    this.syncSaveFromRegistry();
     if (!this.save.spellBar.autoCastSpellIds) {
       this.save.spellBar.autoCastSpellIds = createDefaultAutoCastSpellIds();
     }
@@ -151,12 +148,11 @@ export class TownScene extends Phaser.Scene {
     const buttons = createTownHeaderButtons(this, {
       onDebug: () => this.overlays.launchDebugMenu(),
       onGear: () => {
-        // e2e `setSave` writes the registry only; reopen on the latest save.
-        this.save = getSave(this.registry);
+        this.syncSaveFromRegistry();
         this.overlays.openGearPanel();
       },
       onTalents: () => {
-        this.save = getSave(this.registry);
+        this.syncSaveFromRegistry();
         this.overlays.openTalentPanel();
       },
       onReset: () => this.onResetTap(),
@@ -212,13 +208,6 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eGetUiTapTargets();
-    }
-    if (host instanceof WavePlannerSetupScene) {
-      return host.e2eGetUiTapTargets();
-    }
     const store = getDataStore(this.registry);
     const out = collectTownUiTapTargets(
       store,
@@ -253,13 +242,6 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eTownTouchDebugRectCount(): number {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eTouchDebugRectCount();
-    }
-    if (host instanceof WavePlannerSetupScene) {
-      return host.e2eTouchDebugRectCount();
-    }
     return collectTownTouchDebugUiRects(this, this.touchDebug, this.overlays)
       .length;
   }
@@ -269,7 +251,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eOpenSpellSortPanel(): void {
-    this.save = getSave(this.registry);
+    this.syncSaveFromRegistry();
     this.overlays.openSpellSortPanel();
   }
 
@@ -281,24 +263,7 @@ export class TownScene extends Phaser.Scene {
     this.overlays.openEndlessPanel();
   }
 
-  e2eIsEndlessPanelOpen(): boolean {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) return host.e2eIsOpen();
-    return false;
-  }
-
-  e2eIsEndlessPanelLoading(): boolean {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) return host.e2eIsLoading();
-    return false;
-  }
-
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eStartEndless(enemyId, infiniteHp);
-      return;
-    }
     const store = getDataStore(this.registry);
     const cap = clampEndlessConcurrent(
       store.player.endlessPanelDefaultConcurrent,
@@ -309,82 +274,12 @@ export class TownScene extends Phaser.Scene {
     );
   }
 
-  e2eEndlessInfiniteHpEnabled(): boolean {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessInfiniteHpEnabled();
-    }
-    return false;
-  }
-
-  e2eSetEndlessInfiniteHp(enabled: boolean): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eSetEndlessInfiniteHp(enabled);
-    }
-  }
-
-  e2eScrollEndlessEnemyList(deltaY: number): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eScrollEndlessEnemyList(deltaY);
-    }
-  }
-
-  e2eEndlessEnemyListScrollState(): ReturnType<
-    EndlessModeSetupScene["e2eEndlessEnemyListScrollState"]
-  > | null {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessEnemyListScrollState();
-    }
-    return null;
-  }
-
-  e2eEndlessSelectedEnemyId(): string | null {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessSelectedEnemyId();
-    }
-    return null;
-  }
-
-  e2eEndlessSelectedEnemyIds(): string[] {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessSelectedEnemyIds();
-    }
-    return [];
-  }
-
-  e2eEndlessRosterEnemyIds(): string[] {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessRosterEnemyIds();
-    }
-    return [];
-  }
-
-  e2eEndlessEnemyConcurrentCap(enemyId: string): number | null {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessEnemyConcurrentCap(enemyId);
-    }
-    return null;
-  }
-
-  e2eToggleEndlessEnemy(enemyId: string): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eToggleEndlessEnemy(enemyId);
-    }
-  }
-
-  e2eSetEndlessEnemyCap(enemyId: string, cap: number): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eSetEndlessEnemyCap(enemyId, cap);
-    }
+  /**
+   * Re-read the live save from the registry (the source of truth). E2E `setSave`
+   * and other scenes write the registry only, so panels reopen on the latest save.
+   */
+  private syncSaveFromRegistry(): void {
+    this.save = getSave(this.registry);
   }
 
   /** Re-enable town layout + header chrome only when no modal owns input. */
@@ -510,7 +405,7 @@ export class TownScene extends Phaser.Scene {
       return;
     }
     if (result.kind === "openShop") {
-      this.save = getSave(this.registry);
+      this.syncSaveFromRegistry();
       this.overlays.openGearPanel(result.shop);
       return;
     }

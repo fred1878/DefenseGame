@@ -19,7 +19,7 @@ import {
   TOWN_ENDLESS_SETUP_SCENE_KEY,
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
 } from "../scenes/town/townSetupSceneLifecycle";
-import { activeTownUiHost } from "./townUiHost";
+import { activeTownUiHost, activeEndlessSetupScene } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { positionDomMirrors } from "./installE2EDom";
 import { combatTally, resetCombatTally } from "./combatTally";
@@ -377,20 +377,24 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       townForE2E(game)?.e2eOpenEndlessPanel();
     },
     isEndlessPanelOpen() {
-      return townUiForE2E(game)?.e2eIsEndlessPanelOpen() ?? false;
+      return activeEndlessSetupScene(game)?.e2eIsOpen() ?? false;
     },
     startEndless(enemyId: string, infiniteHp = false) {
-      townForE2E(game)?.e2eStartEndless(enemyId, infiniteHp);
+      const setup = activeEndlessSetupScene(game);
+      if (setup) setup.e2eStartEndless(enemyId, infiniteHp);
+      else townForE2E(game)?.e2eStartEndless(enemyId, infiniteHp);
     },
     getEndlessPanelDefaultConcurrent() {
       const store = peekDataStore(game.registry);
       return store?.player.endlessPanelDefaultConcurrent ?? 1;
     },
     setEndlessInfiniteHp(enabled: boolean) {
-      townForE2E(game)?.e2eSetEndlessInfiniteHp(enabled);
+      activeEndlessSetupScene(game)?.e2eSetEndlessInfiniteHp(enabled);
     },
     getEndlessInfiniteHp() {
-      return townUiForE2E(game)?.e2eEndlessInfiniteHpEnabled() ?? false;
+      return (
+        activeEndlessSetupScene(game)?.e2eEndlessInfiniteHpEnabled() ?? false
+      );
     },
     isEndlessInfiniteHp() {
       return activeDefenseE2e(game)?.isEndlessInfiniteHp() ?? false;
@@ -404,28 +408,33 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       return Math.floor(save?.player?.hp ?? 0);
     },
     scrollEndlessEnemyList(deltaY: number) {
-      townForE2E(game)?.e2eScrollEndlessEnemyList(deltaY);
+      activeEndlessSetupScene(game)?.e2eScrollEndlessEnemyList(deltaY);
     },
     getEndlessEnemyListScrollState() {
-      return townUiForE2E(game)?.e2eEndlessEnemyListScrollState() ?? null;
+      return (
+        activeEndlessSetupScene(game)?.e2eEndlessEnemyListScrollState() ?? null
+      );
     },
     getEndlessSelectedEnemyId() {
-      return townUiForE2E(game)?.e2eEndlessSelectedEnemyId() ?? null;
+      return activeEndlessSetupScene(game)?.e2eEndlessSelectedEnemyId() ?? null;
     },
     getEndlessSelectedEnemyIds() {
-      return townUiForE2E(game)?.e2eEndlessSelectedEnemyIds() ?? [];
+      return activeEndlessSetupScene(game)?.e2eEndlessSelectedEnemyIds() ?? [];
     },
     getEndlessRosterEnemyIds() {
-      return townUiForE2E(game)?.e2eEndlessRosterEnemyIds() ?? [];
+      return activeEndlessSetupScene(game)?.e2eEndlessRosterEnemyIds() ?? [];
     },
     getEndlessEnemyConcurrentCap(enemyId: string) {
-      return townUiForE2E(game)?.e2eEndlessEnemyConcurrentCap(enemyId) ?? null;
+      return (
+        activeEndlessSetupScene(game)?.e2eEndlessEnemyConcurrentCap(enemyId) ??
+        null
+      );
     },
     toggleEndlessEnemy(enemyId: string) {
-      townForE2E(game)?.e2eToggleEndlessEnemy(enemyId);
+      activeEndlessSetupScene(game)?.e2eToggleEndlessEnemy(enemyId);
     },
     setEndlessEnemyCap(enemyId: string, cap: number) {
-      townForE2E(game)?.e2eSetEndlessEnemyCap(enemyId, cap);
+      activeEndlessSetupScene(game)?.e2eSetEndlessEnemyCap(enemyId, cap);
     },
     isEndlessDefense() {
       return activeDefenseE2e(game)?.isEndlessMode() ?? false;
@@ -497,13 +506,6 @@ function activeDefense(game: Phaser.Game): DefenseScene | null {
 /** Town scene instance for e2e hooks (present under setup overlays; may be paused). */
 function townForE2E(game: Phaser.Game): TownScene | null {
   return game.scene.getScene("Town") as TownScene | null;
-}
-
-/** Town hooks only when the UI stack is Town or a Town setup scene. */
-function townUiForE2E(game: Phaser.Game): TownScene | null {
-  const town = townForE2E(game);
-  if (!town) return null;
-  return activeTownUiHost(game) ? town : null;
 }
 
 function waitGameMs(game: Phaser.Game, ms: number): Promise<void> {
