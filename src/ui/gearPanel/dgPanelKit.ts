@@ -4,8 +4,13 @@
  * tiles and the shared header. Coordinates are absolute in the 540×1200 canvas.
  */
 import type Phaser from "phaser";
+import { DAMAGE_NUMBER_FONT_FAMILY } from "../../config/damageNumbers";
 import { uiIconFrame, type UiIconName } from "../icons/uiIcons";
-import { uiTextStyle, UI_FONT_FAMILY } from "../uiTextStyle";
+import {
+  rerenderTextsWhenFontReady,
+  uiTextStyle,
+  UI_FONT_FAMILY,
+} from "../uiTextStyle";
 import {
   DG_BUTTON_STROKE,
   DG_ICON_TINT,
@@ -93,6 +98,9 @@ const BUTTON_FILL: Record<ActionStyle, string> = {
 };
 
 export class DgKit {
+  /** Pixelify title texts, re-rendered once the web font loads. */
+  private readonly titleTexts: Phaser.GameObjects.Text[] = [];
+
   constructor(
     readonly scene: Phaser.Scene,
     readonly root: Phaser.GameObjects.Container,
@@ -156,7 +164,20 @@ export class DgKit {
       .text(x, y, str, uiTextStyle(this.scene, style))
       .setOrigin(o.originX ?? 0, o.originY ?? 0);
     this.root.add(t);
+    if (o.title) this.titleTexts.push(t);
     return t;
+  }
+
+  /**
+   * Redraw title texts when Pixelify Sans finishes loading (first open on a cold
+   * cache), then run `onReady` so the panel can re-fit widths.
+   */
+  whenTitleFontReady(onReady: () => void): void {
+    rerenderTextsWhenFontReady(
+      `700 16px "${DAMAGE_NUMBER_FONT_FAMILY}"`,
+      () => this.titleTexts,
+      onReady,
+    );
   }
 
   /** Centred tinted icon, or null before the icon strip has loaded. */
@@ -237,7 +258,7 @@ export class DgKit {
     const box = this.box(x, y, w, h, paintBox(style));
     const iconImg = this.icon(x + w / 2, y + h / 2, icon ?? "coins", 20);
     const text = this.text(x + w / 2, y + h / 2, label, {
-      size: opts.size ?? 18,
+      size: opts.size ?? 16,
       title: true,
       originX: 0.5,
       originY: 0.5,
@@ -382,7 +403,7 @@ export class DgKit {
       radius: 14,
     });
     this.drawEmblem(58, 60, emblem);
-    const titleText = this.text(96, 30, title, { size: 30, title: true });
+    const titleText = this.text(96, 28, title, { size: 32, title: true });
     const subtitle = this.text(97, 72, "", {
       size: 13,
       color: DG_THEME.textMuted,
@@ -395,7 +416,7 @@ export class DgKit {
     });
     this.icon(390, 60, "coins", 18, DG_THEME.accentGold);
     const gold = this.text(404, 60, "", {
-      size: 18,
+      size: 16,
       title: true,
       color: DG_THEME.accentGoldBright,
       originY: 0.5,
@@ -429,13 +450,13 @@ export class DgKit {
       const box = this.box(x, 116, w, 42, { fill: DG_THEME.bgSlot, radius: 9 });
       const icon = this.icon(x + w / 2 - 40, 137, d.icon, 18);
       const label = this.text(x + w / 2 - 26, 137, d.label, {
-        size: 17,
+        size: 16,
         title: true,
         originY: 0.5,
       });
       const count = this.text(x + w / 2, 138, "", {
         size: 12,
-        color: DG_THEME.textMuted,
+        color: DG_THEME.textSecondary,
         originY: 0.5,
       });
       const tap = this.tap(x, 116, w, 42, d.onTap);
@@ -523,14 +544,14 @@ export class DgKit {
   } {
     return {
       left: this.text(16, y, "", {
-        size: 11,
+        size: 12,
         bold: true,
         color: DG_THEME.accentGold,
         originY: 0.5,
       }).setLetterSpacing(1.5),
       right: this.text(524, y, "", {
         size: 12,
-        color: DG_THEME.textMuted,
+        color: DG_THEME.textSecondary,
         originX: 1,
         originY: 0.5,
       }),

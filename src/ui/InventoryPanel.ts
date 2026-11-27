@@ -149,9 +149,9 @@ export class InventoryPanel {
       this.slots.push({ slot, tile });
       kit
         .text(p.x + SLOT_TILE / 2, p.y + SLOT_TILE + 9, "", {
-          size: 10,
+          size: 12,
           bold: true,
-          color: DG_THEME.textMuted,
+          color: DG_THEME.textSecondary,
           originX: 0.5,
           originY: 0.5,
         })
@@ -188,11 +188,14 @@ export class InventoryPanel {
     this.actionBar = createActionBar(kit, 1120, 48, (id) => this.onAction(id));
     this.footnote = kit.text(270, 1184, "", {
       size: 12,
-      color: DG_THEME.textMuted,
+      color: DG_THEME.textSecondary,
       originX: 0.5,
       originY: 0.5,
     });
     this.refresh();
+    kit.whenTitleFontReady(() => {
+      if (!this.tornDown) this.refresh();
+    });
   }
 
   private onTile(key: number | null): void {

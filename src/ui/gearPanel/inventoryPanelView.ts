@@ -140,7 +140,7 @@ function consumableDetail(
     lines: consumableLines(save, entry.def),
     compareTitle: "",
     against: "",
-    againstColor: DG_THEME.textMuted,
+    againstColor: DG_THEME.textSecondary,
     rows: [],
     info: [],
   };
@@ -244,7 +244,7 @@ export function inventoryView(
           text: consumables
             ? "Buy potions and bombs from the trader or blacksmith; use them in combat."
             : `Tap a slot or bag item. Items sell for ${pct}% of their value.`,
-          color: DG_THEME.textMuted,
+          color: DG_THEME.textSecondary,
         },
   };
 }

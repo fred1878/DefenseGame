@@ -5,6 +5,7 @@ import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
 import { publishE2E, seedE2EWindowStub } from "./e2e/e2eGlobal";
 import { setE2EStorageIsolation } from "./core/storageKeys";
 import { clampRenderResolution } from "./core/displayScale";
+import { installHiDpiCanvas } from "./core/hiDpiCanvas";
 import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
 import {
   DEFAULT_WORLD_PIXEL_SCALE,
@@ -62,6 +63,9 @@ async function start(): Promise<void> {
     },
     render: {
       roundPixels: true,
+      // Keep NEAREST everywhere (pixel art; also much cheaper on software GL).
+      // Text stays sharp because hiDpiCanvas renders it 1:1 with the backing
+      // store and image quads snap to whole backing pixels.
       antialias: false,
       preserveDrawingBuffer: e2eBuild,
     },
@@ -82,6 +86,7 @@ async function start(): Promise<void> {
   hideLoadingSplash();
 
   game.registry.set("renderResolution", clampRenderResolution());
+  installHiDpiCanvas(game);
   game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
   if (e2e) {

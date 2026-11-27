@@ -68,7 +68,7 @@ export function requestCards(
       name,
       nameColor: color,
       meta: `${kindLabel(request)} · pays ${config.payoutPct}%`,
-      metaColor: DG_THEME.textMuted,
+      metaColor: DG_THEME.textSecondary,
       stat: best ? `Your ${best.name}` : "No match in your bag",
       price: best ? `${requestPayout(best, config)}g` : "—",
       priceColor: best ? DG_THEME.accentGoldBright : DG_THEME.textMuted,
