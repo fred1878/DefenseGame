@@ -573,8 +573,9 @@ export class DefenseScene extends Phaser.Scene {
     }
     this.combat.syncMeleeSwipeFx();
 
+    // Skips dead enemies itself; no per-frame filtered copy needed.
     this.player.damageEnemiesInArc(
-      this.enemies.filter((e) => e.damageable.alive),
+      this.enemies,
       PLAYER_TUNING.meleeDamage,
       this.wu(PLAYER_TUNING.meleeKnockbackWu),
       (enemy, damage) => this.onWeaponHit(enemy.id, damage),
@@ -662,7 +663,7 @@ export class DefenseScene extends Phaser.Scene {
     this.enemies = this.enemies.filter((e) => e.damageable.alive);
     this.targeting.syncFocusTarget();
 
-    const living = this.enemies.filter((e) => e.damageable.alive).length;
+    const living = this.enemies.length;
     this.spellBar.refreshCooldownOverlays();
     this.consumables?.refresh();
     if (!this.nightEnded) this.refreshHudText(living);
