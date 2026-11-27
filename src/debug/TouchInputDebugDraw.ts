@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE } from "../ui/theme/uiPalette";
 import type { ScreenRect } from "../input/VirtualStick";
 import type { VirtualStick } from "../input/VirtualStick";
 import { interactiveObjectScreenRect } from "../ui/touchButton";
@@ -74,12 +75,12 @@ export class TouchInputDebugDraw {
     for (const z of zones) {
       this.screen.fillStyle(0xf59e0b, 0.12);
       this.screen.fillRect(z.x, z.y, z.width, z.height);
-      this.screen.lineStyle(1, 0xfbbf24, 0.55);
+      this.screen.lineStyle(1, PALETTE.amber400, 0.55);
       this.screen.strokeRect(z.x, z.y, z.width, z.height);
     }
 
     for (const z of uiRects) {
-      this.screen.lineStyle(1.5, 0xf87171, 0.7);
+      this.screen.lineStyle(1.5, PALETTE.red400, 0.7);
       this.screen.strokeRect(z.x, z.y, z.width, z.height);
     }
 
@@ -87,7 +88,7 @@ export class TouchInputDebugDraw {
     const stickState = options.stick?.getDebugState();
     if (layout && stickState) {
       if (stickState.pending) {
-        this.screen.lineStyle(1, 0x93c5fd, 0.65);
+        this.screen.lineStyle(1, PALETTE.blue300, 0.65);
         this.screen.strokeCircle(
           stickState.downX,
           stickState.downY,
@@ -96,7 +97,7 @@ export class TouchInputDebugDraw {
         this.drawCrosshair(
           stickState.downX,
           stickState.downY,
-          0x60a5fa,
+          PALETTE.blue400,
           "pending",
         );
       }
@@ -107,19 +108,19 @@ export class TouchInputDebugDraw {
           stickState.originY,
           layout.radius,
         );
-        this.screen.lineStyle(2, 0x7db8ff, 0.9);
+        this.screen.lineStyle(2, PALETTE.softSky, 0.9);
         this.screen.strokeCircle(
           stickState.originX,
           stickState.originY,
           layout.radius,
         );
-        this.screen.fillStyle(0x7db8ff, 0.75);
+        this.screen.fillStyle(PALETTE.softSky, 0.75);
         this.screen.fillCircle(
           stickState.knobX,
           stickState.knobY,
           layout.radius * 0.42,
         );
-        this.screen.lineStyle(1, 0xe0f2fe, 0.85);
+        this.screen.lineStyle(1, PALETTE.sky100, 0.85);
         this.screen.lineBetween(
           stickState.originX,
           stickState.originY,
@@ -135,7 +136,7 @@ export class TouchInputDebugDraw {
       const blockedByStick = options.stick?.wouldBlockPointer(pointer) ?? false;
       const blockedByUi = options.pointerUiBlocked?.(pointer) ?? false;
       const blocked = blockedByStick || blockedByUi;
-      const color = blocked ? 0xfb7185 : 0x4ade80;
+      const color = blocked ? PALETTE.rose400 : PALETTE.green400;
       this.drawCrosshair(pointer.x, pointer.y, color, `p${pointer.id}`);
       if (blocked) {
         this.screen.lineStyle(2, color, 0.85);
@@ -155,15 +156,23 @@ export class TouchInputDebugDraw {
     if (flash && flash.ageMs < 900) {
       const t = 1 - flash.ageMs / 900;
       const alpha = 0.25 + t * 0.55;
-      this.screen.lineStyle(2, flash.picked ? 0x4ade80 : 0xfacc15, alpha);
+      this.screen.lineStyle(
+        2,
+        flash.picked ? PALETTE.green400 : PALETTE.yellow400,
+        alpha,
+      );
       this.screen.strokeCircle(flash.screenX, flash.screenY, 14 + t * 6);
       this.drawCrosshair(
         flash.screenX,
         flash.screenY,
-        flash.picked ? 0x4ade80 : 0xfacc15,
+        flash.picked ? PALETTE.green400 : PALETTE.yellow400,
       );
 
-      this.world.lineStyle(2, flash.picked ? 0x4ade80 : 0xfacc15, alpha * 0.85);
+      this.world.lineStyle(
+        2,
+        flash.picked ? PALETTE.green400 : PALETTE.yellow400,
+        alpha * 0.85,
+      );
       this.world.strokeCircle(
         flash.worldX,
         flash.worldY,

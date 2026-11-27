@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import type {
   TownBuildingDef,
@@ -58,7 +59,7 @@ function townBuildingOverlayLabelStyle(
   const fontPx = scaleUiX(12);
   return uiTextStyle(scene, {
     fontSize: `${fontPx}px`,
-    color: "#fafafa",
+    color: PALETTE_CSS.zinc50,
     align: "center",
     wordWrap: { width: wrapWidth, useAdvancedWrap: true },
     lineSpacing: scaleUiY(2),
@@ -127,7 +128,7 @@ export function spawnTownBuildingControls(
       () => opts.onTap(slot.buildingId, def),
       {
         bg: sprite,
-        colors: { rest: 0xffffff, pressed: 0xb8b8b8 },
+        colors: { rest: PALETTE.white, pressed: 0xb8b8b8 },
         pressScale: 0.96,
         textured: true,
       },

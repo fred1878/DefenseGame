@@ -1,4 +1,5 @@
 import { defenseObstaclePlacements } from "../../config/defense";
+import { PALETTE } from "../../ui/theme/uiPalette";
 import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
 import {
@@ -100,7 +101,7 @@ export function bootstrapDefenseWorld(
         -halfH + 20,
         halfW * 2,
         worldUnit(40, scene.registry),
-        0x52525b,
+        PALETTE.zinc600,
       )
       .setOrigin(0.5, 0);
     registerWorld(wall);

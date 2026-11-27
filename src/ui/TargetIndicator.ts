@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 
 /** Small marker above a targeted enemy with a bobbing animation. */
 export class TargetIndicator {
@@ -10,12 +11,12 @@ export class TargetIndicator {
 
     this.bob = scene.add.container(0, -yOffset);
     const chevron = scene.add
-      .text(0, 0, "▼", { fontSize: "22px", color: "#fbbf24" })
+      .text(0, 0, "▼", { fontSize: "22px", color: PALETTE_CSS.amber400 })
       .setOrigin(0.5, 0.5);
     const ring = scene.add
       .circle(0, -10, 10)
-      .setStrokeStyle(2, 0xfbbf24)
-      .setFillStyle(0xfbbf24, 0.15);
+      .setStrokeStyle(2, PALETTE.amber400)
+      .setFillStyle(PALETTE.amber400, 0.15);
     this.bob.add([ring, chevron]);
     this.root.add(this.bob);
 

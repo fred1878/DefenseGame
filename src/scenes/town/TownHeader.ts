@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import { isNativeApp } from "../../appUpdate/isNativeApp";
 import {
   formatUpdateStatus,
@@ -38,7 +39,7 @@ export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
       "Town — Day",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(28)}px`,
-        color: "#f4f4f5",
+        color: PALETTE_CSS.zinc100,
       }),
     )
     .setOrigin(0.5);
@@ -50,7 +51,7 @@ export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
       "",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(18)}px`,
-        color: "#a1a1aa",
+        color: PALETTE_CSS.zinc400,
         align: "center",
         wordWrap: { width: GAME.width - scaleUiX(48) },
       }),
@@ -92,8 +93,8 @@ export function createTownHeaderButtons(
       height: scaleUiX(36),
       depth: 200,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x3f3f46,
-      strokeColor: 0xa1a1aa,
+      fillColor: PALETTE.zinc700,
+      strokeColor: PALETTE.zinc400,
     },
   );
 
@@ -110,7 +111,7 @@ export function createTownHeaderButtons(
       depth: 200,
       fontSize: `${scaleUiX(14)}px`,
       fillColor: 0x713f12,
-      strokeColor: 0xfbbf24,
+      strokeColor: PALETTE.amber400,
     },
   );
   gearButton.container.setData("testid", "town-gear");
@@ -148,8 +149,8 @@ export function createTownHeaderButtons(
       height: fsHeight,
       depth: 200,
       fontSize: `${scaleUiX(13)}px`,
-      fillColor: 0x1e3a5f,
-      strokeColor: 0x60a5fa,
+      fillColor: PALETTE.deepNavy,
+      strokeColor: PALETTE.blue400,
       activateOn: "pointerup",
     },
   );
@@ -173,8 +174,8 @@ export function createTownHeaderButtons(
       height: resetHeight,
       depth: 200,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x7f1d1d,
-      strokeColor: 0xf87171,
+      fillColor: PALETTE.red900,
+      strokeColor: PALETTE.red400,
     },
   );
 
@@ -215,7 +216,7 @@ function createTownUpdateButton(
       "",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(12)}px`,
-        color: "#93c5fd",
+        color: PALETTE_CSS.blue300,
         align: "center",
         wordWrap: { width: width + scaleUiX(16) },
       }),
@@ -252,8 +253,8 @@ function createTownUpdateButton(
       height,
       depth: 200,
       fontSize: `${scaleUiX(12)}px`,
-      fillColor: 0x1e3a5f,
-      strokeColor: 0x60a5fa,
+      fillColor: PALETTE.deepNavy,
+      strokeColor: PALETTE.blue400,
     },
   );
 

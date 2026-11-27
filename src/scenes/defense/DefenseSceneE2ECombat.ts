@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE_CSS } from "../../ui/theme/uiPalette";
 import type { AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
 import { spellRequiresStationary } from "../../content/spellTargeting";
@@ -488,7 +489,7 @@ export function defenseSceneE2eShowcaseEnemyMeleeSwipe(
     fontFamily: "monospace",
     fontSize: "28px",
     color: "#ffee00",
-    stroke: "#000000",
+    stroke: PALETTE_CSS.black,
     strokeThickness: 4,
   });
   label.setDepth(10_000);

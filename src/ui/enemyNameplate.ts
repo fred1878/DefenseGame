@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { Damageable } from "../combat/rules/DamageSystem";
@@ -31,13 +32,13 @@ export function createEnemyNameplate(
   const gap = scaleUiY(3);
   const nameStyle = uiTextStyle(scene, {
     fontSize: `${scaleUiX(11)}px`,
-    color: "#f4f4f5",
+    color: PALETTE_CSS.zinc100,
     align: "center",
     shadow: uiSmallLabelShadow(),
   });
   const hpStyle = uiTextStyle(scene, {
     fontSize: `${scaleUiX(10)}px`,
-    color: "#d4d4d8",
+    color: PALETTE_CSS.zinc300,
     align: "center",
     shadow: uiSmallLabelShadow(),
   });
@@ -72,16 +73,16 @@ function drawHpBar(plate: EnemyNameplate, ratio: number): void {
   barGfx.clear();
   const x0 = -barW / 2;
   const y0 = barY;
-  barGfx.fillStyle(0x27272a, 0.92);
+  barGfx.fillStyle(PALETTE.zinc800, 0.92);
   barGfx.fillRect(x0, y0, barW, barH);
   const fillW = Math.max(0, Math.min(1, ratio)) * barW;
   if (fillW > 0) {
-    barGfx.fillStyle(0xef4444, 1);
+    barGfx.fillStyle(PALETTE.red500, 1);
     barGfx.fillRect(x0, y0, fillW, barH);
-    barGfx.fillStyle(0x4ade80, 1);
+    barGfx.fillStyle(PALETTE.green400, 1);
     barGfx.fillRect(x0, y0, fillW * Math.min(1, ratio + 0.05), barH);
   }
-  barGfx.lineStyle(1, 0x52525b, 1);
+  barGfx.lineStyle(1, PALETTE.zinc600, 1);
   barGfx.strokeRect(x0, y0, barW, barH);
 }
 

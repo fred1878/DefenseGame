@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
@@ -75,7 +76,7 @@ export class SaveMenuPanel {
           "Saves",
           uiTextStyle(scene, {
             fontSize: `${scaleUiX(24)}px`,
-            color: "#f4f4f5",
+            color: PALETTE_CSS.zinc100,
           }),
         )
         .setOrigin(0.5),
@@ -88,7 +89,7 @@ export class SaveMenuPanel {
           "Copy the current game into a slot, or load one. Progress still autosaves as you play.",
           uiTextStyle(scene, {
             fontSize: `${scaleUiX(13)}px`,
-            color: "#a1a1aa",
+            color: PALETTE_CSS.zinc400,
             align: "center",
             wordWrap: { width: GAME.width - scaleUiX(36) },
           }),
@@ -105,8 +106,8 @@ export class SaveMenuPanel {
     for (const slot of this.state.slots) {
       const cy = listTop + slot.index * (rowH + gap) + rowH / 2;
       const bg = scene.add
-        .rectangle(GAME.width / 2, cy, rowW, rowH, 0x3f3f46, 1)
-        .setStrokeStyle(2, 0x71717a)
+        .rectangle(GAME.width / 2, cy, rowW, rowH, PALETTE.zinc700, 1)
+        .setStrokeStyle(2, PALETTE.zinc500)
         .setInteractive();
       bg.on("pointerup", () =>
         this.dispatch({ type: "select", index: slot.index }),
@@ -118,7 +119,7 @@ export class SaveMenuPanel {
           slot.name,
           uiTextStyle(scene, {
             fontSize: `${scaleUiX(18)}px`,
-            color: "#fafafa",
+            color: PALETTE_CSS.zinc50,
           }),
         )
         .setOrigin(0, 0.5);
@@ -129,7 +130,7 @@ export class SaveMenuPanel {
           formatSaveSlotMeta(slot),
           uiTextStyle(scene, {
             fontSize: `${scaleUiX(13)}px`,
-            color: "#a1a1aa",
+            color: PALETTE_CSS.zinc400,
             lineSpacing: scaleUiY(2),
           }),
         )
@@ -145,7 +146,7 @@ export class SaveMenuPanel {
         "",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(15)}px`,
-          color: "#fbbf24",
+          color: PALETTE_CSS.amber400,
           align: "center",
           wordWrap: { width: GAME.width - scaleUiX(40) },
         }),
@@ -170,8 +171,8 @@ export class SaveMenuPanel {
         height: btnH,
         depth: 510,
         fontSize: `${scaleUiX(16)}px`,
-        fillColor: 0x15803d,
-        strokeColor: 0x4ade80,
+        fillColor: PALETTE.green700,
+        strokeColor: PALETTE.green400,
       },
     );
     this.loadBtn = createTouchButton(
@@ -185,8 +186,8 @@ export class SaveMenuPanel {
         height: btnH,
         depth: 510,
         fontSize: `${scaleUiX(16)}px`,
-        fillColor: 0x1d4ed8,
-        strokeColor: 0x60a5fa,
+        fillColor: PALETTE.blue700,
+        strokeColor: PALETTE.blue400,
       },
     );
     this.deleteBtn = createTouchButton(
@@ -201,7 +202,7 @@ export class SaveMenuPanel {
         depth: 510,
         fontSize: `${scaleUiX(16)}px`,
         fillColor: 0x9f1239,
-        strokeColor: 0xfb7185,
+        strokeColor: PALETTE.rose400,
       },
     );
 
@@ -216,8 +217,8 @@ export class SaveMenuPanel {
         height: btnH,
         depth: 510,
         fontSize: `${scaleUiX(16)}px`,
-        fillColor: 0x15803d,
-        strokeColor: 0x4ade80,
+        fillColor: PALETTE.green700,
+        strokeColor: PALETTE.green400,
       },
     );
     this.cancelBtn = createTouchButton(
@@ -231,8 +232,8 @@ export class SaveMenuPanel {
         height: btnH,
         depth: 510,
         fontSize: `${scaleUiX(16)}px`,
-        fillColor: 0x52525b,
-        strokeColor: 0xa1a1aa,
+        fillColor: PALETTE.zinc600,
+        strokeColor: PALETTE.zinc400,
       },
     );
 
@@ -247,8 +248,8 @@ export class SaveMenuPanel {
         height: scaleUiY(40),
         depth: 510,
         fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x52525b,
-        strokeColor: 0xa1a1aa,
+        fillColor: PALETTE.zinc600,
+        strokeColor: PALETTE.zinc400,
       },
     );
     root.add([
@@ -289,8 +290,8 @@ export class SaveMenuPanel {
       const slot = this.state.slots[row.index];
       if (!slot) continue;
       const on = this.state.selected === row.index;
-      row.bg.setFillStyle(on ? 0x1e3a5f : 0x3f3f46);
-      row.bg.setStrokeStyle(2, on ? 0x60a5fa : 0x71717a);
+      row.bg.setFillStyle(on ? PALETTE.deepNavy : PALETTE.zinc700);
+      row.bg.setStrokeStyle(2, on ? PALETTE.blue400 : PALETTE.zinc500);
       row.title.setText(slot.name);
       row.meta.setText(formatSaveSlotMeta(slot));
     }

@@ -1,4 +1,6 @@
 import type Phaser from "phaser";
+import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import { persistSave } from "../../core/GameState";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
 import type { SaveGame } from "../../core/saveTypes";
@@ -130,10 +132,10 @@ function showRunExitBanner(
     {
       width: btn.width,
       height: btn.height,
-      depth: 260,
+      depth: DEFENSE_UI_DEPTH.nightEnd,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x15803d,
-      strokeColor: 0x4ade80,
+      fillColor: PALETTE.green700,
+      strokeColor: PALETTE.green400,
     },
   );
   returnBtn.container.setData("testid", "defense-return-to-town");
@@ -153,7 +155,7 @@ export function runDefenseSimulatedNightEnd(
     next,
     simulatedNightEndHeadline(input.won, input.quit === true),
     simulatedNightEndHudLines(),
-    input.won ? "#a1a1aa" : "#fca5a5",
+    input.won ? PALETTE_CSS.zinc400 : PALETTE_CSS.red300,
   );
 }
 
@@ -169,7 +171,7 @@ export function runDefenseEndlessNightEnd(
     next,
     trainingEndHeadline(reason),
     trainingEndHudLines(reason),
-    reason === "quit" ? "#a1a1aa" : "#fca5a5",
+    reason === "quit" ? PALETTE_CSS.zinc400 : PALETTE_CSS.red300,
   );
 }
 

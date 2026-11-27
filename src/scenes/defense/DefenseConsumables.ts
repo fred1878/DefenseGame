@@ -1,4 +1,6 @@
 import type Phaser from "phaser";
+import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
+import { PALETTE_CSS } from "../../ui/theme/uiPalette";
 import {
   applyHealAmount,
   applySpellBlastAt,
@@ -154,11 +156,11 @@ export class DefenseConsumables {
       .text(potionBtn.container.x, potionBtn.container.y - 40, message, {
         fontFamily: "system-ui, sans-serif",
         fontSize: "20px",
-        color: "#fde68a",
+        color: PALETTE_CSS.amber200,
       })
       .setOrigin(0, 1)
       .setScrollFactor(0)
-      .setDepth(260);
+      .setDepth(DEFENSE_UI_DEPTH.nightEnd);
     this.host.registerUiDraw(t);
     scene.tweens.add({
       targets: t,

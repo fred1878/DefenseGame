@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import { uiTextResolution } from "../core/displayScale";
 import { scaleUiX } from "../config/uiScale";
 import {
@@ -96,7 +97,7 @@ export function createTouchButton(
   const hitH = options.height + pad * 2;
   const fontSize = options.fontSize ?? `${scaleUiX(20)}px`;
   const fill = options.fillColor ?? 0x3b82f6;
-  const stroke = options.strokeColor ?? 0x60a5fa;
+  const stroke = options.strokeColor ?? PALETTE.blue400;
   const activateOn = options.activateOn ?? "pointerdown";
   const textured = Boolean(options.frameTextureKey);
 
@@ -123,7 +124,7 @@ export function createTouchButton(
     Phaser.Geom.Rectangle.Contains,
   );
   const colors = textured
-    ? { rest: 0xffffff, pressed: darkenTint(0xffffff, 0.68) }
+    ? { rest: PALETTE.white, pressed: darkenTint(PALETTE.white, 0.68) }
     : { rest: fill, pressed: darkenColor(fill, 0.72) };
   if (!options.skipPressBinding) {
     bindPress(
@@ -171,8 +172,8 @@ export function createTouchToggleButton(
     scene,
     width,
     height,
-    0x3f3f46,
-    0x71717a,
+    PALETTE.zinc700,
+    PALETTE.zinc500,
     frameKey,
   );
   const labelPx = textured ? scaleUiX(15) : scaleUiX(14);
@@ -194,13 +195,13 @@ export function createTouchToggleButton(
     Phaser.Geom.Rectangle.Contains,
   );
   const onBgTint = toggleOptions?.onBgTint ?? 0xb8e0a8;
-  const offBgTint = toggleOptions?.offBgTint ?? 0xffffff;
+  const offBgTint = toggleOptions?.offBgTint ?? PALETTE.white;
   const onTextColor = toggleOptions?.onTextColor ?? "#d9f99d";
   const offTextColor = toggleOptions?.offTextColor ?? MEDIEVAL_LABEL.color;
 
   const colors = textured
     ? { rest: offBgTint, pressed: darkenTint(offBgTint) }
-    : { rest: 0x3f3f46, pressed: 0x27272a };
+    : { rest: PALETTE.zinc700, pressed: PALETTE.zinc800 };
   bindPress(scene, container, onPress, {
     bg,
     colors,
@@ -220,16 +221,16 @@ export function createTouchToggleButton(
       text.setColor(on ? onTextColor : offTextColor);
       return;
     }
-    colors.rest = on ? 0x15803d : 0x3f3f46;
+    colors.rest = on ? PALETTE.green700 : PALETTE.zinc700;
     colors.pressed = darkenColor(colors.rest, 0.75);
     if (isUiRoundedRect(bg)) {
-      const stroke = on ? 0x4ade80 : 0x71717a;
+      const stroke = on ? PALETTE.green400 : PALETTE.zinc500;
       paintUiRoundedRect(bg, colors.rest, stroke);
     } else if (!isImageBg(bg) && bg instanceof Phaser.GameObjects.Rectangle) {
       bg.setFillStyle(colors.rest, 1);
-      bg.setStrokeStyle(STROKE_PX, on ? 0x4ade80 : 0x71717a);
+      bg.setStrokeStyle(STROKE_PX, on ? PALETTE.green400 : PALETTE.zinc500);
     }
-    text.setColor(on ? "#bbf7d0" : "#e4e4e7");
+    text.setColor(on ? "#bbf7d0" : PALETTE_CSS.zinc200);
   };
 
   return {
@@ -272,7 +273,7 @@ export function createTouchCircleButton(
       .setDisplaySize(diameter, diameter);
   } else {
     bg = scene.add
-      .circle(0, 0, radius, 0xea580c, 1)
+      .circle(0, 0, radius, PALETTE.orange600, 1)
       .setStrokeStyle(STROKE_PX, 0xfdba74);
   }
   const text = scene.add
@@ -288,8 +289,8 @@ export function createTouchCircleButton(
     Phaser.Geom.Circle.Contains,
   );
   const colors = textured
-    ? { rest: 0xffffff, pressed: darkenTint(0xffffff, 0.65) }
-    : { rest: 0xea580c, pressed: 0xc2410c };
+    ? { rest: PALETTE.white, pressed: darkenTint(PALETTE.white, 0.65) }
+    : { rest: PALETTE.orange600, pressed: 0xc2410c };
   bindPress(scene, container, onPress, {
     bg,
     colors,

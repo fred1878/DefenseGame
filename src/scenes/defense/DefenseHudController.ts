@@ -1,4 +1,6 @@
 import type Phaser from "phaser";
+import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import type { AttackMode } from "../../config";
 import type { SaveGame } from "../../core/saveTypes";
 import { scaleUiX } from "../../config/uiScale";
@@ -146,9 +148,9 @@ function buildDefenseHudController(
     {
       frameTextureKey: UI_TEXTURE.modeRect,
       onBgTint: 0xe8d4a8,
-      offBgTint: 0xffffff,
-      onTextColor: "#fde68a",
-      offTextColor: "#e8dcc8",
+      offBgTint: PALETTE.white,
+      onTextColor: PALETTE_CSS.amber200,
+      offTextColor: PALETTE_CSS.parchmentDim,
     },
   );
   registerUi(modeToggle.container);
@@ -168,7 +170,7 @@ function buildDefenseHudController(
     {
       frameTextureKey: UI_TEXTURE.autoRect,
       onBgTint: 0xa8d8a0,
-      offBgTint: 0xffffff,
+      offBgTint: PALETTE.white,
       onTextColor: "#bef264",
       offTextColor: "#a8a29e",
     },
@@ -222,11 +224,11 @@ function buildDefenseHudController(
       "",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(16)}px`,
-        color: "#fafafa",
+        color: PALETTE_CSS.zinc50,
       }),
     )
     .setScrollFactor(0)
-    .setDepth(200);
+    .setDepth(DEFENSE_UI_DEPTH.hud);
   registerUi(hudText);
 
   const dbgPos = combatDebugButtonPosition(scene, safe);
@@ -239,10 +241,10 @@ function buildDefenseHudController(
     {
       width: scaleUiX(88),
       height: scaleUiX(36),
-      depth: 200,
+      depth: DEFENSE_UI_DEPTH.hud,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x3f3f46,
-      strokeColor: 0xa1a1aa,
+      fillColor: PALETTE.zinc700,
+      strokeColor: PALETTE.zinc400,
     },
   );
   registerUi(debugBtn.container);
@@ -260,7 +262,7 @@ function buildDefenseHudController(
     const btn = createTouchButton(scene, x, dbgPos.y, label, onTap, {
       width: scaleUiX(88),
       height: scaleUiX(36),
-      depth: 200,
+      depth: DEFENSE_UI_DEPTH.hud,
       fontSize: `${scaleUiX(13)}px`,
       fillColor: fill,
       strokeColor: stroke,
@@ -277,8 +279,8 @@ function buildDefenseHudController(
     potionX,
     "Potion",
     deps.onUsePotion,
-    0x7f1d1d,
-    0xf87171,
+    PALETTE.red900,
+    PALETTE.red400,
     "defense-potion",
   );
   const bombBtn = consumableBtn(
@@ -286,7 +288,7 @@ function buildDefenseHudController(
     "Bomb",
     deps.onUseBomb,
     0x78350f,
-    0xfbbf24,
+    PALETTE.amber400,
     "defense-bomb",
   );
 
@@ -302,10 +304,10 @@ function buildDefenseHudController(
       {
         width: leaveBtn.width,
         height: leaveBtn.height,
-        depth: 210,
+        depth: DEFENSE_UI_DEPTH.hudOverlayButton,
         fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x52525b,
-        strokeColor: 0xa1a1aa,
+        fillColor: PALETTE.zinc600,
+        strokeColor: PALETTE.zinc400,
       },
     );
     leaveEndlessBtn.container.setData("testid", "defense-leave-endless");

@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import type { DataStore } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
 import type { ModalInputLease } from "../input/modalBackdrop";
@@ -175,7 +176,7 @@ export class EndlessModePanel {
     for (const row of this.rows) {
       const on = this.selectedIds.has(row.enemyId);
       paintRosterRowSelection(row, on);
-      row.capBg.setStrokeStyle(2, on ? 0x52525b : 0x3f3f46);
+      row.capBg.setStrokeStyle(2, on ? PALETTE.zinc600 : PALETTE.zinc700);
       row.capMinus.setAlpha(on ? 1 : 0.65);
       row.capPlus.setAlpha(on ? 1 : 0.65);
       row.capValue.setAlpha(on ? 1 : 0.65);
@@ -189,11 +190,13 @@ export class EndlessModePanel {
   private refreshInfiniteHpVisuals(): void {
     paintUiRoundedRect(
       this.infiniteHpBg,
-      this.infiniteHp ? 0x1e3a5f : 0x27272a,
-      this.infiniteHp ? 0x60a5fa : 0x52525b,
+      this.infiniteHp ? PALETTE.deepNavy : PALETTE.zinc800,
+      this.infiniteHp ? PALETTE.blue400 : PALETTE.zinc600,
     );
     this.infiniteHpCheck.setText(this.infiniteHp ? "☑" : "☐");
-    this.infiniteHpCheck.setColor(this.infiniteHp ? "#93c5fd" : "#a1a1aa");
+    this.infiniteHpCheck.setColor(
+      this.infiniteHp ? PALETTE_CSS.blue300 : PALETTE_CSS.zinc400,
+    );
   }
 
   private toggleInfiniteHp(): void {

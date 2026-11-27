@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { NightLootSummary } from "../gear/nightLootSummary";
@@ -115,7 +116,7 @@ function buildNightLootSummary(
     GAME.height / 2,
     GAME.width,
     GAME.height,
-    0x09090b,
+    PALETTE.zinc950,
     0.78,
   );
   root.add(dim);
@@ -129,7 +130,7 @@ function buildNightLootSummary(
   const centerX = GAME.width / 2;
 
   const content = scene.add.container(0, 0).setScrollFactor(0);
-  const headlineColor = summary.won ? "#fbbf24" : "#fca5a5";
+  const headlineColor = summary.won ? PALETTE_CSS.amber400 : PALETTE_CSS.red300;
   let y = 0;
 
   addLabel(scene, content, centerX, y, summary.headline, 24, headlineColor, {
@@ -138,33 +139,51 @@ function buildNightLootSummary(
   }).setOrigin(0.5, 0);
   y += scaleUiY(36);
 
-  addLabel(scene, content, centerX, y, summary.flavor, 14, "#a1a1aa", {
-    align: "center",
-    wordWrap: { width: innerW },
-  }).setOrigin(0.5, 0);
+  addLabel(
+    scene,
+    content,
+    centerX,
+    y,
+    summary.flavor,
+    14,
+    PALETTE_CSS.zinc400,
+    {
+      align: "center",
+      wordWrap: { width: innerW },
+    },
+  ).setOrigin(0.5, 0);
   y += scaleUiY(36);
 
   if (summary.progressNote) {
-    addLabel(scene, content, centerX, y, summary.progressNote, 13, "#a1a1aa", {
-      align: "center",
-      wordWrap: { width: innerW },
-    }).setOrigin(0.5, 0);
+    addLabel(
+      scene,
+      content,
+      centerX,
+      y,
+      summary.progressNote,
+      13,
+      PALETTE_CSS.zinc400,
+      {
+        align: "center",
+        wordWrap: { width: innerW },
+      },
+    ).setOrigin(0.5, 0);
     y += scaleUiY(40);
   }
 
   const addRow = (label: string, value: string, valueColor: string) => {
-    addLabel(scene, content, innerLeft, y, label, 15, "#d4d4d8");
+    addLabel(scene, content, innerLeft, y, label, 15, PALETTE_CSS.zinc300);
     addLabel(scene, content, innerRight, y, value, 15, valueColor).setOrigin(
       1,
       0,
     );
     y += scaleUiY(26);
   };
-  addRow("Gold earned", summary.goldEarnedText, "#fbbf24");
-  addRow("Total gold", summary.goldTotalText, "#fafafa");
+  addRow("Gold earned", summary.goldEarnedText, PALETTE_CSS.amber400);
+  addRow("Total gold", summary.goldTotalText, PALETTE_CSS.zinc50);
   y += scaleUiY(8);
 
-  addLabel(scene, content, innerLeft, y, "Loot", 15, "#d4d4d8");
+  addLabel(scene, content, innerLeft, y, "Loot", 15, PALETTE_CSS.zinc300);
   y += scaleUiY(26);
 
   if (summary.emptyLootText) {
@@ -175,7 +194,7 @@ function buildNightLootSummary(
       y,
       summary.emptyLootText,
       15,
-      "#71717a",
+      PALETTE_CSS.zinc500,
     );
     y += scaleUiY(26);
   } else {
@@ -205,7 +224,7 @@ function buildNightLootSummary(
     y += scaleUiY(12);
   }
 
-  addLabel(scene, content, innerLeft, y, "Wall", 15, "#d4d4d8");
+  addLabel(scene, content, innerLeft, y, "Wall", 15, PALETTE_CSS.zinc300);
   addLabel(
     scene,
     content,
@@ -213,7 +232,7 @@ function buildNightLootSummary(
     y,
     summary.wallText,
     15,
-    "#fafafa",
+    PALETTE_CSS.zinc50,
   ).setOrigin(1, 0);
   y += scaleUiY(28);
 
@@ -223,7 +242,7 @@ function buildNightLootSummary(
     y + barH / 2,
     innerW,
     barH,
-    0x3f3f46,
+    PALETTE.zinc700,
     1,
   );
   content.add(barBg);
@@ -253,7 +272,7 @@ function buildNightLootSummary(
     y,
     "Enter or Space",
     12,
-    "#71717a",
+    PALETTE_CSS.zinc500,
   ).setOrigin(0.5, 0);
   y += scaleUiY(20);
 
@@ -264,7 +283,13 @@ function buildNightLootSummary(
   );
   content.setPosition(0, cardTop + pad);
 
-  const card = createUiRoundedRect(scene, cardW, cardH, 0x18181b, 0x52525b);
+  const card = createUiRoundedRect(
+    scene,
+    cardW,
+    cardH,
+    0x18181b,
+    PALETTE.zinc600,
+  );
   card.setPosition(centerX, cardTop + cardH / 2).setScrollFactor(0);
   root.add(card);
   root.add(content);
@@ -280,8 +305,8 @@ function buildNightLootSummary(
       height: btnH,
       depth: 410,
       fontSize: `${scaleUiX(18)}px`,
-      fillColor: 0x15803d,
-      strokeColor: 0x4ade80,
+      fillColor: PALETTE.green700,
+      strokeColor: PALETTE.green400,
     },
   );
   returnBtn.container.setData("testid", "defense-return-to-town");

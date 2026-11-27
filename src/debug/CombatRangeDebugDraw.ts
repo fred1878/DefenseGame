@@ -1,18 +1,19 @@
 import type Phaser from "phaser";
+import { PALETTE } from "../ui/theme/uiPalette";
 import { drawDebugDisc, drawDebugSegment, drawDebugWedge } from "./debugShapes";
 
-const MELEE_ACTIVATION_FILL = 0xfff59d;
+const MELEE_ACTIVATION_FILL = PALETTE.materialYellow200;
 const MELEE_ACTIVATION_FILL_ALPHA = 0.07;
-const MELEE_ACTIVATION_LINE = 0xfff176;
+const MELEE_ACTIVATION_LINE = PALETTE.materialYellow300;
 const MELEE_ACTIVATION_LINE_ALPHA = 0.52;
-const MELEE_MAX_RANGE_FILL = 0xffb74d;
+const MELEE_MAX_RANGE_FILL = PALETTE.materialOrange300;
 const MELEE_MAX_RANGE_FILL_ALPHA = 0.07;
-const MELEE_MAX_RANGE_LINE = 0xff9800;
+const MELEE_MAX_RANGE_LINE = PALETTE.materialOrange500;
 const MELEE_MAX_RANGE_LINE_ALPHA = 0.52;
-const PROJECTILE_BLAST_FILL = 0xd946ef;
+const PROJECTILE_BLAST_FILL = PALETTE.fuchsia500;
 const PROJECTILE_BLAST_ALPHA = 0.08;
-const PROJECTILE_LINE = 0xc026d3;
-const CHARGE_DASH_LINE = 0x67e8f9;
+const PROJECTILE_LINE = PALETTE.fuchsia600;
+const CHARGE_DASH_LINE = PALETTE.cyan300;
 const CHARGE_DASH_LINE_ALPHA = 0.8;
 
 /** Melee / attack reach rings and telegraph arcs — separate from hitbox overlay. */
@@ -64,7 +65,7 @@ export class CombatRangeDebugDraw {
   ): void {
     const start = facing - arcHalfRad;
     const end = facing + arcHalfRad;
-    const fill = 0xffb74d;
+    const fill = PALETTE.materialOrange300;
     drawDebugWedge(this.g, originX, originY, range, start, end, {
       fill: fill,
       fillAlpha: 0.12,

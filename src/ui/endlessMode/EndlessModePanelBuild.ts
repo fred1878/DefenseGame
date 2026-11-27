@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { GAME } from "../../config";
 import type { DataStore } from "../../core/DataStore";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
@@ -115,7 +116,7 @@ export function buildEndlessModePanelUi(
       "Endless training",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(24)}px`,
-        color: "#f4f4f5",
+        color: PALETTE_CSS.zinc100,
       }),
     )
     .setOrigin(0.5);
@@ -128,7 +129,7 @@ export function buildEndlessModePanelUi(
       "Pick one or more foes — set on-screen caps — train until you fall or leave. No gold, no night advance.",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(13)}px`,
-        color: "#a1a1aa",
+        color: PALETTE_CSS.zinc400,
         align: "center",
         wordWrap: { width: GAME.width - scaleUiX(36) },
       }),
@@ -173,7 +174,7 @@ export function buildEndlessModePanelUi(
     listTop + listViewportH / 2,
     rowW,
     listViewportH,
-    0x000000,
+    PALETTE.black,
     0,
   );
   const listHitW = rowW;
@@ -210,8 +211,8 @@ export function buildEndlessModePanelUi(
     const capCx = listLeft + nameColW + scaleUiX(4) + capColW / 2;
 
     const bg = scene.add
-      .rectangle(nameCx, cy, nameColW, rowH, 0x3f3f46, 1)
-      .setStrokeStyle(2, 0x71717a);
+      .rectangle(nameCx, cy, nameColW, rowH, PALETTE.zinc700, 1)
+      .setStrokeStyle(2, PALETTE.zinc500);
     const check = scene.add
       .text(
         listLeft + scaleUiX(14),
@@ -219,7 +220,7 @@ export function buildEndlessModePanelUi(
         "☐",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(18)}px`,
-          color: "#a1a1aa",
+          color: PALETTE_CSS.zinc400,
         }),
       )
       .setOrigin(0.5);
@@ -230,14 +231,14 @@ export function buildEndlessModePanelUi(
         label,
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(15)}px`,
-          color: "#fafafa",
+          color: PALETTE_CSS.zinc50,
         }),
       )
       .setOrigin(0.5);
 
     const capBg = scene.add
-      .rectangle(capCx, cy, capColW, rowH, 0x27272a, 1)
-      .setStrokeStyle(2, 0x52525b);
+      .rectangle(capCx, cy, capColW, rowH, PALETTE.zinc800, 1)
+      .setStrokeStyle(2, PALETTE.zinc600);
 
     const capBtnW = scaleUiX(28);
     const capBtnH = scaleUiY(30);
@@ -247,16 +248,16 @@ export function buildEndlessModePanelUi(
       scene,
       capBtnW,
       capBtnH,
-      0x3f3f46,
-      0x71717a,
+      PALETTE.zinc700,
+      PALETTE.zinc500,
     );
     capMinus.setPosition(minusX, cy);
     const capPlus = createUiRoundedRect(
       scene,
       capBtnW,
       capBtnH,
-      0x3f3f46,
-      0x71717a,
+      PALETTE.zinc700,
+      PALETTE.zinc500,
     );
     capPlus.setPosition(plusX, cy);
     /** UI seed from `player.json` only — defense spawns use `buildSelections()` caps. */
@@ -269,7 +270,7 @@ export function buildEndlessModePanelUi(
         `${capDefault}`,
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(15)}px`,
-          color: "#e4e4e7",
+          color: PALETTE_CSS.zinc200,
         }),
       )
       .setOrigin(0.5);
@@ -344,8 +345,8 @@ export function buildEndlessModePanelUi(
     scene,
     rowW,
     infiniteRowH,
-    0x27272a,
-    0x52525b,
+    PALETTE.zinc800,
+    PALETTE.zinc600,
   );
   const footerDepth = 502;
   infiniteHpBg
@@ -368,7 +369,7 @@ export function buildEndlessModePanelUi(
       "☐",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(18)}px`,
-        color: "#a1a1aa",
+        color: PALETTE_CSS.zinc400,
       }),
     )
     .setOrigin(0.5)
@@ -380,7 +381,7 @@ export function buildEndlessModePanelUi(
       "Infinite HP",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(15)}px`,
-        color: "#fafafa",
+        color: PALETTE_CSS.zinc50,
       }),
     )
     .setOrigin(0, 0.5)
@@ -396,7 +397,7 @@ export function buildEndlessModePanelUi(
       "Challenge rating: 0",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(14)}px`,
-        color: "#fbbf24",
+        color: PALETTE_CSS.amber400,
       }),
     )
     .setOrigin(0.5)
@@ -415,8 +416,8 @@ export function buildEndlessModePanelUi(
       height: startBtnH,
       depth: footerDepth + 2,
       fontSize: `${scaleUiX(16)}px`,
-      fillColor: 0x1d4ed8,
-      strokeColor: 0x93c5fd,
+      fillColor: PALETTE.blue700,
+      strokeColor: PALETTE.blue300,
     },
   );
   const closeBtn = createTouchButton(
@@ -430,8 +431,8 @@ export function buildEndlessModePanelUi(
       height: closeBtnH,
       depth: footerDepth + 2,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x52525b,
-      strokeColor: 0xa1a1aa,
+      fillColor: PALETTE.zinc600,
+      strokeColor: PALETTE.zinc400,
     },
   );
   root.add([startBtn.container, closeBtn.container]);

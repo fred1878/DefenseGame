@@ -4,6 +4,7 @@
  * tiles and the shared header. Coordinates are absolute in the 540×1200 canvas.
  */
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { DAMAGE_NUMBER_FONT_FAMILY } from "../../config/damageNumbers";
 import { uiIconFrame, type UiIconName } from "../icons/uiIcons";
 import {
@@ -211,7 +212,7 @@ export class DgKit {
   /** Invisible hit rectangle (top-left x/y) calling `onTap` on pointerup. */
   tap(x: number, y: number, w: number, h: number, onTap: () => void): Tap {
     const zone = this.scene.add
-      .rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0.001)
+      .rectangle(x + w / 2, y + h / 2, w, h, PALETTE.black, 0.001)
       .setInteractive();
     zone.on("pointerup", () => {
       if (zone.input?.enabled !== false) onTap();
@@ -317,7 +318,7 @@ export class DgKit {
     const bw = Math.round(size * 0.42);
     const bh = Math.round(size * 0.26);
     const badgeBox = this.box(x + size - bw - 4, y + size - bh - 4, bw, bh, {
-      fill: "#000000",
+      fill: PALETTE_CSS.black,
       fillAlpha: 0.7,
       radius: 4,
     });
@@ -354,9 +355,9 @@ export class DgKit {
         badge.setVisible(visible && hasBadge);
         ring.clear();
         if (opts.selected) {
-          ring.lineStyle(2, 0xffffff, 1);
+          ring.lineStyle(2, PALETTE.white, 1);
           ring.strokeRoundedRect(x - 3, y - 3, size + 6, size + 6, 10);
-          ring.lineStyle(1, 0xffffff, 0.7);
+          ring.lineStyle(1, PALETTE.white, 0.7);
           ring.strokeRoundedRect(x - 7, y - 7, size + 14, size + 14, 12);
         }
       },

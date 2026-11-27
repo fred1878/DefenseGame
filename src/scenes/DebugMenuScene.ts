@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../ui/theme/uiPalette";
 import {
   setShowCombatRanges,
   setShowEnemyPaths,
@@ -233,7 +234,7 @@ export class DebugMenuScene extends Phaser.Scene {
 
   private buildBackdropAndTitle(w: number, h: number, panelTop: number): void {
     this.add
-      .rectangle(0, 0, w, h, 0x000000, 0.65)
+      .rectangle(0, 0, w, h, PALETTE.black, 0.65)
       .setOrigin(0)
       .setScrollFactor(0)
       .setDepth(400)
@@ -246,7 +247,7 @@ export class DebugMenuScene extends Phaser.Scene {
         "Debug",
         uiTextStyle(this, {
           fontSize: `${scaleUiX(26)}px`,
-          color: "#fafafa",
+          color: PALETTE_CSS.zinc50,
         }),
       )
       .setOrigin(0.5)
@@ -282,8 +283,8 @@ export class DebugMenuScene extends Phaser.Scene {
           height: scaleUiY(48),
           depth: 402,
           fontSize: `${scaleUiX(18)}px`,
-          fillColor: 0x3f3f46,
-          strokeColor: 0xa1a1aa,
+          fillColor: PALETTE.zinc700,
+          strokeColor: PALETTE.zinc400,
         },
       );
     }

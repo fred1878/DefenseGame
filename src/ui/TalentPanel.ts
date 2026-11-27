@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE } from "./theme/uiPalette";
 import { debugEconomyPolicy } from "../debug/debugEconomy";
 import { DG_THEME as SHARED_THEME, themeInt } from "./theme/dgTheme";
 import { GAME } from "../config";
@@ -179,7 +180,7 @@ export class TalentPanel {
         scene.add
           .image(emblemX, headerMid, emblemKey.key, emblemKey.frame)
           .setDisplaySize(26, 26)
-          .setTint(0xe9dfcb),
+          .setTint(PALETTE.parchment),
       );
     }
     this.text(L.pad + 84, headerMid - 14, "Talents", 32, DG.text, true)
@@ -253,7 +254,7 @@ export class TalentPanel {
         icon = scene.add
           .image(0, 0, branchIcon.key, branchIcon.frame)
           .setDisplaySize(16, 16)
-          .setTint(0xe9dfcb);
+          .setTint(PALETTE.parchment);
         root.add(icon);
       }
       const view: BranchView = {
@@ -287,7 +288,7 @@ export class TalentPanel {
     for (const slot of this.layout.nodes) {
       const loc = findTalent(catalog, slot.id)!;
       const hit = scene.add
-        .rectangle(slot.x, slot.y + 20, 72, 100, 0x000000, 0)
+        .rectangle(slot.x, slot.y + 20, 72, 100, PALETTE.black, 0)
         .setInteractive();
       hit.on("pointerup", () => this.select(slot.id));
       root.add(hit);

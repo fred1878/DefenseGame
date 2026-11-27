@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE_CSS } from "./theme/uiPalette";
 import { uiTextResolution } from "../core/displayScale";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 
@@ -36,7 +37,7 @@ export function uiSmallLabelShadow(): NonNullable<
   return {
     offsetX: 0,
     offsetY: Math.max(1, scaleUiY(1)),
-    color: "#09090b",
+    color: PALETTE_CSS.zinc950,
     blur: Math.max(1, scaleUiX(1)),
     stroke: false,
     fill: true,

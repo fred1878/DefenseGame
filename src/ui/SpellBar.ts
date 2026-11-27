@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE } from "./theme/uiPalette";
 import { DEFENSE_SPELL_BAR, defenseSpellBarIconDisplayPx } from "../config";
 import { autoCastFlagsForSlots } from "../content/spellBarAutoCast";
 import { spellById, type SpellId } from "../content/spells";
@@ -86,8 +87,8 @@ export class SpellBar {
         height: DEFENSE_SPELL_BAR.slotSizePx,
         depth,
         fontSize: DEFENSE_SPELL_BAR.fontSize,
-        fillColor: 0x312e81,
-        strokeColor: 0x818cf8,
+        fillColor: PALETTE.indigo900,
+        strokeColor: PALETTE.indigo400,
         tapPadding: DEFENSE_SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
       });
@@ -137,7 +138,7 @@ export class SpellBar {
         {
           bg: btn.container.list[0] as Phaser.GameObjects.GameObject &
             Phaser.GameObjects.Rectangle,
-          colors: { rest: 0x312e81, pressed: 0x232350 },
+          colors: { rest: PALETTE.indigo900, pressed: 0x232350 },
           pressScale: 0.88,
         },
       );
@@ -154,7 +155,7 @@ export class SpellBar {
           DEFENSE_SPELL_BAR.autoCastBorderColor,
           1,
         )
-        .setFillStyle(0x000000, 0)
+        .setFillStyle(PALETTE.black, 0)
         .setScrollFactor(0)
         .setDepth(depth + 2)
         .setVisible(autoFlags[i] ?? false);

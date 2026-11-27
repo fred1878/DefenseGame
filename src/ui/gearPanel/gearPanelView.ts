@@ -5,6 +5,7 @@
  * placeholders).
  */
 import { basePlayerTuning } from "../../config/player";
+import { PALETTE_CSS } from "../theme/uiPalette";
 import type { SaveGame } from "../../core/saveTypes";
 import { consumableCount, consumableEffectLine } from "../../gear/consumables";
 import type { ConsumableDef } from "../../gear/consumableTypes";
@@ -42,7 +43,7 @@ import {
 import { DG_THEME } from "../theme/dgTheme";
 
 /** Name colour for potions / bombs (no rarity). */
-export const CONSUMABLE_COLOR = "#FDE68A";
+export const CONSUMABLE_COLOR = PALETTE_CSS.amber200;
 
 const TYPE_SHORT: Record<ItemType, string> = {
   meleeWeapon: "Melee",

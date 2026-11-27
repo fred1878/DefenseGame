@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE_CSS } from "../theme/uiPalette";
 
 /**
  * Line icons for the talent tree (Lucide, ISC licence — same set as the Figma
@@ -48,6 +49,6 @@ export function ensureTalentIcons(scene: Phaser.Scene): void {
   for (const [name, body] of Object.entries(ICON_SVG)) {
     const key = talentIconKey(name);
     if (scene.textures.exists(key)) continue;
-    scene.textures.addBase64(key, svgDataUri(body, "#E9DFCB"));
+    scene.textures.addBase64(key, svgDataUri(body, PALETTE_CSS.parchment));
   }
 }

@@ -4,6 +4,7 @@
  * button enabled state.
  */
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { createTouchButton } from "./touchButton";
@@ -37,19 +38,19 @@ export function addRosterListChrome(
       listTop + listViewportH / 2,
       trackW,
       listViewportH,
-      0x3f3f46,
+      PALETTE.zinc700,
       0.85,
     )
     .setOrigin(0.5)
     .setVisible(maxScroll > 0);
   const scrollThumb = scene.add
-    .rectangle(trackX, listTop, trackW, scaleUiY(32), 0x71717a, 1)
+    .rectangle(trackX, listTop, trackW, scaleUiY(32), PALETTE.zinc500, 1)
     .setOrigin(0.5, 0)
     .setVisible(maxScroll > 0);
   root.add([scrollTrack, scrollThumb]);
 
   const maskGraphics = scene.make.graphics({ x: 0, y: 0 }, false);
-  maskGraphics.fillStyle(0xffffff);
+  maskGraphics.fillStyle(PALETTE.white);
   maskGraphics.fillRect(listLeft, listTop, rowW, listViewportH);
   // Phaser 4: GeometryMask is Canvas-only (setMask is ignored under WebGL), so clip
   // the list with the Mask filter, rendered from the same viewport rectangle.
@@ -93,10 +94,10 @@ export function paintRosterRowSelection(
   row: { bg: Phaser.GameObjects.Rectangle; check: Phaser.GameObjects.Text },
   on: boolean,
 ): void {
-  row.bg.setFillStyle(on ? 0x1e3a5f : 0x3f3f46);
-  row.bg.setStrokeStyle(2, on ? 0x60a5fa : 0x71717a);
+  row.bg.setFillStyle(on ? PALETTE.deepNavy : PALETTE.zinc700);
+  row.bg.setStrokeStyle(2, on ? PALETTE.blue400 : PALETTE.zinc500);
   row.check.setText(on ? "☑" : "☐");
-  row.check.setColor(on ? "#93c5fd" : "#a1a1aa");
+  row.check.setColor(on ? PALETTE_CSS.blue300 : PALETTE_CSS.zinc400);
 }
 
 /** Dim and disable the Start button when nothing is selected. */

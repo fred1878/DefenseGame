@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import {
   GAME,
   SPELL_BAR,
@@ -74,7 +75,7 @@ export function buildSpellBarSortPanelUi(
       "Spell bar",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(24)}px`,
-        color: "#f4f4f5",
+        color: PALETTE_CSS.zinc100,
       }),
     )
     .setOrigin(0.5);
@@ -87,7 +88,7 @@ export function buildSpellBarSortPanelUi(
       "4×2 night bar — 8 slots, same order as defense. Labels name each spell. Tap or drag bright pool icons on; tap again to remove. Dim = already on bar; faded = coming soon. Long-press a filled slot for auto-cast (yellow ring).",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(13)}px`,
-        color: "#a1a1aa",
+        color: PALETTE_CSS.zinc400,
         align: "center",
         wordWrap: { width: GAME.width - scaleUiX(36) },
       }),
@@ -109,14 +110,14 @@ export function buildSpellBarSortPanelUi(
     const x = gridLeft + col * (barCell + barGap);
     const y = gridTop + row * (barCell + barRowGap);
     const frame = scene.add
-      .rectangle(x, y, barCell, barCell, 0x1e1b4b, 0.92)
-      .setStrokeStyle(2, 0x6366f1);
+      .rectangle(x, y, barCell, barCell, PALETTE.indigo950, 0.92)
+      .setStrokeStyle(2, PALETTE.indigo500);
     frame.setInteractive({ useHandCursor: true });
 
     const autoBorder = scene.add
       .rectangle(x, y, barCell, barCell)
       .setStrokeStyle(bar.autoCastBorderWidthPx, bar.autoCastBorderColor, 1)
-      .setFillStyle(0x000000, 0)
+      .setFillStyle(PALETTE.black, 0)
       .setVisible(autoCastFlagsForSlots(slots, autoCastSpellIds)[i] ?? false);
 
     const slotIndex = i;
@@ -130,7 +131,7 @@ export function buildSpellBarSortPanelUi(
       },
       {
         bg: frame,
-        colors: { rest: 0x1e1b4b, pressed: 0x2e2b5b },
+        colors: { rest: PALETTE.indigo950, pressed: 0x2e2b5b },
       },
     );
 
@@ -144,7 +145,7 @@ export function buildSpellBarSortPanelUi(
         "",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(SLOT_NAME_FONT_PX)}px`,
-          color: "#e4e4e7",
+          color: PALETTE_CSS.zinc200,
         }),
       )
       .setOrigin(0.5, 0);
@@ -155,7 +156,7 @@ export function buildSpellBarSortPanelUi(
         `${i + 1}`,
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(22)}px`,
-          color: "#6366f1",
+          color: PALETTE_CSS.indigo500,
         }),
       )
       .setOrigin(0.5);
@@ -181,7 +182,7 @@ export function buildSpellBarSortPanelUi(
       `Spell pool (${getSpellCatalog().length})`,
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(16)}px`,
-        color: "#d4d4d8",
+        color: PALETTE_CSS.zinc300,
       }),
     )
     .setOrigin(0.5);
@@ -214,10 +215,10 @@ export function buildSpellBarSortPanelUi(
         y,
         poolCell,
         poolCell,
-        poolSelectable ? 0x312e81 : 0x27272a,
+        poolSelectable ? PALETTE.indigo900 : PALETTE.zinc800,
         poolSelectable ? 1 : 0.85,
       )
-      .setStrokeStyle(2, poolSelectable ? 0x818cf8 : 0x52525b);
+      .setStrokeStyle(2, poolSelectable ? PALETTE.indigo400 : PALETTE.zinc600);
     const icon = tryAddSpellIcon(scene, x, y, def, poolCell);
     const nameLabel = scene.add
       .text(
@@ -226,7 +227,7 @@ export function buildSpellBarSortPanelUi(
         def.shortLabel || def.name,
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(POOL_NAME_FONT_PX)}px`,
-          color: poolSelectable ? "#e4e4e7" : "#71717a",
+          color: poolSelectable ? PALETTE_CSS.zinc200 : PALETTE_CSS.zinc500,
         }),
       )
       .setOrigin(0.5, 0);
@@ -276,8 +277,8 @@ export function buildSpellBarSortPanelUi(
       height: footerBtnH,
       depth: 510,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x52525b,
-      strokeColor: 0xa1a1aa,
+      fillColor: PALETTE.zinc600,
+      strokeColor: PALETTE.zinc400,
     },
   );
   const doneBtn = createTouchButton(

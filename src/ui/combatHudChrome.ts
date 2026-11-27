@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE } from "./theme/uiPalette";
 import {
   defensePlayAreaLayout,
   defenseTopChromeHeight,
@@ -10,9 +11,9 @@ export type CombatHudChrome = {
   setVisible: (visible: boolean) => void;
 };
 
-const PANEL_FILL = 0xffffff;
+const PANEL_FILL = PALETTE.white;
 const PANEL_ALPHA = 0.55;
-const BORDER = 0xffffff;
+const BORDER = PALETTE.white;
 
 /** Top/bottom screen bands behind HUD; world draws only in the middle play area. */
 export function createCombatHudChrome(

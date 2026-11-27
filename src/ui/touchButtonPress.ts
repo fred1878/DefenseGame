@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { PALETTE_CSS } from "./theme/uiPalette";
 import { scaleUiX } from "../config/uiScale";
 import {
   TOUCH_BUTTON_RELEASE_SLOP_PX,
@@ -40,7 +41,7 @@ export type PressVisual = {
 };
 
 export const MEDIEVAL_LABEL = {
-  color: "#e8dcc8",
+  color: PALETTE_CSS.parchmentDim,
   stroke: "#1a1612",
 };
 

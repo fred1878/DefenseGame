@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "./theme/uiPalette";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { INPUT_MODALITY } from "../input/inputModality";
@@ -32,7 +33,7 @@ export class EndlessModePanelLoadingSkeleton {
         "Endless training",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(24)}px`,
-          color: "#f4f4f5",
+          color: PALETTE_CSS.zinc100,
         }),
       )
       .setOrigin(0.5);
@@ -75,7 +76,7 @@ export class EndlessModePanelLoadingSkeleton {
       scaleUiY(118),
       rowW,
       scaleUiY(14),
-      0x3f3f46,
+      PALETTE.zinc700,
       0.85,
     );
     this.root.add(hintSk);
@@ -86,11 +87,11 @@ export class EndlessModePanelLoadingSkeleton {
       const capCx = capColLeft + capColW / 2;
 
       const nameSk = scene.add
-        .rectangle(nameCx, cy, nameColW, rowH, 0x3f3f46, 0.9)
-        .setStrokeStyle(2, 0x52525b);
+        .rectangle(nameCx, cy, nameColW, rowH, PALETTE.zinc700, 0.9)
+        .setStrokeStyle(2, PALETTE.zinc600);
       const capSk = scene.add
-        .rectangle(capCx, cy, capColW, rowH, 0x27272a, 0.9)
-        .setStrokeStyle(2, 0x52525b);
+        .rectangle(capCx, cy, capColW, rowH, PALETTE.zinc800, 0.9)
+        .setStrokeStyle(2, PALETTE.zinc600);
       this.root.add(nameSk);
       this.root.add(capSk);
     }
@@ -102,7 +103,7 @@ export class EndlessModePanelLoadingSkeleton {
       footerY,
       rowW,
       scaleUiY(120),
-      0x27272a,
+      PALETTE.zinc800,
       0.7,
     );
     this.root.add(footerSk);
@@ -114,7 +115,7 @@ export class EndlessModePanelLoadingSkeleton {
         "Loading roster…",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(14)}px`,
-          color: "#a1a1aa",
+          color: PALETTE_CSS.zinc400,
         }),
       )
       .setOrigin(0.5);
@@ -131,8 +132,8 @@ export class EndlessModePanelLoadingSkeleton {
         height: closeBtnH,
         depth: 2,
         fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x52525b,
-        strokeColor: 0xa1a1aa,
+        fillColor: PALETTE.zinc600,
+        strokeColor: PALETTE.zinc400,
       },
     );
     this.root.add(this.closeBtn.container);
@@ -156,7 +157,7 @@ export class EndlessModePanelLoadingSkeleton {
 
   showError(message: string): void {
     this.statusText.setText(message);
-    this.statusText.setColor("#f87171");
+    this.statusText.setColor(PALETTE_CSS.red400);
   }
 
   destroy(): void {

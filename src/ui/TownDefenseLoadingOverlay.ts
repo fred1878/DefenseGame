@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE_CSS } from "./theme/uiPalette";
 import { GAME } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { INPUT_MODALITY } from "../input/inputModality";
@@ -32,7 +33,7 @@ export class TownDefenseLoadingOverlay {
         "Preparing defense…",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(22)}px`,
-          color: "#f4f4f5",
+          color: PALETTE_CSS.zinc100,
         }),
       )
       .setOrigin(0.5);
@@ -45,7 +46,7 @@ export class TownDefenseLoadingOverlay {
         "Loading…",
         uiTextStyle(scene, {
           fontSize: `${scaleUiX(16)}px`,
-          color: "#a1a1aa",
+          color: PALETTE_CSS.zinc400,
         }),
       )
       .setOrigin(0.5);
@@ -54,7 +55,7 @@ export class TownDefenseLoadingOverlay {
 
   showError(message: string): void {
     this.statusText.setText(message);
-    this.statusText.setColor("#f87171");
+    this.statusText.setColor(PALETTE_CSS.red400);
   }
 
   destroy(): void {

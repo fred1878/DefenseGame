@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE } from "./theme/uiPalette";
 import { worldUnit } from "../config/worldScale";
 
 export type GroundReticleStyle = "fire" | "ice" | "default";
@@ -52,22 +53,22 @@ export class GroundTargetReticle {
     const r = this.radiusWu;
     const stroke =
       this.style === "ice"
-        ? 0x38bdf8
+        ? PALETTE.sky400
         : this.style === "default"
           ? 0xcbd5e1
-          : 0xf97316;
+          : PALETTE.orange500;
     const fill =
       this.style === "ice"
         ? 0x7dd3fc
         : this.style === "default"
           ? 0x94a3b8
-          : 0xf97316;
+          : PALETTE.orange500;
     const cross =
       this.style === "ice"
-        ? 0xe0f2fe
+        ? PALETTE.sky100
         : this.style === "default"
           ? 0xf8fafc
-          : 0xfbbf24;
+          : PALETTE.amber400;
     this.gfx.lineStyle(2, stroke, 0.95);
     this.gfx.strokeCircle(x, y, r);
     this.gfx.fillStyle(fill, 0.12);

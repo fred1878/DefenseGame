@@ -1,4 +1,5 @@
 import { defenseFieldTiles } from "../config/defense";
+import { PALETTE } from "./theme/uiPalette";
 import type Phaser from "phaser";
 import { defenseHalfHeight, defenseHalfWidth } from "../config";
 import { scaleUiX, scaleUiY } from "../config/uiScale";
@@ -6,9 +7,9 @@ import type { EnemyInstance } from "../entities/Enemy";
 import type { SafeInsets, ScreenRect } from "./screenLayout";
 import { hudTextPosition } from "./defenseHudLayout";
 
-const BORDER_COLOR = 0xffffff;
-const PLAYER_DOT = 0xffffff;
-const ENEMY_DOT = 0xef4444;
+const BORDER_COLOR = PALETTE.white;
+const PLAYER_DOT = PALETTE.white;
+const ENEMY_DOT = PALETTE.red500;
 const MINIMAP_DEPTH = 205;
 
 export type DefenseMinimapLayout = {
