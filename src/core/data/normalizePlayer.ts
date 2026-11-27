@@ -32,6 +32,8 @@ export const PLAYER_TUNING_BOOT_KEYS = [
   "playerHitInvulnMs",
   "nightSpawnInvulnMs",
   "bodyRadiusWu",
+  "gearMinAttackSpeedMul",
+  "gearMinMoveSpeedMul",
 ] as const satisfies readonly (keyof PlayerTuning)[];
 
 /** Authorable subset of `public/data/player.json` (derived fields omitted). */

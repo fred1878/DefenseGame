@@ -12,6 +12,7 @@ import {
  */
 export const GAMEPLAY_SECTION_KEYS = {
   wall: ["baseHp", "hpPerLevel", "campaignWinWear"],
+  nightEnd: ["winHealHp"],
   waves: ["eliteHpMul"],
   spawn: ["marginXWu", "southInsetWu", "jitterYWu"],
   combat: [

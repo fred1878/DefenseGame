@@ -10,17 +10,17 @@
     },
     "fire_bomb": {
       "name": "Fire Bomb", "kind": "bomb", "price": 25, "maxStack": 5, "cooldownMs": 2000,
-      "bomb": { "damage": 60, "radiusWu": 90, "rangeWu": 320, "flavor": "fire", "knockbackWu": 120,
+      "bomb": { "damage": 60, "radiusWu": 90, "rangeWu": 320, "flavor": "fire", "knockbackWu": 120, "throwMs": 280,
         "projectile": "spellArcBomb", "blast": "spellFireNova", "dotDps": 5, "dotMs": 3000 }
     },
     "frost_bomb": {
       "name": "Frost Bomb", "kind": "bomb", "price": 25, "maxStack": 5, "cooldownMs": 2000,
-      "bomb": { "damage": 42, "radiusWu": 100, "rangeWu": 320, "flavor": "frost", "knockbackWu": 60,
+      "bomb": { "damage": 42, "radiusWu": 100, "rangeWu": 320, "flavor": "frost", "knockbackWu": 60, "throwMs": 280,
         "projectile": "spellIceBolt", "blast": "spellBlizzard", "slowPct": 45, "slowMs": 2500 }
     },
     "thunder_bomb": {
       "name": "Thunder Bomb", "kind": "bomb", "price": 35, "maxStack": 5, "cooldownMs": 2000,
-      "bomb": { "damage": 52, "radiusWu": 80, "rangeWu": 320, "flavor": "lightning", "knockbackWu": 160,
+      "bomb": { "damage": 52, "radiusWu": 80, "rangeWu": 320, "flavor": "lightning", "knockbackWu": 160, "throwMs": 280,
         "projectile": "spellLightningBolt", "blast": "spellShockwave", "stunMs": 800 }
     }
   }

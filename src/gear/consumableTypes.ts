@@ -10,6 +10,8 @@ export type BombDef = {
   rangeWu: number;
   flavor: DamageFlavor;
   knockbackWu: number;
+  /** Flight time (ms) of the thrown bomb before it lands. */
+  throwMs: number;
   /** Texture key (resolved from a COMBAT_FX_TEXTURE name) for the thrown sprite. */
   projectile: string;
   /** Texture key for the blast flash. */

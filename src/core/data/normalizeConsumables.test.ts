@@ -23,6 +23,7 @@ const bomb = {
     rangeWu: 3,
     flavor: "fire",
     knockbackWu: 0,
+    throwMs: 280,
     projectile: "spellArcBomb",
     blast: "spellFireNova",
   },

@@ -4,6 +4,9 @@
     "hpPerLevel": 50,
     "campaignWinWear": 2
   },
+  "nightEnd": {
+    "winHealHp": 10
+  },
   "waves": {
     "eliteHpMul": 2
   },

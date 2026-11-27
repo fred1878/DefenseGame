@@ -35,6 +35,10 @@ export type PlayerTuning = {
   nightSpawnInvulnMs: number;
   /** Arcade physics circle radius (authored world units). */
   bodyRadiusWu: number;
+  /** Floor on the gear attack-speed multiplier (stops negative attack speed stalling attacks). */
+  gearMinAttackSpeedMul: number;
+  /** Floor on the gear move-speed multiplier. */
+  gearMinMoveSpeedMul: number;
 };
 
 let activePlayerTuning: PlayerTuning | null = null;

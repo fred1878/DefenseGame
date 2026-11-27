@@ -26,6 +26,7 @@ export const CONSUMABLES_ROW_BOOT_KEYS = [
 ] as const;
 export const CONSUMABLES_BOMB_BOOT_KEYS = [
   "damage",
+  "throwMs",
   "radiusWu",
   "rangeWu",
   "flavor",
@@ -47,9 +48,12 @@ function normalizeBomb(raw: unknown, path: string): BombDef {
   const row = requireRecord(raw, path);
   const nums = requireNumberFields(
     row,
-    ["damage", "radiusWu", "rangeWu", "knockbackWu"],
+    ["damage", "radiusWu", "rangeWu", "knockbackWu", "throwMs"],
     path,
-  ) as Pick<BombDef, "damage" | "radiusWu" | "rangeWu" | "knockbackWu">;
+  ) as Pick<
+    BombDef,
+    "damage" | "radiusWu" | "rangeWu" | "knockbackWu" | "throwMs"
+  >;
   const out: BombDef = {
     ...nums,
     flavor: requireOneOf(row.flavor, DAMAGE_FLAVORS, `${path}.flavor`),

@@ -35,10 +35,17 @@ export const ITEMS_FILE_BOOT_KEYS = [
   "maxReductionPct",
   "itemLevelPriceStepPct",
   "statCaps",
+  "generation",
   "rarities",
   "bases",
   "affixes",
   "uniques",
+] as const;
+/** Boot-required keys of `items.json` `generation` (random item rolls). */
+export const ITEMS_GENERATION_BOOT_KEYS = [
+  "maxAffixesPerPosition",
+  "outdatedBaseLevels",
+  "outdatedBaseWeight",
 ] as const;
 export const ITEMS_RARITY_BOOT_KEYS = [
   "label",
@@ -428,6 +435,11 @@ export function normalizeItems(raw: unknown): GearCatalog {
       "items.itemLevelPriceStepPct",
     ),
     statCaps,
+    generation: requireNumberFields(
+      requireRecord(root.generation, "items.generation"),
+      ITEMS_GENERATION_BOOT_KEYS,
+      "items.generation",
+    ) as GearCatalog["generation"],
     rarities,
     bases,
     affixes,

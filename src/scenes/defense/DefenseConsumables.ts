@@ -18,7 +18,7 @@ import {
   quickConsumable,
   spendConsumable,
 } from "../../gear/consumables";
-import type { ConsumableKind } from "../../gear/consumableTypes";
+import type { BombDef, ConsumableKind } from "../../gear/consumableTypes";
 import type { TouchButtonHandle } from "../../ui/touch/touchButton";
 
 type EnemyTarget = Parameters<typeof applySpellBlastAt>[4][number];
@@ -44,8 +44,6 @@ export type DefenseConsumablesHost = {
   /** False once the night has ended or a modal pauses play. */
   canAct: () => boolean;
 };
-
-const THROW_MS = 280;
 
 /**
  * Potion / bomb HUD buttons and Q / E hotkeys. Charges are spent on the run
@@ -103,7 +101,7 @@ export class DefenseConsumables {
         this.toast("No enemy in range");
         return;
       }
-      this.throwBomb(from, target, bomb.projectile, () => {
+      this.throwBomb(from, target, bomb, () => {
         applySpellBlastAt(
           h.scene,
           target.x,
@@ -127,9 +125,10 @@ export class DefenseConsumables {
   private throwBomb(
     from: { x: number; y: number },
     to: { x: number; y: number },
-    texture: string,
+    bomb: BombDef,
     onLand: () => void,
   ): void {
+    const texture = bomb.projectile;
     const scene = this.host.scene;
     if (!scene.textures.exists(texture)) {
       onLand();
@@ -142,7 +141,7 @@ export class DefenseConsumables {
       x: to.x,
       y: to.y,
       angle: 360,
-      duration: THROW_MS,
+      duration: bomb.throwMs,
       onComplete: () => {
         sprite.destroy();
         onLand();

@@ -407,10 +407,19 @@ Top level:
 | `maxReductionPct` | Hard cap on armour damage reduction, in percent (0–100). |
 | `itemLevelPriceStepPct` | Price grows by this percent per item level above the base's `minItemLevel`. |
 | `statCaps` | Object of per-stat caps applied after summing gear (any flat stat id or `spellCooldownPct`). |
+| `generation` | Object of random item roll rules (below). |
 | `rarities` | Object keyed by `common`, `magic`, `rare`, `epic`, `legendary` (all five required). |
 | `bases` | Object keyed by base id: the item types players can own (weapons, armour, rings, trinkets). |
 | `affixes` | Object keyed by affix id: random prefix / suffix pool rolled onto magic, rare and epic items. |
 | `uniques` | Object keyed by unique id: authored legendary items with fixed stats and procs. |
+
+`generation`:
+
+| Field | Meaning |
+|-------|---------|
+| `maxAffixesPerPosition` | Most affixes of one position (prefix or suffix) a rolled item can get (integer). |
+| `outdatedBaseLevels` | A base this many item levels below the roll level counts as outdated. |
+| `outdatedBaseWeight` | Pick weight for outdated bases (others weigh 1), so old bases still drop but rarely. |
 
 Each rarity:
 
@@ -545,6 +554,7 @@ Each bomb:
 | `rangeWu` | WU; max throw distance to the target enemy. |
 | `flavor` | Damage flavor (fire, frost, lightning, water, physical) for damage numbers. |
 | `knockbackWu` | WU; knockback away from the blast centre. |
+| `throwMs` | ms; flight time of the thrown bomb before it lands and blasts. |
 | `projectile` | COMBAT_FX_TEXTURE name for the thrown sprite (e.g. spellArcBomb). |
 | `blast` | COMBAT_FX_TEXTURE name for the blast flash (e.g. spellFireNova). |
 | `dotDps` | Optional burn / DoT damage per second applied to enemies hit. |
@@ -669,6 +679,8 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 | `moveSpeedWu` | px/s | Player locomotion speed in px/s during Defense. |
 | `maxHp` | number | Player maximum hit points at night start. |
 | `bodyRadiusWu` | px | Arcade physics circle radius in world px. |
+| `gearMinAttackSpeedMul` | dimensionless | Floor on the attack-speed multiplier from gear (`1 + attackSpeedPct/100`). |
+| `gearMinMoveSpeedMul` | dimensionless | Floor on the move-speed multiplier from gear (`1 + moveSpeedPct/100`). |
 | `meleeWindupMs` | ms | Boot-required `meleeWindupMs`; see normalize* and combat code for usage. |
 | `meleeActiveMs` | ms | Boot-required `meleeActiveMs`; see normalize* and combat code for usage. |
 | `meleeFxStartMs` | ms | Required. Delay from player melee **windup start** until swipe VFX. `0` = first windup frame. |
@@ -844,6 +856,12 @@ Global rules with no per-row home, loaded with the town data at Boot (`applyGame
 | `baseHp` | dimensionless | Town wall max HP on a new save and at wall level 0. |
 | `hpPerLevel` | dimensionless | Extra wall max HP per `wall` building level. |
 | `campaignWinWear` | dimensionless | Wall HP lost at the end of a won campaign night. |
+
+### `nightEnd`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `winHealHp` | dimensionless | Player HP restored (up to max) after a won night. |
 
 ### `waves`
 

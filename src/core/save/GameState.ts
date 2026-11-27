@@ -219,7 +219,10 @@ export function applyNightResultDetailed(
   if (result.won) {
     next.player = {
       ...next.player,
-      hp: Math.min(next.player.hpMax, next.player.hp + 10),
+      hp: Math.min(
+        next.player.hpMax,
+        next.player.hp + tuning("gameplay").nightEnd.winHealHp,
+      ),
     };
   }
   if (result.drops?.length) {

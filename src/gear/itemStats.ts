@@ -228,9 +228,6 @@ export function armourReduction(catalog: GearCatalog, armour: number): number {
   return Math.min(catalog.armourMaxReductionPct / 100, raw);
 }
 
-const MIN_ATTACK_SPEED_MUL = 0.25;
-const MIN_MOVE_SPEED_MUL = 0.5;
-
 function scaled(baseValue: number, from: number, to: number): number {
   return from > 0 ? baseValue * (to / from) : to;
 }
@@ -244,7 +241,10 @@ export function effectivePlayerTuning(
   stats: GearStats,
 ): PlayerTuning {
   const f = stats.flat;
-  const speed = Math.max(MIN_ATTACK_SPEED_MUL, 1 + f.attackSpeedPct / 100);
+  const speed = Math.max(
+    base.gearMinAttackSpeedMul,
+    1 + f.attackSpeedPct / 100,
+  );
   const dmgMul = Math.max(0, 1 + f.damagePct / 100);
   const melee = stats.melee;
   const ranged = stats.ranged;
@@ -259,7 +259,8 @@ export function effectivePlayerTuning(
   const out: PlayerTuning = {
     ...base,
     moveSpeedWu:
-      base.moveSpeedWu * Math.max(MIN_MOVE_SPEED_MUL, 1 + f.moveSpeedPct / 100),
+      base.moveSpeedWu *
+      Math.max(base.gearMinMoveSpeedMul, 1 + f.moveSpeedPct / 100),
     maxHp: Math.max(1, base.maxHp + f.maxHp),
     meleeWindupMs,
     meleeActiveMs,

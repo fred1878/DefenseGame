@@ -7,6 +7,11 @@ export function gearFixtureRaw(): Record<string, unknown> {
     armour: { halfReductionAt: 50, maxReductionPct: 60 },
     itemLevelPriceStepPct: 10,
     statCaps: { attackSpeedPct: 50, spellCooldownPct: 40, lifestealPct: 20 },
+    generation: {
+      maxAffixesPerPosition: 2,
+      outdatedBaseLevels: 5,
+      outdatedBaseWeight: 0.35,
+    },
     rarities: {
       common: {
         label: "Common",
