@@ -539,6 +539,29 @@ describe("buildApi", () => {
     expect(await fpsP).toBe(50);
   });
 
+  it("drives fixed-step mode through the game loop", () => {
+    const game = makeGame({}) as unknown as {
+      loop: Record<string, unknown>;
+      headlessStep: (t: number, d: number) => void;
+      step: (t: number, d: number) => void;
+    };
+    const steps: number[] = [];
+    game.loop.sleep = vi.fn();
+    game.loop.wake = vi.fn();
+    game.loop.frame = 0;
+    game.headlessStep = (t) => steps.push(t);
+    game.step = (t) => steps.push(-t);
+    const api = buildApi(game as never);
+    const native = Math.random;
+    api.startFixedStep(16, 1);
+    expect(Math.random).not.toBe(native);
+    expect(api.stepGame(2)).toBe(32);
+    expect(steps).toEqual([16, 32]);
+    api.stopFixedStep();
+    expect(Math.random).toBe(native);
+    expect(game.loop.wake).toHaveBeenCalledWith(true);
+  });
+
   it("audits spell bar textures for empty, missing, and loaded slots", () => {
     const save = createNewSave();
     save.spellBar.slots = Array.from({ length: SPELL_BAR.slotCount }, () => "");
