@@ -41,3 +41,31 @@ export function uiSmallLabelShadow(): NonNullable<
     fill: true,
   };
 }
+
+/**
+ * Re-rasterise `texts` once a web font (CSS font shorthand, e.g. `700 16px "Pixelify Sans"`)
+ * has loaded. Text drawn before the font arrives keeps the fallback face otherwise:
+ * `setFontFamily` with the same family string is a no-op in Phaser.
+ * `onReady` runs after the re-render (re-fit / re-layout text that depends on width).
+ */
+export function rerenderTextsWhenFontReady(
+  font: string,
+  texts: () => readonly Phaser.GameObjects.Text[],
+  onReady?: () => void,
+): void {
+  const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+  if (!fonts?.load) return;
+  if (fonts.check?.(font)) return;
+  void fonts
+    .load(font)
+    .then(() => {
+      let alive = false;
+      for (const t of texts()) {
+        if (!t.active || !t.scene) continue;
+        alive = true;
+        t.style.update(true);
+      }
+      if (alive) onReady?.();
+    })
+    .catch(() => undefined);
+}

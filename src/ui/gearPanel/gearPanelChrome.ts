@@ -75,8 +75,8 @@ export function createCard(
   const tile = kit.tile(x + 8, y + 8, 54, null);
   const lock = kit.icon(x + 35, y + 35, "lock", 30, DG_THEME.textMuted);
   const name = kit.text(x + 72, y + 9, "", { size: 15, bold: true });
-  const price = kit.text(x + CARD_W - 10, y + 31, "", {
-    size: 14,
+  const price = kit.text(x + CARD_W - 10, y + 30, "", {
+    size: 16,
     title: true,
     color: DG_THEME.accentGoldBright,
     originX: 1,
@@ -90,7 +90,7 @@ export function createCard(
   );
   const meta = kit.text(x + 72, y + 31, "", {
     size: 12,
-    color: DG_THEME.textMuted,
+    color: DG_THEME.textSecondary,
   });
   const stat = kit.text(x + 72, y + 48, "", {
     size: 12,
@@ -173,17 +173,17 @@ export function createDetailBox(
     radius: 14,
   });
   const tile = kit.tile(32, top + 16, 60, null);
-  const name = kit.text(106, top + 16, "", { size: 22, title: true });
+  const name = kit.text(106, top + 15, "", { size: 24, title: true });
   const subline = kit.text(106, top + 46, "", {
     size: 12,
-    color: DG_THEME.textMuted,
+    color: DG_THEME.textSecondary,
   });
   const lines = Array.from({ length: DETAIL_LINES }, () => ({
     icon: kit.icon(42, 0, "star", 16),
     text: kit.text(58, 0, "", { size: 14, originY: 0.5 }),
     tag: kit.text(508, 0, "", {
       size: 12,
-      color: DG_THEME.textMuted,
+      color: DG_THEME.textSecondary,
       originX: 1,
       originY: 0.5,
     }),
@@ -210,7 +210,7 @@ export function createDetailBox(
   });
   const cmpTitle = kit
     .text(32, 0, "", {
-      size: 11,
+      size: 12,
       bold: true,
       color: DG_THEME.accentGold,
       originY: 0.5,

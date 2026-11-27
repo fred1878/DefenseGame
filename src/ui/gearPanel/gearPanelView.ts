@@ -219,7 +219,7 @@ function replacedLabel(
   const r = item ? resolveItem(catalog, item) : null;
   return r
     ? { against: `${r.name} (${r.rarity.label})`, againstColor: r.rarity.color }
-    : { against: "Empty slot", againstColor: DG_THEME.textMuted };
+    : { against: "Empty slot", againstColor: DG_THEME.textSecondary };
 }
 
 /** Compare for equipping an owned item (or removing it, when it is equipped). */
@@ -233,7 +233,7 @@ export function ownedItemCompare(
     return {
       title: "If unequipped",
       against: "Empty slot",
-      againstColor: DG_THEME.textMuted,
+      againstColor: DG_THEME.textSecondary,
       rows: compareGear(catalog, gear, unequipSlot(gear, slot)),
     };
   }
