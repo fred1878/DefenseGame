@@ -13,7 +13,8 @@ export type RosterListChrome = {
   scrollTrack: Phaser.GameObjects.Rectangle;
   scrollThumb: Phaser.GameObjects.Rectangle;
   maskGraphics: Phaser.GameObjects.Graphics;
-  mask: Phaser.Filters.Mask;
+  /** Mask filter under WebGL; null under the Canvas renderer (geometry mask). */
+  mask: Phaser.Filters.Mask | null;
 };
 
 /** Scroll track + thumb beside the list, and a Mask filter clipping it to the viewport. */
@@ -54,8 +55,12 @@ export function addRosterListChrome(
   maskGraphics.fillRect(listLeft, listTop, rowW, listViewportH);
   // Phaser 4: GeometryMask is Canvas-only (setMask is ignored under WebGL), so clip
   // the list with the Mask filter, rendered from the same viewport rectangle.
+  // The Canvas renderer (AUTO fallback without WebGL) has no filter pipeline,
+  // so `filters` stays null there: use the geometry mask that Canvas supports.
   listContent.enableFilters();
-  const mask = listContent.filters!.internal.addMask(maskGraphics);
+  const filters = listContent.filters;
+  const mask = filters ? filters.internal.addMask(maskGraphics) : null;
+  if (!filters) listContent.setMask(maskGraphics.createGeometryMask());
   return { scrollTrack, scrollThumb, maskGraphics, mask };
 }
 
