@@ -40,8 +40,10 @@ src/
   gameMain.ts     # Phaser.Game (portrait 540×1200, FIT + autoRound)
   config/         # Layout/engine constants only — no gameplay numbers
   content/        # Asset keys, spell catalog ids
-  core/           # data/: DataStore, normalize* (JSON validation); save/: GameState, saveTypes, saveSlots; render/: display scale, hi-DPI, pixel render; root: registry keys, events, run modes
+  core/           # data/: DataStore, normalize* (JSON validation); save/: GameState, saveTypes, saveSlots, migrations; render/: display scale, hi-DPI, pixel render; root: registry keys, events, run modes
+  tuning/         # Read-only store (`tuning(key)` / `setTuning`); filled once from public/data JSON
   gear/           # Items, inventory, shops, loot rolls, night loot summary
+  talents/        # Talent tree rules, text, runtime
   sim/            # Economy simulator (scripts/econ-sim.mjs → src/sim/economy/)
   input/          # VirtualStick, input modality, modal backdrop
   combat/         # rules/: hitboxes, damage, knockback, SpellCastController, SpellEffects; fx/: combat VFX + telegraphs
@@ -51,17 +53,17 @@ src/
   pathfinding/    # Nav grid, A*, LOS
   scenes/         # Boot, Town, Defense, DebugMenu
   scenes/defense/ # DefenseScene helpers (HUD, ticks, spells, e2e, night end)
-  systems/        # WaveSpawner, town buildings, endless roster/scheduler
+  systems/        # WaveSpawner, night-end rules, endless roster/scheduler, town building menu
   ui/             # hud/ (SpellBar, CastBar, HUD layout), panels/ (modal panels), touch/ (touch buttons), layout/ (screenLayout, text style), theme/, per-panel folders
   audio/          # SFX helpers (public/assets/audio/sfx)
   world/          # Ground layers, camera, spawn points
-  test/           # Vitest Phaser stub + input fakes
+  test/           # Vitest Phaser stub, input fakes, and real-Phaser scene harness (`test/scene/`)
   e2e/            # installE2E hooks (VITE_E2E=true or ?e2e=1)
-public/data/      # Runtime JSON (Boot via DataStore.loadAll)
+public/data/      # Runtime JSON (Boot fetches via DataStore.loadAll; sim/tests also import the same files)
 public/assets/    # Sprites/audio (do not edit binaries in Cursor)
 scripts/          # build/ (Phaser bundle, install, size + PWA asserts, version), assets/ (icons, MobileRPG sync, PWA icons), capture/ (local screenshot / video proofs), check-architecture, econ-sim, sim-fights, data/
 vendor/           # Trimmed Phaser bundle; its sha256 in phaser-defense.manifest.json is checked on install
-docs/             # DATA_FIELDS, ITEMS, ECONOMY_SIM, TESTING, CI_RELEASES, WAVES, ROADMAP
+docs/             # AGENTS, DATA_FIELDS, ITEMS, TALENTS, ECONOMY_SIM, TESTING, CI_RELEASES, WAVES, ROADMAP
 ```
 
 Prefer a new JSON row + a small behavior module over growing scene files.
@@ -70,9 +72,10 @@ Prefer a new JSON row + a small behavior module over growing scene files.
 
 | Layer | Path | Holds |
 |-------|------|--------|
-| Tuning | `src/config/` | Canvas/layout, HUD px, render depths. **No gameplay numbers.** |
+| Engine | `src/config/` | Canvas/layout, HUD px, render depths. **No gameplay numbers.** |
 | Code content | `src/content/` | Texture keys/paths (`assets.ts`), spell ids (`spells.ts`) |
-| Runtime JSON | `public/data/` | enemies, enemy-ai, gameplay, player, defense-maps, spell_input, spells, entity-physics, waves, buildings, items, loot, consumables, shops, talents… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). Talents: [TALENTS.md](./TALENTS.md). |
+| Runtime JSON | `public/data/` | enemies, enemy-ai, gameplay, damage-numbers, player, defense-maps, spell_input, spells, entity-physics, hit-flash, waves, buildings, items, loot, consumables, shops, talents… Missing fields throw `ConfigLoadError`. Schema: [DATA_FIELDS.md](./DATA_FIELDS.md). Gear design: [ITEMS.md](./ITEMS.md). Talents: [TALENTS.md](./TALENTS.md). |
+| Tuning store | `src/tuning/gameTuning.ts` | Read-only `tuning(key)` after Boot (and the sim) load JSON. Edit the JSON files, not this module. The same files are fetched at runtime and bundled for the sim/tests **on purpose**, so values stay easy to edit in `public/data/`. |
 
 Save shapes: `src/core/save/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`). Reading stored saves goes through `saveRepository.parseStoredSave` (one validator for the autosave and slots). **Bumping `SAVE_VERSION` needs a step in `core/save/migrations.ts` plus a `fixtures/save-vN.json` fixture**; `migrations.test.ts` fails if a step is missing.
 
@@ -84,10 +87,10 @@ Save shapes: `src/core/save/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERS
 - **Input:** one owner at a time via `src/input/inputModality.ts`. Modals use `acquireModalInput` + `bindModalDimBackdrop`; host scenes react to `INPUT_MODALITY_CHANGED`.
 - **Save safety:** extend `SaveGame` only with backward-compatible defaults in `createNewSave()` (`core/save/GameState.ts`).
 - **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx` in `config/worldScale.ts`; the debug setters live in `core/render/worldPixelScale.ts`).
-- **CI:** typecheck, Biome lint, knip, unit tests (`test:coverage` enforces **94 / 95 / 94** lines/functions/statements, **90** branches — see `vitest.config.ts`; scene orchestrators and Phaser HUD glue excluded; `scenes/defense/*` modules and `world/**` included), build and Chromium Playwright must stay green. Delete dead code rather than adding knip ignores. Merges to main publish Pages.
+- **CI:** typecheck, Biome lint, knip, `check:arch`, unit tests (`test:coverage` floors are in `vitest.config.ts` and only ever go up), build and Chromium Playwright must stay green. Scene tests (`src/**/*.scene.test.ts`) boot real Phaser under jsdom + `@napi-rs/canvas`; see [TESTING.md](./TESTING.md). Delete dead code rather than adding knip ignores. Merges to main publish Pages.
 - **Balance:** prefer `npm run sim:economy` when changing `waves.json`, `loot.json`, shop prices, or affix power — [ECONOMY_SIM.md](./ECONOMY_SIM.md).
 - **Defense pooling:** projectile sprites via `src/entities/projectilePool.ts` (`releaseProjectileSprite` on despawn); enemy shells via `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Scene shutdown calls `destroyProjectilePool` / `destroyDefenseEnemyPool`.
 
 ## Related docs
 
-[REFACTOR_PLAN.md](./REFACTOR_PLAN.md) · [DATA_FIELDS.md](./DATA_FIELDS.md) · [ITEMS.md](./ITEMS.md) · [TALENTS.md](./TALENTS.md) · [ECONOMY_SIM.md](./ECONOMY_SIM.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [ROADMAP.md](../ROADMAP.md)
+[DATA_FIELDS.md](./DATA_FIELDS.md) · [ITEMS.md](./ITEMS.md) · [TALENTS.md](./TALENTS.md) · [ECONOMY_SIM.md](./ECONOMY_SIM.md) · [TESTING.md](./TESTING.md) · [CI_RELEASES.md](./CI_RELEASES.md) · [WAVES.md](./WAVES.md) · [MANUAL_UI_CAPTURE.md](./MANUAL_UI_CAPTURE.md) · [ROADMAP.md](../ROADMAP.md)

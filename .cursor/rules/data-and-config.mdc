@@ -7,10 +7,12 @@ globs:
   - src/core/data/dataFieldsDoc.test.ts
   - src/config/**
   - src/content/**
+  - src/tuning/**
 alwaysApply: false
 ---
 
-- Gameplay numbers belong in `public/data/*.json`, loaded at Boot through `DataStore`. Missing required fields must throw `ConfigLoadError`; no TypeScript fallbacks.
+- Gameplay numbers belong in `public/data/*.json`, loaded at Boot through `DataStore` into the read-only store `src/tuning/gameTuning.ts` (`tuning(key)` / `setTuning`). Missing required fields must throw `ConfigLoadError`; no TypeScript fallbacks.
+- The same JSON is fetched at runtime and bundled for the sim/tests **on purpose**, so values stay easy to edit in `public/data/`. Edit those files, not the store module.
 - `src/config/` is canvas, HUD layout and render depths only.
 - Per-enemy `combat` blocks live on each `enemies.json` row. Behavior id maps to `src/ai/behaviors/`.
 - Adding or renaming a boot-required field means updating `docs/DATA_FIELDS.md` in the same change.

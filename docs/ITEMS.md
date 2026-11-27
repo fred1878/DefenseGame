@@ -1,7 +1,7 @@
 # Items: rarity and item level
 
 How gear is generated, read straight from `src/gear/` (`itemGen.ts`, `loot.ts`,
-`shops.ts`, `stats.ts`) and the data in `public/data/items.json`, `loot.json`
+`shops.ts`, `itemStats.ts`) and the data in `public/data/items.json`, `loot.json`
 and `shops.json`. The economy sim's HTML report embeds the same summary
 (`src/sim/economy/itemSystem.ts`); update both if the rules change.
 

@@ -42,7 +42,7 @@ A 300-run run of every strategy over 20 nights takes about 2 minutes (1000 runs 
 | `--nights N` | waves.json length | Campaign length |
 | `--win-model` | power | `power` (power vs difficulty) or `fixed` |
 | `--win-rate P` | 0.85 | Win chance per attempt for `--win-model fixed` |
-| `--set file.path=value` | – | Override any data value (repeatable). Files: `items`, `loot`, `shops`, `consumables`, `waves`, `buildings`, `player`, `enemies`, `spells`. Object keys and array indexes are path segments (e.g. `waves.10.rewardGold`). Values are parsed as JSON, else string |
+| `--set file.path=value` | – | Override any data value (repeatable). Files: `items`, `loot`, `shops`, `consumables`, `waves`, `buildings`, `player`, `enemies`, `spells`, `talents`. Object keys and array indexes are path segments (e.g. `waves.10.rewardGold`). Values are parsed as JSON, else string |
 | `--overrides file.json` | – | `{ "loot": { "sellBackPct": 30 }, ... }` deep-merged (arrays replace) |
 | `--no-sell` | – | Never sell surplus drops |
 | `--no-talents` | – | Never spend talent points (compare against talent builds) |
