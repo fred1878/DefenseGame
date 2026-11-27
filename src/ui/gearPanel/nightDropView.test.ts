@@ -118,3 +118,55 @@ describe("nightLossTips", () => {
     );
   });
 });
+
+describe("night drop edge cases", () => {
+  it("treats a missing item as Same and skips unknown rows", () => {
+    const s = panelSave(1, 100, [owned(1, "cap")]);
+    expect(dropVerdict(catalog, s.gear, 99)).toBe("same");
+    expect(nightDropRows(catalog, s.gear, [99])).toEqual([]);
+  });
+
+  it("equipping an unknown uid leaves the save untouched", () => {
+    const s = panelSave(1, 100, [owned(1, "cap")]);
+    expect(equipNightDrop(catalog, s, 99)).toBe(s);
+  });
+
+  it("falls back to visiting the Blacksmith when nothing else applies", () => {
+    const save = saveWith(owned(1, "cap"), owned(2, "cap", vital));
+    save.buildings = {
+      wall: buildingsRaw.wall.maxLevel,
+      blacksmith: buildingsRaw.blacksmith.maxLevel,
+      trader: buildingsRaw.trader.maxLevel,
+    };
+    save.gold = 7;
+    const tips = nightLossTips({
+      catalog,
+      buildings: buildingsRaw,
+      wallHpPerLevel: 20,
+      wallBuildingName: "Beacon",
+      blacksmithName: "Moon Brazier",
+      traderName: "Market Stall",
+      save,
+    });
+    expect(tips.map((t) => t.title)).toEqual([
+      "Wear your best gear",
+      "Visit the Blacksmith",
+    ]);
+    expect(tips[0]?.body).toBe("1 item in your bag beats what you wear");
+  });
+
+  it("uses the wall cost when the wall cannot be afforded and handles missing defs", () => {
+    const save = panelSave(1, 0);
+    const tips = nightLossTips({
+      catalog,
+      buildings: { wall: buildingsRaw.wall },
+      wallHpPerLevel: 20,
+      wallBuildingName: "Beacon",
+      blacksmithName: "Moon Brazier",
+      traderName: "Market Stall",
+      save,
+    });
+    expect(tips[0]?.body).toContain(`${buildingsRaw.wall.costByLevel[0]}g`);
+    expect(tips).toHaveLength(2);
+  });
+});

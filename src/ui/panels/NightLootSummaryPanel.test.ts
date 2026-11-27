@@ -251,6 +251,62 @@ describe("NightLootSummaryPanel drops and tips", () => {
   });
 });
 
+describe("NightLootSummaryPanel compare tooltip", () => {
+  function setup(equipped = false) {
+    const worn = owned(1, "cap");
+    const drop = owned(2, "cap", { affixes: [{ id: "vital", value: 4 }] });
+    let save = panelSave(3, 90, [worn, drop], { helm: equipped ? 2 : 1 });
+    const scene = fakeScene();
+    const panel = new NightLootSummaryPanel(
+      asScene(scene),
+      summaryWon(),
+      vi.fn(),
+      {
+        drops: {
+          catalog,
+          uids: [2],
+          getSave: () => save,
+          equip: (uid) => {
+            save = equipNightDrop(catalog, save, uid);
+            return save;
+          },
+        },
+      },
+    );
+    const zoneAt = (p: { x: number; y: number } | undefined) =>
+      scene
+        .made("rectangle")
+        .find((z) => z.args[0] === p?.x && z.args[1] === p?.y) as unknown as {
+        emit(e: string): void;
+      };
+    return { scene, panel, zoneAt, save: () => save };
+  }
+
+  it("hover previews, pointer-out closes, tap pins and taps toggle it off", () => {
+    const { scene, panel, zoneAt } = setup();
+    const [t] = panel.dropTargets();
+    const info = zoneAt(t?.info);
+    info.emit("pointerover");
+    expect(textsOf(scene)).toContain("NEW DROP");
+    expect(textsOf(scene)).not.toContain("Keep current");
+    info.emit("pointerout");
+    info.emit("pointerup");
+    expect(textsOf(scene)).toContain("Keep current");
+    info.emit("pointerout");
+    info.emit("pointerup");
+    panel.destroy();
+    panel.destroy();
+  });
+
+  it("an equipped drop shows a Close-only tooltip", () => {
+    const { scene, panel } = setup(true);
+    panel.openCompare(2);
+    expect(textsOf(scene)).toContain("WORN NOW");
+    expect(textsOf(scene)).toContain("Close");
+    panel.openCompare(99);
+  });
+});
+
 describe("layoutNightLootSummary", () => {
   it("stacks the sections top to bottom inside the card", () => {
     const L = layoutNightLootSummary(summaryWon(), { rows: 5 });
