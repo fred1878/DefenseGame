@@ -7,8 +7,6 @@
     "core-below-presentation: core/defenseRunMode.ts -> systems/endlessSpawnScheduler.ts",
     "core-below-presentation: core/defenseRunMode.ts -> systems/wavePlannerTiming.ts",
     "core-below-presentation: core/normalizePlayer.ts -> systems/endlessSpawnScheduler.ts",
-    "no-e2e-in-domain-or-ui: combat/MeleeSwipeFx.ts -> e2e/e2eGlobal.ts",
-    "no-e2e-in-domain-or-ui: combat/MeleeSwipeFx.ts -> e2e/e2eMode.ts",
     "rules-not-ui: gear/nightLootSummary.ts -> scenes/defense/nightEndMessaging.ts"
   ]
 }

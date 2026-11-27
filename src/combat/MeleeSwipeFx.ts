@@ -10,8 +10,7 @@ import {
 import type { EnemyMeleeCombat } from "../core/enemyTuning";
 import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
 import { worldDisplayPx, worldUnit } from "../config/worldScale";
-import { publishE2E } from "../e2e/e2eGlobal";
-import { isE2EEnabled } from "../e2e/e2eMode";
+import { emitGameEvent, hasGameEventListeners } from "../core/gameEvents";
 
 /** At rotation 0, `slash-arc-v2` strike bisector points west; combat facing is attack direction (+X = east). */
 const SLASH_ARC_V2_ROT_OFFSET = Math.PI;
@@ -92,23 +91,20 @@ export function showEnemyMeleeSwipe(
       fallbackNaturalMs,
     );
   }
-  publishEnemyMeleeFxE2E(enemyDefId, facingRad);
+  emitEnemyMeleeFx(enemyDefId, facingRad);
 }
 
-function publishEnemyMeleeFxE2E(enemyDefId: string, facingRad: number): void {
-  if (!isE2EEnabled()) return;
+function emitEnemyMeleeFx(enemyDefId: string, facingRad: number): void {
+  if (!hasGameEventListeners("enemyMeleeFx")) return;
   const spec = enemyMeleeFxSpec(enemyDefId);
   const pose = spec
     ? enemyMeleeFxTransform(facingRad, spec)
     : { rotation: meleeSwipeRotation(facingRad), flipX: false };
-  publishE2E({
-    flags: {
-      enemyMeleeFxSpawned: 1,
-      lastEnemyMeleeFxDef: enemyDefId,
-      lastEnemyMeleeFxFacing: facingRad,
-      lastEnemyMeleeFxRot: pose.rotation,
-      lastEnemyMeleeFxFlipX: pose.flipX ? 1 : 0,
-    },
+  emitGameEvent("enemyMeleeFx", {
+    enemyDefId,
+    facingRad,
+    rotation: pose.rotation,
+    flipX: pose.flipX,
   });
 }
 
@@ -190,8 +186,8 @@ function spawnSlashFade(
   img.setDepth(depth);
   img.setAlpha(0.92);
   registerWorldDraw?.(img);
-  if (isE2EEnabled() && textureKey === COMBAT_FX_TEXTURE.playerMelee) {
-    publishE2E({ flags: { meleeFxSpawned: 1 } });
+  if (textureKey === COMBAT_FX_TEXTURE.playerMelee) {
+    emitGameEvent("playerMeleeFx", {});
   }
   let fadeMs: number;
   let delayMs: number;

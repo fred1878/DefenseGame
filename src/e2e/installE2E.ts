@@ -8,6 +8,7 @@ import { SMOKE_FX_ASSETS } from "../content/smokeFxAssets";
 import type { DefenseScene } from "../scenes/DefenseScene";
 import type { TownScene } from "../scenes/TownScene";
 import { activeTownUiHost, e2eReportsTownScene } from "./townUiHost";
+import { onGameEvent } from "../core/gameEvents";
 import { isE2EEnabled } from "./e2eMode";
 import { defaultE2EState, publishE2E } from "./e2eGlobal";
 import { buildApi } from "./installE2EApi";
@@ -22,6 +23,29 @@ import { ensureDomTestActions, positionDomMirrors } from "./installE2EDom";
 export function seedE2EWindowStub(): void {
   if (!isE2EEnabled() || typeof window === "undefined") return;
   window.__DEFENSEGAME_E2E__ = defaultE2EState();
+  subscribeGameEvents();
+}
+
+let gameEventsSubscribed = false;
+
+/** Mirror gameplay FX events into E2E flags (domain code never imports e2e/). */
+function subscribeGameEvents(): void {
+  if (gameEventsSubscribed) return;
+  gameEventsSubscribed = true;
+  onGameEvent("playerMeleeFx", () => {
+    publishE2E({ flags: { meleeFxSpawned: 1 } });
+  });
+  onGameEvent("enemyMeleeFx", (e) => {
+    publishE2E({
+      flags: {
+        enemyMeleeFxSpawned: 1,
+        lastEnemyMeleeFxDef: e.enemyDefId,
+        lastEnemyMeleeFxFacing: e.facingRad,
+        lastEnemyMeleeFxRot: e.rotation,
+        lastEnemyMeleeFxFlipX: e.flipX ? 1 : 0,
+      },
+    });
+  });
 }
 
 export function attachE2EGame(game: Phaser.Game): void {

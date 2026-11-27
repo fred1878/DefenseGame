@@ -5,6 +5,7 @@ import {
   markE2EAssetsLoaded,
   seedE2EWindowStub,
 } from "./installE2E";
+import { emitGameEvent } from "../core/gameEvents";
 import { getE2EState } from "./e2eGlobal";
 import type { DefenseGameE2EApi } from "./e2eGlobal";
 
@@ -44,6 +45,35 @@ describe("installE2E", () => {
       scene: "boot",
       api: null,
     });
+  });
+
+  it("mirrors melee FX game events into E2E flags", () => {
+    vi.stubEnv("VITE_E2E", "true");
+    windowStub();
+    seedE2EWindowStub();
+    seedE2EWindowStub();
+    emitGameEvent("playerMeleeFx", {});
+    emitGameEvent("enemyMeleeFx", {
+      enemyDefId: "grunt",
+      facingRad: 0.5,
+      rotation: 1.25,
+      flipX: true,
+    });
+    expect(getE2EState().flags).toMatchObject({
+      meleeFxSpawned: 1,
+      enemyMeleeFxSpawned: 1,
+      lastEnemyMeleeFxDef: "grunt",
+      lastEnemyMeleeFxFacing: 0.5,
+      lastEnemyMeleeFxRot: 1.25,
+      lastEnemyMeleeFxFlipX: 1,
+    });
+    emitGameEvent("enemyMeleeFx", {
+      enemyDefId: "grunt",
+      facingRad: 0,
+      rotation: 0,
+      flipX: false,
+    });
+    expect(getE2EState().flags.lastEnemyMeleeFxFlipX).toBe(0);
   });
 
   it("is a no-op when attaching or marking assets without e2e", () => {
