@@ -216,12 +216,30 @@ run's saves instead of playing the sim again, so a rerun uses the very same
 saves. `--resume` keeps the out folder's results and plays only the
 fights still missing one (use it with `--saves` so the snapshots match).
 
-Fights are real time, so a busy machine changes them: at about 10 rendered
-frames per second (8 fight workers plus other heavy jobs on an 8-core box)
-the same saves that won 12 of 12 lost 9 of 12. Each result row records the
-fight's `fps` and the machine's 1-minute load (`load1`); compare runs only
-at similar fps. Variants of one save (`--bars`, `--schools`) are queued next
-to each other so fights running at the same time are of different variants.
+Fights run in fixed steps: once Town has loaded the harness stops the
+browser's frame loop and drives the game itself, 1/60 s of game time per
+frame, headless and as fast as the CPU allows (`src/e2e/fixedStep.ts`,
+e2e API `startFixedStep` / `stepGame` / `stopFixedStep`). The bot acts every
+9 frames (150 ms of game time), the trace is sampled every game second, and
+Math.random is seeded from the night, tier and repeat (`--seed N` changes
+the base seed), so every variant of a save meets the same random rolls. The
+same save then plays the same fight however busy the machine is: 12 fights
+(4 saves × 3 copies) gave one result per save at 8, 2 and 1 workers.
+Result rows carry `stepping: "fixed"`, `seed`, `gameSeconds`, and
+`endWallHp` / `endPlayerHp` (HP on the night's last frame, which shows
+whether the wall or the player fell).
+
+`--realtime` runs the old real-time loop (bot on a wall-clock timer, game at
+whatever frame rate the machine manages; rows record `fps` instead). Those
+results change with machine load: at about 10 rendered frames per second
+(8 fight workers plus other heavy jobs on an 8-core box) the same saves
+that won 12 of 12 lost 9 of 12, and one save won at 19 fps and lost at 9.
+The game itself plays differently at low frame rates: replaying one save in
+fixed steps of 8.3, 16.7 and 25 ms ended at about the same game second
+(21–22 s), while 33 and 50 ms steps lasted 34 and 39 s. Rendering does not
+change a fight (`WIN_MODEL_RENDER_EVERY=1` renders every frame and gave the
+same result); `WIN_MODEL_STEP_MS` sets the step for such checks. Variants
+of one save (`--bars`, `--schools`) are queued next to each other.
 
 `--no-auto-attack` turns the HUD auto attack off for the night (the bot
 never taps attack either), so the player makes no weapon attacks; the

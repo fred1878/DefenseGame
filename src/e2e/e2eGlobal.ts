@@ -37,6 +37,16 @@ export type DefenseGameE2EApi = {
     height: number;
   }>;
   sampleFps(seconds?: number): Promise<number>;
+  /**
+   * Fixed-timestep mode for the fight harness: stop the animation-frame
+   * loop, seed Math.random, then advance the game with `stepGame` (headless,
+   * `stepMs` of game time per frame; `renderEvery` > 0 also renders every
+   * that many frames). `stopFixedStep` restores both.
+   */
+  startFixedStep(stepMs: number, seed: number, renderEvery?: number): void;
+  /** Advance `frames` fixed steps; returns game time (ms). No-op unless started. */
+  stepGame(frames: number): number;
+  stopFixedStep(): void;
   getAttackPhase(): string;
   getProjectileCount(): number;
   /** "melee" | "ranged" | "auto" in Defense; null outside Defense. */

@@ -14,7 +14,19 @@ import type { SaveGame } from "../src/core/save/saveTypes";
  * Env: WIN_MODEL_SNAPSHOTS (snapshots JSON), WIN_MODEL_RESULTS (output
  * .jsonl), WIN_MODEL_REPEATS (fights per snapshot), WIN_MODEL_DATA_DIR
  * (optional folder of data JSON files served instead of /data/<name>.json,
- * e.g. candidate waves), WIN_MODEL_FULL_CAST=1 (full-cast bot, below).
+ * e.g. candidate waves), WIN_MODEL_FULL_CAST=1 (full-cast bot, below),
+ * WIN_MODEL_REALTIME=1 (old real-time loop instead of fixed steps, below),
+ * WIN_MODEL_SEED (base random seed, default 1).
+ *
+ * Fixed steps (default): once Town has loaded, the browser's frame loop is
+ * stopped and the fight is driven from the page in fixed 1/60 s game-time
+ * steps, run headless (no rendering) as fast as the CPU allows. The bot acts
+ * every 9 steps (150 ms of game time) and the trace is sampled every 60 steps
+ * (one game second), and Math.random is seeded from night, tier and repeat,
+ * so a fight no longer depends on how busy the machine is and replaying a
+ * save gives the same fight. In real-time mode (the old harness) the game
+ * runs at whatever frame rate the machine manages and the bot runs on a
+ * wall-clock timer, so results change with machine load.
  */
 
 type Snapshot = {
@@ -41,6 +53,28 @@ const dataDir = process.env.WIN_MODEL_DATA_DIR ?? "";
 const fullCast = process.env.WIN_MODEL_FULL_CAST === "1";
 /** WIN_MODEL_AUTO_ATTACK=0: HUD auto attack off, so only spells do damage. */
 const autoAttack = process.env.WIN_MODEL_AUTO_ATTACK !== "0";
+const fixedStep = process.env.WIN_MODEL_REALTIME !== "1";
+const baseSeed = Number(process.env.WIN_MODEL_SEED ?? "1");
+/**
+ * One frame of game time in fixed-step mode (ms): 1/60 s, or
+ * WIN_MODEL_STEP_MS to check how much the frame rate matters.
+ */
+const STEP_MS = Number(process.env.WIN_MODEL_STEP_MS ?? "0") || 1000 / 60;
+/** WIN_MODEL_RENDER_EVERY=N: also render every N fixed steps (default never). */
+const RENDER_EVERY = Number(process.env.WIN_MODEL_RENDER_EVERY ?? "0");
+const BOT_EVERY_STEPS = Math.max(1, Math.round(150 / STEP_MS));
+const TRACE_EVERY_STEPS = Math.max(1, Math.round(1000 / STEP_MS));
+/** Fixed-step fights give up after this much game time. */
+const MAX_GAME_MS = 20 * 60_000;
+
+/** Stable 32-bit seed for a night/tier/repeat (same for every variant). */
+function fightSeed(snap: Snapshot, rep: number): number {
+  let h = 2166136261 ^ baseSeed;
+  for (const ch of `${snap.night}|${snap.tier}|${rep}`) {
+    h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  }
+  return h >>> 0;
+}
 
 /** Serve override data files (e.g. candidate waves.json) from `dataDir`. */
 async function routeDataOverrides(page: Page): Promise<void> {
@@ -69,7 +103,11 @@ async function waitForTown(page: Page): Promise<void> {
     .toBe(true);
 }
 
-async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
+async function bootCampaignNight(
+  page: Page,
+  save: SaveGame,
+  seed: number | null,
+): Promise<void> {
   await routeDataOverrides(page);
   await page.goto("/?e2e=1&campaignWaves=1", { waitUntil: "networkidle" });
   await waitForTown(page);
@@ -77,6 +115,39 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
   await page.evaluate((s) => window.__DEFENSEGAME_E2E__?.api?.setSave(s), save);
   await page.reload({ waitUntil: "networkidle" });
   await waitForTown(page);
+  if (seed !== null) {
+    // Fixed steps from here on: the night starts and loads under stepGame.
+    await page.evaluate(
+      ({ stepMs, seed, renderEvery }) => {
+        const api = window.__DEFENSEGAME_E2E__?.api;
+        api?.startFixedStep(stepMs, seed, renderEvery);
+        api?.startNight();
+      },
+      { stepMs: STEP_MS, seed, renderEvery: RENDER_EVERY },
+    );
+    await expect
+      .poll(
+        () =>
+          page.evaluate(async () => {
+            // The e2e state object is replaced on updates: re-read it.
+            const ready = () =>
+              window.__DEFENSEGAME_E2E__?.scene === "Defense" &&
+              window.__DEFENSEGAME_E2E__?.ready === true;
+            for (let i = 0; i < 30; i++) {
+              if (ready()) return true;
+              window.__DEFENSEGAME_E2E__?.api?.stepGame(1);
+              await new Promise((r) => setTimeout(r, 0));
+            }
+            return ready();
+          }),
+        { timeout: 30_000, intervals: [0] },
+      )
+      .toBe(true);
+    await page.evaluate(() =>
+      window.__DEFENSEGAME_E2E__?.api?.resetCombatTally(),
+    );
+    return;
+  }
   await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.startNight());
   await expect
     .poll(
@@ -95,8 +166,8 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
 }
 
 /**
- * In-page bot, every 150ms: target the living enemy nearest the north wall.
- * Melee walks into it; ranged kites at 120–200px, stepping back north when
+ * In-page bot, every 150 ms (game time with fixed steps): target the living
+ * enemy nearest the north wall. Melee walks into it; ranged kites at 120–200px, stepping back north when
  * anything gets closer. Below 35% HP both back off toward the wall. Heals
  * need the player still, so under 70% HP the bot stops while a heal on the
  * auto-cast bar is ready, and it never moves during a heal. Drinks a potion
@@ -108,19 +179,27 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
  * close enough to target (60px melee, 200px ranged) it stops so auto-cast
  * can start it.
  *
- * Each row also records the fight's rendered frames per second (fps) and
- * the machine's 1-minute load average (load1): on a busy machine the game
- * runs fewer frames and fights play out differently, so compare fights
- * only at similar fps.
+ * Each row records the stepping ("fixed" or "realtime"), the seed and the
+ * fight's game seconds. Real-time rows record the rendered frames per
+ * second (fps) instead: on a busy machine the game runs fewer frames and
+ * fights play out differently. Every row has the machine's 1-minute load
+ * average (load1).
  *
  * With WIN_MODEL_AUTO_ATTACK=0 the bot turns the HUD auto attack off (the
  * game turns it on each night) and never taps attack, so the player makes
  * no weapon attacks; it still moves the same way.
  */
-async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
+async function startBot(
+  page: Page,
+  mode: Snapshot["mode"],
+  realtime: boolean,
+): Promise<void> {
   await page.evaluate(
-    ({ attackMode, fullCast, autoAttack }) => {
-      const w = window as unknown as { __winModelBot?: number };
+    ({ attackMode, fullCast, autoAttack, realtime }) => {
+      const w = window as unknown as {
+        __winModelBot?: number;
+        __winModelBotTick?: () => void;
+      };
       const isHeal = (id: string | null) =>
         id === "heal" || id === "flash_heal";
       const reach = attackMode === "melee" ? 60 : 200;
@@ -142,7 +221,7 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
           nearestDist < reach
         );
       };
-      w.__winModelBot = window.setInterval(() => {
+      w.__winModelBotTick = () => {
         const api = window.__DEFENSEGAME_E2E__?.api;
         if (!api || window.__DEFENSEGAME_E2E__?.scene !== "Defense") return;
         if (api.getAttackMode() !== attackMode) api.setAttackMode(attackMode);
@@ -190,9 +269,11 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
         if (dist(nearest) < 120) steer(me.x - nearest.x, me.y - nearest.y - 40);
         else if (dist(target) > 200) steer(target.x - me.x, target.y - me.y);
         else api.clearStick();
-      }, 150);
+      };
+      if (realtime)
+        w.__winModelBot = window.setInterval(w.__winModelBotTick, 150);
     },
-    { attackMode: mode, fullCast, autoAttack },
+    { attackMode: mode, fullCast, autoAttack, realtime },
   );
 }
 
@@ -203,40 +284,100 @@ test.describe("win model validation @manual", () => {
   for (const snap of snapshots) {
     for (let rep = 1; rep <= repeats; rep++) {
       test(`${snap.id} #${rep}`, async ({ page }) => {
-        test.setTimeout(8 * 60_000);
+        test.setTimeout((fixedStep ? 20 : 8) * 60_000);
         const start = Date.now();
-        await bootCampaignNight(page, snap.save);
-        await startBot(page, snap.mode);
-        // Rendered frames, to spot fights slowed by a busy machine.
-        await page.evaluate(() => {
-          const w = window as unknown as { __winModelFrames?: number };
-          w.__winModelFrames = 0;
-          const tick = () => {
-            w.__winModelFrames = (w.__winModelFrames ?? 0) + 1;
-            requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        });
-        // Sample once a second until the night ends and Town is back.
+        const seed = fixedStep ? fightSeed(snap, rep) : null;
+        await bootCampaignNight(page, snap.save, seed);
+        await startBot(page, snap.mode, !fixedStep);
         let last = { wall: 0, hp: 0, enemies: 0 };
-        const trace: number[][] = [];
-        const deadline = Date.now() + 7 * 60_000;
-        for (;;) {
-          const st = await page.evaluate(() => {
-            const g = window.__DEFENSEGAME_E2E__;
-            const api = g?.api;
-            return {
-              scene: g?.scene,
-              wall: api?.getDefenseWallHp() ?? 0,
-              hp: api?.getPlayerHp() ?? 0,
-              enemies: api?.getEnemyCount() ?? 0,
+        let trace: number[][] = [];
+        let gameSeconds = 0;
+        let endHp: { wall: number; hp: number } | null = null;
+        if (fixedStep) {
+          // Drive the night in fixed steps until Town is back: bot every 150
+          // ms of game time, a trace sample every game second.
+          const out = await page.evaluate(
+            async ({ botEvery, traceEvery, stepMs, maxGameMs }) => {
+              // The e2e state object is replaced on updates: re-read it.
+              const scene = () => window.__DEFENSEGAME_E2E__?.scene;
+              const api = window.__DEFENSEGAME_E2E__?.api;
+              const w = window as unknown as { __winModelBotTick?: () => void };
+              const trace: number[][] = [];
+              let last = { wall: 0, hp: 0, enemies: 0 };
+              let steps = 0;
+              let timedOut = false;
+              let end = { wall: 0, hp: 0 };
+              while (api && scene() !== "Town") {
+                if (steps * stepMs > maxGameMs) {
+                  timedOut = true;
+                  break;
+                }
+                if (steps % traceEvery === 0) {
+                  last = {
+                    wall: api.getDefenseWallHp(),
+                    hp: api.getPlayerHp(),
+                    enemies: api.getEnemyCount(),
+                  };
+                  trace.push([last.enemies, last.wall, last.hp]);
+                }
+                if (steps % botEvery === 0 && scene() === "Defense") {
+                  w.__winModelBotTick?.();
+                }
+                api.stepGame(1);
+                steps++;
+                // HP right before the night ends (shows wall vs player loss).
+                if (scene() === "Defense") {
+                  end = { wall: api.getDefenseWallHp(), hp: api.getPlayerHp() };
+                }
+                // Let promises and events run now and then.
+                if (steps % (botEvery * 4) === 0) {
+                  await new Promise((r) => setTimeout(r, 0));
+                }
+              }
+              return { trace, last, end, gameMs: steps * stepMs, timedOut };
+            },
+            {
+              botEvery: BOT_EVERY_STEPS,
+              traceEvery: TRACE_EVERY_STEPS,
+              stepMs: STEP_MS,
+              maxGameMs: MAX_GAME_MS,
+            },
+          );
+          expect(out.timedOut).toBe(false);
+          trace = out.trace;
+          last = out.last;
+          gameSeconds = out.gameMs / 1000;
+          endHp = out.end;
+        } else {
+          // Rendered frames, to spot fights slowed by a busy machine.
+          await page.evaluate(() => {
+            const w = window as unknown as { __winModelFrames?: number };
+            w.__winModelFrames = 0;
+            const tick = () => {
+              w.__winModelFrames = (w.__winModelFrames ?? 0) + 1;
+              requestAnimationFrame(tick);
             };
+            requestAnimationFrame(tick);
           });
-          if (st.scene === "Town") break;
-          last = st;
-          trace.push([st.enemies, st.wall, st.hp]);
-          expect(Date.now()).toBeLessThan(deadline);
-          await page.waitForTimeout(1000);
+          // Sample once a second until the night ends and Town is back.
+          const deadline = Date.now() + 7 * 60_000;
+          for (;;) {
+            const st = await page.evaluate(() => {
+              const g = window.__DEFENSEGAME_E2E__;
+              const api = g?.api;
+              return {
+                scene: g?.scene,
+                wall: api?.getDefenseWallHp() ?? 0,
+                hp: api?.getPlayerHp() ?? 0,
+                enemies: api?.getEnemyCount() ?? 0,
+              };
+            });
+            if (st.scene === "Town") break;
+            last = { wall: st.wall, hp: st.hp, enemies: st.enemies };
+            trace.push([st.enemies, st.wall, st.hp]);
+            expect(Date.now()).toBeLessThan(deadline);
+            await page.waitForTimeout(1000);
+          }
         }
         const after = await page.evaluate(
           () => window.__DEFENSEGAME_E2E__?.api?.getSave() ?? null,
@@ -269,6 +410,9 @@ test.describe("win model validation @manual", () => {
           lastWallHp: last.wall,
           lastPlayerHp: last.hp,
           lastEnemies: last.enemies,
+          // Fixed steps: wall / player HP on the night's last frame.
+          endWallHp: endHp ? Math.round(endHp.wall) : null,
+          endPlayerHp: endHp ? Math.round(endHp.hp) : null,
           tally,
           casts: cast.casts,
           healed: Math.round(cast.healed),
@@ -278,7 +422,10 @@ test.describe("win model validation @manual", () => {
           bot: fullCast ? "full-cast" : "default",
           autoAttack,
           seconds: Math.round(seconds),
-          fps: Math.round(frames / Math.max(1, seconds)),
+          stepping: fixedStep ? "fixed" : "realtime",
+          seed,
+          gameSeconds: fixedStep ? Math.round(gameSeconds * 10) / 10 : null,
+          fps: fixedStep ? null : Math.round(frames / Math.max(1, seconds)),
           load1: Math.round((os.loadavg()[0] ?? 0) * 10) / 10,
           trace,
         };

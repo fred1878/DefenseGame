@@ -22,6 +22,7 @@ import {
 import { activeTownUiHost, activeEndlessSetupScene } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { castTally, combatTally, resetCombatTally } from "./combatTally";
+import { startFixedStep, stepGame, stopFixedStep } from "./fixedStep";
 import { peekDataStore, peekSave, setSave } from "../core/registryKeys";
 
 /** `window.__DEFENSEGAME_E2E__.api` implementation (Town + Defense hooks). */
@@ -153,6 +154,15 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
       }
       if (samples.length === 0) return game.loop.actualFps;
       return samples.reduce((a, b) => a + b, 0) / samples.length;
+    },
+    startFixedStep(stepMs, seed, renderEvery = 0) {
+      startFixedStep(game, stepMs, seed, renderEvery);
+    },
+    stepGame(frames) {
+      return stepGame(game, frames);
+    },
+    stopFixedStep() {
+      stopFixedStep(game);
     },
     getAttackPhase() {
       return activeDefenseE2e(game)?.attackPhase() ?? "idle";

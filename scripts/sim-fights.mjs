@@ -6,7 +6,7 @@
 //       [--overrides candidate.json] [--out sim-output/fights/NAME]
 //       [--workers 8] [--build] [--full-cast] [--bars cooldown,frost,lightning]
 //       [--schools generic,fire,frost,lightning] [--no-auto-attack]
-//       [--saves DIR/snapshots.json] [--resume]
+//       [--saves DIR/snapshots.json] [--resume] [--realtime] [--seed 1]
 //   npm run sim:fights -- report DIR [DIR...]   predicted vs real (current model)
 //   npm run sim:fights -- fit DIR [DIR...]      refit the model knobs
 //       [--min-night 13] [--model start.json] [--fix knob=v,...] [--out fitted.json]
@@ -36,6 +36,10 @@
 // --saves DIR/snapshots.json: replay an earlier run's saves instead of
 // playing the sim again (same gear, talents and gold; bars rebuilt).
 // --resume: keep the out folder's results and play only the missing fights.
+// Fights run in fixed 1/60 s game-time steps with a seeded Math.random, so
+// machine load does not change them and a replay repeats the fight;
+// --seed N changes the seed, --realtime uses the old real-time loop
+// (results then depend on the machine's frame rate).
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -81,6 +85,7 @@ for (let i = 0; i < argv.length; i++) {
       "--build",
       "--full-cast",
       "--no-auto-attack",
+      "--realtime",
       "--resume",
     ].includes(a)
   )
@@ -308,7 +313,8 @@ function outcomes(dirs, model) {
         alive: r.trace?.length
           ? r.trace.reduce((a, t) => a + t[0], 0) / r.trace.length
           : 0,
-        seconds: r.seconds,
+        // Game seconds for fixed-step fights, wall seconds for real-time ones.
+        seconds: r.gameSeconds ?? r.seconds,
       });
     }
   }
@@ -424,6 +430,8 @@ function runFights() {
         E2E_WORKERS: flag("--workers", "8"),
         WIN_MODEL_FULL_CAST: flags.has("--full-cast") ? "1" : "",
         WIN_MODEL_AUTO_ATTACK: flags.has("--no-auto-attack") ? "0" : "1",
+        WIN_MODEL_REALTIME: flags.has("--realtime") ? "1" : "",
+        WIN_MODEL_SEED: flag("--seed", "1"),
         WIN_MODEL_SNAPSHOTS: toPlay,
         WIN_MODEL_RESULTS: results,
         WIN_MODEL_REPEATS: String(repeats),
