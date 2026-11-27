@@ -1,6 +1,13 @@
-import type { SaveSlotView } from "../../core/saveSlots";
+import {
+  isNewerVersionSlot,
+  type SaveSlotView,
+} from "../../core/save/saveSlots";
 
-export type SaveMenuConfirmKind = "overwrite" | "load" | "delete";
+export type SaveMenuConfirmKind =
+  | "overwrite"
+  | "overwriteNewer"
+  | "load"
+  | "delete";
 
 export type SaveMenuState = {
   slots: SaveSlotView[];
@@ -45,14 +52,23 @@ export function canLoadSelected(state: SaveMenuState): boolean {
   return state.confirm === null && slot !== undefined && !slot.empty;
 }
 
+/** Occupied slots and newer-version slots (so a stale newer save can be cleared). */
 export function canDeleteSelected(state: SaveMenuState): boolean {
-  return canLoadSelected(state);
+  const slot = selectedSlot(state);
+  return (
+    state.confirm === null &&
+    slot !== undefined &&
+    (!slot.empty || isNewerVersionSlot(slot))
+  );
 }
 
 export function saveMenuPrompt(state: SaveMenuState): string {
   const slot = selectedSlot(state);
   const name = slot?.name ?? "this slot";
   if (state.confirm === "overwrite") return `Overwrite ${name}?`;
+  if (state.confirm === "overwriteNewer") {
+    return `${name} was saved by a newer version. Overwrite it anyway?`;
+  }
   if (state.confirm === "load") {
     return `Load ${name}? Current game will be replaced.`;
   }
@@ -92,6 +108,12 @@ export function reduceSaveMenu(
     if (!slot || state.confirm !== null) {
       return { state, effect: { type: "none" } };
     }
+    if (isNewerVersionSlot(slot)) {
+      return {
+        state: { ...state, confirm: "overwriteNewer", status: "" },
+        effect: { type: "none" },
+      };
+    }
     if (slot.empty) {
       return { state, effect: { type: "write", index: slot.index } };
     }
@@ -112,7 +134,7 @@ export function reduceSaveMenu(
   }
   if (command.type === "requestDelete") {
     const slot = selectedSlot(state);
-    if (!slot || slot.empty || state.confirm !== null) {
+    if (!slot || !canDeleteSelected(state)) {
       return { state, effect: { type: "none" } };
     }
     return {
@@ -125,7 +147,7 @@ export function reduceSaveMenu(
   if (!slot || state.confirm === null) {
     return { state, effect: { type: "none" } };
   }
-  if (state.confirm === "overwrite") {
+  if (state.confirm === "overwrite" || state.confirm === "overwriteNewer") {
     return { state, effect: { type: "write", index: slot.index } };
   }
   if (state.confirm === "load") {

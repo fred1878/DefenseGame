@@ -3,7 +3,7 @@ description: TownScene, its overlays and town building menus
 globs:
   - src/scenes/TownScene.ts
   - src/scenes/town/**/*.ts
-  - src/systems/TownBuildings.ts
+  - src/scenes/town/TownBuildings.ts
   - src/systems/townBuildingMenu.ts
 alwaysApply: false
 ---

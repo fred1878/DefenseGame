@@ -1,4 +1,4 @@
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
 import { itemTypeLabel } from "./gearText";
 import {
   ITEM_TYPES,

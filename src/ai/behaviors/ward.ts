@@ -1,34 +1,23 @@
-import type Phaser from "phaser";
-import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
-import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
-import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
-import { worldUnit } from "../../core/worldPixelScale";
-import type { EnemyBehaviorExtra } from "../../entities/Enemy";
 import {
-  pathingPeerAgents,
-  replanEnemyPath,
-  resolveEnemyTarget,
-  wallPathingPlayerClearancePx,
-} from "../EnemyBrain";
+  chaseToward,
+  nextPathMoveTarget,
+  replanApproachPathIfDue,
+} from "./shared/pathApproach";
+import { tuning } from "../../tuning/gameTuning";
+import type Phaser from "phaser";
+import { DEFENSE_MAP } from "../../config";
+import { playerAggroRadiusWu } from "../../combat/rules/shadowformRuntime";
+import { setEnemyChaseVelocity } from "../../combat/rules/enemyKnockback";
+import { worldUnit } from "../../config/worldScale";
+import type { EnemyBehaviorExtra } from "../../entities/Enemy";
+import { resolveEnemyTarget } from "../brainShared";
 import type { EnemyBehavior, EnemyPeerAlly } from "./types";
-import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
 
 const RANGED_PROTECT_BEHAVIORS = new Set([
   "arrowRainArcher",
   "stationaryRanged",
   "javelineer",
 ]);
-
-/** Design px — within this distance of the screen goal counts as "at post". */
-export const WARD_POST_HOLD_RADIUS_PX = 22;
-/** Design px — player / protectee motion above this ends the grace window. */
-export const WARD_POST_BREAK_MOVE_PX = 44;
-/** Ms to stand still at post before allowing a full reposition. */
-export const WARD_POST_GRACE_MS = 1600;
-/** Hysteresis — stay "at post" until this far from the anchored goal (design px). */
-export const WARD_POST_HOLD_EXIT_RADIUS_PX = 34;
-/** Radians — ignore tiny aim jitter while holding (≈14°). */
-export const WARD_POST_FACING_SLACK_RAD = (14 * Math.PI) / 180;
 
 function wrapAngleRad(rad: number): number {
   let a = rad;
@@ -146,6 +135,7 @@ export function evaluateWardPostHold(
   allyX: number,
   allyY: number,
   breakMovePx: number,
+  graceMs: number,
 ): WardPostHoldDecision {
   if (!atPost) {
     extra.wardPostWasInHoldRadius = false;
@@ -158,7 +148,7 @@ export function evaluateWardPostHold(
 
   if (freshlyArrived || extra.wardPostGraceMs <= 0) {
     if (freshlyArrived) {
-      extra.wardPostGraceMs = WARD_POST_GRACE_MS;
+      extra.wardPostGraceMs = graceMs;
       extra.wardPostSnapPlayerX = playerX;
       extra.wardPostSnapPlayerY = playerY;
       extra.wardPostSnapAllyX = allyX;
@@ -209,26 +199,17 @@ export function evaluateWardPostHold(
 }
 
 export const wardBehavior: EnemyBehavior = (ctx) => {
-  const {
-    enemy,
-    nav,
-    grid,
-    playerX,
-    playerY,
-    deltaMs,
-    peerAgents,
-    peerAllies,
-  } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs, peerAllies } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
   const ward = enemy.combatTuning.ward;
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
-  const holdRadius = worldUnit(WARD_POST_HOLD_RADIUS_PX, reg);
-  const holdExitRadius = worldUnit(WARD_POST_HOLD_EXIT_RADIUS_PX, reg);
-  const breakMovePx = worldUnit(WARD_POST_BREAK_MOVE_PX, reg);
+  const holdRadius = worldUnit(ward!.postHoldRadiusWu, reg);
+  const holdExitRadius = worldUnit(ward!.postHoldExitRadiusWu, reg);
+  const breakMovePx = worldUnit(ward!.postBreakMoveWu, reg);
   const aggro = playerAggroRadiusWu(
-    ward?.playerAggroRadiusWu ?? PLAYER_AGGRO_RADIUS,
+    ward?.playerAggroRadiusWu ?? tuning("enemyAi").playerAggroRadiusWu,
   );
   const extra = enemy.behaviorExtra;
   extra.wardPostHolding = false;
@@ -300,6 +281,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
       protectee.x,
       protectee.y,
       breakMovePx,
+      ward!.postGraceMs,
     );
     if (postHold.hold) {
       extra.wardPostHolding = true;
@@ -310,7 +292,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
         : slewWardHoldFacing(
             enemy.combat.facing,
             aim,
-            WARD_POST_FACING_SLACK_RAD,
+            (ward!.postFacingSlackDeg * Math.PI) / 180,
           );
       return { targetX: goalX, targetY: goalY, targetKind };
     }
@@ -320,56 +302,20 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
 
   const skipReplan = postHold?.skipReplan ?? false;
 
-  if (!skipReplan && (nav.replanMs <= 0 || nav.path.length === 0)) {
-    replanEnemyPath(
-      nav,
-      grid,
+  if (!skipReplan) {
+    replanApproachPathIfDue(
+      ctx,
       ex,
       ey,
       goalX,
       goalY,
-      waypointRadius,
-      pathingPeerAgents(
-        peerAgents,
-        targetKind,
-        playerX,
-        playerY,
-        wallPathingPlayerClearancePx(enemy.sprite.scene.registry),
-      ),
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
-
-  let moveX = goalX;
-  let moveY = goalY;
-  if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-    const wp = nav.path[nav.pathIndex]!;
-    const d = Math.hypot(wp.x - ex, wp.y - ey);
-    if (d <= waypointRadius) {
-      nav.pathIndex += 1;
-    }
-    const nextWp = nav.path[nav.pathIndex];
-    if (nextWp) {
-      moveX = nextWp.x;
-      moveY = nextWp.y;
-    }
-  }
-
-  applyChaseVelocity(
-    enemy,
-    moveX,
-    moveY,
-    0.82,
-    playerChaseVelocityOpts(enemy, {
-      nav,
-      deltaMs,
       targetKind,
-      playerX,
-      playerY,
-      peerAllies,
-    }),
-  );
+      waypointRadius,
+    );
+  }
+
+  const move = nextPathMoveTarget(nav, ex, ey, goalX, goalY, waypointRadius);
+  chaseToward(ctx, move, tuning("enemyAi").ward.chaseSpeedMul, targetKind);
 
   return { targetX: goalX, targetY: goalY, targetKind };
 };

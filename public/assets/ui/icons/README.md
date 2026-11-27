@@ -2,7 +2,7 @@
 
 `ui-icons-24.png` and `ui-icons-48.png` are horizontal strips of white-stroke
 icons (one square frame per icon, order in `scripts/data/ui-icons.json`), tinted
-at runtime. Rebuild with `node scripts/build-ui-icons.mjs`.
+at runtime. Rebuild with `node scripts/assets/build-ui-icons.mjs`.
 
 The icon shapes come from [Lucide](https://lucide.dev) (ISC licence):
 

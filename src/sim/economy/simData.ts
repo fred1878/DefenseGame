@@ -9,21 +9,22 @@ import spellsJson from "../../../public/data/spells.json";
 import talentsJson from "../../../public/data/talents.json";
 import wavesJson from "../../../public/data/waves.json";
 import { applyPlayerTuning } from "../../config/player";
+import { applyGameplay } from "../../config/gameplay";
+import { normalizeGameplay } from "../../core/data/normalizeGameplay";
+import gameplayJson from "../../../public/data/gameplay.json";
 import { setSpellCatalog, type SpellDefinition } from "../../content/spells";
-import type { BuildingDef } from "../../core/DataStore";
-import { normalizeConsumables } from "../../core/normalizeConsumables";
-import { normalizeItems } from "../../core/normalizeItems";
-import { normalizeLoot } from "../../core/normalizeLoot";
-import { normalizePlayerConfig } from "../../core/normalizePlayer";
-import { normalizeShops } from "../../core/normalizeShops";
-import { normalizeSpellCatalog } from "../../core/normalizeSpells";
-import { normalizeTalents } from "../../core/normalizeTalents";
+import type { BuildingDef } from "../../core/data/DataStore";
+import { normalizeConsumables } from "../../core/data/normalizeConsumables";
+import { normalizeItems } from "../../core/data/normalizeItems";
+import { normalizeLoot } from "../../core/data/normalizeLoot";
+import { normalizePlayerConfig } from "../../core/data/normalizePlayer";
+import { normalizeShops } from "../../core/data/normalizeShops";
+import { normalizeSpellCatalog } from "../../core/data/normalizeSpells";
+import { normalizeTalents } from "../../core/data/normalizeTalents";
 import { setTalentCatalog } from "../../talents/talentCatalog";
 import type { TalentCatalog } from "../../talents/talentTypes";
-import {
-  setConsumablesConfig,
-  type ConsumablesConfig,
-} from "../../gear/consumables";
+import { setConsumablesConfig } from "../../gear/consumables";
+import type { ConsumablesConfig } from "../../gear/consumableTypes";
 import { setGearCatalog } from "../../gear/gearCatalog";
 import type { GearCatalog } from "../../gear/gearTypes";
 import { setLootConfig, type LootConfig } from "../../gear/loot";
@@ -234,6 +235,7 @@ export function loadSimData(raw: SimRawData): SimData {
   setShopsConfig(shops);
   setConsumablesConfig(consumables);
   applyPlayerTuning(tuning);
+  applyGameplay(normalizeGameplay(gameplayJson));
   setSpellCatalog(spells);
   setTalentCatalog(talents);
   return {

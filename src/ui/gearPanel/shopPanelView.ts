@@ -2,7 +2,7 @@
  * Blacksmith / Trader panel view model: header, tabs, filter chips, card
  * grid, "Coming soon" cards, detail + compare and the bottom action bar.
  */
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { consumableEffectLine } from "../../gear/consumables";
 import { goldAfterRow, type CompareRow } from "../../gear/gearCompare";
 import { bagItems } from "../../gear/inventory";

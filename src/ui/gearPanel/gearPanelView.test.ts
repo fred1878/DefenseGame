@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ConsumableDef } from "../../gear/consumables";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import { resolveItem } from "../../gear/itemStats";
 import { gearFixture } from "../../test/gearFixture";
 import { owned, panelSave } from "../../test/gearPanelFixture";

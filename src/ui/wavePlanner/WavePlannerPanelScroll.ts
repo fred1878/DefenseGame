@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { layoutRosterScrollbar } from "../rosterPanelShared";
+import { layoutRosterScrollbar } from "../panels/rosterPanelShared";
 import type {
   PlannerRow,
   WavePlannerListLayout,

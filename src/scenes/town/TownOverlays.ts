@@ -1,15 +1,16 @@
 import type Phaser from "phaser";
-import type { DataStore, WaveGroup } from "../../core/DataStore";
+import { reportFatal } from "../../ui/panels/FatalErrorPanel";
+import type { WaveGroup } from "../../core/data/DataStore";
 import type { EndlessRunSelection } from "../../core/defenseRunMode";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import {
   ensureNightReady,
   ensureTownReachableReady,
   isTownReachableReady,
-} from "../../core/GameAssetLoader";
+} from "../loading/GameAssetLoader";
 import { launchDebugMenuFromHost } from "../../debug/debugMenuLifecycle";
-import { SpellBarSortPanel } from "../../ui/SpellBarSortPanel";
-import { TownDefenseLoadingOverlay } from "../../ui/TownDefenseLoadingOverlay";
+import { SpellBarSortPanel } from "../../ui/panels/SpellBarSortPanel";
+import { TownDefenseLoadingOverlay } from "../../ui/panels/TownDefenseLoadingOverlay";
 import { getGearCatalog } from "../../gear/gearCatalog";
 import { getLootConfig } from "../../gear/loot";
 import { createRng, randomSeed } from "../../gear/rng";
@@ -18,18 +19,19 @@ import {
   ensureShopStock,
   type ShopId,
 } from "../../gear/shops";
-import { InventoryPanel } from "../../ui/InventoryPanel";
-import { ShopPanel } from "../../ui/ShopPanel";
+import { InventoryPanel } from "../../ui/panels/InventoryPanel";
+import { ShopPanel } from "../../ui/panels/ShopPanel";
 import type { GearPanelContext } from "../../ui/gearPanel/gearPanelLogic";
-import { SaveMenuPanel } from "../../ui/SaveMenuPanel";
-import { TalentPanel } from "../../ui/TalentPanel";
-import type { ScreenRect } from "../../ui/screenLayout";
+import { SaveMenuPanel } from "../../ui/panels/SaveMenuPanel";
+import { TalentPanel } from "../../ui/panels/TalentPanel";
+import type { ScreenRect } from "../../ui/layout/screenLayout";
 import {
   isEndlessModeSetupActive,
   isWavePlannerSetupActive,
   openEndlessModeSetupScene,
   openWavePlannerSetupScene,
 } from "./townSetupSceneLifecycle";
+import { getDataStore } from "../../core/registryKeys";
 
 /** Scene callbacks the Town overlays need (save access + run launch). */
 export type TownOverlaysHost = {
@@ -62,7 +64,7 @@ export class TownOverlays {
 
   openSpellSortPanel(): void {
     if (this.spellSortPanel) return;
-    const store = this.scene.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.scene.registry);
     if (isTownReachableReady(this.scene.game, store)) {
       this.createSpellSortPanel();
       return;
@@ -118,7 +120,7 @@ export class TownOverlays {
       registry: this.scene.registry,
     };
     if (shop) {
-      const store = this.scene.registry.get("dataStore") as DataStore;
+      const store = getDataStore(this.scene.registry);
       const rng = createRng(randomSeed());
       ctx.shop = {
         id: shop,
@@ -164,7 +166,7 @@ export class TownOverlays {
   }
 
   launchDebugMenu(): void {
-    const store = this.scene.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.scene.registry);
     const launch = () => launchDebugMenuFromHost(this.scene);
     if (isTownReachableReady(this.scene.game, store)) {
       launch();
@@ -188,7 +190,7 @@ export class TownOverlays {
 
   /** Run `run` once night assets are ready, showing a loading overlay meanwhile. */
   transitionToDefense(run: () => void): void {
-    const store = this.scene.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.scene.registry);
     if (isTownReachableReady(this.scene.game, store)) {
       run();
       return;
@@ -203,13 +205,14 @@ export class TownOverlays {
         run();
       })
       .catch((err) => {
-        console.error("Night readiness failed", err);
-        this.defenseLoadingOverlay?.showError(
-          "Could not load defense. Try again.",
-        );
-        this.scene.time.delayedCall(2800, () => {
-          this.defenseLoadingOverlay?.destroy();
-          this.defenseLoadingOverlay = null;
+        this.defenseLoadingOverlay?.destroy();
+        this.defenseLoadingOverlay = null;
+        reportFatal(this.scene, {
+          title: "Could not load defense",
+          message: "Check your connection and try again.",
+          error: err,
+          onRetry: () => this.transitionToDefense(run),
+          onClose: () => {},
         });
       });
   }

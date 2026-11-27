@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import * as touchButton from "../touchButton";
+import * as touchButton from "../touch/touchButton";
 import type { PoolChip, SlotView } from "./SpellBarSortPanelBuild";
 import {
   spellBarSortE2eSlotHitRects,

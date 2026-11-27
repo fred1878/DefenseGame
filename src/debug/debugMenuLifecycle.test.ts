@@ -11,7 +11,7 @@ const ensureDebugMenuScene = vi.fn<(_game: Phaser.Game) => Promise<void>>(() =>
   Promise.resolve(),
 );
 
-vi.mock("../core/lazyScenes", () => ({
+vi.mock("../scenes/loading/lazyScenes", () => ({
   ensureDebugMenuScene: (game: Phaser.Game) => ensureDebugMenuScene(game),
 }));
 

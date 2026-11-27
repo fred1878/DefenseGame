@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { TownBakeArt } from "../../systems/TownBuildings";
-import { createTownPlate } from "../../ui/townBuildingPlate";
+import type { TownBakeArt } from "./TownBuildings";
+import { createTownPlate } from "../../ui/hud/townBuildingPlate";
 import { asScene, fakeScene, type FakeGameObject } from "../../test/fakeScene";
 import { TOWN_ISO_STAGES } from "../../world/townIso/townIsoStageData";
 import { TownIsoWorld } from "./TownIsoWorld";

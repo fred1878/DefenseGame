@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import bundled from "../../public/data/consumables.json";
-import { createNewSave } from "../core/GameState";
-import { normalizeConsumables } from "../core/normalizeConsumables";
+import { createNewSave } from "../core/save/GameState";
+import { normalizeConsumables } from "../core/data/normalizeConsumables";
 import {
   addConsumable,
   bombBlastSpellDef,

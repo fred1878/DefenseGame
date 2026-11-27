@@ -11,8 +11,11 @@ import {
   TOWN_ISO_SPRITES,
   TOWN_ISO_STAGES,
 } from "../../world/townIso/townIsoStageData";
-import type { TownBakeArt } from "../../systems/TownBuildings";
-import { createTownPlate, type TownPlate } from "../../ui/townBuildingPlate";
+import type { TownBakeArt } from "./TownBuildings";
+import {
+  createTownPlate,
+  type TownPlate,
+} from "../../ui/hud/townBuildingPlate";
 import type {
   TownIsoLightColor,
   TownStageIndex,

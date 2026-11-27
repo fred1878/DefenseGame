@@ -1,6 +1,6 @@
-import type { Damageable } from "../combat/DamageSystem";
-import { applyHealAmount } from "../combat/SpellEffects";
-import type { EnemySpellStatusMap } from "../combat/enemySpellStatus";
+import type { Damageable } from "../combat/rules/DamageSystem";
+import { applyHealAmount } from "../combat/rules/SpellEffects";
+import type { EnemySpellStatusMap } from "../combat/rules/enemySpellStatus";
 import { gearWeaponProcs, takeLifestealHeal } from "./gearRuntime";
 import type { Rng } from "./rng";
 
@@ -18,7 +18,13 @@ export function applyWeaponHitEffects(opts: {
   for (const proc of gearWeaponProcs()) {
     if (rng() * 100 >= proc.chancePct) continue;
     if (proc.kind === "dot") {
-      opts.status.applyDot(opts.enemyId, proc.dps, proc.ms, proc.flavor);
+      opts.status.applyDot(
+        opts.enemyId,
+        proc.dps,
+        proc.ms,
+        proc.flavor,
+        "proc",
+      );
     } else if (proc.kind === "slow") {
       opts.status.applySlow(opts.enemyId, proc.slowPct, proc.ms);
     } else {

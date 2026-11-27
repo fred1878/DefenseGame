@@ -1,7 +1,7 @@
-import type { DataStore } from "../../core/DataStore";
-import { createNewSave, prepareDefenseNight } from "../../core/GameState";
-import type { SaveGame } from "../../core/saveTypes";
-import type { TownBuildingDef } from "../../core/townBuildingTypes";
+import type { DataStore } from "../../core/data/DataStore";
+import { createNewSave, prepareDefenseNight } from "../../core/save/GameState";
+import type { SaveGame } from "../../core/save/saveTypes";
+import type { TownBuildingDef } from "../../core/data/townBuildingTypes";
 import { consumableCount } from "../../gear/consumables";
 import {
   EQUIP_SLOTS,

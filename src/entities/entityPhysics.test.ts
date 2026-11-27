@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { EnemyKnockbackCarrier } from "../combat/enemyKnockback";
+import type { EnemyKnockbackCarrier } from "../combat/rules/enemyKnockback";
 import {
   clampToDefensePlayBounds,
   defensePlayBoundsInset,
@@ -13,7 +13,7 @@ import {
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
-import { ConfigLoadError } from "../core/configValidation";
+import { ConfigLoadError } from "../core/data/configValidation";
 
 describe("entityPhysics", () => {
   it("exposes loaded player and enemy body radii", () => {

@@ -1,5 +1,5 @@
 import bundledItems from "../../public/data/items.json";
-import { normalizeItems } from "../core/normalizeItems";
+import { normalizeItems } from "../core/data/normalizeItems";
 import type { GearCatalog } from "./gearTypes";
 
 let activeCatalog: GearCatalog | null = null;

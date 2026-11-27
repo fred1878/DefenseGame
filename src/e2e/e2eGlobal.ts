@@ -1,4 +1,5 @@
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
+import { isE2EEnabled } from "./e2eMode";
 
 export type DefenseGameE2EState = {
   ready: boolean;
@@ -18,7 +19,7 @@ export type DefenseGameE2EApi = {
   castSpell(slot: number): Promise<void>;
   getSave(): SaveGame | null;
   setSave(partial: Partial<SaveGame>): void;
-  /** Override live movement tuning via PLAYER_TUNING. */
+  /** Override live movement tuning via `applyPlayerTuning` / `playerTuning()`. */
   setPlayerMoveSpeedWu(moveSpeedWu: number): void;
   spawnTestEnemy(x?: number, y?: number): void;
   spawnTestEnemyByDef(defId: string, offX?: number, offY?: number): void;
@@ -48,6 +49,8 @@ export type DefenseGameE2EApi = {
   getLivingEnemyPositions(): Array<{ x: number; y: number; hp: number }>;
   /** Damage dealt to enemies by flavor since the last reset (real-fight harness). */
   getCombatTally(): import("./combatTally").CombatTally;
+  /** Spell casts started and HP healed since the last reset (real-fight harness). */
+  getCastTally(): import("./combatTally").CastTally;
   /** Active windup / channel spell and ready auto-cast windup spells (win-model bot). */
   getSpellCastState(): {
     activeSpellId: string | null;
@@ -70,6 +73,8 @@ export type DefenseGameE2EApi = {
   }>;
   isUiButtonPressed(testId: string): boolean;
   getAutoAttackEnabled(): boolean;
+  /** Turn the HUD auto attack on or off (Defense only). */
+  setAutoAttackEnabled(on: boolean): void;
   syncDomMirrors(): void;
   tapDomMirror(testId: string): void;
   simulateScreenTap(x: number, y: number): void;
@@ -122,7 +127,7 @@ export type DefenseGameE2EApi = {
   getDefenseHalfHeight(): number;
   getDefenseHalfWidth(): number;
   getDefenseHudLayoutProbe(): ReturnType<
-    import("../scenes/DefenseScene").DefenseScene["e2e"]["hudLayoutProbe"]
+    import("../scenes/defense/DefenseSceneE2EHost").DefenseSceneE2eHost["hudLayoutProbe"]
   >;
   worldPointToDefenseScreen(
     worldX: number,
@@ -131,7 +136,7 @@ export type DefenseGameE2EApi = {
   sampleDefenseHudBandPixelsAsync(): Promise<
     Awaited<
       ReturnType<
-        import("../scenes/DefenseScene").DefenseScene["e2e"]["sampleHudBandPixelsAsync"]
+        import("../scenes/defense/DefenseSceneE2EHost").DefenseSceneE2eHost["sampleHudBandPixelsAsync"]
       >
     >
   >;
@@ -236,4 +241,13 @@ export function publishE2E(
           : { ...(cur.api ?? ({} as DefenseGameE2EApi)), ...patch.api },
   };
   window.__DEFENSEGAME_E2E__ = next;
+}
+
+/**
+ * Call at module load so Playwright always sees the hook object before the
+ * (lazy) E2E installer chunk loads and async boot finishes.
+ */
+export function seedE2EWindowStub(): void {
+  if (!isE2EEnabled() || typeof window === "undefined") return;
+  window.__DEFENSEGAME_E2E__ = defaultE2EState();
 }

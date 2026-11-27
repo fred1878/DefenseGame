@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
-import { mockEnemyInstance } from "../testEnemyInstance";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { createJavelineerCombatState } from "./types";
 import { updateJavelineerCombat } from "./javelineerCombat";
 

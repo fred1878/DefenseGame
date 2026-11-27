@@ -15,13 +15,6 @@ export type ItemDraft = Omit<ItemInstance, "uid">;
 
 export type RarityWeights = Partial<Record<RarityId, number>>;
 
-/** Max affixes of each position on one item. */
-const MAX_PER_POSITION = 2;
-
-/** Bases this many levels under the roll level drop with reduced weight. */
-const OUTDATED_BASE_LEVELS = 5;
-const OUTDATED_BASE_WEIGHT = 0.35;
-
 export function equipSlotsForType(type: ItemType): EquipSlot[] {
   if (type === "ring") return ["ring1", "ring2"];
   if (type === "trinket") return ["trinket1", "trinket2"];
@@ -116,7 +109,8 @@ function rollAffixes(
   const perPosition = { prefix: 0, suffix: 0 };
   for (let i = 0; i < count; i++) {
     const affix = pickWeighted(rng, pool, (a) =>
-      used.has(a.id) || perPosition[a.position] >= MAX_PER_POSITION
+      used.has(a.id) ||
+      perPosition[a.position] >= catalog.generation.maxAffixesPerPosition
         ? 0
         : a.weight,
     );
@@ -168,8 +162,9 @@ export function rollItem(
   const base = pickWeighted(rng, Object.values(catalog.bases), (b) => {
     if (b.minItemLevel > itemLevel) return 0;
     if (opts.types && !opts.types.includes(b.type)) return 0;
-    return itemLevel - b.minItemLevel >= OUTDATED_BASE_LEVELS
-      ? OUTDATED_BASE_WEIGHT
+    const gen = catalog.generation;
+    return itemLevel - b.minItemLevel >= gen.outdatedBaseLevels
+      ? gen.outdatedBaseWeight
       : 1;
   });
   if (!base) return null;

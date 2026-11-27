@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { testStationaryRangedCombat } from "../../test/fixtures/inlineCombat";
 import { createEnemyCombat } from "../../entities/EnemyCombat";
-import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createEnemyNav } from "../brainShared";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import { stationaryRangedBehavior } from "./stationaryRanged";
 
 function mockSentry(x: number, y: number, combat = createEnemyCombat()) {

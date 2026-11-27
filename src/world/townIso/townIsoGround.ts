@@ -79,16 +79,50 @@ function lineTiles(
   }
 }
 
+/** Is the tile centre (x, y) inside the visible window (plus one tile of margin)? */
+function inTownView(x: number, y: number): boolean {
+  const V = TOWN_ISO_VIEW;
+  return (
+    x >= V.viewX - V.tileWidth &&
+    x <= V.viewX + V.viewWidth + V.tileWidth &&
+    y >= V.viewY - V.tileHeight &&
+    y <= V.viewY + V.viewHeight + V.tileHeight
+  );
+}
+
+/** Terrain for one tile: plaza, road, town ground, a muddy rim, then wild grass. */
+function tileTerrain(
+  spec: TownIsoGroundSpec,
+  roads: ReadonlySet<string>,
+  c: number,
+  r: number,
+): TownIsoTerrain {
+  const [pc, pr] = TOWN_ISO_PLAZA_TILE;
+  if (
+    Math.abs(c - pc) <= spec.plazaRadius &&
+    Math.abs(r - pr) <= spec.plazaRadius
+  ) {
+    return spec.plazaTile;
+  }
+  const { x, y } = isoTileCenter(c, r);
+  const e =
+    ((x - TOWN_ISO_VIEW.originX) / spec.ax) ** 2 +
+    ((y - spec.cy) / spec.ay) ** 2;
+  if (roads.has(key(c, r))) return e < 1.05 ? spec.roadTile : "dirt";
+  const n = tileNoise(c, r);
+  if (e < 1 - 0.25 * n) return spec.townTile;
+  if (e < 1.25 + 0.3 * n) return n > 0.5 ? "mud" : "dirt";
+  return n > 0.35 ? "grass_dry" : "grass";
+}
+
 /** Terrain of every tile in the visible window, keyed "c,r". */
 export function townIsoTerrainMap(
   spec: TownIsoGroundSpec,
 ): Map<string, TownIsoTerrain> {
-  const [pc, pr] = TOWN_ISO_PLAZA_TILE;
   const roads = new Set<string>();
   for (const t of ROAD_TARGETS.slice(0, spec.roadTargets)) {
     lineTiles(TOWN_ISO_PLAZA_TILE, t, 2, roads);
   }
-  const V = TOWN_ISO_VIEW;
   const out = new Map<string, TownIsoTerrain>();
   for (let u = -110; u < 70; u++) {
     for (let v = -22; v <= 22; v++) {
@@ -96,33 +130,8 @@ export function townIsoTerrainMap(
       const c = (u + v) / 2;
       const r = (u - v) / 2;
       const { x, y } = isoTileCenter(c, r);
-      if (
-        x < V.viewX - V.tileWidth ||
-        x > V.viewX + V.viewWidth + V.tileWidth ||
-        y < V.viewY - V.tileHeight ||
-        y > V.viewY + V.viewHeight + V.tileHeight
-      ) {
-        continue;
-      }
-      const e =
-        ((x - V.originX) / spec.ax) ** 2 + ((y - spec.cy) / spec.ay) ** 2;
-      const n = tileNoise(c, r);
-      let t: TownIsoTerrain;
-      if (
-        Math.abs(c - pc) <= spec.plazaRadius &&
-        Math.abs(r - pr) <= spec.plazaRadius
-      ) {
-        t = spec.plazaTile;
-      } else if (roads.has(key(c, r))) {
-        t = e < 1.05 ? spec.roadTile : "dirt";
-      } else if (e < 1 - 0.25 * n) {
-        t = spec.townTile;
-      } else if (e < 1.25 + 0.3 * n) {
-        t = n > 0.5 ? "mud" : "dirt";
-      } else {
-        t = n > 0.35 ? "grass_dry" : "grass";
-      }
-      out.set(key(c, r), t);
+      if (!inTownView(x, y)) continue;
+      out.set(key(c, r), tileTerrain(spec, roads, c, r));
     }
   }
   return out;

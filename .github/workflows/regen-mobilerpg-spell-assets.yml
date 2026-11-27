@@ -23,11 +23,11 @@ jobs:
         env:
           MOBILERPG_GITHUB_TOKEN: ${{ secrets.MOBILERPG_GITHUB_TOKEN || secrets.CROSS_REPO || secrets.CARDGAME_DEBUG_GITHUB_PAT }}
         run: |
-          python3 scripts/fetch-mobilerpg-atlas-blob.py
+          python3 scripts/assets/fetch-mobilerpg-atlas-blob.py
       - name: Extract spell PNGs
         env:
           MOBILERPG_ATLAS_TGA: /tmp/mobilerpg-assets/atlas.tga
-        run: python3 scripts/extract-mobilerpg-spell-assets.py
+        run: python3 scripts/assets/extract-mobilerpg-spell-assets.py
       - name: Upload spell asset artifacts
         uses: actions/upload-artifact@v5
         with:

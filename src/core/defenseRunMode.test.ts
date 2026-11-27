@@ -11,7 +11,7 @@ import {
 import {
   WAVE_PLANNER_DEFAULT_AT_MS,
   WAVE_PLANNER_DEFAULT_INTERVAL_MS,
-} from "../systems/wavePlannerTiming";
+} from "./wavePlannerTiming";
 
 describe("readDefenseRunMode", () => {
   it("reads multi-select endless payload", () => {

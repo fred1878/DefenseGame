@@ -1,5 +1,5 @@
+import { playerTuning } from "../config/player";
 import { describe, expect, it, vi } from "vitest";
-import { PLAYER_TUNING } from "../config";
 import type { EnemyInstance } from "./Enemy";
 import { Player } from "./Player";
 
@@ -78,7 +78,7 @@ describe("Player melee swing hitbox", () => {
     const player = mockPlayer();
     player.faceToward(100, 0);
     player.tryStartAttack("melee");
-    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
+    player.updateAttack(playerTuning().meleeWindupMs);
     player.setVelocityFromStick(0, 1, 200);
     expect(player.getFacingAngle()).toBeCloseTo(Math.PI / 2);
 
@@ -92,7 +92,7 @@ describe("Player melee swing hitbox", () => {
     expect(onHit).toHaveBeenCalledWith(east, 10);
     expect(onHit).toHaveBeenCalledTimes(1);
     expect(east.damageable.hp).toBeLessThan(100);
-    expect(onDamaged).toHaveBeenCalledWith(10, "physical");
+    expect(onDamaged).toHaveBeenCalledWith(10, "physical", "melee");
     expect(south.damageable.hp).toBe(100);
     expect(player.meleeHitboxFacingRad()).toBeCloseTo(0);
   });
@@ -136,13 +136,13 @@ describe("Player attack mode and phases", () => {
     expect(player.consumeRangedShot()).toBe(false);
     expect(player.tryStartAttack("ranged")).toBe(true);
     expect(player.tryStartAttack("ranged")).toBe(false);
-    player.updateAttack(PLAYER_TUNING.rangedWindupMs);
+    player.updateAttack(playerTuning().rangedWindupMs);
     expect(player.attackPhaseNow).toBe("active");
     expect(player.consumeRangedShot()).toBe(true);
     expect(player.consumeRangedShot()).toBe(false);
-    player.updateAttack(PLAYER_TUNING.rangedActiveMs);
+    player.updateAttack(playerTuning().rangedActiveMs);
     expect(player.attackPhaseNow).toBe("recovery");
-    player.updateAttack(PLAYER_TUNING.rangedRecoveryMs);
+    player.updateAttack(playerTuning().rangedRecoveryMs);
     expect(player.attackPhaseNow).toBe("idle");
     expect(player.canAttack()).toBe(true);
   });
@@ -154,9 +154,9 @@ describe("Player attack mode and phases", () => {
     const locked = player.meleeHitboxFacingRad();
     player.setVelocityFromStick(0, 1, 0);
     expect(player.meleeHitboxFacingRad()).toBe(locked);
-    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
-    player.updateAttack(PLAYER_TUNING.meleeActiveMs);
-    player.updateAttack(PLAYER_TUNING.meleeRecoveryMs);
+    player.updateAttack(playerTuning().meleeWindupMs);
+    player.updateAttack(playerTuning().meleeActiveMs);
+    player.updateAttack(playerTuning().meleeRecoveryMs);
     expect(player.attackPhaseNow).toBe("idle");
     expect(player.meleeHitboxFacingRad()).toBe(player.getFacingAngle());
   });
@@ -175,15 +175,15 @@ describe("Player leftover branches", () => {
     const player = mockPlayer();
     player.setAttackMode("ranged");
     expect(player.tryStartAttack()).toBe(true);
-    player.updateAttack(PLAYER_TUNING.rangedWindupMs);
-    player.updateAttack(PLAYER_TUNING.rangedActiveMs);
+    player.updateAttack(playerTuning().rangedWindupMs);
+    player.updateAttack(playerTuning().rangedActiveMs);
     expect(player.attackPhaseNow).toBe("recovery");
     player.setVelocityFromStick(1, 0, 200);
     const sprite = player.sprite as unknown as {
       setVelocity: ReturnType<typeof vi.fn>;
     };
     expect(sprite.setVelocity).toHaveBeenCalledWith(0, 0);
-    player.updateAttack(PLAYER_TUNING.rangedRecoveryMs);
+    player.updateAttack(playerTuning().rangedRecoveryMs);
     expect(player.attackPhaseNow).toBe("idle");
     player.updateAttack(16);
     expect(player.attackPhaseNow).toBe("idle");
@@ -208,12 +208,12 @@ describe("Player leftover branches", () => {
   it("stays in recovery until the recovery window elapses", () => {
     const player = mockPlayer();
     player.tryStartAttack("melee");
-    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
-    player.updateAttack(PLAYER_TUNING.meleeActiveMs);
+    player.updateAttack(playerTuning().meleeWindupMs);
+    player.updateAttack(playerTuning().meleeActiveMs);
     expect(player.attackPhaseNow).toBe("recovery");
     player.updateAttack(1);
     expect(player.attackPhaseNow).toBe("recovery");
-    player.updateAttack(PLAYER_TUNING.meleeRecoveryMs);
+    player.updateAttack(playerTuning().meleeRecoveryMs);
     expect(player.attackPhaseNow).toBe("idle");
   });
 
@@ -221,7 +221,7 @@ describe("Player leftover branches", () => {
     const player = mockPlayer();
     player.faceToward(100, 0);
     player.tryStartAttack("melee");
-    player.updateAttack(PLAYER_TUNING.meleeWindupMs);
+    player.updateAttack(playerTuning().meleeWindupMs);
     const behind = mockEnemyAt(-80, 0);
     behind.id = "behind";
     behind.damageable.id = "behind";

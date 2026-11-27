@@ -24,10 +24,21 @@ describe("createDefenseSceneE2eHost", () => {
     const alive = { damageable: { alive: true, hp: 3 }, defId: "grunt" };
     const dead = { damageable: { alive: false, hp: 0 }, defId: "grunt" };
     const scene = {
-      enemies: [alive, dead, alive],
+      run: { enemies: [alive, dead, alive] },
     } as unknown as DefenseSceneE2eDelegate;
     const host = createDefenseSceneE2eHost(scene);
     expect(host.enemyCount()).toBe(2);
     expect(host.livingEnemyHps()).toEqual([3, 3]);
+  });
+});
+
+describe("setAutoAttackEnabled", () => {
+  it("flips the run's auto-attack flag", () => {
+    const scene = {
+      run: { autoAttackEnabled: true },
+    } as unknown as DefenseSceneE2eDelegate;
+    const host = createDefenseSceneE2eHost(scene);
+    host.setAutoAttackEnabled(false);
+    expect(host.autoAttackEnabled()).toBe(false);
   });
 });

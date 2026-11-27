@@ -47,6 +47,8 @@ const BASE: PlayerTuning = {
   playerHitInvulnMs: 0,
   nightSpawnInvulnMs: 1000,
   bodyRadiusWu: 20,
+  gearMinAttackSpeedMul: 0.25,
+  gearMinMoveSpeedMul: 0.5,
 };
 
 describe("resolveItem", () => {

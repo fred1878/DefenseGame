@@ -1,6 +1,6 @@
-import { applyDamage } from "../../combat/DamageSystem";
-import { updateSpellGroundAoeTelegraph } from "../../combat/SpellGroundAoeTelegraph";
-import { tickSpellGroundZones } from "../../combat/spellGroundZone";
+import { applyDamage } from "../../combat/rules/DamageSystem";
+import { updateSpellGroundAoeTelegraph } from "../../combat/fx/SpellGroundAoeTelegraph";
+import { tickSpellGroundZones } from "../../combat/rules/spellGroundZone";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
 
 type SpellWorldDirector = {
@@ -15,9 +15,9 @@ export function tickDefenseSpellWorld(
   director: SpellWorldDirector,
   delta: number,
 ): void {
-  host.enemySpellStatus.tick(delta, (enemyId, amount, flavor) => {
+  host.enemySpellStatus.tick(delta, (enemyId, amount, flavor, source) => {
     const e = host.targeting.getEnemyById(enemyId);
-    if (e?.damageable.alive) applyDamage(e.damageable, amount, flavor);
+    if (e?.damageable.alive) applyDamage(e.damageable, amount, flavor, source);
   });
   for (const e of host.enemies) {
     e.statusSpeedMul = host.enemySpellStatus.moveSpeedMultiplier(e.id);

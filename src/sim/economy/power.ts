@@ -1,5 +1,6 @@
 import { basePlayerTuning } from "../../config/player";
-import { pickAutoCastSpell } from "../../combat/spellAutoCast";
+import { pickAutoCastSpell } from "../../combat/rules/spellAutoCast";
+import { autoCastOrder } from "./spellBars";
 import {
   createDefaultSpellBarSlots,
   spellById,
@@ -185,19 +186,6 @@ export function spellCastDamage(def: SpellDefinition): number {
     (def.burstDamage ?? 0) +
     ((def.onHit?.dotDps ?? 0) * (def.onHit?.dotMs ?? 0)) / 1000
   );
-}
-
-/**
- * Auto-cast order the fight bot (and a sensible player) uses: damaging
- * spells by cooldown, longest first, so cheap fillers don't starve the big
- * ones (auto-cast always takes the first ready slot); non-damaging last.
- */
-export function autoCastOrder(slots: readonly SpellId[]): SpellId[] {
-  const key = (id: SpellId) => {
-    const def = spellById(id);
-    return def && spellCastDamage(def) > 0 ? def.cooldownMs : -1;
-  };
-  return [...slots].sort((a, b) => key(b) - key(a));
 }
 
 const ROTATION_MS = 60_000;

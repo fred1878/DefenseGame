@@ -1,13 +1,16 @@
 import Phaser from "phaser";
-import type { SaveGame } from "../core/saveTypes";
-import type { DataStore } from "../core/DataStore";
+import { tuning } from "../tuning/gameTuning";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
+import { debugEconomyPolicy } from "../debug/debugEconomy";
+import { createDefaultAutoCastSpellIds } from "../content/spellBarAutoCast";
+import type { SaveGame } from "../core/save/saveTypes";
+import type { DataStore } from "../core/data/DataStore";
 import {
   normalizeSave,
-  persistSave,
   prepareDefenseNight,
-  resetSaveAndReload,
   syncPlayerHpMax,
-} from "../core/GameState";
+} from "../core/save/GameState";
+import { persistSave, resetSaveAndReload } from "../core/save/saveRepository";
 import { showTouchInput } from "../debug/DebugState";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import {
@@ -28,31 +31,27 @@ import { setContainerInputEnabled } from "../input/setContainerInputEnabled";
 import {
   type createTouchButton,
   interactiveObjectScreenRect,
-} from "../ui/touchButton";
+} from "../ui/touch/touchButton";
 import { isE2EEnabled } from "../e2e/e2eMode";
 import { publishE2E } from "../e2e/e2eGlobal";
-import type { SpellBarSortPanel } from "../ui/SpellBarSortPanel";
-import { EndlessModeSetupScene } from "./EndlessModeSetupScene";
-import { WavePlannerSetupScene } from "./WavePlannerSetupScene";
-import { activeTownUiHost } from "../e2e/townUiHost";
+import type { SpellBarSortPanel } from "../ui/panels/SpellBarSortPanel";
 import {
   setEndlessDefenseRun,
   setNightDefenseRun,
   setWavePlannerDefenseRun,
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
-import type { WaveGroup } from "../core/DataStore";
-import { createDefaultSpellBarAutoCast } from "../content/spells";
-import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
+import type { WaveGroup } from "../core/data/DataStore";
+import { clampEndlessConcurrent } from "../core/endlessLimits";
 import {
   spawnTownBuildingControls,
   type TownBuildingControl,
-} from "../systems/TownBuildings";
+} from "./town/TownBuildings";
 import {
   handleTownBuildingTap,
   townBuildingPlateInfo,
 } from "../systems/townBuildingMenu";
-import type { TownBuildingDef } from "../core/townBuildingTypes";
+import type { TownBuildingDef } from "../core/data/townBuildingTypes";
 import {
   townBuildingArtTier,
   townGrowthView,
@@ -62,9 +61,9 @@ import { TOWN_ISO_BUILDING_TIERS } from "../world/townIso/townIsoStageData";
 import { TownIsoWorld } from "./town/TownIsoWorld";
 import { playCoinDeltaSfx } from "../audio/coinEconomySfx";
 import { markBoot, measureBoot } from "../core/bootPerf";
-import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
-import { ensureTownReachableReady } from "../core/GameAssetLoader";
-import { markE2EAssetsLoaded } from "../e2e/installE2E";
+import { applyPixelRenderDebugSettings } from "../core/render/pixelRenderDebug";
+import { ensureTownReachableReady } from "./loading/GameAssetLoader";
+import { markE2EAssetsLoaded } from "../e2e/e2eAssets";
 import {
   createTownHeader,
   createTownHeaderButtons,
@@ -77,10 +76,9 @@ import {
   collectTownUiTapTargets,
   isTownTouchButtonPressed,
 } from "./town/TownSceneE2E";
-import {
-  collectTownTouchDebugUiRects,
-  isPointerOverInteractive,
-} from "./town/TownTouchDebug";
+import { collectTownTouchDebugUiRects } from "./town/TownTouchDebug";
+import { isPointerOverInteractive } from "../input/pointerOverInteractive";
+import { getDataStore, getSave, setSave } from "../core/registryKeys";
 
 export class TownScene extends Phaser.Scene {
   private save!: SaveGame;
@@ -103,7 +101,7 @@ export class TownScene extends Phaser.Scene {
     onSpellBarSorted: (result) => {
       this.save.spellBar = result;
       persistSave(this.save);
-      this.registry.set("save", this.save);
+      setSave(this.registry, this.save);
     },
     onStartEndless: (selections, infiniteHp) =>
       this.overlays.transitionToDefense(() =>
@@ -130,11 +128,11 @@ export class TownScene extends Phaser.Scene {
   create(): void {
     configureSceneInput(this);
     applyPixelRenderDebugSettings(this.game);
-    this.save = this.registry.get("save") as SaveGame;
+    this.syncSaveFromRegistry();
     if (!this.save.spellBar.autoCastSpellIds) {
-      this.save.spellBar.autoCastSpellIds = createDefaultSpellBarAutoCast();
+      this.save.spellBar.autoCastSpellIds = createDefaultAutoCastSpellIds();
     }
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     applySaveLoadout(this.save);
 
     this.hud = createTownHeader(this);
@@ -162,12 +160,11 @@ export class TownScene extends Phaser.Scene {
     const buttons = createTownHeaderButtons(this, {
       onDebug: () => this.overlays.launchDebugMenu(),
       onGear: () => {
-        // e2e `setSave` writes the registry only; reopen on the latest save.
-        this.save = this.registry.get("save") as SaveGame;
+        this.syncSaveFromRegistry();
         this.overlays.openGearPanel();
       },
       onTalents: () => {
-        this.save = this.registry.get("save") as SaveGame;
+        this.syncSaveFromRegistry();
         this.overlays.openTalentPanel();
       },
       onReset: () => this.onResetTap(),
@@ -198,21 +195,7 @@ export class TownScene extends Phaser.Scene {
       this.fpsOverlay.destroy();
     });
 
-    markBoot("defensegame:town-prefetch-start");
-    void ensureTownReachableReady(this, store)
-      .then(() => {
-        markBoot("defensegame:town-prefetch-end");
-        measureBoot(
-          "defensegame:town-prefetch",
-          "defensegame:town-prefetch-start",
-          "defensegame:town-prefetch-end",
-        );
-        if (isE2EEnabled()) {
-          markE2EAssetsLoaded(this.game);
-          publishE2E({ assetsLoaded: true });
-        }
-      })
-      .catch((err) => console.error("Town prefetch failed", err));
+    this.startTownPrefetch(store);
 
     if (isE2EEnabled()) {
       publishE2E({ scene: "Town", ready: true });
@@ -224,14 +207,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eGetUiTapTargets();
-    }
-    if (host instanceof WavePlannerSetupScene) {
-      return host.e2eGetUiTapTargets();
-    }
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const out = collectTownUiTapTargets(
       store,
       this.buildingControls,
@@ -265,13 +241,6 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eTownTouchDebugRectCount(): number {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eTouchDebugRectCount();
-    }
-    if (host instanceof WavePlannerSetupScene) {
-      return host.e2eTouchDebugRectCount();
-    }
     return collectTownTouchDebugUiRects(this, this.touchDebug, this.overlays)
       .length;
   }
@@ -281,7 +250,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   e2eOpenSpellSortPanel(): void {
-    this.save = this.registry.get("save") as SaveGame;
+    this.syncSaveFromRegistry();
     this.overlays.openSpellSortPanel();
   }
 
@@ -293,25 +262,8 @@ export class TownScene extends Phaser.Scene {
     this.overlays.openEndlessPanel();
   }
 
-  e2eIsEndlessPanelOpen(): boolean {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) return host.e2eIsOpen();
-    return false;
-  }
-
-  e2eIsEndlessPanelLoading(): boolean {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) return host.e2eIsLoading();
-    return false;
-  }
-
   e2eStartEndless(enemyId: string, infiniteHp = false): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eStartEndless(enemyId, infiniteHp);
-      return;
-    }
-    const store = this.registry.get("dataStore") as DataStore;
+    const store = getDataStore(this.registry);
     const cap = clampEndlessConcurrent(
       store.player.endlessPanelDefaultConcurrent,
     );
@@ -321,82 +273,39 @@ export class TownScene extends Phaser.Scene {
     );
   }
 
-  e2eEndlessInfiniteHpEnabled(): boolean {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessInfiniteHpEnabled();
-    }
-    return false;
+  /** Background prefetch of everything reachable from Town; Retry panel on failure. */
+  private startTownPrefetch(store: DataStore): void {
+    markBoot("defensegame:town-prefetch-start");
+    void ensureTownReachableReady(this, store)
+      .then(() => {
+        markBoot("defensegame:town-prefetch-end");
+        measureBoot(
+          "defensegame:town-prefetch",
+          "defensegame:town-prefetch-start",
+          "defensegame:town-prefetch-end",
+        );
+        if (isE2EEnabled()) {
+          markE2EAssetsLoaded(this.game);
+          publishE2E({ assetsLoaded: true });
+        }
+      })
+      .catch((err) => {
+        if (!this.scene.isActive()) return;
+        reportFatal(this, {
+          title: "Could not load town assets",
+          message: "Check your connection and try again.",
+          error: err,
+          onRetry: () => this.startTownPrefetch(store),
+        });
+      });
   }
 
-  e2eSetEndlessInfiniteHp(enabled: boolean): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eSetEndlessInfiniteHp(enabled);
-    }
-  }
-
-  e2eScrollEndlessEnemyList(deltaY: number): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eScrollEndlessEnemyList(deltaY);
-    }
-  }
-
-  e2eEndlessEnemyListScrollState(): ReturnType<
-    EndlessModeSetupScene["e2eEndlessEnemyListScrollState"]
-  > | null {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessEnemyListScrollState();
-    }
-    return null;
-  }
-
-  e2eEndlessSelectedEnemyId(): string | null {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessSelectedEnemyId();
-    }
-    return null;
-  }
-
-  e2eEndlessSelectedEnemyIds(): string[] {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessSelectedEnemyIds();
-    }
-    return [];
-  }
-
-  e2eEndlessRosterEnemyIds(): string[] {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessRosterEnemyIds();
-    }
-    return [];
-  }
-
-  e2eEndlessEnemyConcurrentCap(enemyId: string): number | null {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      return host.e2eEndlessEnemyConcurrentCap(enemyId);
-    }
-    return null;
-  }
-
-  e2eToggleEndlessEnemy(enemyId: string): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eToggleEndlessEnemy(enemyId);
-    }
-  }
-
-  e2eSetEndlessEnemyCap(enemyId: string, cap: number): void {
-    const host = activeTownUiHost(this.game);
-    if (host instanceof EndlessModeSetupScene) {
-      host.e2eSetEndlessEnemyCap(enemyId, cap);
-    }
+  /**
+   * Re-read the live save from the registry (the source of truth). E2E `setSave`
+   * and other scenes write the registry only, so panels reopen on the latest save.
+   */
+  private syncSaveFromRegistry(): void {
+    this.save = getSave(this.registry);
   }
 
   /** Re-enable town layout + header chrome only when no modal owns input. */
@@ -419,16 +328,16 @@ export class TownScene extends Phaser.Scene {
   private applyGearChange(save: SaveGame): void {
     this.save = syncPlayerHpMax(save);
     persistSave(this.save);
-    this.registry.set("save", this.save);
+    setSave(this.registry, this.save);
     applySaveLoadout(this.save);
-    this.refreshStatus(this.registry.get("dataStore") as DataStore);
+    this.refreshStatus(getDataStore(this.registry));
   }
 
   /** Write the slot into the live autosave and restart Town on that state. */
   private applyLoadedSave(save: SaveGame): void {
     const next = normalizeSave(save);
     persistSave(next);
-    this.registry.set("save", next);
+    setSave(this.registry, next);
     this.time.delayedCall(0, () => this.scene.restart());
   }
 
@@ -454,7 +363,7 @@ export class TownScene extends Phaser.Scene {
     dismissTownSetupScenes(this.game);
     this.save = prepareDefenseNight(this.save);
     persistSave(this.save);
-    this.registry.set("save", this.save);
+    setSave(this.registry, this.save);
     setRunMode();
     this.scene.start("Defense");
   }
@@ -480,10 +389,13 @@ export class TownScene extends Phaser.Scene {
     if (!this.resetArmed) {
       this.resetArmed = true;
       this.resetButton.setLabel("Confirm reset");
-      this.time.delayedCall(4000, () => {
-        this.resetArmed = false;
-        this.resetButton.setLabel("Reset save");
-      });
+      this.time.delayedCall(
+        tuning("gameplay").feel.resetConfirmWindowMs,
+        () => {
+          this.resetArmed = false;
+          this.resetButton.setLabel("Reset save");
+        },
+      );
       return;
     }
     resetSaveAndReload();
@@ -500,7 +412,7 @@ export class TownScene extends Phaser.Scene {
       store,
       this.save,
       def,
-      this.registry,
+      debugEconomyPolicy(this.registry),
     );
     if (result.kind === "startNight") {
       this.overlays.transitionToDefense(() => this.beginDefenseNight());
@@ -523,7 +435,7 @@ export class TownScene extends Phaser.Scene {
       return;
     }
     if (result.kind === "openShop") {
-      this.save = this.registry.get("save") as SaveGame;
+      this.syncSaveFromRegistry();
       this.overlays.openGearPanel(result.shop);
       return;
     }
@@ -531,7 +443,7 @@ export class TownScene extends Phaser.Scene {
       this.save = save;
       playCoinDeltaSfx(this, goldBefore, save.gold);
       persistSave(this.save);
-      this.registry.set("save", this.save);
+      setSave(this.registry, this.save);
       this.refreshStatus(store);
     }
     this.flashTransientStatus(result.message, store);
@@ -550,7 +462,12 @@ export class TownScene extends Phaser.Scene {
     if (!tier) throw new Error(`No isometric art for ${buildingId}`);
     return {
       tier,
-      plate: townBuildingPlateInfo(store, this.save, def, this.registry),
+      plate: townBuildingPlateInfo(
+        store,
+        this.save,
+        def,
+        debugEconomyPolicy(this.registry),
+      ),
     };
   }
 
@@ -574,10 +491,13 @@ export class TownScene extends Phaser.Scene {
     if (this.statusFlashEvent) {
       this.statusFlashEvent.remove(false);
     }
-    this.statusFlashEvent = this.time.delayedCall(2200, () => {
-      this.statusFlashEvent = null;
-      this.refreshStatus(store);
-    });
+    this.statusFlashEvent = this.time.delayedCall(
+      tuning("gameplay").feel.townStatusMs,
+      () => {
+        this.statusFlashEvent = null;
+        this.refreshStatus(store);
+      },
+    );
   }
 
   private refreshStatus(store: DataStore): void {

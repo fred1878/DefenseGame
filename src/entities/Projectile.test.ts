@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { segmentFirstCircleHitT } from "../combat/Hitbox";
-import type { Damageable } from "../combat/DamageSystem";
-import { applyDamage } from "../combat/DamageSystem";
+import { segmentFirstCircleHitT } from "../combat/rules/Hitbox";
+import type { Damageable } from "../combat/rules/DamageSystem";
+import { applyDamage } from "../combat/rules/DamageSystem";
 import { updateProjectile, type PlayerProjectile } from "./Projectile";
 
 describe("segmentFirstCircleHitT", () => {

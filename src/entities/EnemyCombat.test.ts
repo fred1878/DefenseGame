@@ -1,3 +1,4 @@
+import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../config/defense";
 import {
@@ -5,7 +6,7 @@ import {
   resolveEnemyCombat,
 } from "../core/enemyTuning";
 import { playerBodyRadiusPx } from "./entityPhysics";
-import { createEnemyNav } from "../ai/EnemyBrain";
+import { createEnemyNav } from "../ai/brainShared";
 import {
   createEnemyCombat,
   enemyShouldDrawMeleeArcOverlay,
@@ -16,14 +17,14 @@ import {
 } from "./EnemyCombat";
 import { createRangedHybridCombatState } from "./EnemyRangedCombat";
 import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
-import { mockEnemyInstance } from "./testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 
 function mockEnemy(
   x: number,
   y: number,
   combat?: EnemyCombatState,
   defId = "grunt",
-  behavior = "meleeChaser",
+  behavior: EnemyBehaviorId = "meleeChaser",
 ) {
   return mockEnemyInstance({
     defId,

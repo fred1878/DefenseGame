@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense, e2eApi } from "./helpers/game";
+import { writeProofArtifact } from "./helpers/artifacts";
 
 const TARGET_OBSTACLE_INDEX = 6;
 const BEYOND_FLUSH_PX = 5;
@@ -132,13 +133,8 @@ test.describe("@manual obstacle bump metrics capture", () => {
       MEDIA_DIR,
       "obstacle-bump-metrics-2026-11-18-v2.json",
     );
-    const artifactPath = path.join(
-      "/opt/cursor/artifacts",
-      "obstacle-bump-metrics-2026-11-18-v2.json",
-    );
     const json = `${JSON.stringify(metrics, null, 2)}\n`;
-    fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
-    fs.writeFileSync(artifactPath, json);
+    writeProofArtifact("obstacle-bump-metrics-2026-11-18-v2.json", json);
     if (fs.existsSync(path.dirname(MEDIA_DIR))) {
       fs.mkdirSync(MEDIA_DIR, { recursive: true });
       fs.writeFileSync(outPath, json);

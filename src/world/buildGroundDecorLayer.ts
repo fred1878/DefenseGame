@@ -4,7 +4,7 @@ import {
   GROUND_DECOR_DISPLAY,
   GROUND_TILE_SIZE,
 } from "../content/assets";
-import { worldDisplayPx } from "../core/worldPixelScale";
+import { worldDisplayPx } from "../config/worldScale";
 import {
   groundDecorJitter,
   groundDecorShouldPlace,

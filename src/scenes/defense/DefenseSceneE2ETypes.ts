@@ -1,19 +1,9 @@
 import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
-import type { EnemyDef } from "../../core/DataStore";
-import type { EndlessRunSelection } from "../../core/defenseRunMode";
-import type { SpellCastController } from "../../combat/SpellCastController";
-import type { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
-import type { DefenseTargeting } from "./DefenseTargeting";
-import type { EnemyInstance } from "../../entities/Enemy";
-import type { PlayerProjectile } from "../../entities/Projectile";
-import type { Player } from "../../entities/Player";
-import type { VirtualStick } from "../../input/VirtualStick";
-import type { SaveGame } from "../../core/saveTypes";
-import type { SpellBar } from "../../ui/SpellBar";
-import type { TouchButtonHandle } from "../../ui/touchButton";
-import type { defenseMinimapLayout } from "../../ui/defenseMinimap";
-import type { SafeInsets } from "../../ui/screenLayout";
+import type { EnemyDef } from "../../core/data/DataStore";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
+import type { defenseMinimapLayout } from "../../ui/hud/defenseMinimap";
+import type { DefenseRunState } from "./DefenseRunState";
 
 export type DefenseObstacleBumpCardinal = "north" | "south" | "east" | "west";
 
@@ -26,32 +16,18 @@ export type DefenseObstacleBumpProbe = {
 };
 
 /**
- * Scene surface required by Playwright / `installE2E` hooks.
- * Intentionally wider than public gameplay API — refactor PR1 (REFACTOR_PLAN).
+ * Scene surface required by Playwright / `installE2E` hooks. DefenseScene
+ * satisfies this structurally (no cast): per-run state lives on `run`.
  */
 export type DefenseSceneE2eDelegate = Phaser.Scene & {
-  readonly player: Player;
-  readonly stick: VirtualStick;
-  readonly projectiles: PlayerProjectile[];
-  readonly wallHp: number;
-  readonly save: SaveGame;
+  readonly run: DefenseRunState;
   readonly attackButton: Phaser.GameObjects.Container;
   readonly modeToggle: { container: Phaser.GameObjects.Container };
   readonly autoToggle: { container: Phaser.GameObjects.Container };
-  readonly spellBar: SpellBar;
-  readonly spellCaster: SpellCastController;
   readonly debugBtn: TouchButtonHandle;
-  readonly potionBtn?: TouchButtonHandle;
-  readonly bombBtn?: TouchButtonHandle;
-  readonly autoAttackEnabled: boolean;
-  spawnPlanComplete: boolean;
-  readonly nightEnded: boolean;
-  enemies: EnemyInstance[];
-  readonly returnToTownBtn: TouchButtonHandle | null;
-  readonly leaveEndlessBtn: TouchButtonHandle | null;
-  readonly endlessSelections: EndlessRunSelection[] | null;
-  readonly obstacleGroup: Phaser.Physics.Arcade.StaticGroup;
-  readonly obstacleBlockers: import("../../config/defense").DefenseObstacleRect[];
+  readonly potionBtn?: TouchButtonHandle | undefined;
+  readonly bombBtn?: TouchButtonHandle | undefined;
+  readonly minimapLayout: ReturnType<typeof defenseMinimapLayout>;
 
   spawnEnemyAt(
     x: number,
@@ -66,10 +42,4 @@ export type DefenseSceneE2eDelegate = Phaser.Scene & {
   endNight(won: boolean): void;
   endEndlessRun(reason: "quit" | "player" | "wall"): void;
   isEndlessMode(): boolean;
-  readonly endlessInfiniteHp: boolean;
-  readonly safe: SafeInsets;
-  readonly minimapLayout: ReturnType<typeof defenseMinimapLayout>;
-  readonly targeting: DefenseTargeting;
-  healChannelFx: SpellHealChannelFx | null;
-  readonly registerWorldDraw: (go: Phaser.GameObjects.GameObject) => void;
 };

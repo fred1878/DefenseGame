@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import type { SaveGame } from "../src/core/saveTypes";
+import type { SaveGame } from "../src/core/save/saveTypes";
 
 /**
  * Real-fight harness (@manual, driven by `npm run sim:fights`, see
@@ -38,6 +38,8 @@ const snapshots: Snapshot[] = fs.existsSync(snapshotFile)
 const repeats = Number(process.env.WIN_MODEL_REPEATS ?? "1");
 const dataDir = process.env.WIN_MODEL_DATA_DIR ?? "";
 const fullCast = process.env.WIN_MODEL_FULL_CAST === "1";
+/** WIN_MODEL_AUTO_ATTACK=0: HUD auto attack off, so only spells do damage. */
+const autoAttack = process.env.WIN_MODEL_AUTO_ATTACK !== "0";
 
 /** Serve override data files (e.g. candidate waves.json) from `dataDir`. */
 async function routeDataOverrides(page: Page): Promise<void> {
@@ -94,24 +96,52 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
 /**
  * In-page bot, every 150ms: target the living enemy nearest the north wall.
  * Melee walks into it; ranged kites at 120–200px, stepping back north when
- * anything gets closer. Below 35% HP both back off toward the wall so the
- * auto-cast heals can land. Drinks a potion (Q) under 45% HP and throws a
- * bomb (E) when 5+ enemies are within 160px.
+ * anything gets closer. Below 35% HP both back off toward the wall. Heals
+ * need the player still, so under 70% HP the bot stops while a heal on the
+ * auto-cast bar is ready, and it never moves during a heal. Drinks a potion
+ * (Q) under 45% HP and throws a bomb (E) when 5+ enemies are within 160px.
  *
  * Full-cast mode (WIN_MODEL_FULL_CAST=1) finishes every cast: while a windup
  * or channel is running the bot holds still (no step, no retreat, so nothing
  * interrupts it), and when an auto-cast windup spell is ready with an enemy
  * close enough to target (60px melee, 200px ranged) it stops so auto-cast
  * can start it.
+ *
+ * With WIN_MODEL_AUTO_ATTACK=0 the bot turns the HUD auto attack off (the
+ * game turns it on each night) and never taps attack, so the player makes
+ * no weapon attacks; it still moves the same way.
  */
 async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
   await page.evaluate(
-    ({ attackMode, fullCast }) => {
+    ({ attackMode, fullCast, autoAttack }) => {
       const w = window as unknown as { __winModelBot?: number };
+      const isHeal = (id: string | null) =>
+        id === "heal" || id === "flash_heal";
+      const reach = attackMode === "melee" ? 60 : 200;
+      // Heals need the player still (windup / channel): stop for a ready
+      // one when hurt, never walk out of one. Full-cast also holds through
+      // every cast and stops so a ready windup spell can start.
+      const holdStill = (
+        cast: { activeSpellId: string | null; readyWindupSpellIds: string[] },
+        hpFrac: number,
+        nearestDist: number,
+      ): boolean => {
+        if (isHeal(cast.activeSpellId)) return true;
+        if (hpFrac < 0.7 && cast.readyWindupSpellIds.some(isHeal)) return true;
+        if (!fullCast) return false;
+        if (cast.activeSpellId) return true;
+        return (
+          hpFrac >= 0.35 &&
+          cast.readyWindupSpellIds.length > 0 &&
+          nearestDist < reach
+        );
+      };
       w.__winModelBot = window.setInterval(() => {
         const api = window.__DEFENSEGAME_E2E__?.api;
         if (!api || window.__DEFENSEGAME_E2E__?.scene !== "Defense") return;
         if (api.getAttackMode() !== attackMode) api.setAttackMode(attackMode);
+        if (api.getAutoAttackEnabled() !== autoAttack)
+          api.setAutoAttackEnabled(autoAttack);
         const steer = (dx: number, dy: number) => {
           const d = Math.hypot(dx, dy);
           if (d < 1) api.clearStick();
@@ -138,21 +168,9 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
           window.dispatchEvent(new KeyboardEvent("keydown", { key }));
         if (hpFrac < 0.45) press("q");
         if (enemies.filter((e) => dist(e) < 160).length >= 5) press("e");
-        if (fullCast) {
-          const cast = api.getSpellCastState();
-          if (cast.activeSpellId) {
-            api.clearStick();
-            return;
-          }
-          const reach = attackMode === "melee" ? 60 : 200;
-          if (
-            hpFrac >= 0.35 &&
-            cast.readyWindupSpellIds.length > 0 &&
-            dist(nearest) < reach
-          ) {
-            api.clearStick();
-            return;
-          }
+        if (holdStill(api.getSpellCastState(), hpFrac, dist(nearest))) {
+          api.clearStick();
+          return;
         }
         if (hpFrac < 0.35 && dist(nearest) < 160) {
           steer(me.x - nearest.x, me.y - nearest.y - 60);
@@ -168,7 +186,7 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
         else api.clearStick();
       }, 150);
     },
-    { attackMode: mode, fullCast },
+    { attackMode: mode, fullCast, autoAttack },
   );
 }
 
@@ -210,6 +228,14 @@ test.describe("win model validation @manual", () => {
         const tally = await page.evaluate(
           () => window.__DEFENSEGAME_E2E__?.api?.getCombatTally() ?? {},
         );
+        const cast = await page.evaluate(
+          () =>
+            window.__DEFENSEGAME_E2E__?.api?.getCastTally() ?? {
+              casts: {},
+              healed: 0,
+              bySource: {},
+            },
+        );
         const won = (after?.night ?? 0) > snap.night;
         const row = {
           id: snap.id,
@@ -222,8 +248,13 @@ test.describe("win model validation @manual", () => {
           lastPlayerHp: last.hp,
           lastEnemies: last.enemies,
           tally,
+          casts: cast.casts,
+          healed: Math.round(cast.healed),
+          bySource: cast.bySource,
+          bar: snap.save.spellBar.slots.filter(Boolean),
           strategy: snap.strategy ?? "balanced",
           bot: fullCast ? "full-cast" : "default",
+          autoAttack,
           seconds: Math.round((Date.now() - start) / 1000),
           trace,
         };

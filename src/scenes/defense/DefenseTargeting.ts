@@ -1,12 +1,12 @@
+import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
 import type { AttackMode } from "../../config";
-import { PLAYER_TUNING } from "../../config";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { Player } from "../../entities/Player";
 import { FOCUS_SELECT_LOCK_MS } from "../../input/inputTuning";
-import { defensePlayAreaLayout } from "../../ui/screenLayout";
-import type { SafeInsets } from "../../ui/screenLayout";
-import type { TargetIndicator } from "../../ui/TargetIndicator";
+import { defensePlayAreaLayout } from "../../ui/layout/screenLayout";
+import type { SafeInsets } from "../../ui/layout/screenLayout";
+import type { TargetIndicator } from "../../ui/hud/TargetIndicator";
 
 export type DefenseTargetingHost = {
   scene: Phaser.Scene;
@@ -42,7 +42,7 @@ export class DefenseTargeting {
     worldX: number,
     worldY: number,
   ): EnemyInstance | null {
-    const r = this.host.wu(PLAYER_TUNING.targetTapRadiusWu);
+    const r = this.host.wu(playerTuning().targetTapRadiusWu);
     let best: { e: EnemyInstance; d: number } | null = null;
     for (const e of this.host.getEnemies()) {
       if (!e.damageable.alive) continue;
@@ -117,8 +117,8 @@ export class DefenseTargeting {
     const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
     const maxR =
       mode === "melee"
-        ? this.host.wu(PLAYER_TUNING.autoAttackMeleeRange)
-        : this.host.wu(PLAYER_TUNING.autoAttackRangedRange);
+        ? this.host.wu(playerTuning().autoAttackMeleeRange)
+        : this.host.wu(playerTuning().autoAttackRangedRange);
     if (!manual && d > maxR) return null;
     return { x: e.sprite.x, y: e.sprite.y };
   }
@@ -130,8 +130,8 @@ export class DefenseTargeting {
     const py = this.host.player.sprite.y;
     const maxR =
       mode === "melee"
-        ? this.host.wu(PLAYER_TUNING.autoAttackMeleeRange)
-        : this.host.wu(PLAYER_TUNING.autoAttackRangedRange);
+        ? this.host.wu(playerTuning().autoAttackMeleeRange)
+        : this.host.wu(playerTuning().autoAttackRangedRange);
     let best: { x: number; y: number; d: number } | null = null;
     for (const e of this.host.getEnemies()) {
       if (!e.damageable.alive) continue;

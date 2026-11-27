@@ -1,3 +1,4 @@
+import type { EnemyBehaviorId } from "../../core/enemyBehaviorIds";
 import type { EnemyBehavior } from "./types";
 import { meleeChaserBehavior } from "./meleeChaser";
 import { bruiserBehavior } from "./bruiser";
@@ -10,7 +11,7 @@ import { lobberBehavior } from "./lobber";
 import { rangedHybridBehavior } from "./rangedHybrid";
 import { wardBehavior } from "./ward";
 
-const BEHAVIORS: Record<string, EnemyBehavior> = {
+const BEHAVIORS: Record<EnemyBehaviorId, EnemyBehavior> = {
   meleeChaser: meleeChaserBehavior,
   bruiser: bruiserBehavior,
   arrowRainArcher: arrowRainArcherBehavior,
@@ -23,6 +24,7 @@ const BEHAVIORS: Record<string, EnemyBehavior> = {
   ward: wardBehavior,
 };
 
-export function getEnemyBehavior(behaviorId: string): EnemyBehavior {
-  return BEHAVIORS[behaviorId] ?? meleeChaserBehavior;
+/** Behaviour ids are validated at load (`normalizeEnemyRow`), so lookup is total. */
+export function getEnemyBehavior(behaviorId: EnemyBehaviorId): EnemyBehavior {
+  return BEHAVIORS[behaviorId];
 }

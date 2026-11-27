@@ -3,8 +3,8 @@ import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
-import * as FlamestrikePvfx from "../../combat/FlamestrikePvfx";
-import * as SpellGroundAoeTelegraph from "../../combat/SpellGroundAoeTelegraph";
+import * as FlamestrikePvfx from "../../combat/fx/FlamestrikePvfx";
+import * as SpellGroundAoeTelegraph from "../../combat/fx/SpellGroundAoeTelegraph";
 import { PVFX_ANIM, PVFX_FX_ASSETS } from "../../content/combatPvfxAssets";
 import { spellById } from "../../content/spells";
 import { asScene, fakeScene } from "../../test/fakeScene";

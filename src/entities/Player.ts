@@ -1,20 +1,17 @@
+import { playerTuning } from "../config/player";
 import Phaser from "phaser";
-import {
-  DEFENSE_RENDER_DEPTH,
-  PLAYER_TUNING,
-  type AttackMode,
-} from "../config";
+import { DEFENSE_RENDER_DEPTH, type AttackMode } from "../config";
 import {
   PLAYER_TEXTURE,
   SPRITE_DISPLAY,
   type PlayerCardinal,
 } from "../content/assets";
-import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
-import { arcHitboxHitsTarget } from "../combat/Hitbox";
-import type { Damageable } from "../combat/DamageSystem";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/DamageSystem";
-import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
-import { applyEnemyKnockbackFrom } from "../combat/enemyKnockback";
+import { worldDisplayPx, worldUnit } from "../config/worldScale";
+import { arcHitboxHitsTarget } from "../combat/rules/Hitbox";
+import type { Damageable } from "../combat/rules/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/rules/DamageSystem";
+import { reapplySpriteHitFlashIfActive } from "../combat/fx/HitFlash";
+import { applyEnemyKnockbackFrom } from "../combat/rules/enemyKnockback";
 import type { EnemyInstance } from "./Enemy";
 import { cardinalFromAngle, cardinalFromDelta } from "./playerFacing";
 import {
@@ -190,14 +187,14 @@ export class Player {
 
     const isRanged = this.strikeMode() === "ranged";
     const windup = isRanged
-      ? PLAYER_TUNING.rangedWindupMs
-      : PLAYER_TUNING.meleeWindupMs;
+      ? playerTuning().rangedWindupMs
+      : playerTuning().meleeWindupMs;
     const active = isRanged
-      ? PLAYER_TUNING.rangedActiveMs
-      : PLAYER_TUNING.meleeActiveMs;
+      ? playerTuning().rangedActiveMs
+      : playerTuning().meleeActiveMs;
     const recovery = isRanged
-      ? PLAYER_TUNING.rangedRecoveryMs
-      : PLAYER_TUNING.meleeRecoveryMs;
+      ? playerTuning().rangedRecoveryMs
+      : playerTuning().meleeRecoveryMs;
 
     if (this.attackPhase === "windup" && this.phaseElapsed >= windup) {
       this.attackPhase = "active";
@@ -223,14 +220,17 @@ export class Player {
     onHit?: (enemy: EnemyInstance, damage: number) => void,
   ): void {
     if (this.strikeMode() !== "melee" || this.attackPhase !== "active") return;
-    const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
+    const arcHalf = Phaser.Math.DegToRad(playerTuning().meleeArcDeg / 2);
     for (const e of enemies) {
       if (!e.damageable.alive || this.hitEnemyIds.has(e.id)) continue;
       const hit = arcHitboxHitsTarget(
         this.sprite.x,
         this.sprite.y,
         this.meleeSwingFacingRad,
-        worldUnit(PLAYER_TUNING.meleeStrikeRangeWu, this.sprite.scene.registry),
+        worldUnit(
+          playerTuning().meleeStrikeRangeWu,
+          this.sprite.scene.registry,
+        ),
         arcHalf,
         e.sprite.x,
         e.sprite.y,
@@ -241,7 +241,7 @@ export class Player {
       );
       if (hit) {
         this.hitEnemyIds.add(e.id);
-        applyDamage(e.damageable, damage, MELEE_HIT_FLAVOR);
+        applyDamage(e.damageable, damage, MELEE_HIT_FLAVOR, "melee");
         applyEnemyKnockbackFrom(e, this.sprite.x, this.sprite.y, knockback);
         onHit?.(e, damage);
       }

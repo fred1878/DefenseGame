@@ -21,7 +21,11 @@ import type {
   StatModifier,
 } from "./gearTypes";
 
-const STAT_LABELS: Record<FlatStatId, { label: string; pct: boolean }> = {
+/** Display label + unit for each flat stat; shared by gear and talent text. */
+export const FLAT_STAT_LABELS: Record<
+  FlatStatId,
+  { label: string; pct: boolean }
+> = {
   meleeDamage: { label: "Melee damage", pct: false },
   rangedDamage: { label: "Ranged damage", pct: false },
   damagePct: { label: "Weapon damage", pct: true },
@@ -98,7 +102,7 @@ export function modifierLabel(m: StatModifier): string {
   if (m.stat === "cooldownPct") {
     return `${signed(-m.value)}% Spell cooldowns`;
   }
-  const meta = STAT_LABELS[m.stat];
+  const meta = FLAT_STAT_LABELS[m.stat];
   return `${signed(m.value)}${meta.pct ? "%" : ""} ${meta.label}`;
 }
 

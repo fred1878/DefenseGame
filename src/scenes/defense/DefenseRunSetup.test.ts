@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { DataStore } from "../../core/DataStore";
+import type { DataStore } from "../../core/data/DataStore";
 import { DEFENSE_RUN_MODE_KEY } from "../../core/defenseRunMode";
-import { createNewSave } from "../../core/GameState";
+import { createNewSave } from "../../core/save/GameState";
 import {
   ensureDefenseSaveSpellBar,
   resolveDefenseRunSetup,

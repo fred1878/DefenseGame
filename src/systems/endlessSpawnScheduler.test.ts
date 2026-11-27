@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
-  clampEndlessConcurrent,
   countLivingWithDefId,
   endlessSpawnDeficit,
-  ENDLESS_CONCURRENT_MAX,
-  ENDLESS_CONCURRENT_MIN,
   planEndlessSpawns,
 } from "./endlessSpawnScheduler";
+import {
+  clampEndlessConcurrent,
+  ENDLESS_CONCURRENT_MAX,
+  ENDLESS_CONCURRENT_MIN,
+} from "../core/endlessLimits";
 
 describe("clampEndlessConcurrent", () => {
   it("clamps to 1–99", () => {

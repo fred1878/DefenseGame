@@ -1,12 +1,12 @@
 import Phaser from "phaser";
-import { scaleUiY } from "../../core/displayScale";
-import { hitAreaLocalPointToScreen } from "../touchButton";
+import { scaleUiY } from "../../config/uiScale";
+import { hitAreaLocalPointToScreen } from "../touch/touchButton";
 import {
   endlessRowCenterOverlapsViewport,
   endlessRowVisibleScreenYBand,
   pickEndlessEnemyRowAtScreen,
-} from "../endlessModePanelPick";
-import { layoutRosterScrollbar } from "../rosterPanelShared";
+} from "../panels/endlessModePanelPick";
+import { layoutRosterScrollbar } from "../panels/rosterPanelShared";
 import {
   LIST_VIEWPORT_TOP_HIT_SLOP_PX,
   type EndlessListLayout,

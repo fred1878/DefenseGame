@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import itemsRaw from "../../public/data/items.json";
-import { createNewSave } from "../core/GameState";
-import { normalizeItems } from "../core/normalizeItems";
-import type { SaveGame } from "../core/saveTypes";
+import { createNewSave } from "../core/save/GameState";
+import { normalizeItems } from "../core/data/normalizeItems";
+import type { SaveGame } from "../core/save/saveTypes";
 import {
   describeRequest,
   fillBuyRequest,

@@ -1,6 +1,7 @@
+import type { EnemyPeerAlly } from "./types";
 import { describe, expect, it, vi } from "vitest";
-import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createEnemyNav } from "../brainShared";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
@@ -10,10 +11,14 @@ import {
   wardBehavior,
   wardPostHoldBroken,
   wardScreenPoint,
-  WARD_POST_BREAK_MOVE_PX,
-  WARD_POST_FACING_SLACK_RAD,
-  WARD_POST_GRACE_MS,
 } from "./ward";
+import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
+
+const SHIPPED_WARD = shippedEnemyCombat("ward").ward!;
+const WARD_POST_BREAK_MOVE_PX = SHIPPED_WARD.postBreakMoveWu!;
+const WARD_POST_GRACE_MS = SHIPPED_WARD.postGraceMs!;
+const WARD_POST_FACING_SLACK_RAD =
+  (SHIPPED_WARD.postFacingSlackDeg! * Math.PI) / 180;
 
 function freshWardExtra(): EnemyBehaviorExtra {
   return {
@@ -41,7 +46,7 @@ function freshWardExtra(): EnemyBehaviorExtra {
 
 describe("ward behavior helpers", () => {
   it("picks the nearest ranged ally within protect radius", () => {
-    const allies = [
+    const allies: EnemyPeerAlly[] = [
       { id: "a", behavior: "meleeChaser", defId: "grunt", x: 50, y: 0 },
       { id: "b", behavior: "javelineer", defId: "javelineer", x: 80, y: 0 },
       {
@@ -93,6 +98,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     expect(decision.hold).toBe(true);
     expect(decision.skipReplan).toBe(true);
@@ -112,6 +118,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     const decision = evaluateWardPostHold(
       extra,
@@ -124,6 +131,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     expect(decision.hold).toBe(true);
     expect(
@@ -144,6 +152,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     const decision = evaluateWardPostHold(
       extra,
@@ -156,6 +165,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     expect(decision.hold).toBe(false);
     expect(decision.skipReplan).toBe(false);
@@ -175,6 +185,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     const decision = evaluateWardPostHold(
       extra,
@@ -187,6 +198,7 @@ describe("ward post hold", () => {
       60,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     expect(decision.hold).toBe(false);
   });
@@ -204,6 +216,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     extra.wardPostGraceMs = 1;
     const decision = evaluateWardPostHold(
@@ -217,6 +230,7 @@ describe("ward post hold", () => {
       0,
       0,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     expect(decision.hold).toBe(true);
     expect(decision.skipReplan).toBe(true);
@@ -486,6 +500,7 @@ describe("ward helper edge cases", () => {
       0,
       80,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     evaluateWardPostHold(
       extra,
@@ -498,6 +513,7 @@ describe("ward helper edge cases", () => {
       0,
       80,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     const dropped = evaluateWardPostHold(
       extra,
@@ -510,6 +526,7 @@ describe("ward helper edge cases", () => {
       0,
       80,
       WARD_POST_BREAK_MOVE_PX,
+      WARD_POST_GRACE_MS,
     );
     expect(dropped).toEqual({
       hold: false,

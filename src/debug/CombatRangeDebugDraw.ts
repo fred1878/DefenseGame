@@ -1,17 +1,19 @@
 import type Phaser from "phaser";
+import { PALETTE } from "../ui/theme/uiPalette";
+import { drawDebugDisc, drawDebugSegment, drawDebugWedge } from "./debugShapes";
 
-const MELEE_ACTIVATION_FILL = 0xfff59d;
+const MELEE_ACTIVATION_FILL = PALETTE.materialYellow200;
 const MELEE_ACTIVATION_FILL_ALPHA = 0.07;
-const MELEE_ACTIVATION_LINE = 0xfff176;
+const MELEE_ACTIVATION_LINE = PALETTE.materialYellow300;
 const MELEE_ACTIVATION_LINE_ALPHA = 0.52;
-const MELEE_MAX_RANGE_FILL = 0xffb74d;
+const MELEE_MAX_RANGE_FILL = PALETTE.materialOrange300;
 const MELEE_MAX_RANGE_FILL_ALPHA = 0.07;
-const MELEE_MAX_RANGE_LINE = 0xff9800;
+const MELEE_MAX_RANGE_LINE = PALETTE.materialOrange500;
 const MELEE_MAX_RANGE_LINE_ALPHA = 0.52;
-const PROJECTILE_BLAST_FILL = 0xd946ef;
+const PROJECTILE_BLAST_FILL = PALETTE.fuchsia500;
 const PROJECTILE_BLAST_ALPHA = 0.08;
-const PROJECTILE_LINE = 0xc026d3;
-const CHARGE_DASH_LINE = 0x67e8f9;
+const PROJECTILE_LINE = PALETTE.fuchsia600;
+const CHARGE_DASH_LINE = PALETTE.cyan300;
 const CHARGE_DASH_LINE_ALPHA = 0.8;
 
 /** Melee / attack reach rings and telegraph arcs — separate from hitbox overlay. */
@@ -35,17 +37,23 @@ export class CombatRangeDebugDraw {
   }
 
   drawMeleeActivationRange(x: number, y: number, radius: number): void {
-    this.g.fillStyle(MELEE_ACTIVATION_FILL, MELEE_ACTIVATION_FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.5, MELEE_ACTIVATION_LINE, MELEE_ACTIVATION_LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: MELEE_ACTIVATION_FILL,
+      fillAlpha: MELEE_ACTIVATION_FILL_ALPHA,
+      lineWidth: 1.5,
+      line: MELEE_ACTIVATION_LINE,
+      lineAlpha: MELEE_ACTIVATION_LINE_ALPHA,
+    });
   }
 
   drawMeleeMaxRange(x: number, y: number, radius: number): void {
-    this.g.fillStyle(MELEE_MAX_RANGE_FILL, MELEE_MAX_RANGE_FILL_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.5, MELEE_MAX_RANGE_LINE, MELEE_MAX_RANGE_LINE_ALPHA);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: MELEE_MAX_RANGE_FILL,
+      fillAlpha: MELEE_MAX_RANGE_FILL_ALPHA,
+      lineWidth: 1.5,
+      line: MELEE_MAX_RANGE_LINE,
+      lineAlpha: MELEE_MAX_RANGE_LINE_ALPHA,
+    });
   }
 
   drawMeleeArc(
@@ -57,26 +65,24 @@ export class CombatRangeDebugDraw {
   ): void {
     const start = facing - arcHalfRad;
     const end = facing + arcHalfRad;
-    const fill = 0xffb74d;
-    this.g.fillStyle(fill, 0.12);
-    this.g.beginPath();
-    this.g.moveTo(originX, originY);
-    this.g.arc(originX, originY, range, start, end, false);
-    this.g.closePath();
-    this.g.fillPath();
-    this.g.lineStyle(1.5, MELEE_MAX_RANGE_LINE, MELEE_MAX_RANGE_LINE_ALPHA);
-    this.g.beginPath();
-    this.g.moveTo(originX, originY);
-    this.g.arc(originX, originY, range, start, end, false);
-    this.g.closePath();
-    this.g.strokePath();
+    const fill = PALETTE.materialOrange300;
+    drawDebugWedge(this.g, originX, originY, range, start, end, {
+      fill: fill,
+      fillAlpha: 0.12,
+      lineWidth: 1.5,
+      line: MELEE_MAX_RANGE_LINE,
+      lineAlpha: MELEE_MAX_RANGE_LINE_ALPHA,
+    });
   }
 
   drawProjectileBlastRadius(x: number, y: number, radius: number): void {
-    this.g.fillStyle(PROJECTILE_BLAST_FILL, PROJECTILE_BLAST_ALPHA);
-    this.g.fillCircle(x, y, radius);
-    this.g.lineStyle(1.25, PROJECTILE_LINE, 0.75);
-    this.g.strokeCircle(x, y, radius);
+    drawDebugDisc(this.g, x, y, radius, {
+      fill: PROJECTILE_BLAST_FILL,
+      fillAlpha: PROJECTILE_BLAST_ALPHA,
+      lineWidth: 1.25,
+      line: PROJECTILE_LINE,
+      lineAlpha: 0.75,
+    });
   }
 
   drawChargeDashLine(
@@ -85,10 +91,15 @@ export class CombatRangeDebugDraw {
     toX: number,
     toY: number,
   ): void {
-    this.g.lineStyle(2, CHARGE_DASH_LINE, CHARGE_DASH_LINE_ALPHA);
-    this.g.beginPath();
-    this.g.moveTo(fromX, fromY);
-    this.g.lineTo(toX, toY);
-    this.g.strokePath();
+    drawDebugSegment(
+      this.g,
+      fromX,
+      fromY,
+      toX,
+      toY,
+      2,
+      CHARGE_DASH_LINE,
+      CHARGE_DASH_LINE_ALPHA,
+    );
   }
 }

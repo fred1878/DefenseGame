@@ -3,7 +3,11 @@ import {
   TOWN_ENDLESS_SETUP_SCENE_KEY,
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
 } from "../scenes/town/townSetupSceneLifecycle";
-import { activeTownUiHost, e2eReportsTownScene } from "./townUiHost";
+import {
+  activeEndlessSetupScene,
+  activeTownUiHost,
+  e2eReportsTownScene,
+} from "./townUiHost";
 
 function gameWith(
   scenes: Record<string, { isActive: boolean; isPaused?: boolean }>,
@@ -62,5 +66,26 @@ describe("activeTownUiHost", () => {
       ),
     ).toBe(true);
     expect(e2eReportsTownScene(gameWith({}))).toBe(false);
+  });
+});
+
+describe("activeEndlessSetupScene", () => {
+  it("returns the endless setup only when it is the active host", () => {
+    expect(
+      activeEndlessSetupScene(
+        gameWith({
+          [TOWN_ENDLESS_SETUP_SCENE_KEY]: { isActive: true },
+          Town: { isActive: true },
+        }),
+      )?.scene.key,
+    ).toBe(TOWN_ENDLESS_SETUP_SCENE_KEY);
+    expect(
+      activeEndlessSetupScene(gameWith({ Town: { isActive: true } })),
+    ).toBeNull();
+    expect(
+      activeEndlessSetupScene(
+        gameWith({ [TOWN_WAVE_PLANNER_SETUP_SCENE_KEY]: { isActive: true } }),
+      ),
+    ).toBeNull();
   });
 });

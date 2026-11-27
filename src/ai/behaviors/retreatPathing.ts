@@ -1,5 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import { DEFENSE_MAP } from "../../config";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import {
   clampToDefensePlayBounds,
   defensePlayBoundsInset,
@@ -14,8 +15,8 @@ import {
   nearestWalkable,
   worldToCell,
 } from "../../pathfinding/grid";
-import type { EnemyNavState } from "../EnemyBrain";
-import { replanEnemyPath } from "../EnemyBrain";
+import type { EnemyNavState } from "../brainShared";
+import { replanEnemyPath } from "../brainShared";
 import {
   applyChaseVelocity,
   applyDirectVelocity,
@@ -23,9 +24,10 @@ import {
   setEnemyChaseVelocity,
 } from "./movement";
 
-const RETREAT_PROBE_DIST_PX = 44;
-/** Default flee goal distance when callers omit a band-specific target. */
-const DEFAULT_RETREAT_GOAL_WU = 96;
+/** Shared retreat steering (`enemy-ai.json` `retreat`). */
+function retreatTune() {
+  return tuning("enemyAi").retreat;
+}
 
 export function retreatGoalFromThreat(
   ex: number,
@@ -128,7 +130,7 @@ export function applyTangentSlideAwayFromThreat(
       ey,
       awayX,
       awayY,
-      RETREAT_PROBE_DIST_PX,
+      retreatTune().probeDistPx,
       peerAgents,
       agentClearancePx,
     )
@@ -147,7 +149,7 @@ export function applyTangentSlideAwayFromThreat(
     ey,
     t1x,
     t1y,
-    RETREAT_PROBE_DIST_PX,
+    retreatTune().probeDistPx,
     peerAgents,
     agentClearancePx,
   );
@@ -157,17 +159,18 @@ export function applyTangentSlideAwayFromThreat(
     ey,
     t2x,
     t2y,
-    RETREAT_PROBE_DIST_PX,
+    retreatTune().probeDistPx,
     peerAgents,
     agentClearancePx,
   );
 
+  const sidestepMul = retreatTune().sidestepSpeedMul;
   if (t1ok) {
-    applyDirectVelocity(enemy, t1x, t1y, speedMul * 0.85);
+    applyDirectVelocity(enemy, t1x, t1y, speedMul * sidestepMul);
     return true;
   }
   if (t2ok) {
-    applyDirectVelocity(enemy, t2x, t2y, speedMul * 0.85);
+    applyDirectVelocity(enemy, t2x, t2y, speedMul * sidestepMul);
     return true;
   }
 
@@ -223,7 +226,7 @@ export function applyRetreatPathing(opts: ApplyRetreatPathingOpts): void {
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene?.registry;
   const retreatGoalDistPx =
-    opts.retreatGoalDistPx ?? worldUnit(DEFAULT_RETREAT_GOAL_WU, reg);
+    opts.retreatGoalDistPx ?? worldUnit(retreatTune().defaultGoalWu, reg);
   const agentClearancePx = reg
     ? worldUnit(enemyPathClearancePx(enemy.defId), reg)
     : grid.clearancePx;
@@ -285,7 +288,7 @@ export function applyRetreatPathing(opts: ApplyRetreatPathingOpts): void {
       const w = Math.min(1, Math.max(0, blend.weight));
       const bLen = Math.hypot(blend.x, blend.y);
       if (bLen > 1e-6) {
-        const blendReach = worldUnit(72, reg);
+        const blendReach = worldUnit(retreatTune().blendReachWu, reg);
         const bx = (blend.x / bLen) * blendReach;
         const by = (blend.y / bLen) * blendReach;
         moveX = ex + (moveX - ex) * (1 - w) + bx * w;

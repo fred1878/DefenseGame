@@ -6,11 +6,11 @@ Playwright **does not** compare committed PNGs in CI. Input- and layout-based sp
 
 | Command | Scenes |
 |---------|--------|
-| `npm run build:e2e && node scripts/capture-ui-visual.mjs` | Town + Defense full viewport |
-| `npm run build:e2e && node scripts/capture-gear-panels.mjs` | Blacksmith, Inventory, Talents panels |
-| `npm run build:e2e && node scripts/capture-defense-hud.mjs` | Defense only |
+| `npm run build:e2e && node scripts/capture/capture-ui-visual.mjs` | Town + Defense full viewport |
+| `npm run build:e2e && node scripts/capture/capture-gear-panels.mjs` | Blacksmith, Inventory, Talents panels |
+| `npm run build:e2e && node scripts/capture/capture-defense-hud.mjs` | Defense only |
 
-Implementation is shared in `scripts/lib/capture-review.mjs` and `scripts/lib/capture-preview.mjs`.
+Implementation is shared in `scripts/capture/lib/capture-review.mjs` and `scripts/capture/lib/capture-preview.mjs`.
 
 ## Output contract
 

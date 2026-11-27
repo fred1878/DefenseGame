@@ -1,5 +1,5 @@
-import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
-import { cancelEnemyMeleeFxTimer } from "../../combat/enemyMeleeFxSchedule";
+import { destroyArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
+import { cancelEnemyMeleeFxTimer } from "../../combat/fx/enemyMeleeFxSchedule";
 import type { EnemyInstance } from "../Enemy";
 import { clearEnemyAttackCommit } from "./attackCommit";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TOWN_GROWTH_PLACEHOLDER } from "../../config/townGrowth";
-import type { TownBuildingDef } from "../../core/townBuildingTypes";
+import type { TownBuildingDef } from "../../core/data/townBuildingTypes";
 import {
   townBuildingArtTier,
   townGrowthScore,

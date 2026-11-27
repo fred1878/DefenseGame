@@ -1,33 +1,20 @@
-import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
-import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
-import { worldUnit } from "../../core/worldPixelScale";
+import {
+  chaseToward,
+  nextPathMoveTarget,
+  replanApproachPathIfDue,
+} from "./shared/pathApproach";
+import { tuning } from "../../tuning/gameTuning";
+import { DEFENSE_MAP } from "../../config";
+import { playerAggroRadiusWu } from "../../combat/rules/shadowformRuntime";
+import { worldUnit } from "../../config/worldScale";
 import { hasLineOfSight } from "../../pathfinding/los";
-import {
-  pathingPeerAgents,
-  replanEnemyPath,
-  resolveEnemyTarget,
-  wallPathingPlayerClearancePx,
-} from "../EnemyBrain";
+import { resolveEnemyTarget } from "../brainShared";
 import type { EnemyBehavior } from "./types";
-import {
-  applyChaseVelocity,
-  applyDirectVelocity,
-  playerChaseVelocityOpts,
-  setEnemyChaseVelocity,
-} from "./movement";
-import { spawnChargerChargeStartSmokeFx } from "../../combat/ChargerChargeSmokeFx";
+import { applyDirectVelocity, setEnemyChaseVelocity } from "./movement";
+import { spawnChargerChargeStartSmokeFx } from "../../combat/fx/ChargerChargeSmokeFx";
 
 export const chargerBehavior: EnemyBehavior = (ctx) => {
-  const {
-    enemy,
-    nav,
-    grid,
-    playerX,
-    playerY,
-    deltaMs,
-    peerAgents,
-    peerAllies,
-  } = ctx;
+  const { enemy, nav, grid, playerX, playerY, deltaMs } = ctx;
   const ex = enemy.sprite.x;
   const ey = enemy.sprite.y;
   const reg = enemy.sprite.scene.registry;
@@ -35,9 +22,9 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
   const extra = enemy.behaviorExtra;
   const waypointRadius = worldUnit(DEFENSE_MAP.pathWaypointRadius, reg);
 
-  if (extra.chargeActiveMs > 0) {
+  if (tune && extra.chargeActiveMs > 0) {
     extra.chargeActiveMs = Math.max(0, extra.chargeActiveMs - deltaMs);
-    const dashMul = tune?.dashSpeedMul ?? 2.2;
+    const dashMul = tune.dashSpeedMul;
     applyDirectVelocity(
       enemy,
       extra.chargeDashDirX,
@@ -92,33 +79,22 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     playerX,
     playerY,
     deltaMs,
-    worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
+    worldUnit(playerAggroRadiusWu(tuning("enemyAi").playerAggroRadiusWu), reg),
     ctx.objective ?? "defendWall",
     reg,
   );
   const goal = { x: resolved.goalX, y: resolved.goalY };
   nav.replanMs = Math.max(0, nav.replanMs - deltaMs);
 
-  if (nav.replanMs <= 0 || nav.path.length === 0) {
-    replanEnemyPath(
-      nav,
-      grid,
-      ex,
-      ey,
-      goal.x,
-      goal.y,
-      waypointRadius,
-      pathingPeerAgents(
-        peerAgents,
-        resolved.targetKind,
-        playerX,
-        playerY,
-        wallPathingPlayerClearancePx(enemy.sprite.scene.registry),
-      ),
-      enemy,
-    );
-    nav.replanMs = DEFENSE_MAP.pathReplanMs;
-  }
+  replanApproachPathIfDue(
+    ctx,
+    ex,
+    ey,
+    goal.x,
+    goal.y,
+    resolved.targetKind,
+    waypointRadius,
+  );
 
   const dist = Math.hypot(playerX - ex, playerY - ey);
   if (
@@ -145,35 +121,8 @@ export const chargerBehavior: EnemyBehavior = (ctx) => {
     };
   }
 
-  let moveX = goal.x;
-  let moveY = goal.y;
-  if (nav.path.length > 0 && nav.pathIndex < nav.path.length) {
-    const wp = nav.path[nav.pathIndex]!;
-    const d = Math.hypot(wp.x - ex, wp.y - ey);
-    if (d <= waypointRadius) {
-      nav.pathIndex += 1;
-    }
-    const nextWp = nav.path[nav.pathIndex];
-    if (nextWp) {
-      moveX = nextWp.x;
-      moveY = nextWp.y;
-    }
-  }
-
-  applyChaseVelocity(
-    enemy,
-    moveX,
-    moveY,
-    1,
-    playerChaseVelocityOpts(enemy, {
-      nav,
-      deltaMs,
-      targetKind: resolved.targetKind,
-      playerX,
-      playerY,
-      peerAllies,
-    }),
-  );
+  const move = nextPathMoveTarget(nav, ex, ey, goal.x, goal.y, waypointRadius);
+  chaseToward(ctx, move, 1, resolved.targetKind);
 
   return { targetX: goal.x, targetY: goal.y, targetKind: resolved.targetKind };
 };

@@ -1,5 +1,5 @@
 import { TOWN_GROWTH_PLACEHOLDER } from "../../config/townGrowth";
-import type { TownBuildingDef } from "../../core/townBuildingTypes";
+import type { TownBuildingDef } from "../../core/data/townBuildingTypes";
 import type { TownStageIndex } from "./townIsoTypes";
 
 type Levels = Readonly<Record<string, number>>;
