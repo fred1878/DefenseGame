@@ -1,0 +1,35 @@
+{
+  "cycles": [
+    "ai/EnemyBrain.ts <-> ai/behaviors/arrowRainArcher.ts <-> ai/behaviors/bruiser.ts <-> ai/behaviors/charger.ts <-> ai/behaviors/index.ts <-> ai/behaviors/javelineer.ts <-> ai/behaviors/lobber.ts <-> ai/behaviors/meleeChaser.ts <-> ai/behaviors/rangedHybrid.ts <-> ai/behaviors/rangedKite.ts <-> ai/behaviors/retreatPathing.ts <-> ai/behaviors/stationaryRanged.ts <-> ai/behaviors/wallSiege.ts <-> ai/behaviors/ward.ts",
+    "config/defense.ts <-> core/worldPixelScale.ts <-> entities/entityPhysics.ts <-> world/defenseObstacleBlocker.ts",
+    "content/spellBarAutoCast.ts <-> content/spells.ts",
+    "core/normalizeConsumables.ts <-> gear/consumables.ts",
+    "ui/defenseMinimap.ts <-> ui/fpsHudLayout.ts <-> ui/screenLayout.ts",
+    "ui/touchButtonPress.ts <-> ui/uiRoundedRect.ts"
+  ],
+  "layerViolations": [
+    "config-is-constants-only: config/defense.ts -> core/worldPixelScale.ts",
+    "config-is-constants-only: config/defense.ts -> entities/entityPhysics.ts",
+    "config-is-constants-only: config/defenseMaps.ts -> core/normalizeDefenseMaps.ts",
+    "config-is-constants-only: config/shadowformRuntime.ts -> gear/gearRuntime.ts",
+    "config-is-constants-only: config/spellBar.ts -> core/displayScale.ts",
+    "core-below-presentation: core/GameAssetLoader.ts -> ui/icons/uiIcons.ts",
+    "core-below-presentation: core/GameState.ts -> e2e/e2eMode.ts",
+    "core-below-presentation: core/defenseRunMode.ts -> systems/endlessSpawnScheduler.ts",
+    "core-below-presentation: core/defenseRunMode.ts -> systems/wavePlannerTiming.ts",
+    "core-below-presentation: core/normalizePlayer.ts -> systems/endlessSpawnScheduler.ts",
+    "core-below-presentation: core/saveSlots.ts -> e2e/e2eMode.ts",
+    "core-below-presentation: core/worldPixelScale.ts -> world/defenseObstacleBlocker.ts",
+    "no-debug-in-domain: gear/shops.ts -> debug/debugEconomy.ts",
+    "no-debug-in-domain: systems/townBuildingMenu.ts -> debug/debugEconomy.ts",
+    "no-debug-in-domain: talents/talentLogic.ts -> debug/debugEconomy.ts",
+    "no-e2e-in-domain-or-ui: combat/MeleeSwipeFx.ts -> e2e/e2eGlobal.ts",
+    "no-e2e-in-domain-or-ui: combat/MeleeSwipeFx.ts -> e2e/e2eMode.ts",
+    "no-e2e-in-domain-or-ui: core/GameState.ts -> e2e/e2eMode.ts",
+    "no-e2e-in-domain-or-ui: core/saveSlots.ts -> e2e/e2eMode.ts",
+    "rules-not-ui: gear/nightLootSummary.ts -> scenes/defense/nightEndMessaging.ts",
+    "rules-not-ui: systems/TownBuildings.ts -> input/setContainerInputEnabled.ts",
+    "rules-not-ui: systems/TownBuildings.ts -> ui/touchButton.ts",
+    "rules-not-ui: systems/TownBuildings.ts -> ui/uiTextStyle.ts"
+  ]
+}

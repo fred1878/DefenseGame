@@ -107,6 +107,8 @@ jobs:
         run: npm run lint
       - name: Dead code (knip)
         run: npm run knip
+      - name: Architecture (import cycles + layer rules)
+        run: npm run check:arch
       - run: npm run test:coverage
       - name: Upload coverage report
         if: always()

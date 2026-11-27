@@ -15,10 +15,11 @@ BootScene (load `public/data/*.json` + assets, restore save) → TownScene (upgr
 ```bash
 npm install
 npm run dev              # Vite, http://127.0.0.1:5173
-npm run verify           # typecheck + lint + knip + vitest (default agent check)
+npm run verify           # typecheck + lint + knip + check:arch + vitest (default agent check)
 npm run typecheck        # tsc: src, e2e, configs
 npm run lint             # Biome check: lint + formatting; warnings fail too (CI gate)
 npm run knip             # unused files/exports/deps (CI gate)
+npm run check:arch       # import cycles + layer rules vs scripts/data/architecture-baseline.json (CI gate)
 npm run format           # Biome formatter (fix what `lint` reports as unformatted)
 npm run test             # Vitest only
 npm run test:coverage    # Vitest + coverage thresholds

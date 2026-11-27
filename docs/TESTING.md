@@ -4,9 +4,10 @@
 
 | Command | What it runs |
 |---------|----------------|
-| `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → Vitest |
+| `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → `check:arch` → Vitest |
 | `npm run lint` | `biome check`: lint + formatting; warnings fail too (`--error-on-warnings`) |
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
+| `npm run check:arch` | Runtime import cycles + folder layer rules in `src/` (`scripts/check-architecture.mjs`). Fails on new debt and on fixed debt still listed in `scripts/data/architecture-baseline.json`; refresh with `node scripts/check-architecture.mjs --update-baseline` after removing debt. Never add entries by hand. |
 | `npm run format` | Biome formatter; run it when `lint` reports formatting |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
@@ -17,7 +18,7 @@ The **`e2e`** job **needs `verify`** (they run sequentially, not in parallel). E
 
 | Job | Steps |
 |-----|--------|
-| `verify` | Always: `typecheck`, `lint`, `knip`, `test:coverage`, then `build:app` (Vite build without a second `tsc`; production, or E2E build when `run_e2e`) |
+| `verify` | Always: `typecheck`, `lint`, `knip`, `check:arch`, `test:coverage`, then `build:app` (Vite build without a second `tsc`; production, or E2E build when `run_e2e`) |
 | `changes` | Path filter + (on `main` only) conflict-merge detection → `run_e2e` |
 | `e2e` | Starts after `verify`. When `run_e2e`: downloads the e2e `dist` artifact, Playwright (Chromium). Otherwise one skip step (job still green). |
 
