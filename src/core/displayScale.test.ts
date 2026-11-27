@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GAME } from "../config/game";
-import { scaleUiX, scaleUiY, uiScaleX, uiScaleY } from "./displayScale";
+import { scaleUiX, scaleUiY, uiScaleX, uiScaleY } from "../config/uiScale";
 
 describe("displayScale", () => {
   it("uses 540×1200 game canvas (9:20)", () => {

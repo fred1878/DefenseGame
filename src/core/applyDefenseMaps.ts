@@ -2,8 +2,8 @@ import {
   normalizeDefenseMaps,
   resolveDefenseMap,
   type DefenseMapsFileInput,
-} from "../core/normalizeDefenseMaps";
-import { applyDefenseMapLayout } from "./defense";
+} from "./normalizeDefenseMaps";
+import { applyDefenseMapLayout } from "../config/defense";
 
 /** Load map registry from JSON and apply its default layout. */
 export function applyDefenseMaps(

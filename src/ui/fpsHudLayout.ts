@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { defenseMinimapLayout } from "./defenseMinimap";
 import type { SafeInsets } from "./screenLayoutCore";
 

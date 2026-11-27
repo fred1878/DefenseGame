@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { GAME } from "../config";
 import type { SaveGame } from "../core/saveTypes";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import {
   formatSaveSlotMeta,
   listSaveSlots,

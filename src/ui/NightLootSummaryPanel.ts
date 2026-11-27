@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { GAME } from "../config";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { NightLootSummary } from "../gear/nightLootSummary";
 import { isNightSummaryReturnKey } from "../gear/nightLootSummary";
 import { runDefenseUiFactory } from "../world/defenseWorldAddHook";

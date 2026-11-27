@@ -7,7 +7,7 @@
 | `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → `check:arch` → Vitest |
 | `npm run lint` | `biome check`: lint + formatting; warnings fail too (`--error-on-warnings`) |
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
-| `npm run check:arch` | Runtime import cycles + folder layer rules in `src/` (`scripts/check-architecture.mjs`). Fails on new debt and on fixed debt still listed in `scripts/data/architecture-baseline.json`; refresh with `node scripts/check-architecture.mjs --update-baseline` after removing debt. Never add entries by hand. |
+| `npm run check:arch` | Runtime import cycles + folder layer rules in `src/` (`scripts/check-architecture.mjs`). Fails on new debt and on fixed debt still listed in `scripts/data/architecture-baseline.json`; refresh with `node scripts/check-architecture.mjs --update-baseline` after removing debt. The baseline has been **empty** since refactor phase P1 and `--update-baseline` can only remove entries, so any new cycle or layer violation fails the gate. |
 | `npm run format` | Biome formatter; run it when `lint` reports formatting |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |

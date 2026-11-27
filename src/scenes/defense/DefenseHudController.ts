@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
 import type { SaveGame } from "../../core/saveTypes";
-import { scaleUiX } from "../../core/displayScale";
+import { scaleUiX } from "../../config/uiScale";
 import { UI_TEXTURE } from "../../content/assets";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { VirtualStick } from "../../input/VirtualStick";

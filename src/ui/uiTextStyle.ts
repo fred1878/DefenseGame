@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
-import { scaleUiX, scaleUiY, uiTextResolution } from "../core/displayScale";
+import { uiTextResolution } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 
 /** Clean sans stack for HUD / overlay text (avoid monospace / legacy canvas defaults). */
 export const UI_FONT_FAMILY =

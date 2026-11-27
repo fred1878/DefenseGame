@@ -17,7 +17,7 @@ import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreen
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
 import { createTouchButton } from "../ui/touchButton";
 import { hudBandHeight, readSafeInsets } from "../ui/screenLayout";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { uiTextStyle } from "../ui/uiTextStyle";
 import {
   cycleDebugWorldPixelScale,

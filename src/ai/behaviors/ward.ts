@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
-import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
+import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { worldUnit } from "../../config/worldScale";
 import type { EnemyBehaviorExtra } from "../../entities/Enemy";

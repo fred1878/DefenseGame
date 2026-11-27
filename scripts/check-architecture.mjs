@@ -7,7 +7,8 @@
  *
  * Known debt lives in `scripts/data/architecture-baseline.json`. The check fails
  * on anything new AND on baseline entries that no longer occur, so the baseline
- * can only shrink. Refresh it after fixing debt with:
+ * can only shrink (it is empty since refactor phase P1; keep it that way).
+ * Refresh it after fixing debt with:
  *
  *   node scripts/check-architecture.mjs --update-baseline
  */
@@ -240,17 +241,28 @@ const current = {
   layerViolations: findLayerViolations(graph),
 };
 
-if (process.argv.includes("--update-baseline")) {
-  fs.writeFileSync(baselinePath, `${JSON.stringify(current, null, 2)}\n`);
-  console.log(
-    `Wrote ${path.relative(repoRoot, baselinePath)}: ${current.cycles.length} cycles, ${current.layerViolations.length} layer violations.`,
-  );
-  process.exit(0);
-}
-
 const baseline = fs.existsSync(baselinePath)
   ? JSON.parse(fs.readFileSync(baselinePath, "utf8"))
   : { cycles: [], layerViolations: [] };
+
+if (process.argv.includes("--update-baseline")) {
+  // The baseline may only shrink: drop fixed entries, never add new ones.
+  const added = [];
+  const next = {};
+  for (const key of ["cycles", "layerViolations"]) {
+    const known = new Set(baseline[key] ?? []);
+    for (const item of current[key]) if (!known.has(item)) added.push(item);
+    next[key] = current[key].filter((item) => known.has(item));
+  }
+  fs.writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`);
+  console.log(
+    `Wrote ${path.relative(repoRoot, baselinePath)}: ${next.cycles.length} cycles, ${next.layerViolations.length} layer violations.`,
+  );
+  for (const item of added) {
+    console.error(`NEW (not added to the baseline, fix it): ${item}`);
+  }
+  process.exit(added.length > 0 ? 1 : 0);
+}
 
 let failed = false;
 for (const key of ["cycles", "layerViolations"]) {

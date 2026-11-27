@@ -14,7 +14,7 @@ import {
   defensePlayAreaLayout,
   type SafeInsets,
 } from "../../ui/screenLayout";
-import { scaleUiX } from "../../core/displayScale";
+import { scaleUiX } from "../../config/uiScale";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../../input/inputTuning";
 import { pressDragExceedsThreshold } from "../../ui/touchButtonGesture";
 import {

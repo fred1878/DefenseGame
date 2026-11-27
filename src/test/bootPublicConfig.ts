@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { applyDefenseMaps } from "../config/defenseMaps";
+import { applyDefenseMaps } from "../core/applyDefenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import { applyHitFlashConfig } from "../config/hitFlash";
 import { applySpellInputTuning } from "../config/spellInput";

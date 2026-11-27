@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GAME } from "../config";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { LIST_VIEWPORT_TOP_HIT_SLOP_PX } from "./endlessMode/EndlessModePanelBuild";
 import {
   endlessRowCenterOverlapsViewport,

@@ -8,7 +8,7 @@ import type { Player } from "../../entities/Player";
 import { createTouchButton } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 import { nightReturnButtonPosition } from "../../ui/screenLayout";
-import { scaleUiX } from "../../core/displayScale";
+import { scaleUiX } from "../../config/uiScale";
 import type { SafeInsets } from "../../ui/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
 import { evaluateEndlessEnd, evaluateNightEnd } from "../defenseNightLogic";
@@ -17,13 +17,13 @@ import { rollNightDrops } from "../../gear/loot";
 import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, randomSeed } from "../../gear/rng";
 import { NightLootSummaryPanel } from "../../ui/NightLootSummaryPanel";
-import type { CampaignNightLossReason } from "./nightEndMessaging";
+import type { CampaignNightLossReason } from "../../systems/nightEndMessaging";
 import {
   simulatedNightEndHeadline,
   simulatedNightEndHudLines,
   trainingEndHeadline,
   trainingEndHudLines,
-} from "./nightEndMessaging";
+} from "../../systems/nightEndMessaging";
 import { setSave } from "../../core/registryKeys";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */

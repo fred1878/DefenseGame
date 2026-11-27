@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import type { ScreenRect } from "../screenLayout";
 import { interactiveObjectScreenRect } from "../touchButton";
 import { endlessRowCenterOverlapsViewport } from "../endlessModePanelPick";

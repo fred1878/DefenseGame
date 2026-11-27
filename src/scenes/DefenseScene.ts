@@ -3,7 +3,7 @@ import Phaser from "phaser";
 import { DEFENSE_MAP, PLAYER_TUNING, type AttackMode } from "../config";
 import type { DefenseObstacleRect } from "../config/defense";
 import { SHADOWFORM_MECHANICS } from "../config/shadowformMechanics";
-import { resetShadowformRuntimeMults } from "../config/shadowformRuntime";
+import { resetShadowformRuntimeMults } from "../combat/shadowformRuntime";
 import type { SaveGame } from "../core/saveTypes";
 import type { EnemyDef } from "../core/DataStore";
 import type { EndlessRunSelection } from "../core/defenseRunMode";
@@ -91,7 +91,7 @@ import {
   runDefenseSimulatedNightEnd,
   transitionDefenseToTown,
 } from "./defense/DefenseNightEnd";
-import type { CampaignNightLossReason } from "./defense/nightEndMessaging";
+import type { CampaignNightLossReason } from "../systems/nightEndMessaging";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
 import {
   createDefenseHudController,

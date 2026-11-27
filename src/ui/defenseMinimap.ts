@@ -4,7 +4,7 @@ import {
   defenseHalfHeight,
   defenseHalfWidth,
 } from "../config";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { EnemyInstance } from "../entities/Enemy";
 import type { SafeInsets, ScreenRect } from "./screenLayout";
 import { hudTextPosition } from "./defenseHudLayout";

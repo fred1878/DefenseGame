@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { scaleUiX } from "../../core/displayScale";
+import { scaleUiX } from "../../config/uiScale";
 import type {
   TownBuildingDef,
   TownLayoutDef,

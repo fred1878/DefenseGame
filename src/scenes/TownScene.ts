@@ -44,7 +44,7 @@ import {
   type EndlessRunSelection,
 } from "../core/defenseRunMode";
 import type { WaveGroup } from "../core/DataStore";
-import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
+import { clampEndlessConcurrent } from "../core/endlessLimits";
 import {
   spawnTownBuildingControls,
   type TownBuildingControl,

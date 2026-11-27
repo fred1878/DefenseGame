@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import type {
   TownBuildingDef,
   TownLayoutDef,

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { scaleUiY } from "../../core/displayScale";
+import { scaleUiY } from "../../config/uiScale";
 import { hitAreaLocalPointToScreen } from "../touchButton";
 import {
   endlessRowCenterOverlapsViewport,

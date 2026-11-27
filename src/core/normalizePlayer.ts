@@ -4,7 +4,7 @@ import {
   requireFiniteNumber,
   requireRecord,
 } from "./configValidation";
-import { clampEndlessConcurrent } from "../systems/endlessSpawnScheduler";
+import { clampEndlessConcurrent } from "./endlessLimits";
 
 /** Boot-required tuning keys for `public/data/player.json` (see `DATA_FIELDS.md`). */
 export const PLAYER_TUNING_BOOT_KEYS = [

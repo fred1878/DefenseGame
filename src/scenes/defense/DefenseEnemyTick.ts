@@ -6,7 +6,7 @@ import { PLAYER_TUNING } from "../../config";
 import {
   playerAggroRadiusWu,
   playerIncomingDamageMult,
-} from "../../config/shadowformRuntime";
+} from "../../combat/shadowformRuntime";
 import { PLAYER_AGGRO_RADIUS } from "../../config";
 import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
 import type { EnemyPeerAlly } from "../../ai/behaviors/types";

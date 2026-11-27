@@ -3,7 +3,7 @@ import { TOWN_SPELL_SORT_BAR } from "../../config";
 import { spellIconTextureKey } from "../../content/assets";
 import { isSpellPoolSelectable } from "../../content/spellPoolReadiness";
 import { spellById, type SpellId } from "../../content/spells";
-import { scaleUiX } from "../../core/displayScale";
+import { scaleUiX } from "../../config/uiScale";
 import { TOUCH_BUTTON_RELEASE_SLOP_PX } from "../../input/inputTuning";
 import { interactiveObjectScreenRect } from "../touchButton";
 import { releaseOnSameButton } from "../touchButtonGesture";

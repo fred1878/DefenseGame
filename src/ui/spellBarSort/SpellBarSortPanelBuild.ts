@@ -13,7 +13,7 @@ import {
   type SpellDefinition,
   type SpellId,
 } from "../../content/spells";
-import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import { bindTapOrLongPress, createTouchButton } from "../touchButton";
 import { uiTextStyle } from "../uiTextStyle";
 

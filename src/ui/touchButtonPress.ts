@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { scaleUiX } from "../core/displayScale";
+import { scaleUiX } from "../config/uiScale";
 import {
   TOUCH_BUTTON_RELEASE_SLOP_PX,
   VIRTUAL_STICK_DRAG_THRESHOLD_PX,

@@ -1,4 +1,4 @@
-import type { CampaignNightLossReason } from "./defense/nightEndMessaging";
+import type { CampaignNightLossReason } from "../systems/nightEndMessaging";
 
 export type NightEndEvaluation =
   | false

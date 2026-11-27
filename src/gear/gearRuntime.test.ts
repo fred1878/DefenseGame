@@ -3,7 +3,7 @@ import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
 import type { Damageable } from "../combat/DamageSystem";
 import { PLAYER_TUNING } from "../config";
 import { basePlayerTuning } from "../config/player";
-import { playerIncomingDamageMult } from "../config/shadowformRuntime";
+import { playerIncomingDamageMult } from "../combat/shadowformRuntime";
 import { gearFixture } from "../test/gearFixture";
 import { getGearCatalog, setGearCatalog } from "./gearCatalog";
 import { applyWeaponHitEffects } from "./gearProcs";

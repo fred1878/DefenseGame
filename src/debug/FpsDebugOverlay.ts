@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { scaleUiX } from "../core/displayScale";
+import { scaleUiX } from "../config/uiScale";
 import { fpsDebugOverlayPosition, readSafeInsets } from "../ui/screenLayout";
 import { uiTextStyle } from "../ui/uiTextStyle";
 import { showFpsCounter } from "./DebugState";

@@ -10,7 +10,7 @@ import {
   WAVE_PLANNER_DEFAULT_AT_MS,
   WAVE_PLANNER_DEFAULT_INTERVAL_MS,
   WAVE_PLANNER_TIME_STEP_MS,
-} from "../systems/wavePlannerTiming";
+} from "../core/wavePlannerTiming";
 import {
   paintRosterRowSelection,
   setRosterStartEnabled,

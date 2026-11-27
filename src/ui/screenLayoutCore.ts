@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 
 /** Shared screen layout primitives: safe-area insets, HUD band, viewport/camera helpers. */
 

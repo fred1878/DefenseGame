@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "../../config";
 import type { DataStore } from "../../core/DataStore";
-import { scaleUiX, scaleUiY } from "../../core/displayScale";
+import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import { INPUT_MODALITY } from "../../input/inputModality";
 import {
   acquireModalInput,

@@ -26,7 +26,7 @@ import {
 import { hudTextPosition } from "./defenseHudLayout";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
 import { defenseMinimapLayout } from "./defenseMinimap";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 
 function mockScene(
   width = GAME.width,

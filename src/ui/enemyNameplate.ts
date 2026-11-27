@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import type { Damageable } from "../combat/DamageSystem";
 import { uiSmallLabelShadow, uiTextStyle } from "./uiTextStyle";
 

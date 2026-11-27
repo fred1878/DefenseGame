@@ -8,7 +8,7 @@ import { getEmbeddedBuildId, townBuildIdLine } from "../../buildId";
 import { GAME } from "../../config";
 import type { DataStore } from "../../core/DataStore";
 import type { SaveGame } from "../../core/saveTypes";
-import { scaleUiX } from "../../core/displayScale";
+import { scaleUiX } from "../../config/uiScale";
 import { toggleFullscreen, fullscreenButtonLabel } from "../../ui/fullscreen";
 import {
   debugButtonPosition,

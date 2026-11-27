@@ -1,4 +1,4 @@
-import { scaleUiY } from "../core/displayScale";
+import { scaleUiY } from "../config/uiScale";
 import type { SafeInsets } from "../ui/screenLayout";
 
 const CLOSE_BUTTON_HALF = scaleUiY(24);

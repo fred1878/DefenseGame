@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { scaleUiX, uiTextResolution } from "../core/displayScale";
+import { uiTextResolution } from "../core/displayScale";
+import { scaleUiX } from "../config/uiScale";
 import {
   parseUiFontSizePx,
   UI_FONT_FAMILY,

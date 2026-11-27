@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { DEFENSE_SPELL_BAR } from "../config/spellBar";
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "../config/uiScale";
 import { containerScreenRect } from "./touchButton";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";
 import {

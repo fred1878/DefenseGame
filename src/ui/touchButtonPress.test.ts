@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { scaleUiX } from "../core/displayScale";
+import { scaleUiX } from "../config/uiScale";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../input/inputTuning";
 import { FakeEmitter, fakeEventData, fakePointer } from "../test/fakeInput";
 import {

@@ -1,7 +1,7 @@
 import { deriveGroundTapAutoCastSpellIds } from "../content/spellGroundTapCast";
 import type { SpellDefinition } from "../content/spells";
 import { setSpellCatalog } from "../content/spells";
-import { applyDefenseMaps } from "../config/defenseMaps";
+import { applyDefenseMaps } from "./applyDefenseMaps";
 import { applyEnemyAi } from "../config/enemy";
 import {
   applyEnemyBodyRadii,

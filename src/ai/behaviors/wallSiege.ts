@@ -1,5 +1,5 @@
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
-import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
+import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
 import { worldUnit } from "../../config/worldScale";
 import {
   pathingPeerAgents,

@@ -6,7 +6,7 @@ import { listPlayableDefenseEnemyIds } from "../systems/endlessEnemyRoster";
 import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,
-} from "../systems/endlessSpawnScheduler";
+} from "../core/endlessLimits";
 import { sumChallengeRating } from "../systems/challengeRating";
 import {
   paintRosterRowSelection,

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { scaleUiX } from "../core/displayScale";
+import { scaleUiX } from "../config/uiScale";
 
 export const STROKE_PX = Math.max(2, scaleUiX(2));
 

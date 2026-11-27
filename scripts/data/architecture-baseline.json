@@ -1,12 +1,4 @@
 {
   "cycles": [],
-  "layerViolations": [
-    "config-is-constants-only: config/defenseMaps.ts -> core/normalizeDefenseMaps.ts",
-    "config-is-constants-only: config/shadowformRuntime.ts -> gear/gearRuntime.ts",
-    "config-is-constants-only: config/spellBar.ts -> core/displayScale.ts",
-    "core-below-presentation: core/defenseRunMode.ts -> systems/endlessSpawnScheduler.ts",
-    "core-below-presentation: core/defenseRunMode.ts -> systems/wavePlannerTiming.ts",
-    "core-below-presentation: core/normalizePlayer.ts -> systems/endlessSpawnScheduler.ts",
-    "rules-not-ui: gear/nightLootSummary.ts -> scenes/defense/nightEndMessaging.ts"
-  ]
+  "layerViolations": []
 }

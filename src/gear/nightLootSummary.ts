@@ -1,10 +1,10 @@
 import type { NightResult, SaveGame } from "../core/saveTypes";
-import type { CampaignNightLossReason } from "../scenes/defense/nightEndMessaging";
+import type { CampaignNightLossReason } from "../systems/nightEndMessaging";
 import {
   campaignNightEndFlavor,
   campaignNightEndHeadline,
   campaignNightProgressNote,
-} from "../scenes/defense/nightEndMessaging";
+} from "../systems/nightEndMessaging";
 import { applyNightResultDetailed } from "../core/GameState";
 import { bagItems } from "./inventory";
 import type { ItemDraft } from "./itemGen";

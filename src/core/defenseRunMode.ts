@@ -2,13 +2,13 @@ import type { WaveGroup } from "./DataStore";
 import {
   clampEndlessConcurrent,
   ENDLESS_CONCURRENT_MIN,
-} from "../systems/endlessSpawnScheduler";
+} from "./endlessLimits";
 import {
   clampWavePlannerCount,
   clampWavePlannerTimeMs,
   WAVE_PLANNER_DEFAULT_AT_MS,
   WAVE_PLANNER_DEFAULT_INTERVAL_MS,
-} from "../systems/wavePlannerTiming";
+} from "./wavePlannerTiming";
 
 export type EndlessRunSelection = {
   enemyId: string;

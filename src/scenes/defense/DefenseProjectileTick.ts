@@ -5,7 +5,7 @@ import { applySpellBlastAt } from "../../combat/SpellEffects";
 import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
 import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
 import { PLAYER_TUNING } from "../../config";
-import { playerIncomingDamageMult } from "../../config/shadowformRuntime";
+import { playerIncomingDamageMult } from "../../combat/shadowformRuntime";
 import { spellById } from "../../content/spells";
 import { spellProjectileDirectKnockback } from "../../combat/spellKnockback";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
