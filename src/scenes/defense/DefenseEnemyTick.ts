@@ -11,7 +11,8 @@ import {
   playerIncomingDamageMult,
 } from "../../config/shadowformRuntime";
 import { PLAYER_AGGRO_RADIUS } from "../../config";
-import type { NavGrid } from "../../pathfinding/grid";
+import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
+import type { EnemyPeerAlly } from "../../ai/behaviors/types";
 import {
   updateEnemySpriteFacing,
   type EnemyInstance,
@@ -98,6 +99,21 @@ export function tickDefenseEnemies(
 
   host.enemyPathGoals.clear();
   const liveEnemies = host.enemies.filter((e) => e.damageable.alive);
+  // One peer row per live enemy per frame (not per enemy pair). Positions are
+  // refreshed before each enemy's brain update so earlier bound clamps this
+  // frame are still seen, exactly as when the rows were rebuilt per enemy.
+  const peerAgentRows: NavPeerAgent[] = liveEnemies.map((o) => ({
+    x: 0,
+    y: 0,
+    clearancePx: worldUnit(enemyPathClearancePx(o.defId), host.registry),
+  }));
+  const peerAllyRows: EnemyPeerAlly[] = liveEnemies.map((o) => ({
+    id: o.id,
+    behavior: o.behavior,
+    defId: o.defId,
+    x: 0,
+    y: 0,
+  }));
   for (const e of liveEnemies) {
     const bodyRadiusPx = worldUnit(
       enemyCollisionBodyRadius(e.defId),
@@ -113,22 +129,18 @@ export function tickDefenseEnemies(
       enforceEnemyDefenseBounds(e, bodyRadiusPx);
       continue;
     }
-    const peerAgents = liveEnemies
-      .filter((o) => o.id !== e.id)
-      .map((o) => ({
-        x: o.sprite.x,
-        y: o.sprite.y,
-        clearancePx: worldUnit(enemyPathClearancePx(o.defId), host.registry),
-      }));
-    const peerAllies = liveEnemies
-      .filter((o) => o.id !== e.id)
-      .map((o) => ({
-        id: o.id,
-        behavior: o.behavior,
-        defId: o.defId,
-        x: o.sprite.x,
-        y: o.sprite.y,
-      }));
+    const peerAgents: NavPeerAgent[] = [];
+    const peerAllies: EnemyPeerAlly[] = [];
+    for (let i = 0; i < liveEnemies.length; i++) {
+      const o = liveEnemies[i]!;
+      if (o.id === e.id) continue;
+      const agent = peerAgentRows[i]!;
+      const ally = peerAllyRows[i]!;
+      agent.x = ally.x = o.sprite.x;
+      agent.y = ally.y = o.sprite.y;
+      peerAgents.push(agent);
+      peerAllies.push(ally);
+    }
     const brain = updateEnemyBrain(
       e,
       e.nav,
