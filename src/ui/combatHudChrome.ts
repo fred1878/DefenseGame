@@ -4,15 +4,16 @@ import {
   defenseTopChromeHeight,
   type SafeInsets,
 } from "./screenLayout";
+import { addUiFrame } from "./uiFrame";
 
 export type CombatHudChrome = {
   roots: Phaser.GameObjects.GameObject[];
   setVisible: (visible: boolean) => void;
 };
 
-const PANEL_FILL = 0xffffff;
-const PANEL_ALPHA = 0.55;
-const BORDER = 0xffffff;
+const PANEL_FILL = 0x15110f;
+const PANEL_ALPHA = 0.96;
+const BORDER = 0x6b5532;
 
 /** Top/bottom screen bands behind HUD; world draws only in the middle play area. */
 export function createCombatHudChrome(
@@ -62,11 +63,31 @@ export function createCombatHudChrome(
     border.strokePath();
   }
 
-  const roots = [topPanel, bottomPanel, border];
+  const roots: Phaser.GameObjects.GameObject[] = [
+    topPanel,
+    bottomPanel,
+    border,
+  ];
+  // Dark Ages frames over the vector bands (no-op without the textures, e.g. unit tests).
+  const frames = [
+    topH > 1 ? addUiFrame(scene, "ornate", 0, 0, w, topH) : null,
+    bottomH > 1 ? addUiFrame(scene, "dark", 0, bottomY, w, bottomH) : null,
+  ];
+  for (const f of frames) {
+    if (!f) continue;
+    f.setScrollFactor(0).setDepth(depth + 1);
+    roots.push(f);
+  }
   return {
     roots,
     setVisible: (visible) => {
-      for (const root of roots) root.setVisible(visible);
+      for (const root of roots) {
+        (
+          root as Phaser.GameObjects.GameObject & {
+            setVisible: (v: boolean) => unknown;
+          }
+        ).setVisible(visible);
+      }
     },
   };
 }

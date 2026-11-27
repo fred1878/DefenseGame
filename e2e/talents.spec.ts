@@ -23,6 +23,8 @@ function savedTalents(page: Page) {
 test("talents: learn a rank from town, reset it for gold and close", async ({
   page,
 }) => {
+  // Many panel taps at software-GL frame rates (~6 fps on CI runners) overrun 90s.
+  test.setTimeout(180_000);
   await gotoE2E(page);
   await page.evaluate(() => {
     window.__DEFENSEGAME_E2E__?.api?.setSave({

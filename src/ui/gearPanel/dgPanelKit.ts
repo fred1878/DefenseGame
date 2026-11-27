@@ -4,8 +4,16 @@
  * tiles and the shared header. Coordinates are absolute in the 540×1200 canvas.
  */
 import type Phaser from "phaser";
+import { DAMAGE_NUMBER_FONT_FAMILY } from "../../config/damageNumbers";
+import type { UiFrameName } from "../../content/uiParts";
+import { uiPartKey } from "../../content/uiParts";
+import { addUiFrame, hasUiPart, layoutUiFrame, setUiFrame } from "../uiFrame";
 import { uiIconFrame, type UiIconName } from "../icons/uiIcons";
-import { uiTextStyle, UI_FONT_FAMILY } from "../uiTextStyle";
+import {
+  rerenderTextsWhenFontReady,
+  uiTextStyle,
+  UI_FONT_FAMILY,
+} from "../uiTextStyle";
 import {
   DG_BUTTON_STROKE,
   DG_ICON_TINT,
@@ -22,6 +30,8 @@ export type BoxStyle = {
   stroke?: string | null;
   strokeWidth?: number;
   radius?: number;
+  /** Pixel-art nine-slice frame drawn over the fill (falls back to the vector box). */
+  frame?: UiFrameName | null;
 };
 
 export type Box = {
@@ -85,6 +95,13 @@ export type Tile = {
   setVisible(on: boolean): void;
 };
 
+const BUTTON_FRAME: Record<ActionStyle, UiFrameName> = {
+  buy: "btnDark",
+  equip: "btnGreen",
+  sell: "btnRed",
+  neutral: "btn",
+};
+
 const BUTTON_FILL: Record<ActionStyle, string> = {
   buy: DG_THEME.buttonBuy,
   equip: DG_THEME.buttonEquip,
@@ -93,6 +110,9 @@ const BUTTON_FILL: Record<ActionStyle, string> = {
 };
 
 export class DgKit {
+  /** Pixelify title texts, re-rendered once the web font loads. */
+  private readonly titleTexts: Phaser.GameObjects.Text[] = [];
+
   constructor(
     readonly scene: Phaser.Scene,
     readonly root: Phaser.GameObjects.Container,
@@ -102,6 +122,40 @@ export class DgKit {
     const g = this.scene.add.graphics({ x: 0, y: 0 });
     this.root.add(g);
     let last = style;
+    let ns: Phaser.GameObjects.NineSlice | null = null;
+    let nsFrame: UiFrameName | null = null;
+    const ensureFrame = (name: UiFrameName): boolean => {
+      if (ns) {
+        if (nsFrame !== name) setUiFrame(ns, name, box.x, box.y, box.w, box.h);
+        else layoutUiFrame(ns, name, box.x, box.y, box.w, box.h);
+        nsFrame = name;
+        ns.setVisible(g.visible);
+        return true;
+      }
+      ns = addUiFrame(this.scene, name, box.x, box.y, box.w, box.h);
+      if (!ns) return false;
+      nsFrame = name;
+      const frame = ns;
+      this.root.addAt(frame, this.root.getIndex(g) + 1);
+      // Visibility / alpha / destroy on the box graphics carry over to its frame.
+      const setVisible = g.setVisible.bind(g);
+      const setAlpha = g.setAlpha.bind(g);
+      const destroy = g.destroy.bind(g);
+      g.setVisible = (v: boolean) => {
+        frame.setVisible(v && nsFrame !== null);
+        return setVisible(v);
+      };
+      g.setAlpha = ((a?: number) => {
+        frame.setAlpha(a ?? 1);
+        return setAlpha(a);
+      }) as typeof g.setAlpha;
+      g.destroy = (fromScene?: boolean) => {
+        frame.destroy(fromScene);
+        destroy(fromScene);
+      };
+      frame.setVisible(g.visible);
+      return true;
+    };
     const box: Box = {
       g,
       x,
@@ -111,6 +165,18 @@ export class DgKit {
       paint: (s) => {
         last = s;
         g.clear();
+        if (s.frame && ensureFrame(s.frame)) {
+          // The frame art carries its own fill and border; keep an optional tint wash.
+          if (s.fillAlpha !== undefined && s.fillAlpha > 0 && s.fillAlpha < 1) {
+            g.fillStyle(hexToInt(s.fill), s.fillAlpha);
+            g.fillRect(box.x, box.y, box.w, box.h);
+          }
+          return;
+        }
+        if (ns) {
+          nsFrame = null;
+          (ns as Phaser.GameObjects.NineSlice).setVisible(false);
+        }
         const r = s.radius ?? 10;
         g.fillStyle(hexToInt(s.fill), s.fillAlpha ?? 1);
         g.fillRoundedRect(box.x, box.y, box.w, box.h, r);
@@ -156,7 +222,20 @@ export class DgKit {
       .text(x, y, str, uiTextStyle(this.scene, style))
       .setOrigin(o.originX ?? 0, o.originY ?? 0);
     this.root.add(t);
+    if (o.title) this.titleTexts.push(t);
     return t;
+  }
+
+  /**
+   * Redraw title texts when Pixelify Sans finishes loading (first open on a cold
+   * cache), then run `onReady` so the panel can re-fit widths.
+   */
+  whenTitleFontReady(onReady: () => void): void {
+    rerenderTextsWhenFontReady(
+      `700 16px "${DAMAGE_NUMBER_FONT_FAMILY}"`,
+      () => this.titleTexts,
+      onReady,
+    );
   }
 
   /** Centred tinted icon, or null before the icon strip has loaded. */
@@ -228,16 +307,17 @@ export class DgKit {
     opts: { size?: number; radius?: number } = {},
   ): Button {
     const radius = opts.radius ?? 12;
-    const paintBox = (s: ActionStyle) => ({
+    const paintBox = (s: ActionStyle): BoxStyle => ({
       fill: BUTTON_FILL[s],
       stroke: DG_BUTTON_STROKE[s],
       strokeWidth: 1.5,
       radius,
+      frame: BUTTON_FRAME[s],
     });
     const box = this.box(x, y, w, h, paintBox(style));
     const iconImg = this.icon(x + w / 2, y + h / 2, icon ?? "coins", 20);
     const text = this.text(x + w / 2, y + h / 2, label, {
-      size: opts.size ?? 18,
+      size: opts.size ?? 16,
       title: true,
       originX: 0.5,
       originY: 0.5,
@@ -290,7 +370,11 @@ export class DgKit {
       stroke: DG_THEME.borderIron,
       strokeWidth: 2,
       radius: 8,
+      frame: "slot",
     });
+    // Rarity line inside the slot frame (mockup: inset rarity ring + soft glow).
+    const rarity = this.scene.add.graphics({ x: 0, y: 0 });
+    this.root.add(rarity);
     const iconPx = Math.round(size * 0.56);
     const icon = this.icon(x + size / 2, y + size / 2, "sparkles", iconPx);
     const bw = Math.round(size * 0.42);
@@ -323,7 +407,16 @@ export class DgKit {
           stroke: empty ? DG_THEME.borderIron : view.color,
           strokeWidth: 2,
           radius: 8,
+          frame: "slot",
         });
+        rarity.clear();
+        if (!empty) {
+          const c = hexToInt(view.color);
+          rarity.fillStyle(c, 0.06);
+          rarity.fillRect(x + 7, y + 7, size - 14, size - 14);
+          rarity.lineStyle(2, c, 1);
+          rarity.strokeRect(x + 7, y + 7, size - 14, size - 14);
+        }
         const iconName = view?.icon ?? opts.emptyIcon ?? "sparkles";
         this.setIcon(icon, iconName, iconPx);
         icon?.setAlpha(empty ? 0.16 : opts.dim ? 0.3 : 1);
@@ -342,6 +435,7 @@ export class DgKit {
       setVisible: (on) => {
         visible = on;
         box.g.setVisible(on);
+        rarity.setVisible(on);
         ring.setVisible(on);
         icon?.setVisible(on);
         badgeBox.g.setVisible(on && hasBadge);
@@ -356,12 +450,21 @@ export class DgKit {
   /** Crimson disc + gold ring + line icon (mockup header emblem). */
   private drawEmblem(cx: number, cy: number, icon: UiIconName): void {
     const g = this.scene.add.graphics({ x: 0, y: 0 });
-    g.fillStyle(hexToInt(DG_THEME.accentCrimson), 1);
-    g.fillCircle(cx, cy, 26);
-    g.lineStyle(2, hexToInt(DG_THEME.accentGold), 1);
-    g.strokeCircle(cx, cy, 25);
+    g.fillStyle(0x2a211a, 1);
+    g.fillEllipse(cx, cy, 34, 42);
     this.root.add(g);
-    this.icon(cx, cy, icon, 26, DG_ICON_TINT);
+    if (hasUiPart(this.scene, "gp-oval")) {
+      // Gothic Pixel ornate oval ring (AbyssOwl), 50×61 source drawn 1:1.
+      this.root.add(
+        this.scene.add
+          .image(cx, cy, uiPartKey("gp-oval"))
+          .setDisplaySize(50, 61),
+      );
+    } else {
+      g.lineStyle(2, hexToInt(DG_THEME.accentGold), 1);
+      g.strokeEllipse(cx, cy, 44, 54);
+    }
+    this.icon(cx, cy, icon, 26, DG_THEME.accentGoldBright);
   }
 
   /** Header card: crimson emblem, Pixelify title, subtitle, gold pill, close (×). */
@@ -380,31 +483,34 @@ export class DgKit {
       stroke: DG_THEME.accentGold,
       strokeWidth: 1.5,
       radius: 14,
+      frame: "ornate",
     });
     this.drawEmblem(58, 60, emblem);
-    const titleText = this.text(96, 30, title, { size: 30, title: true });
+    const titleText = this.text(96, 28, title, { size: 32, title: true });
     const subtitle = this.text(97, 72, "", {
       size: 13,
       color: DG_THEME.textMuted,
     });
-    this.box(370, 44, 92, 32, {
+    this.box(370, 42, 92, 36, {
       fill: DG_THEME.bgSlot,
       stroke: DG_THEME.accentGold,
       strokeWidth: 1,
       radius: 16,
+      frame: "dark",
     });
     this.icon(390, 60, "coins", 18, DG_THEME.accentGold);
     const gold = this.text(404, 60, "", {
-      size: 18,
+      size: 16,
       title: true,
       color: DG_THEME.accentGoldBright,
       originY: 0.5,
     });
-    this.box(472, 40, 40, 40, {
+    this.box(470, 40, 44, 40, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       strokeWidth: 1,
       radius: 10,
+      frame: "btn",
     });
     this.icon(492, 60, "close", 20);
     // Generous hit area for the close button (touch).
@@ -422,6 +528,7 @@ export class DgKit {
       stroke: DG_THEME.borderIron,
       strokeWidth: 1,
       radius: 12,
+      frame: "btn",
     });
     const w = (508 - 8 - 4 * (defs.length - 1)) / defs.length;
     const parts = defs.map((d, i) => {
@@ -429,13 +536,13 @@ export class DgKit {
       const box = this.box(x, 116, w, 42, { fill: DG_THEME.bgSlot, radius: 9 });
       const icon = this.icon(x + w / 2 - 40, 137, d.icon, 18);
       const label = this.text(x + w / 2 - 26, 137, d.label, {
-        size: 17,
+        size: 16,
         title: true,
         originY: 0.5,
       });
       const count = this.text(x + w / 2, 138, "", {
         size: 12,
-        color: DG_THEME.textMuted,
+        color: DG_THEME.textSecondary,
         originY: 0.5,
       });
       const tap = this.tap(x, 116, w, 42, d.onTap);
@@ -448,14 +555,14 @@ export class DgKit {
           const on = i === active;
           p.box.paint(
             on
-              ? {
-                  fill: DG_THEME.bgSelected,
-                  stroke: DG_THEME.accentGold,
-                  strokeWidth: 1.5,
-                  radius: 9,
-                }
-              : { fill: DG_THEME.bgSlot, radius: 9 },
+              ? { fill: DG_THEME.accentGoldBright, fillAlpha: 0.1, radius: 0 }
+              : { fill: DG_THEME.bgSlot, fillAlpha: 0, radius: 0 },
           );
+          // Active tab: gold underline (mockup `.tab.active`).
+          if (on) {
+            p.box.g.fillStyle(hexToInt(DG_THEME.accentGoldBright), 1);
+            p.box.g.fillRect(p.x, 156, w, 2);
+          }
           p.label.setColor(
             on ? DG_THEME.accentGoldBright : DG_THEME.textSecondary,
           );
@@ -482,10 +589,11 @@ export class DgKit {
     onPage: (delta: number) => void,
   ): { prev: Tap; next: Tap; set(page: number, pages: number): void } {
     const part = (x: number, glyph: string, delta: number) => {
-      const box = this.box(x - 15, y - 12, 30, 24, {
+      const box = this.box(x - 18, y - 13, 36, 26, {
         fill: DG_THEME.buttonNeutral,
         stroke: DG_THEME.borderSteel,
         radius: 6,
+        frame: "btn",
       });
       const t = this.text(x, y - 1, glyph, {
         size: 18,
@@ -523,14 +631,14 @@ export class DgKit {
   } {
     return {
       left: this.text(16, y, "", {
-        size: 11,
+        size: 12,
         bold: true,
         color: DG_THEME.accentGold,
         originY: 0.5,
       }).setLetterSpacing(1.5),
       right: this.text(524, y, "", {
         size: 12,
-        color: DG_THEME.textMuted,
+        color: DG_THEME.textSecondary,
         originX: 1,
         originY: 0.5,
       }),

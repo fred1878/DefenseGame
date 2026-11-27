@@ -150,6 +150,7 @@ export class ShopPanel {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       radius: 10,
+      frame: "btn",
     });
     this.sortIcon = kit.icon(500, 192, "sort", 18);
     this.sortTap = kit.tap(470, 170, 60, 44, () =>
@@ -187,11 +188,14 @@ export class ShopPanel {
     );
     this.footnote = kit.text(270, 1172, "", {
       size: 12,
-      color: DG_THEME.textMuted,
+      color: DG_THEME.textSecondary,
       originX: 0.5,
       originY: 0.5,
     });
     this.refresh();
+    kit.whenTitleFontReady(() => {
+      if (!this.tornDown) this.refresh();
+    });
   }
 
   private onAction(id: ActionView["id"]): void {
@@ -251,17 +255,20 @@ export class ShopPanel {
       chip.tap.setEnabled(on);
       if (!v) return;
       chip.label.setText(v.label);
-      chip.label.setColor(v.active ? DG_THEME.bgAbyss : DG_THEME.textSecondary);
+      chip.label.setColor(
+        v.active ? DG_THEME.accentGoldBright : DG_THEME.textSecondary,
+      );
       chip.label.setFontStyle(v.active ? "bold" : "normal");
       const w = (chip.label.width || 0) + 26;
       chip.box.move(cx, 176, w, 32);
       chip.box.paint(
         v.active
-          ? { fill: DG_THEME.accentGold, radius: 16 }
+          ? { fill: DG_THEME.accentGold, radius: 16, frame: "plateCrest" }
           : {
               fill: DG_THEME.bgRaised,
               stroke: DG_THEME.borderIron,
               radius: 16,
+              frame: "plate",
             },
       );
       chip.label.setPosition(cx + 13, 192);

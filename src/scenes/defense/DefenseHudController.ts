@@ -29,6 +29,7 @@ import {
   readSafeInsets,
   type SafeInsets,
 } from "../../ui/screenLayout";
+import { DEFENSE_TOP_CHROME_TRIM_PX } from "../../ui/defenseHudLayout";
 import {
   createTouchButton,
   createTouchCircleButton,
@@ -36,6 +37,13 @@ import {
 } from "../../ui/touchButton";
 import type { TouchButtonHandle } from "../../ui/touchButton";
 import { uiTextStyle } from "../../ui/uiTextStyle";
+import {
+  createDefenseTopHud,
+  defenseTopHudLayout,
+  type DefenseTopHud,
+} from "../../ui/defenseTopHud";
+import { frameTouchButton } from "../../ui/uiFrame";
+import { hudBandHeight } from "../../ui/screenLayoutCore";
 import { runDefenseUiFactory } from "../../world/defenseWorldAddHook";
 
 export type DefenseHudControllerDeps = {
@@ -69,6 +77,7 @@ export type DefenseHudBuild = {
   castBar: CastBar;
   spellBar: SpellBar;
   hudText: Phaser.GameObjects.Text;
+  topHud: DefenseTopHud;
   debugBtn: TouchButtonHandle;
   potionBtn: TouchButtonHandle;
   bombBtn: TouchButtonHandle;
@@ -88,6 +97,9 @@ export function createDefenseHudController(
 ): DefenseHudBuild {
   return runDefenseUiFactory(deps.scene, () => buildDefenseHudController(deps));
 }
+
+/** Mirrors DEFENSE_TOP_CHROME_TRIM_PX: the visible top band is the HUD band minus this. */
+const DEFENSE_TOP_TRIM = DEFENSE_TOP_CHROME_TRIM_PX;
 
 function buildDefenseHudController(
   deps: DefenseHudControllerDeps,
@@ -229,24 +241,37 @@ function buildDefenseHudController(
     .setDepth(200);
   registerUi(hudText);
 
-  const dbgPos = combatDebugButtonPosition(scene, safe);
+  const topHud = createDefenseTopHud(
+    scene,
+    defenseTopHudLayout(
+      scene.scale.width,
+      safe.top,
+      hudBandHeight(safe.top) - DEFENSE_TOP_TRIM,
+    ),
+  );
+  for (const r of topHud.roots) registerUi(r);
+
+  const tl = topHud.layout;
   const debugBtn = createTouchButton(
     scene,
-    dbgPos.x,
-    dbgPos.y,
+    tl.debugX + tl.debugW / 2,
+    tl.debugY + tl.debugH / 2,
     "Debug",
     deps.onOpenDebugMenu,
     {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
+      width: tl.debugW,
+      height: tl.debugH,
       depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x3f3f46,
-      strokeColor: 0xa1a1aa,
+      fontSize: "16px",
+      fillColor: 0x1c1714,
+      strokeColor: 0x1c1714,
+      tapPadding: 6,
     },
   );
+  frameTouchButton(scene, debugBtn.container, "btn", tl.debugW, tl.debugH);
   registerUi(debugBtn.container);
   uiBlockers.push(debugBtn.container);
+  const dbgPos = combatDebugButtonPosition(scene, safe);
 
   // Potion / bomb: bottom-left above the HUD strip, mirroring Debug (hidden with no charges).
   const consumableBtn = (
@@ -256,16 +281,20 @@ function buildDefenseHudController(
     fill: number,
     stroke: number,
     testId: string,
+    frameName: "btnRed" | "btnDark",
   ): TouchButtonHandle => {
+    const bw = scaleUiX(88);
+    const bh = scaleUiX(36);
     const btn = createTouchButton(scene, x, dbgPos.y, label, onTap, {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
+      width: bw,
+      height: bh,
       depth: 200,
-      fontSize: `${scaleUiX(13)}px`,
+      fontSize: "18px",
       fillColor: fill,
       strokeColor: stroke,
       tapPadding: scaleUiX(6),
     });
+    frameTouchButton(scene, btn.container, frameName, bw, bh);
     btn.container.setData("testid", testId);
     btn.container.setVisible(false);
     registerUi(btn.container);
@@ -280,6 +309,7 @@ function buildDefenseHudController(
     0x7f1d1d,
     0xf87171,
     "defense-potion",
+    "btnRed",
   );
   const bombBtn = consumableBtn(
     potionX + scaleUiX(96),
@@ -288,6 +318,7 @@ function buildDefenseHudController(
     0x78350f,
     0xfbbf24,
     "defense-bomb",
+    "btnDark",
   );
 
   let leaveEndlessBtn: TouchButtonHandle | null = null;
@@ -304,9 +335,16 @@ function buildDefenseHudController(
         height: leaveBtn.height,
         depth: 210,
         fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x52525b,
-        strokeColor: 0xa1a1aa,
+        fillColor: 0x1c1714,
+        strokeColor: 0x1c1714,
       },
+    );
+    frameTouchButton(
+      scene,
+      leaveEndlessBtn.container,
+      "btnDark",
+      leaveBtn.width,
+      leaveBtn.height,
     );
     leaveEndlessBtn.container.setData("testid", "defense-leave-endless");
     registerUi(leaveEndlessBtn.container);
@@ -315,6 +353,7 @@ function buildDefenseHudController(
 
   const minimap = new DefenseMinimap(scene, registerUi);
   const minimapLayout = defenseMinimapLayout(scene, safe);
+  minimap.addFrame(scene, minimapLayout, registerUi);
   if (isE2EEnabled() && typeof window !== "undefined") {
     const dbg = (
       window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
@@ -362,6 +401,7 @@ function buildDefenseHudController(
 
   const setHudChromeVisible = (visible: boolean) => {
     hudText.setVisible(visible);
+    topHud.setVisible(visible);
     debugBtn.container.setVisible(visible);
     if (!visible) {
       potionBtn.container.setVisible(false);
@@ -384,6 +424,7 @@ function buildDefenseHudController(
     castBar,
     spellBar,
     hudText,
+    topHud,
     debugBtn,
     potionBtn,
     bombBtn,

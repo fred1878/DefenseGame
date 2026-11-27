@@ -111,15 +111,50 @@ export function installPhaser3VertexRounding(phaser: typeof Phaser): void {
   proto.__phaser3Rounding = true;
 }
 
-/** Phaser 3 `setQuad` rounding: snap corner 0, move the other corners by the same offset. */
-export function snapQuadLikePhaser3(quad: Float32Array | number[]): void {
-  const x0 = quad[0] ?? 0;
-  const y0 = quad[1] ?? 0;
-  const dx = Math.floor(x0 + 0.5) - x0;
-  const dy = Math.floor(y0 + 0.5) - y0;
+/**
+ * Backing-store pixels per game unit on each axis (see `hiDpiCanvas.ts`). Quads snap
+ * to whole backing pixels, which at scale 1 is the Phaser 3 whole-game-pixel snap.
+ */
+let vertexSnapScaleX = 1;
+let vertexSnapScaleY = 1;
+
+export function setVertexSnapScale(
+  scaleX: number,
+  scaleY: number = scaleX,
+): void {
+  vertexSnapScaleX = scaleX > 0 ? scaleX : 1;
+  vertexSnapScaleY = scaleY > 0 ? scaleY : vertexSnapScaleX;
+}
+
+/**
+ * Phaser 3 `setQuad` rounding: snap corner 0, move the other corners by the same offset.
+ *
+ * At a fractional backing scale (hi-DPI, e.g. 2.0 × 1.998) a quad's size is not a whole
+ * number of backing pixels, so shifting all corners by one offset leaves the far edges
+ * fractional and neighbouring tiles can open 1px seams. There every corner snaps to the
+ * backing grid on its own, so shared edges land on the same pixel.
+ */
+export function snapQuadLikePhaser3(
+  quad: Float32Array | number[],
+  scale?: number,
+  scaleY?: number,
+): void {
+  const sx = scale ?? vertexSnapScaleX;
+  const sy = scaleY ?? scale ?? vertexSnapScaleY;
+  if (Number.isInteger(sx) && Number.isInteger(sy)) {
+    const x0 = quad[0] ?? 0;
+    const y0 = quad[1] ?? 0;
+    const dx = Math.floor(x0 * sx + 0.5) / sx - x0;
+    const dy = Math.floor(y0 * sy + 0.5) / sy - y0;
+    for (let i = 0; i < 8; i += 2) {
+      quad[i] = (quad[i] ?? 0) + dx;
+      quad[i + 1] = (quad[i + 1] ?? 0) + dy;
+    }
+    return;
+  }
   for (let i = 0; i < 8; i += 2) {
-    quad[i] = (quad[i] ?? 0) + dx;
-    quad[i + 1] = (quad[i + 1] ?? 0) + dy;
+    quad[i] = Math.floor((quad[i] ?? 0) * sx + 0.5) / sx;
+    quad[i + 1] = Math.floor((quad[i + 1] ?? 0) * sy + 0.5) / sy;
   }
 }
 

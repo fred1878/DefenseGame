@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { SFX_ASSETS, SFX_ASSET_ROOT } from "../content/audioAssets";
+import { UI_PART_ASSETS, UI_PART_ROOT } from "../content/uiParts";
 import {
   COMBAT_FX_ASSETS,
   ENEMY_SPRITE_ASSETS,
@@ -48,6 +49,8 @@ import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
 import {
   DAMAGE_NUMBER_FONT_PATH,
   queueDamageNumberFont,
+  DIGIT_FONT_PATH,
+  queueDigitFont,
 } from "../config/damageNumbers";
 
 const ASSET_ROOT = "assets";
@@ -84,10 +87,14 @@ export function queueTownFluffAssets(
   for (const { key, file } of UI_ASSETS) {
     loader.image(key, `${UI_ASSET_ROOT}/${file}`);
   }
+  for (const { key, file } of UI_PART_ASSETS) {
+    loader.image(key, `${UI_PART_ROOT}/${file}`);
+  }
   // Gear / shop panels: line icons and the Pixelify Sans titles.
   queueUiIcons(loader);
   const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
   queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
+  queueDigitFont(loader, `${DIGIT_FONT_PATH}${fontQ}`);
   for (const { key, file } of SFX_ASSETS) {
     loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
   }
@@ -155,6 +162,7 @@ export function queueDefenseBootAssets(
   const assetRev = import.meta.env.VITE_BUILD_ID ?? "";
   const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
   queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
+  queueDigitFont(loader, `${DIGIT_FONT_PATH}${fontQ}`);
 }
 
 function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {

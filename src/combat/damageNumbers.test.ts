@@ -5,6 +5,9 @@ import {
   DAMAGE_NUMBER_KINDS,
   DAMAGE_NUMBERS,
   queueDamageNumberFont,
+  queueDigitFont,
+  DIGIT_FONT_FAMILY,
+  DIGIT_FONT_PATH,
 } from "../config/damageNumbers";
 import {
   areDamageNumbersEnabled,
@@ -334,7 +337,10 @@ describe("DAMAGE_NUMBERS config", () => {
       expect(style.critFontSize).toBeGreaterThan(style.fontSize);
       expect(style.motion.durationMs).toBeGreaterThan(0);
     }
-    expect(DAMAGE_NUMBERS.fontFamily).toBe(DAMAGE_NUMBER_FONT_FAMILY);
+    expect(DAMAGE_NUMBERS.fontFamily).toContain(
+      `"${DAMAGE_NUMBER_FONT_FAMILY}"`,
+    );
+    expect(DAMAGE_NUMBERS.fontFamily.startsWith('"DG Digits"')).toBe(true);
     expect(DAMAGE_NUMBER_FONT_PATH).toContain("pixelify-sans");
     expect(DAMAGE_NUMBERS.styles.heal.prefix).toBe("+");
   });
@@ -347,7 +353,24 @@ describe("DAMAGE_NUMBERS config", () => {
         key: DAMAGE_NUMBER_FONT_FAMILY,
         url: DAMAGE_NUMBER_FONT_PATH,
         format: "truetype",
-        descriptors: { weight: "700", style: "normal" },
+        descriptors: { weight: "400 700", style: "normal" },
+      },
+    ]);
+  });
+
+  it("queues the Departure Mono digit face limited to 0-9 and %", () => {
+    const calls: unknown[] = [];
+    queueDigitFont({ font: (cfg) => calls.push(cfg) });
+    expect(calls).toEqual([
+      {
+        key: DIGIT_FONT_FAMILY,
+        url: DIGIT_FONT_PATH,
+        format: "woff2",
+        descriptors: {
+          weight: "400 700",
+          style: "normal",
+          unicodeRange: "U+0030-0039, U+0025",
+        },
       },
     ]);
   });

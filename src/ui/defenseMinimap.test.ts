@@ -67,6 +67,7 @@ describe("DefenseMinimap", () => {
       setVisible: vi.fn(),
       lineStyle: vi.fn(),
       strokeRect: vi.fn(),
+      fillRect: vi.fn(),
       fillStyle: vi.fn(),
       fillCircle: vi.fn(),
     };

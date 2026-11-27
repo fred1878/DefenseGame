@@ -109,6 +109,7 @@ export class InventoryPanel {
       fill: DG_THEME.bgPanel,
       stroke: DG_THEME.borderIron,
       radius: 14,
+      frame: "dark",
     });
     kit.box(98, 190, 344, 100, {
       fill: DG_THEME.bgSelected,
@@ -149,9 +150,9 @@ export class InventoryPanel {
       this.slots.push({ slot, tile });
       kit
         .text(p.x + SLOT_TILE / 2, p.y + SLOT_TILE + 9, "", {
-          size: 10,
+          size: 12,
           bold: true,
-          color: DG_THEME.textMuted,
+          color: DG_THEME.textSecondary,
           originX: 0.5,
           originY: 0.5,
         })
@@ -161,10 +162,11 @@ export class InventoryPanel {
 
     // Bag.
     this.bagLabel = kit.section(586);
-    kit.box(428, 572, 96, 28, {
+    kit.box(428, 570, 96, 32, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       radius: 8,
+      frame: "btn",
     });
     kit.icon(446, 586, "sort", 16);
     this.sortText = kit.text(458, 586, "", { size: 13, originY: 0.5 });
@@ -188,11 +190,14 @@ export class InventoryPanel {
     this.actionBar = createActionBar(kit, 1120, 48, (id) => this.onAction(id));
     this.footnote = kit.text(270, 1184, "", {
       size: 12,
-      color: DG_THEME.textMuted,
+      color: DG_THEME.textSecondary,
       originX: 0.5,
       originY: 0.5,
     });
     this.refresh();
+    kit.whenTitleFontReady(() => {
+      if (!this.tornDown) this.refresh();
+    });
   }
 
   private onTile(key: number | null): void {

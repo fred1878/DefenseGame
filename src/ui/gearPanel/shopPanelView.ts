@@ -149,7 +149,7 @@ function entryCard(
       name: entry.def.name,
       nameColor: CONSUMABLE_COLOR,
       meta: `${consumableTypeLabel(entry.def)} · ${entry.count} owned${left}`,
-      metaColor: DG_THEME.textMuted,
+      metaColor: DG_THEME.textSecondary,
       stat: consumableEffectLine(entry.def),
       price: priceText,
       priceColor,
@@ -164,7 +164,7 @@ function entryCard(
     name: r.name,
     nameColor: r.rarity.color,
     meta: `${itemTypeShort(r.base.type)} · ilvl ${r.item.itemLevel}${left}`,
-    metaColor: DG_THEME.textMuted,
+    metaColor: DG_THEME.textSecondary,
     stat: itemKeyStat(r),
     price: priceText,
     priceColor,
@@ -346,7 +346,7 @@ export const emptyDetail = (): DetailView => ({
   lines: [],
   compareTitle: "",
   against: "",
-  againstColor: DG_THEME.textMuted,
+  againstColor: DG_THEME.textSecondary,
   rows: [],
   info: [],
 });
@@ -551,7 +551,7 @@ export function shopFootnote(
     const pays = ctx.shop.ctx.shops.trader.requests.payoutPct;
     return {
       text: `Requests pay ${pays}% (normal selling pays ${pct}%).`,
-      color: DG_THEME.textMuted,
+      color: DG_THEME.textSecondary,
     };
   }
   return {
@@ -559,6 +559,6 @@ export function shopFootnote(
       state.tab === "shop"
         ? `Bought gear goes to your bag. Sell back for ${pct}%.`
         : `Items sell for ${pct}% of their value.`,
-    color: DG_THEME.textMuted,
+    color: DG_THEME.textSecondary,
   };
 }

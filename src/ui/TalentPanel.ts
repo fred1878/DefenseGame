@@ -1,3 +1,5 @@
+import { uiPartKey } from "../content/uiParts";
+import { addUiFrame, frameTouchButton, hasUiPart, setUiFrame } from "./uiFrame";
 import type Phaser from "phaser";
 import { DG_THEME as SHARED_THEME, themeInt } from "./theme/dgTheme";
 import { GAME } from "../config";
@@ -49,7 +51,11 @@ import {
 } from "./talentPanel/talentPanelLayout";
 import { fitText } from "./gearPanel/dgPanelKit";
 import { createTouchButton, interactiveObjectScreenRect } from "./touchButton";
-import { UI_FONT_FAMILY, uiTextStyle } from "./uiTextStyle";
+import {
+  rerenderTextsWhenFontReady,
+  UI_FONT_FAMILY,
+  uiTextStyle,
+} from "./uiTextStyle";
 
 type Button = ReturnType<typeof createTouchButton>;
 
@@ -78,7 +84,7 @@ const DG = {
   arcaneText: SHARED_THEME.schoolArcane,
 } as const;
 
-const PIXEL_FONT = `"${DAMAGE_NUMBER_FONT_FAMILY}", ${UI_FONT_FAMILY}`;
+const PIXEL_FONT = UI_FONT_FAMILY;
 const DISABLED_ALPHA = 0.45;
 
 type NodeView = {
@@ -142,6 +148,12 @@ export class TalentPanel {
   private readonly resetBtn: Button;
   private readonly closeBtn: Button;
   private readonly onTextureAdded = (): void => this.refreshIcons();
+  /** Pixel-art panel frames (itch UI parts) over the vector chrome. */
+  private readonly frames: Phaser.GameObjects.Container;
+  /** Branch header plates (crested when the branch has points). */
+  private readonly branchFrames: Phaser.GameObjects.Container;
+  private readonly branchPlates: Array<Phaser.GameObjects.NineSlice | null> =
+    [];
   private selectedId: string;
   private resetArmed = false;
   private tornDown = false;
@@ -171,7 +183,9 @@ export class TalentPanel {
 
     this.chrome = scene.add.graphics();
     this.tree = scene.add.graphics();
-    root.add([this.chrome, this.tree]);
+    this.frames = scene.add.container(0, 0);
+    this.branchFrames = scene.add.container(0, 0);
+    root.add([this.chrome, this.frames, this.tree, this.branchFrames]);
     this.drawChrome();
 
     const W = GAME.width;
@@ -183,10 +197,10 @@ export class TalentPanel {
         scene.add
           .image(emblemX, headerMid, emblemKey.key, emblemKey.frame)
           .setDisplaySize(26, 26)
-          .setTint(0xe9dfcb),
+          .setTint(DG.goldBright),
       );
     }
-    this.text(L.pad + 84, headerMid - 14, "Talents", 30, DG.text, true)
+    this.text(L.pad + 84, headerMid - 14, "Talents", 32, DG.text, true)
       .setOrigin(0, 0.5)
       .setFontStyle("bold");
     this.text(
@@ -200,7 +214,7 @@ export class TalentPanel {
       W - L.pad - 16 - 40 - 12 - 48,
       headerMid,
       "",
-      17,
+      16,
       DG.goldBrightText,
       true,
     ).setOrigin(0.5);
@@ -226,7 +240,7 @@ export class TalentPanel {
     // Points bar: summary + legend.
     const pbMid = L.pointsY + L.pointsH / 2;
     this.summary = this.text(
-      L.pad + 12,
+      L.pad + 24,
       pbMid,
       "",
       12,
@@ -237,13 +251,16 @@ export class TalentPanel {
       ["Available", DG.goldBright, DG.raised],
       ["Locked", DG.iron, DG.slot],
     ];
-    let lx = W - L.pad - 12;
+    let lx = W - L.pad - 24;
+    // Legend dots above the points-bar frame.
+    const dots = scene.add.graphics();
+    root.add(dots);
     for (const [label, stroke, fill] of [...legend].reverse()) {
-      const t = this.text(lx, pbMid, label, 11, DG.textSecondary);
+      const t = this.text(lx, pbMid, label, 12, DG.textSecondary);
       t.setOrigin(1, 0.5);
-      lx -= label.length * 6 + 6;
-      this.chrome.fillStyle(fill, 1).fillCircle(lx - 5, pbMid, 5);
-      this.chrome.lineStyle(2, stroke, 1).strokeCircle(lx - 5, pbMid, 5);
+      lx -= Math.ceil(t.width || label.length * 6.5) + 8;
+      dots.fillStyle(fill, 1).fillCircle(lx - 5, pbMid, 5);
+      dots.lineStyle(2, stroke, 1).strokeCircle(lx - 5, pbMid, 5);
       lx -= 24;
     }
 
@@ -266,7 +283,7 @@ export class TalentPanel {
           0,
           0.5,
         ),
-        spent: this.text(cx, headY + 37, "", 10, DG.goldText).setOrigin(0.5),
+        spent: this.text(cx, headY + 37, "", 12, DG.goldText).setOrigin(0.5),
       };
       this.layoutBranchHeader(view, cx, headY, b.name, "");
       this.branches.push(view);
@@ -282,8 +299,8 @@ export class TalentPanel {
         gx,
         top + 44,
         `${tierThreshold(catalog, t)} pts`,
-        9,
-        DG.textMuted,
+        12,
+        DG.textSecondary,
       ).setOrigin(0.5);
     });
 
@@ -308,7 +325,7 @@ export class TalentPanel {
           slot.x,
           slot.y + L.orbR + 14,
           loc.node.name,
-          11,
+          12,
           DG.text,
           false,
           { align: "center", wordWrap: { width: 74 } },
@@ -317,8 +334,8 @@ export class TalentPanel {
           slot.x,
           slot.y + L.orbR + 42,
           "",
-          9,
-          DG.textMuted,
+          12,
+          DG.textSecondary,
         ).setOrigin(0.5, 0),
       });
     }
@@ -326,7 +343,7 @@ export class TalentPanel {
     // Detail panel.
     const dx = L.pad + 16;
     const dy = this.layout.detailY + 14;
-    this.detailName = this.text(dx, dy, "", 22, DG.text, true)
+    this.detailName = this.text(dx, dy, "", 24, DG.text, true)
       .setOrigin(0, 0)
       .setFontStyle("bold");
     this.detailRankBg = scene.add.graphics();
@@ -335,7 +352,7 @@ export class TalentPanel {
       W - L.pad - 16,
       dy + 14,
       "",
-      13,
+      16,
       DG.goldBrightText,
       true,
     ).setOrigin(1, 0.5);
@@ -358,12 +375,12 @@ export class TalentPanel {
       });
     }
     this.procText = this.text(dx, dy + 78, "", 12, DG.textSecondary);
-    this.tierLeft = this.text(dx, dy + 122, "", 11, DG.textMuted);
+    this.tierLeft = this.text(dx, dy + 122, "", 12, DG.textSecondary);
     this.tierRight = this.text(
       W - L.pad - 16,
       dy + 122,
       "",
-      11,
+      12,
       DG.arcaneText,
     ).setOrigin(1, 0);
     this.statusText = this.text(
@@ -413,6 +430,9 @@ export class TalentPanel {
       },
     );
     root.add([this.learnBtn.container, this.resetBtn.container]);
+    frameTouchButton(scene, this.learnBtn.container, "btnDark", bw, L.actionH);
+    frameTouchButton(scene, this.resetBtn.container, "btnDark", bw, L.actionH);
+    frameTouchButton(scene, this.closeBtn.container, "btn", 44, 40);
 
     this.selectedId = this.defaultSelection();
     ensureTalentIcons(scene);
@@ -448,15 +468,11 @@ export class TalentPanel {
 
   /** Re-render Pixelify titles once the web font is ready (index.html @font-face). */
   private loadPixelFont(): void {
-    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
-    if (!fonts?.load) return;
-    void fonts
-      .load(`700 16px "${DAMAGE_NUMBER_FONT_FAMILY}"`)
-      .then(() => {
-        if (this.tornDown) return;
-        for (const t of this.pixelTexts) t.setFontFamily(PIXEL_FONT);
-      })
-      .catch(() => undefined);
+    rerenderTextsWhenFontReady(
+      `700 16px "${DAMAGE_NUMBER_FONT_FAMILY}"`,
+      () => (this.tornDown ? [] : this.pixelTexts),
+      () => this.refresh(),
+    );
   }
 
   private drawChrome(): void {
@@ -476,8 +492,40 @@ export class TalentPanel {
       g.lineStyle(sw, stroke, 1).strokeRoundedRect(x, y, w, h, r);
     };
     const inner = W - 2 * L.pad;
-    panel(L.pad, L.headerY, inner, L.headerH, 14, DG.panel, DG.gold);
     const cy = L.headerY + L.headerH / 2;
+    const pillCx0 = W - L.pad - 16 - 40 - 12 - 48;
+    if (hasUiPart(this.scene, "da-frame-ornate")) {
+      // Mockup chrome: gradient backdrop, Dark Ages frames, Gothic oval emblem.
+      g.fillGradientStyle(0x1b1511, 0x1b1511, 0x0f0c0a, 0x0f0c0a, 1);
+      g.fillRect(0, 0, W, GAME.height * 0.45);
+      g.fillGradientStyle(0x0f0c0a, 0x0f0c0a, 0x0a0807, 0x0a0807, 1);
+      g.fillRect(0, GAME.height * 0.45, W, GAME.height * 0.55);
+      const add = (
+        name: Parameters<typeof addUiFrame>[1],
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+      ) => {
+        const ns = addUiFrame(this.scene, name, x, y, w, h);
+        if (ns) this.frames.add(ns);
+      };
+      add("ornate", L.pad, L.headerY, inner, L.headerH);
+      add("dark", pillCx0 - 46, cy - 18, 92, 36);
+      add("bar", L.pad, L.pointsY, inner, L.pointsH);
+      add("dark", L.pad, L.treeY, inner, this.layout.treeBottom - L.treeY);
+      add("dark", L.pad, this.layout.detailY, inner, L.detailH);
+      g.fillStyle(0x2a211a, 1).fillEllipse(L.pad + 42, cy, 34, 42);
+      if (hasUiPart(this.scene, "gp-oval")) {
+        this.frames.add(
+          this.scene.add
+            .image(L.pad + 42, cy, uiPartKey("gp-oval"))
+            .setDisplaySize(50, 61),
+        );
+      }
+      return;
+    }
+    panel(L.pad, L.headerY, inner, L.headerH, 14, DG.panel, DG.gold);
     g.fillStyle(DG.crimson, 1).fillCircle(L.pad + 42, cy, 26);
     g.lineStyle(2, DG.gold, 1).strokeCircle(L.pad + 42, cy, 26);
     // Points pill (header).
@@ -503,6 +551,26 @@ export class TalentPanel {
       DG.panel,
       DG.arcane,
     );
+  }
+
+  /** Branch header plate: plain Dark Ages button, crested dark plate once points are spent. */
+  private branchPlate(
+    i: number,
+    cx: number,
+    headY: number,
+    spent: boolean,
+  ): Phaser.GameObjects.NineSlice | null {
+    const name = spent ? "btnDark" : "btn";
+    const x = cx - L.cellW / 2;
+    let ns = this.branchPlates[i];
+    if (ns === undefined) {
+      ns = addUiFrame(this.scene, name, x, headY, L.cellW, L.branchHeadH);
+      this.branchPlates[i] = ns;
+      if (ns) this.branchFrames.add(ns);
+      return ns;
+    }
+    if (ns) setUiFrame(ns, name, x, headY, L.cellW, L.branchHeadH);
+    return ns;
   }
 
   private defaultSelection(): string {
@@ -606,10 +674,19 @@ export class TalentPanel {
     cat.branches.forEach((b, i) => {
       const spent = branchPointsSpent(talents, b);
       const cx = this.layout.branchCenters[i]!;
-      g.fillStyle(spent ? DG.raised : DG.slot, 1);
-      g.fillRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
-      g.lineStyle(1, spent ? DG.gold : DG.iron, 1);
-      g.strokeRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
+      const plate = this.branchPlate(i, cx, headY, spent > 0);
+      if (!plate) {
+        g.fillStyle(spent ? DG.raised : DG.slot, 1);
+        g.fillRoundedRect(cx - L.cellW / 2, headY, L.cellW, L.branchHeadH, 10);
+        g.lineStyle(1, spent ? DG.gold : DG.iron, 1);
+        g.strokeRoundedRect(
+          cx - L.cellW / 2,
+          headY,
+          L.cellW,
+          L.branchHeadH,
+          10,
+        );
+      }
       const view = this.branches[i]!;
       view.name.setColor(spent ? DG.text : DG.textSecondary);
       const spentLabel = `${spent} pts spent`;
