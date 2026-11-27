@@ -1,3 +1,4 @@
+import { tuning } from "../tuning/gameTuning";
 import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import Phaser from "phaser";
 import {
@@ -260,7 +261,11 @@ export function spawnEnemy(
   );
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemy);
   sprite.setInteractive(
-    new Phaser.Geom.Circle(0, 0, worldUnit(26, scene.registry)),
+    new Phaser.Geom.Circle(
+      0,
+      0,
+      worldUnit(tuning("spellInput").enemyTapRadiusWu, scene.registry),
+    ),
     Phaser.Geom.Circle.Contains,
   );
   bindEnemySpriteTap(sprite, onTap);

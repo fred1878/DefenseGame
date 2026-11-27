@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import type { SpellDefinition, SpellMechanicType } from "../../content/spells";
 import {
@@ -210,8 +211,9 @@ function resolveInstantTargeted(f: SpellResolveFrame) {
   );
   if (!def.projectileTextureKey) return;
   const t = hitId ? host.targeting.getEnemyById(hitId) : null;
-  const tx = t?.sprite.x ?? px + Math.cos(angle) * 40;
-  const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
+  const fallback = tuning("spellInput").instantTargetFallbackPx;
+  const tx = t?.sprite.x ?? px + Math.cos(angle) * fallback;
+  const ty = t?.sprite.y ?? py + Math.sin(angle) * fallback;
   const aim = Math.atan2(ty - py, tx - px);
   const id = `spell_proj_${host.nextProjectileId()}`;
   const aimedProj = spawnSpellProjectile(
@@ -330,7 +332,7 @@ export function castDefenseBlink(
   const reg = host.scene.registry;
   const halfW = defenseHalfWidth(reg);
   const halfH = defenseHalfHeight(reg);
-  const inset = host.wu(24);
+  const inset = host.wu(def.blinkEdgeInsetWu ?? 0);
   const px = host.player.sprite.x;
   const py = host.player.sprite.y;
   const playerR = host.wu(playerBodyRadiusPx());
@@ -392,13 +394,13 @@ export function spawnDefenseIceWall(
   const cy = host.player.sprite.y + Math.sin(facingRad) * dist;
   const perpX = -Math.sin(facingRad);
   const perpY = Math.cos(facingRad);
-  const gap = host.wu(28);
+  const gap = host.wu(def.iceWallBlockGapWu ?? 0);
   const key = COMBAT_FX_TEXTURE.spellIceBolt;
   for (let i = -1; i <= 1; i++) {
     const x = cx + perpX * gap * i;
     const y = cy + perpY * gap * i;
     const block = host.scene.physics.add.staticImage(x, y, key);
-    const size = host.wu(20);
+    const size = host.wu(def.iceWallBlockSizeWu ?? 0);
     block.setDisplaySize(size, size);
     block.setDepth(DEFENSE_RENDER_DEPTH.obstacleBlock);
     block.refreshBody();

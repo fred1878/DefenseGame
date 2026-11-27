@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import {
   clampGroundTarget,
   nearestEnemy,
@@ -6,6 +7,11 @@ import {
 import { pickAutoCastCombatEnemy } from "./spellAutoCastCombatEnemy";
 
 export type GroundAimEnemy = EnemyHitTarget & { alive: boolean };
+
+/** No-enemy ground aim lands this fraction of max range ahead (`spell_input.json`). */
+function facingRangeFrac(): number {
+  return tuning("spellInput").groundAimFacingRangeFrac;
+}
 
 /** Strike-range rules first; tier-3 search is all living enemies (aim clamped to ground max). */
 export const AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE = Number.POSITIVE_INFINITY;
@@ -44,8 +50,9 @@ export function resolveAutoCastGroundAim(
     tx = autoTarget.x;
     ty = autoTarget.y;
   } else {
-    tx = playerX + Math.cos(facingRad) * groundMaxRange * 0.55;
-    ty = playerY + Math.sin(facingRad) * groundMaxRange * 0.55;
+    const reach = groundMaxRange * facingRangeFrac();
+    tx = playerX + Math.cos(facingRad) * reach;
+    ty = playerY + Math.sin(facingRad) * reach;
   }
   return clampGroundTarget(playerX, playerY, tx, ty, groundMaxRange);
 }
@@ -84,7 +91,8 @@ export function resolveManualDefaultGroundAim(
       groundMaxRange,
     );
   }
-  const tx = playerX + Math.cos(facingRad) * groundMaxRange * 0.55;
-  const ty = playerY + Math.sin(facingRad) * groundMaxRange * 0.55;
+  const reach = groundMaxRange * facingRangeFrac();
+  const tx = playerX + Math.cos(facingRad) * reach;
+  const ty = playerY + Math.sin(facingRad) * reach;
   return clampGroundTarget(playerX, playerY, tx, ty, groundMaxRange);
 }

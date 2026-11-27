@@ -359,12 +359,17 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 
 **TypeScript:** [SpellInputConfigInput](../src/core/data/normalizeSpellInput.ts), [SpellInputTuning](../src/config/spellInput.ts) — [normalizeSpellInput.ts](../src/core/data/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts).
 
-Virtual stick thresholds for spell cast interrupt vs movement detection (`applySpellInputTuning`).
+Virtual stick thresholds for spell cast interrupt vs movement detection, plus aiming defaults (`applySpellInputTuning` → `tuning("spellInput")`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `castInterruptStickAngleDeg` | deg | Bearing change from cast-start stick aim that cancels windup/channel; release/neutral stick does not interrupt. |
 | `stickMovingMagnitudeEps` | dimensionless | Raw stick magnitude above which the player counts as moving (`isStickMoving`, auto-cast stationary skip). |
+| `defaultGroundTargetMaxRangeWu` | WU | Ground-target max range for ground spells whose row has no `groundTargetMaxRangeWu`. |
+| `groundAimFacingRangeFrac` | dimensionless | With no enemy to aim at, ground spells land this fraction of max range along facing. |
+| `groundAimEnemyRadiusFrac` | dimensionless | Enemy pick radius for ground aim, as a fraction of the enemy sprite display width. |
+| `instantTargetFallbackPx` | px | Instant-target spell VFX travel along facing when nothing is hit. |
+| `enemyTapRadiusWu` | WU | Tap radius on enemy sprites for focus selection. |
 | `groundTapAutoCastSpellIds` | string[] | Documented list of targeted ground AoE spell ids (`spellUsesManualGroundAim`; Boot replaces with catalog-derived ids). Short tap auto-targets; press-drag stays manual. |
 
 ---
@@ -719,8 +724,11 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 | `blinkDistanceWu` | Attempted blink travel distance in WU. |
 | `blinkResolveBinarySearchIterations` | Binary search steps for partial blink path resolution. |
 | `blinkPartialMoveEpsilonWu` | Minimum WU travel to treat blink as having moved. |
+| `blinkEdgeInsetWu` | WU the blink landing point is kept inside the field edges. |
 | `iceWallDistanceWu` | WU offset where ice wall is placed ahead of caster. |
 | `iceWallDurationMs` | Duration in ms before ice wall despawns. |
+| `iceWallBlockGapWu` | WU spacing between the three ice wall blocks. |
+| `iceWallBlockSizeWu` | WU display and collider size of each ice wall block. |
 | `shadowformDurationMs` | Buff duration in ms for shadowform mechanic type. |
 | `shadowformMoveSpeedMult` | Player speed multiplier while shadowform buff is active. |
 | `shadowformDamageTakenMult` | Incoming damage multiplier in [0,1] while buffed. |
@@ -752,8 +760,8 @@ Hit-flash timing and per-flavor `colorFade` / `alphaFade` live in [hit-flash.jso
 |----------------|------------------------------|
 | swing, tracking_swing | baseDamage, swingRangeWu, swingArcDeg, swingFxSizePx, knockback |
 | cone, channeled_cone | baseDamage, coneRangeWu, coneArcDeg, knockback |
-| blink | blinkDistanceWu, blinkResolveBinarySearchIterations, blinkPartialMoveEpsilonWu |
-| ice_wall | iceWallDistanceWu, iceWallDurationMs |
+| blink | blinkDistanceWu, blinkResolveBinarySearchIterations, blinkPartialMoveEpsilonWu, blinkEdgeInsetWu |
+| ice_wall | iceWallDistanceWu, iceWallDurationMs, iceWallBlockGapWu, iceWallBlockSizeWu |
 | buff | shadowformDurationMs; shadowform row also needs shadowform*Mult fields |
 | projectile | baseDamage, knockback |
 | projectile_aoe | baseDamage, knockback, blastKnockback |

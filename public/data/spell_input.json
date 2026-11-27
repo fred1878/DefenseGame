@@ -1,5 +1,10 @@
 {
   "castInterruptStickAngleDeg": 20,
   "stickMovingMagnitudeEps": 0.12,
+  "defaultGroundTargetMaxRangeWu": 240,
+  "groundAimFacingRangeFrac": 0.55,
+  "groundAimEnemyRadiusFrac": 0.25,
+  "instantTargetFallbackPx": 40,
+  "enemyTapRadiusWu": 26,
   "groundTapAutoCastSpellIds": ["blizzard", "fire_blast", "flamestrike", "meteor"]
 }

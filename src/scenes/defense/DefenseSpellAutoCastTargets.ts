@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import { pickAutoCastCombatEnemy } from "../../combat/rules/spellAutoCastCombatEnemy";
 import {
   AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE,
@@ -27,11 +28,12 @@ export type GroundAimEnemy = {
 };
 
 export function defenseGroundAimEnemies(host: AutoCastHost): GroundAimEnemy[] {
+  const radiusFrac = tuning("spellInput").groundAimEnemyRadiusFrac;
   return host.enemies.map((e) => ({
     id: e.id,
     x: e.sprite.x,
     y: e.sprite.y,
-    radius: e.sprite.displayWidth * 0.25,
+    radius: e.sprite.displayWidth * radiusFrac,
     alive: e.damageable.alive,
   }));
 }
@@ -43,7 +45,10 @@ export function defenseAutoCastGroundTarget(
 ): { x: number; y: number } {
   const px = host.player.sprite.x;
   const py = host.player.sprite.y;
-  const maxR = host.wu(def.groundTargetMaxRangeWu ?? 240);
+  const maxR = host.wu(
+    def.groundTargetMaxRangeWu ??
+      tuning("spellInput").defaultGroundTargetMaxRangeWu,
+  );
   const strike = host.resolveStrikeMode(host.player.mode === "auto");
   return resolveAutoCastGroundAim(
     px,

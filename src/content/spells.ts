@@ -63,8 +63,14 @@ export type SpellDefinition = {
   blinkResolveBinarySearchIterations?: number;
   /** Minimum travel (WU) to treat partial blink as having moved. */
   blinkPartialMoveEpsilonWu?: number;
+  /** Distance (WU) the blink landing point is kept from the field edges. */
+  blinkEdgeInsetWu?: number;
   iceWallDistanceWu?: number;
   iceWallDurationMs?: number;
+  /** Spacing (WU) between the three ice wall blocks. */
+  iceWallBlockGapWu?: number;
+  /** Display and collider size (WU) of each ice wall block. */
+  iceWallBlockSizeWu?: number;
   shadowformDurationMs?: number;
   shadowformMoveSpeedMult?: number;
   shadowformDamageTakenMult?: number;

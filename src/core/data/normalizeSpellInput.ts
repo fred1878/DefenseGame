@@ -9,6 +9,11 @@ export type SpellInputConfigInput = Partial<
 export const SPELL_INPUT_BOOT_KEYS = [
   "castInterruptStickAngleDeg",
   "stickMovingMagnitudeEps",
+  "defaultGroundTargetMaxRangeWu",
+  "groundAimFacingRangeFrac",
+  "groundAimEnemyRadiusFrac",
+  "instantTargetFallbackPx",
+  "enemyTapRadiusWu",
 ] as const satisfies readonly (keyof SpellInputTuning)[];
 
 export function normalizeSpellInput(

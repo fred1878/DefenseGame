@@ -34,8 +34,14 @@ export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<
     "blinkDistanceWu",
     "blinkResolveBinarySearchIterations",
     "blinkPartialMoveEpsilonWu",
+    "blinkEdgeInsetWu",
   ],
-  ice_wall: ["iceWallDistanceWu", "iceWallDurationMs"],
+  ice_wall: [
+    "iceWallDistanceWu",
+    "iceWallDurationMs",
+    "iceWallBlockGapWu",
+    "iceWallBlockSizeWu",
+  ],
   buff: ["shadowformDurationMs"],
 };
 

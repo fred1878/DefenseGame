@@ -331,7 +331,9 @@
       "iconFile": "ice_wall.png",
       "damageFlavor": "frost",
       "iceWallDistanceWu": 64,
-      "iceWallDurationMs": 8000
+      "iceWallDurationMs": 8000,
+      "iceWallBlockGapWu": 28,
+      "iceWallBlockSizeWu": 20
     },
     {
       "id": "flamestrike",
@@ -435,7 +437,8 @@
       "damageFlavor": "physical",
       "blinkDistanceWu": 250,
       "blinkResolveBinarySearchIterations": 24,
-      "blinkPartialMoveEpsilonWu": 0.5
+      "blinkPartialMoveEpsilonWu": 0.5,
+      "blinkEdgeInsetWu": 24
     },
     {
       "id": "combustion",
