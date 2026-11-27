@@ -16,7 +16,7 @@ Every item below still needs **some amount of work** (polish, content, tests, or
 | Crowd-aware sim win model + real-fight harness | `npm run sim:fights` replays sim saves in headless Chromium and fits the model (auto-cast rotation, weapon uptime, crowd, exposure); nights 13–20 retuned and checked in real fights ([ECONOMY_SIM.md](docs/ECONOMY_SIM.md)) |
 | **Phaser 4.2.1** | Custom trimmed vendor chunk; Vite 8 / Vitest 5 |
 | **Strict TypeScript** | `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `allowImportingTsExtensions` |
-| **Nights 13–20, buy requests** | 20-night campaign (`hpMul` / `damageMul` / elite groups), item tables to ilvl ~19, worse night drops, cheaper shop upgrades and rerolls, 8 wall levels, trader buy requests (Wants tab, 150% payout), win model re-weighted from real-combat runs (`e2e/win-model.spec.ts`) — see `docs/ECONOMY_SIM.md`, `docs/ITEMS.md`, `docs/WAVES.md` |
+| **Nights 13–20, buy requests** | Campaign nights through 20 (`hpMul` / `damageMul` / elite groups), item tables to ilvl ~19, worse night drops, cheaper shop upgrades and rerolls, 8 wall levels, trader buy requests (Wants tab, 150% payout), win model re-weighted from real-combat runs (`e2e/win-model.spec.ts`) — see `docs/ECONOMY_SIM.md`, `docs/ITEMS.md`, `docs/WAVES.md` |
 | **Test coverage** | Floors live in `vitest.config.ts` and only ever go up (see [TESTING.md](docs/TESTING.md)); real-Phaser scene tests run under jsdom + `@napi-rs/canvas` |
 | **Combat targeting fixes** | [#340](https://github.com/fred1878/DefenseGame/pull/340) — chain-lightning first hop, nearest-enemy fallback skips dead enemies, projectile knockback at the impact point |
 | **Installable PWA** | Web app manifest + service worker on GitHub Pages; precaches JS chunks (including Phaser and lazy scenes), data, images and audio. A new deploy activates on the next load |
@@ -43,7 +43,7 @@ Spell interactions come next after remaining campaign polish because they sit on
 | **0** | Merge [docs PR #108](https://github.com/fred1878/DefenseGame/pull/108) (`REFACTOR_PLAN.md`, README, this roadmap) — **done** | S |
 | **1** | **DefenseScene refactor** — **done** (PRs 1–12, P1, P2; pooling landed in `5bc75e1`). Historical plan: [docs/archive/REFACTOR_PLAN.md](./docs/archive/REFACTOR_PLAN.md) | L |
 | **2** | Tag **`v0.1.0`** + optional GitHub Release | S |
-| **3** | Milestone **B** remaining content (campaign ending after night 20, night polish) | M–L |
+| **3** | Milestone **B** remaining content (more campaign nights past 20, night polish) | M–L |
 | **4** | Milestone **C** remaining (cone art VFX, **spell interactions**; damage numbers — tuning only) | M–L |
 | **5** | Milestone **G** — Fully upgradeable town | L |
 | **6** | Milestone **H** — Equipment, shops, and traders — core **done** (see Recently landed); follow-ups below | L |
@@ -80,7 +80,7 @@ The 2026 DefenseScene / touch-button / enemy-ranged file splits are done; histor
 | Wall win/lose + `NightResult` | M | Yes | Clearer lose UX; endless vs campaign rules |
 | Wall upgrades | M | Yes | More upgrade types — expanded in Milestone **G**. The smith damage upgrade was replaced by gear (Milestone **H**) |
 | Gallows / spell bar buildings | S | Yes | Art and copy |
-| **Campaign after night 20** | M | No | Today: `night` keeps advancing on wins and `getWaveForNight` **repeats the night-20 wave**. Need ending or NG+ and explicit post-12 rules (endless unlock, credits, etc.) |
+| **Campaign nights past 20** | M | No | The campaign has no set end: night 20 is only the **last authored night**, and `night` keeps advancing on wins. Until nights 21+ are authored, `getWaveForNight` **reuses the night-20 wave** for them. Needs more wave rows (continuous 20 → 21 difficulty), not an end screen |
 | **Town building wiring** | S | **Done** | Haunted Well (endless), Plague Clinic (wave planner), night Market Stall (Trader + Gear), daylit Market Stall (saves) |
 | Endless concurrent spawn (if on `main`) | M | Partial | Polish, balance, docs |
 
@@ -217,7 +217,7 @@ Candidates not yet in a milestone table above. Pull into execution order when a 
 | **Dependabot + secret scanning** | S | Repo settings — keep `package-lock.json` patchable without manual audit |
 | **Accessibility pass** | M | Touch targets audit, contrast on HUD text, reduced motion for screen shake |
 | **Spell bar mobile drag** | S | Town spell sort panel edge cases at screen borders (called out in Milestone C) |
-| **Night 20+ telemetry hooks** | S | Debug-only counters for how many saves sit past night 20 (informs ending design) |
+| **Night 20+ telemetry hooks** | S | Debug-only counters for how many saves sit past the current content limit (shows where to aim the next authored nights) |
 
 ---
 
