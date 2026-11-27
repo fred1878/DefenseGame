@@ -1,3 +1,4 @@
+import { playerTuning } from "../../config/player";
 import type { SpellDefinition } from "../../content/spells";
 import { isStickMoving } from "../../combat/spellInputQueue";
 import {
@@ -29,7 +30,6 @@ import {
   updateSpellGroundAoeTelegraph,
 } from "../../combat/SpellGroundAoeTelegraph";
 import { spawnGroundZone } from "../../combat/spellGroundZone";
-import { PLAYER_TUNING } from "../../config";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import { spawnFlamestrikeGroundFlamesLinger } from "../../combat/FlamestrikePvfx";
 import {
@@ -178,7 +178,7 @@ export function resumeDefenseMovementFromStick(
   host.player.setVelocityFromStick(
     dir.x,
     dir.y,
-    host.wu(PLAYER_TUNING.moveSpeedWu),
+    host.wu(playerTuning().moveSpeedWu),
     { lockMeleeAim },
   );
   if (lockMeleeAim) {

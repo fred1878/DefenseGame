@@ -1,9 +1,6 @@
+import { playerTuning } from "../config/player";
 import Phaser from "phaser";
-import {
-  DEFENSE_RENDER_DEPTH,
-  PLAYER_TUNING,
-  type AttackMode,
-} from "../config";
+import { DEFENSE_RENDER_DEPTH, type AttackMode } from "../config";
 import {
   PLAYER_TEXTURE,
   SPRITE_DISPLAY,
@@ -190,14 +187,14 @@ export class Player {
 
     const isRanged = this.strikeMode() === "ranged";
     const windup = isRanged
-      ? PLAYER_TUNING.rangedWindupMs
-      : PLAYER_TUNING.meleeWindupMs;
+      ? playerTuning().rangedWindupMs
+      : playerTuning().meleeWindupMs;
     const active = isRanged
-      ? PLAYER_TUNING.rangedActiveMs
-      : PLAYER_TUNING.meleeActiveMs;
+      ? playerTuning().rangedActiveMs
+      : playerTuning().meleeActiveMs;
     const recovery = isRanged
-      ? PLAYER_TUNING.rangedRecoveryMs
-      : PLAYER_TUNING.meleeRecoveryMs;
+      ? playerTuning().rangedRecoveryMs
+      : playerTuning().meleeRecoveryMs;
 
     if (this.attackPhase === "windup" && this.phaseElapsed >= windup) {
       this.attackPhase = "active";
@@ -223,14 +220,17 @@ export class Player {
     onHit?: (enemy: EnemyInstance, damage: number) => void,
   ): void {
     if (this.strikeMode() !== "melee" || this.attackPhase !== "active") return;
-    const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
+    const arcHalf = Phaser.Math.DegToRad(playerTuning().meleeArcDeg / 2);
     for (const e of enemies) {
       if (!e.damageable.alive || this.hitEnemyIds.has(e.id)) continue;
       const hit = arcHitboxHitsTarget(
         this.sprite.x,
         this.sprite.y,
         this.meleeSwingFacingRad,
-        worldUnit(PLAYER_TUNING.meleeStrikeRangeWu, this.sprite.scene.registry),
+        worldUnit(
+          playerTuning().meleeStrikeRangeWu,
+          this.sprite.scene.registry,
+        ),
         arcHalf,
         e.sprite.x,
         e.sprite.y,

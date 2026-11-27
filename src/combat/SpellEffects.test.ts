@@ -1,5 +1,5 @@
+import { playerTuning } from "../config/player";
 import { describe, expect, it, vi } from "vitest";
-import { PLAYER_TUNING } from "../config";
 import { COMBAT_FX_TEXTURE } from "../content/assets";
 import {
   PVFX_ANIM,
@@ -524,7 +524,7 @@ describe("spawnSpellProjectile", () => {
     ).velocity;
     expect(v.x).toBeCloseTo(0);
     expect(v.y).toBeCloseTo(200);
-    expect(p.maxTravel).toBe(PLAYER_TUNING.rangedMaxRangeWu);
+    expect(p.maxTravel).toBe(playerTuning().rangedMaxRangeWu);
   });
 
   it("maps mechanics to projectile behaviours", () => {

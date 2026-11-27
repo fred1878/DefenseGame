@@ -1,7 +1,7 @@
+import { tuning } from "../tuning/gameTuning";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { GROUND_TAP_AUTO_CAST_SPELL_IDS } from "../config/spellInput";
 import { deriveGroundTapAutoCastSpellIds } from "../content/spellGroundTapCast";
 import { DataStore } from "./DataStore";
 
@@ -418,7 +418,7 @@ describe("DataStore.loadAll", () => {
     expect(store.getWaveForNight(1)?.groups.length).toBeGreaterThan(0);
     expect(store.buildings.wall).toBeDefined();
     expect(store.spells.length).toBeGreaterThan(0);
-    expect(GROUND_TAP_AUTO_CAST_SPELL_IDS).toEqual(
+    expect(tuning("spellInput").groundTapAutoCastSpellIds).toEqual(
       deriveGroundTapAutoCastSpellIds(store.spells),
     );
     expect(typeof store.player.moveSpeedWu).toBe("number");

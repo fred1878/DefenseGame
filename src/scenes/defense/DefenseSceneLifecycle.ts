@@ -1,6 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { destroyArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
-import { SHADOWFORM_MECHANICS } from "../../config/shadowformMechanics";
 import { setShadowformRuntimeMults } from "../../combat/shadowformRuntime";
 import { shadowformActive } from "../../combat/shadowform";
 import type { EnemyInstance } from "../../entities/Enemy";
@@ -102,7 +102,7 @@ export function syncShadowformRuntime(
   nowMs: number,
 ): void {
   const active = shadowformActive(shadowformEndsAt, nowMs);
-  const mechanics = SHADOWFORM_MECHANICS;
+  const mechanics = tuning("shadowform");
   setShadowformRuntimeMults({
     aggroRadiusMult: active ? mechanics.aggroRadiusMult : 1,
     damageTakenMult: active ? mechanics.damageTakenMult : 1,

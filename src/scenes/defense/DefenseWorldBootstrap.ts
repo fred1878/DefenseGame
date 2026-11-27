@@ -1,8 +1,8 @@
+import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
 import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
-  PLAYER_TUNING,
   type DefenseObstacleRect,
   defenseHalfHeight,
   defenseHalfWidth,
@@ -132,7 +132,7 @@ export function bootstrapDefenseWorld(
 
   scene.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
 
-  const playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
+  const playerInvulnMs = playerTuning().nightSpawnInvulnMs;
   scene.physics.add.collider(player.sprite, obstacleGroup);
   const enemyGroup = scene.physics.add.group();
   scene.physics.add.collider(player.sprite, enemyGroup);

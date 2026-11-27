@@ -264,7 +264,7 @@ Telegraphed ground zone ticks.
 
 **TypeScript:** [EnemyAiInput](../src/core/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
 
-Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.).
+Global chase / wall path tuning (`applyEnemyAi` → `tuning("enemyAi")` in `src/tuning/gameTuning.ts`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|

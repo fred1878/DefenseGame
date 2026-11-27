@@ -1,10 +1,10 @@
+import { tuning } from "../tuning/gameTuning";
 import {
   GROUND_TILE_SIZE,
   OBSTACLE_BLOCKER_FOOTPRINT,
   OBSTACLE_SPRITE_CROP,
   type ObstacleTextureKey,
 } from "../content/assets";
-import { NORTH_WALL_MELEE_STANDOFF_WU } from "./enemy";
 import { worldDisplayPx, worldScaleFactor, worldUnit } from "./worldScale";
 import type Phaser from "phaser";
 
@@ -73,7 +73,7 @@ export function northWallAttackY(registry?: Phaser.Data.DataManager): number {
  */
 export function northWallApproachY(
   registry?: Phaser.Data.DataManager,
-  standoffWu = NORTH_WALL_MELEE_STANDOFF_WU,
+  standoffWu = tuning("enemyAi").northWallMeleeStandoffWu,
 ): number {
   const standoffPx = registry ? worldUnit(standoffWu, registry) : standoffWu;
   return northWallAttackY(registry) + standoffPx;

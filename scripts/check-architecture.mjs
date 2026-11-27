@@ -26,7 +26,8 @@ const baselinePath = path.join(
 
 /**
  * `from` folder (first path segment under src/, or a root file name without
- * `.ts`) → folders it must not import at runtime. `*` means every folder.
+ * `.ts`) → folders it must not import at runtime. `*` means every folder
+ * (`except` exempts importers, `allow` exempts targets of a `*` forbid).
  */
 const DOMAIN = [
   "ai",
@@ -62,6 +63,14 @@ const LAYER_RULES = [
     forbid: ["e2e"],
   },
   { name: "no-debug-in-domain", from: DOMAIN, forbid: ["debug"] },
+  {
+    // The tuning store sits just above config/: runtime imports of anything
+    // else would make every tuning reader depend on it.
+    name: "tuning-is-a-store",
+    from: ["tuning"],
+    forbid: ["*"],
+    allow: ["config", "tuning"],
+  },
   {
     name: "sim-is-a-leaf",
     from: ["*"],
@@ -217,7 +226,10 @@ function findLayerViolations(graph) {
         const applies =
           (rule.from.includes("*") || rule.from.includes(from)) &&
           !(rule.except ?? []).includes(from);
-        if (applies && rule.forbid.includes(to)) {
+        const forbidden =
+          rule.forbid.includes(to) ||
+          (rule.forbid.includes("*") && !(rule.allow ?? []).includes(to));
+        if (applies && forbidden) {
           out.add(`${rule.name}: ${rel(file)} -> ${rel(dep)}`);
         }
       }

@@ -1,5 +1,5 @@
+import { playerTuning } from "../config/player";
 import Phaser from "phaser";
-import { PLAYER_TUNING } from "../config";
 import type { SpellDefinition } from "../content/spells";
 import {
   applyDamage,
@@ -115,7 +115,7 @@ export function spawnSpellProjectile(
       ? ICE_FX_TEXTURE.boltRepeat
       : spellProjectileTextureKey(scene, def.id, fallbackKey);
   const speedWu =
-    def.projectileSpeedWu ?? PLAYER_TUNING.projectileSpeedWu * 1.05;
+    def.projectileSpeedWu ?? playerTuning().projectileSpeedWu * 1.05;
   const speed = worldUnit(speedWu, scene.registry);
   const damage = (def.baseDamage ?? 20) * damageMult;
   const flavor: DamageFlavor = def.damageFlavor ?? "fire";
@@ -126,7 +126,7 @@ export function spawnSpellProjectile(
     angleRad,
     speed,
     damage,
-    worldUnit(PLAYER_TUNING.rangedMaxRangeWu, scene.registry),
+    worldUnit(playerTuning().rangedMaxRangeWu, scene.registry),
     id,
     textureKey,
     flavor,
@@ -339,7 +339,7 @@ export function applyInstantTargeted(
   status?: EnemySpellStatusMap,
 ): string | null {
   const maxR = worldUnit(
-    def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
+    def.groundTargetMaxRangeWu ?? playerTuning().autoAttackRangedRange,
     scene.registry,
   );
   const living = enemies.filter((e) => e.damageable.alive);

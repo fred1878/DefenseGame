@@ -1,13 +1,13 @@
+import { playerTuning } from "../../config/player";
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { updateEnemyBrain } from "../../ai/EnemyBrain";
 import { pickEnemyTarget, wallCombatPoint } from "../../ai/brainShared";
-import { PLAYER_TUNING } from "../../config";
 import {
   playerAggroRadiusWu,
   playerIncomingDamageMult,
 } from "../../combat/shadowformRuntime";
-import { PLAYER_AGGRO_RADIUS } from "../../config";
 import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
 import type { EnemyPeerAlly } from "../../ai/behaviors/types";
 import {
@@ -159,7 +159,7 @@ export function tickDefenseEnemies(
     }
 
     const combatAggroPx = worldUnit(
-      playerAggroRadiusWu(PLAYER_AGGRO_RADIUS),
+      playerAggroRadiusWu(tuning("enemyAi").playerAggroRadiusWu),
       host.registry,
     );
     const combatTargetKind = pickEnemyTarget(
@@ -375,7 +375,7 @@ export function tickDefenseEnemies(
       } else {
         playerDamageable.alive = true;
       }
-      playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
+      playerInvulnMs = playerTuning().playerHitInvulnMs;
     }
 
     decayEnemyKnockback(e, delta);

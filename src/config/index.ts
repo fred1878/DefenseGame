@@ -1,10 +1,5 @@
 export { GAME } from "./game";
-export { PLAYER_TUNING, type AttackMode } from "./player";
-export {
-  PLAYER_AGGRO_RADIUS,
-  PLAYER_CHASE_MEMORY_MS,
-  WALL_VELOCITY_BLEND_MS,
-} from "./enemy";
+export type { AttackMode } from "./player";
 export {
   DEFENSE_FIELD_TILES,
   DEFENSE_MAP,

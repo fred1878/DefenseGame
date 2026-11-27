@@ -1,4 +1,5 @@
-import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
+import { tuning } from "../../tuning/gameTuning";
+import { DEFENSE_MAP } from "../../config";
 import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
 import { worldUnit } from "../../config/worldScale";
 import { hasLineOfSight } from "../../pathfinding/los";
@@ -48,7 +49,7 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     playerX,
     playerY,
     deltaMs,
-    worldUnit(playerAggroRadiusWu(PLAYER_AGGRO_RADIUS), reg),
+    worldUnit(playerAggroRadiusWu(tuning("enemyAi").playerAggroRadiusWu), reg),
     ctx.objective ?? "defendWall",
     reg,
   );

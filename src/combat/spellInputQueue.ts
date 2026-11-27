@@ -1,11 +1,11 @@
-import { STICK_MOVING_MAGNITUDE_EPS } from "../config/spellInput";
+import { tuning } from "../tuning/gameTuning";
 import type { SpellId } from "../content/spells";
 import type { SpellDefinition } from "../content/spells";
 
-export { STICK_MOVING_MAGNITUDE_EPS as spellQueueMoveEpsilon };
-
 export function isStickMoving(stickX: number, stickY: number): boolean {
-  return Math.hypot(stickX, stickY) > STICK_MOVING_MAGNITUDE_EPS;
+  return (
+    Math.hypot(stickX, stickY) > tuning("spellInput").stickMovingMagnitudeEps
+  );
 }
 
 export type QueuedCombatInput =

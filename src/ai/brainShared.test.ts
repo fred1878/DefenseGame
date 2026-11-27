@@ -1,11 +1,7 @@
+import { tuning } from "../tuning/gameTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import { describe, expect, it } from "vitest";
-import {
-  DEFENSE_OBSTACLES,
-  PLAYER_AGGRO_RADIUS,
-  PLAYER_CHASE_MEMORY_MS,
-  WALL_VELOCITY_BLEND_MS,
-} from "../config";
+import { DEFENSE_OBSTACLES } from "../config";
 import {
   DEFENSE_MAP,
   northWallApproachY,
@@ -35,18 +31,26 @@ describe("pickEnemyTarget", () => {
 
   it("huntPlayer always targets the player", () => {
     expect(
-      pickEnemyTarget(grid, 400, 0, 0, 0, PLAYER_AGGRO_RADIUS, "huntPlayer"),
+      pickEnemyTarget(
+        grid,
+        400,
+        0,
+        0,
+        0,
+        tuning("enemyAi").playerAggroRadiusWu,
+        "huntPlayer",
+      ),
     ).toBe("player");
   });
 
   it("prefers wall when player is far", () => {
     expect(pickEnemyTarget(grid, 400, 0, 0, 0)).toBe("wall");
-    expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(300);
+    expect(tuning("enemyAi").playerAggroRadiusWu).toBeGreaterThan(300);
   });
 
   it("aggros player when close and LOS is clear", () => {
     expect(pickEnemyTarget(grid, 40, 0, 0, 0)).toBe("player");
-    expect(PLAYER_AGGRO_RADIUS).toBeGreaterThan(30);
+    expect(tuning("enemyAi").playerAggroRadiusWu).toBeGreaterThan(30);
   });
 
   it("targets wall when rock blocks LOS even if close", () => {
@@ -88,7 +92,7 @@ describe("resolveEnemyTarget", () => {
     const nav = createEnemyNav();
     resolveEnemyTarget(nav, grid, 40, 0, 0, 0, 16);
     expect(nav.targetKind).toBe("player");
-    expect(nav.chaseMemoryMs).toBe(PLAYER_CHASE_MEMORY_MS);
+    expect(nav.chaseMemoryMs).toBe(tuning("enemyAi").playerChaseMemoryMs);
 
     const px = 500;
     const py = 200;
@@ -96,7 +100,9 @@ describe("resolveEnemyTarget", () => {
     expect(r.targetKind).toBe("player");
     expect(r.goalX).toBe(0);
     expect(r.goalY).toBe(0);
-    expect(nav.chaseMemoryMs).toBeLessThan(PLAYER_CHASE_MEMORY_MS);
+    expect(nav.chaseMemoryMs).toBeLessThan(
+      tuning("enemyAi").playerChaseMemoryMs,
+    );
     expect(nav.chaseMemoryMs).toBeGreaterThan(0);
   });
 
@@ -104,7 +110,7 @@ describe("resolveEnemyTarget", () => {
     const nav = createEnemyNav();
     nav.lastKnownPlayerX = 120;
     nav.lastKnownPlayerY = 80;
-    nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
+    nav.chaseMemoryMs = tuning("enemyAi").playerChaseMemoryMs;
     nav.targetKind = "player";
 
     const wy = northWallAttackY();
@@ -123,7 +129,7 @@ describe("resolveEnemyTarget", () => {
     const r = resolveEnemyTarget(nav, grid, 400, 0, 0, 0, 100);
     expect(r.targetKind).toBe("wall");
     expect(nav.chaseMemoryMs).toBe(0);
-    expect(nav.wallTransitionMs).toBe(WALL_VELOCITY_BLEND_MS);
+    expect(nav.wallTransitionMs).toBe(tuning("enemyAi").wallVelocityBlendMs);
   });
 });
 

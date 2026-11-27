@@ -1,7 +1,4 @@
-import {
-  CAST_INTERRUPT_STICK_ANGLE_DEG,
-  STICK_MOVING_MAGNITUDE_EPS,
-} from "../config/spellInput";
+import { tuning } from "../tuning/gameTuning";
 
 function stickMagnitude(x: number, y: number): number {
   return Math.hypot(x, y);
@@ -29,12 +26,12 @@ export function stickDeflectionInterruptsCast(
   baselineY: number,
 ): boolean {
   const curMag = stickMagnitude(stickX, stickY);
-  if (curMag <= STICK_MOVING_MAGNITUDE_EPS) {
+  if (curMag <= tuning("spellInput").stickMovingMagnitudeEps) {
     return false;
   }
 
   const baseMag = stickMagnitude(baselineX, baselineY);
-  if (baseMag <= STICK_MOVING_MAGNITUDE_EPS) {
+  if (baseMag <= tuning("spellInput").stickMovingMagnitudeEps) {
     return true;
   }
 
@@ -42,6 +39,6 @@ export function stickDeflectionInterruptsCast(
     shortestAngleSeparationDeg(
       stickBearingDeg(baselineX, baselineY),
       stickBearingDeg(stickX, stickY),
-    ) > CAST_INTERRUPT_STICK_ANGLE_DEG
+    ) > tuning("spellInput").castInterruptStickAngleDeg
   );
 }

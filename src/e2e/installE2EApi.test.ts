@@ -1,6 +1,7 @@
+import { playerTuning } from "../config/player";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createNewSave } from "../core/GameState";
-import { PLAYER_TUNING, SPELL_BAR } from "../config";
+import { SPELL_BAR } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import { spellIconTextureKey } from "../content/assets";
 import { getE2EState } from "./e2eGlobal";
@@ -509,10 +510,10 @@ describe("buildApi", () => {
   it("overrides live movement speed and reports texture / fps state", async () => {
     const game = makeGame({});
     const api = buildApi(game as never);
-    const previousSpeed = PLAYER_TUNING.moveSpeedWu;
+    const previousSpeed = playerTuning().moveSpeedWu;
     api.setPlayerMoveSpeedWu(123);
-    expect(PLAYER_TUNING.moveSpeedWu).toBe(123);
-    applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: previousSpeed });
+    expect(playerTuning().moveSpeedWu).toBe(123);
+    applyPlayerTuning({ ...playerTuning(), moveSpeedWu: previousSpeed });
     expect(api.textureLoaded("missing")).toBe(false);
     expect(await api.sampleFps(0)).toBe(60);
 

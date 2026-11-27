@@ -1,5 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
-import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
+import { DEFENSE_MAP } from "../../config";
 import { playerAggroRadiusWu } from "../../combat/shadowformRuntime";
 import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
 import { worldUnit } from "../../config/worldScale";
@@ -228,7 +229,7 @@ export const wardBehavior: EnemyBehavior = (ctx) => {
   const holdExitRadius = worldUnit(WARD_POST_HOLD_EXIT_RADIUS_PX, reg);
   const breakMovePx = worldUnit(WARD_POST_BREAK_MOVE_PX, reg);
   const aggro = playerAggroRadiusWu(
-    ward?.playerAggroRadiusWu ?? PLAYER_AGGRO_RADIUS,
+    ward?.playerAggroRadiusWu ?? tuning("enemyAi").playerAggroRadiusWu,
   );
   const extra = enemy.behaviorExtra;
   extra.wardPostHolding = false;

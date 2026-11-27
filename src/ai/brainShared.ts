@@ -1,12 +1,6 @@
+import { tuning } from "../tuning/gameTuning";
 import type Phaser from "phaser";
-import {
-  DEFENSE_MAP,
-  PLAYER_AGGRO_RADIUS,
-  PLAYER_CHASE_MEMORY_MS,
-  WALL_VELOCITY_BLEND_MS,
-  northWallApproachY,
-  northWallAttackY,
-} from "../config";
+import { DEFENSE_MAP, northWallApproachY, northWallAttackY } from "../config";
 import { worldUnit } from "../config/worldScale";
 import { findPath, type PathPoint } from "../pathfinding/astar";
 import { hasLineOfSight } from "../pathfinding/los";
@@ -106,7 +100,7 @@ export function pickEnemyTarget(
   ey: number,
   px: number,
   py: number,
-  aggroRadius: number = PLAYER_AGGRO_RADIUS,
+  aggroRadius: number = tuning("enemyAi").playerAggroRadiusWu,
   objective: EnemyObjectiveMode = "defendWall",
 ): EnemyTargetKind {
   if (objective === "huntPlayer") {
@@ -124,7 +118,7 @@ function hasLivePlayerAggro(
   ey: number,
   px: number,
   py: number,
-  aggroRadius: number = PLAYER_AGGRO_RADIUS,
+  aggroRadius: number = tuning("enemyAi").playerAggroRadiusWu,
 ): boolean {
   const dist = Math.hypot(px - ex, py - ey);
   return dist <= aggroRadius && hasLineOfSight(grid, ex, ey, px, py);
@@ -139,14 +133,14 @@ export function resolveEnemyTarget(
   px: number,
   py: number,
   deltaMs: number,
-  aggroRadius: number = PLAYER_AGGRO_RADIUS,
+  aggroRadius: number = tuning("enemyAi").playerAggroRadiusWu,
   objective: EnemyObjectiveMode = "defendWall",
   registry?: Phaser.Data.DataManager,
 ): EnemyTargetResolution {
   if (objective === "huntPlayer") {
     nav.lastKnownPlayerX = px;
     nav.lastKnownPlayerY = py;
-    nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
+    nav.chaseMemoryMs = tuning("enemyAi").playerChaseMemoryMs;
     nav.targetKind = "player";
     nav.wallTransitionMs = 0;
     return { targetKind: "player", goalX: px, goalY: py };
@@ -154,7 +148,7 @@ export function resolveEnemyTarget(
   if (hasLivePlayerAggro(grid, ex, ey, px, py, aggroRadius)) {
     nav.lastKnownPlayerX = px;
     nav.lastKnownPlayerY = py;
-    nav.chaseMemoryMs = PLAYER_CHASE_MEMORY_MS;
+    nav.chaseMemoryMs = tuning("enemyAi").playerChaseMemoryMs;
     nav.targetKind = "player";
     nav.wallTransitionMs = 0;
     return { targetKind: "player", goalX: px, goalY: py };
@@ -175,7 +169,7 @@ export function resolveEnemyTarget(
   const wasChasingPlayer = nav.targetKind === "player";
   nav.targetKind = "wall";
   if (wasChasingPlayer) {
-    nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
+    nav.wallTransitionMs = tuning("enemyAi").wallVelocityBlendMs;
   }
   const wall = wallTargetPoint(ex, ey, registry);
   return { targetKind: "wall", goalX: wall.x, goalY: wall.y };

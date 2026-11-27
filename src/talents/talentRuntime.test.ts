@@ -1,5 +1,5 @@
+import { playerTuning } from "../config/player";
 import { afterEach, describe, expect, it } from "vitest";
-import { PLAYER_TUNING } from "../config";
 import { basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "../gear/gearCatalog";
 import {
@@ -37,7 +37,7 @@ describe("talent runtime", () => {
     const stats = applySaveLoadout(save, getGearCatalog(), tree);
     expect(stats.flat.meleeDamage).toBe(6);
     expect(stats.flat.maxHp).toBe(5);
-    expect(PLAYER_TUNING.meleeDamage).toBe(basePlayerTuning().meleeDamage + 6);
+    expect(playerTuning().meleeDamage).toBe(basePlayerTuning().meleeDamage + 6);
     // 10% global + 5% meteor-only cooldown.
     expect(gearSpellCooldownMul("meteor")).toBeCloseTo(0.85);
     expect(gearSpellCooldownMul("fire_bolt")).toBeCloseTo(0.9);

@@ -1,5 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import { describe, expect, it, vi } from "vitest";
-import { northWallAttackY, WALL_VELOCITY_BLEND_MS } from "../../config";
+import { northWallAttackY } from "../../config";
 import { wallMeleeApproachStandoffWu } from "../../core/enemyTuning";
 import { testWallCombat } from "../../test/fixtures/inlineCombat";
 import { readFileSync } from "node:fs";
@@ -322,7 +323,7 @@ describe("wall melee hold helpers", () => {
       knockbackVx: 80,
       knockbackVy: 0,
     });
-    enemy.nav.wallTransitionMs = WALL_VELOCITY_BLEND_MS;
+    enemy.nav.wallTransitionMs = tuning("enemyAi").wallVelocityBlendMs;
     const body = { velocity: { x: 140, y: 0 } };
     (enemy.sprite as unknown as { body: typeof body }).body = body;
     applyChaseVelocity(enemy, 200, 0, 1, {

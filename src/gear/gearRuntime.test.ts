@@ -1,7 +1,7 @@
+import { playerTuning } from "../config/player";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EnemySpellStatusMap } from "../combat/enemySpellStatus";
 import type { Damageable } from "../combat/DamageSystem";
-import { PLAYER_TUNING } from "../config";
 import { basePlayerTuning } from "../config/player";
 import { playerIncomingDamageMult } from "../combat/shadowformRuntime";
 import { gearFixture } from "../test/gearFixture";
@@ -67,7 +67,7 @@ describe("gearRuntime", () => {
 
   it("is neutral with no gear", () => {
     applyGearLoadout(createEmptyGear(), catalog);
-    expect(PLAYER_TUNING).toEqual(basePlayerTuning());
+    expect(playerTuning()).toEqual(basePlayerTuning());
     expect(gearDamageTakenMult()).toBe(1);
     expect(gearSpellDamageMult()).toBe(1);
     expect(gearSpellCooldownMul("meteor")).toBe(1);
@@ -79,9 +79,9 @@ describe("gearRuntime", () => {
   it("applies weapons, armour, spell and cooldown bonuses", () => {
     const stats = applyGearLoadout(LOADOUT, catalog);
     expect(stats.flat.armour).toBe(10);
-    expect(PLAYER_TUNING.meleeDamage).toBe(20);
-    expect(PLAYER_TUNING.rangedMaxRangeWu).toBe(400);
-    expect(PLAYER_TUNING.maxHp).toBe(basePlayerTuning().maxHp + 5);
+    expect(playerTuning().meleeDamage).toBe(20);
+    expect(playerTuning().rangedMaxRangeWu).toBe(400);
+    expect(playerTuning().maxHp).toBe(basePlayerTuning().maxHp + 5);
     expect(gearDamageTakenMult()).toBeCloseTo(1 - 10 / 60);
     expect(playerIncomingDamageMult()).toBeCloseTo(1 - 10 / 60);
     expect(gearSpellDamageMult()).toBeCloseTo(1.1);

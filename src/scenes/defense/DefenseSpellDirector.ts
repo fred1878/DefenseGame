@@ -1,3 +1,4 @@
+import { playerTuning } from "../../config/player";
 import { gearSpellDamageMult } from "../../gear/gearRuntime";
 import type Phaser from "phaser";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
@@ -25,7 +26,6 @@ import {
   type SpellGroundAoeTelegraph,
 } from "../../combat/SpellGroundAoeTelegraph";
 import type { SpellGroundZone } from "../../combat/spellGroundZone";
-import { PLAYER_TUNING } from "../../config";
 import {
   spellAutoCastRequiresCombatTarget,
   spellAutoCastUsesRangedEnemyPick,
@@ -381,8 +381,8 @@ export class DefenseSpellDirector {
       this.host.targeting.focusEnemyId,
       this.groundAimEnemies(),
       strike,
-      this.host.wu(PLAYER_TUNING.autoAttackMeleeRange),
-      this.host.wu(PLAYER_TUNING.autoAttackRangedRange),
+      this.host.wu(playerTuning().autoAttackMeleeRange),
+      this.host.wu(playerTuning().autoAttackRangedRange),
       maxR,
     );
   }
@@ -404,7 +404,7 @@ export class DefenseSpellDirector {
       spellTargetMode(def) === "ground"
         ? AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE
         : this.host.wu(
-            def.groundTargetMaxRangeWu ?? PLAYER_TUNING.autoAttackRangedRange,
+            def.groundTargetMaxRangeWu ?? playerTuning().autoAttackRangedRange,
           );
     const strike = spellAutoCastUsesRangedEnemyPick(def)
       ? "ranged"
@@ -416,8 +416,8 @@ export class DefenseSpellDirector {
         this.host.targeting.focusEnemyId,
         this.groundAimEnemies(),
         strike,
-        this.host.wu(PLAYER_TUNING.autoAttackMeleeRange),
-        this.host.wu(PLAYER_TUNING.autoAttackRangedRange),
+        this.host.wu(playerTuning().autoAttackMeleeRange),
+        this.host.wu(playerTuning().autoAttackRangedRange),
         searchR,
       ) ?? null
     );

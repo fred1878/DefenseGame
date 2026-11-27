@@ -1,8 +1,9 @@
+import { playerTuning } from "../config/player";
+import { tuning } from "../tuning/gameTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import Phaser from "phaser";
-import { DEFENSE_MAP, PLAYER_TUNING, type AttackMode } from "../config";
+import { DEFENSE_MAP, type AttackMode } from "../config";
 import type { DefenseObstacleRect } from "../config/defense";
-import { SHADOWFORM_MECHANICS } from "../config/shadowformMechanics";
 import { resetShadowformRuntimeMults } from "../combat/shadowformRuntime";
 import type { SaveGame } from "../core/saveTypes";
 import type { EnemyDef } from "../core/DataStore";
@@ -542,7 +543,7 @@ export class DefenseScene extends Phaser.Scene {
     const py = this.player.sprite.y;
     const moveSpeed = shadowformMoveSpeedMultiplier(
       shadowformActive(this.shadowformEndsAt, this.time.now),
-      SHADOWFORM_MECHANICS,
+      tuning("shadowform"),
     );
 
     if (this.spellCaster.isChanneling()) {
@@ -554,7 +555,7 @@ export class DefenseScene extends Phaser.Scene {
       this.player.setVelocityFromStick(
         dir.x,
         dir.y,
-        this.wu(PLAYER_TUNING.moveSpeedWu) * moveSpeed,
+        this.wu(playerTuning().moveSpeedWu) * moveSpeed,
         {
           lockMeleeAim,
         },
@@ -579,13 +580,13 @@ export class DefenseScene extends Phaser.Scene {
     // Skips dead enemies itself; no per-frame filtered copy needed.
     this.player.damageEnemiesInArc(
       this.enemies,
-      PLAYER_TUNING.meleeDamage,
-      this.wu(PLAYER_TUNING.meleeKnockbackWu),
+      playerTuning().meleeDamage,
+      this.wu(playerTuning().meleeKnockbackWu),
       (enemy, damage) => this.onWeaponHit(enemy.id, damage),
     );
 
     if (this.player.consumeRangedShot()) {
-      this.combat.fireProjectile(PLAYER_TUNING.rangedDamage);
+      this.combat.fireProjectile(playerTuning().rangedDamage);
     }
 
     const projTick = tickDefenseProjectiles(
@@ -991,7 +992,7 @@ export class DefenseScene extends Phaser.Scene {
         worldX: world.x,
         worldY: world.y,
         picked: pick !== null,
-        pickRadiusWorld: this.wu(PLAYER_TUNING.targetTapRadiusWu),
+        pickRadiusWorld: this.wu(playerTuning().targetTapRadiusWu),
         ageMs: 0,
       };
     }

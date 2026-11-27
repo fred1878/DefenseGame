@@ -1,5 +1,6 @@
+import { playerTuning } from "../config/player";
 import { describe, expect, it, vi } from "vitest";
-import { PLAYER_TUNING, SPELL_BAR } from "../config";
+import { SPELL_BAR } from "../config";
 import { applyPlayerTuning } from "../config/player";
 import {
   DefenseSpellDirector,
@@ -23,7 +24,7 @@ import {
 describe("GameState", () => {
   it("loadSave drops legacy player.moveSpeed from save blob", () => {
     const tuningMoveSpeed = 222;
-    applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: tuningMoveSpeed });
+    applyPlayerTuning({ ...playerTuning(), moveSpeedWu: tuningMoveSpeed });
 
     const base = createNewSave();
     const legacySave = {
@@ -46,13 +47,13 @@ describe("GameState", () => {
 
     const loaded = loadSave();
     expect(loaded.player).not.toHaveProperty("moveSpeed");
-    expect(PLAYER_TUNING.moveSpeedWu).toBe(tuningMoveSpeed);
+    expect(playerTuning().moveSpeedWu).toBe(tuningMoveSpeed);
     vi.unstubAllGlobals();
   });
 
-  it("Defense movement uses PLAYER_TUNING (not save) for stick velocity", () => {
+  it("Defense movement uses playerTuning() (not save) for stick velocity", () => {
     const tuningMoveSpeed = 333;
-    applyPlayerTuning({ ...PLAYER_TUNING, moveSpeedWu: tuningMoveSpeed });
+    applyPlayerTuning({ ...playerTuning(), moveSpeedWu: tuningMoveSpeed });
 
     const setVelocityFromStick = vi.fn();
     const host = {
