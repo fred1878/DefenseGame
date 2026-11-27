@@ -1,12 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Phaser from "phaser";
-import {
-  attachE2EGame,
-  markE2EAssetsLoaded,
-  seedE2EWindowStub,
-} from "./installE2E";
+import { attachE2EGame, subscribeE2EGameEvents } from "./installE2E";
+import { markE2EAssetsLoaded } from "./e2eAssets";
 import { emitGameEvent } from "../core/gameEvents";
-import { getE2EState } from "./e2eGlobal";
+import { getE2EState, seedE2EWindowStub } from "./e2eGlobal";
 import type { DefenseGameE2EApi } from "./e2eGlobal";
 
 function windowStub(href = "http://localhost/?e2e=1") {
@@ -51,7 +48,8 @@ describe("installE2E", () => {
     vi.stubEnv("VITE_E2E", "true");
     windowStub();
     seedE2EWindowStub();
-    seedE2EWindowStub();
+    subscribeE2EGameEvents();
+    subscribeE2EGameEvents();
     emitGameEvent("playerMeleeFx", {});
     emitGameEvent("enemyMeleeFx", {
       enemyDefId: "grunt",

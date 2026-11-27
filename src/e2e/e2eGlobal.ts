@@ -1,4 +1,5 @@
 import type { SaveGame } from "../core/saveTypes";
+import { isE2EEnabled } from "./e2eMode";
 
 export type DefenseGameE2EState = {
   ready: boolean;
@@ -230,4 +231,13 @@ export function publishE2E(
           : { ...(cur.api ?? ({} as DefenseGameE2EApi)), ...patch.api },
   };
   window.__DEFENSEGAME_E2E__ = next;
+}
+
+/**
+ * Call at module load so Playwright always sees the hook object before the
+ * (lazy) E2E installer chunk loads and async boot finishes.
+ */
+export function seedE2EWindowStub(): void {
+  if (!isE2EEnabled() || typeof window === "undefined") return;
+  window.__DEFENSEGAME_E2E__ = defaultE2EState();
 }

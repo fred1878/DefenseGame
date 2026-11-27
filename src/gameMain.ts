@@ -2,8 +2,7 @@ import type Phaser from "phaser";
 import { GAME } from "./config";
 import { markBoot, measureBoot } from "./core/bootPerf";
 import { e2eManualReturnFromQuery, isE2EEnabled } from "./e2e/e2eMode";
-import { attachE2EGame, seedE2EWindowStub } from "./e2e/installE2E";
-import { publishE2E } from "./e2e/e2eGlobal";
+import { publishE2E, seedE2EWindowStub } from "./e2e/e2eGlobal";
 import { setE2EStorageIsolation } from "./core/storageKeys";
 import { clampRenderResolution } from "./core/displayScale";
 import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
@@ -27,7 +26,11 @@ function hideLoadingSplash(): void {
 
 async function start(): Promise<void> {
   markBoot("defensegame:phaser-import-start");
+  // E2E installer is its own chunk; production never downloads it. Load it
+  // beside Phaser and before the game exists so hooks attach synchronously.
+  const e2eInstaller = isE2EEnabled() ? import("./e2e/installE2E") : null;
   const { default: PhaserRuntime } = await import("phaser");
+  const e2e = e2eInstaller ? await e2eInstaller : null;
   markBoot("defensegame:phaser-import-end");
   installPhaser3VertexRounding(PhaserRuntime);
   measureBoot(
@@ -81,7 +84,7 @@ async function start(): Promise<void> {
   game.registry.set("renderResolution", clampRenderResolution());
   game.registry.set(WORLD_PIXEL_SCALE_REGISTRY_KEY, DEFAULT_WORLD_PIXEL_SCALE);
   bindViewportToScale(game);
-  if (isE2EEnabled()) {
+  if (e2e) {
     const e2eTimeScale = (): void => {
       for (const scene of game.scene.scenes) {
         scene.time.timeScale = 2;
@@ -92,7 +95,7 @@ async function start(): Promise<void> {
     if (e2eManualReturnFromQuery()) {
       game.registry.set("e2eManualReturn", true);
     }
-    attachE2EGame(game);
+    e2e.attachE2EGame(game);
     publishE2E({ scene: "Boot", ready: false });
   }
 }
