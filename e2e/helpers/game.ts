@@ -1,4 +1,5 @@
 import { type Page, expect } from "@playwright/test";
+import { tapGameButton } from "./touch";
 
 export async function gotoE2E(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -27,8 +28,20 @@ export async function gotoE2E(page: Page): Promise<void> {
     .toBe(true);
 }
 
-export async function startDefense(page: Page): Promise<void> {
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.startNight());
+/**
+ * Enter Defense from Town. Default: tap the real "start night" building on the canvas
+ * (Gallows Square). `via: "api"` calls the e2e API instead; only for setups where an
+ * open overlay is part of the test and would (correctly) swallow the tap.
+ */
+export async function startDefense(
+  page: Page,
+  { via = "tap" }: { via?: "tap" | "api" } = {},
+): Promise<void> {
+  if (via === "tap") {
+    await tapGameButton(page, "start-night");
+  } else {
+    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.startNight());
+  }
   await expect
     .poll(
       async () =>

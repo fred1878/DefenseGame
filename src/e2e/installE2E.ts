@@ -1,20 +1,18 @@
 import Phaser from "phaser";
 import type { DefenseScene } from "../scenes/DefenseScene";
-import type { TownScene } from "../scenes/TownScene";
-import { activeTownUiHost, e2eReportsTownScene } from "./townUiHost";
+import { e2eReportsTownScene } from "./townUiHost";
 import { onGameEvent } from "../core/gameEvents";
 import { isE2EEnabled } from "./e2eMode";
 import { publishE2E } from "./e2eGlobal";
 import { buildApi } from "./installE2EApi";
 import { createDefenseSceneE2eHost } from "../scenes/defense/DefenseSceneE2EHost";
 import { registerDefenseSceneE2eHostFactory } from "../scenes/defense/defenseSceneE2eHook";
-import { ensureDomTestActions, positionDomMirrors } from "./installE2EDom";
 
 /*
  * E2E entry (lazy chunk, loaded by gameMain only in E2E mode): attach the
  * game and publish scene state. The window stub is seeded synchronously by
  * `seedE2EWindowStub` in `e2eGlobal.ts`.
- * DOM mirrors live in `installE2EDom.ts`, the API object in `installE2EApi.ts`.
+ * The API object lives in `installE2EApi.ts`.
  */
 
 let unsubscribeGameEvents: (() => void) | null = null;
@@ -56,7 +54,6 @@ export function attachE2EGame(game: Phaser.Game): void {
   registerDefenseSceneE2eHostFactory(createDefenseSceneE2eHost);
   const api = buildApi(game);
   publishE2E({ api });
-  ensureDomTestActions(api);
 
   const publishScene = (): void => {
     const townScene = game.scene.getScene("Town");
@@ -78,10 +75,6 @@ export function attachE2EGame(game: Phaser.Game): void {
       scene: key,
       ready,
     };
-    if (key === "Town" && ready) {
-      const townHost = activeTownUiHost(game) as TownScene;
-      positionDomMirrors(townHost.e2eGetUiTapTargets());
-    }
     if (key === "Defense") {
       const defense = game.scene.getScene("Defense") as DefenseScene | null;
       const host = defense?.scene.isActive() ? defense.e2e : null;
@@ -98,7 +91,6 @@ export function attachE2EGame(game: Phaser.Game): void {
           defenseWallHp: host.wallHp(),
           autoAttackOn: host.autoAttackEnabled(),
         };
-        positionDomMirrors(host.getUiTapTargets());
       }
     }
     publishE2E(patch);

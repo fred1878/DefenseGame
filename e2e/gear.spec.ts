@@ -1,11 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { gotoE2E, startDefense } from "./helpers/game";
-import { getTapTarget, tapCanvas, waitForTapTargets } from "./helpers/touch";
-
-async function tapTarget(page: Page, id: string): Promise<void> {
-  const pt = await getTapTarget(page, id);
-  await tapCanvas(page, pt.x, pt.y);
-}
+import { tapGameButton, waitForTapTargets } from "./helpers/touch";
 
 function tapTargetIds(page: Page): Promise<string[]> {
   return page.evaluate(() =>
@@ -45,7 +40,7 @@ test("gear: open from town, equip a bag item, sell one and close", async ({
     });
   });
   await waitForTapTargets(page, ["town-gear"]);
-  await tapTarget(page, "town-gear");
+  await tapGameButton(page, "town-gear");
   await waitForTapTargets(page, [
     "inv-close",
     "inv-slot-meleeWeapon",
@@ -53,9 +48,9 @@ test("gear: open from town, equip a bag item, sell one and close", async ({
     "inv-bag-1",
   ]);
 
-  await tapTarget(page, "inv-bag-0");
+  await tapGameButton(page, "inv-bag-0");
   await waitForTapTargets(page, ["inv-equip", "inv-sell"]);
-  await tapTarget(page, "inv-equip");
+  await tapGameButton(page, "inv-equip");
   await expect
     .poll(() =>
       page.evaluate(() =>
@@ -69,9 +64,9 @@ test("gear: open from town, equip a bag item, sell one and close", async ({
   // The equipped item is now in its slot; one item is left in the bag.
   await waitForTapTargets(page, ["inv-unequip"]);
   await expect.poll(() => tapTargetIds(page)).not.toContain("inv-bag-1");
-  await tapTarget(page, "inv-bag-0");
+  await tapGameButton(page, "inv-bag-0");
   await waitForTapTargets(page, ["inv-sell"]);
-  await tapTarget(page, "inv-sell");
+  await tapGameButton(page, "inv-sell");
   await expect
     .poll(() =>
       page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.getSave()?.gold),
@@ -87,9 +82,9 @@ test("gear: open from town, equip a bag item, sell one and close", async ({
     )
     .toBe(1);
 
-  await tapTarget(page, "inv-tab-consumables");
+  await tapGameButton(page, "inv-tab-consumables");
   await expect.poll(() => tapTargetIds(page)).not.toContain("inv-sell");
-  await tapTarget(page, "inv-close");
+  await tapGameButton(page, "inv-close");
   await expect.poll(() => tapTargetIds(page)).not.toContain("inv-close");
   await expect.poll(() => tapTargetIds(page)).toContain("town-gear");
 });

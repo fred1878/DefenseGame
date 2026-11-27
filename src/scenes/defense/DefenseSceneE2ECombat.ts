@@ -292,23 +292,6 @@ export function defenseSceneE2eHasLeaveEndlessButton(
   );
 }
 
-export function defenseSceneE2eSimulateScreenTap(
-  scene: DefenseSceneE2eDelegate,
-  x: number,
-  y: number,
-): void {
-  const pointer = scene.input.pointer1;
-  pointer.x = x;
-  pointer.y = y;
-  pointer.downTime = performance.now();
-  pointer.isDown = true;
-  scene.input.emit("pointerdown", pointer, []);
-  pointer.isDown = false;
-  pointer.upTime = performance.now();
-  scene.input.emit("pointerup", pointer, []);
-  scene.onScreenTap(pointer);
-}
-
 export function defenseSceneE2eGetUiTapTargets(
   scene: DefenseSceneE2eDelegate,
 ): Record<string, { x: number; y: number }> {

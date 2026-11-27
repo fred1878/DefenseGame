@@ -4,6 +4,7 @@ import {
   dragCanvas,
   getTapTarget,
   tapCanvas,
+  tapGameButton,
   waitForTapTargets,
 } from "./helpers/touch";
 
@@ -11,7 +12,7 @@ test("drag-off Start night clears pressed visual and stays in Town", async ({
   page,
 }) => {
   await gotoE2E(page);
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors());
+  await waitForTapTargets(page, ["start-night"]);
   const start = await getTapTarget(page, "start-night");
   await dragCanvas(page, start.x, start.y, start.x, start.y - 200);
   await expect
@@ -48,7 +49,9 @@ test("Haunted Well opens endless after campaign night when panel was left open",
       { timeout: 15_000 },
     )
     .toBe(true);
-  await startDefense(page);
+  // The endless panel is deliberately left open here, and it (correctly) covers the
+  // start-night building, so this one setup step uses the API.
+  await startDefense(page, { via: "api" });
   await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.forceWinNight());
   await expect
     .poll(
@@ -161,10 +164,11 @@ test("@manual touch debug overlays town interactive hit rects", async ({
     .toBeGreaterThanOrEqual(8);
 });
 
-test("start night via DOM mirror tap", async ({ page }) => {
+test("start night via a real canvas tap on Gallows Square", async ({
+  page,
+}) => {
   await gotoE2E(page);
-  await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.syncDomMirrors());
-  await page.locator('[data-testid="start-night"]').click({ force: true });
+  await tapGameButton(page, "start-night");
   await expect
     .poll(
       async () =>
