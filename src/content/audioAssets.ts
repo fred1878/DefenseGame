@@ -1,6 +1,8 @@
 /**
  * One-shots under `public/assets/audio/sfx/`.
  * Melee slash, coin economy, and spell clips: Zapsplat (Standard License; https://www.zapsplat.com).
+ * Town menu `ui_*` clips: CC0 (Kenney RPG Audio, artisticdude RPG Sound Pack, vishwajai
+ * Blacksmith's Hammer); see CREDITS.md.
  */
 export const COMBAT_SFX_ASSETS = [
   { key: "sfx_player_melee_slash_01", file: "player_melee_slash_01.mp3" },
@@ -18,10 +20,22 @@ export const SPELL_SFX_ASSETS = [
   { key: "sfx_fire_whoosh_01", file: "fire_whoosh_01.mp3" },
 ] as const;
 
+export const UI_SFX_ASSETS = [
+  { key: "sfx_ui_panel_open", file: "ui_panel_open_01.mp3" },
+  { key: "sfx_ui_panel_close", file: "ui_panel_close_01.mp3" },
+  { key: "sfx_ui_click", file: "ui_click_01.mp3" },
+  { key: "sfx_ui_tab", file: "ui_tab_01.mp3" },
+  { key: "sfx_ui_sell", file: "ui_sell_coins_01.mp3" },
+  { key: "sfx_ui_equip", file: "ui_equip_armour_01.mp3" },
+  { key: "sfx_ui_upgrade", file: "ui_upgrade_01.mp3" },
+  { key: "sfx_ui_error", file: "ui_error_01.mp3" },
+] as const;
+
 export const SFX_ASSETS = [
   ...COMBAT_SFX_ASSETS,
   ...ECONOMY_SFX_ASSETS,
   ...SPELL_SFX_ASSETS,
+  ...UI_SFX_ASSETS,
 ] as const;
 
 export const SFX_ASSET_ROOT = "assets/audio/sfx";

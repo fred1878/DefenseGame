@@ -902,6 +902,12 @@ Global rules with no per-row home, loaded with the town data at Boot (`applyGame
 | `fireWhooshVolume` | dimensionless | Volume (0–1) of the fire spell whoosh. |
 | `coinSpendVolume` | dimensionless | Volume (0–1) of the coin sound when spending gold. |
 | `coinGainVolume` | dimensionless | Volume (0–1) of the coin sound when earning gold. |
+| `uiPanelVolume` | dimensionless | Volume (0–1) of the town menu open / close sounds (book open / shut). |
+| `uiClickVolume` | dimensionless | Volume (0–1) of town menu button clicks and tab switches. |
+| `uiSellVolume` | dimensionless | Volume (0–1) of the coin sound when selling an item. |
+| `uiEquipVolume` | dimensionless | Volume (0–1) of the equip sound (shop, inventory, night-end panel). |
+| `uiUpgradeVolume` | dimensionless | Volume (0–1) of the anvil strike when upgrading a shop. |
+| `uiErrorVolume` | dimensionless | Volume (0–1) of the dull thud when an action is refused (not enough gold). |
 
 ### `feel`
 

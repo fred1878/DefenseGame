@@ -32,6 +32,12 @@ export const GAMEPLAY_SECTION_KEYS = {
     "fireWhooshVolume",
     "coinSpendVolume",
     "coinGainVolume",
+    "uiPanelVolume",
+    "uiClickVolume",
+    "uiSellVolume",
+    "uiEquipVolume",
+    "uiUpgradeVolume",
+    "uiErrorVolume",
   ],
   feel: [
     "novaFlashDurationMs",

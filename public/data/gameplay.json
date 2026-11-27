@@ -43,6 +43,12 @@
     "enemyMeleeSlashVolume": 0.48,
     "fireWhooshVolume": 0.55,
     "coinSpendVolume": 0.58,
-    "coinGainVolume": 0.62
+    "coinGainVolume": 0.62,
+    "uiPanelVolume": 0.5,
+    "uiClickVolume": 0.35,
+    "uiSellVolume": 0.6,
+    "uiEquipVolume": 0.6,
+    "uiUpgradeVolume": 0.6,
+    "uiErrorVolume": 0.5
   }
 }

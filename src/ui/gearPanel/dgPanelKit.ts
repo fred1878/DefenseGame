@@ -473,7 +473,7 @@ export class DgKit {
     this.icon(cx, cy, icon, 26, DG_THEME.accentGoldBright);
   }
 
-  /** Header card: crimson emblem, Pixelify title, subtitle, gold pill, close (×). */
+  /** Header card: crimson emblem, Pixelify title, subtitle, gold pill, red enamel close (×). */
   header(
     title: string,
     onClose: () => void,
@@ -497,31 +497,49 @@ export class DgKit {
       size: 13,
       color: DG_THEME.textMuted,
     });
-    this.box(370, 42, 92, 36, {
+    const gold = this.goldPill();
+    this.closeButton(492, 60);
+    // Generous hit area for the close button (touch).
+    const close = this.tap(464, 28, 60, 64, onClose);
+    return { title: titleText, subtitle, gold, close };
+  }
+
+  /** Current-gold pill in the header (shared by Blacksmith, Trader and Inventory). */
+  private goldPill(): Phaser.GameObjects.Text {
+    this.box(350, 38, 110, 44, {
       fill: DG_THEME.bgSlot,
       stroke: DG_THEME.accentGold,
       strokeWidth: 1,
       radius: 16,
       frame: "dark",
     });
-    this.icon(390, 60, "coins", 18, DG_THEME.accentGold);
-    const gold = this.text(404, 60, "", {
-      size: 16,
+    this.icon(370, 60, "coins", 20, DG_THEME.accentGold);
+    return this.text(385, 60, "", {
+      size: 22,
       title: true,
       color: DG_THEME.accentGoldBright,
       originY: 0.5,
     });
-    this.box(470, 40, 44, 40, {
+  }
+
+  /** Red enamel close (×) in a gold frame; falls back to the plain button frame. */
+  private closeButton(cx: number, cy: number): void {
+    if (hasUiPart(this.scene, "dg-close-red")) {
+      this.root.add(
+        this.scene.add
+          .image(cx, cy, uiPartKey("dg-close-red"))
+          .setDisplaySize(52, 52),
+      );
+      return;
+    }
+    this.box(cx - 22, cy - 20, 44, 40, {
       fill: DG_THEME.buttonNeutral,
       stroke: DG_THEME.borderSteel,
       strokeWidth: 1,
       radius: 10,
       frame: "btn",
     });
-    this.icon(492, 60, "close", 20);
-    // Generous hit area for the close button (touch).
-    const close = this.tap(466, 30, 56, 60, onClose);
-    return { title: titleText, subtitle, gold, close };
+    this.icon(cx, cy, "close", 20);
   }
 
   /** Two-tab segmented control (y 112–162). */

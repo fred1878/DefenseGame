@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { assembleNightLootSummary } from "../../gear/nightLootSummary";
 import { gearFixture } from "../../test/gearFixture";
+import { owned, panelSave } from "../../test/gearPanelFixture";
+import { equipNightDrop } from "../gearPanel/nightDropView";
 import { asScene, fakeScene, type FakeGameObject } from "../../test/fakeScene";
 import {
   layoutNightLootSummary,
@@ -74,15 +76,16 @@ describe("NightLootSummaryPanel", () => {
     const labels = textsOf(scene);
     expect(labels).toContain("Night 3 defended!");
     expect(labels).toContain("Dawn breaks over the settlement.");
-    expect(labels.some((t) => t.includes("Campaign advances"))).toBe(true);
-    expect(labels).toContain("+40 gold");
-    expect(labels).toContain("90 gold");
+    expect(labels.some((t) => t.includes("Campaign"))).toBe(false);
+    expect(labels).toContain("+40");
+    expect(labels).toContain("90");
     expect(labels).toContain("• Cap");
-    expect(labels).toContain("• Band (sold)");
+    expect(labels.some((t) => t.includes("Band"))).toBe(false);
     expect(labels).toContain(
       "1 item auto-sold because the bag was full (6 gold)",
     );
-    expect(labels).toContain("82 / 100 HP");
+    expect(labels).toContain("82");
+    expect(labels).toContain("/ 100 HP");
     expect(labels).toContain("Back to Town");
     expect(labels).toContain("Enter or Space");
     expect((panel.root as unknown as FakeGameObject).last("setData")).toEqual([
@@ -119,7 +122,8 @@ describe("NightLootSummaryPanel", () => {
     const labels = textsOf(scene);
     expect(labels).toContain("Night 2 lost");
     expect(labels).toContain("No loot this night.");
-    expect(labels).toContain("0 / 100 HP");
+    expect(labels).toContain("0");
+    expect(labels).toContain("/ 100 HP");
     expect(labels.some((t) => t.includes("auto-sold"))).toBe(false);
 
     const keydown = listeners.get("keydown");
@@ -173,20 +177,160 @@ describe("NightLootSummaryPanel", () => {
   });
 });
 
-describe("layoutNightLootSummary", () => {
-  it("stacks labels top to bottom and sizes the card around them", () => {
-    const L = layoutNightLootSummary(summaryWon());
-    const ys = L.labels.map((l) => l.y);
-    expect([...ys].sort((a, b) => a - b)).toEqual(ys);
-    expect(L.labels.at(-1)?.text).toBe("Enter or Space");
-    expect(L.button.localY).toBeGreaterThan(L.wallBar.y);
-    expect(L.cardH).toBeGreaterThan(L.button.localY + L.button.h / 2);
-    expect(L.wallBar.fillW).toBeCloseTo(L.wallBar.w * 0.82);
+describe("NightLootSummaryPanel drops and tips", () => {
+  it("shows a verdict per kept drop and Equip swaps even with a full bag", () => {
+    const worn = owned(1, "cap");
+    const drop = owned(2, "cap", { affixes: [{ id: "vital", value: 4 }] });
+    let save = panelSave(3, 90, [worn, drop], { helm: 1 });
+    const equip = vi.fn((uid: number) => {
+      save = equipNightDrop(catalog, save, uid);
+      return save;
+    });
+    const scene = fakeScene();
+    const panel = new NightLootSummaryPanel(
+      asScene(scene),
+      summaryWon(),
+      vi.fn(),
+      {
+        drops: { catalog, uids: [2], getSave: () => save, equip },
+      },
+    );
+    const labels = textsOf(scene);
+    expect(labels).toContain("BETTER");
+    expect(labels).toContain("Equip");
+    expect(labels.some((t) => t.includes("tap i to compare"))).toBe(true);
+    const [target] = panel.dropTargets();
+    expect(target?.uid).toBe(2);
+    // Tap Equip: the zone under the button.
+    const zones = scene
+      .made("rectangle")
+      .filter(
+        (z) => z.args[0] === target?.equip.x && z.args[1] === target?.equip.y,
+      );
+    expect(zones.length).toBeGreaterThan(0);
+    (zones[0] as unknown as { emit(e: string): void }).emit("pointerup");
+    expect(equip).toHaveBeenCalledWith(2);
+    expect(save.gear.equipped.helm).toBe(2);
+    expect(textsOf(scene)).toContain("Worn");
   });
 
-  it("shows the empty-loot line and no wall fill on a lost night", () => {
-    const L = layoutNightLootSummary(summaryLostEmpty());
-    expect(L.wallBar.fillW).toBe(0);
-    expect(L.labels.some((l) => l.text.startsWith("•"))).toBe(false);
+  it("opens the compare tooltip with coloured stat rows", () => {
+    const worn = owned(1, "cap");
+    const drop = owned(2, "cap", { affixes: [{ id: "vital", value: 4 }] });
+    const save = panelSave(3, 90, [worn, drop], { helm: 1 });
+    const scene = fakeScene();
+    const panel = new NightLootSummaryPanel(
+      asScene(scene),
+      summaryWon(),
+      vi.fn(),
+      {
+        drops: { catalog, uids: [2], getSave: () => save, equip: () => save },
+      },
+    );
+    panel.openCompare(2);
+    const labels = textsOf(scene);
+    expect(labels).toContain("NEW DROP");
+    expect(labels).toContain("Keep current");
+    expect(labels.some((t) => t.startsWith("Better."))).toBe(true);
+  });
+
+  it("shows Tips on a lost night", () => {
+    const scene = fakeScene();
+    new NightLootSummaryPanel(asScene(scene), summaryLostEmpty(), vi.fn(), {
+      tips: [
+        {
+          icon: "shield",
+          title: "Raise the wall",
+          body: "Beacon · next level +20 wall HP · 50g",
+        },
+      ],
+    });
+    const labels = textsOf(scene);
+    expect(labels).toContain("TIPS");
+    expect(labels).toContain("Raise the wall");
+  });
+});
+
+describe("NightLootSummaryPanel compare tooltip", () => {
+  function setup(equipped = false) {
+    const worn = owned(1, "cap");
+    const drop = owned(2, "cap", { affixes: [{ id: "vital", value: 4 }] });
+    let save = panelSave(3, 90, [worn, drop], { helm: equipped ? 2 : 1 });
+    const scene = fakeScene();
+    const panel = new NightLootSummaryPanel(
+      asScene(scene),
+      summaryWon(),
+      vi.fn(),
+      {
+        drops: {
+          catalog,
+          uids: [2],
+          getSave: () => save,
+          equip: (uid) => {
+            save = equipNightDrop(catalog, save, uid);
+            return save;
+          },
+        },
+      },
+    );
+    const zoneAt = (p: { x: number; y: number } | undefined) =>
+      scene
+        .made("rectangle")
+        .find((z) => z.args[0] === p?.x && z.args[1] === p?.y) as unknown as {
+        emit(e: string): void;
+      };
+    return { scene, panel, zoneAt, save: () => save };
+  }
+
+  it("hover previews, pointer-out closes, tap pins and taps toggle it off", () => {
+    const { scene, panel, zoneAt } = setup();
+    const [t] = panel.dropTargets();
+    const info = zoneAt(t?.info);
+    info.emit("pointerover");
+    expect(textsOf(scene)).toContain("NEW DROP");
+    expect(textsOf(scene)).not.toContain("Keep current");
+    info.emit("pointerout");
+    info.emit("pointerup");
+    expect(textsOf(scene)).toContain("Keep current");
+    info.emit("pointerout");
+    info.emit("pointerup");
+    panel.destroy();
+    panel.destroy();
+  });
+
+  it("an equipped drop shows a Close-only tooltip", () => {
+    const { scene, panel } = setup(true);
+    panel.openCompare(2);
+    expect(textsOf(scene)).toContain("WORN NOW");
+    expect(textsOf(scene)).toContain("Close");
+    panel.openCompare(99);
+  });
+});
+
+describe("layoutNightLootSummary", () => {
+  it("stacks the sections top to bottom inside the card", () => {
+    const L = layoutNightLootSummary(summaryWon(), { rows: 5 });
+    const ys = [
+      L.titleY,
+      L.flavorY,
+      L.dividerY,
+      L.stats.y,
+      L.spoilsY,
+      L.rows.y,
+      L.soldY ?? 0,
+      L.button.y,
+      L.hintY,
+    ];
+    expect([...ys].sort((a, b) => a - b)).toEqual(ys);
+    expect(L.cardTop + L.cardH).toBeLessThanOrEqual(1200);
+    expect(L.cardTop + L.cardH).toBeGreaterThan(L.hintY);
+  });
+
+  it("uses the empty-loot box and Tips on a lost night", () => {
+    const L = layoutNightLootSummary(summaryLostEmpty(), { rows: 0, tips: 2 });
+    expect(L.emptyY).not.toBeNull();
+    expect(L.soldY).toBeNull();
+    expect(L.tips?.y).toBeGreaterThan(L.emptyY ?? 0);
+    expect(L.button.y).toBeGreaterThan((L.tips?.y ?? 0) + 2 * 56);
   });
 });
