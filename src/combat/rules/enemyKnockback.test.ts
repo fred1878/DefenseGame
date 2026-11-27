@@ -1,8 +1,8 @@
+import { tuning } from "../../tuning/gameTuning";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { applyEntityPhysics } from "../../entities/entityPhysics";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import {
-  ENEMY_KNOCKBACK_WEIGHT_BASELINE,
   applyEnemyKnockbackFrom,
   decayEnemyKnockback,
   knockbackRadialUnit,
@@ -29,7 +29,10 @@ describe("knockbackRadialUnit", () => {
 describe("knockbackStrengthForEnemyWeight", () => {
   it("leaves strength unchanged at baseline weight", () => {
     expect(
-      knockbackStrengthForEnemyWeight(120, ENEMY_KNOCKBACK_WEIGHT_BASELINE),
+      knockbackStrengthForEnemyWeight(
+        120,
+        tuning("gameplay").combat.knockbackWeightBaseline,
+      ),
     ).toBe(120);
   });
 

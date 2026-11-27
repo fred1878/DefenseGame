@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import {
   applyDamage,
   type Damageable,
@@ -15,7 +16,10 @@ export type EnemySpellStatus = {
   dotTickAccumMs: number;
 };
 
-const DOT_TICK_MS = 250;
+/** DoT damage interval (`gameplay.json` combat). */
+function dotTickMs(): number {
+  return tuning("gameplay").combat.dotTickMs;
+}
 
 export class EnemySpellStatusMap {
   private readonly byEnemyId = new Map<string, EnemySpellStatus>();
@@ -77,7 +81,7 @@ export class EnemySpellStatusMap {
   moveSpeedMultiplier(enemyId: string): number {
     const s = this.byEnemyId.get(enemyId);
     if (!s || s.slowRemainingMs <= 0) return 1;
-    return Math.max(0.1, 1 - s.slowPct);
+    return Math.max(tuning("gameplay").combat.minSlowSpeedMul, 1 - s.slowPct);
   }
 
   tick(
@@ -97,9 +101,10 @@ export class EnemySpellStatusMap {
       if (status.dotRemainingMs > 0 && status.dotDps > 0 && applyDotDamage) {
         status.dotRemainingMs = Math.max(0, status.dotRemainingMs - deltaMs);
         status.dotTickAccumMs += deltaMs;
-        while (status.dotTickAccumMs >= DOT_TICK_MS) {
-          status.dotTickAccumMs -= DOT_TICK_MS;
-          const amt = status.dotDps * (DOT_TICK_MS / 1000);
+        const tickMs = dotTickMs();
+        while (status.dotTickAccumMs >= tickMs) {
+          status.dotTickAccumMs -= tickMs;
+          const amt = status.dotDps * (tickMs / 1000);
           applyDotDamage(id, amt, status.dotFlavor);
         }
         if (status.dotRemainingMs <= 0) {
@@ -123,6 +128,6 @@ export class EnemySpellStatusMap {
   applyDotTickToDamageable(enemyId: string, damageable: Damageable): void {
     const s = this.byEnemyId.get(enemyId);
     if (!s || s.dotDps <= 0) return;
-    applyDamage(damageable, s.dotDps * (DOT_TICK_MS / 1000), s.dotFlavor);
+    applyDamage(damageable, s.dotDps * (dotTickMs() / 1000), s.dotFlavor);
   }
 }

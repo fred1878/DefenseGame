@@ -14,6 +14,17 @@ export const GAMEPLAY_SECTION_KEYS = {
   wall: ["baseHp", "hpPerLevel", "campaignWinWear"],
   waves: ["eliteHpMul"],
   spawn: ["marginXWu", "southInsetWu", "jitterYWu"],
+  combat: [
+    "dotTickMs",
+    "minSlowSpeedMul",
+    "enemyKnockbackDecayMs",
+    "knockbackWeightBaseline",
+    "enemyProjectileKnockbackMul",
+    "enemyProjectileHitSlackPx",
+    "playerProjectileHitSlackPx",
+    "lobOvershootPx",
+    "lobMinTravelPx",
+  ],
 } as const;
 
 export type GameplayTuning = NumberSections<typeof GAMEPLAY_SECTION_KEYS>;

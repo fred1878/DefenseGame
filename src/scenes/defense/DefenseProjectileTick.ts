@@ -1,3 +1,4 @@
+import { tuning } from "../../tuning/gameTuning";
 import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
 import type { Damageable } from "../../combat/rules/DamageSystem";
@@ -163,7 +164,8 @@ export function tickDefenseProjectiles(
         damageable: host.player.damageable,
         sprite: host.player.sprite,
       },
-      host.wu(playerTuning().rangedKnockbackWu) * 0.65,
+      host.wu(playerTuning().rangedKnockbackWu) *
+        tuning("gameplay").combat.enemyProjectileKnockbackMul,
       playerIncomingDamageMult(),
     );
     if (!alive && p.sourceEnemyId && p.blastRadiusWu !== undefined) {

@@ -1,11 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { knockbackVelocityCapMult } from "../../entities/entityPhysics";
-
-/** Exponential decay for residual knockback slide (world-ms). */
-export const ENEMY_KNOCKBACK_DECAY_MS = 260;
-
-/** Config baseline: knockback impulse scales as `strength * (baseline / weight)`. */
-export const ENEMY_KNOCKBACK_WEIGHT_BASELINE = 100;
 
 export type EnemyKnockbackCarrier = Pick<
   EnemyInstance,
@@ -39,7 +34,10 @@ export function knockbackStrengthForEnemyWeight(
   if (weight <= 0 || !Number.isFinite(weight)) {
     return 0;
   }
-  return strength * (ENEMY_KNOCKBACK_WEIGHT_BASELINE / weight);
+  // Impulse scales as `strength * (baseline / weight)` (`gameplay.json` combat).
+  return (
+    strength * (tuning("gameplay").combat.knockbackWeightBaseline / weight)
+  );
 }
 
 export function applyEnemyKnockbackFrom(
@@ -70,7 +68,9 @@ export function decayEnemyKnockback(
   deltaMs: number,
 ): void {
   if (deltaMs <= 0) return;
-  const factor = Math.exp(-deltaMs / ENEMY_KNOCKBACK_DECAY_MS);
+  const factor = Math.exp(
+    -deltaMs / tuning("gameplay").combat.enemyKnockbackDecayMs,
+  );
   enemy.knockbackVx *= factor;
   enemy.knockbackVy *= factor;
   if (Math.hypot(enemy.knockbackVx, enemy.knockbackVy) < 2) {

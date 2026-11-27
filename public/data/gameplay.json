@@ -11,5 +11,16 @@
     "marginXWu": 36,
     "southInsetWu": 96,
     "jitterYWu": 24
+  },
+  "combat": {
+    "dotTickMs": 250,
+    "minSlowSpeedMul": 0.1,
+    "enemyKnockbackDecayMs": 260,
+    "knockbackWeightBaseline": 100,
+    "enemyProjectileKnockbackMul": 0.65,
+    "enemyProjectileHitSlackPx": 6,
+    "playerProjectileHitSlackPx": 6,
+    "lobOvershootPx": 12,
+    "lobMinTravelPx": 80
   }
 }

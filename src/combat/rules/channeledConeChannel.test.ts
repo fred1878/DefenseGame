@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  CHANNELED_CONE_MAX_TICKS,
+  channeledConeMaxTicks,
   advanceChanneledConeTicks,
   channeledConeChannelMs,
   createChanneledConeTickState,
@@ -36,6 +36,16 @@ describe("channeledConeChannel", () => {
     expect(advanceChanneledConeTicks(state, def, 250)).toBe(1);
     expect(state.ticksDone).toBe(3);
     expect(advanceChanneledConeTicks(state, def, 500)).toBe(0);
-    expect(state.ticksDone).toBe(CHANNELED_CONE_MAX_TICKS);
+    expect(state.ticksDone).toBe(channeledConeMaxTicks(def));
+  });
+
+  it("derives the strike count from channelMs / channelTickMs", () => {
+    expect(channeledConeMaxTicks(channeledConeDef())).toBe(3);
+    expect(
+      channeledConeMaxTicks({ ...channeledConeDef(), channelMs: 1000 }),
+    ).toBe(4);
+    expect(channeledConeMaxTicks({ ...channeledConeDef(), channelMs: 0 })).toBe(
+      1,
+    );
   });
 });

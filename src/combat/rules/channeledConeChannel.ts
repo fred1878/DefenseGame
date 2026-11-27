@@ -1,8 +1,13 @@
 import type { SpellDefinition } from "../../content/spells";
 import { spellChannelTickMs } from "../../content/spellTargeting";
 
-/** Cone channel ticks during {@link SpellDefinition.mechanicType} `channeled_cone`. */
-export const CHANNELED_CONE_MAX_TICKS = 3;
+/**
+ * Cone strikes per `channeled_cone` cast: `channelMs / channelTickMs` from the
+ * spell row (750 / 250 = 3 for Cone of Fire), at least one.
+ */
+export function channeledConeMaxTicks(def: SpellDefinition): number {
+  return Math.max(1, Math.floor(def.channelMs / spellChannelTickMs(def)));
+}
 
 export type ChanneledConeTickState = {
   tickAccumMs: number;
@@ -16,7 +21,7 @@ export function createChanneledConeTickState(): ChanneledConeTickState {
 /** Channel duration aligned with ground-zone tick cadence (first tick after one interval). */
 export function channeledConeChannelMs(
   def: SpellDefinition,
-  maxTicks: number = CHANNELED_CONE_MAX_TICKS,
+  maxTicks: number = channeledConeMaxTicks(def),
 ): number {
   return spellChannelTickMs(def) * maxTicks;
 }
@@ -29,7 +34,7 @@ export function advanceChanneledConeTicks(
   state: ChanneledConeTickState,
   def: SpellDefinition,
   deltaMs: number,
-  maxTicks: number = CHANNELED_CONE_MAX_TICKS,
+  maxTicks: number = channeledConeMaxTicks(def),
 ): number {
   const tickEvery = spellChannelTickMs(def);
   state.tickAccumMs += deltaMs;

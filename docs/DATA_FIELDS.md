@@ -736,7 +736,7 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
 Runtime/UI fields (name, castMs, icons, assets, onHit effects, etc.) are authored per row but not listed in the boot parity set—see `SpellDefinition` in `src/content/spells.ts`.
 
-For **channeled** and **channeled_area** ground zones, `baseDamage` is the **total damage budget over the channel** (before spell damage mult); tick damage splits that budget evenly across channel ticks (`channelMs` / `channelTickMs`, minimum one tick), with any remainder on the final tick. `burstDamage` remains a separate one-shot. Post-channel **linger** DoT uses `onHit.dotDps`, not `baseDamage`.
+For **channeled** and **channeled_area** ground zones, `baseDamage` is the **total damage budget over the channel** (before spell damage mult); tick damage splits that budget evenly across channel ticks (`channelMs` / `channelTickMs`, minimum one tick), with any remainder on the final tick. `burstDamage` remains a separate one-shot. Post-channel **linger** DoT uses `onHit.dotDps`, not `baseDamage`. **channeled_cone** strikes `channelMs / channelTickMs` times (minimum one).
 
 #### `damageFlavor` (optional string)
 
@@ -850,6 +850,20 @@ Global rules with no per-row home, loaded with the town data at Boot (`applyGame
 | `marginXWu` | WU | Horizontal inset from the field edges for random wave spawn points. |
 | `southInsetWu` | WU | Distance north of the south field edge where waves spawn. |
 | `jitterYWu` | WU | Random vertical spread (±) around the spawn line. |
+
+### `combat`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `dotTickMs` | ms | Interval between damage-over-time ticks on enemies (`onHit.dotDps` is per second). |
+| `minSlowSpeedMul` | dimensionless | Floor on an enemy's speed multiplier while slowed, however large `slowPct` is. |
+| `enemyKnockbackDecayMs` | ms | Exponential decay constant for an enemy's knockback slide. |
+| `knockbackWeightBaseline` | dimensionless | Enemy `weight` at which knockback is unscaled; impulse is `strength × baseline / weight`. |
+| `enemyProjectileKnockbackMul` | dimensionless | Enemy projectile knockback on the player as a fraction of `player.json` `rangedKnockbackWu`. |
+| `enemyProjectileHitSlackPx` | px | Extra radius added to the player hurtbox for enemy projectile hits. |
+| `playerProjectileHitSlackPx` | px | Extra radius added to enemy hurtboxes for player projectile hits. |
+| `lobOvershootPx` | px | Extra travel past the aim point for lobbed enemy projectiles. |
+| `lobMinTravelPx` | px | Minimum travel distance for lobbed enemy projectiles. |
 
 ---
 

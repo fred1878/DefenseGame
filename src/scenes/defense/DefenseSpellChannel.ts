@@ -8,7 +8,7 @@ import {
 } from "../../combat/rules/SpellEffects";
 import {
   advanceChanneledConeTicks,
-  CHANNELED_CONE_MAX_TICKS,
+  channeledConeMaxTicks,
   createChanneledConeTickState,
   type ChanneledConeTickState,
 } from "../../combat/rules/channeledConeChannel";
@@ -60,7 +60,7 @@ export class DefenseSpellChannelTicks {
   }
 
   flushCone(def: SpellDefinition): void {
-    while (this.cone.ticksDone < CHANNELED_CONE_MAX_TICKS) {
+    while (this.cone.ticksDone < channeledConeMaxTicks(def)) {
       const fired = advanceChanneledConeTicks(
         this.cone,
         def,
