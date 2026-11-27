@@ -141,7 +141,7 @@ Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file para
 | Spec / test | Why local |
 |-------------|-----------|
 | `obstacle-bump-metrics.spec.ts` | Writes metrics JSON for human review |
-| `obstacle-*-capture.spec.ts`, `obstacle-v2-visual-proof.spec.ts` | Visual capture / proof overlays |
+| `obstacle-*-capture.spec.ts`, `obstacle-v2-visual-proof.spec.ts` | Visual capture / proof overlays. Copies go to `E2E_ARTIFACT_DIR` (default `/opt/cursor/artifacts`) only when that folder is writable (`e2e/helpers/artifacts.ts`); the assertions run either way. |
 | `defense-hud-band-pixels.spec.ts`, `defense-hud-reentry.spec.ts` | Fragile luminance sampling |
 | `defense-play-area-viewport.spec.ts` | Overlaps HUD layout probes |
 | `spellbar-textures.spec.ts` | Asset audit; boot already checks combat FX in smoke |
@@ -179,11 +179,12 @@ Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines / statements | 94% | ~95% (scenes/world modules in scope) |
-| functions | 95% | ~96% |
-| branches | 90% | ~92% |
+| lines | 95% | ~95.4% (scenes/world modules in scope) |
+| statements | 94% | ~95% |
+| functions | 95% | ~95.5% |
+| branches | 91% | ~92% |
 
-**Excluded from coverage:** Phaser scene orchestrators (`BootScene`, `TownScene`, `DefenseScene`, setup scenes), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only scene adapters (`DefenseSceneE2E*`, `TownSceneE2E`), and Capacitor update stubs. Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers. Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** Phaser scene orchestrators (`BootScene`, `TownScene`, `DefenseScene`, setup scenes), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers. Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 ## Visual checks (screenshot baselines)
 
 `e2e/visual-screens.spec.ts` compares screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):

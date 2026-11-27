@@ -3,7 +3,7 @@ description: Gameplay data lives in public/data JSON; src/config is layout only
 globs:
   - public/data/**
   - src/core/data/DataStore.ts
-  - src/core/normalize*.ts
+  - src/core/data/normalize*.ts
   - src/core/data/dataFieldsDoc.test.ts
   - src/config/**
   - src/content/**

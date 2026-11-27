@@ -59,6 +59,8 @@ src/
   e2e/            # installE2E hooks (VITE_E2E=true or ?e2e=1)
 public/data/      # Runtime JSON (Boot via DataStore.loadAll)
 public/assets/    # Sprites/audio (do not edit binaries in Cursor)
+scripts/          # build/ (Phaser bundle, install, size + PWA asserts, version), assets/ (icons, MobileRPG sync, PWA icons), capture/ (local screenshot / video proofs), check-architecture, econ-sim, sim-fights, data/
+vendor/           # Trimmed Phaser bundle; its sha256 in phaser-defense.manifest.json is checked on install
 docs/             # DATA_FIELDS, ITEMS, ECONOMY_SIM, TESTING, CI_RELEASES, WAVES, ROADMAP
 ```
 
