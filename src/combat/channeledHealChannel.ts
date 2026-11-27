@@ -1,4 +1,4 @@
-import type { SpellDefinition } from "../content/spells";
+import { requireSpellNumber, type SpellDefinition } from "../content/spells";
 import { spellChannelTickMs } from "../content/spellTargeting";
 
 export type ChanneledHealTickState = {
@@ -18,7 +18,7 @@ export function channeledHealMaxTicks(def: SpellDefinition): number {
 }
 
 export function channeledHealTotalAmount(def: SpellDefinition): number {
-  return def.healAmount ?? 20;
+  return requireSpellNumber(def, "healAmount");
 }
 
 export function channeledHealPerTickAmount(def: SpellDefinition): number {

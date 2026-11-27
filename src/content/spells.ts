@@ -54,6 +54,8 @@ export type SpellDefinition = {
   coneArcDeg?: number;
   swingRangeWu?: number;
   swingArcDeg?: number;
+  /** Display size (px, both axes) of the swing slash sprite. */
+  swingFxSizePx?: number;
   chainLightningHops?: number;
   chainLightningHopRangeWu?: number;
   blinkDistanceWu?: number;
@@ -80,6 +82,8 @@ export type SpellDefinition = {
   /** Chain lightning hop knockback. */
   chainHopKnockbackWu?: number;
   healAmount?: number;
+  /** Splash damage = primary damage × this, for instant_targeted rows with blastRadiusWu. */
+  burstBlastDamageScale?: number;
   iconFile: string;
   projectileTextureKey?: string;
   projectileFile?: string;
@@ -107,6 +111,28 @@ export function createDefaultSpellBarSlots(): SpellId[] {
   const slots: SpellId[] = castable.slice(0, SPELL_BAR.slotCount);
   while (slots.length < SPELL_BAR.slotCount) slots.push("");
   return slots;
+}
+
+type NumericSpellField = {
+  [K in keyof SpellDefinition]-?: NonNullable<SpellDefinition[K]> extends number
+    ? K
+    : never;
+}[keyof SpellDefinition];
+
+/**
+ * A numeric spell field that boot validation (`normalizeSpellCatalog`) requires
+ * for this row's mechanic. Throws, naming `spells.json`, instead of falling back
+ * to a hidden code default.
+ */
+export function requireSpellNumber(
+  def: SpellDefinition,
+  field: NumericSpellField,
+): number {
+  const v = def[field];
+  if (typeof v !== "number") {
+    throw new Error(`spells.json: spell ${def.id} is missing ${field}`);
+  }
+  return v;
 }
 
 export function spellById(id: SpellId): SpellDefinition | undefined {

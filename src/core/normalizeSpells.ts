@@ -14,10 +14,22 @@ export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<
   string,
   readonly string[]
 > = {
-  swing: ["swingRangeWu", "swingArcDeg"],
-  tracking_swing: ["swingRangeWu", "swingArcDeg"],
-  cone: ["coneRangeWu", "coneArcDeg"],
-  channeled_cone: ["coneRangeWu", "coneArcDeg"],
+  projectile: ["baseDamage"],
+  projectile_aoe: ["baseDamage"],
+  tracking_projectile: ["baseDamage"],
+  swing: ["baseDamage", "swingRangeWu", "swingArcDeg", "swingFxSizePx"],
+  tracking_swing: [
+    "baseDamage",
+    "swingRangeWu",
+    "swingArcDeg",
+    "swingFxSizePx",
+  ],
+  cone: ["baseDamage", "coneRangeWu", "coneArcDeg"],
+  channeled_cone: ["baseDamage", "coneRangeWu", "coneArcDeg"],
+  blast: ["baseDamage"],
+  channeled: ["baseDamage"],
+  instant_targeted: ["baseDamage"],
+  heal: ["healAmount"],
   blink: [
     "blinkDistanceWu",
     "blinkResolveBinarySearchIterations",
@@ -26,6 +38,23 @@ export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<
   ice_wall: ["iceWallDistanceWu", "iceWallDurationMs"],
   buff: ["shadowformDurationMs"],
 };
+
+/** Extra boot field for `instant_targeted` rows with a `blastRadiusWu` splash. */
+export const SPELL_SPLASH_BOOT_FIELDS = ["burstBlastDamageScale"] as const;
+
+/** Mechanics whose rows must author `baseDamage` (no hidden code default). */
+const DAMAGING_MECHANICS: ReadonlySet<SpellMechanicType> = new Set([
+  "projectile",
+  "projectile_aoe",
+  "tracking_projectile",
+  "swing",
+  "tracking_swing",
+  "cone",
+  "channeled_cone",
+  "blast",
+  "channeled",
+  "instant_targeted",
+]);
 
 /** Extra boot fields when `id` is `shadowform`. */
 export const SPELL_SHADOWFORM_BOOT_FIELDS = [
@@ -80,12 +109,32 @@ function requireBlastRadiusWu(def: SpellDefinition, path: string): number {
   return requireFiniteNumber(def.blastRadiusWu, `${path}.blastRadiusWu`);
 }
 
+function validateSpellAmounts(def: SpellDefinition, path: string): void {
+  if (DAMAGING_MECHANICS.has(def.mechanicType)) {
+    requireFiniteNumber(def.baseDamage, `${path}.baseDamage`);
+  }
+  if (def.mechanicType === "heal") {
+    requireFiniteNumber(def.healAmount, `${path}.healAmount`);
+  }
+  if (
+    def.mechanicType === "instant_targeted" &&
+    def.blastRadiusWu !== undefined
+  ) {
+    requireFiniteNumber(
+      def.burstBlastDamageScale,
+      `${path}.burstBlastDamageScale`,
+    );
+  }
+}
+
 function validateSpellMechanicFields(def: SpellDefinition, path: string): void {
+  validateSpellAmounts(def, path);
   switch (def.mechanicType) {
     case "swing":
     case "tracking_swing":
       requireFiniteNumber(def.swingRangeWu, `${path}.swingRangeWu`);
       requireFiniteNumber(def.swingArcDeg, `${path}.swingArcDeg`);
+      requireFiniteNumber(def.swingFxSizePx, `${path}.swingFxSizePx`);
       return;
     case "cone":
     case "channeled_cone":

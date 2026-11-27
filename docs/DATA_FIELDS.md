@@ -649,6 +649,10 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 | `mechanicType` | Selects cast pipeline and which numeric fields are required. |
 | `swingRangeWu` | WU melee swing reach for swing and tracking_swing types. |
 | `swingArcDeg` | Swing arc width in degrees. |
+| `swingFxSizePx` | Display size in px (width and height) of the swing slash sprite for swing and tracking_swing types. |
+| `baseDamage` | Damage per hit (or total channel budget for channeled) before spell damage mult; required for every damaging mechanic (projectile, projectile_aoe, tracking_projectile, swing, tracking_swing, cone, channeled_cone, blast, channeled, instant_targeted). |
+| `healAmount` | HP restored by heal mechanic rows (channeled heals spread it over the channel). |
+| `burstBlastDamageScale` | Splash damage multiplier on instant_targeted rows that have blastRadiusWu: splash = burstDamage (or baseDamage when no burst) × this. |
 | `coneRangeWu` | WU cone length for cone and channeled_cone types. |
 | `coneArcDeg` | Cone arc width in degrees. |
 | `blinkDistanceWu` | Attempted blink travel distance in WU. |
@@ -685,17 +689,19 @@ Hit-flash timing and per-flavor `colorFade` / `alphaFade` live in [hit-flash.jso
 
 | mechanicType | Extra required numeric fields |
 |----------------|------------------------------|
-| swing, tracking_swing | swingRangeWu, swingArcDeg, knockback |
-| cone, channeled_cone | coneRangeWu, coneArcDeg, knockback |
+| swing, tracking_swing | baseDamage, swingRangeWu, swingArcDeg, swingFxSizePx, knockback |
+| cone, channeled_cone | baseDamage, coneRangeWu, coneArcDeg, knockback |
 | blink | blinkDistanceWu, blinkResolveBinarySearchIterations, blinkPartialMoveEpsilonWu |
 | ice_wall | iceWallDistanceWu, iceWallDurationMs |
 | buff | shadowformDurationMs; shadowform row also needs shadowform*Mult fields |
-| projectile | knockback |
-| projectile_aoe | knockback, blastKnockback |
-| tracking_projectile | knockback; chain_lightning row also needs chain* fields |
-| blast | blastKnockback |
-| instant_targeted | knockback; blastKnockback when blastRadius or burstDamage |
-| heal, channeled, channeled_area | no knockback fields |
+| projectile | baseDamage, knockback |
+| projectile_aoe | baseDamage, knockback, blastKnockback |
+| tracking_projectile | baseDamage, knockback; chain_lightning row also needs chain* fields |
+| blast | baseDamage, blastKnockback |
+| instant_targeted | baseDamage, knockback; blastKnockback when blastRadius or burstDamage; burstBlastDamageScale when blastRadiusWu |
+| heal | healAmount (no knockback fields) |
+| channeled | baseDamage (no knockback fields) |
+| channeled_area | no knockback fields |
 
 Shadowform multipliers are also applied globally via `shadowformMechanicsFromCatalog` (formerly `spell-mechanics.json`).
 

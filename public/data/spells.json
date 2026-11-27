@@ -165,7 +165,8 @@
       "targetMode": "enemy",
       "knockbackWu": 250,
       "swingRangeWu": 72,
-      "swingArcDeg": 110
+      "swingArcDeg": 110,
+      "swingFxSizePx": 160
     },
     {
       "id": "rend",
@@ -186,7 +187,8 @@
       },
       "knockbackWu": 250,
       "swingRangeWu": 72,
-      "swingArcDeg": 110
+      "swingArcDeg": 110,
+      "swingFxSizePx": 160
     },
     {
       "id": "cone_of_cold",
@@ -457,7 +459,8 @@
         "dotMs": 3500
       },
       "knockbackWu": 110,
-      "blastKnockbackWu": 80
+      "blastKnockbackWu": 80,
+      "burstBlastDamageScale": 0.65
     }
   ]
 }

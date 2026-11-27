@@ -45,6 +45,11 @@ function def(partial: Partial<SpellDefinition>): SpellDefinition {
     blastKnockbackWu: 0,
     chainKnockbackWu: 0,
     chainHopKnockbackWu: 0,
+    // Boot-required amounts (normalizeSpellCatalog); values match shipped rows.
+    baseDamage: 20,
+    healAmount: 20,
+    swingFxSizePx: 160,
+    burstBlastDamageScale: 0.65,
     ...partial,
   } as SpellDefinition;
 }
@@ -624,7 +629,36 @@ describe("spawnSpellProjectile", () => {
 });
 
 describe("SpellEffects fallbacks", () => {
-  it("nova uses default damage, skips dead enemies, and can apply on-hit", () => {
+  it("throws, naming spells.json, when a required amount is missing", () => {
+    const without = (
+      d: SpellDefinition,
+      field: "baseDamage" | "healAmount",
+    ): SpellDefinition => {
+      const copy = { ...d };
+      delete copy[field];
+      return copy;
+    };
+    const scene = asScene(fakeScene());
+    const live = target("live", 5, 0, 80);
+    expect(() =>
+      applyNova(
+        scene,
+        0,
+        0,
+        without(def({ blastRadiusWu: 40 }), "baseDamage"),
+        [live],
+        1,
+      ),
+    ).toThrow(/spells\.json: spell test_spell is missing baseDamage/);
+    expect(() =>
+      applyChanneledHeal(
+        { id: "p", hp: 1, maxHp: 10, alive: true, team: "player" },
+        without(def({}), "healAmount"),
+      ),
+    ).toThrow(/missing healAmount/);
+  });
+
+  it("nova uses the row damage, skips dead enemies, and can apply on-hit", () => {
     const scene = fakeScene();
     const live = target("live", 5, 0, 80);
     const dead = target("dead", 5, 0, 0);
@@ -647,7 +681,7 @@ describe("SpellEffects fallbacks", () => {
     expect(status.applyStun).toHaveBeenCalled();
   });
 
-  it("blast, swing, and cone skip corpses and default the damage", () => {
+  it("blast, swing, and cone skip corpses", () => {
     const scene = fakeScene();
     const live = target("live", 8, 0, 60);
     const dead = target("dead", 8, 0, 0);
@@ -685,7 +719,7 @@ describe("SpellEffects fallbacks", () => {
     expect(hp(dead)).toBe(0);
   });
 
-  it("instant targeted uses range and damage defaults and can splash", () => {
+  it("instant targeted uses the range default and can splash", () => {
     const scene = fakeScene();
     const live = target("live", 8, 0, 80);
     const status = fakeStatus();
@@ -710,7 +744,7 @@ describe("SpellEffects fallbacks", () => {
     ).toBeNull();
   });
 
-  it("projectiles default trackEnemyId and chain default damage", () => {
+  it("projectiles default trackEnemyId and chain lightning damages", () => {
     const bolt = spawnSpellProjectile(
       asScene(fakeScene()),
       0,

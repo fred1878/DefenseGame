@@ -18,8 +18,26 @@ function spellRow(
     cooldownMs: 0,
     channelMs: 0,
     iconFile: `${partial.id}.png`,
+    ...requiredAmounts(partial),
     ...partial,
   };
+}
+
+/** Boot-required amounts for the row's mechanic, so tests focus on other fields. */
+function requiredAmounts(
+  partial: Pick<SpellDefinition, "mechanicType"> & Partial<SpellDefinition>,
+): Partial<SpellDefinition> {
+  const m = partial.mechanicType;
+  const out: Partial<SpellDefinition> = {};
+  if (m === "heal") out.healAmount = 10;
+  else if (!["ice_wall", "buff", "blink", "channeled_area"].includes(m)) {
+    out.baseDamage = 10;
+  }
+  if (m === "swing" || m === "tracking_swing") out.swingFxSizePx = 160;
+  if (m === "instant_targeted" && partial.blastRadiusWu !== undefined) {
+    out.burstBlastDamageScale = 0.65;
+  }
+  return out;
 }
 
 const KNOCKBACK_FIXTURE_CATALOG = {
@@ -328,5 +346,50 @@ describe("normalizeSpellCatalog", () => {
         spells: [{ mechanicType: "blast", blastRadiusWu: 10 } as never],
       }),
     ).toThrow(/\[.0\]|\?/);
+  });
+});
+
+describe("normalizeSpellCatalog required amounts", () => {
+  it("rejects damaging, heal, swing and splash rows missing their amounts", () => {
+    const missing = (
+      row: SpellDefinition,
+      field: keyof SpellDefinition,
+    ): SpellDefinition => {
+      const copy = { ...row };
+      delete copy[field];
+      return copy;
+    };
+    const cases: Array<[SpellDefinition, keyof SpellDefinition]> = [
+      [
+        spellRow({ id: "p", mechanicType: "projectile", knockbackWu: 1 }),
+        "baseDamage",
+      ],
+      [spellRow({ id: "h", mechanicType: "heal" }), "healAmount"],
+      [
+        spellRow({
+          id: "s",
+          mechanicType: "swing",
+          swingRangeWu: 1,
+          swingArcDeg: 90,
+          knockbackWu: 1,
+        }),
+        "swingFxSizePx",
+      ],
+      [
+        spellRow({
+          id: "i",
+          mechanicType: "instant_targeted",
+          blastRadiusWu: 10,
+          knockbackWu: 1,
+          blastKnockbackWu: 1,
+        }),
+        "burstBlastDamageScale",
+      ],
+    ];
+    for (const [row, field] of cases) {
+      expect(() =>
+        normalizeSpellCatalog({ spells: [missing(row, field)] }),
+      ).toThrow(new RegExp(`${row.id}\\.${String(field)}`));
+    }
   });
 });

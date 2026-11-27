@@ -1,6 +1,6 @@
 import { playerTuning } from "../config/player";
 import Phaser from "phaser";
-import type { SpellDefinition } from "../content/spells";
+import { requireSpellNumber, type SpellDefinition } from "../content/spells";
 import {
   applyDamage,
   swingSpellDamageFlavor,
@@ -65,7 +65,7 @@ export function applyNova(
     throw new Error(`Spell ${def.id} missing blastRadiusWu`);
   }
   const radius = worldUnit(def.blastRadiusWu, scene.registry);
-  const damage = (def.baseDamage ?? 20) * damageMult;
+  const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   for (const e of enemies) {
     if (!e.damageable.alive) continue;
     const d = Phaser.Math.Distance.Between(playerX, playerY, e.x, e.y);
@@ -117,7 +117,7 @@ export function spawnSpellProjectile(
   const speedWu =
     def.projectileSpeedWu ?? playerTuning().projectileSpeedWu * 1.05;
   const speed = worldUnit(speedWu, scene.registry);
-  const damage = (def.baseDamage ?? 20) * damageMult;
+  const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   const flavor: DamageFlavor = def.damageFlavor ?? "fire";
   const projectile = spawnPlayerProjectile(
     scene,
@@ -207,9 +207,10 @@ export function applySpellSwing(
   status?: EnemySpellStatusMap,
 ): void {
   const range = worldUnit(def.swingRangeWu!, scene.registry);
-  const damage = (def.baseDamage ?? 16) * damageMult;
+  const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   const flavor = swingSpellDamageFlavor(def.damageFlavor);
-  showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, 160, 160);
+  const fxSize = requireSpellNumber(def, "swingFxSizePx");
+  showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, fxSize, fxSize);
   for (const e of enemiesInSwingArc(
     playerX,
     playerY,
@@ -245,7 +246,7 @@ export function strikeSpellCone(
 ): void {
   const range = worldUnit(def.coneRangeWu!, scene.registry);
   const half = Phaser.Math.DegToRad(def.coneArcDeg! / 2);
-  const damage = (def.baseDamage ?? 12) * damageMult;
+  const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   const flavor = def.damageFlavor ?? "fire";
   for (const e of enemiesInCone(
     playerX,
@@ -370,7 +371,11 @@ export function applyInstantTargeted(
         scene,
         full.x,
         full.y,
-        { ...def, baseDamage: def.burstDamage * 0.65 },
+        {
+          ...def,
+          baseDamage:
+            def.burstDamage * requireSpellNumber(def, "burstBlastDamageScale"),
+        },
         enemies,
         damageMult,
         status,
@@ -382,7 +387,12 @@ export function applyInstantTargeted(
       scene,
       full.x,
       full.y,
-      { ...def, baseDamage: (def.baseDamage ?? 16) * 0.65 },
+      {
+        ...def,
+        baseDamage:
+          requireSpellNumber(def, "baseDamage") *
+          requireSpellNumber(def, "burstBlastDamageScale"),
+      },
       enemies,
       damageMult,
       status,
@@ -419,7 +429,7 @@ export function applyChainLightning(
     def.chainLightningHops!,
     hopRange,
   );
-  const damage = (def.baseDamage ?? 10) * damageMult;
+  const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   const flavor = def.damageFlavor ?? "fire";
   const applyHopHit = (enemyId: string) => {
     if (status && def.onHit) {
@@ -494,5 +504,5 @@ export function applyChanneledHeal(
   damageable: Damageable,
   def: SpellDefinition,
 ): void {
-  applyHealAmount(damageable, def.healAmount ?? 20);
+  applyHealAmount(damageable, requireSpellNumber(def, "healAmount"));
 }

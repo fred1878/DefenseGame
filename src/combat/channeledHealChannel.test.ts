@@ -74,9 +74,9 @@ describe("channeledHealChannel leftover branches", () => {
     ).toBe(0);
   });
 
-  it("defaults a missing heal amount to 20", () => {
+  it("throws when the heal amount is missing (no hidden default)", () => {
     const def = { ...channeledHealDef() };
     delete (def as { healAmount?: number }).healAmount;
-    expect(channeledHealTotalAmount(def)).toBe(20);
+    expect(() => channeledHealTotalAmount(def)).toThrow(/missing healAmount/);
   });
 });
