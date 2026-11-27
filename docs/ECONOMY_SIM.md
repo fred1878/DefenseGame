@@ -175,6 +175,22 @@ npm run sim:fights -- tally sim-output/fights/*                             # da
 npm run sim:fights -- fit sim-output/fights/* --fix steepness=2 --out fitted.json
 ```
 
+Two replay options change the bot, not the game: `--full-cast` makes it
+finish every cast (it holds still through windups and channels, and stops
+when a windup spell is ready and an enemy is in reach, so auto-cast can start
+it), and `--bars cooldown,frost,lightning` replays each save once per
+spell-bar priority (frost / lightning puts that element's spells first; gear
+and talents stay the save's own, labelled `strategy/frost` etc.).
+
+First full-cast check (spell-caster saves, nights 7–20 × p10/p50/p90, one
+fight each; the default bot lost one fight's result at night 20 p90):
+
+| Bar order | Default bot won | Full-cast bot won | Frost / lightning share of damage (full-cast) |
+|---|---|---|---|
+| cooldown | 30/41 | 31/42 | 0% / 1.9% |
+| frost first | 35/42 | 1/42 | 42.0% / 0% |
+| lightning first | 37/42 | 31/42 | 0% / 2.3% |
+
 `fit` does coordinate descent on the model knobs by log loss over nights ≥
 `--min-night` (13); earlier nights are held out and only scored.
 
@@ -190,22 +206,26 @@ steepness pinned at 2 (steeper fits overfit: held-out log loss went up).
 
 | | Old model (0.2/0.6/0.2, k 4, spell 12 DPS) | Crowd model (fitted) | Base rate |
 |---|---|---|---|
-| Log loss, all 422 fights | 0.815 | 0.484 | – |
-| Log loss, held-out nights 3–12 (77 fights) | 0.425 | 0.417 | 0.433 |
-| Final waves (131 fights, out of sample) | 0.585 | 0.437 | – |
-| Final waves: mean predicted vs real | 49% vs 70% | 65% vs 70% | – |
+| Log loss, all 422 fights | 1.006 | 0.425 | 0.635 |
+| Log loss, held-out nights 3–12 (77 fights) | 0.425 | 0.413 | 0.433 |
+| Final waves (131 fights, out of sample) | 1.198 | 0.437 | 0.609 |
+| Final waves: mean predicted vs real | 27% vs 70% | 65% vs 70% | – |
+
+Each fight is scored on the waves it was played on. (The first version of
+this table scored some fights on the wrong wave set; these are the
+corrected numbers.)
 
 Final waves, per night (predicted → real):
 
 | Night | 7 | 10 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| Old model | 75% | 54% | 70% | 55% | 47% | 46% | 41% | 44% | 37% | 37% | 37% |
+| Old model | 75% | 54% | 70% | 33% | 20% | 16% | 10% | 9% | 5% | 5% | 4% |
 | Crowd model | 90% | 85% | 90% | 73% | 68% | 64% | 56% | 54% | 47% | 46% | 41% |
 | Real | 67% | 92% | 100% | 67% | 83% | 58% | 73% | 67% | 58% | 58% | 50% |
 
 Per strategy on the final waves (predicted → real): balanced 78% → 81%,
 ranged 66% → 79%, spell-caster 72% → 85%, no-spend 44% → 36% (old model:
-65 / 60 / 57 / 17%). The crowd model still under-rates late nights a little
+36 / 31 / 31 / 12%). The crowd model still under-rates late nights a little
 and over-rates night 7 (no-spend lost all three there).
 
 What the tally showed:
@@ -225,7 +245,8 @@ What the tally showed:
 
 Nights 13–20 keep their groups; `hpMul` ramps ×1.5 → ×2.8 and `damageMul`
 ×1.3 → ×2.0 on top of the previous values (nights 1–12 unchanged). Real
-fights on the final waves, nights 13–20 (one fight per save):
+fights on the final waves, nights 13–20 (one fight per save, so most cells
+are 2–3 fights):
 
 | Build | Won |
 |---|---|

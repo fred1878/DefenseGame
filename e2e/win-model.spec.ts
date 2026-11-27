@@ -13,7 +13,7 @@ import type { SaveGame } from "../src/core/saveTypes";
  * Env: WIN_MODEL_SNAPSHOTS (snapshots JSON), WIN_MODEL_RESULTS (output
  * .jsonl), WIN_MODEL_REPEATS (fights per snapshot), WIN_MODEL_DATA_DIR
  * (optional folder of data JSON files served instead of /data/<name>.json,
- * e.g. candidate waves).
+ * e.g. candidate waves), WIN_MODEL_FULL_CAST=1 (full-cast bot, below).
  */
 
 type Snapshot = {
@@ -37,6 +37,7 @@ const snapshots: Snapshot[] = fs.existsSync(snapshotFile)
   : [];
 const repeats = Number(process.env.WIN_MODEL_REPEATS ?? "1");
 const dataDir = process.env.WIN_MODEL_DATA_DIR ?? "";
+const fullCast = process.env.WIN_MODEL_FULL_CAST === "1";
 
 /** Serve override data files (e.g. candidate waves.json) from `dataDir`. */
 async function routeDataOverrides(page: Page): Promise<void> {
@@ -96,54 +97,79 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
  * anything gets closer. Below 35% HP both back off toward the wall so the
  * auto-cast heals can land. Drinks a potion (Q) under 45% HP and throws a
  * bomb (E) when 5+ enemies are within 160px.
+ *
+ * Full-cast mode (WIN_MODEL_FULL_CAST=1) finishes every cast: while a windup
+ * or channel is running the bot holds still (no step, no retreat, so nothing
+ * interrupts it), and when an auto-cast windup spell is ready with an enemy
+ * close enough to target (60px melee, 200px ranged) it stops so auto-cast
+ * can start it.
  */
 async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
-  await page.evaluate((attackMode) => {
-    const w = window as unknown as { __winModelBot?: number };
-    w.__winModelBot = window.setInterval(() => {
-      const api = window.__DEFENSEGAME_E2E__?.api;
-      if (!api || window.__DEFENSEGAME_E2E__?.scene !== "Defense") return;
-      if (api.getAttackMode() !== attackMode) api.setAttackMode(attackMode);
-      const steer = (dx: number, dy: number) => {
-        const d = Math.hypot(dx, dy);
-        if (d < 1) api.clearStick();
-        else void api.setStick(dx / d, dy / d);
-      };
-      const enemies = api.getLivingEnemyPositions();
-      const me = api.getPlayerPosition();
-      if (!enemies.length) {
-        if (Math.hypot(me.x, me.y) < 30) api.clearStick();
-        else steer(-me.x, -me.y);
-        return;
-      }
-      let target = enemies[0]!;
-      let nearest = enemies[0]!;
-      const dist = (e: { x: number; y: number }) =>
-        Math.hypot(e.x - me.x, e.y - me.y);
-      for (const e of enemies) {
-        if (e.y < target.y) target = e;
-        if (dist(e) < dist(nearest)) nearest = e;
-      }
-      const hpFrac =
-        api.getPlayerHp() / Math.max(1, api.getSave()?.player.hpMax ?? 100);
-      const press = (key: string) =>
-        window.dispatchEvent(new KeyboardEvent("keydown", { key }));
-      if (hpFrac < 0.45) press("q");
-      if (enemies.filter((e) => dist(e) < 160).length >= 5) press("e");
-      if (hpFrac < 0.35 && dist(nearest) < 160) {
-        steer(me.x - nearest.x, me.y - nearest.y - 60);
-        return;
-      }
-      if (attackMode === "melee") {
-        if (dist(target) < 40) api.clearStick();
-        else steer(target.x - me.x, target.y - me.y);
-        return;
-      }
-      if (dist(nearest) < 120) steer(me.x - nearest.x, me.y - nearest.y - 40);
-      else if (dist(target) > 200) steer(target.x - me.x, target.y - me.y);
-      else api.clearStick();
-    }, 150);
-  }, mode);
+  await page.evaluate(
+    ({ attackMode, fullCast }) => {
+      const w = window as unknown as { __winModelBot?: number };
+      w.__winModelBot = window.setInterval(() => {
+        const api = window.__DEFENSEGAME_E2E__?.api;
+        if (!api || window.__DEFENSEGAME_E2E__?.scene !== "Defense") return;
+        if (api.getAttackMode() !== attackMode) api.setAttackMode(attackMode);
+        const steer = (dx: number, dy: number) => {
+          const d = Math.hypot(dx, dy);
+          if (d < 1) api.clearStick();
+          else void api.setStick(dx / d, dy / d);
+        };
+        const enemies = api.getLivingEnemyPositions();
+        const me = api.getPlayerPosition();
+        if (!enemies.length) {
+          if (Math.hypot(me.x, me.y) < 30) api.clearStick();
+          else steer(-me.x, -me.y);
+          return;
+        }
+        let target = enemies[0]!;
+        let nearest = enemies[0]!;
+        const dist = (e: { x: number; y: number }) =>
+          Math.hypot(e.x - me.x, e.y - me.y);
+        for (const e of enemies) {
+          if (e.y < target.y) target = e;
+          if (dist(e) < dist(nearest)) nearest = e;
+        }
+        const hpFrac =
+          api.getPlayerHp() / Math.max(1, api.getSave()?.player.hpMax ?? 100);
+        const press = (key: string) =>
+          window.dispatchEvent(new KeyboardEvent("keydown", { key }));
+        if (hpFrac < 0.45) press("q");
+        if (enemies.filter((e) => dist(e) < 160).length >= 5) press("e");
+        if (fullCast) {
+          const cast = api.getSpellCastState();
+          if (cast.activeSpellId) {
+            api.clearStick();
+            return;
+          }
+          const reach = attackMode === "melee" ? 60 : 200;
+          if (
+            hpFrac >= 0.35 &&
+            cast.readyWindupSpellIds.length > 0 &&
+            dist(nearest) < reach
+          ) {
+            api.clearStick();
+            return;
+          }
+        }
+        if (hpFrac < 0.35 && dist(nearest) < 160) {
+          steer(me.x - nearest.x, me.y - nearest.y - 60);
+          return;
+        }
+        if (attackMode === "melee") {
+          if (dist(target) < 40) api.clearStick();
+          else steer(target.x - me.x, target.y - me.y);
+          return;
+        }
+        if (dist(nearest) < 120) steer(me.x - nearest.x, me.y - nearest.y - 40);
+        else if (dist(target) > 200) steer(target.x - me.x, target.y - me.y);
+        else api.clearStick();
+      }, 150);
+    },
+    { attackMode: mode, fullCast },
+  );
 }
 
 test.describe("win model validation @manual", () => {
@@ -197,6 +223,7 @@ test.describe("win model validation @manual", () => {
           lastEnemies: last.enemies,
           tally,
           strategy: snap.strategy ?? "balanced",
+          bot: fullCast ? "full-cast" : "default",
           seconds: Math.round((Date.now() - start) / 1000),
           trace,
         };

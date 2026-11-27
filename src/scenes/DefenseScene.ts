@@ -177,7 +177,7 @@ export class DefenseScene extends Phaser.Scene {
   returnToTownBtn: TouchButtonHandle | null = null;
   private targeting!: DefenseTargeting;
   private targetIndicator!: TargetIndicator;
-  private spellCaster = new SpellCastController();
+  spellCaster = new SpellCastController();
   private spellInputQueue = new SpellInputQueue();
   private enemySpellStatus = new EnemySpellStatusMap();
   private spellChannelArea: { x: number; y: number } | null = null;

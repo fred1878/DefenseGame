@@ -316,6 +316,11 @@ describe("buildApi", () => {
     expect(api.getLivingEnemyPositions()).toEqual([]);
     api.resetCombatTally();
     expect(api.getCombatTally()).toEqual({});
+    expect(api.getSpellCastState()).toEqual({
+      activeSpellId: null,
+      phase: null,
+      readyWindupSpellIds: [],
+    });
     api.setAttackMode("ranged");
     expect(api.getEnemyCount()).toBe(0);
     expect(api.nightEnded()).toBe(false);

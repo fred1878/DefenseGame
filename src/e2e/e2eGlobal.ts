@@ -49,6 +49,12 @@ export type DefenseGameE2EApi = {
   getLivingEnemyPositions(): Array<{ x: number; y: number; hp: number }>;
   /** Damage dealt to enemies by flavor since the last reset (real-fight harness). */
   getCombatTally(): import("./combatTally").CombatTally;
+  /** Active windup / channel spell and ready auto-cast windup spells (win-model bot). */
+  getSpellCastState(): {
+    activeSpellId: string | null;
+    phase: "windup" | "channeling" | null;
+    readyWindupSpellIds: string[];
+  };
   resetCombatTally(): void;
   getEnemyCount(): number;
   setManualReturnToTown(on: boolean): void;
