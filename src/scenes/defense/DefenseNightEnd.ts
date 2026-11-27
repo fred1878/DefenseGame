@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { applyEndlessRunExit, persistSave } from "../../core/GameState";
+import { persistSave } from "../../core/GameState";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
 import type { SaveGame } from "../../core/saveTypes";
 import { isE2EEnabled } from "../../e2e/e2eMode";
@@ -11,10 +11,15 @@ import { nightReturnButtonPosition } from "../../ui/screenLayout";
 import { scaleUiX } from "../../config/uiScale";
 import type { SafeInsets } from "../../ui/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
-import { evaluateEndlessEnd, evaluateNightEnd } from "../defenseNightLogic";
+import {
+  evaluateEndlessEnd,
+  evaluateNightEnd,
+  resolveCampaignNightEndSave,
+  resolveRunExitSave,
+  survivedPlayerHp,
+} from "../../systems/nightEndRules";
 import { getGearCatalog } from "../../gear/gearCatalog";
 import { rollNightDrops } from "../../gear/loot";
-import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, randomSeed } from "../../gear/rng";
 import { NightLootSummaryPanel } from "../../ui/NightLootSummaryPanel";
 import type { CampaignNightLossReason } from "../../systems/nightEndMessaging";
@@ -78,9 +83,11 @@ function persistRunExit(ctx: DefenseNightEndShared): SaveGame {
   ctx.markNightEnded();
   ctx.hideLeaveEndlessBtn();
 
-  const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
-  const finalWallHp = Math.max(0, ctx.wallHp);
-  const next = applyEndlessRunExit(ctx.save, finalWallHp, survivedHp);
+  const next = resolveRunExitSave(
+    ctx.save,
+    ctx.wallHp,
+    ctx.player.damageable.hp,
+  );
   ctx.save.player.hp = next.player.hp;
   persistSave(next);
   setSave(ctx.registry, next);
@@ -183,7 +190,9 @@ export function runDefenseCampaignNightEnd(
   clearDefenseRunMode(ctx.registry);
 
   const catalog = getGearCatalog();
-  const resolved = resolveCampaignNightEnd({
+  const playerHp = ctx.player.damageable.hp;
+  const resolved = resolveCampaignNightEndSave({
+    playerHp,
     won: input.won,
     ...(input.lossReason !== undefined ? { lossReason: input.lossReason } : {}),
     wallHp: input.wallHp,
@@ -204,9 +213,7 @@ export function runDefenseCampaignNightEnd(
   if (resolved.result.goldEarned > 0 || resolved.soldGold > 0) {
     playCoinDeltaSfx(ctx.scene, goldBefore, next.gold);
   }
-  const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
-  ctx.save.player.hp = survivedHp;
-  next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
+  ctx.save.player.hp = survivedPlayerHp(playerHp);
   persistSave(next);
   setSave(ctx.registry, next);
 

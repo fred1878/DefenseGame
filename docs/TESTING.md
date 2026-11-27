@@ -93,7 +93,7 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | GameState / DataStore | `src/core/*.test.ts` |
 | Layout math | `src/ui/screenLayout.test.ts` |
 | Stick mask + gesture FSM | `src/input/VirtualStick.test.ts` |
-| Night-end guards | `src/scenes/defenseNightLogic.test.ts` |
+| Night-end guards and save rules | `src/systems/nightEndRules.test.ts` |
 | Touch slop | `src/ui/touchButtonGesture.test.ts`, `touchButton.test.ts` |
 
 ## Playwright suites

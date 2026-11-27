@@ -3,7 +3,7 @@ description: DefenseScene is a thin coordinator; don't grow it or bypass NightRe
 globs:
   - src/scenes/DefenseScene.ts
   - src/scenes/defense/**/*.ts
-  - src/scenes/defenseNightLogic.ts
+  - src/systems/nightEndRules.ts
 alwaysApply: false
 ---
 

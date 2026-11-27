@@ -8,7 +8,7 @@ Code-only top-down real-time action RPG: **town by day**, **defend the settlemen
 
 BootScene (load `public/data/*.json` + assets, restore save) → TownScene (upgrades, start night) → DefenseScene (real-time waves, wall HP) → TownScene.
 
-**Invariant:** defense code never edits town state (gold, buildings, gear) field by field. At night end, `scenes/defense/DefenseNightEnd.ts` calls the pure resolvers once (`resolveCampaignNightEnd` → `applyNightResultDetailed` / `applyNightResult` in `core/GameState.ts`, or `applyEndlessRunExit` for endless and wave-planner runs), then persists the returned `SaveGame`.
+**Invariant:** defense code never edits town state (gold, buildings, gear) field by field. At night end, `scenes/defense/DefenseNightEnd.ts` calls the pure rules in `systems/nightEndRules.ts` once (`resolveCampaignNightEndSave` → `resolveCampaignNightEnd` → `applyNightResultDetailed` in `core/GameState.ts`, or `resolveRunExitSave` → `applyEndlessRunExit` for endless and wave-planner runs), then persists the returned `SaveGame`. `DefenseNightEnd` itself only does presentation (HUD, loot panel, return button, SFX).
 
 ## Commands
 
