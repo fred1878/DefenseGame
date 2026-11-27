@@ -62,6 +62,9 @@ describe("defense enemy loop golden snapshot", () => {
       () => {
         expect(runScenario(s.enemies, s.frames)).toBe(golden.digests[s.name]);
       },
+      // A* replans dominate with 60 enemies; coverage instrumentation makes
+      // this several times slower than a plain run.
+      60_000,
     );
   }
 });
