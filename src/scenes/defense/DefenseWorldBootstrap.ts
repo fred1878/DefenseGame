@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { recordPlayerHealed } from "../../e2e/combatTally";
+import { isE2EEnabled } from "../../e2e/e2eMode";
 import {
   DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
@@ -80,6 +82,7 @@ export function bootstrapDefenseWorld(
     });
   };
   player.damageable.onHealed = (amount) => {
+    if (isE2EEnabled()) recordPlayerHealed(amount);
     damageNumbers.floatFromSource(player.damageable.id, player.sprite, amount, {
       heal: true,
     });

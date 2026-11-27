@@ -316,6 +316,7 @@ describe("buildApi", () => {
     expect(api.getLivingEnemyPositions()).toEqual([]);
     api.resetCombatTally();
     expect(api.getCombatTally()).toEqual({});
+    expect(api.getCastTally()).toEqual({ casts: {}, healed: 0 });
     expect(api.getSpellCastState()).toEqual({
       activeSpellId: null,
       phase: null,

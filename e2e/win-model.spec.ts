@@ -94,9 +94,10 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
 /**
  * In-page bot, every 150ms: target the living enemy nearest the north wall.
  * Melee walks into it; ranged kites at 120–200px, stepping back north when
- * anything gets closer. Below 35% HP both back off toward the wall so the
- * auto-cast heals can land. Drinks a potion (Q) under 45% HP and throws a
- * bomb (E) when 5+ enemies are within 160px.
+ * anything gets closer. Below 35% HP both back off toward the wall. Heals
+ * need the player still, so under 70% HP the bot stops while a heal on the
+ * auto-cast bar is ready, and it never moves during a heal. Drinks a potion
+ * (Q) under 45% HP and throws a bomb (E) when 5+ enemies are within 160px.
  *
  * Full-cast mode (WIN_MODEL_FULL_CAST=1) finishes every cast: while a windup
  * or channel is running the bot holds still (no step, no retreat, so nothing
@@ -138,8 +139,19 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
           window.dispatchEvent(new KeyboardEvent("keydown", { key }));
         if (hpFrac < 0.45) press("q");
         if (enemies.filter((e) => dist(e) < 160).length >= 5) press("e");
+        const cast = api.getSpellCastState();
+        const isHeal = (id: string | null) =>
+          id === "heal" || id === "flash_heal";
+        // Heals need the player still (windup / channel); stop for them
+        // when hurt, and never walk out of one.
+        if (
+          isHeal(cast.activeSpellId) ||
+          (hpFrac < 0.7 && cast.readyWindupSpellIds.some(isHeal))
+        ) {
+          api.clearStick();
+          return;
+        }
         if (fullCast) {
-          const cast = api.getSpellCastState();
           if (cast.activeSpellId) {
             api.clearStick();
             return;
@@ -210,6 +222,13 @@ test.describe("win model validation @manual", () => {
         const tally = await page.evaluate(
           () => window.__DEFENSEGAME_E2E__?.api?.getCombatTally() ?? {},
         );
+        const cast = await page.evaluate(
+          () =>
+            window.__DEFENSEGAME_E2E__?.api?.getCastTally() ?? {
+              casts: {},
+              healed: 0,
+            },
+        );
         const won = (after?.night ?? 0) > snap.night;
         const row = {
           id: snap.id,
@@ -222,6 +241,9 @@ test.describe("win model validation @manual", () => {
           lastPlayerHp: last.hp,
           lastEnemies: last.enemies,
           tally,
+          casts: cast.casts,
+          healed: Math.round(cast.healed),
+          bar: snap.save.spellBar.slots.filter(Boolean),
           strategy: snap.strategy ?? "balanced",
           bot: fullCast ? "full-cast" : "default",
           seconds: Math.round((Date.now() - start) / 1000),

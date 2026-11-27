@@ -8,12 +8,12 @@ import {
   nightPressure,
   playerPower,
   spellAreaWu2,
-  autoCastOrder,
   autoCastRates,
   spellCastDamage,
   spellDpsFor,
   winChance,
 } from "./power";
+import { autoCastOrder } from "./spellBars";
 import { defaultRawData, loadSimData, type NightDifficulty } from "./simData";
 
 const data = loadSimData(defaultRawData());
@@ -65,9 +65,12 @@ describe("power", () => {
     expect(p.spellDps).toBeCloseTo(
       p.spells.reduce((a, s) => a + spellDpsFor(s, DEFAULT_POWER_MODEL), 0),
     );
-    // Moving: only instant spells (water bolt, fire nova) fire.
+    // One filler (fire bolt) closes the bar; the other fillers are dropped.
+    expect(p.spells.map((s) => s.id)).not.toContain("water_bolt");
+    expect(p.spells.map((s) => s.id)).not.toContain("ice_bolt");
+    // Moving: only instant spells (fire nova) fire.
     expect(
-      p.spells.find((s) => s.id === "water_bolt")!.movingDps,
+      p.spells.find((s) => s.id === "fire_nova")!.movingDps,
     ).toBeGreaterThan(0);
     expect(p.spells.find((s) => s.id === "fire_bolt")!.movingDps).toBe(0);
     expect(
@@ -310,11 +313,7 @@ describe("power", () => {
       "fire_nova",
       "missing" as never,
     ]);
-    expect(bar.slice(0, 3)).toEqual([
-      "fire_nova",
-      "lightning_bolt",
-      "fire_bolt",
-    ]);
+    expect(bar).toEqual(["fire_nova", "heal", "lightning_bolt", "fire_bolt"]);
     // Standing: lightning every 3 s, fire bolt fills the gaps (800 ms casts).
     const still = autoCastRates(["lightning_bolt", "fire_bolt"], 0, false);
     expect(still.get("lightning_bolt")).toBeCloseTo(1 / 3, 1);

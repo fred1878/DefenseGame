@@ -22,7 +22,7 @@ import {
 import { activeTownUiHost } from "./townUiHost";
 import { getE2EState, publishE2E, type DefenseGameE2EApi } from "./e2eGlobal";
 import { positionDomMirrors } from "./installE2EDom";
-import { combatTally, resetCombatTally } from "./combatTally";
+import { castTally, combatTally, resetCombatTally } from "./combatTally";
 
 /** `window.__DEFENSEGAME_E2E__.api` implementation (Town + Defense hooks). */
 export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
@@ -174,6 +174,9 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     },
     getCombatTally() {
       return combatTally();
+    },
+    getCastTally() {
+      return castTally();
     },
     getSpellCastState() {
       return (

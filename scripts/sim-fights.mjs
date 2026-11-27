@@ -21,9 +21,12 @@
 // waves can be tried without rebuilding.
 // --full-cast: the bot holds still through every windup / channel and stops
 // to let ready windup spells start (nothing cancels a cast).
-// --bars: replay each save once per spell-bar priority: cooldown (longest
-// first, default), frost or lightning (that element's spells first). Extra
-// orders are labelled strategy/bar; gear and talents are the save's own.
+// --bars: replay each save once per spell bar: cooldown (the save's own
+// spells: cooldown spells longest first, heals, one filler last; default),
+// frost or lightning (an element-focused bar, src/sim/economy/spellBars.ts).
+// Extra bars are labelled strategy/bar; gear and talents are the save's own.
+// --saves DIR/snapshots.json: replay an earlier run's saves instead of
+// playing the sim again (same gear, talents and gold; bars rebuilt).
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -40,7 +43,7 @@ const entry = path.join(
 );
 fs.writeFileSync(
   entry,
-  ["simulate", "simData", "power", "fights"]
+  ["simulate", "simData", "power", "fights", "spellBars"]
     .map(
       (m) =>
         `export * as ${m} from ${JSON.stringify(path.join(root, "src/sim/economy", `${m}.ts`))};`,
@@ -52,7 +55,7 @@ const { module: lib } = await runnerImport(entry, {
   configFile: false,
   logLevel: "error",
 });
-const { simulate: sim, simData, power, fights } = lib;
+const { simulate: sim, simData, power, fights, spellBars } = lib;
 
 const argv = process.argv.slice(2);
 const command = ["run", "report", "fit", "tally"].includes(argv[0])
@@ -95,27 +98,29 @@ function modeFor(data, save) {
 }
 
 /**
- * Spell-bar priority for the replay: `cooldown` (longest first), or
- * `frost` / `lightning` to put that element's spells in front (the rest
- * keep cooldown order). Gear and talents stay the save's own.
+ * Spell bar for the replay, padded to the save's slot count. `cooldown`:
+ * the save's own spells, cooldown spells longest first, then heals, then
+ * one filler last (src/sim/economy/spellBars.ts). `frost` / `lightning`:
+ * an element-focused bar from spellBars.elementBar. Gear and talents stay
+ * the save's own.
  */
-function barOrder(slots, bar, flavorOf = () => "") {
-  const ordered = power.autoCastOrder(slots);
-  if (bar === "cooldown") return ordered;
-  const isBar = (id) => flavorOf(id) === bar;
-  return [...ordered.filter(isBar), ...ordered.filter((id) => !isBar(id))];
+function barOrder(slots, bar) {
+  const ordered =
+    bar === "cooldown"
+      ? spellBars.autoCastOrder(slots)
+      : spellBars.elementBar(slots, bar, slots.length);
+  return [
+    ...ordered,
+    ...Array(Math.max(0, slots.length - ordered.length)).fill(""),
+  ];
 }
 
 /** Copies of each snapshot per extra `--bars` order, labelled strategy/bar. */
-function withBars(snaps, bars, raw) {
-  const flavors = new Map(
-    (raw.spells?.spells ?? []).map((d) => [d.id, d.damageFlavor ?? ""]),
-  );
-  const flavorOf = (id) => flavors.get(id) ?? "";
+function withBars(snaps, bars) {
   return bars.flatMap((bar) =>
     snaps.map((snap) => {
       if (bar === "cooldown") return snap;
-      const slots = barOrder(snap.save.spellBar.slots, bar, flavorOf);
+      const slots = barOrder(snap.save.spellBar.slots, bar);
       return {
         ...snap,
         id: snap.id.replace(snap.strategy, `${snap.strategy}/${bar}`),
@@ -147,6 +152,22 @@ function forReplay(data, save) {
     },
     mode: modeFor(data, save),
   };
+}
+
+/**
+ * Saves from an earlier run's snapshots.json (`--saves`), so a rerun plays
+ * the very same saves; extra-bar copies are skipped and the spell bar is
+ * rebuilt with the current ordering.
+ */
+function savedSnapshots(data, file, strategies, nights, tiers) {
+  return JSON.parse(fs.readFileSync(path.resolve(file), "utf8"))
+    .filter(
+      (snap) =>
+        strategies.includes(snap.strategy) &&
+        nights.includes(snap.night) &&
+        tiers.includes(snap.tier),
+    )
+    .map((snap) => ({ ...snap, ...forReplay(data, snap.save) }));
 }
 
 function snapshotsFor(data, strategy, nights, tiers, runs, behind) {
@@ -274,20 +295,19 @@ function runFights() {
         );
     }
   }
-  const snaps = withBars(
-    strategies.flatMap((s, i) =>
-      snapshotsFor(
-        data,
-        s,
-        nights,
-        tiers,
-        runs,
-        flags.has("--behind") && i === 0,
-      ),
-    ),
-    list("--bars", "cooldown"),
-    raw,
-  );
+  const base = flag("--saves", "")
+    ? savedSnapshots(data, flag("--saves", ""), strategies, nights, tiers)
+    : strategies.flatMap((s, i) =>
+        snapshotsFor(
+          data,
+          s,
+          nights,
+          tiers,
+          runs,
+          flags.has("--behind") && i === 0,
+        ),
+      );
+  const snaps = withBars(base, list("--bars", "cooldown"));
   fs.writeFileSync(
     path.join(out, "snapshots.json"),
     `${JSON.stringify(snaps)}\n`,

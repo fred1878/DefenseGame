@@ -6,10 +6,30 @@
  */
 export type CombatTally = Record<string, { damage: number; hits: number }>;
 
+/** Spell casts started (by spell id) and HP the player regained. */
+export type CastTally = { casts: Record<string, number>; healed: number };
+
 let tally: CombatTally = {};
+let casts: Record<string, number> = {};
+let healed = 0;
 
 export function resetCombatTally(): void {
   tally = {};
+  casts = {};
+  healed = 0;
+}
+
+export function recordSpellCast(spellId: string): void {
+  casts[spellId] = (casts[spellId] ?? 0) + 1;
+}
+
+export function recordPlayerHealed(amount: number): void {
+  if (amount > 0) healed += amount;
+}
+
+/** Copy of the cast / heal tally since the last reset. */
+export function castTally(): CastTally {
+  return { casts: { ...casts }, healed };
 }
 
 export function recordCombatDamage(flavor: string | undefined, amount: number) {

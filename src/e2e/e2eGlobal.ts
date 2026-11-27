@@ -48,6 +48,8 @@ export type DefenseGameE2EApi = {
   getLivingEnemyPositions(): Array<{ x: number; y: number; hp: number }>;
   /** Damage dealt to enemies by flavor since the last reset (real-fight harness). */
   getCombatTally(): import("./combatTally").CombatTally;
+  /** Spell casts started and HP healed since the last reset (real-fight harness). */
+  getCastTally(): import("./combatTally").CastTally;
   /** Active windup / channel spell and ready auto-cast windup spells (win-model bot). */
   getSpellCastState(): {
     activeSpellId: string | null;

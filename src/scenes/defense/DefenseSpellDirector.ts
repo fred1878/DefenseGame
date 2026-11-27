@@ -1,5 +1,7 @@
 import { gearSpellDamageMult } from "../../gear/gearRuntime";
 import type Phaser from "phaser";
+import { recordSpellCast } from "../../e2e/combatTally";
+import { isE2EEnabled } from "../../e2e/e2eMode";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
 import { spellGroundTapAutoCasts } from "../../content/spellGroundTapCast";
 import { spellById, type SpellDefinition } from "../../content/spells";
@@ -332,6 +334,7 @@ export class DefenseSpellDirector {
       stickY,
     );
     if (begun === false) return;
+    if (isE2EEnabled()) recordSpellCast(spellId);
     this.host.channelAreaStarted = false;
     this.channelTicks.reset();
     if (begun === "windup" || begun === "channel") {
