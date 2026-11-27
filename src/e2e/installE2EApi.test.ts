@@ -33,6 +33,7 @@ const E2E_METHODS = [
   "getSpellSlotHitRects",
   "isTouchButtonPressed",
   "autoAttackEnabled",
+  "setAutoAttackEnabled",
   "simulateScreenTap",
   "wallHp",
   "bottomChromeTextureKey",
@@ -347,6 +348,7 @@ describe("buildApi", () => {
     expect(api.getSpellSlotHitRects()).toEqual([]);
     expect(api.isUiButtonPressed("combat-atk")).toBe(false);
     expect(api.getAutoAttackEnabled()).toBe(false);
+    api.setAutoAttackEnabled(false);
     expect(api.getDefenseWallHp()).toBe(0);
     expect(api.e2eBottomChromeTextureKey()).toBeNull();
     expect(api.getPlayerPosition()).toEqual({ x: 0, y: 0 });
@@ -468,6 +470,10 @@ describe("buildApi", () => {
     expect(api.getUiTapTargets()).toEqual({ "combat-atk": { x: 100, y: 200 } });
     expect(api.isUiButtonPressed("combat-atk")).toBe(false);
     expect(api.getAutoAttackEnabled()).toBe(true);
+    api.setAutoAttackEnabled(false);
+    expect(game.defenseMethods.setAutoAttackEnabled).toHaveBeenCalledWith(
+      false,
+    );
     expect(api.getDefenseWallHp()).toBe(80);
     expect(api.e2eBottomChromeTextureKey()).toBe("chrome");
     expect(api.getPlayerPosition()).toEqual({ x: 10, y: 20 });

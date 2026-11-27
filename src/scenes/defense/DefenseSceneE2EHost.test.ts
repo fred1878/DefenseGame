@@ -31,3 +31,14 @@ describe("createDefenseSceneE2eHost", () => {
     expect(host.livingEnemyHps()).toEqual([3, 3]);
   });
 });
+
+describe("setAutoAttackEnabled", () => {
+  it("flips the run's auto-attack flag", () => {
+    const scene = {
+      run: { autoAttackEnabled: true },
+    } as unknown as DefenseSceneE2eDelegate;
+    const host = createDefenseSceneE2eHost(scene);
+    host.setAutoAttackEnabled(false);
+    expect(host.autoAttackEnabled()).toBe(false);
+  });
+});

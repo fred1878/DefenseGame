@@ -75,6 +75,17 @@ export function autoCastOrder(
 
 /** Element-focused bars the fight tools can swap in for a save. */
 export const ELEMENT_BARS = {
+  // Fire's five best cooldown spells by damage per cooldown second.
+  fire: {
+    spells: [
+      "cone_of_fire",
+      "flamestrike",
+      "combustion",
+      "arc_bomb",
+      "fire_nova",
+    ],
+    filler: "fire_bolt",
+  },
   frost: {
     spells: ["cone_of_cold", "deep_freeze", "frost_nova", "ice_wall"],
     filler: "blizzard",

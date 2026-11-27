@@ -38,6 +38,8 @@ const snapshots: Snapshot[] = fs.existsSync(snapshotFile)
 const repeats = Number(process.env.WIN_MODEL_REPEATS ?? "1");
 const dataDir = process.env.WIN_MODEL_DATA_DIR ?? "";
 const fullCast = process.env.WIN_MODEL_FULL_CAST === "1";
+/** WIN_MODEL_AUTO_ATTACK=0: HUD auto attack off, so only spells do damage. */
+const autoAttack = process.env.WIN_MODEL_AUTO_ATTACK !== "0";
 
 /** Serve override data files (e.g. candidate waves.json) from `dataDir`. */
 async function routeDataOverrides(page: Page): Promise<void> {
@@ -104,10 +106,14 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
  * interrupts it), and when an auto-cast windup spell is ready with an enemy
  * close enough to target (60px melee, 200px ranged) it stops so auto-cast
  * can start it.
+ *
+ * With WIN_MODEL_AUTO_ATTACK=0 the bot turns the HUD auto attack off (the
+ * game turns it on each night) and never taps attack, so the player makes
+ * no weapon attacks; it still moves the same way.
  */
 async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
   await page.evaluate(
-    ({ attackMode, fullCast }) => {
+    ({ attackMode, fullCast, autoAttack }) => {
       const w = window as unknown as { __winModelBot?: number };
       const isHeal = (id: string | null) =>
         id === "heal" || id === "flash_heal";
@@ -134,6 +140,8 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
         const api = window.__DEFENSEGAME_E2E__?.api;
         if (!api || window.__DEFENSEGAME_E2E__?.scene !== "Defense") return;
         if (api.getAttackMode() !== attackMode) api.setAttackMode(attackMode);
+        if (api.getAutoAttackEnabled() !== autoAttack)
+          api.setAutoAttackEnabled(autoAttack);
         const steer = (dx: number, dy: number) => {
           const d = Math.hypot(dx, dy);
           if (d < 1) api.clearStick();
@@ -178,7 +186,7 @@ async function startBot(page: Page, mode: Snapshot["mode"]): Promise<void> {
         else api.clearStick();
       }, 150);
     },
-    { attackMode: mode, fullCast },
+    { attackMode: mode, fullCast, autoAttack },
   );
 }
 
@@ -244,6 +252,7 @@ test.describe("win model validation @manual", () => {
           bar: snap.save.spellBar.slots.filter(Boolean),
           strategy: snap.strategy ?? "balanced",
           bot: fullCast ? "full-cast" : "default",
+          autoAttack,
           seconds: Math.round((Date.now() - start) / 1000),
           trace,
         };
