@@ -612,7 +612,7 @@ export class DefenseScene extends Phaser.Scene {
       this.run.enemies,
     );
 
-    this.run.enemies = this.run.enemies.filter((e) => e.damageable.alive);
+    this.run.filterDeadEnemies();
     this.run.targeting.syncFocusTarget();
 
     const living = this.run.enemies.length;

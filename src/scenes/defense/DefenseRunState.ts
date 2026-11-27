@@ -173,7 +173,17 @@ export class DefenseRunState
 
   nextPlayerProjectileId = (): string => `p_${this.projectileSerial++}`;
 
+  /**
+   * Drop dead enemies in place (no per-frame array copy). Only called between
+   * enemy iterations: end of the scene update and after a spell resolves.
+   */
   filterDeadEnemies = (): void => {
-    this.enemies = this.enemies.filter((e) => e.damageable.alive);
+    const list = this.enemies;
+    let w = 0;
+    for (let r = 0; r < list.length; r++) {
+      const e = list[r]!;
+      if (e.damageable.alive) list[w++] = e;
+    }
+    list.length = w;
   };
 }
