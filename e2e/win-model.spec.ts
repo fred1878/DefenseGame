@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import type { SaveGame } from "../src/core/save/saveTypes";
@@ -107,6 +108,11 @@ async function bootCampaignNight(page: Page, save: SaveGame): Promise<void> {
  * close enough to target (60px melee, 200px ranged) it stops so auto-cast
  * can start it.
  *
+ * Each row also records the fight's rendered frames per second (fps) and
+ * the machine's 1-minute load average (load1): on a busy machine the game
+ * runs fewer frames and fights play out differently, so compare fights
+ * only at similar fps.
+ *
  * With WIN_MODEL_AUTO_ATTACK=0 the bot turns the HUD auto attack off (the
  * game turns it on each night) and never taps attack, so the player makes
  * no weapon attacks; it still moves the same way.
@@ -201,6 +207,16 @@ test.describe("win model validation @manual", () => {
         const start = Date.now();
         await bootCampaignNight(page, snap.save);
         await startBot(page, snap.mode);
+        // Rendered frames, to spot fights slowed by a busy machine.
+        await page.evaluate(() => {
+          const w = window as unknown as { __winModelFrames?: number };
+          w.__winModelFrames = 0;
+          const tick = () => {
+            w.__winModelFrames = (w.__winModelFrames ?? 0) + 1;
+            requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
         // Sample once a second until the night ends and Town is back.
         let last = { wall: 0, hp: 0, enemies: 0 };
         const trace: number[][] = [];
@@ -236,6 +252,12 @@ test.describe("win model validation @manual", () => {
               bySource: {},
             },
         );
+        const frames = await page.evaluate(
+          () =>
+            (window as unknown as { __winModelFrames?: number })
+              .__winModelFrames ?? 0,
+        );
+        const seconds = (Date.now() - start) / 1000;
         const won = (after?.night ?? 0) > snap.night;
         const row = {
           id: snap.id,
@@ -255,7 +277,9 @@ test.describe("win model validation @manual", () => {
           strategy: snap.strategy ?? "balanced",
           bot: fullCast ? "full-cast" : "default",
           autoAttack,
-          seconds: Math.round((Date.now() - start) / 1000),
+          seconds: Math.round(seconds),
+          fps: Math.round(frames / Math.max(1, seconds)),
+          load1: Math.round((os.loadavg()[0] ?? 0) * 10) / 10,
           trace,
         };
         fs.appendFileSync(resultsFile, `${JSON.stringify(row)}\n`);
