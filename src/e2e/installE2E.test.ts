@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Phaser from "phaser";
-import { attachE2EGame, subscribeE2EGameEvents } from "./installE2E";
+import {
+  attachE2EGame,
+  subscribeE2EGameEvents,
+  unsubscribeE2EGameEvents,
+} from "./installE2E";
 import { markE2EAssetsLoaded } from "./e2eAssets";
 import { emitGameEvent } from "../core/gameEvents";
 import { getE2EState, seedE2EWindowStub } from "./e2eGlobal";
@@ -17,6 +21,7 @@ function windowStub(href = "http://localhost/?e2e=1") {
 
 describe("installE2E", () => {
   afterEach(() => {
+    unsubscribeE2EGameEvents();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });

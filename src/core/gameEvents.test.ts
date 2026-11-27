@@ -7,7 +7,6 @@ import {
 
 describe("gameEvents", () => {
   it("delivers payloads to listeners until they unsubscribe", () => {
-    expect(hasGameEventListeners("enemyMeleeFx")).toBe(false);
     const fn = vi.fn();
     const off = onGameEvent("enemyMeleeFx", fn);
     expect(hasGameEventListeners("enemyMeleeFx")).toBe(true);
@@ -22,10 +21,13 @@ describe("gameEvents", () => {
     off();
     emitGameEvent("enemyMeleeFx", payload);
     expect(fn).toHaveBeenCalledTimes(1);
-    expect(hasGameEventListeners("enemyMeleeFx")).toBe(false);
   });
 
-  it("ignores events nobody listens to", () => {
+  it("reports no listeners once the last one unsubscribes", () => {
+    const off = onGameEvent("playerMeleeFx", () => {});
+    expect(hasGameEventListeners("playerMeleeFx")).toBe(true);
+    off();
+    expect(hasGameEventListeners("playerMeleeFx")).toBe(false);
     expect(() => emitGameEvent("playerMeleeFx", {})).not.toThrow();
   });
 });

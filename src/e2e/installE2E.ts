@@ -15,26 +15,36 @@ import { ensureDomTestActions, positionDomMirrors } from "./installE2EDom";
  * DOM mirrors live in `installE2EDom.ts`, the API object in `installE2EApi.ts`.
  */
 
-let gameEventsSubscribed = false;
+let unsubscribeGameEvents: (() => void) | null = null;
 
 /** Mirror gameplay FX events into E2E flags (domain code never imports e2e/). */
 export function subscribeE2EGameEvents(): void {
-  if (gameEventsSubscribed) return;
-  gameEventsSubscribed = true;
-  onGameEvent("playerMeleeFx", () => {
-    publishE2E({ flags: { meleeFxSpawned: 1 } });
-  });
-  onGameEvent("enemyMeleeFx", (e) => {
-    publishE2E({
-      flags: {
-        enemyMeleeFxSpawned: 1,
-        lastEnemyMeleeFxDef: e.enemyDefId,
-        lastEnemyMeleeFxFacing: e.facingRad,
-        lastEnemyMeleeFxRot: e.rotation,
-        lastEnemyMeleeFxFlipX: e.flipX ? 1 : 0,
-      },
-    });
-  });
+  if (unsubscribeGameEvents) return;
+  const offs = [
+    onGameEvent("playerMeleeFx", () => {
+      publishE2E({ flags: { meleeFxSpawned: 1 } });
+    }),
+    onGameEvent("enemyMeleeFx", (e) => {
+      publishE2E({
+        flags: {
+          enemyMeleeFxSpawned: 1,
+          lastEnemyMeleeFxDef: e.enemyDefId,
+          lastEnemyMeleeFxFacing: e.facingRad,
+          lastEnemyMeleeFxRot: e.rotation,
+          lastEnemyMeleeFxFlipX: e.flipX ? 1 : 0,
+        },
+      });
+    }),
+  ];
+  unsubscribeGameEvents = () => {
+    for (const off of offs) off();
+    unsubscribeGameEvents = null;
+  };
+}
+
+/** Tests: drop the E2E game-event listeners so later files start clean. */
+export function unsubscribeE2EGameEvents(): void {
+  unsubscribeGameEvents?.();
 }
 
 export function attachE2EGame(game: Phaser.Game): void {
