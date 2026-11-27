@@ -12,6 +12,11 @@ import {
   interactiveObjectScreenRect,
 } from "./touchButton";
 import { readSafeInsets, spellBarSlotCenter } from "./screenLayout";
+import { frameTouchButton } from "./uiFrame";
+import { uiTextStyle } from "./uiTextStyle";
+
+const SLOT_FILL = 0x1a1512;
+const SLOT_FILL_PRESSED = 0x0d0a09;
 
 export type SpellBarCallbacks = {
   onCastRequest: (spellId: SpellId, slotIndex: number) => void;
@@ -22,10 +27,13 @@ export type SpellBarCallbacks = {
 
 type CooldownVisual = {
   overlay: Phaser.GameObjects.Rectangle;
+  /** Seconds left, Departure Mono digits with an outline. */
+  label: Phaser.GameObjects.Text;
 };
 
 type SlotChrome = {
   autoBorder: Phaser.GameObjects.Rectangle;
+  autoTag: Phaser.GameObjects.Text;
   button: ReturnType<typeof createTouchButton>;
 };
 
@@ -86,11 +94,13 @@ export class SpellBar {
         height: DEFENSE_SPELL_BAR.slotSizePx,
         depth,
         fontSize: DEFENSE_SPELL_BAR.fontSize,
-        fillColor: 0x312e81,
-        strokeColor: 0x818cf8,
+        fillColor: SLOT_FILL,
+        strokeColor: 0x3a2f24,
         tapPadding: DEFENSE_SPELL_BAR.tapPaddingPx,
         skipPressBinding: true,
       });
+      const slotPx = DEFENSE_SPELL_BAR.slotSizePx;
+      frameTouchButton(scene, btn.container, "slot", slotPx + 6, slotPx + 6);
       if (hasIcon) {
         const iconSize = defenseSpellBarIconDisplayPx();
         const icon = scene.add
@@ -137,7 +147,7 @@ export class SpellBar {
         {
           bg: btn.container.list[0] as Phaser.GameObjects.GameObject &
             Phaser.GameObjects.Rectangle,
-          colors: { rest: 0x312e81, pressed: 0x232350 },
+          colors: { rest: SLOT_FILL, pressed: SLOT_FILL_PRESSED },
           pressScale: 0.88,
         },
       );
@@ -158,6 +168,22 @@ export class SpellBar {
         .setScrollFactor(0)
         .setDepth(depth + 2)
         .setVisible(autoFlags[i] ?? false);
+      const half = DEFENSE_SPELL_BAR.slotSizePx / 2;
+      const autoTag = scene.add
+        .text(
+          x - half + 3,
+          y - half + 2,
+          "AUTO",
+          uiTextStyle(scene, {
+            fontSize: "12px",
+            color: "#f6d77a",
+            stroke: "#0b0806",
+            strokeThickness: 3,
+          }),
+        )
+        .setScrollFactor(0)
+        .setDepth(depth + 3)
+        .setVisible(autoFlags[i] ?? false);
 
       const overlay = scene.add
         .rectangle(
@@ -173,8 +199,25 @@ export class SpellBar {
         .setOrigin(0.5, 1)
         .setVisible(false);
 
-      this.slotChrome.push({ autoBorder, button: btn });
-      this.cooldownVisuals.push({ overlay });
+      const cdLabel = scene.add
+        .text(
+          x,
+          y,
+          "",
+          uiTextStyle(scene, {
+            fontSize: "22px",
+            color: "#fdf6e3",
+            stroke: "#0b0806",
+            strokeThickness: 4,
+          }),
+        )
+        .setOrigin(0.5, 0.5)
+        .setScrollFactor(0)
+        .setDepth(depth + 3)
+        .setVisible(false);
+
+      this.slotChrome.push({ autoBorder, autoTag, button: btn });
+      this.cooldownVisuals.push({ overlay, label: cdLabel });
     }
   }
 
@@ -189,6 +232,7 @@ export class SpellBar {
     const flags = autoCastFlagsForSlots(slots, autoCastSpellIds);
     for (let i = 0; i < this.slotChrome.length; i++) {
       this.slotChrome[i]!.autoBorder.setVisible(Boolean(flags[i]));
+      this.slotChrome[i]!.autoTag.setVisible(Boolean(flags[i]));
     }
   }
 
@@ -272,7 +316,10 @@ export class SpellBar {
       btn.container.setAlpha(onCd ? 0.45 : 1);
 
       visual.overlay.setVisible(onCd);
+      visual.label.setVisible(onCd);
       if (!onCd || !def) continue;
+      const secs = remaining / 1000;
+      visual.label.setText(secs >= 10 ? String(Math.ceil(secs)) : secs.toFixed(1));
 
       const ratio = Phaser.Math.Clamp(remaining / def.cooldownMs, 0, 1);
       const coverH = slotH * ratio;
@@ -283,7 +330,13 @@ export class SpellBar {
   }
 
   destroy(): void {
-    for (const v of this.cooldownVisuals) v.overlay.destroy();
-    for (const s of this.slotChrome) s.autoBorder.destroy();
+    for (const v of this.cooldownVisuals) {
+      v.overlay.destroy();
+      v.label.destroy();
+    }
+    for (const s of this.slotChrome) {
+      s.autoBorder.destroy();
+      s.autoTag.destroy();
+    }
   }
 }

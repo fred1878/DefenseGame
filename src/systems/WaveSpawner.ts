@@ -72,6 +72,15 @@ export function scaledEnemyDef(
 }
 
 /** Timed wave groups via Phaser `delayedCall` (REFACTOR_PLAN PR11 / AGENTS.md). */
+/** Enemies a wave will spawn (groups with an unknown enemy id are skipped, as in scheduleWave). */
+export function waveSpawnTotal(store: DataStore, wave: WaveDef): number {
+  let total = 0;
+  for (const group of wave.groups) {
+    if (store.enemies[group.enemyId]) total += group.count;
+  }
+  return total;
+}
+
 export function scheduleWave(
   scene: Phaser.Scene,
   store: DataStore,
