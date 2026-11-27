@@ -173,7 +173,7 @@ npx playwright test --project=chromium
 
 Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `playwright.config.ts`).
 
-## Scene tests with real Phaser (spike)
+## Scene tests with real Phaser
 
 `src/**/*.scene.test.ts` run in a third Vitest project, `scenes`, that uses the
 **real vendored Phaser build** (`node_modules/phaser/dist/phaser-defensegame.js`)
@@ -197,7 +197,15 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
   determinism test in `DefenseScene.scene.test.ts`).
 - Audio is off (`noAudio`); `FontFace` is polyfilled in
   `src/test/scene/sceneTestSetup.ts` by registering the font bytes with
-  `@napi-rs/canvas`. Set `SCENE_SNAPSHOT_DIR` to write rendered PNGs.
+  `@napi-rs/canvas`. Set `SCENE_SNAPSHOT_DIR` to write rendered PNGs (CI does
+  this and uploads them as the `scene-snapshots` artifact).
+- Rendering uses Phaser's **Canvas** renderer, not WebGL: WebGL-only paths are
+  not exercised and pixels will not match the game exactly.
+- Coverage: `BootScene`, `TownHeader`, `DefenseHudController`,
+  `DefenseWorldBootstrap`, `DefenseSpellWorldTick`, `DamageNumberFx` and
+  `world/defenseCamera` are counted thanks to these tests. `DefenseScene`,
+  `TownScene` and the other scene files stay in the coverage `exclude` list in
+  `vitest.config.ts` until more scene tests lift them above the floors.
 
 ## Coverage notes
 
@@ -205,12 +213,13 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines | 95% | ~95.4% (scenes/world modules in scope) |
-| statements | 94% | ~95% |
-| functions | 95% | ~95.5% |
-| branches | 91% | ~92% |
+| lines | 96% | ~96.1% (scenes/world modules + scene-test-covered files in scope) |
+| statements | 95.5% | ~95.7% |
+| functions | 95.5% | ~95.9% |
+| branches | 91.5% | ~92.0% |
 
-**Excluded from coverage:** Phaser scene orchestrators (`BootScene`, `TownScene`, `DefenseScene`, setup scenes), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers. Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** Phaser scene orchestrators (`TownScene`, `DefenseScene`, `DebugMenuScene`, setup scenes; `BootScene` is counted via the real-Phaser scene tests), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+
 ## Visual checks (screenshot baselines)
 
 `e2e/visual-screens.spec.ts` compares screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):

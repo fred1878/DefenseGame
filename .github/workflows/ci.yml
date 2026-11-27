@@ -2,8 +2,7 @@ name: CI
 
 on:
   push:
-    # spike/real-phaser-tests: CI check for the real-Phaser scene test spike.
-    branches: [main, spike/real-phaser-tests]
+    branches: [main]
   pull_request:
     branches: [main]
 
