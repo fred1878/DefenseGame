@@ -146,9 +146,10 @@ export const meleeChaserBehavior: EnemyBehavior = (ctx) => {
     moveX = playerX;
     moveY = playerY;
   } else if (pathActive) {
-    const wp = nav.path[nav.pathIndex]!;
-    const d = Math.hypot(wp.x - ex, wp.y - ey);
-    if (d <= waypointRadius) {
+    // `pathActive` was read before this frame's replan; a replan that found no
+    // path leaves `nav.path` empty, so the waypoint can be missing here.
+    const wp = nav.path[nav.pathIndex];
+    if (wp && Math.hypot(wp.x - ex, wp.y - ey) <= waypointRadius) {
       nav.pathIndex += 1;
     }
     const nextWp = nav.path[nav.pathIndex];
