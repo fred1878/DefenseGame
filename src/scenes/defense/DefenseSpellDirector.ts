@@ -1,4 +1,3 @@
-import { playerTuning } from "../../config/player";
 import { gearSpellDamageMult } from "../../gear/gearRuntime";
 import type Phaser from "phaser";
 import { toggleAutoCastSpellId } from "../../content/spellBarAutoCast";
@@ -28,17 +27,11 @@ import {
 import type { SpellGroundZone } from "../../combat/spellGroundZone";
 import {
   spellAutoCastRequiresCombatTarget,
-  spellAutoCastUsesRangedEnemyPick,
   spellCastUsesEnemyAim,
   spellRequiresManualTarget,
   spellTargetMode,
   spellUsesManualGroundAim,
 } from "../../content/spellTargeting";
-import { pickAutoCastCombatEnemy } from "../../combat/spellAutoCastCombatEnemy";
-import {
-  AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE,
-  resolveAutoCastGroundAim,
-} from "../../combat/spellGroundAim";
 import type { DefenseObstacleRect } from "../../config/defense";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { PlayerProjectile } from "../../entities/Projectile";
@@ -47,6 +40,10 @@ import type { SpellBar } from "../../ui/SpellBar";
 import type { CastBar } from "../../ui/CastBar";
 import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
 import type { DefenseTargeting } from "./DefenseTargeting";
+import {
+  defenseAutoCastCombatTarget,
+  defenseAutoCastGroundTarget,
+} from "./DefenseSpellAutoCastTargets";
 import {
   DefenseSpellChannelTicks,
   resumeDefenseMovementFromStick,
@@ -181,10 +178,10 @@ export class DefenseSpellDirector {
     const def = spellById(pick.spellId);
     if (!def) return;
     if (spellAutoCastRequiresCombatTarget(def)) {
-      const target = this.autoCastCombatTarget(def);
+      const target = defenseAutoCastCombatTarget(this.host, def);
       if (!target) return;
       if (spellTargetMode(def) === "ground") {
-        this.host.groundAim = this.autoCastGroundTarget(def);
+        this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
       } else {
         this.host.targeting.setFocusEnemy(target.id);
         this.host.player.faceToward(target.x, target.y);
@@ -201,7 +198,7 @@ export class DefenseSpellDirector {
     const def = spellById(spellId);
     if (!def || !spellUsesManualGroundAim(def)) return;
     this.host.pendingGroundCast = spellId;
-    const aim = this.defaultGroundTarget(def);
+    const aim = defenseAutoCastGroundTarget(this.host, def);
     this.host.groundAim = aim;
     this.host.groundReticle.showAt(
       aim.x,
@@ -226,7 +223,7 @@ export class DefenseSpellDirector {
       !spellGroundTapAutoCasts(def.id)
     ) {
       this.host.pendingGroundCast = spellId;
-      const aim = this.defaultGroundTarget(def);
+      const aim = defenseAutoCastGroundTarget(this.host, def);
       this.host.groundAim = aim;
       this.host.groundReticle.showAt(
         aim.x,
@@ -257,7 +254,7 @@ export class DefenseSpellDirector {
     if (!def) return;
     if (!this.prepareManualCastTargeting(def)) return;
     if (spellTargetMode(def) === "ground") {
-      this.host.groundAim = this.defaultGroundTarget(def);
+      this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
     }
     this.beginSpellCast(spellId, "manual", stickX, stickY);
   }
@@ -268,7 +265,7 @@ export class DefenseSpellDirector {
    */
   prepareManualCastTargeting(def: SpellDefinition): boolean {
     const mode = spellTargetMode(def);
-    const target = this.autoCastCombatTarget(def);
+    const target = defenseAutoCastCombatTarget(this.host, def);
 
     if (def.requireEnemyTarget === true && mode === "enemy") {
       if (!this.host.targeting.focusEnemyId && !target) return false;
@@ -281,7 +278,7 @@ export class DefenseSpellDirector {
 
     if (spellGroundTapAutoCasts(def.id) && mode === "ground") {
       if (!target) return false;
-      this.host.groundAim = this.autoCastGroundTarget(def);
+      this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
       return true;
     }
 
@@ -290,7 +287,7 @@ export class DefenseSpellDirector {
       this.host.player.faceToward(target.x, target.y);
     }
     if (target && mode === "ground" && !this.host.groundAim) {
-      this.host.groundAim = this.autoCastGroundTarget(def);
+      this.host.groundAim = defenseAutoCastGroundTarget(this.host, def);
     }
     return true;
   }
@@ -318,7 +315,7 @@ export class DefenseSpellDirector {
     if (!def || this.host.spellCaster.isChanneling()) return;
     if (spellTargetMode(def) === "ground") {
       this.host.spellChannelArea =
-        this.host.groundAim ?? this.defaultGroundTarget(def);
+        this.host.groundAim ?? defenseAutoCastGroundTarget(this.host, def);
     } else if (def.mechanicType === "channeled_area") {
       const target = this.host.targeting.facingTarget("ranged", true);
       this.host.spellChannelArea = target
@@ -351,82 +348,10 @@ export class DefenseSpellDirector {
     }
   }
 
-  groundAimEnemies(): {
-    id: string;
-    x: number;
-    y: number;
-    radius: number;
-    alive: boolean;
-  }[] {
-    return this.host.enemies.map((e) => ({
-      id: e.id,
-      x: e.sprite.x,
-      y: e.sprite.y,
-      radius: e.sprite.displayWidth * 0.25,
-      alive: e.damageable.alive,
-    }));
-  }
-
-  autoCastGroundTarget(def: SpellDefinition): { x: number; y: number } {
-    const px = this.host.player.sprite.x;
-    const py = this.host.player.sprite.y;
-    const maxR = this.host.wu(def.groundTargetMaxRangeWu ?? 240);
-    const strike = this.host.resolveStrikeMode(
-      this.host.player.mode === "auto",
-    );
-    return resolveAutoCastGroundAim(
-      px,
-      py,
-      this.host.player.getFacingAngle(),
-      this.host.targeting.focusEnemyId,
-      this.groundAimEnemies(),
-      strike,
-      this.host.wu(playerTuning().autoAttackMeleeRange),
-      this.host.wu(playerTuning().autoAttackRangedRange),
-      maxR,
-    );
-  }
-
-  autoCastEnemyTarget(
-    def: SpellDefinition,
-  ): { id: string; x: number; y: number } | null {
-    return this.autoCastCombatTarget(def);
-  }
-
-  autoCastCombatTarget(def: SpellDefinition): {
-    id: string;
-    x: number;
-    y: number;
-  } | null {
-    const px = this.host.player.sprite.x;
-    const py = this.host.player.sprite.y;
-    const searchR =
-      spellTargetMode(def) === "ground"
-        ? AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE
-        : this.host.wu(
-            def.groundTargetMaxRangeWu ?? playerTuning().autoAttackRangedRange,
-          );
-    const strike = spellAutoCastUsesRangedEnemyPick(def)
-      ? "ranged"
-      : this.host.resolveStrikeMode(this.host.player.mode === "auto");
-    return (
-      pickAutoCastCombatEnemy(
-        px,
-        py,
-        this.host.targeting.focusEnemyId,
-        this.groundAimEnemies(),
-        strike,
-        this.host.wu(playerTuning().autoAttackMeleeRange),
-        this.host.wu(playerTuning().autoAttackRangedRange),
-        searchR,
-      ) ?? null
-    );
-  }
-
   /** Aim instant directional spells (e.g. water bolt) before resolving — windup spells already face in windup. */
   private aimDirectedSpellCast(def: SpellDefinition): void {
     if (!spellCastUsesEnemyAim(def)) return;
-    const target = this.autoCastCombatTarget(def);
+    const target = defenseAutoCastCombatTarget(this.host, def);
     if (target) {
       this.host.targeting.setFocusEnemy(target.id);
       this.host.player.faceToward(target.x, target.y);
@@ -434,10 +359,6 @@ export class DefenseSpellDirector {
     }
     const facing = this.host.targeting.facingTarget("ranged", true);
     if (facing) this.host.player.faceToward(facing.x, facing.y);
-  }
-
-  defaultGroundTarget(def: SpellDefinition): { x: number; y: number } {
-    return this.autoCastGroundTarget(def);
   }
 
   clearSpellChannelState(): void {
@@ -469,7 +390,7 @@ export class DefenseSpellDirector {
       phase,
       progress,
       deltaMs,
-      (d) => this.defaultGroundTarget(d),
+      (d) => defenseAutoCastGroundTarget(this.host, d),
     );
   }
 
