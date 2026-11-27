@@ -226,3 +226,11 @@ Baseline on the agent box (2026-11-27, Node 24; noisy, medians of 5 × 120 frame
 | After QW3 (per-frame peer rows) | 0.30 ms | 14.6 ms | 12.0 ms |
 
 At 60+ enemies the cost is dominated by A* replans with peer agents (`pathfinding/astar.ts`), not allocation.
+
+## Complexity gate
+
+Biome's `noExcessiveCognitiveComplexity` runs as an error with a cap of
+**25** per function. Nineteen legacy files (listed in the `overrides` block of
+`biome.json`) are held at the current worst score (84, `tickDefenseEnemies`)
+until they are split up by the refactor plan; remove a file from that list
+once its functions are under 25. Never add new files to it.
