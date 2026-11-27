@@ -122,7 +122,8 @@ export class DefenseMinimap {
       layout.height + pad * 2,
     );
     if (!ns) return;
-    ns.setScrollFactor(0).setDepth(MINIMAP_DEPTH + 1);
+    // Behind the dots: the frame's centre is an opaque dark panel.
+    ns.setScrollFactor(0).setDepth(MINIMAP_DEPTH - 1);
     registerUiDraw?.(ns);
     this.frame = ns;
   }
@@ -134,8 +135,10 @@ export class DefenseMinimap {
     enemies: readonly EnemyInstance[],
   ): void {
     this.g.clear();
-    this.g.fillStyle(BACK_FILL, 0.72);
-    this.g.fillRect(layout.x, layout.y, layout.width, layout.height);
+    if (!this.frame) {
+      this.g.fillStyle(BACK_FILL, 0.72);
+      this.g.fillRect(layout.x, layout.y, layout.width, layout.height);
+    }
     this.g.lineStyle(1.5, BORDER_COLOR, 1);
     this.g.strokeRect(layout.x, layout.y, layout.width, layout.height);
 
