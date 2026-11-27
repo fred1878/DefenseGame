@@ -68,7 +68,7 @@ export const MELEE_FX_ASSETS = [
     file: "enemy-melee-skirmisher-spear-thrust.png",
     frameWidth: 72,
     frameHeight: 32,
-    frameCount: 5,
+    frameCount: 4,
     frameRate: 1000 / 60,
   },
   {
@@ -84,7 +84,7 @@ export const MELEE_FX_ASSETS = [
     file: "enemy-melee-slow-siege-hammer-smash.png",
     frameWidth: 84,
     frameHeight: 56,
-    frameCount: 14,
+    frameCount: 8,
     frameRate: 1000 / 60,
   },
   {
@@ -92,7 +92,7 @@ export const MELEE_FX_ASSETS = [
     file: "enemy-melee-charger-spin-slash.png",
     frameWidth: 120,
     frameHeight: 72,
-    frameCount: 10,
+    frameCount: 8,
     frameRate: 1000 / 60,
   },
   {
@@ -116,7 +116,7 @@ export const MELEE_FX_ASSETS = [
     file: "enemy-melee-reaver-scythe-reap.png",
     frameWidth: 96,
     frameHeight: 92,
-    frameCount: 13,
+    frameCount: 6,
     frameRate: 1000 / 70,
   },
 ] as const;

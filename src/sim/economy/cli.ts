@@ -7,6 +7,7 @@ import {
   type FlagThresholds,
   type StrategySummary,
 } from "./aggregate";
+import { bandDrift, bandsFrom, type BandsFile } from "./bands";
 import { DEFAULT_POWER_MODEL, type PowerModel } from "./power";
 import {
   consoleSummary,
@@ -55,6 +56,8 @@ npm run sim:economy -- [options]
   --weights O,D,W      offence,defence,wall exponents (default ${DEFAULT_POWER_MODEL.offenceWeight},${DEFAULT_POWER_MODEL.defenceWeight},${DEFAULT_POWER_MODEL.wallWeight}; pre-validation model: 0.5,0.25,0.25 with --steepness 3)
   --easy N / --hard N  power-ratio flags (default 2 / 1)
   --out DIR            output folder (default sim-output)
+  --bands FILE         exit 1 when a fixed-seed metric leaves its band (docs/sim-baselines/economy.json)
+  --write-bands FILE   write this run's metrics as a band file
   --quiet              skip the console tables
   --help               this text
 `;
@@ -73,6 +76,8 @@ export type CliOptions = {
   model: PowerModel;
   flags: FlagThresholds;
   outDir: string;
+  bands: string | null;
+  writeBands: string | null;
   quiet: boolean;
   help: boolean;
 };
@@ -145,6 +150,8 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
       easy: { type: "string" },
       hard: { type: "string" },
       out: { type: "string" },
+      bands: { type: "string" },
+      "write-bands": { type: "string" },
       quiet: { type: "boolean" },
       help: { type: "boolean" },
     },
@@ -202,6 +209,8 @@ export function parseCliArgs(argv: readonly string[]): CliOptions {
       hard: positive("hard", values.hard, 1),
     },
     outDir: values.out ?? "sim-output",
+    bands: values.bands ?? null,
+    writeBands: values["write-bands"] ?? null,
     quiet: !!values.quiet,
     help: !!values.help,
   };
@@ -211,6 +220,8 @@ export type SimOutput = {
   summaries: StrategySummary[];
   runsByStrategy: Map<StrategyId, RunResult[]>;
   meta: ReportMeta;
+  /** Fixed-seed headline numbers a band file keeps. */
+  bands: BandsFile;
   console: string;
   files: Record<string, string>;
 };
@@ -271,6 +282,13 @@ export function runSimulation(opts: CliOptions, now = new Date()): SimOutput {
     summaries,
     runsByStrategy,
     meta,
+    bands: bandsFrom(summaries, {
+      seed: opts.seed,
+      runs: opts.runs,
+      winModel: opts.winModel,
+      winRate: opts.winRate,
+      nights,
+    }),
     console: consoleSummary(summaries, prices, meta),
     files: {
       "report.html": htmlReport(summaries, prices, meta),
@@ -303,11 +321,24 @@ export function main(
   for (const [name, body] of Object.entries(out.files)) {
     writeFileSync(path.join(opts.outDir, name), body);
   }
+  if (opts.writeBands) {
+    writeFileSync(opts.writeBands, `${JSON.stringify(out.bands, null, 2)}\n`);
+    log(`Wrote bands ${opts.writeBands}`);
+  }
   if (!opts.quiet) log(out.console);
   log(
     `\nWrote ${Object.keys(out.files)
       .map((f) => path.join(opts.outDir, f))
       .join(", ")} in ${((Date.now() - started) / 1000).toFixed(1)}s`,
   );
+  if (opts.bands) {
+    const expected = JSON.parse(readFileSync(opts.bands, "utf8")) as BandsFile;
+    const drift = bandDrift(out.bands, expected);
+    if (drift.length) {
+      log(`\nSim outside its bands (${opts.bands}):\n  ${drift.join("\n  ")}`);
+      return 1;
+    }
+    log(`\nSim within its bands (${opts.bands})`);
+  }
   return 0;
 }

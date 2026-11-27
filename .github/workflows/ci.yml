@@ -149,6 +149,31 @@ jobs:
           path: dist/
           retention-days: 1
 
+  # Advisory economy-sim run: fixed-seed regression bands in parallel with
+  # verify. Non-blocking (continue-on-error) until the bands have proven stable;
+  # the report is uploaded either way. See docs/ECONOMY_SIM.md.
+  sim:
+    needs: changes
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Economy sim (fixed-seed bands, advisory)
+        run: npm run sim:bands
+      - name: Upload economy sim report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: economy-sim
+          path: sim-output/bands/
+          if-no-files-found: ignore
+          retention-days: 14
+
   e2e-shard:
     needs: [changes, verify]
     runs-on: ubuntu-24.04
