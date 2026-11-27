@@ -8,7 +8,7 @@ Code-only top-down real-time action RPG: **town by day**, **defend the settlemen
 
 BootScene (load `public/data/*.json` + assets, restore save) → TownScene (upgrades, start night) → DefenseScene (real-time waves, wall HP) → TownScene.
 
-**Invariant:** `DefenseScene` never mutates town rules directly. It returns a `NightResult`; `GameState.applyNightResult()` applies it once on the Town/Boot side.
+**Invariant:** defense code never edits town state (gold, buildings, gear) field by field. At night end, `scenes/defense/DefenseNightEnd.ts` calls the pure resolvers once (`resolveCampaignNightEnd` → `applyNightResultDetailed` / `applyNightResult` in `core/GameState.ts`, or `applyEndlessRunExit` for endless and wave-planner runs), then persists the returned `SaveGame`.
 
 ## Commands
 
@@ -79,7 +79,7 @@ Save shapes: `src/core/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERSION`)
 - **Vitest:** don't assert against shipped `public/data/*.json` values; use inline fixtures.
 - **Combat:** Arcade bodies for movement; custom hitboxes for attacks. Player FSM `idle → windup → active → recovery` (damage only in `active`). Objective is `townWallHp`.
 - **Input:** one owner at a time via `src/input/inputModality.ts`. Modals use `acquireModalInput` + `bindModalDimBackdrop`; host scenes react to `INPUT_MODALITY_CHANGED`.
-- **Save safety:** extend `SaveGame` only with backward-compatible defaults in `GameState.createNew()`.
+- **Save safety:** extend `SaveGame` only with backward-compatible defaults in `createNewSave()` (`core/GameState.ts`).
 - **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx`).
 - **CI:** typecheck, Biome lint, knip, unit tests (`test:coverage` enforces **94 / 95 / 94** lines/functions/statements, **90** branches — see `vitest.config.ts`; scene orchestrators and Phaser HUD glue excluded; `scenes/defense/*` modules and `world/**` included), build and Chromium Playwright must stay green. Delete dead code rather than adding knip ignores. Merges to main publish Pages.
 - **Balance:** prefer `npm run sim:economy` when changing `waves.json`, `loot.json`, shop prices, or affix power — [ECONOMY_SIM.md](./ECONOMY_SIM.md).
