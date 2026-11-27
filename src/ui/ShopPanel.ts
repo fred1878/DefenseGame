@@ -99,8 +99,10 @@ export class ShopPanel {
     this.lease = o.lease;
     const kit = this.kit;
 
-    const head = kit.header(shopHeader(ctx, getSave()).title, () =>
-      this.destroy(),
+    const head = kit.header(
+      shopHeader(ctx, getSave()).title,
+      () => this.destroy(),
+      ctx.shop.id === "blacksmith" ? "hammer" : "coins",
     );
     this.subtitle = head.subtitle;
     this.goldText = head.gold;

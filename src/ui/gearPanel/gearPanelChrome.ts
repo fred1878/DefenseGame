@@ -10,7 +10,7 @@ import {
   bindModalDimBackdrop,
   type ModalInputLease,
 } from "../../input/modalBackdrop";
-import { DG_THEME, hexToInt } from "../theme/dgTheme";
+import { DG_ICON_TINT, DG_THEME, hexToInt } from "../theme/dgTheme";
 import {
   DgKit,
   fitText,
@@ -151,6 +151,7 @@ export function createCard(
 
 const DETAIL_LINES = 6;
 const DETAIL_ROWS = 8;
+const DETAIL_PILLS = 6;
 
 export type DetailBox = {
   show(d: DetailView | null, hint: string): void;
@@ -165,7 +166,7 @@ export function createDetailBox(
   top: number,
   bottom: number,
 ): DetailBox {
-  kit.box(16, top, 508, bottom - top, {
+  const panel = kit.box(16, top, 508, bottom - top, {
     fill: DG_THEME.bgPanel,
     stroke: DG_THEME.accentGold,
     strokeWidth: 1.5,
@@ -186,6 +187,16 @@ export function createDetailBox(
       originX: 1,
       originY: 0.5,
     }),
+  }));
+  const pillSlots = Array.from({ length: DETAIL_PILLS }, () => ({
+    bg: kit.box(0, 0, 80, 24, {
+      fill: DG_THEME.bgRaised,
+      stroke: DG_THEME.borderIron,
+      strokeWidth: 1,
+      radius: 10,
+    }),
+    icon: kit.icon(0, 0, "star", 14),
+    text: kit.text(0, 0, "", { size: 12, bold: true, originY: 0.5 }),
   }));
   const info = kit.text(32, 0, "", {
     size: 13,
@@ -236,6 +247,11 @@ export function createDetailBox(
     }),
   }));
   const hideAll = () => {
+    for (const p of pillSlots) {
+      p.bg.g.setVisible(false);
+      p.icon?.setVisible(false);
+      p.text.setVisible(false);
+    }
     for (const l of lines) {
       l.icon?.setVisible(false);
       l.text.setVisible(false);
@@ -262,21 +278,64 @@ export function createDetailBox(
         fitText(subline, hint, 476);
         return;
       }
+      panel.paint({
+        fill: DG_THEME.bgPanel,
+        stroke: d.borderColor ?? DG_THEME.accentGold,
+        strokeWidth: 1.5,
+        radius: 14,
+      });
       name.setColor(d.nameColor);
       fitText(name, d.name, 508 - textX - 16);
       fitText(subline, d.subline, 508 - textX - 16);
-      let y = top + (d.tile ? 90 : 74);
+      let y = top + (d.tile ? 68 : 52);
       const limit = bottom - 14;
+      const pills = d.pills ?? [];
+      if (pills.length) {
+        let px = textX;
+        let pillRowY = y;
+        for (let i = 0; i < Math.min(pills.length, DETAIL_PILLS); i++) {
+          const pill = pills[i]!;
+          const slot = pillSlots[i]!;
+          const labelW = Math.min(132, Math.max(64, pill.text.length * 7 + 36));
+          if (px + labelW > 508 && px > textX) {
+            px = textX;
+            pillRowY += 28;
+          }
+          if (pillRowY + 14 > limit) break;
+          slot.bg.move(px, pillRowY - 12, labelW, 24);
+          slot.bg.g.setVisible(true);
+          slot.icon?.setPosition(px + 14, pillRowY).setVisible(true);
+          kit.setIcon(slot.icon, pill.icon, 14);
+          slot.icon?.setTint(hexToInt(DG_ICON_TINT));
+          slot.text
+            .setPosition(px + 26, pillRowY)
+            .setText(pill.text)
+            .setColor(DG_THEME.textPrimary)
+            .setVisible(true);
+          fitText(slot.text, pill.text, labelW - 30);
+          px += labelW + 8;
+        }
+        y = pillRowY + 22;
+      } else if (d.tile) {
+        y = top + 90;
+      } else {
+        y = top + 74;
+      }
       d.lines.slice(0, DETAIL_LINES).forEach((line, i) => {
         if (y + 10 > limit) return;
         const l = lines[i]!;
-        l.icon?.setPosition(40, y).setVisible(true);
+        l.icon?.setPosition(32, y).setVisible(true);
         kit.setIcon(l.icon, line.icon, 16);
         l.icon?.setTint(hexToInt(line.color));
-        l.text.setPosition(56, y).setColor(line.color).setVisible(true);
-        fitText(l.text, line.text, 340);
-        l.tag.setPosition(508, y).setText(line.tag).setVisible(true);
-        y += 20;
+        const textMax = line.tag ? 290 : 380;
+        l.text
+          .setPosition(52, y)
+          .setColor(line.color)
+          .setFontStyle(line.tag ? "bold" : "normal")
+          .setVisible(true);
+        fitText(l.text, line.text, textMax);
+        l.tag.setPosition(508, y).setText(line.tag).setVisible(!!line.tag);
+        y += 22;
       });
       if (d.info.length) {
         info

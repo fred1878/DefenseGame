@@ -36,8 +36,10 @@ import {
   consumableTile,
   consumableTypeLabel,
   draftItemCompare,
+  type DetailPill,
   itemDetailLines,
   itemKeyStat,
+  itemStatPills,
   itemSubline,
   itemTile,
   itemTypeShort,
@@ -321,6 +323,10 @@ export type DetailView = {
   name: string;
   nameColor: string;
   subline: string;
+  /** Compact stat chips (shop buy detail). */
+  pills: DetailPill[];
+  /** Panel border / title accent (inventory rarity). */
+  borderColor?: string;
   /** Stat lines (affixes / effects). */
   lines: DetailLine[];
   compareTitle: string;
@@ -336,6 +342,7 @@ export const emptyDetail = (): DetailView => ({
   name: "",
   nameColor: DG_THEME.textPrimary,
   subline: "",
+  pills: [],
   lines: [],
   compareTitle: "",
   against: "",
@@ -414,7 +421,12 @@ export function shopDetail(
   d.name = r.name;
   d.nameColor = r.rarity.color;
   d.subline = itemSubline(r);
-  d.lines = itemDetailLines(ctx.catalog, r);
+  if (selling) {
+    d.lines = itemDetailLines(ctx.catalog, r);
+  } else {
+    d.pills = itemStatPills(r);
+    d.lines = [];
+  }
   const cmp = selling
     ? ownedItemCompare(ctx.catalog, save.gear, entry.key)
     : draftItemCompare(ctx.catalog, save.gear, r);
