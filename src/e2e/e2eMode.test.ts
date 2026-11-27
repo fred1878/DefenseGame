@@ -51,4 +51,18 @@ describe("e2eMode", () => {
     expect(e2eManualReturnFromQuery()).toBe(false);
     expect(e2eCampaignWavesFromQuery()).toBe(false);
   });
+  it("parses the query once per href and re-reads when it changes", () => {
+    vi.stubEnv("VITE_E2E", "false");
+    const location = { href: "http://localhost/?e2e=1" };
+    vi.stubGlobal("window", { location });
+    const urlSpy = vi.spyOn(globalThis, "URL");
+    expect(isE2EEnabled()).toBe(true);
+    expect(isE2EEnabled()).toBe(true);
+    expect(e2eManualReturnFromQuery()).toBe(false);
+    expect(urlSpy).toHaveBeenCalledTimes(1);
+    location.href = "http://localhost/?e2e=0";
+    expect(isE2EEnabled()).toBe(false);
+    expect(urlSpy).toHaveBeenCalledTimes(2);
+    urlSpy.mockRestore();
+  });
 });
