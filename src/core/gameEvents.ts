@@ -3,9 +3,23 @@
  * leaf layers (E2E hooks, telemetry) observe. Domain and FX code emit; they
  * never import the observers. Emitting with no listeners is a map lookup.
  */
+/** World-space (px) area a spell hit test just used; area spells emit per tick. */
+export type SpellHitArea =
+  | { kind: "disk"; x: number; y: number; radius: number }
+  | {
+      kind: "wedge";
+      x: number;
+      y: number;
+      facing: number;
+      range: number;
+      halfArc: number;
+    };
+
 export type GameEventMap = {
   /** A player melee swipe sprite was spawned. */
   playerMeleeFx: Record<string, never>;
+  /** A spell damage area was applied (once per tick for channeled / ground zones). */
+  spellHitArea: SpellHitArea;
   /** An enemy melee swipe was spawned, with the pose it was drawn at. */
   enemyMeleeFx: {
     enemyDefId: string;

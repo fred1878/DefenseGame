@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { basePlayerTuning, playerTuning } from "../../config/player";
 import { requireSpellNumber, type SpellDefinition } from "../../content/spells";
+import { emitGameEvent } from "../../core/gameEvents";
 import {
   applyDamage,
   swingSpellDamageFlavor,
@@ -189,6 +190,12 @@ export function applySpellBlastAt(
   const damage = (def.baseDamage ?? 0) * damageMult;
   const flavor = def.damageFlavor ?? "fire";
   const knockbackPx = worldUnit(spellBlastKnockback(def), scene.registry);
+  emitGameEvent("spellHitArea", {
+    kind: "disk",
+    x: centerX,
+    y: centerY,
+    radius: r,
+  });
   for (const e of enemiesInDisk(centerX, centerY, r, enemies)) {
     const full = enemies.find((x) => x.id === e.id);
     if (!full?.damageable.alive) continue;
@@ -216,6 +223,14 @@ export function applySpellSwing(
   const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   const flavor = swingSpellDamageFlavor(def.damageFlavor);
   const fxSize = requireSpellNumber(def, "swingFxSizePx");
+  emitGameEvent("spellHitArea", {
+    kind: "wedge",
+    x: playerX,
+    y: playerY,
+    facing: facingRad,
+    range,
+    halfArc: Phaser.Math.DegToRad(def.swingArcDeg! / 2),
+  });
   showPlayerMeleeSwipe(scene, playerX, playerY, facingRad, fxSize, fxSize);
   for (const e of enemiesInSwingArc(
     playerX,
@@ -254,6 +269,14 @@ export function strikeSpellCone(
   const half = Phaser.Math.DegToRad(def.coneArcDeg! / 2);
   const damage = requireSpellNumber(def, "baseDamage") * damageMult;
   const flavor = def.damageFlavor ?? "fire";
+  emitGameEvent("spellHitArea", {
+    kind: "wedge",
+    x: playerX,
+    y: playerY,
+    facing: facingRad,
+    range,
+    halfArc: half,
+  });
   for (const e of enemiesInCone(
     playerX,
     playerY,

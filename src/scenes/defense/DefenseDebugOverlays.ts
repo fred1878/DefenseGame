@@ -63,6 +63,7 @@ export class DefenseDebugOverlays {
       enemyProjectiles: run.enemyProjectiles,
       obstacleBlockers: run.obstacleBlockers,
       wu: this.host.wu,
+      delta,
     });
     drawDefenseEnemyPaths({
       registry,

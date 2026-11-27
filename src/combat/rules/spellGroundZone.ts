@@ -7,6 +7,7 @@ import {
   type DamageFlavor,
 } from "./DamageSystem";
 import { enemiesInDisk, type EnemyHitTarget } from "./spellMechanics";
+import { emitGameEvent } from "../../core/gameEvents";
 import type { EnemySpellStatusMap } from "./enemySpellStatus";
 import { applySpellOnHitEffects } from "./spellOnHitEffects";
 import { worldUnit } from "../../config/worldScale";
@@ -109,6 +110,12 @@ export function tickSpellGroundZones(
     const inZone = enemiesInDisk(z.x, z.y, z.radiusWu, enemies);
     if (z.burstDamage && !z.didBurst) {
       z.didBurst = true;
+      emitGameEvent("spellHitArea", {
+        kind: "disk",
+        x: z.x,
+        y: z.y,
+        radius: z.radiusWu,
+      });
       for (const e of inZone) {
         const full = enemies.find((x) => x.id === e.id);
         if (!full?.damageable.alive) continue;
@@ -144,6 +151,12 @@ export function tickSpellGroundZones(
         z.channelTicksDone = (z.channelTicksDone ?? 0) + 1;
       }
       if (tickDmg <= 0) continue;
+      emitGameEvent("spellHitArea", {
+        kind: "disk",
+        x: z.x,
+        y: z.y,
+        radius: z.radiusWu,
+      });
       for (const e of inZone) {
         const full = enemies.find((x) => x.id === e.id);
         if (!full?.damageable.alive) continue;

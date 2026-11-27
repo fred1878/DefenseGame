@@ -2,6 +2,7 @@ import type Phaser from "phaser";
 import { PALETTE } from "../ui/theme/uiPalette";
 import { drawDebugDisc, drawDebugSegment, drawDebugWedge } from "./debugShapes";
 import { arcHitboxHitsTarget } from "../combat/rules/Hitbox";
+import { onGameEvent, type SpellHitArea } from "../core/gameEvents";
 
 const FILL = 0xff3333;
 const FILL_ALPHA = 0.35;
@@ -33,17 +34,78 @@ const CHARGE_TOUCH_LINE = PALETTE.cyan400;
 const CHARGE_TOUCH_LINE_ALPHA = 0.65;
 const CHARGE_DASH_LINE = PALETTE.cyan300;
 const CHARGE_DASH_LINE_ALPHA = 0.8;
+const SPELL_HIT_FILL = PALETTE.materialOrange300;
+const SPELL_HIT_FILL_ALPHA = 0.4;
+const SPELL_HIT_LINE = PALETTE.materialOrange500;
+const SPELL_HIT_LINE_ALPHA = 0.9;
+/** Shorter than the 250 ms channel / linger tick so each tick flashes then fades. */
+const SPELL_HIT_FADE_MS = 220;
+const SPELL_HIT_MAX_AREAS = 32;
+
+type SpellHitFlash = { area: SpellHitArea; ageMs: number };
 
 /** Clears and redraws combat hitboxes in world space. */
 export class HitboxDebugDraw {
   private readonly g: Phaser.GameObjects.Graphics;
+  private readonly spellHits: SpellHitFlash[] = [];
+  private readonly stopSpellHitEvents: () => void;
 
   constructor(scene: Phaser.Scene) {
     this.g = scene.add.graphics().setDepth(30);
+    this.stopSpellHitEvents = onGameEvent("spellHitArea", (area) =>
+      this.addSpellHit(area),
+    );
   }
 
   clear(): void {
     this.g.clear();
+  }
+
+  /** Drop pending spell areas (hitbox overlay turned off or night restarted). */
+  clearSpellHits(): void {
+    this.spellHits.length = 0;
+  }
+
+  private addSpellHit(area: SpellHitArea): void {
+    this.spellHits.push({ area, ageMs: 0 });
+    if (this.spellHits.length > SPELL_HIT_MAX_AREAS) this.spellHits.shift();
+  }
+
+  /**
+   * Draw spell damage areas and age them. Every area spell tick re-records its
+   * shape, so a ticking zone pulses on each tick instead of showing for one frame.
+   */
+  drawSpellHitAreas(deltaMs: number): void {
+    if (!this.spellHits.length) return;
+    for (const hit of this.spellHits) {
+      const fade = 1 - hit.ageMs / SPELL_HIT_FADE_MS;
+      if (fade <= 0) continue;
+      const style = {
+        fill: SPELL_HIT_FILL,
+        fillAlpha: SPELL_HIT_FILL_ALPHA * fade,
+        lineWidth: 1.5,
+        line: SPELL_HIT_LINE,
+        lineAlpha: SPELL_HIT_LINE_ALPHA * fade,
+      };
+      const { area } = hit;
+      if (area.kind === "disk") {
+        drawDebugDisc(this.g, area.x, area.y, area.radius, style);
+      } else {
+        drawDebugWedge(
+          this.g,
+          area.x,
+          area.y,
+          area.range,
+          area.facing - area.halfArc,
+          area.facing + area.halfArc,
+          style,
+        );
+      }
+    }
+    for (const hit of this.spellHits) hit.ageMs += deltaMs;
+    const live = this.spellHits.filter((hit) => hit.ageMs < SPELL_HIT_FADE_MS);
+    this.spellHits.length = 0;
+    this.spellHits.push(...live);
   }
 
   graphics(): Phaser.GameObjects.Graphics {
@@ -51,6 +113,8 @@ export class HitboxDebugDraw {
   }
 
   destroy(): void {
+    this.stopSpellHitEvents();
+    this.clearSpellHits();
     this.g.destroy();
   }
 

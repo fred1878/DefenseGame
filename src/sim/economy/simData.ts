@@ -126,6 +126,21 @@ export function applyOverridesObject(raw: SimRawData, patch: unknown): void {
   }
 }
 
+/**
+ * One spawn group of a night, in spawn order. The sim resolves a night stage
+ * by stage so a loss lands where the wave actually breaks the player.
+ */
+export type NightStage = {
+  enemyCount: number;
+  totalHp: number;
+  totalDamage: number;
+  totalWallDamage: number;
+  /** Seconds from the night's first spawn to this group's first spawn. */
+  startSec: number;
+  /** Seconds from this group's first to its last spawn. */
+  spanSec: number;
+};
+
 /** One campaign night's reward and enemy totals (from `waves.json` × `enemies.json`). */
 export type NightDifficulty = {
   night: number;
@@ -139,6 +154,8 @@ export type NightDifficulty = {
   totalWallDamage: number;
   /** Seconds from the first to the last spawn. */
   spawnSpanSec: number;
+  /** Spawn groups in spawn order (`missing` = treat the whole night as one stage). */
+  stages?: NightStage[];
 };
 
 type RawEnemy = {
@@ -178,6 +195,7 @@ export function waveDifficulties(
       totalDamage: 0,
       totalWallDamage: 0,
       spawnSpanSec: 0,
+      stages: [],
     };
     for (const g of groups) {
       const enemy = enemiesRaw[String(g.enemyId)] as RawEnemy | undefined;
@@ -188,12 +206,26 @@ export function waveDifficulties(
       d.enemyCount += count;
       const hpMul = num(g.hpMul) > 0 ? num(g.hpMul) : 1;
       const dmgMul = num(g.damageMul) > 0 ? num(g.damageMul) : 1;
-      d.totalHp += count * num(enemy.hp) * hpMul;
-      d.totalDamage += count * num(enemy.damage) * dmgMul;
-      d.totalWallDamage += count * num(enemy.combat?.wall?.damage) * dmgMul;
+      const hp = count * num(enemy.hp) * hpMul;
+      const damage = count * num(enemy.damage) * dmgMul;
+      const wallDamage = count * num(enemy.combat?.wall?.damage) * dmgMul;
+      d.totalHp += hp;
+      d.totalDamage += damage;
+      d.totalWallDamage += wallDamage;
       const lastMs = num(g.atMs) + Math.max(0, count - 1) * num(g.intervalMs);
       d.spawnSpanSec = Math.max(d.spawnSpanSec, lastMs / 1000);
+      if (count > 0) {
+        d.stages!.push({
+          enemyCount: count,
+          totalHp: hp,
+          totalDamage: damage,
+          totalWallDamage: wallDamage,
+          startSec: num(g.atMs) / 1000,
+          spanSec: (Math.max(0, count - 1) * num(g.intervalMs)) / 1000,
+        });
+      }
     }
+    d.stages!.sort((a, b) => a.startSec - b.startSec);
     out.push(d);
   }
   return out.sort((a, b) => a.night - b.night);
