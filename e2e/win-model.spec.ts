@@ -62,7 +62,9 @@ const baseSeed = Number(process.env.WIN_MODEL_SEED ?? "1");
 const STEP_MS = Number(process.env.WIN_MODEL_STEP_MS ?? "0") || 1000 / 60;
 /** WIN_MODEL_RENDER_EVERY=N: also render every N fixed steps (default never). */
 const RENDER_EVERY = Number(process.env.WIN_MODEL_RENDER_EVERY ?? "0");
-const BOT_EVERY_STEPS = Math.max(1, Math.round(150 / STEP_MS));
+/** Bot interval in game ms (WIN_MODEL_BOT_MS, default 150). */
+const BOT_MS = Number(process.env.WIN_MODEL_BOT_MS ?? "150");
+const BOT_EVERY_STEPS = Math.max(1, Math.round(BOT_MS / STEP_MS));
 const TRACE_EVERY_STEPS = Math.max(1, Math.round(1000 / STEP_MS));
 /** Fixed-step fights give up after this much game time. */
 const MAX_GAME_MS = 20 * 60_000;

@@ -238,7 +238,9 @@ The game itself plays differently at low frame rates: replaying one save in
 fixed steps of 8.3, 16.7 and 25 ms ended at about the same game second
 (21–22 s), while 33 and 50 ms steps lasted 34 and 39 s. Rendering does not
 change a fight (`WIN_MODEL_RENDER_EVERY=1` renders every frame and gave the
-same result); `WIN_MODEL_STEP_MS` sets the step for such checks. Variants
+same result), and neither does a faster bot (every 50 or 75 ms instead of
+150 ms: 1 win in 6 saves either way). `WIN_MODEL_STEP_MS` and
+`WIN_MODEL_BOT_MS` set the step and the bot interval for such checks. Variants
 of one save (`--bars`, `--schools`) are queued next to each other.
 
 `--no-auto-attack` turns the HUD auto attack off for the night (the bot
