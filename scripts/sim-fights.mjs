@@ -4,7 +4,7 @@
 //   npm run sim:fights -- [run] [--nights 3,5,10] [--strategies balanced,no-spend]
 //       [--tiers p10,p50,p90] [--behind] [--repeats 1] [--runs 150]
 //       [--overrides candidate.json] [--out sim-output/fights/NAME]
-//       [--workers 8] [--build]
+//       [--workers 8] [--build] [--full-cast] [--bars cooldown,frost,lightning]
 //   npm run sim:fights -- report DIR [DIR...]   predicted vs real (current model)
 //   npm run sim:fights -- fit DIR [DIR...]      refit the model knobs
 //       [--min-night 13] [--model start.json] [--fix knob=v,...] [--out fitted.json]
@@ -19,6 +19,11 @@
 // --overrides is a sim overrides file ({ "waves": { ... } }); its waves,
 // enemies, spells and player parts are also served to the game, so candidate
 // waves can be tried without rebuilding.
+// --full-cast: the bot holds still through every windup / channel and stops
+// to let ready windup spells start (nothing cancels a cast).
+// --bars: replay each save once per spell-bar priority: cooldown (longest
+// first, default), frost or lightning (that element's spells first). Extra
+// orders are labelled strategy/bar; gear and talents are the save's own.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -58,7 +63,8 @@ const positional = [];
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (!a.startsWith("--")) positional.push(a);
-  else if (["--behind", "--build"].includes(a)) flags.set(a, "1");
+  else if (["--behind", "--build", "--full-cast"].includes(a))
+    flags.set(a, "1");
   else flags.set(a, argv[++i]);
 }
 const flag = (name, fallback) => flags.get(name) ?? fallback;
@@ -89,12 +95,51 @@ function modeFor(data, save) {
 }
 
 /**
+ * Spell-bar priority for the replay: `cooldown` (longest first), or
+ * `frost` / `lightning` to put that element's spells in front (the rest
+ * keep cooldown order). Gear and talents stay the save's own.
+ */
+function barOrder(slots, bar, flavorOf = () => "") {
+  const ordered = power.autoCastOrder(slots);
+  if (bar === "cooldown") return ordered;
+  const isBar = (id) => flavorOf(id) === bar;
+  return [...ordered.filter(isBar), ...ordered.filter((id) => !isBar(id))];
+}
+
+/** Copies of each snapshot per extra `--bars` order, labelled strategy/bar. */
+function withBars(snaps, bars, raw) {
+  const flavors = new Map(
+    (raw.spells?.spells ?? []).map((d) => [d.id, d.damageFlavor ?? ""]),
+  );
+  const flavorOf = (id) => flavors.get(id) ?? "";
+  return bars.flatMap((bar) =>
+    snaps.map((snap) => {
+      if (bar === "cooldown") return snap;
+      const slots = barOrder(snap.save.spellBar.slots, bar, flavorOf);
+      return {
+        ...snap,
+        id: snap.id.replace(snap.strategy, `${snap.strategy}/${bar}`),
+        strategy: `${snap.strategy}/${bar}`,
+        save: {
+          ...snap.save,
+          spellBar: {
+            ...snap.save.spellBar,
+            slots,
+            autoCastSpellIds: [...slots],
+          },
+        },
+      };
+    }),
+  );
+}
+
+/**
  * Auto-cast every spell-bar slot, longest cooldown first (auto-cast takes
  * the first ready slot, so a no-cooldown filler in front starves the rest);
  * the power model assumes the same rotation.
  */
 function forReplay(data, save) {
-  const slots = power.autoCastOrder(save.spellBar.slots);
+  const slots = barOrder(save.spellBar.slots, "cooldown");
   return {
     save: {
       ...save,
@@ -229,15 +274,19 @@ function runFights() {
         );
     }
   }
-  const snaps = strategies.flatMap((s, i) =>
-    snapshotsFor(
-      data,
-      s,
-      nights,
-      tiers,
-      runs,
-      flags.has("--behind") && i === 0,
+  const snaps = withBars(
+    strategies.flatMap((s, i) =>
+      snapshotsFor(
+        data,
+        s,
+        nights,
+        tiers,
+        runs,
+        flags.has("--behind") && i === 0,
+      ),
     ),
+    list("--bars", "cooldown"),
+    raw,
   );
   fs.writeFileSync(
     path.join(out, "snapshots.json"),
@@ -273,6 +322,7 @@ function runFights() {
       env: {
         ...process.env,
         E2E_WORKERS: flag("--workers", "8"),
+        WIN_MODEL_FULL_CAST: flags.has("--full-cast") ? "1" : "",
         WIN_MODEL_SNAPSHOTS: path.join(out, "snapshots.json"),
         WIN_MODEL_RESULTS: results,
         WIN_MODEL_REPEATS: String(repeats),

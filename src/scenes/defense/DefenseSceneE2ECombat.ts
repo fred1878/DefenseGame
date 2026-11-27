@@ -1,6 +1,7 @@
 import type Phaser from "phaser";
 import type { AttackMode } from "../../config";
 import { spellById } from "../../content/spells";
+import { spellRequiresStationary } from "../../content/spellTargeting";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
 import { setShowHitboxes } from "../../debug/DebugState";
 import { showEnemyMeleeSwipe } from "../../combat/MeleeSwipeFx";
@@ -48,6 +49,32 @@ export function defenseSceneE2eAttackPhase(
   scene: DefenseSceneE2eDelegate,
 ): string {
   return scene.player.attackPhaseNow;
+}
+
+/**
+ * Spell cast state for the win-model bot's full-cast mode: the spell being
+ * cast (windup or channel) and the auto-cast windup spells off cooldown.
+ */
+export function defenseSceneE2eSpellCastState(scene: DefenseSceneE2eDelegate): {
+  activeSpellId: string | null;
+  phase: "windup" | "channeling" | null;
+  readyWindupSpellIds: string[];
+} {
+  const caster = scene.spellCaster;
+  const auto = new Set(scene.save.spellBar.autoCastSpellIds);
+  const readyWindupSpellIds = scene.save.spellBar.slots.filter((id) => {
+    const def = id && auto.has(id) ? spellById(id) : undefined;
+    return (
+      !!def &&
+      spellRequiresStationary(def) &&
+      caster.getCooldownRemaining(id) <= 0
+    );
+  });
+  return {
+    activeSpellId: caster.getActiveSpellId(),
+    phase: caster.getCastPhase(),
+    readyWindupSpellIds,
+  };
 }
 
 /** Player attack mode as cycled by the MEL/RNG/AUTO toggle. */

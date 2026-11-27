@@ -175,6 +175,15 @@ export function buildApi(game: Phaser.Game): DefenseGameE2EApi {
     getCombatTally() {
       return combatTally();
     },
+    getSpellCastState() {
+      return (
+        activeDefense(game)?.e2e.spellCastState() ?? {
+          activeSpellId: null,
+          phase: null,
+          readyWindupSpellIds: [],
+        }
+      );
+    },
     resetCombatTally() {
       resetCombatTally();
     },

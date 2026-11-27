@@ -2,7 +2,7 @@
 
 Night keys match `save.night` when defense starts. Winning a night increments `save.night`.
 
-Counts below are per-night totals (grunt groups summed). Nights **1–2** are a gentler intro (**grunts** and **skirmishers** only). From night **3** onward, the prior campaign ramp applies: skirmishers, sentry cover, and escalating **slow_siege**, **fast_sapper**, **charger**, **lobber**, and **ward** alongside the core grunt/bruiser/archer/javelineer mix through night **12**. Nights **13–20** are the late campaign: bigger versions of the night-12 mix plus reavers and skirmishers, tougher enemies (`hpMul`), harder hits (`damageMul`) and **elite** groups. Their multipliers were tuned against real headless fights (`npm run sim:fights`, see [ECONOMY_SIM.md](./ECONOMY_SIM.md)) so a median spender wins about 60–80% of late nights and a no-spend build mostly loses.
+Counts below are per-night totals (grunt groups summed). Nights **1–2** are a gentler intro (**grunts** and **skirmishers** only). From night **3** onward, the prior campaign ramp applies: skirmishers, sentry cover, and escalating **slow_siege**, **fast_sapper**, **charger**, **lobber**, and **ward** alongside the core grunt/bruiser/archer/javelineer mix through night **12**. Nights **13–20** are the late campaign: bigger versions of the night-12 mix plus reavers and skirmishers, tougher enemies (`hpMul`), harder hits (`damageMul`) and **elite** groups. Their multipliers were set by checking candidates in real headless fights (`npm run sim:fights`); the recorded win rates are in [ECONOMY_SIM.md](./ECONOMY_SIM.md).
 
 | Night | rewardGold | Summary |
 |------:|-----------:|---------|
