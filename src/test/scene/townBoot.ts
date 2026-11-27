@@ -56,9 +56,18 @@ export async function bootToTown(
     server,
     town,
     async teardown() {
+      // Let in-flight loads (e.g. the Town prefetch, which chains loader
+      // batches and chunk imports) settle: no scene loading for 10 frames.
       const busy = () =>
-        h.game.scene.getScenes(true).some((s) => s.load.isLoading());
-      await h.stepUntil(() => !busy(), { maxFrames: 3000 });
+        h.game.scene.getScenes(false).some((s) => s.load?.isLoading());
+      let idle = 0;
+      await h.stepUntil(
+        () => {
+          idle = busy() ? 0 : idle + 1;
+          return idle >= 10;
+        },
+        { timeoutMs: 20_000 },
+      );
       h.destroy();
       await server.close();
       vi.unstubAllEnvs();
