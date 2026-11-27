@@ -121,6 +121,33 @@ describe("simData", () => {
       totalDamage: 8,
       totalWallDamage: 12,
       spawnSpanSec: 5,
+      // One stage per spawn group, in spawn order (the two at 5 s keep file order).
+      stages: [
+        {
+          enemyCount: 2,
+          totalHp: 20,
+          totalDamage: 4,
+          totalWallDamage: 6,
+          startSec: 0,
+          spanSec: 1,
+        },
+        {
+          enemyCount: 1,
+          totalHp: 100,
+          totalDamage: 0,
+          totalWallDamage: 0,
+          startSec: 5,
+          spanSec: 0,
+        },
+        {
+          enemyCount: 1,
+          totalHp: 10,
+          totalDamage: 4,
+          totalWallDamage: 6,
+          startSec: 5,
+          spanSec: 0,
+        },
+      ],
     });
     expect(() =>
       waveDifficulties({ "1": { groups: [{ enemyId: "z" }] } }, {}),

@@ -21,14 +21,19 @@ export function equipSlotsForType(type: ItemType): EquipSlot[] {
   return [type];
 }
 
-/** Highest affix tier unlocked at `itemLevel`, or undefined when none is. */
+/**
+ * Highest affix tier unlocked at `itemLevel`, or undefined when none is.
+ * Compares `minItemLevel` rather than relying on the tiers being stored in
+ * ascending order, so a tier inserted out of order still resolves correctly.
+ */
 export function affixTierFor(
   affix: AffixDef,
   itemLevel: number,
 ): AffixDef["tiers"][number] | undefined {
   let best: AffixDef["tiers"][number] | undefined;
   for (const tier of affix.tiers) {
-    if (tier.minItemLevel <= itemLevel) best = tier;
+    if (tier.minItemLevel > itemLevel) continue;
+    if (!best || tier.minItemLevel > best.minItemLevel) best = tier;
   }
   return best;
 }

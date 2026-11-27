@@ -240,7 +240,7 @@
         "rangeWu": 46,
         "meleeChaseStandoffWu": 2,
         "arcDeg": 64,
-        "windupMs": 300
+        "windupMs": 300,
         "activeMs": 140,
         "recoveryMs": 620,
         "cooldownMs": 480,

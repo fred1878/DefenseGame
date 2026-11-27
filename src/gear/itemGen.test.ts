@@ -26,6 +26,22 @@ describe("itemGen", () => {
     expect(affixTierFor(catalog.affixes.late!, 3)).toBeUndefined();
   });
 
+  it("resolves the highest tier whatever order the tiers are stored in", () => {
+    const tough = catalog.affixes.tough!;
+    // The fixture lists its tiers out of order; sorting them ascending must not
+    // change the answer either.
+    const ascending = {
+      ...tough,
+      tiers: [...tough.tiers].sort((a, b) => a.minItemLevel - b.minItemLevel),
+    };
+    for (const affix of [tough, ascending]) {
+      expect(affixTierFor(affix, 1)?.minItemLevel).toBe(1);
+      expect(affixTierFor(affix, 3)?.minItemLevel).toBe(1);
+      expect(affixTierFor(affix, 4)?.minItemLevel).toBe(4);
+      expect(affixTierFor(affix, 9)?.minItemLevel).toBe(4);
+    }
+  });
+
   it("gates rarities by item level and available uniques", () => {
     const seen = new Set<string>();
     const rng = createRng(7);

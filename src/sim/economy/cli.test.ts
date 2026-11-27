@@ -193,6 +193,44 @@ describe("econ sim CLI", () => {
     expect(quiet).toHaveLength(1);
   });
 
+  it("checks fixed-seed bands and writes them", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "econ-bands-"));
+    const file = path.join(dir, "bands.json");
+    const lines: string[] = [];
+    const run = (extra: string[]) =>
+      main(
+        [
+          "--runs",
+          "2",
+          "--strategy",
+          "no-spend",
+          "--out",
+          dir,
+          "--quiet",
+          ...extra,
+        ],
+        (l) => lines.push(l),
+      );
+    expect(run(["--write-bands", file])).toBe(0);
+    expect(readFileSync(file, "utf8")).toMatch(/"strategies"/);
+    expect(run(["--bands", file])).toBe(0);
+    expect(lines.join("\n")).toMatch(/within its bands/);
+    const bands = JSON.parse(readFileSync(file, "utf8"));
+    bands.strategies["no-spend"].finalPowerRatioP50 = 999;
+    const broken = path.join(dir, "broken.json");
+    writeFileSync(broken, JSON.stringify(bands));
+    expect(run(["--bands", broken])).toBe(1);
+    expect(lines.join("\n")).toMatch(/outside its bands/);
+    const parsed = parseCliArgs([
+      "--bands",
+      "a.json",
+      "--write-bands",
+      "b.json",
+    ]);
+    expect(parsed.bands).toBe("a.json");
+    expect(parsed.writeBands).toBe("b.json");
+  });
+
   it("prints usage for --help and bad options", () => {
     const lines: string[] = [];
     expect(main(["--help"], (l) => lines.push(l))).toBe(0);

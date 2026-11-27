@@ -254,10 +254,48 @@ export function weightSimplex(): Array<[number, number, number]> {
   return out;
 }
 
+/**
+ * Grid each power-ratio exponent is searched over. The three are fitted as
+ * independent coefficients (no simplex, no floor on the wall), because the
+ * only thing the data can identify is the log-odds contribution of each
+ * ratio: `ln odds = steepness × (o·ln O + d·ln D + w·ln W)`. A coefficient can
+ * therefore legitimately fit to 0 — including the wall, which the previous
+ * fit held at 0.1 by hand.
+ */
+export const WEIGHT_GRID = [
+  0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5,
+  1.6,
+];
+
+export const WEIGHT_KNOBS = [
+  "offenceWeight",
+  "defenceWeight",
+  "wallWeight",
+] as const;
+
+type WeightKnob = (typeof WEIGHT_KNOBS)[number];
+
+/**
+ * The identifiable coefficients: each ratio's contribution to the log-odds of
+ * winning. Use these to read the fit (e.g. "wall adds 0.00") rather than the
+ * unnormalised exponents.
+ */
+export function logitCoefficients(
+  model: PowerModel,
+): Record<WeightKnob, number> {
+  return {
+    offenceWeight: model.offenceWeight * model.steepness,
+    defenceWeight: model.defenceWeight * model.steepness,
+    wallWeight: model.wallWeight * model.steepness,
+  };
+}
+
 export type FitResult = {
   model: PowerModel;
   logLoss: number;
   startLogLoss: number;
+  /** Fitted log-odds contribution of each ratio (see `logitCoefficients`). */
+  coefficients: Record<WeightKnob, number>;
 };
 
 /**
@@ -275,13 +313,18 @@ export function fitPowerModel(
   let best = startLogLoss;
   for (let pass = 0; pass < passes; pass++) {
     let improved = false;
-    for (const [o, d, w] of weightSimplex()) {
-      const m = { ...model, offenceWeight: o, defenceWeight: d, wallWeight: w };
-      const ll = modelLogLoss(samples, m);
-      if (ll < best - 1e-9) {
-        best = ll;
-        model = m;
-        improved = true;
+    // Independent coefficient search (coordinate descent), not a simplex, so
+    // an unused ratio (e.g. the wall) can fit to zero instead of inheriting
+    // the weight left over by the others.
+    for (const knob of WEIGHT_KNOBS) {
+      for (const v of WEIGHT_GRID) {
+        const m = { ...model, [knob]: v };
+        const ll = modelLogLoss(samples, m);
+        if (ll < best - 1e-9) {
+          best = ll;
+          model = m;
+          improved = true;
+        }
       }
     }
     for (const [knob, values] of Object.entries(grid) as Array<
@@ -299,5 +342,10 @@ export function fitPowerModel(
     }
     if (!improved) break;
   }
-  return { model, logLoss: best, startLogLoss };
+  return {
+    model,
+    logLoss: best,
+    startLogLoss,
+    coefficients: logitCoefficients(model),
+  };
 }

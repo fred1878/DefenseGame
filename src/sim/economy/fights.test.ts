@@ -6,15 +6,18 @@ import {
   type FightOutcome,
   fightSample,
   fightSummaryMarkdown,
+  type FitSample,
   fitPowerModel,
   logLoss,
+  logitCoefficients,
   modelLogLoss,
   nightFor,
   savePressure,
   summarizeFights,
+  WEIGHT_GRID,
   weightSimplex,
 } from "./fights";
-import { DEFAULT_POWER_MODEL } from "./power";
+import { DEFAULT_POWER_MODEL, nightPressure } from "./power";
 import { defaultRawData, loadSimData } from "./simData";
 
 const data = loadSimData(defaultRawData());
@@ -76,6 +79,48 @@ describe("fights", () => {
     const md = fightSummaryMarkdown(s);
     expect(md).toContain("| 1 | a | 1 | 90% | 100% |");
     expect(fightSummaryMarkdown(summarizeFights([]))).toContain("real –");
+  });
+
+  it("reads the ratio exponents as log-odds coefficients", () => {
+    const c = logitCoefficients({ ...DEFAULT_POWER_MODEL, steepness: 2 });
+    expect(c.offenceWeight).toBeCloseTo(2 * DEFAULT_POWER_MODEL.offenceWeight);
+    expect(c.defenceWeight).toBeCloseTo(2 * DEFAULT_POWER_MODEL.defenceWeight);
+    expect(c.wallWeight).toBeCloseTo(2 * DEFAULT_POWER_MODEL.wallWeight);
+    // The fit can drop a ratio entirely (no 0.1 floor on the wall).
+    expect(WEIGHT_GRID).toContain(0);
+  });
+
+  it("fits the three ratios independently", () => {
+    const save = createNewSave();
+    const base = fightSample(data, save);
+    // Outcomes follow the wall ratio alone, so the fit must raise the wall
+    // coefficient instead of inheriting a hand-set weight.
+    const truth = {
+      ...DEFAULT_POWER_MODEL,
+      offenceWeight: 0,
+      defenceWeight: 0,
+      wallWeight: 1,
+      steepness: 1,
+    };
+    const samples: FitSample[] = [1, 3, 8, 15, 20].flatMap((night) =>
+      [10, 60, 240, 900].map((wall) => {
+        const s = { ...base, power: base.power, wallHpMax: wall };
+        const nightDef = nightFor(data, night);
+        return {
+          ...s,
+          night: nightDef,
+          won: nightPressure(s.power, nightDef, wall, truth).winChance > 0.5,
+        };
+      }),
+    );
+    const fit = fitPowerModel(samples, DEFAULT_POWER_MODEL, {}, 3);
+    expect(fit.logLoss).toBeLessThanOrEqual(fit.startLogLoss);
+    expect(fit.model.wallWeight).toBeGreaterThan(
+      DEFAULT_POWER_MODEL.wallWeight,
+    );
+    expect(fit.coefficients.wallWeight).toBeCloseTo(
+      fit.model.wallWeight * fit.model.steepness,
+    );
   });
 
   it("lists weights summing to 1", () => {

@@ -5,9 +5,11 @@ import { DEFAULT_POWER_MODEL, playerPower } from "./power";
 import {
   defaultSimOptions,
   emptyRarityCounts,
+  nightStreams,
   simulateMany,
   simulateRun,
   STRATEGY_IDS,
+  streamSeed,
   type SimOptions,
 } from "./simulate";
 import { applySetOverride, defaultRawData, loadSimData } from "./simData";
@@ -19,6 +21,73 @@ const opts = (over: Partial<SimOptions> = {}): SimOptions => ({
 });
 
 describe("simulate", () => {
+  it("derives independent random streams from the seed", () => {
+    expect(streamSeed(1, "win", 3, 1)).toBe(streamSeed(1, "win", 3, 1));
+    expect(streamSeed(1, "win", 3, 1)).not.toBe(streamSeed(1, "shops", 3, 1));
+    expect(streamSeed(1, "win", 3, 2)).not.toBe(streamSeed(1, "win", 4, 2));
+    const a = nightStreams(5, 7, 1);
+    const b = nightStreams(5, 7, 1);
+    expect([a.win(), a.drops(), a.shops(), a.rerolls()]).toEqual([
+      b.win(),
+      b.drops(),
+      b.shops(),
+      b.rerolls(),
+    ]);
+  });
+
+  it("gives every strategy the same night luck for a seed", () => {
+    // Separate win / shop streams: shops cannot shift the night rolls, so a
+    // paired seed compares strategies on the same nights.
+    const a = simulateRun(
+      data,
+      opts({ strategy: "balanced", winModel: "fixed", winRate: 0.5 }),
+      11,
+    );
+    const b = simulateRun(
+      data,
+      opts({ strategy: "no-spend", winModel: "fixed", winRate: 0.5 }),
+      11,
+    );
+    expect(a.records.map((r) => [r.night, r.attempt, r.won])).toEqual(
+      b.records.map((r) => [r.night, r.attempt, r.won]),
+    );
+  });
+
+  it("resolves nights in spawn-group stages and records where they broke", () => {
+    const runs = simulateMany(data, opts({ maxAttempts: 40 }), 3, 3);
+    const recs = runs.flatMap((r) => r.records);
+    expect(recs.some((r) => r.stages > 1)).toBe(true);
+    for (const r of recs) {
+      expect(r.stages).toBeGreaterThanOrEqual(1);
+      expect(r.stageWon).toBeLessThanOrEqual(r.stages);
+      expect(r.hpLeft).toBeGreaterThanOrEqual(0);
+      expect(r.wallLeft).toBeGreaterThanOrEqual(0);
+      if (r.won) expect(r.failedStage).toBeNull();
+      else expect(r.failedStage).not.toBeNull();
+    }
+    expect(recs.filter((r) => !r.won).some((r) => r.stages > 1)).toBe(true);
+  });
+
+  it("records purchasing power, deficit nights and the forgone purchase", () => {
+    const runs = simulateMany(
+      data,
+      opts({ strategy: "walls-first", winModel: "fixed", winRate: 1 }),
+      1,
+      6,
+    );
+    const recs = runs.flatMap((r) => r.records);
+    expect(recs.every((r) => r.purchasingPower >= 0)).toBe(true);
+    expect(recs.some((r) => r.deficit)).toBe(true);
+    for (const r of recs.filter((x) => x.deficit)) {
+      expect(r.deficitGold).toBeGreaterThan(0);
+      expect(r.forgoneScore).toBeGreaterThan(0);
+    }
+    for (const r of recs.filter((x) => !x.deficit)) {
+      expect(r.deficitGold).toBe(0);
+      expect(r.forgoneScore).toBe(0);
+    }
+  });
+
   it("is deterministic for a seed", () => {
     const a = simulateRun(data, opts(), 7);
     const b = simulateRun(data, opts(), 7);

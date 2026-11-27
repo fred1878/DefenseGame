@@ -18,6 +18,7 @@ npm run sim:economy -- --runs 200 --strategy balanced
 npm run sim:economy -- --win-model fixed --win-rate 0.85
 npm run sim:economy -- --set loot.sellBackPct=30 --set waves.10.rewardGold=170
 npm run sim:economy -- --overrides my-tuning.json --out sim-output/tuning-a
+npm run sim:bands                             # fixed seed vs docs/sim-baselines/economy.json
 npm run sim:economy -- --help
 ```
 
@@ -30,7 +31,11 @@ Output goes to `sim-output/` (gitignored):
 | `runs.csv` | One row per run (totals, losses, final power) |
 | `summary.json` | Everything above, machine-readable |
 
-A 300-run run of every strategy over 20 nights takes about 2 minutes (1000 runs about 6).
+A run costs roughly linearly in `runs × strategies × nights`. Power and score
+are memoised per gear / talent object, so the same candidate loadout is only
+rated once per night; 60 runs × 18 strategies over 20 nights takes about 90
+seconds. Run a single strategy for a quick check, and keep big sweeps off the
+CI machine.
 
 ## Options
 
@@ -52,15 +57,31 @@ A 300-run run of every strategy over 20 nights takes about 2 minutes (1000 runs 
 | `--grace`, `--threat`, `--steepness` | 45, 0.35, 2 | Power model knobs (below) |
 | `--weights O,D,W` | 0,0.9,0.1 | Offence, defence and wall exponents of the power ratio. Offence still counts through `exposure` (fast kills take less damage) |
 | `--easy`, `--hard` | 2, 1 | Power-ratio thresholds for the "too easy"/"too hard" flags |
+| `--bands FILE` | – | Compare this run's fixed-seed metrics with a band file and exit 1 on drift |
+| `--write-bands FILE` | – | Write this run's metrics as a band file |
 | `--out DIR` | sim-output | Output folder |
 | `--quiet` | – | Skip the console tables |
 
 ## What a run does
 
+Randomness is split into independent streams per (seed, subsystem, night,
+attempt): night rolls, loot, shop stock and trader rerolls. Shop luck cannot
+shift the win rolls (or the other way around), so the same seed gives every
+strategy the same run of night luck — a paired comparison, not two different
+campaigns. Stream seeds are in `streamSeed` (`simulate.ts`).
+
 Per night attempt:
 
 1. **Fight.** Win chance from the win model (below). If the chance is under
-   75% the strategy uses all its potions and bombs first.
+   75% the strategy uses all its potions and bombs first. The power model then
+   resolves the night **spawn group by spawn group** (`resolveNightStages`,
+   `stages.ts`): each group is scored with the HP and wall budget left after
+   the groups before it, the night's fitted chance is split across groups by
+   their risk, and survival is rolled in spawn order. The night chance is
+   unchanged (the stage chances multiply to it), but a loss now records which
+   group broke the player, on which resource (offence / defence / wall), and
+   how much HP and wall were left. The `fixed` model keeps one roll per night
+   so economy runs stay pure.
 2. **Result** via the game's own `resolveCampaignNightEnd` (same as the real night end): a win pays
    `rewardGold` and advances; a loss pays `loot.lostNightGoldPct` (15%) and repeats the night (capped at
    nights × 4 attempts, then the run is "unfinished"). Drops come from
@@ -100,10 +121,26 @@ while still caring about overall power):
 - **sustain** – lifesteal (`1 + lifesteal% / 10`).
 - **wall-turtle** – walls first, then gear scored by effective HP; keeps spare gold.
 
+Mixed / deeper agents:
+
+- **saver** – balanced, but only buys rare-or-better gear: it hoards through
+  cheap upgrades to afford quality.
+- **lookahead** – balanced, but scores an upgrade by the geometric mean of its
+  power ratio on the coming night *and* the next one, so it buys for the wave
+  that is about to get harder.
+- **adaptive** – balanced, but its gear focus flips between effective HP and
+  offence DPS depending on which ratio is currently behind.
+- **request-flipper** – balanced, then buys shop items that match an
+  outstanding trader buy request when the payout beats the price (150% of
+  value), and sells them to the request.
+- **hybrid** – walls to level 5, then best-upgrade-per-gold, then shop levels
+  and trader rerolls (a mix of the wall, gear and shop plans).
+
 walls-first, gear-first, balanced, the gear-priority profiles (except
-wall-turtle), shop-investor and reroller put any gold left after their plan
-into shop levels, then shop again at the new level. All strategies equip
-strictly better items and (unless `--no-sell`) sell the rest of the bag.
+wall-turtle), saver, lookahead, adaptive, request-flipper, shop-investor and
+reroller put any gold left after their plan into shop levels, then shop again
+at the new level. All strategies equip strictly better items and (unless
+`--no-sell`) sell the rest of the bag.
 
 ### Talents
 
@@ -144,8 +181,11 @@ off. Each run's final ranks are on `RunResult.talents`. See
     potions + lifesteal healing over the kill time.
   - wall = wall HP ÷ (wall damage × `threat` × exposure).
   - ratio = offence^0 × defence^0.9 × wall^0.1; win = ratio^k / (1 + ratio^k), k = `steepness` (2).
-  - The fit put the wall weight at 0; it is kept at 0.1 so wall upgrades
-    still count (it costs 0.007 log loss). Compare *relative* numbers more
+  - The November 2026 fit put the wall coefficient at 0. The sim's default
+    model still carries `wallWeight: 0.1` so wall upgrades keep a value for
+    strategies (it costs 0.007 log loss against the real fights); `fit` itself
+    no longer floors it, so a refit reports the raw coefficient (see
+    "Checking the model against real fights"). Compare *relative* numbers more
     than absolute win rates.
 - **`fixed`.** Every attempt wins with `--win-rate`. Use it to isolate pure
   economy (gold flow, affordability) from the difficulty model.
@@ -299,7 +339,13 @@ and 12/31 with the old one (which spammed the instant `water_bolt`, castable
 while moving).
 
 `fit` does coordinate descent on the model knobs by log loss over nights ≥
-`--min-night` (13); earlier nights are held out and only scored.
+`--min-night` (13); earlier nights are held out and only scored. The three
+ratio exponents are fitted as **independent coefficients**, not as a simplex
+that sums to 1, and nothing is pinned: the win chance is
+`sigmoid(steepness × (o·ln offence + d·ln defence + w·ln wall))`, so `fit`
+reports those log-odds coefficients and may legitimately drop a ratio to zero
+(the previous fit floored the wall weight at 0.1 by hand; the fit no longer
+does, and if the data wants wall help it moves the coefficient up instead).
 
 ### Calibration (November 2026)
 
@@ -369,6 +415,18 @@ Pooled with the two earlier runs of the same waves, median spenders won
 
 ## Reading the output
 
+- **Economy-only metrics** (most useful with `--win-model fixed`, where the
+  win chance no longer depends on gear, so gold flow is isolated):
+  - **purchasing power** – gold on hand entering town ÷ the median shop
+    price. 1 means the income can buy a typical item, 2 means two of them.
+  - **deficit %** – town phases where the best available upgrade cost more
+    than the gold on hand: how often income, not choice, is the constraint.
+    `deficitGold` is the size of that shortfall on deficit nights.
+  - **forgone score** – the score the best unaffordable upgrade would have
+    bought: the counterfactual purchase left on the table.
+  - **late losses %** – share of losses that fell in the night's last spawn
+    group (see the staged fight above); high values mean players are dying to
+    the final push rather than being overrun early.
 - **Strategy table** – medians (p10–p90): nights played incl. repeats,
   losses, gold earned from nights, gold from sales, spend on wall / gear /
   potions / shop levels / rerolls, final trader and blacksmith level, nights
@@ -396,6 +454,27 @@ turns shop upgrades off. Run both with the same seed to compare:
 npm run sim:economy -- --overrides docs/sim-presets/pre-shop-upgrades.json --out sim-output/before
 npm run sim:economy -- --out sim-output/after
 ```
+
+## Fixed-seed bands and CI
+
+`docs/sim-baselines/economy.json` stores the headline numbers of a known seed
+(60 runs, seed 1): finish %, nights played, losses, gold earned / sold, spend
+on gear and walls, banked gold, item level, power, deficit %, purchasing power
+and late-loss %. Because the sim is seeded, a move outside a band means the
+balance or the sim changed, not luck.
+
+```bash
+npm run sim:bands                                    # advisory check
+npm run sim:economy -- --runs 60 --seed 1 --quiet --write-bands docs/sim-baselines/economy.json
+```
+
+`npm run sim:bands` exits 1 when a metric leaves its tolerance and prints
+every drift (the per-metric tolerances are in `bands.ts`). CI runs it in
+parallel with `verify` as a **non-blocking** job (`continue-on-error`) and
+uploads `sim-output/bands/`; inspect the report and the drift list rather than
+treating it as a gate. Bands are per strategy, so a change that only touches
+one strategy still shows up with its own name. Once the bands have been quiet
+for a while, the job can be made blocking.
 
 ## Tuning workflow
 
