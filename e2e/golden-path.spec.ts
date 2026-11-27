@@ -6,6 +6,7 @@ import {
   type DefenseBootHandle,
 } from "./helpers/hooks";
 import { gotoE2E, startDefense } from "./helpers/game";
+import { tapGameButton } from "./helpers/touch";
 
 async function apiEval(page: Page, body: string) {
   return page.evaluate((code) => {
@@ -49,7 +50,8 @@ test.describe("golden paths — combat", () => {
 
   test("defense-melee-fx", async () => {
     const page = boot.page;
-    await apiEval(page, "api.tapMelee()");
+    // Real canvas tap on the ATK button (default mode is melee).
+    await tapGameButton(page, "combat-atk");
     await expect
       .poll(
         async () =>
@@ -62,12 +64,36 @@ test.describe("golden paths — combat", () => {
   test("defense-ranged-projectile", async () => {
     const page = boot.page;
     await waitCombatAttackIdle(page);
-    await apiEval(page, "api.tapRanged()");
-    await expect
-      .poll(async () => apiEval(page, "api.getProjectileCount()"), {
-        timeout: 15_000,
-      })
-      .toBeGreaterThan(0);
+    // A thrown stone can spawn and hit the nearby grunt between two Node-side
+    // polls on a loaded runner, so watch every frame in the page and re-issue
+    // the throw while the player is idle (the first one may have been rejected
+    // if the previous swing was still finishing).
+    const sawProjectile = await page.evaluate(
+      () =>
+        new Promise<boolean>((resolve) => {
+          const e2e = window.__DEFENSEGAME_E2E__;
+          const api = e2e?.api;
+          const deadline = performance.now() + 15_000;
+          const tick = (): void => {
+            if (!e2e || !api) {
+              resolve(false);
+              return;
+            }
+            if (api.getProjectileCount() > 0) {
+              resolve(true);
+              return;
+            }
+            if (performance.now() > deadline) {
+              resolve(false);
+              return;
+            }
+            if ((e2e.flags.attackPhase ?? "idle") === "idle") api.tapRanged();
+            requestAnimationFrame(tick);
+          };
+          tick();
+        }),
+    );
+    expect(sawProjectile).toBe(true);
     const stoneOk = await apiEval(page, "api.textureLoaded('fx_stone_throw')");
     expect(stoneOk).toBe(true);
   });
@@ -113,18 +139,7 @@ test.describe("golden paths — night result", () => {
         { timeout: 15_000 },
       )
       .toBe(true);
-    await page.evaluate(() => window.__DEFENSEGAME_E2E__?.api?.startNight());
-    await expect
-      .poll(
-        async () =>
-          page.evaluate(
-            () =>
-              window.__DEFENSEGAME_E2E__?.scene === "Defense" &&
-              window.__DEFENSEGAME_E2E__?.ready === true,
-          ),
-        { timeout: 15_000 },
-      )
-      .toBe(true);
+    await startDefense(page);
     await apiEval(page, "api.setGodMode(true)");
     await apiEval(page, "api.forceWinNight()");
     await expect
