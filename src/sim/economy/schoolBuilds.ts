@@ -73,9 +73,18 @@ export const SCHOOLS: Record<School, SchoolSpec> = {
 
 export const KEPT_AFFIXES = ["sturdy", "vital", "of_speed"];
 
-/** Highest tier open at this item level. */
+/**
+ * Highest tier open at this item level. Compares `minItemLevel` rather than
+ * relying on the tiers being stored in ascending order, so a tier inserted out
+ * of order still resolves correctly.
+ */
 function tierAt(def: AffixDef, itemLevel: number): AffixTier | undefined {
-  return def.tiers.filter((t) => t.minItemLevel <= itemLevel).at(-1);
+  let best: AffixTier | undefined;
+  for (const tier of def.tiers) {
+    if (tier.minItemLevel > itemLevel) continue;
+    if (!best || tier.minItemLevel > best.minItemLevel) best = tier;
+  }
+  return best;
 }
 
 function rollLike(

@@ -62,6 +62,19 @@ export const NIGHT_METRICS = {
   equippedFromDrops: (r: NightRecord) => r.equippedFromDrops,
   equippedFromShop: (r: NightRecord) => r.equippedFromShop,
   equippedFromTrader: (r: NightRecord) => r.equippedFromTrader,
+  stages: (r: NightRecord) => r.stages,
+  stageWon: (r: NightRecord) => r.stageWon,
+  /** Share of the night's spawn groups survived (0..1). */
+  stageProgress: (r: NightRecord) => (r.stages > 0 ? r.stageWon / r.stages : 0),
+  hpLeft: (r: NightRecord) => r.hpLeft,
+  wallLeft: (r: NightRecord) => r.wallLeft,
+  /** Gold on hand entering town ÷ median shop price (1 = a typical item). */
+  purchasingPower: (r: NightRecord) => r.purchasingPower,
+  shopMedianPrice: (r: NightRecord) => r.shopMedianPrice,
+  /** Gold short of the next upgrade (0 outside a deficit night). */
+  deficitGold: (r: NightRecord) => r.deficitGold,
+  /** Score the strategy could not buy on a deficit night. */
+  forgoneScore: (r: NightRecord) => r.forgoneScore,
 } as const;
 export type NightMetric = keyof typeof NIGHT_METRICS;
 
@@ -79,6 +92,8 @@ export type NightAggregate = {
   consumablesPerRun: number;
   /** Average buy-request gold on this night per run (all attempts). */
   requestGoldPerRun: number;
+  /** Share of runs reaching this night whose next upgrade was unaffordable, %. */
+  deficitPct: number;
   metrics: Record<NightMetric, Percentiles>;
   /** Average equipped items of each rarity after this night. */
   equippedRarity: RarityCounts;
@@ -120,6 +135,16 @@ export type StrategySummary = {
   finalAvgItemLevel: Percentiles;
   finalPowerRatio: Percentiles;
   autoSold: Percentiles;
+  /** Share of town phases where the next upgrade cost more than the gold on hand, %. */
+  deficitPct: number;
+  /** Mean gold short of the next upgrade on deficit nights. */
+  deficitGoldMean: number;
+  /** Mean score forgone per deficit night (counterfactual purchase). */
+  forgoneScoreMean: number;
+  /** Share of losses that fell in the night's last spawn group, %. */
+  lateLossPct: number;
+  /** Gold ÷ median shop price on entering town (1 = a typical item). */
+  purchasingPower: Percentiles;
   /** Share of equipped items at the end that came from drops (vs shops). */
   finalFromDropsPct: number;
   /** Share of equipped items at the end bought from the trader / blacksmith. */
@@ -155,10 +180,13 @@ export function aggregateRuns(
     let autoSold = 0;
     let consumables = 0;
     let requestGold = 0;
+    let deficit = 0;
     for (const run of runs) {
       const recs = run.records.filter((r) => r.night === diff.night);
       if (!recs.length) continue;
-      finals.push(recs[recs.length - 1]!);
+      const final = recs[recs.length - 1]!;
+      finals.push(final);
+      if (final.deficit) deficit += 1;
       losses += recs.filter((r) => !r.won).length;
       autoSold += sum(recs.map((r) => r.autoSold));
       consumables += sum(recs.map((r) => r.consumablesUsed));
@@ -182,6 +210,7 @@ export function aggregateRuns(
       autoSoldPerRun: autoSold / reached,
       consumablesPerRun: consumables / reached,
       requestGoldPerRun: requestGold / reached,
+      deficitPct: (100 * deficit) / reached,
       metrics,
       equippedRarity,
       flag: !finals.length
@@ -209,7 +238,25 @@ export function aggregateRuns(
   let requestGoldAll = 0;
   let filledAll = 0;
   let postedAll = 0;
+  let recordCount = 0;
+  let deficitCount = 0;
+  let deficitGoldSum = 0;
+  let forgoneSum = 0;
+  let lossCount = 0;
+  let lateLosses = 0;
   for (const run of runs) {
+    for (const r of run.records) {
+      recordCount += 1;
+      if (r.deficit) {
+        deficitCount += 1;
+        deficitGoldSum += r.deficitGold;
+        forgoneSum += r.forgoneScore;
+      }
+      if (!r.won) {
+        lossCount += 1;
+        if (r.stages > 1 && r.failedStage === r.stages - 1) lateLosses += 1;
+      }
+    }
     for (const r of run.records) {
       requestGoldAll += r.requestGold;
       filledAll += r.requestsFilled;
@@ -228,6 +275,13 @@ export function aggregateRuns(
   return {
     strategy,
     runs: runs.length,
+    deficitPct: recordCount ? (100 * deficitCount) / recordCount : 0,
+    deficitGoldMean: deficitCount ? deficitGoldSum / deficitCount : 0,
+    forgoneScoreMean: deficitCount ? forgoneSum / deficitCount : 0,
+    lateLossPct: lossCount ? (100 * lateLosses) / lossCount : 0,
+    purchasingPower: percentiles(
+      runs.flatMap((r) => r.records.map((x) => x.purchasingPower)),
+    ),
     finishedPct: (100 * runs.filter((r) => r.finished).length) / n,
     nightsPlayed: per((r) => r.records.length),
     losses: per((r) => r.records.filter((x) => !x.won).length),
