@@ -1,0 +1,932 @@
+{
+  "note": "Generated from the approved isometric town mockup. src paths are relative to the downloaded free packs (not committed). lit = tappable buildings (full colour, +12% value); dim = scenery (desaturated, darkened).",
+  "baseDimValue": 0.66,
+  "sprites": {
+    "abandoned_windmill": {
+      "src": "sdavgha-buildings/Ruins_Medieval/abandoned_windmill_1x.png",
+      "crop": [0, 0, 155, 233],
+      "ax": 78,
+      "ay": 263,
+      "w": 155,
+      "h": 233,
+      "stripShadow": false
+    },
+    "alchemy": {
+      "src": "sdavgha-village-props/Village/v07_08_alchemy_table_potion_bottles_1x.png",
+      "crop": [32, 0, 106, 77],
+      "ax": 21,
+      "ay": 85,
+      "w": 74,
+      "h": 77,
+      "stripShadow": false
+    },
+    "bakery": {
+      "src": "sdavgha-buildings/Village/bakery_1x.png",
+      "crop": [7, 0, 226, 239],
+      "ax": 106,
+      "ay": 253,
+      "w": 219,
+      "h": 239,
+      "stripShadow": false
+    },
+    "banner": {
+      "src": "sdavgha-market-props/Town_Square/tall_pole_red_banner_1x.png",
+      "crop": [0, 0, 14, 43],
+      "ax": 7,
+      "ay": 56,
+      "w": 14,
+      "h": 43,
+      "stripShadow": false
+    },
+    "barrel": {
+      "src": "sdavgha-village-props/Village/v06_03_wooden_barrel_1x.png",
+      "crop": [1, 0, 40, 52],
+      "ax": 19,
+      "ay": 59,
+      "w": 39,
+      "h": 52,
+      "stripShadow": false
+    },
+    "barricade": {
+      "src": "sdavgha-village-props/Village/v06_09_wooden_barricade_1x.png",
+      "crop": [0, 0, 79, 84],
+      "ax": 55,
+      "ay": 90,
+      "w": 79,
+      "h": 84,
+      "stripShadow": false
+    },
+    "baskets": {
+      "src": "sdavgha-market-props/Village_Market/stack_empty_wicker_baskets_1x.png",
+      "crop": [1, 0, 24, 28],
+      "ax": 11,
+      "ay": 39,
+      "w": 23,
+      "h": 28,
+      "stripShadow": false
+    },
+    "bell_frame": {
+      "src": "sdavgha-market-props/Town_Square/bronze_town_bell_frame_1x.png",
+      "crop": [0, 0, 67, 90],
+      "ax": 49,
+      "ay": 97,
+      "w": 67,
+      "h": 90,
+      "stripShadow": false
+    },
+    "bell_tower": {
+      "src": "sdavgha-buildings/Haunted/bell_tower_1x.png",
+      "crop": [0, 0, 154, 361],
+      "ax": 77,
+      "ay": 388,
+      "w": 154,
+      "h": 361,
+      "stripShadow": false
+    },
+    "blue_banner": {
+      "src": "sdavgha-castle-props/Castle/c01_15_royal_blue_banner_stand_1x.png",
+      "crop": [1, 0, 40, 93],
+      "ax": 19,
+      "ay": 100,
+      "w": 39,
+      "h": 93,
+      "stripShadow": false
+    },
+    "book_stall": {
+      "src": "sdavgha-market-props/Village_Market/book_stall_old_books_1x.png",
+      "crop": [0, 0, 100, 137],
+      "ax": 50,
+      "ay": 145,
+      "w": 100,
+      "h": 137,
+      "stripShadow": false
+    },
+    "boulder": {
+      "src": "sdavgha-village-props/Forest/f05_01_mossy_boulder_1x.png",
+      "crop": [0, 0, 106, 86],
+      "ax": 53,
+      "ay": 96,
+      "w": 106,
+      "h": 86,
+      "stripShadow": false
+    },
+    "brazier": {
+      "src": "sdavgha-village-props/Village/l01_05_tall_iron_brazier_1x.png",
+      "crop": [0, 0, 40, 71],
+      "ax": 20,
+      "ay": 77,
+      "w": 40,
+      "h": 71,
+      "stripShadow": false
+    },
+    "bread_stall": {
+      "src": "sdavgha-market-props/Village_Market/bread_stall_loaves_striped_1x.png",
+      "crop": [0, 0, 100, 131],
+      "ax": 50,
+      "ay": 141,
+      "w": 100,
+      "h": 131,
+      "stripShadow": false
+    },
+    "broken_tower": {
+      "src": "sdavgha-buildings/Ruins_Medieval/broken_tower_1x.png",
+      "crop": [2, 0, 176, 309],
+      "ax": 86,
+      "ay": 331,
+      "w": 174,
+      "h": 309,
+      "stripShadow": false
+    },
+    "burnt_farmhouse": {
+      "src": "sdavgha-buildings/Ruins_Medieval/burnt_farmhouse_1x.png",
+      "crop": [34, 0, 264, 255],
+      "ax": 98,
+      "ay": 273,
+      "w": 230,
+      "h": 255,
+      "stripShadow": false
+    },
+    "campfire": {
+      "src": "sdavgha-village-props/Village/v06_13_burning_campfire_1x.png",
+      "crop": [1, 0, 42, 53],
+      "ax": 20,
+      "ay": 59,
+      "w": 41,
+      "h": 53,
+      "stripShadow": false
+    },
+    "candle_stall": {
+      "src": "sdavgha-market-props/Village_Market/candle_stall_striped_awning_1x.png",
+      "crop": [0, 0, 100, 119],
+      "ax": 50,
+      "ay": 126,
+      "w": 100,
+      "h": 119,
+      "stripShadow": false
+    },
+    "candle_stand": {
+      "src": "sdavgha-market-props/Tavern/lit_candle_stand_1x.png",
+      "crop": [0, 0, 14, 28],
+      "ax": 7,
+      "ay": 41,
+      "w": 14,
+      "h": 28,
+      "stripShadow": false
+    },
+    "cart": {
+      "src": "sdavgha-village-props/Village/v10_05_horse_cart_1x.png",
+      "crop": [32, 0, 154, 100],
+      "ax": 45,
+      "ay": 113,
+      "w": 122,
+      "h": 100,
+      "stripShadow": false
+    },
+    "castle_well": {
+      "src": "sdavgha-castle-props/Castle/c01_16_stone_castle_well_roof_1x.png",
+      "crop": [0, 0, 80, 121],
+      "ax": 40,
+      "ay": 133,
+      "w": 80,
+      "h": 121,
+      "stripShadow": false
+    },
+    "cauldron": {
+      "src": "sdavgha-village-props/Village/v07_09_bubbling_iron_cauldron_purple_liquid_1x.png",
+      "crop": [1, 0, 42, 56],
+      "ax": 20,
+      "ay": 62,
+      "w": 41,
+      "h": 56,
+      "stripShadow": false
+    },
+    "city_gate": {
+      "src": "sdavgha-buildings/Town/city_gate_1x.png",
+      "crop": [96, 0, 378, 361],
+      "ax": 93,
+      "ay": 380,
+      "w": 282,
+      "h": 361,
+      "stripShadow": false
+    },
+    "clock_tower": {
+      "src": "sdavgha-buildings/Town/clock_tower_1x.png",
+      "crop": [0, 0, 144, 325],
+      "ax": 72,
+      "ay": 341,
+      "w": 144,
+      "h": 325,
+      "stripShadow": false
+    },
+    "coal": {
+      "src": "sdavgha-village-props/Village/v02_06_wooden_bin_black_coal_1x.png",
+      "crop": [0, 0, 46, 42],
+      "ax": 23,
+      "ay": 47,
+      "w": 46,
+      "h": 42,
+      "stripShadow": false
+    },
+    "collapsed_cottage": {
+      "src": "sdavgha-buildings/Ruins_Medieval/collapsed_cottage_1x.png",
+      "crop": [13, 0, 218, 185],
+      "ax": 96,
+      "ay": 202,
+      "w": 205,
+      "h": 185,
+      "stripShadow": false
+    },
+    "crate": {
+      "src": "sdavgha-village-props/Village/v06_05_wooden_crate_1x.png",
+      "crop": [0, 0, 52, 55],
+      "ax": 26,
+      "ay": 58,
+      "w": 52,
+      "h": 55,
+      "stripShadow": false
+    },
+    "crate_fish": {
+      "src": "sdavgha-market-props/Village_Market/crate_silver_fish_1x.png",
+      "crop": [1, 0, 34, 28],
+      "ax": 16,
+      "ay": 36,
+      "w": 33,
+      "h": 28,
+      "stripShadow": false
+    },
+    "crucible": {
+      "src": "sdavgha-village-props/Village/v02_16_crucible_pot_glowing_molten_metal_1x.png",
+      "crop": [1, 0, 28, 33],
+      "ax": 13,
+      "ay": 43,
+      "w": 27,
+      "h": 33,
+      "stripShadow": false
+    },
+    "crumbled_chapel": {
+      "src": "sdavgha-buildings/Ruins_Medieval/crumbled_chapel_1x.png",
+      "crop": [64, 0, 314, 291],
+      "ax": 93,
+      "ay": 329,
+      "w": 250,
+      "h": 291,
+      "stripShadow": false
+    },
+    "dark_obelisk": {
+      "src": "sdavgha-castle-props/Dungeon/d10_09_dark_obelisk_1x.png",
+      "crop": [0, 0, 58, 121],
+      "ax": 29,
+      "ay": 123,
+      "w": 58,
+      "h": 121,
+      "stripShadow": false
+    },
+    "dead_tree": {
+      "src": "sdavgha-village-props/Forest/f01_05_dead_leafless_tree_1x.png",
+      "crop": [0, 0, 83, 137],
+      "ax": 42,
+      "ay": 148,
+      "w": 83,
+      "h": 137,
+      "stripShadow": false
+    },
+    "dock_tavern": {
+      "src": "sdavgha-buildings/Harbor/dock_tavern_1x.png",
+      "crop": [0, 0, 240, 228],
+      "ax": 120,
+      "ay": 252,
+      "w": 240,
+      "h": 228,
+      "stripShadow": false
+    },
+    "fabric_stall": {
+      "src": "sdavgha-market-props/Village_Market/fabric_stall_cloth_rolls_1x.png",
+      "crop": [0, 0, 100, 115],
+      "ax": 50,
+      "ay": 122,
+      "w": 100,
+      "h": 115,
+      "stripShadow": false
+    },
+    "farmhouse": {
+      "src": "sdavgha-buildings/Village/farmhouse_1x.png",
+      "crop": [32, 0, 308, 267],
+      "ax": 122,
+      "ay": 274,
+      "w": 276,
+      "h": 267,
+      "stripShadow": false
+    },
+    "fire_bowl": {
+      "src": "sdavgha-village-props/Village/l01_12_fire_bowl_legs_1x.png",
+      "crop": [1, 0, 34, 49],
+      "ax": 16,
+      "ay": 57,
+      "w": 33,
+      "h": 49,
+      "stripShadow": false
+    },
+    "food_cart": {
+      "src": "sdavgha-market-props/Village_Market/food_cart_roof_1x.png",
+      "crop": [20, 0, 80, 62],
+      "ax": 20,
+      "ay": 75,
+      "w": 60,
+      "h": 62,
+      "stripShadow": false
+    },
+    "fruit_cart": {
+      "src": "sdavgha-market-props/Village_Market/fruit_cart_full_red_1x.png",
+      "crop": [0, 0, 70, 54],
+      "ax": 46,
+      "ay": 65,
+      "w": 70,
+      "h": 54,
+      "stripShadow": false
+    },
+    "general_store": {
+      "src": "sdavgha-buildings/Village/general_store_1x.png",
+      "crop": [33, 0, 250, 243],
+      "ax": 92,
+      "ay": 264,
+      "w": 217,
+      "h": 243,
+      "stripShadow": false
+    },
+    "granary": {
+      "src": "sdavgha-buildings/Farm/granary_1x.png",
+      "crop": [2, 0, 248, 278],
+      "ax": 122,
+      "ay": 284,
+      "w": 246,
+      "h": 278,
+      "stripShadow": false
+    },
+    "gravestone": {
+      "src": "sdavgha-village-props/Forest/f05_07_mossy_gravestone_1x.png",
+      "crop": [1, 0, 46, 52],
+      "ax": 22,
+      "ay": 57,
+      "w": 45,
+      "h": 52,
+      "stripShadow": false
+    },
+    "grindstone": {
+      "src": "sdavgha-village-props/Village/v02_01_stone_grindstone_wheel_wooden_frame_1x.png",
+      "crop": [0, 0, 43, 46],
+      "ax": 22,
+      "ay": 51,
+      "w": 43,
+      "h": 46,
+      "stripShadow": false
+    },
+    "hay": {
+      "src": "sdavgha-village-props/Village/v04_20_stack_hay_bales_1x.png",
+      "crop": [0, 0, 94, 95],
+      "ax": 47,
+      "ay": 103,
+      "w": 94,
+      "h": 95,
+      "stripShadow": false
+    },
+    "hay_cart": {
+      "src": "sdavgha-village-props/Village/v04_07_wooden_hay_cart_1x.png",
+      "crop": [20, 0, 132, 99],
+      "ax": 46,
+      "ay": 115,
+      "w": 112,
+      "h": 99,
+      "stripShadow": false
+    },
+    "k_palisade": {
+      "src": "kyndrael-castle-sampler/sprites/siege_and_war/palisade4_sw.png",
+      "crop": [0, 0, 132, 130],
+      "ax": 5,
+      "ay": 67,
+      "w": 132,
+      "h": 130,
+      "stripShadow": true
+    },
+    "k_tower": {
+      "src": "kyndrael-castle-sampler/sprites/fortress/gray/tower_sq_gray.png",
+      "crop": [0, 0, 264, 458],
+      "ax": 133,
+      "ay": 399,
+      "w": 264,
+      "h": 458,
+      "stripShadow": true
+    },
+    "k_wall_se": {
+      "src": "kyndrael-castle-sampler/sprites/fortress/gray/wall4_se_gray.png",
+      "crop": [0, 0, 168, 320],
+      "ax": 39,
+      "ay": 323,
+      "w": 168,
+      "h": 320,
+      "stripShadow": true
+    },
+    "k_wall_sw": {
+      "src": "kyndrael-castle-sampler/sprites/fortress/gray/wall4_sw_gray.png",
+      "crop": [0, 0, 168, 320],
+      "ax": 3,
+      "ay": 259,
+      "w": 168,
+      "h": 320,
+      "stripShadow": true
+    },
+    "lamp_post": {
+      "src": "sdavgha-village-props/Village/l01_15_lantern_wooden_pole_1x.png",
+      "crop": [0, 0, 46, 89],
+      "ax": 23,
+      "ay": 94,
+      "w": 46,
+      "h": 89,
+      "stripShadow": false
+    },
+    "log": {
+      "src": "sdavgha-village-props/Forest/f03_10_fallen_log_1x.png",
+      "crop": [31, 0, 106, 54],
+      "ax": 22,
+      "ay": 63,
+      "w": 75,
+      "h": 54,
+      "stripShadow": false
+    },
+    "mannequin": {
+      "src": "sdavgha-village-props/Village/v02_13_wooden_mannequin_wearing_chainmail_1x.png",
+      "crop": [1, 0, 24, 64],
+      "ax": 11,
+      "ay": 75,
+      "w": 23,
+      "h": 64,
+      "stripShadow": false
+    },
+    "mansion": {
+      "src": "sdavgha-buildings/Haunted/mansion_1x.png",
+      "crop": [0, 0, 381, 504],
+      "ax": 221,
+      "ay": 525,
+      "w": 381,
+      "h": 504,
+      "stripShadow": false
+    },
+    "market_hall": {
+      "src": "sdavgha-buildings/Town/market_hall_1x.png",
+      "crop": [60, 0, 372, 367],
+      "ax": 126,
+      "ay": 374,
+      "w": 312,
+      "h": 367,
+      "stripShadow": false
+    },
+    "mossy_well": {
+      "src": "sdavgha-village-props/Forest/f05_12_mossy_stone_well_1x.png",
+      "crop": [0, 0, 80, 76],
+      "ax": 40,
+      "ay": 88,
+      "w": 80,
+      "h": 76,
+      "stripShadow": false
+    },
+    "notice_board": {
+      "src": "sdavgha-market-props/Tavern/notice_board_legs_blank_1x.png",
+      "crop": [0, 0, 38, 57],
+      "ax": 19,
+      "ay": 63,
+      "w": 38,
+      "h": 57,
+      "stripShadow": false
+    },
+    "oak": {
+      "src": "sdavgha-village-props/Forest/f01_01_oak_tree_1x.png",
+      "crop": [1, 0, 130, 144],
+      "ax": 64,
+      "ay": 160,
+      "w": 129,
+      "h": 144,
+      "stripShadow": false
+    },
+    "obelisk": {
+      "src": "sdavgha-market-props/Town_Square/tall_stone_obelisk_1x.png",
+      "crop": [0, 0, 54, 123],
+      "ax": 27,
+      "ay": 126,
+      "w": 54,
+      "h": 123,
+      "stripShadow": false
+    },
+    "pillar": {
+      "src": "sdavgha-village-props/Forest/f05_02_mossy_ruined_stone_pillar_1x.png",
+      "crop": [0, 0, 58, 84],
+      "ax": 29,
+      "ay": 86,
+      "w": 58,
+      "h": 84,
+      "stripShadow": false
+    },
+    "pillory": {
+      "src": "sdavgha-market-props/Town_Square/pillory_1x.png",
+      "crop": [33, 0, 104, 81],
+      "ax": 19,
+      "ay": 88,
+      "w": 71,
+      "h": 81,
+      "stripShadow": false
+    },
+    "pine_shrub": {
+      "src": "sdavgha-village-props/Forest/f02_20_small_pine_shrub_1x.png",
+      "crop": [0, 0, 38, 44],
+      "ax": 19,
+      "ay": 50,
+      "w": 38,
+      "h": 44,
+      "stripShadow": false
+    },
+    "potion_stall": {
+      "src": "sdavgha-market-props/Village_Market/potion_stall_colorful_bottles_1x.png",
+      "crop": [0, 0, 100, 121],
+      "ax": 50,
+      "ay": 128,
+      "w": 100,
+      "h": 121,
+      "stripShadow": false
+    },
+    "pottery_stall": {
+      "src": "sdavgha-market-props/Village_Market/pottery_stall_striped_awning_1x.png",
+      "crop": [0, 0, 100, 117],
+      "ax": 50,
+      "ay": 124,
+      "w": 100,
+      "h": 117,
+      "stripShadow": false
+    },
+    "rain_barrel": {
+      "src": "sdavgha-village-props/Village/v05_08_wooden_rain_barrel_1x.png",
+      "crop": [0, 0, 32, 47],
+      "ax": 16,
+      "ay": 55,
+      "w": 32,
+      "h": 47,
+      "stripShadow": false
+    },
+    "ruin_wall": {
+      "src": "sdavgha-village-props/Forest/f05_08_ruined_stone_wall_ivy_1x.png",
+      "crop": [0, 0, 77, 85],
+      "ax": 55,
+      "ay": 91,
+      "w": 77,
+      "h": 85,
+      "stripShadow": false
+    },
+    "ruined_chapel": {
+      "src": "sdavgha-buildings/Haunted/ruined_chapel_1x.png",
+      "crop": [68, 0, 376, 359],
+      "ax": 120,
+      "ay": 382,
+      "w": 308,
+      "h": 359,
+      "stripShadow": false
+    },
+    "ruined_gatehouse": {
+      "src": "sdavgha-buildings/Ruins_Medieval/ruined_gatehouse_1x.png",
+      "crop": [54, 0, 262, 241],
+      "ax": 77,
+      "ay": 273,
+      "w": 208,
+      "h": 241,
+      "stripShadow": false
+    },
+    "sack": {
+      "src": "sdavgha-market-props/Village_Market/sack_flour_1x.png",
+      "crop": [0, 0, 20, 22],
+      "ax": 10,
+      "ay": 33,
+      "w": 20,
+      "h": 22,
+      "stripShadow": false
+    },
+    "skull_totem": {
+      "src": "sdavgha-village-props/Forest/f04_12_animal_skull_totem_1x.png",
+      "crop": [0, 0, 40, 76],
+      "ax": 20,
+      "ay": 82,
+      "w": 40,
+      "h": 76,
+      "stripShadow": false
+    },
+    "spice_stall": {
+      "src": "sdavgha-market-props/Village_Market/spice_stall_striped_awning_1x.png",
+      "crop": [2, 0, 102, 139],
+      "ax": 49,
+      "ay": 146,
+      "w": 100,
+      "h": 139,
+      "stripShadow": false
+    },
+    "spit": {
+      "src": "sdavgha-village-props/Forest/f03_17_roasting_spit_over_fire_1x.png",
+      "crop": [32, 0, 106, 80],
+      "ax": 21,
+      "ay": 90,
+      "w": 74,
+      "h": 80,
+      "stripShadow": false
+    },
+    "stage": {
+      "src": "sdavgha-market-props/Town_Square/low_stage_platform_1x.png",
+      "crop": [0, 0, 147, 99],
+      "ax": 89,
+      "ay": 103,
+      "w": 147,
+      "h": 99,
+      "stripShadow": false
+    },
+    "street_lamp": {
+      "src": "sdavgha-village-props/Village/l01_01_double_street_lamp_1x.png",
+      "crop": [0, 0, 58, 102],
+      "ax": 29,
+      "ay": 104,
+      "w": 58,
+      "h": 102,
+      "stripShadow": false
+    },
+    "stump": {
+      "src": "sdavgha-village-props/Forest/f03_09_tree_stump_1x.png",
+      "crop": [0, 0, 44, 37],
+      "ax": 22,
+      "ay": 42,
+      "w": 44,
+      "h": 37,
+      "stripShadow": false
+    },
+    "tavern": {
+      "src": "sdavgha-buildings/Village/tavern_1x.png",
+      "crop": [33, 0, 262, 233],
+      "ax": 98,
+      "ay": 266,
+      "w": 229,
+      "h": 233,
+      "stripShadow": false
+    },
+    "tent": {
+      "src": "sdavgha-village-props/Forest/f03_15_canvas_camping_tent_1x.png",
+      "crop": [32, 0, 162, 107],
+      "ax": 49,
+      "ay": 117,
+      "w": 130,
+      "h": 107,
+      "stripShadow": false
+    },
+    "torch_post": {
+      "src": "sdavgha-market-props/Town_Square/burning_torch_tall_post_1x.png",
+      "crop": [0, 0, 10, 50],
+      "ax": 5,
+      "ay": 64,
+      "w": 10,
+      "h": 50,
+      "stripShadow": false
+    },
+    "town_hall": {
+      "src": "sdavgha-buildings/Town/town_hall_1x.png",
+      "crop": [40, 0, 394, 512],
+      "ax": 157,
+      "ay": 532,
+      "w": 354,
+      "h": 512,
+      "stripShadow": false
+    },
+    "twisted_tree": {
+      "src": "sdavgha-village-props/Forest/f01_12_twisted_old_tree_1x.png",
+      "crop": [1, 0, 130, 143],
+      "ax": 64,
+      "ay": 159,
+      "w": 129,
+      "h": 143,
+      "stripShadow": false
+    },
+    "umbrella": {
+      "src": "sdavgha-market-props/Village_Market/red_white_striped_umbrella_1x.png",
+      "crop": [0, 0, 83, 86],
+      "ax": 42,
+      "ay": 97,
+      "w": 83,
+      "h": 86,
+      "stripShadow": false
+    },
+    "vampire_tower": {
+      "src": "sdavgha-buildings/Haunted/vampire_tower_1x.png",
+      "crop": [0, 0, 225, 569],
+      "ax": 113,
+      "ay": 597,
+      "w": 225,
+      "h": 569,
+      "stripShadow": false
+    },
+    "wagon": {
+      "src": "sdavgha-market-props/Town_Square/covered_merchant_wagon_canvas_1x.png",
+      "crop": [0, 0, 118, 118],
+      "ax": 75,
+      "ay": 133,
+      "w": 118,
+      "h": 118,
+      "stripShadow": false
+    },
+    "watchtower": {
+      "src": "sdavgha-village-props/Forest/f04_02_wooden_watchtower_1x.png",
+      "crop": [1, 0, 120, 174],
+      "ax": 59,
+      "ay": 178,
+      "w": 119,
+      "h": 174,
+      "stripShadow": false
+    },
+    "water_mill": {
+      "src": "sdavgha-buildings/Village/water_mill_1x.png",
+      "crop": [23, 0, 210, 214],
+      "ax": 82,
+      "ay": 243,
+      "w": 187,
+      "h": 214,
+      "stripShadow": false
+    },
+    "weapon_stall": {
+      "src": "sdavgha-market-props/Village_Market/weapon_stall_swords_shields_1x.png",
+      "crop": [0, 0, 100, 119],
+      "ax": 55,
+      "ay": 130,
+      "w": 100,
+      "h": 119,
+      "stripShadow": false
+    },
+    "well_house": {
+      "src": "sdavgha-buildings/Town/well_house_1x.png",
+      "crop": [1, 0, 130, 183],
+      "ax": 64,
+      "ay": 199,
+      "w": 129,
+      "h": 183,
+      "stripShadow": false
+    },
+    "windmill": {
+      "src": "sdavgha-buildings/Village/windmill_1x.png",
+      "crop": [0, 0, 174, 258],
+      "ax": 87,
+      "ay": 279,
+      "w": 174,
+      "h": 258,
+      "stripShadow": false
+    },
+    "wine_barrel": {
+      "src": "sdavgha-market-props/Village_Market/wine_barrel_lying_its_1x.png",
+      "crop": [0, 0, 46, 51],
+      "ax": 23,
+      "ay": 56,
+      "w": 46,
+      "h": 51,
+      "stripShadow": false
+    },
+    "witch_hut": {
+      "src": "sdavgha-buildings/Haunted/witch_hut_1x.png",
+      "crop": [11, 0, 190, 281],
+      "ax": 84,
+      "ay": 304,
+      "w": 179,
+      "h": 281,
+      "stripShadow": false
+    },
+    "woodpile": {
+      "src": "sdavgha-village-props/Village/v05_09_covered_woodpile_shelter_1x.png",
+      "crop": [0, 0, 94, 111],
+      "ax": 47,
+      "ay": 120,
+      "w": 94,
+      "h": 111,
+      "stripShadow": false
+    },
+    "workbench": {
+      "src": "sdavgha-village-props/Village/v02_08_workbench_unfinished_sword_1x.png",
+      "crop": [31, 0, 108, 69],
+      "ax": 23,
+      "ay": 74,
+      "w": 77,
+      "h": 69,
+      "stripShadow": false
+    }
+  },
+  "lit": [
+    "bakery",
+    "bell_tower",
+    "book_stall",
+    "castle_well",
+    "dark_obelisk",
+    "general_store",
+    "market_hall",
+    "mossy_well",
+    "notice_board",
+    "obelisk",
+    "ruined_chapel",
+    "stage",
+    "tent",
+    "vampire_tower",
+    "wagon",
+    "watchtower",
+    "weapon_stall",
+    "well_house",
+    "witch_hut"
+  ],
+  "dim": [
+    "abandoned_windmill",
+    "alchemy",
+    "bakery",
+    "banner",
+    "barrel",
+    "barricade",
+    "baskets",
+    "bell_frame",
+    "blue_banner",
+    "boulder",
+    "brazier",
+    "bread_stall",
+    "broken_tower",
+    "burnt_farmhouse",
+    "campfire",
+    "candle_stall",
+    "candle_stand",
+    "cart",
+    "cauldron",
+    "city_gate",
+    "clock_tower",
+    "coal",
+    "collapsed_cottage",
+    "crate",
+    "crate_fish",
+    "crucible",
+    "crumbled_chapel",
+    "dead_tree",
+    "dock_tavern",
+    "fabric_stall",
+    "farmhouse",
+    "fire_bowl",
+    "food_cart",
+    "fruit_cart",
+    "general_store",
+    "granary",
+    "gravestone",
+    "grindstone",
+    "hay",
+    "hay_cart",
+    "k_palisade",
+    "k_tower",
+    "k_wall_se",
+    "k_wall_sw",
+    "lamp_post",
+    "log",
+    "mannequin",
+    "mansion",
+    "oak",
+    "pillar",
+    "pillory",
+    "pine_shrub",
+    "potion_stall",
+    "pottery_stall",
+    "rain_barrel",
+    "ruin_wall",
+    "ruined_gatehouse",
+    "sack",
+    "skull_totem",
+    "spice_stall",
+    "spit",
+    "street_lamp",
+    "stump",
+    "tavern",
+    "tent",
+    "torch_post",
+    "town_hall",
+    "twisted_tree",
+    "umbrella",
+    "wagon",
+    "water_mill",
+    "windmill",
+    "wine_barrel",
+    "witch_hut",
+    "woodpile",
+    "workbench"
+  ],
+  "fog": [
+    {
+      "cy": 1450,
+      "ax": 360,
+      "ay": 520
+    },
+    {
+      "cy": 1400,
+      "ax": 470,
+      "ay": 760
+    },
+    {
+      "cy": 1350,
+      "ax": 640,
+      "ay": 1000
+    }
+  ]
+}

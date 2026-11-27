@@ -22,6 +22,7 @@ function fakeLoader(listSize = 0) {
     audio: vi.fn(),
     font: vi.fn(),
     spritesheet: vi.fn(),
+    multiatlas: vi.fn(),
     once: vi.fn((event: string, fn: (...args: unknown[]) => void) => {
       const list = listeners.get(event) ?? [];
       list.push(fn);
@@ -86,6 +87,12 @@ describe("GameAssetLoader queues", () => {
     queueMinimalTownBootAssets(loader as never, "/");
     expect(loader.setBaseURL).toHaveBeenCalledWith("/");
     expect(loader.image.mock.calls.length).toBeGreaterThan(0);
+    expect(loader.multiatlas.mock.calls.map((c) => c[0])).toEqual([
+      "town_iso_lit",
+      "town_iso_dim",
+      "town_iso_ground",
+    ]);
+    expect(loader.font.mock.calls.length).toBe(2);
 
     const fluff = fakeLoader();
     queueTownFluffAssets(fluff as never, "/cdn/");

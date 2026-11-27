@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import Phaser from "phaser";
 import type { TownScene } from "./TownScene";
 import { getSave } from "../core/registryKeys";
+import { TOWN_ISO_ATLAS } from "../content/townIsoAssets";
 import { blocksBaseLayerInput } from "../input/inputModality";
 import { tuning } from "../tuning/gameTuning";
 import { interactiveObjectScreenRect } from "../ui/touch/touchButton";
@@ -52,7 +53,8 @@ describe("TownScene (real Phaser, jsdom + canvas)", () => {
     // A real texture decoded by the loader (not Phaser's __MISSING).
     const keys = h.game.textures.getTextureKeys();
     expect(keys.length).toBeGreaterThan(3);
-    const key = keys.find((k) => k.includes("gallows_square"));
+    // The isometric town atlas (building art is packed, not one image per building).
+    const key = keys.find((k) => k === TOWN_ISO_ATLAS.lit);
     expect(key).toBeDefined();
     const src = h.game.textures
       .get(key as string)

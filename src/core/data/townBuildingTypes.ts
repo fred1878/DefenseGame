@@ -1,6 +1,7 @@
 export type TownBuildingDef = {
+  /** Name on the building's town name plate. */
   label: string;
-  textureKey: string;
+  /** Minimum tap box (town screen px); the art tier's sprite usually sets a larger one. */
   width: number;
   height: number;
   /** When set, menu tap runs `buildings.json` upgrade for this id. */
@@ -26,7 +27,7 @@ export type TownLayoutSlot = {
 };
 
 export type TownLayoutDef = {
-  /** Multiplier for on-screen building sprite size (PNG defs unchanged). */
+  /** Extra size multiplier for building sprites on top of the isometric town scale. */
   buildingDisplayScale: number;
   slots: TownLayoutSlot[];
 };
