@@ -20,7 +20,25 @@ export type OccupiedSaveSlotView = {
   savedAt: number;
 };
 
-export type SaveSlotView = EmptySaveSlotView | OccupiedSaveSlotView;
+/** A slot written by a newer build: unreadable here, kept in storage. */
+export type NewerVersionSaveSlotView = {
+  index: number;
+  name: string;
+  empty: true;
+  newerVersion: true;
+};
+
+export type SaveSlotView =
+  | EmptySaveSlotView
+  | NewerVersionSaveSlotView
+  | OccupiedSaveSlotView;
+
+/** True for a slot that holds a save from a newer build (overwrite needs a warning). */
+export function isNewerVersionSlot(
+  slot: SaveSlotView,
+): slot is NewerVersionSaveSlotView {
+  return "newerVersion" in slot && slot.newerVersion === true;
+}
 
 export function saveSlotName(index: number): string {
   return `Slot ${index + 1}`;
@@ -50,8 +68,32 @@ export function formatSaveSlotTimestamp(ms: number): string {
 }
 
 export function formatSaveSlotMeta(slot: SaveSlotView): string {
+  if (isNewerVersionSlot(slot)) return "Saved by a newer version";
   if (slot.empty) return "Empty";
   return `Night ${slot.night} · ${slot.gold}g\n${formatSaveSlotTimestamp(slot.savedAt)}`;
+}
+
+function slotView(index: number): SaveSlotView {
+  const read = readSlotSave(index);
+  if (read?.ok) {
+    return {
+      index,
+      name: saveSlotName(index),
+      empty: false,
+      night: read.save.night,
+      gold: read.save.gold,
+      savedAt: read.savedAt ?? 0,
+    };
+  }
+  if (read?.newerVersion) {
+    return {
+      index,
+      name: saveSlotName(index),
+      empty: true,
+      newerVersion: true,
+    };
+  }
+  return emptySlot(index);
 }
 
 function emptySlot(index: number): EmptySaveSlotView {
@@ -65,34 +107,31 @@ function emptySlot(index: number): EmptySaveSlotView {
  */
 function readSlotSave(
   index: number,
-): { save: SaveGame; savedAt: number | null } | null {
+):
+  | { ok: true; save: SaveGame; savedAt: number | null }
+  | { ok: false; newerVersion: boolean }
+  | null {
   if (typeof localStorage === "undefined") return null;
   const key = saveSlotStorageKey(index);
   const raw = localStorage.getItem(key);
   if (!raw) return null;
   const read = parseStoredSave(raw);
   if (read.ok) return read;
-  if (!keepUnreadableSave(read.reason)) localStorage.removeItem(key);
-  return null;
+  const keep = keepUnreadableSave(read.reason);
+  if (!keep) localStorage.removeItem(key);
+  return { ok: false, newerVersion: keep };
 }
 
 /** Slot summary for the save menu, or null when empty / unreadable. */
 export function readSaveSlot(index: number): OccupiedSaveSlotView | null {
-  const read = readSlotSave(index);
-  if (!read) return null;
-  return {
-    index,
-    name: saveSlotName(index),
-    empty: false,
-    night: read.save.night,
-    gold: read.save.gold,
-    savedAt: read.savedAt ?? 0,
-  };
+  const view = slotView(index);
+  return view.empty ? null : view;
 }
 
 /** Full save from a readable slot (migrated if older), or null. */
 export function loadSaveSlot(index: number): SaveGame | null {
-  return readSlotSave(index)?.save ?? null;
+  const read = readSlotSave(index);
+  return read?.ok ? read.save : null;
 }
 
 export function writeSaveSlot(
@@ -128,13 +167,13 @@ export function deleteSaveSlot(index: number): void {
 
 /**
  * List all slots. Corrupt entries are deleted when encountered (also the right
- * moment to call this: when the save menu opens); newer-version slots show as
- * empty but stay in storage until overwritten.
+ * moment to call this: when the save menu opens); newer-version slots are
+ * listed as such and stay in storage (the menu asks before overwriting them).
  */
 export function listSaveSlots(): SaveSlotView[] {
   const slots: SaveSlotView[] = [];
   for (let index = 0; index < SAVE_SLOT_COUNT; index++) {
-    slots.push(readSaveSlot(index) ?? emptySlot(index));
+    slots.push(slotView(index));
   }
   return slots;
 }

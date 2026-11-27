@@ -146,3 +146,52 @@ describe("saveMenuLogic leftover branches", () => {
     expect(next.status).toBe("Deleted Slot 5");
   });
 });
+
+describe("newer-version slots", () => {
+  const newer = {
+    index: 0,
+    name: "Slot 1",
+    empty: true as const,
+    newerVersion: true as const,
+  };
+
+  it("asks before overwriting a slot saved by a newer version", () => {
+    const state = createSaveMenuState([newer]);
+    const asked = reduceSaveMenu(state, { type: "requestSave" });
+    expect(asked.effect).toEqual({ type: "none" });
+    expect(asked.state.confirm).toBe("overwriteNewer");
+    expect(saveMenuPrompt(asked.state)).toBe(
+      "Slot 1 was saved by a newer version. Overwrite it anyway?",
+    );
+    expect(reduceSaveMenu(asked.state, { type: "confirm" }).effect).toEqual({
+      type: "write",
+      index: 0,
+    });
+    expect(reduceSaveMenu(asked.state, { type: "cancel" }).state.confirm).toBe(
+      null,
+    );
+  });
+
+  it("cannot load a newer-version slot but can delete it", () => {
+    const state = createSaveMenuState([newer]);
+    expect(canLoadSelected(state)).toBe(false);
+    expect(reduceSaveMenu(state, { type: "requestLoad" }).effect).toEqual({
+      type: "none",
+    });
+    expect(canDeleteSelected(state)).toBe(true);
+    expect(reduceSaveMenu(state, { type: "requestDelete" }).state.confirm).toBe(
+      "delete",
+    );
+  });
+
+  it("still writes an ordinary empty slot without asking", () => {
+    const state = createSaveMenuState([
+      { index: 0, name: "Slot 1", empty: true },
+    ]);
+    expect(reduceSaveMenu(state, { type: "requestSave" }).effect).toEqual({
+      type: "write",
+      index: 0,
+    });
+    expect(canDeleteSelected(state)).toBe(false);
+  });
+});

@@ -8,6 +8,7 @@ import {
   deleteSaveSlot,
   formatSaveSlotMeta,
   formatSaveSlotTimestamp,
+  isNewerVersionSlot,
   listSaveSlots,
   loadSaveSlot,
   readSaveSlot,
@@ -77,7 +78,15 @@ describe("saveSlots", () => {
     );
     expect(readSaveSlot(0)).toBeNull();
     expect(loadSaveSlot(0)).toBeNull();
-    expect(listSaveSlots()[0]?.empty).toBe(true);
+    const listed = listSaveSlots()[0]!;
+    expect(listed).toEqual({
+      index: 0,
+      name: "Slot 1",
+      empty: true,
+      newerVersion: true,
+    });
+    expect(isNewerVersionSlot(listed)).toBe(true);
+    expect(formatSaveSlotMeta(listed)).toBe("Saved by a newer version");
     expect(items.has(saveSlotStorageKey(0))).toBe(true);
   });
 
