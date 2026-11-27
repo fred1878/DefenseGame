@@ -10,7 +10,7 @@ import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.join(__dirname, "..");
+const repoRoot = path.join(__dirname, "../..");
 const distAssets = path.join(repoRoot, "dist/assets");
 
 /**
@@ -49,7 +49,7 @@ console.log(
 
 if (gzip > limit) {
   console.error(
-    `Phaser chunk gzip regressed more than 5% (got ${gzip}, limit ${limit}). Rebuild vendor bundle or raise BASELINE_GZIP in scripts/assert-phaser-chunk-size.mjs with justification.`,
+    `Phaser chunk gzip regressed more than 5% (got ${gzip}, limit ${limit}). Rebuild vendor bundle or raise BASELINE_GZIP in scripts/build/assert-phaser-chunk-size.mjs with justification.`,
   );
   process.exit(1);
 }

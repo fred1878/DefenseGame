@@ -6,7 +6,7 @@
  * `ui-icons-48.png`. Frames are in JSON key order (see `src/ui/icons/uiIcons.ts`);
  * the game tints them at runtime. Re-run after editing the JSON:
  *
- *   node scripts/build-ui-icons.mjs
+ *   node scripts/assets/build-ui-icons.mjs
  *
  * Uses the Playwright Chromium already installed for e2e.
  */
@@ -15,7 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const icons = JSON.parse(
   fs.readFileSync(path.join(root, "scripts/data/ui-icons.json"), "utf8"),
 );

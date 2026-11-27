@@ -1,6 +1,6 @@
 /**
  * Cold-ish first-load timing for DefenseGame (production preview + E2E hooks).
- * Usage: npm run build:e2e && node scripts/measure-first-load.mjs
+ * Usage: npm run build:e2e && node scripts/capture/measure-first-load.mjs
  */
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";

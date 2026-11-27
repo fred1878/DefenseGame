@@ -2,7 +2,7 @@
 /**
  * Town + defense viewport captures for human review (not CI).
  *
- * Usage: npm run build:e2e && node scripts/capture-ui-visual.mjs
+ * Usage: npm run build:e2e && node scripts/capture/capture-ui-visual.mjs
  *
  * Writes unique PNGs under /opt/cursor/artifacts/review/ and prints one JSON
  * object per scene on stdout: { path, md5, md5ChangedFromLastRun }.

@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import webpack from "webpack";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.join(__dirname, "..");
+const repoRoot = path.join(__dirname, "../..");
 const phaserSrc = path.join(repoRoot, "node_modules/phaser/src");
 const trimDir = path.join(repoRoot, "vendor/phaser-trim");
 const entrySrc = path.join(trimDir, "phaser-defense-entry.js");

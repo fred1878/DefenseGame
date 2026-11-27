@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense, e2eApi } from "./helpers/game";
+import { writeProofArtifact } from "./helpers/artifacts";
 
 /** boulderMed at tile (4, 10) — same framing as manual bump proofs. */
 const TARGET_OBSTACLE_INDEX = 6;
@@ -114,9 +115,7 @@ test.describe("obstacle bump — player stays outside blocker rect", () => {
       });
 
       const basename = `obstacle-bump-${card.name}-2026-11-18-v2.png`;
-      const artifactPath = path.join("/opt/cursor/artifacts", basename);
-      fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
-      fs.writeFileSync(artifactPath, shot);
+      writeProofArtifact(basename, shot);
 
       if (fs.existsSync(path.dirname(MEDIA_DIR))) {
         fs.mkdirSync(MEDIA_DIR, { recursive: true });

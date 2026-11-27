@@ -1,7 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import { test, expect } from "@playwright/test";
 import { gotoE2E, startDefense, e2eApi } from "./helpers/game";
+import { writeProofArtifact } from "./helpers/artifacts";
 
 /**
  * Manual / PR proof only — do not rely on for CI.
@@ -24,10 +23,7 @@ test.describe("@manual obstacle v2 overlay proof", () => {
       fullPage: false,
       animations: "disabled",
     });
-    const artifactPath =
-      "/opt/cursor/artifacts/obstacle-v2-mobile-overlays.png";
-    fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
-    fs.writeFileSync(artifactPath, shot);
+    writeProofArtifact("obstacle-v2-mobile-overlays.png", shot);
     await testInfo.attach("obstacle-v2-defense-overlays", {
       body: shot,
       contentType: "image/png",

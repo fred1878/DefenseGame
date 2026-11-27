@@ -153,7 +153,7 @@ CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=tru
 ## Manual review captures vs e2e
 
 - **CI:** No `toHaveScreenshot` and **no committed snapshot PNGs** under `e2e/`. UI correctness is covered by tap targets, layout probes, texture audits, and related specs.
-- **Human review:** After intentional UI changes, run `scripts/capture-ui-visual.mjs` (or `capture-defense-hud.mjs`). See **[MANUAL_UI_CAPTURE.md](./MANUAL_UI_CAPTURE.md)** for paths, md5 checks, and stale-hash policy.
+- **Human review:** After intentional UI changes, run `scripts/capture/capture-ui-visual.mjs` (or `capture-defense-hud.mjs`). See **[MANUAL_UI_CAPTURE.md](./MANUAL_UI_CAPTURE.md)** for paths, md5 checks, and stale-hash policy.
 
 ## Adding a Playwright spec
 

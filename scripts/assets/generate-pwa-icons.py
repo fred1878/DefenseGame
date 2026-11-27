@@ -4,7 +4,7 @@
 Requires Pillow. Icons are committed under public/icons/; this script is only
 needed when regenerating them.
 
-  python3 scripts/generate-pwa-icons.py
+  python3 scripts/assets/generate-pwa-icons.py
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from PIL import Image
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 SOURCE = REPO / "public/assets/sprites/player_s.png"
 OUT_DIR = REPO / "public/icons"
 BACKGROUND = (15, 16, 20, 255)  # #0f1014, matches the game splash

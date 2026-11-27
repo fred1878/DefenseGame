@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Talent tree full frame + cropped branch headers and rank pill for PR review.
- * Usage: npm run build:e2e && node scripts/capture-talent-crops.mjs
+ * Usage: npm run build:e2e && node scripts/capture/capture-talent-crops.mjs
  */
 import fs from "node:fs";
 import path from "node:path";

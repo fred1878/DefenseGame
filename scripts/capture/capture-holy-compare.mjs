@@ -3,8 +3,8 @@
  * Player-centered holy heal FX compare captures (E2E hook).
  *
  * Usage:
- *   npm run build:e2e && node scripts/capture-holy-compare.mjs --phase vectors-boost
- *   npm run build:e2e && node scripts/capture-holy-compare.mjs --phase pack-wired
+ *   npm run build:e2e && node scripts/capture/capture-holy-compare.mjs --phase vectors-boost
+ *   npm run build:e2e && node scripts/capture/capture-holy-compare.mjs --phase pack-wired
  *
  * Writes PNGs under DEFENSE_HOLY_COMPARE_OUT_DIR (default: store media/).
  */

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Manual defense viewport review shot (not committed visual baselines).
- * Usage: npm run build:e2e && node scripts/capture-defense-viewport-split.mjs
+ * Usage: npm run build:e2e && node scripts/capture/capture-defense-viewport-split.mjs
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync } from "node:fs";

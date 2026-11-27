@@ -2,7 +2,7 @@
 
 const path = require("node:path");
 const webpack = require("webpack");
-const repoRoot = path.join(__dirname, "..");
+const repoRoot = path.join(__dirname, "../..");
 const phaserSrc = path.join(repoRoot, "node_modules/phaser/src");
 const entryTmp = path.join(phaserSrc, ".phaser-defense-entry.js");
 

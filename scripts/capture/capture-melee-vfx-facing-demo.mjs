@@ -2,7 +2,7 @@
 /**
  * Proof clip: enemy melee VFX rotation left vs right (grunt, skirmisher, bruiser).
  *
- *   npm run build:e2e && node scripts/capture-melee-vfx-facing-demo.mjs
+ *   npm run build:e2e && node scripts/capture/capture-melee-vfx-facing-demo.mjs
  */
 import { mkdirSync, unlinkSync } from "node:fs";
 import path from "node:path";

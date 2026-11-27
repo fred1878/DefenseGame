@@ -2,7 +2,7 @@
 /**
  * Defense-only viewport capture for human review (not CI).
  *
- * Usage: npm run build:e2e && node scripts/capture-defense-hud.mjs
+ * Usage: npm run build:e2e && node scripts/capture/capture-defense-hud.mjs
  *
  * Prefer `capture-ui-visual.mjs` for town + defense in one run.
  */

@@ -2,7 +2,7 @@
 /**
  * Defense-only enemy melee swipe demo (Playwright recordVideo + trim).
  *
- *   npm run build:e2e && node scripts/capture-melee-enemy-vfx-demo.mjs
+ *   npm run build:e2e && node scripts/capture/capture-melee-enemy-vfx-demo.mjs
  */
 import { mkdirSync, unlinkSync } from "node:fs";
 import path from "node:path";

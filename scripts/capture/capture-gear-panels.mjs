@@ -2,7 +2,7 @@
 /**
  * Blacksmith, Inventory, and Talents panel captures for review / PR attachments.
  *
- * Usage: npm run build:e2e && node scripts/capture-gear-panels.mjs
+ * Usage: npm run build:e2e && node scripts/capture/capture-gear-panels.mjs
  *
  * Writes PNGs to /opt/cursor/artifacts/{blacksmith,inventory,talent-tree}.png
  */

@@ -7,7 +7,7 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SPELLS_JSON = ROOT / "public" / "data" / "spells.json"
 
 # DefenseGame id by MobileRPG .name (from spells_data.c)

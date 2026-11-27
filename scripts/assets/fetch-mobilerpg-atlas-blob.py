@@ -7,9 +7,9 @@ through a UTF-8 path and pick up U+FFFD bytes (corrupt slices / rainbow spell ic
 
 Requires a PAT with read access to fred1878/MobileRPG:
   export MOBILERPG_GITHUB_TOKEN=<pat>   # or CROSS_REPO (cloud agent runtime)
-  python3 scripts/fetch-mobilerpg-atlas-blob.py
+  python3 scripts/assets/fetch-mobilerpg-atlas-blob.py
   export MOBILERPG_ATLAS_TGA=/tmp/mobilerpg-assets/atlas.tga
-  python3 scripts/extract-mobilerpg-spell-assets.py
+  python3 scripts/assets/extract-mobilerpg-spell-assets.py
 """
 
 from __future__ import annotations

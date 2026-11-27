@@ -8,7 +8,7 @@ Atlas source (not committed — ~4 MiB):
 
 Fetch pristine atlas first (avoids MCP UTF-8 corruption on large binaries):
   export MOBILERPG_GITHUB_TOKEN=<pat with MobileRPG read>
-  python3 scripts/fetch-mobilerpg-atlas-blob.py
+  python3 scripts/assets/fetch-mobilerpg-atlas-blob.py
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from pathlib import Path
 
 from PIL import Image
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts"))
 from mobilerpg_atlas_frames import parse_atlas_frames, resolve_frame  # noqa: E402
 from tga_atlas_io import read_tga_region_rgba  # noqa: E402
@@ -77,14 +77,14 @@ ICON_FRAME_FALLBACK: dict[str, str] = {}
 def materialize_atlas(path: Path) -> Path:
     if not path.is_file():
         raise SystemExit(
-            f"Missing atlas at {path}. Run scripts/fetch-mobilerpg-atlas-blob.py "
+            f"Missing atlas at {path}. Run scripts/assets/fetch-mobilerpg-atlas-blob.py "
             "then set MOBILERPG_ATLAS_TGA.",
         )
     raw = path.read_bytes()
     if raw.count(b"\xef\xbf\xbd") > 0:
         raise SystemExit(
             f"Corrupt atlas at {path} (UTF-8 replacement bytes). "
-            "Re-fetch with scripts/fetch-mobilerpg-atlas-blob.py.",
+            "Re-fetch with scripts/assets/fetch-mobilerpg-atlas-blob.py.",
         )
     if len(raw) != 4194348:
         raise SystemExit(

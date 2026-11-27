@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.join(__dirname, "..");
+const repoRoot = path.join(__dirname, "../..");
 const swPath = path.join(repoRoot, "dist/sw.js");
 
 function extractPrecacheUrls(source) {

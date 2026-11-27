@@ -2,7 +2,7 @@
 /**
  * Record player-centered holy heal blend (pack sprites + vector rings) via E2E.
  *
- *   npm run build:e2e && node scripts/capture-holy-blend-video.mjs
+ *   npm run build:e2e && node scripts/capture/capture-holy-blend-video.mjs
  *
  * Writes trimmed webms under DEFENSE_HOLY_COMPARE_OUT_DIR (default store media/).
  */
