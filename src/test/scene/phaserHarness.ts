@@ -23,8 +23,7 @@ export interface HeadlessGame {
    */
   tap(x: number, y: number): void;
   /**
-   * Run one full frame including Phaser's Canvas renderer (headlessStep skips
-   * rendering) and return the canvas as PNG bytes.
+   * Run one frame and return the canvas as PNG bytes.
    */
   renderPng(): Buffer;
   destroy(): void;
@@ -75,10 +74,19 @@ export async function bootHeadlessGame(
   }
 
   let now = 0;
+  // Update-only frames (drawing every frame would ~3x test time), but run
+  // each camera's preRender like the renderer would: follow / scroll / matrix
+  // are applied there, and screen<->world maths depends on them.
+  const tick = (t: number, d: number): void => {
+    game.headlessStep(t, d);
+    for (const scene of game.scene.getScenes(true)) {
+      for (const cam of scene.cameras.cameras) cam.preRender();
+    }
+  };
   const step = (frames = 1, deltaMs = FRAME_MS): void => {
     for (let i = 0; i < frames; i++) {
       now += deltaMs;
-      game.headlessStep(now, deltaMs);
+      tick(now, deltaMs);
     }
   };
   return {

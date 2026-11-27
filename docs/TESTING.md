@@ -201,11 +201,14 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
   this and uploads them as the `scene-snapshots` artifact).
 - Rendering uses Phaser's **Canvas** renderer, not WebGL: WebGL-only paths are
   not exercised and pixels will not match the game exactly.
-- Coverage: `BootScene`, `TownHeader`, `DefenseHudController`,
-  `DefenseWorldBootstrap`, `DefenseSpellWorldTick`, `DamageNumberFx` and
-  `world/defenseCamera` are counted thanks to these tests. `DefenseScene`,
-  `TownScene` and the other scene files stay in the coverage `exclude` list in
-  `vitest.config.ts` until more scene tests lift them above the floors.
+- Coverage: scene files are counted (see "Coverage notes"); only E2E-only
+  adapters, Capacitor stubs and scenes still waiting on tests are excluded.
+- Cameras: frames are update-only (`headlessStep`), but the harness runs each
+  camera's `preRender()` so follow / scroll match a rendered frame and
+  `worldPointToScreen` taps land where expected.
+- `sceneFlow.ts`: `waitForScene`, `waitForDefense`, `tapTown` / `tapDefense`
+  (by e2e target id), `tapText` (by label), `startNightFromTown`.
+- `bootToTown({ save })` seeds the localStorage save BootScene loads.
 
 ## Coverage notes
 
@@ -213,12 +216,12 @@ instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines | 96% | ~96.1% (scenes/world modules + scene-test-covered files in scope) |
-| statements | 95.5% | ~95.7% |
-| functions | 95.5% | ~95.9% |
-| branches | 91.5% | ~92.0% |
+| lines | 97% | ~97.3% (scene files counted via real-Phaser scene tests) |
+| statements | 96.5% | ~96.7% |
+| functions | 96.5% | ~96.7% |
+| branches | 92% | ~92.2% |
 
-**Excluded from coverage:** Phaser scene orchestrators (`TownScene`, `DefenseScene`, `DebugMenuScene`, setup scenes; `BootScene` is counted via the real-Phaser scene tests), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** `DebugMenuScene` and `EndlessModeSetupScene` (until their scene tests land), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), and Capacitor update stubs. `BootScene`, `TownScene`, `DefenseScene`, `WavePlannerSetupScene` and the Phaser-heavy defense/town modules are counted, covered by `*.scene.test.ts`. Floors only go up: add tests rather than lowering them. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 
 ## Visual checks (screenshot baselines)
 

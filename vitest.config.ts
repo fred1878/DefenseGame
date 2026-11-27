@@ -80,29 +80,21 @@ export default defineConfig({
         "src/bootstrap.ts",
         "src/gameMain.ts",
         "src/scenes/DebugMenuScene.ts",
-        "src/scenes/DefenseScene.ts",
         "src/scenes/EndlessModeSetupScene.ts",
-        "src/scenes/TownScene.ts",
-        "src/scenes/WavePlannerSetupScene.ts",
         "src/scenes/defense/DefenseSceneE2ECombat.ts",
         "src/scenes/defense/DefenseSceneE2EHud.ts",
         "src/scenes/defense/DefenseSceneE2EObstacles.ts",
-        "src/scenes/defense/DefensePlayerCombat.ts",
-        "src/scenes/defense/DefenseDebugDraw.ts",
-        "src/scenes/defense/DefenseConsumables.ts",
-        "src/scenes/defense/DefenseSpellResolve.ts",
-        "src/scenes/town/TownOverlays.ts",
         "src/appUpdate/apkInstallerPlugin.ts",
         "src/appUpdate/runCheckForUpdate.ts",
       ],
-      // Files reached by the real-Phaser `scenes` project are counted now;
-      // the rest above still need more scene tests (DefenseScene / TownScene
-      // would drop the floors today). Ratchet floors as scene tests land.
+      // Scene files are covered by the real-Phaser `scenes` project; the ones
+      // above are E2E-only adapters, Capacitor stubs, or still need scene
+      // tests. Floors only ratchet up: add tests, never lower them.
       thresholds: {
-        lines: 96,
-        functions: 95.5,
-        branches: 91.5,
-        statements: 95.5,
+        lines: 97,
+        functions: 96.5,
+        branches: 92,
+        statements: 96.5,
       },
     },
   },

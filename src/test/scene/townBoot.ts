@@ -1,6 +1,9 @@
 import { vi } from "vitest";
 import { BootScene } from "../../scenes/BootScene";
 import { TownScene } from "../../scenes/TownScene";
+import { createNewSave } from "../../core/save/GameState";
+import { persistSave } from "../../core/save/saveRepository";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { resetLazyScenesForTests } from "../../scenes/loading/lazyScenes";
 import { bootHeadlessGame, type HeadlessGame } from "./phaserHarness";
 import { startPublicServer, type StaticServer } from "./staticServer";
@@ -29,7 +32,13 @@ export function seedMathRandom(seed: number): void {
  * The real production path: BootScene loads shipped `public/` data and
  * textures over HTTP, then hands off to TownScene (same scene list as gameMain).
  */
-export async function bootToTown(): Promise<TownBoot> {
+export async function bootToTown(
+  opts: { save?: (save: SaveGame) => SaveGame } = {},
+): Promise<TownBoot> {
+  if (opts.save) {
+    // BootScene reads the save from localStorage, like a returning player.
+    persistSave(opts.save(createNewSave()));
+  }
   // Lazy scene imports are cached per module, not per game.
   resetLazyScenesForTests();
   const server = await startPublicServer();
