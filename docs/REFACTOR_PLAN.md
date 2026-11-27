@@ -1,6 +1,6 @@
 # Refactor plan v2: whole-codebase audit
 
-**Status (2026-11-27):** In progress on branch `refactor/plan-execution`. Quick wins, Phase 0, Phase 1 and Phase 2 are done (see [Execution log](#execution-log) for what changed against this plan). Phases 3–8 are next. The audit below was written from `main` at `3b832d8`; its numbers are the "before" baseline.
+**Status (2026-11-27):** In progress on branch `refactor/plan-execution`. Quick wins and Phases 0–5 are done (see [Execution log](#execution-log) for what changed against this plan, and which items were deferred). Next: Phase 9 (all tunable values in JSON, added during execution and run before Phase 6), then Phases 6–8. The audit below was written from `main` at `3b832d8`; its numbers are the "before" baseline.
 **Scope:** an audit at every level (architecture, systems, files/classes, functions, data, tooling), then a phased plan.
 **Predecessor:** [archive/REFACTOR_PLAN.md](./archive/REFACTOR_PLAN.md) (file splits for DefenseScene, touchButton and EnemyRangedCombat, all finished).
 
@@ -60,6 +60,21 @@ Status per item, plus every place where the work differed from the plan and why.
 | P2.3 | **Partly done** | Ward post-hold constants are in `enemies.json` (`combat.ward.post*`), and the golden snapshot proved identical behaviour. **Moved on:** the spell `baseDamage ?? n` / `healAmount ?? 20` defaults and the `0.65` splash scale need a per-mechanic "required fields" table, so they go with the spell handler table in **P5.1**. The `rewardGold = 40` default is unreachable with valid data (it only applies when `waves.json` has no night 1); it goes with run-mode state in **P3.5**. The `DefenseNightEnd` colours and depth go with theme tokens in **P6.1**. |
 | P2.4 | Tried, **not adopted** | `isolate: false` saves about 2.5 s of 8 s but gave 0–8 order-dependent failures over 4 runs (shared module state: `lazyScenes` promise cache, `vi.mock` leakage into `GameState` / autocast suites, game-event listeners). The listener leak is fixed; the rest moves to new item **P8.5**. |
 | P2.5 | **Deferred** | Optional. Best done together with P5.1's per-mechanic spell field table. |
+| P3.1 | **Deferred** | About 120 `worldUnit` call sites; each call is one Map lookup, and a scale change restarts the scenes, so a value object buys little now. Revisit only if a profile shows it, or fold it into P6.8 / P9 work that touches those files. |
+| P3.2 | Done | `scenes/defense/DefenseRunState.ts` holds all per-run state and the `DefenseServices` functions and implements the spell-director, player-combat and ground-aim hosts; `buildSceneHost` is gone. The E2E host is lazy (`defenseSceneE2eHook.ts`, registered by the `installE2E` chunk, so E2E helpers ship only in that chunk) and the `as unknown as DefenseSceneE2eDelegate` cast is removed (the delegate is structural over `scene.run`). Tuning is still read through `tuning(...)`, not threaded through services: the store is already read-only, so threading adds churn with no safety gain. |
+| P3.3 | **Partly done** | Dead enemies are pruned in place (`filterDeadEnemies`). Not done: a `Map` by id (≤ 100 enemies, linear scans are cheaper than the upkeep); building tick contexts once (measured as negligible); A* replan budgeting, which P0.3 showed is the real cost past ~60 enemies, changes behaviour, so it belongs with **P7**-style behaviour-change work. |
+| P3.4 | Done, **changed** | Rules live in `systems/nightEndRules.ts` (`evaluateNightEnd`, `evaluateEndlessEnd`, `resolveCampaignNightEndSave`, `resolveRunExitSave`), not `core/save/`, because they depend on gear and core may not. `DefenseNightEnd` is presentation only; the invariant is back in AGENTS.md. **Behaviour note:** on a campaign loss the in-memory `run.save.player.hp` used to be clamped to ≥ 1 through a shared object reference; now the resolver returns a new save and the run object keeps the survived HP. Nothing reads it after the night ends, and the persisted save is identical. |
+| P3.5 | Done | `DefenseRunModes.ts`: campaign / endless / wavePlanner strategies (HUD header, night end, leave). Endless `endNight` deliberately keeps the historical campaign path used by the E2E force-win. `rewardGold` is always a number from `DefenseRunSetup` (`wave?.rewardGold ?? 0`); the `= 40` default is gone. |
+| P3.6 | Done | The `DefenseWaveSpawner` shim is deleted; the scene calls `systems/WaveSpawner` directly. |
+| P3.7 | **Deferred to P8** | `DefenseScene.ts` is 946 lines, down from 1,161 at the start of P3, and still excluded from coverage. Getting it under 400 lines and covered needs a Phaser scene test harness, which fits P8.1. |
+| P4.1, P4.2 | Done | `core/enemyBehaviorIds.ts` (`EnemyBehaviorId`); unknown `behavior` values fail at load with a `ConfigLoadError`. `scenes/defense/enemyCombatModules.ts` is a `Record<EnemyBehaviorId, EnemyCombatTick>`; `tickDefenseEnemies` no longer has the combat chain. The golden snapshot stayed identical. |
+| P4.3 | **Deferred** | A discriminated `behaviorState` touches 49 test references plus pooling/reconfigure, for a type-only gain. Revisit after P9 if a new behaviour needs it. |
+| P4.4 | **Partly done** | `ai/behaviors/shared/pathApproach.ts` (replan, waypoint follow, chase) is used by charger, wallSiege, ward and rangedKite. The meleeChaser/rangedKite chase-start and javelineer/stationaryRanged attack-commit clones differ in small timing details, so merging them risks the golden snapshot for little gain; left as is. |
+| P4.5 | Done, **changed** | `meleeChaser` and `javelineer` are split into steps and, with `DefenseEnemyTick`, left the complexity override list. `ward`, `charger` and `applyRetreatPathing` got shorter through P4.4 and did not need more. |
+| P5.1 | Done | `SPELL_MECHANIC_HANDLERS` table in `DefenseSpellResolve.ts` (the `spell_proj_` id prefix quirk is kept). Damaging mechanics now require `baseDamage`, heal requires `healAmount`, swings require `swingFxSizePx`, and targeted blasts require `burstBlastDamageScale`; missing values fail at load. `spells.json` gained the values the code used to default (`160`, `0.65`). Also covers P2.5's purpose without a schema library. |
+| P5.2 | Done, **changed** | `SpellQueue` and `SpellChannelRunner` already existed as modules; auto-cast targeting moved to `DefenseSpellAutoCastTargets.ts` (director now 443 lines). FX handles are grouped on `DefenseRunState` instead of a separate `SpellFxRegistry`. |
+| P5.3 | Done | `combat/rules/` (hitboxes, damage, knockback, spell casting/effects) and `combat/fx/` (VFX, telegraphs, damage numbers); moves only. |
+| P9 | **Added** | Owner request: move every tunable gameplay value still hard-coded in TS into `public/data/*.json`. See Phase 9. |
 
 ---
 
@@ -446,6 +461,27 @@ Every phase leaves the game shippable. Effort: **S** is up to half a day, **M** 
 | P5.2 | Split `DefenseSpellDirector` into `SpellQueue`, `SpellAutoCaster`, `SpellChannelRunner`; `SpellFxRegistry` owns the nullable FX handles | `scenes/defense/DefenseSpellDirector.ts`, `DefenseSpellChannel.ts`, `DefenseSpellTelegraphs.ts`, `DefenseSpellWorldTick.ts` | Med | M | P5.1 |
 | P5.3 | Split `combat/` into `combat/rules/` and `combat/fx/` (moves only) | 47 files + imports | Low | S | P1.10 |
 
+### Phase 9: All tunable values in JSON (added during execution; run after Phase 5, before Phase 6)
+
+Owner request: every value someone might want to balance lives in `public/data/*.json` and is read through the tuning store (`tuning(...)` / the existing `apply*()` setters), so it can be edited without touching TS. Rules:
+
+- Same values, so behaviour stays identical; the golden snapshot is refreshed only for its tuning hash.
+- Both the bundled and the runtime-fetched JSON paths keep working (§5.2).
+- Each new field is validated in its `normalize*` loader and documented in `docs/DATA_FIELDS.md` (`dataFieldsDoc.test.ts` keeps them in sync).
+- Purely technical constants stay in code: array sizes, layer and depth ids, enum-like values, pool sizes, epsilons.
+- One commit per system, `npm run verify` after each.
+
+| ID | System | Examples found so far | Target file |
+|---|---|---|---|
+| P9.1 | Enemy behaviours | charger `dashSpeedMul ?? 2.2`; javelineer `orbitFlipMs ?? 1400`, orbit/standoff distances (48/72/56/40/64 wu), blend constants and speed muls (1.1/1.08/1.02/1.05); ward speed 0.82; rangedKite/retreat blend reach 72; wallSiege / EnemyBrain `worldUnit(3)` | `enemies.json` (`combat.<behavior>` blocks) |
+| P9.2 | Waves and spawning | `ELITE_HP_MUL = 2`; spawn spacing and timings in `WaveSpawner` / endless spawn | `waves.json` / `defense.json` |
+| P9.3 | Projectiles and combat | ranged knockback `* 0.65` in `DefenseProjectileTick`; hit/melee timings | `enemies.json` / `player.json` |
+| P9.4 | Spells and aiming | `groundTargetMaxRangeWu ?? 240`; aim radius `displayWidth * 0.25`; instant-target fallback offset 40 | `spells.json` / `spellInput` tuning |
+| P9.5 | Player, economy and town | remaining cooldowns, costs, rewards and potion/bomb numbers in TS | `player.json`, `items.json`, `economy` tuning |
+| P9.6 | Feel | screen shake / flash durations and intensities, damage-number timings | a `feel` section in an existing JSON file |
+
+Method: grep each folder for numeric literals in gameplay code, sort them into tunable vs technical, and log anything left in code with a reason.
+
 ### Phase 6: UI, town and debug
 
 | ID | Item | Files | Risk | Effort | Depends on |
@@ -496,6 +532,8 @@ flowchart LR
   P5 --> P8
   P6 --> P8
   P7 --> P8
+  P5 --> P9[P9 tunables to JSON]
+  P9 --> P6
 ```
 
 Phase 6 can run in parallel with Phases 2–5 because it touches different files, except for P6.8 (the big folder move), which must go last.
@@ -508,7 +546,7 @@ Phase 6 can run in parallel with Phases 2–5 because it touches different files
 4. **P3.2 + P3.4: `DefenseRunState` / `DefenseServices` and pure night-end rules.** They remove the 149-line host proxy and restore the documented scene/rules invariant.
 5. **P4.1–P4.3: enemy behaviour registry with typed per-behaviour state.** It is the biggest maintainability win for adding enemies, which is the main content-growth path.
 
-**Totals:** 10 quick wins plus 9 phases (P0–P8) with 51 phased items (P8.5 added during execution).
+**Totals:** 10 quick wins plus 10 phases (P0–P9) with 57 phased items (P8.5 and Phase 9 added during execution).
 
 ---
 
