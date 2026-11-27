@@ -24,7 +24,12 @@ export type Damageable = {
   alive: boolean;
   team: "player" | "enemy";
   onDeath?: () => void;
-  onDamaged?: (amount: number, flavor: DamageFlavor) => void;
+  onDamaged?: (
+    amount: number,
+    flavor: DamageFlavor,
+    /** What dealt it: a spell id, "melee", "ranged" or "proc". */
+    source?: string,
+  ) => void;
   onHealed?: (amount: number) => void;
 };
 
@@ -32,10 +37,12 @@ export function applyDamage(
   target: Damageable,
   amount: number,
   flavor: DamageFlavor,
+  source?: string,
 ): void {
   if (!target.alive || amount <= 0) return;
   target.hp = Math.max(0, target.hp - amount);
-  target.onDamaged?.(amount, flavor);
+  if (source === undefined) target.onDamaged?.(amount, flavor);
+  else target.onDamaged?.(amount, flavor, source);
   if (target.hp <= 0) {
     target.alive = false;
     target.onDeath?.();

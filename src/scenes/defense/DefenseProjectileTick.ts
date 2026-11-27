@@ -123,6 +123,7 @@ export function tickDefenseProjectiles(
           result.hitEnemyId,
           def.onHit,
           def.damageFlavor ?? "fire",
+          def.id,
         );
       }
     }

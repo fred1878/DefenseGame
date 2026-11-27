@@ -160,7 +160,7 @@ describe("applyWeaponHitEffects", () => {
       rng: () => 0.99,
     });
     expect(player.hp).toBe(52);
-    expect(dot).toHaveBeenCalledWith("e1", 4, 1000, "fire");
+    expect(dot).toHaveBeenCalledWith("e1", 4, 1000, "fire", "proc");
     expect(slow).toHaveBeenCalledWith("e1", 30, 900);
     // Flamebrand dot is 50%: a 0.99 roll misses it.
     expect(dot).toHaveBeenCalledTimes(1);
