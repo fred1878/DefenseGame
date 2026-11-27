@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
@@ -32,7 +33,7 @@ describe("lobberBehavior", () => {
   const navGrid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
   const lob = shippedEnemyCombat("lobber").lobber;
   if (!lob) throw new Error("expected lobber combat tuning");

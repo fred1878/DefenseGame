@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -120,7 +121,7 @@ export function createDefenseTickHarness(
   const navGrid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
   const enemies: EnemyInstance[] = [];
   for (let i = 0; i < enemyCount; i++) {

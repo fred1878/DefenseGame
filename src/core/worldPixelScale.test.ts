@@ -1,18 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { GAME } from "../config/game";
 import {
-  clampWorldPixelScale,
   cycleDebugWorldPixelScale,
+  setDebugWorldPixelScale,
+  worldScaleDebugLabel,
+} from "./worldPixelScale";
+import { defenseObstacleBlockerRects } from "../world/defenseObstacleBlocker";
+import {
+  clampWorldPixelScale,
   DEFAULT_WORLD_PIXEL_SCALE,
   getWorldPixelScale,
-  scaledDefenseObstacles,
-  setDebugWorldPixelScale,
   worldDisplayPx,
-  worldScaleDebugLabel,
   worldScaleFactor,
   worldUnit,
   WORLD_PIXEL_SCALE_REGISTRY_KEY,
-} from "./worldPixelScale";
+} from "../config/worldScale";
 
 function fakeRegistry(
   store: Record<string, unknown> = {},
@@ -47,10 +49,10 @@ describe("worldPixelScale", () => {
   });
 
   it("scales obstacle colliders for nav", () => {
-    const at1 = scaledDefenseObstacles(
+    const at1 = defenseObstacleBlockerRects(
       fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 1 }),
     );
-    const at2 = scaledDefenseObstacles(
+    const at2 = defenseObstacleBlockerRects(
       fakeRegistry({ [WORLD_PIXEL_SCALE_REGISTRY_KEY]: 2 }),
     );
     expect(at1[0]!.w).toBeCloseTo(at2[0]!.w * 0.5, 5);

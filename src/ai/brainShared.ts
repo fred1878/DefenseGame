@@ -7,7 +7,7 @@ import {
   northWallApproachY,
   northWallAttackY,
 } from "../config";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 import { findPath, type PathPoint } from "../pathfinding/astar";
 import { hasLineOfSight } from "../pathfinding/los";
 import type { NavGrid, NavPeerAgent } from "../pathfinding/grid";

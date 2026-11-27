@@ -1,5 +1,5 @@
 import { DEFENSE_MAP } from "../../config";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import {
   clampToDefensePlayBounds,
   defensePlayBoundsInset,

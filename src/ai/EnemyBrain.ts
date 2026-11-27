@@ -1,5 +1,5 @@
 import { DEFENSE_MAP } from "../config";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 import type { NavGrid, NavPeerAgent } from "../pathfinding/grid";
 import type { EnemyInstance } from "../entities/Enemy";
 import { getEnemyBehavior } from "./behaviors";

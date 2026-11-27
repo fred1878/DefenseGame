@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { GROUND_TILE_SIZE, GROUND_TILE_TEXTURE } from "../content/assets";
-import { worldDisplayPx } from "../core/worldPixelScale";
+import { worldDisplayPx } from "../config/worldScale";
 
 export function buildGroundLayer(
   scene: Phaser.Scene,

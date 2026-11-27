@@ -8,7 +8,7 @@ import {
   SMOKE_FX_TEXTURE,
   smokeFxPackLoaded,
 } from "../content/smokeFxAssets";
-import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../config/worldScale";
 
 const DEPTH = DEFENSE_RENDER_DEPTH.enemyCombatFx;
 

@@ -9,7 +9,7 @@ import {
 import { enemiesInDisk, type EnemyHitTarget } from "./spellMechanics";
 import type { EnemySpellStatusMap } from "./enemySpellStatus";
 import { applySpellOnHitEffects } from "./spellOnHitEffects";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 import {
   channeledGroundZoneCompletionRemainder,
   channeledGroundZoneMaxTicks,

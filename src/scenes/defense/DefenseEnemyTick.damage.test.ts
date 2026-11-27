@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config/defense";
 import type { Damageable } from "../../combat/DamageSystem";
@@ -9,7 +10,7 @@ import { tickDefenseEnemies } from "./DefenseEnemyTick";
 const testNavGrid = buildNavGrid(
   [],
   DEFENSE_MAP.cellSize,
-  DEFENSE_MAP.pathClearancePx,
+  maxNavObstacleClearancePx(),
 );
 
 function spriteStub(x: number, y: number) {

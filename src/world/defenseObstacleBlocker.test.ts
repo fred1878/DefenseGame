@@ -5,7 +5,7 @@ import {
   DEFENSE_OBSTACLES,
   defenseObstacleColliderFromPlacement,
 } from "../config/defense";
-import { WORLD_PIXEL_SCALE_REGISTRY_KEY } from "../core/worldPixelScale";
+import { WORLD_PIXEL_SCALE_REGISTRY_KEY } from "../config/worldScale";
 import {
   circleRectOverlapDepth,
   circleRectSurfaceGap,

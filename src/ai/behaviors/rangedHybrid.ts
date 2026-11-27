@@ -1,4 +1,4 @@
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity, playerChaseVelocityOpts } from "./movement";
 import {

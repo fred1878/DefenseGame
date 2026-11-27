@@ -5,7 +5,7 @@ import {
   type PlayerCardinal,
 } from "../content/assets";
 import { resolveEnemyCardinal } from "./enemyFacing";
-import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../config/worldScale";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import type { EnemyDef } from "../core/DataStore";
 import {

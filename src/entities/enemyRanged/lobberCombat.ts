@@ -5,7 +5,7 @@ import {
   spawnArrowRainTelegraph,
   updateArrowRainTelegraph,
 } from "../../combat/ArrowRainTelegraph";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import type { EnemyInstance } from "../Enemy";
 import type { EnemyAttackTarget } from "../EnemyCombat";
 import { commitEnemyAttack } from "./attackCommit";

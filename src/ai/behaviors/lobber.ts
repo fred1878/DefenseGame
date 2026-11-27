@@ -1,4 +1,4 @@
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
   pathingPeerAgents,

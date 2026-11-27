@@ -9,7 +9,7 @@ import {
 } from "../content/meleeFxAssets";
 import type { EnemyMeleeCombat } from "../core/enemyTuning";
 import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
-import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../config/worldScale";
 import { publishE2E } from "../e2e/e2eGlobal";
 import { isE2EEnabled } from "../e2e/e2eMode";
 

@@ -11,7 +11,7 @@ import { GROUND_TILE_SIZE } from "../content/assets";
 import {
   WORLD_PIXEL_SCALE_REGISTRY_KEY,
   worldDisplayPx,
-} from "../core/worldPixelScale";
+} from "../config/worldScale";
 
 function fakeRegistry(
   store: Record<string, unknown> = {},

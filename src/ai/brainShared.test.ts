@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import { describe, expect, it } from "vitest";
 import {
   DEFENSE_OBSTACLES,
@@ -30,7 +31,7 @@ import {
 } from "./brainShared";
 
 describe("pickEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, maxNavObstacleClearancePx());
 
   it("huntPlayer always targets the player", () => {
     expect(
@@ -81,7 +82,7 @@ describe("pickEnemyTarget", () => {
 });
 
 describe("resolveEnemyTarget", () => {
-  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, DEFENSE_MAP.pathClearancePx);
+  const grid = buildNavGrid(DEFENSE_OBSTACLES, 16, maxNavObstacleClearancePx());
 
   it("continues toward last known position after LOS breaks", () => {
     const nav = createEnemyNav();
@@ -167,7 +168,7 @@ describe("replanEnemyPath", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       16,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const nav = createEnemyNav();
     replanEnemyPath(nav, grid, 0, 400, 0, -500);

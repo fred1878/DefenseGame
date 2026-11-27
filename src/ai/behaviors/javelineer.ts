@@ -1,5 +1,5 @@
 import { northWallAttackY } from "../../config";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import {
   cellBlocked,
   worldToCell,

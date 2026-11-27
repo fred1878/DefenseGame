@@ -5,7 +5,7 @@ import {
 } from "../combat/enemyMeleeFxSchedule";
 import { setEnemyChaseVelocity } from "../combat/enemyKnockback";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 import type { Damageable } from "../combat/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
 import { RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS } from "../core/enemyTuning";

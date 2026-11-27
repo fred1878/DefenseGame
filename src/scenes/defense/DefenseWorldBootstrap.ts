@@ -11,7 +11,7 @@ import {
 import { flashSpriteTint } from "../../combat/HitFlash";
 import { Player } from "../../entities/Player";
 import { DamageNumberFx } from "./DamageNumberFx";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import {
   correctPlayerObstacleBlockerOverlap,
   createDefenseObstacleCollider,

@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 
 /** South band where night waves enter (north = negative y). */
 export function pickWaveSpawnPoint(

@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
 import { defenseHalfWidth } from "../../config/defense";
@@ -17,7 +18,7 @@ describe("retreatPathing", () => {
   const grid = buildNavGrid(
     DEFENSE_OBSTACLES,
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
 
   it("places flee goals on the away-from-threat vector", () => {

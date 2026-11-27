@@ -19,7 +19,7 @@ import {
   enemyPathClearancePx,
   enforceEnemyDefenseBounds,
 } from "../../entities/entityPhysics";
-import { worldDisplayPx, worldUnit } from "../../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../../config/worldScale";
 import { updateEnemyCombat } from "../../entities/EnemyCombat";
 import {
   updateArrowRainCombat,

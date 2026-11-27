@@ -21,9 +21,9 @@ import { scaleUiX, scaleUiY } from "../core/displayScale";
 import { uiTextStyle } from "../ui/uiTextStyle";
 import {
   cycleDebugWorldPixelScale,
-  getWorldPixelScale,
   worldScaleDebugLabel,
 } from "../core/worldPixelScale";
+import { getWorldPixelScale } from "../config/worldScale";
 import { fullscreenButtonLabel, toggleFullscreen } from "../ui/fullscreen";
 import {
   DEBUG_MENU_CLOSE,

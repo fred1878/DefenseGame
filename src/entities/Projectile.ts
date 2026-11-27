@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
-import { worldDisplayPx } from "../core/worldPixelScale";
+import { worldDisplayPx } from "../config/worldScale";
 import type { Damageable, DamageFlavor } from "../combat/DamageSystem";
 import { applyDamage } from "../combat/DamageSystem";
 import { segmentFirstCircleHitT } from "../combat/Hitbox";

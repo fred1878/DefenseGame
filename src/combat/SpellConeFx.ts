@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { DEFENSE_RENDER_DEPTH } from "../config";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 const SPELL_CONE_FX_DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 
 const CONE_FILL = 0xff6622;

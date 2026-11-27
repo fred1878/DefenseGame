@@ -1,14 +1,11 @@
 {
   "cycles": [
-    "config/defense.ts <-> core/worldPixelScale.ts <-> entities/entityPhysics.ts <-> world/defenseObstacleBlocker.ts",
     "content/spellBarAutoCast.ts <-> content/spells.ts",
     "core/normalizeConsumables.ts <-> gear/consumables.ts",
     "ui/defenseMinimap.ts <-> ui/fpsHudLayout.ts <-> ui/screenLayout.ts",
     "ui/touchButtonPress.ts <-> ui/uiRoundedRect.ts"
   ],
   "layerViolations": [
-    "config-is-constants-only: config/defense.ts -> core/worldPixelScale.ts",
-    "config-is-constants-only: config/defense.ts -> entities/entityPhysics.ts",
     "config-is-constants-only: config/defenseMaps.ts -> core/normalizeDefenseMaps.ts",
     "config-is-constants-only: config/shadowformRuntime.ts -> gear/gearRuntime.ts",
     "config-is-constants-only: config/spellBar.ts -> core/displayScale.ts",
@@ -18,7 +15,6 @@
     "core-below-presentation: core/defenseRunMode.ts -> systems/wavePlannerTiming.ts",
     "core-below-presentation: core/normalizePlayer.ts -> systems/endlessSpawnScheduler.ts",
     "core-below-presentation: core/saveSlots.ts -> e2e/e2eMode.ts",
-    "core-below-presentation: core/worldPixelScale.ts -> world/defenseObstacleBlocker.ts",
     "no-debug-in-domain: gear/shops.ts -> debug/debugEconomy.ts",
     "no-debug-in-domain: systems/townBuildingMenu.ts -> debug/debugEconomy.ts",
     "no-debug-in-domain: talents/talentLogic.ts -> debug/debugEconomy.ts",

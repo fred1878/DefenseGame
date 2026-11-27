@@ -9,7 +9,7 @@ import {
   SPRITE_DISPLAY,
   type PlayerCardinal,
 } from "../content/assets";
-import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../config/worldScale";
 import { arcHitboxHitsTarget } from "../combat/Hitbox";
 import type { Damageable } from "../combat/DamageSystem";
 import { applyDamage, MELEE_HIT_FLAVOR } from "../combat/DamageSystem";

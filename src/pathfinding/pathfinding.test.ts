@@ -18,8 +18,7 @@ import { hasLineOfSight } from "./los";
 
 describe("nav grid", () => {
   it("uses static obstacle nav clearance from data", () => {
-    expect(DEFENSE_MAP.pathClearancePx).toBe(18);
-    expect(DEFENSE_MAP.pathClearancePx).toBe(maxNavObstacleClearancePx());
+    expect(maxNavObstacleClearancePx()).toBe(18);
     expect(enemyPathClearancePx("bruiser")).toBeGreaterThan(
       enemyCollisionBodyRadius("bruiser"),
     );
@@ -32,7 +31,7 @@ describe("nav grid", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     expect(cellBlocked(grid, 0, 0)).toBe(false);
     const obs = DEFENSE_OBSTACLES[0]!;
@@ -46,7 +45,7 @@ describe("nav grid", () => {
     const wide = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     let extra = 0;
     for (let r = 0; r < wide.rows; r++) {
@@ -82,7 +81,7 @@ describe("A*", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const start = cellToWorldCenter(grid, 2, 10);
     const goal = cellToWorldCenter(grid, 18, 10);
@@ -108,7 +107,7 @@ describe("A*", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const start = cellToWorldCenter(grid, 2, 10);
     const goal = cellToWorldCenter(grid, 18, 10);
@@ -164,7 +163,7 @@ describe("A*", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const northY = -defenseHalfHeight() + 40;
     const halfH = defenseHalfHeight();
@@ -180,7 +179,7 @@ describe("line of sight", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const rock = DEFENSE_OBSTACLES[0]!;
     expect(
@@ -192,7 +191,7 @@ describe("line of sight", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const halfH = defenseHalfHeight();
     expect(hasLineOfSight(grid, 0, halfH - 120, 0, halfH - 40)).toBe(true);
@@ -202,7 +201,7 @@ describe("line of sight", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     let clearanceCell: { col: number; row: number } | null = null;
     for (let r = 0; r < grid.rows; r++) {
@@ -231,7 +230,7 @@ describe("grid cell helpers", () => {
   const grid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
 
   it("returns null for world points outside the grid", () => {
@@ -275,7 +274,7 @@ describe("cellBlocked leftover branches", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const { x, y } = cellToWorldCenter(grid, 2, 2);
     expect(cellBlocked(grid, 2, 2, [{ x, y }], 20)).toBe(true);

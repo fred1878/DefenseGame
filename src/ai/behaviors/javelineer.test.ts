@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
@@ -59,7 +60,7 @@ describe("javelineerBehavior", () => {
   const navGrid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
 
   it("retreats and arcs when player is inside min range", () => {

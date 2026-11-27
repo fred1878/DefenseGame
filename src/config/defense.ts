@@ -5,12 +5,7 @@ import {
   type ObstacleTextureKey,
 } from "../content/assets";
 import { NORTH_WALL_MELEE_STANDOFF_WU } from "./enemy";
-import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
-import {
-  worldDisplayPx,
-  worldScaleFactor,
-  worldUnit,
-} from "../core/worldPixelScale";
+import { worldDisplayPx, worldScaleFactor, worldUnit } from "./worldScale";
 import type Phaser from "phaser";
 
 /** Playable defense footprint in 64px ground tiles (set from `defense-maps.json` at Boot). */
@@ -161,13 +156,6 @@ export function obstacleDisplaySize(
 export const DEFENSE_MAP = {
   /** 16px nav cells — quarter ground tile — so blocked cells hug sprite mass. */
   cellSize: 16,
-  /**
-   * Inflate obstacle blockers on the nav grid (`staticObstacleNavClearancePx` in `entity-physics.json`).
-   * Lazy — depends on `entity-physics.json` loaded at Boot.
-   */
-  get pathClearancePx(): number {
-    return maxNavObstacleClearancePx();
-  },
   /** How close an enemy must be to a path node before advancing. */
   pathWaypointRadius: 14,
   /** Recompute A* at most this often per enemy (ms). */

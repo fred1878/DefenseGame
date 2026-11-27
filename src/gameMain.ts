@@ -9,7 +9,7 @@ import { installPhaser3VertexRounding } from "./core/phaser3PixelParity";
 import {
   DEFAULT_WORLD_PIXEL_SCALE,
   WORLD_PIXEL_SCALE_REGISTRY_KEY,
-} from "./core/worldPixelScale";
+} from "./config/worldScale";
 import { bindViewportToScale } from "./ui/screenLayout";
 import { BootScene } from "./scenes/BootScene";
 import { TownScene } from "./scenes/TownScene";

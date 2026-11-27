@@ -29,7 +29,7 @@ import {
   type PlayerProjectile,
   type SpellProjectileBehavior,
 } from "../entities/Projectile";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 import { showPlayerMeleeSwipe } from "./MeleeSwipeFx";
 import { playConeOfFireIncinerateFx } from "./ConeOfFireIncinerateFx";
 import { showSpellConeFx } from "./SpellConeFx";

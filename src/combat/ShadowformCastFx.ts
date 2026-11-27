@@ -5,7 +5,7 @@ import {
   PVFX_ANIM,
   PVFX_TEXTURE,
 } from "../content/combatPvfxAssets";
-import { worldDisplayPx } from "../core/worldPixelScale";
+import { worldDisplayPx } from "../config/worldScale";
 
 const DEPTH = DEFENSE_RENDER_DEPTH.playerCombatFx;
 

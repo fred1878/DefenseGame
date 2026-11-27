@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
@@ -46,7 +47,7 @@ describe("arrowRainArcherBehavior", () => {
     const grid = buildNavGrid(
       [],
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const enemy = mockArcher(0, 0);
     enemy.nav.replanMs = 0;
@@ -72,7 +73,7 @@ describe("arrowRainArcherBehavior", () => {
     const grid = buildNavGrid(
       DEFENSE_OBSTACLES,
       DEFENSE_MAP.cellSize,
-      DEFENSE_MAP.pathClearancePx,
+      maxNavObstacleClearancePx(),
     );
     const replanSpy = vi.spyOn(BrainShared, "replanEnemyPath");
     const enemy = mockArcher(0, 120);

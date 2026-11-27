@@ -5,7 +5,7 @@
  */
 import { DEFENSE_MAP, PLAYER_AGGRO_RADIUS } from "../../config";
 import { playerAggroRadiusWu } from "../../config/shadowformRuntime";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import type { NavPeerAgent } from "../../pathfinding/grid";
 import {
   replanEnemyPath,

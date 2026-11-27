@@ -1,3 +1,4 @@
+import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import Phaser from "phaser";
 import { DEFENSE_MAP, PLAYER_TUNING, type AttackMode } from "../config";
 import type { DefenseObstacleRect } from "../config/defense";
@@ -9,7 +10,7 @@ import type { EndlessRunSelection } from "../core/defenseRunMode";
 import { applySaveLoadout } from "../talents/talentRuntime";
 import { applyWeaponHitEffects } from "../gear/gearProcs";
 import { applyPixelRenderDebugSettings } from "../core/pixelRenderDebug";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 import {
   shadowformActive,
   shadowformMoveSpeedMultiplier,
@@ -389,7 +390,7 @@ export class DefenseScene extends Phaser.Scene {
     this.navGrid = buildNavGrid(
       this.obstacleBlockers,
       worldUnit(DEFENSE_MAP.cellSize, this.registry),
-      worldUnit(DEFENSE_MAP.pathClearancePx, this.registry),
+      worldUnit(maxNavObstacleClearancePx(), this.registry),
       this.registry,
     );
     this.registerWorldDraw = world.registerWorldDraw;
