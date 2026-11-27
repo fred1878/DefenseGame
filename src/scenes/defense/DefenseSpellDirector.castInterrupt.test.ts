@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import * as SpellGroundAoeTelegraph from "../../combat/SpellGroundAoeTelegraph";
-import { SpellCastController } from "../../combat/SpellCastController";
+import * as SpellGroundAoeTelegraph from "../../combat/fx/SpellGroundAoeTelegraph";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
 import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,

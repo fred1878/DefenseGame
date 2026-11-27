@@ -1,10 +1,12 @@
+import { playerTuning } from "../../config/player";
+import { tuning } from "../../tuning/gameTuning";
 import { gearRangedProjectile } from "../../gear/gearRuntime";
 import Phaser from "phaser";
-import { DEFENSE_RENDER_DEPTH, PLAYER_TUNING } from "../../config";
-import { MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
-import { showPlayerMeleeSwipe } from "../../combat/MeleeSwipeFx";
-import type { SpellCastController } from "../../combat/SpellCastController";
-import type { SpellInputQueue } from "../../combat/spellInputQueue";
+import { DEFENSE_RENDER_DEPTH } from "../../config";
+import { MELEE_HIT_FLAVOR } from "../../combat/rules/DamageSystem";
+import { showPlayerMeleeSwipe } from "../../combat/fx/MeleeSwipeFx";
+import type { SpellCastController } from "../../combat/rules/SpellCastController";
+import type { SpellInputQueue } from "../../combat/rules/spellInputQueue";
 import { playPlayerMeleeSlashSfx } from "../../audio/playerMeleeSlashSfx";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import type { EnemyInstance } from "../../entities/Enemy";
@@ -65,9 +67,10 @@ export class DefensePlayerCombat {
       );
       return;
     }
-    const durationMs = def?.durationMs ?? 320;
-    const startAlpha = def?.startAlpha ?? 0.9;
-    const scaleEnd = def?.scaleEnd ?? 1.25;
+    const feel = tuning("gameplay").feel;
+    const durationMs = def?.durationMs ?? feel.novaFlashDurationMs;
+    const startAlpha = def?.startAlpha ?? feel.novaFlashStartAlpha;
+    const scaleEnd = def?.scaleEnd ?? feel.novaFlashScaleEnd;
     const sprite = scene.add
       .image(x, y, key)
       .setDepth(DEFENSE_RENDER_DEPTH.playerCombatFx)
@@ -135,7 +138,7 @@ export class DefensePlayerCombat {
     for (const e of this.host.enemies) {
       if (!e.damageable.alive) continue;
       const d = Phaser.Math.Distance.Between(px, py, e.sprite.x, e.sprite.y);
-      if (d > this.host.wu(PLAYER_TUNING.autoAttackMeleeRange)) continue;
+      if (d > this.host.wu(playerTuning().autoAttackMeleeRange)) continue;
       if (bestMelee === null || d < bestMelee) bestMelee = d;
     }
     return bestMelee !== null ? "melee" : "ranged";
@@ -159,7 +162,7 @@ export class DefensePlayerCombat {
       this.cancelPlayerMeleeFxTimer();
       const scene = this.host.scene;
       this.playerMeleeFxTimer = scene.time.delayedCall(
-        PLAYER_TUNING.meleeFxStartMs,
+        playerTuning().meleeFxStartMs,
         () => {
           this.playerMeleeFxTimer = undefined;
           if (
@@ -173,8 +176,8 @@ export class DefensePlayerCombat {
             player.sprite.x,
             player.sprite.y,
             player.meleeHitboxFacingRad(),
-            PLAYER_TUNING.meleeFxDurationMs,
-            PLAYER_TUNING.meleeActiveMs,
+            playerTuning().meleeFxDurationMs,
+            playerTuning().meleeActiveMs,
             this.host.registerWorldDraw,
           );
           playPlayerMeleeSlashSfx(scene);
@@ -194,9 +197,9 @@ export class DefensePlayerCombat {
       player.sprite.x,
       player.sprite.y,
       angle,
-      PLAYER_TUNING.projectileSpeedWu,
+      playerTuning().projectileSpeedWu,
       damage,
-      this.host.wu(PLAYER_TUNING.rangedMaxRangeWu),
+      this.host.wu(playerTuning().rangedMaxRangeWu),
       id,
       shot?.textureKey ?? COMBAT_FX_TEXTURE.stoneThrow,
       MELEE_HIT_FLAVOR,

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import type { SaveGame } from "../src/core/saveTypes";
+import type { SaveGame } from "../src/core/save/saveTypes";
 
 /**
  * Real-fight harness (@manual, driven by `npm run sim:fights`, see

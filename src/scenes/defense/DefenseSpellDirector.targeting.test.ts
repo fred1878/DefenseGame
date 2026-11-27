@@ -1,20 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import type Phaser from "phaser";
 import { applySpellInputTuning } from "../../config/spellInput";
-import { normalizeSpellInput } from "../../core/normalizeSpellInput";
-import { SpellCastController } from "../../combat/SpellCastController";
-import { SpellInputQueue } from "../../combat/spellInputQueue";
+import { normalizeSpellInput } from "../../core/data/normalizeSpellInput";
+import shippedSpellInput from "../../../public/data/spell_input.json";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
+import { SpellInputQueue } from "../../combat/rules/spellInputQueue";
 import type { SpellDefinition } from "../../content/spells";
 import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
-import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
+import { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
 
 applySpellInputTuning(
   normalizeSpellInput({
-    castInterruptStickAngleDeg: 20,
-    stickMovingMagnitudeEps: 0.12,
+    ...shippedSpellInput,
     groundTapAutoCastSpellIds: ["blizzard"],
   }),
 );

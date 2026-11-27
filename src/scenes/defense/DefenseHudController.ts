@@ -1,49 +1,53 @@
 import type Phaser from "phaser";
+import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import type { AttackMode } from "../../config";
-import type { SaveGame } from "../../core/saveTypes";
-import { scaleUiX } from "../../core/displayScale";
+import type { SaveGame } from "../../core/save/saveTypes";
+import { scaleUiX } from "../../config/uiScale";
 import { UI_TEXTURE } from "../../content/assets";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { VirtualStick } from "../../input/VirtualStick";
 import type { Player } from "../../entities/Player";
-import { SpellCastController } from "../../combat/SpellCastController";
-import { CastBar } from "../../ui/CastBar";
-import { SpellBar } from "../../ui/SpellBar";
+import { SpellCastController } from "../../combat/rules/SpellCastController";
+import { CastBar } from "../../ui/hud/CastBar";
+import { SpellBar } from "../../ui/hud/SpellBar";
 import {
   createCombatHudChrome,
   type CombatHudChrome,
-} from "../../ui/combatHudChrome";
+} from "../../ui/hud/combatHudChrome";
 import {
   DefenseMinimap,
   defenseMinimapLayout,
   defenseMinimapScreenRect,
-} from "../../ui/defenseMinimap";
-import { defensePlayAreaLayout } from "../../ui/screenLayout";
+} from "../../ui/hud/defenseMinimap";
+import { defensePlayAreaLayout } from "../../ui/layout/screenLayout";
 import {
   buildCombatStickUiMask,
   bottomHudStripLayout,
   combatChromeLayout,
   combatDebugButtonPosition,
-  hudTextPosition,
   nightReturnButtonPosition,
   readSafeInsets,
   type SafeInsets,
-} from "../../ui/screenLayout";
-import { DEFENSE_TOP_CHROME_TRIM_PX } from "../../ui/defenseHudLayout";
+} from "../../ui/layout/screenLayout";
+import {
+  DEFENSE_TOP_CHROME_TRIM_PX,
+  hudTextPosition,
+} from "../../ui/hud/defenseHudLayout";
 import {
   createTouchButton,
   createTouchCircleButton,
   createTouchToggleButton,
-} from "../../ui/touchButton";
-import type { TouchButtonHandle } from "../../ui/touchButton";
-import { uiTextStyle } from "../../ui/uiTextStyle";
+} from "../../ui/touch/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
+import { uiTextStyle } from "../../ui/layout/uiTextStyle";
 import {
   createDefenseTopHud,
   defenseTopHudLayout,
   type DefenseTopHud,
-} from "../../ui/defenseTopHud";
-import { frameTouchButton } from "../../ui/uiFrame";
-import { hudBandHeight } from "../../ui/screenLayoutCore";
+} from "../../ui/hud/defenseTopHud";
+import { frameTouchButton } from "../../ui/layout/uiFrame";
+import { hudBandHeight } from "../../ui/layout/screenLayoutCore";
 import { runDefenseUiFactory } from "../../world/defenseWorldAddHook";
 
 export type DefenseHudControllerDeps = {
@@ -158,9 +162,9 @@ function buildDefenseHudController(
     {
       frameTextureKey: UI_TEXTURE.modeRect,
       onBgTint: 0xe8d4a8,
-      offBgTint: 0xffffff,
-      onTextColor: "#fde68a",
-      offTextColor: "#e8dcc8",
+      offBgTint: PALETTE.white,
+      onTextColor: PALETTE_CSS.amber200,
+      offTextColor: PALETTE_CSS.parchmentDim,
     },
   );
   registerUi(modeToggle.container);
@@ -180,7 +184,7 @@ function buildDefenseHudController(
     {
       frameTextureKey: UI_TEXTURE.autoRect,
       onBgTint: 0xa8d8a0,
-      offBgTint: 0xffffff,
+      offBgTint: PALETTE.white,
       onTextColor: "#bef264",
       offTextColor: "#a8a29e",
     },
@@ -234,11 +238,11 @@ function buildDefenseHudController(
       "",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(16)}px`,
-        color: "#fafafa",
+        color: PALETTE_CSS.zinc50,
       }),
     )
     .setScrollFactor(0)
-    .setDepth(200);
+    .setDepth(DEFENSE_UI_DEPTH.hud);
   registerUi(hudText);
 
   const topHud = createDefenseTopHud(
@@ -261,7 +265,7 @@ function buildDefenseHudController(
     {
       width: tl.debugW,
       height: tl.debugH,
-      depth: 200,
+      depth: DEFENSE_UI_DEPTH.hud,
       fontSize: "16px",
       fillColor: 0x1c1714,
       strokeColor: 0x1c1714,
@@ -288,7 +292,7 @@ function buildDefenseHudController(
     const btn = createTouchButton(scene, x, dbgPos.y, label, onTap, {
       width: bw,
       height: bh,
-      depth: 200,
+      depth: DEFENSE_UI_DEPTH.hud,
       fontSize: "18px",
       fillColor: fill,
       strokeColor: stroke,
@@ -306,8 +310,8 @@ function buildDefenseHudController(
     potionX,
     "Potion",
     deps.onUsePotion,
-    0x7f1d1d,
-    0xf87171,
+    PALETTE.red900,
+    PALETTE.red400,
     "defense-potion",
     "btnRed",
   );
@@ -316,7 +320,7 @@ function buildDefenseHudController(
     "Bomb",
     deps.onUseBomb,
     0x78350f,
-    0xfbbf24,
+    PALETTE.amber400,
     "defense-bomb",
     "btnDark",
   );
@@ -333,7 +337,7 @@ function buildDefenseHudController(
       {
         width: leaveBtn.width,
         height: leaveBtn.height,
-        depth: 210,
+        depth: DEFENSE_UI_DEPTH.hudOverlayButton,
         fontSize: `${scaleUiX(14)}px`,
         fillColor: 0x1c1714,
         strokeColor: 0x1c1714,

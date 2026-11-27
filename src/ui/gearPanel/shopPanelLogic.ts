@@ -6,7 +6,7 @@ import {
   type ShopContext,
   type ShopId,
 } from "../../gear/shops";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import type { GearPanelContext } from "./gearPanelLogic";
 
 export type ShopUpgradeInfo = {

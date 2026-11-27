@@ -4,9 +4,10 @@
 
 | Command | What it runs |
 |---------|----------------|
-| `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → Vitest |
+| `npm run verify` | Local inner loop: `typecheck` (src + e2e + configs) → `lint` → `knip` → `check:arch` → Vitest |
 | `npm run lint` | `biome check`: lint + formatting; warnings fail too (`--error-on-warnings`) |
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
+| `npm run check:arch` | Runtime import cycles + folder layer rules in `src/` (`scripts/check-architecture.mjs`). Fails on new debt and on fixed debt still listed in `scripts/data/architecture-baseline.json`; refresh with `node scripts/check-architecture.mjs --update-baseline` after removing debt. The baseline has been **empty** since refactor phase P1 and `--update-baseline` can only remove entries, so any new cycle or layer violation fails the gate. |
 | `npm run format` | Biome formatter; run it when `lint` reports formatting |
 | `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
@@ -17,7 +18,7 @@ The **`e2e`** job **needs `verify`** (they run sequentially, not in parallel). E
 
 | Job | Steps |
 |-----|--------|
-| `verify` | Always: `typecheck`, `lint`, `knip`, `test:coverage`, then `build:app` (Vite build without a second `tsc`; production, or E2E build when `run_e2e`) |
+| `verify` | Always: `typecheck`, `lint`, `knip`, `check:arch`, `test:coverage`, then `build:app` (Vite build without a second `tsc`; production, or E2E build when `run_e2e`) |
 | `changes` | Path filter + (on `main` only) conflict-merge detection → `run_e2e` |
 | `e2e` | Starts after `verify`. When `run_e2e`: downloads the e2e `dist` artifact, Playwright (Chromium). Otherwise one skip step (job still green). |
 
@@ -86,14 +87,14 @@ Hidden `[data-testid]` buttons track combat UI centers from `api.getUiTapTargets
 | Area | File |
 |------|------|
 | Pathfinding / LOS | `src/pathfinding/pathfinding.test.ts` |
-| Enemy AI target pick | `src/ai/EnemyBrain.test.ts` |
+| Enemy AI target pick | `src/ai/brainShared.test.ts` |
 | Enemy combat FSM / wall hits | `src/entities/EnemyCombat.test.ts` |
-| Hitbox / damage / knockback | `src/combat/*.test.ts` |
+| Hitbox / damage / knockback | `src/combat/rules/*.test.ts` (VFX: `src/combat/fx/*.test.ts`) |
 | GameState / DataStore | `src/core/*.test.ts` |
-| Layout math | `src/ui/screenLayout.test.ts` |
+| Layout math | `src/ui/layout/screenLayout.test.ts` |
 | Stick mask + gesture FSM | `src/input/VirtualStick.test.ts` |
-| Night-end guards | `src/scenes/defenseNightLogic.test.ts` |
-| Touch slop | `src/ui/touchButtonGesture.test.ts`, `touchButton.test.ts` |
+| Night-end guards and save rules | `src/systems/nightEndRules.test.ts` |
+| Touch slop | `src/ui/touch/touchButtonGesture.test.ts`, `touchButton.test.ts` |
 
 ## Playwright suites
 
@@ -140,7 +141,7 @@ Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file para
 | Spec / test | Why local |
 |-------------|-----------|
 | `obstacle-bump-metrics.spec.ts` | Writes metrics JSON for human review |
-| `obstacle-*-capture.spec.ts`, `obstacle-v2-visual-proof.spec.ts` | Visual capture / proof overlays |
+| `obstacle-*-capture.spec.ts`, `obstacle-v2-visual-proof.spec.ts` | Visual capture / proof overlays. Copies go to `E2E_ARTIFACT_DIR` (default `/opt/cursor/artifacts`) only when that folder is writable (`e2e/helpers/artifacts.ts`); the assertions run either way. |
 | `defense-hud-band-pixels.spec.ts`, `defense-hud-reentry.spec.ts` | Fragile luminance sampling |
 | `defense-play-area-viewport.spec.ts` | Overlaps HUD layout probes |
 | `spellbar-textures.spec.ts` | Asset audit; boot already checks combat FX in smoke |
@@ -152,7 +153,7 @@ CI runs **Chromium only** (`npm run test:e2e -- --project=chromium` with `CI=tru
 ## Manual review captures vs e2e
 
 - **CI:** No `toHaveScreenshot` and **no committed snapshot PNGs** under `e2e/`. UI correctness is covered by tap targets, layout probes, texture audits, and related specs.
-- **Human review:** After intentional UI changes, run `scripts/capture-ui-visual.mjs` (or `capture-defense-hud.mjs`). See **[MANUAL_UI_CAPTURE.md](./MANUAL_UI_CAPTURE.md)** for paths, md5 checks, and stale-hash policy.
+- **Human review:** After intentional UI changes, run `scripts/capture/capture-ui-visual.mjs` (or `capture-defense-hud.mjs`). See **[MANUAL_UI_CAPTURE.md](./MANUAL_UI_CAPTURE.md)** for paths, md5 checks, and stale-hash policy.
 
 ## Adding a Playwright spec
 
@@ -178,11 +179,12 @@ Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines / statements | 94% | ~95% (scenes/world modules in scope) |
-| functions | 95% | ~96% |
-| branches | 90% | ~92% |
+| lines | 95% | ~95.4% (scenes/world modules in scope) |
+| statements | 94% | ~95% |
+| functions | 95% | ~95.5% |
+| branches | 91% | ~92% |
 
-**Excluded from coverage:** Phaser scene orchestrators (`BootScene`, `TownScene`, `DefenseScene`, setup scenes), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only scene adapters (`DefenseSceneE2E*`, `TownSceneE2E`), and Capacitor update stubs. Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers. Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** Phaser scene orchestrators (`BootScene`, `TownScene`, `DefenseScene`, setup scenes), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers. Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
 ## Visual checks (screenshot baselines)
 
 `e2e/visual-screens.spec.ts` compares screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):
@@ -207,3 +209,29 @@ npx playwright test e2e/visual-screens.spec.ts --project=chromium --update-snaps
 ```
 
 If your local renderer differs from CI, take the `actual` PNGs from the failed CI run's `playwright-report` artifact instead.
+
+## Defense enemy-loop safety net (refactor plan P0.3 / P0.4)
+
+`src/test/defenseTickHarness.ts` runs the real `tickDefenseEnemies` headless: N enemies cycling every shipped behaviour, a fixed player, the wall, and sprite positions integrated from the AI's velocities (fake scene, all FX textures "exist").
+
+| Check | Command | Notes |
+|---|---|---|
+| Golden behaviour snapshot | part of `npm run test` (`src/scenes/defense/defenseGolden.test.ts`) | Digests of positions, HP, combat phase, wall/player HP and projectile count after 10×600, 30×300 and 60×120 frames. Keyed by a hash of the shipped `public/data` tuning files: after a balance edit the comparison is **skipped** until refreshed with `UPDATE_GOLDEN=1 npx vitest run defenseGolden`. A refactor that changes a digest while the data hash is unchanged is a behaviour change. |
+| Enemy-loop perf | `npm run perf` | Opt-in (PERF=1). Prints median ms per frame for 20 / 60 / 120 enemies. Compare on the same machine only. |
+
+Baseline on the agent box (2026-11-27, Node 24; noisy, medians of 5 × 120 frames):
+
+| Code | 20 enemies | 60 enemies | 120 enemies |
+|---|---:|---:|---:|
+| Before QW3 (per-pair peer rows) | 0.50 ms | 14.4 ms | 17.2 ms |
+| After QW3 (per-frame peer rows) | 0.30 ms | 14.6 ms | 12.0 ms |
+
+At 60+ enemies the cost is dominated by A* replans with peer agents (`pathfinding/astar.ts`), not allocation.
+
+## Complexity gate
+
+Biome's `noExcessiveCognitiveComplexity` runs as an error with a cap of
+**25** per function. Nineteen legacy files (listed in the `overrides` block of
+`biome.json`) are held at the current worst score (84, `tickDefenseEnemies`)
+until they are split up by the refactor plan; remove a file from that list
+once its functions are under 25. Never add new files to it.

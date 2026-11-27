@@ -1,10 +1,10 @@
 import Phaser from "phaser";
-import type { ConsumableDef } from "../../gear/consumables";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import type { EquipSlot, ItemType } from "../../gear/gearTypes";
 
 /**
  * Panel line icons, frame order of `public/assets/ui/icons/ui-icons-{24,48}.png`
- * (built from `scripts/data/ui-icons.json` by `scripts/build-ui-icons.mjs`).
+ * (built from `scripts/data/ui-icons.json` by `scripts/assets/build-ui-icons.mjs`).
  */
 export const UI_ICON_NAMES = [
   "sword",

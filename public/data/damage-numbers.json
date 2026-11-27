@@ -1,0 +1,128 @@
+{
+  "enabled": true,
+  "maxActive": 32,
+  "aggregateWindowMs": 120,
+  "offsetY": -6,
+  "anchorHeightFrac": 0.4,
+  "styles": {
+    "physical": {
+      "fill": "#f4f4f5",
+      "stroke": "#18181b",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "motion": {
+        "durationMs": 800,
+        "fadeStartT": 0.45,
+        "driftY": -36,
+        "driftX": 0,
+        "popScale": 1.35,
+        "popMs": 120,
+        "critPopScale": 1.7
+      }
+    },
+    "fire": {
+      "fill": "#ff8a2a",
+      "stroke": "#4a1a00",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "motion": {
+        "durationMs": 740,
+        "fadeStartT": 0.45,
+        "driftY": -36,
+        "driftX": 0,
+        "popScale": 1.4,
+        "popMs": 120,
+        "critPopScale": 1.7,
+        "flickerHz": 14
+      }
+    },
+    "frost": {
+      "fill": "#c8eeff",
+      "stroke": "#16324a",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "motion": {
+        "durationMs": 920,
+        "fadeStartT": 0.45,
+        "driftY": -28,
+        "driftX": 0,
+        "popScale": 1.2,
+        "popMs": 120,
+        "critPopScale": 1.7
+      }
+    },
+    "lightning": {
+      "fill": "#ffe566",
+      "stroke": "#3f2a00",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "motion": {
+        "durationMs": 680,
+        "fadeStartT": 0.45,
+        "driftY": -36,
+        "driftX": 0,
+        "popScale": 1.45,
+        "popMs": 120,
+        "critPopScale": 1.7,
+        "jitterPx": 3
+      }
+    },
+    "water": {
+      "fill": "#7dd3fc",
+      "stroke": "#0c4a6e",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "motion": {
+        "durationMs": 860,
+        "fadeStartT": 0.45,
+        "driftY": -36,
+        "driftX": 0,
+        "popScale": 1.35,
+        "popMs": 120,
+        "critPopScale": 1.7,
+        "waveAmp": 8,
+        "waveHz": 2.2
+      }
+    },
+    "poison": {
+      "fill": "#86ef45",
+      "stroke": "#14532d",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "motion": {
+        "durationMs": 980,
+        "fadeStartT": 0.45,
+        "driftY": -22,
+        "driftX": 0,
+        "popScale": 1.15,
+        "popMs": 120,
+        "critPopScale": 1.7,
+        "waveAmp": 5,
+        "waveHz": 1.4
+      }
+    },
+    "heal": {
+      "fill": "#4ade80",
+      "stroke": "#052e16",
+      "strokeThickness": 4,
+      "fontSize": 18,
+      "critFontSize": 26,
+      "prefix": "+",
+      "motion": {
+        "durationMs": 900,
+        "fadeStartT": 0.45,
+        "driftY": -42,
+        "driftX": 0,
+        "popScale": 1.25,
+        "popMs": 120,
+        "critPopScale": 1.7
+      }
+    }
+  }
+}

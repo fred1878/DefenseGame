@@ -1,4 +1,4 @@
-import type { DataStore } from "../core/DataStore";
+import type { DataStore } from "../core/data/DataStore";
 
 /** Sum challenge rating for roster rows (count × per-enemy rating). */
 export function sumChallengeRating(

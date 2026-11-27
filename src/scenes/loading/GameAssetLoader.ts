@@ -1,0 +1,280 @@
+import Phaser from "phaser";
+import { SFX_ASSETS, SFX_ASSET_ROOT } from "../../content/audioAssets";
+import { UI_PART_ASSETS, UI_PART_ROOT } from "../../content/uiParts";
+import {
+  COMBAT_FX_ASSETS,
+  ENEMY_SPRITE_ASSETS,
+  SPELL_FX_ASSETS,
+  DEFENSE_OBSTACLE_ASSETS,
+  GROUND_DECOR_ASSETS,
+  GROUND_TILE_ASSETS,
+  SPELL_ICON_ASSETS,
+  SPELL_ICON_ROOT,
+  UI_ASSET_ROOT,
+  UI_ASSETS,
+} from "../../content/assets";
+import {
+  TOWN_BUILDING_ASSET_ROOT,
+  TOWN_BUILDING_ASSETS,
+} from "../../content/townBuildingAssets";
+import {
+  HOLY_FX_ASSETS,
+  HOLY_FX_ROOT,
+  registerHolyFxAnimations,
+} from "../../content/holyFxAssets";
+import {
+  ICE_FX_ASSETS,
+  ICE_FX_ROOT,
+  registerIceFxAnimations,
+} from "../../content/iceFxAssets";
+import {
+  PVFX_FX_ASSETS,
+  PVFX_FX_ROOT,
+  registerCombatPvfxAnimations,
+} from "../../content/combatPvfxAssets";
+import {
+  MELEE_FX_ASSETS,
+  MELEE_FX_ROOT,
+  registerMeleeFxAnimations,
+} from "../../content/meleeFxAssets";
+import {
+  SMOKE_FX_ASSETS,
+  SMOKE_FX_ROOT,
+  registerSmokeFxAnimations,
+} from "../../content/smokeFxAssets";
+import { queueUiIcons } from "../../ui/icons/uiIcons";
+import { configurePixelArtTextures } from "../../core/render/pixelArtTextures";
+import type { DataStore } from "../../core/data/DataStore";
+import { ensureDebugMenuScene, ensureDefenseScene } from "./lazyScenes";
+import {
+  DAMAGE_NUMBER_FONT_PATH,
+  queueDamageNumberFont,
+  DIGIT_FONT_PATH,
+  queueDigitFont,
+} from "../../config/damageNumbers";
+
+const ASSET_ROOT = "assets";
+export const DEFENSE_ASSETS_READY_KEY = "defenseAssetsReady";
+export const TOWN_FLUFF_READY_KEY = "townFluffReady";
+export const TOWN_REACHABLE_READY_KEY = "townReachableReady";
+
+let defenseLoadPromise: Promise<void> | null = null;
+let townFluffPromise: Promise<void> | null = null;
+let townReachablePromise: Promise<void> | null = null;
+
+/** First paint Town: building sprites only. */
+export function queueMinimalTownBootAssets(
+  loader: Phaser.Loader.LoaderPlugin,
+  baseUrl: string,
+): void {
+  loader.setBaseURL(baseUrl);
+  for (const { key, file } of TOWN_BUILDING_ASSETS) {
+    loader.image(key, `${TOWN_BUILDING_ASSET_ROOT}/${file}`);
+  }
+}
+
+/** Post–Town-ready: HUD art, spell icons, all SFX (prefetch). */
+export function queueTownFluffAssets(
+  loader: Phaser.Loader.LoaderPlugin,
+  baseUrl: string,
+): void {
+  loader.setBaseURL(baseUrl);
+  const assetRev = import.meta.env.VITE_BUILD_ID ?? "";
+  for (const { key, file } of SPELL_ICON_ASSETS) {
+    const q = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+    loader.image(key, `${SPELL_ICON_ROOT}/${file}${q}`);
+  }
+  for (const { key, file } of UI_ASSETS) {
+    loader.image(key, `${UI_ASSET_ROOT}/${file}`);
+  }
+  for (const { key, file } of UI_PART_ASSETS) {
+    loader.image(key, `${UI_PART_ROOT}/${file}`);
+  }
+  // Gear / shop panels: line icons and the Pixelify Sans titles.
+  queueUiIcons(loader);
+  const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+  queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
+  queueDigitFont(loader, `${DIGIT_FONT_PATH}${fontQ}`);
+  for (const { key, file } of SFX_ASSETS) {
+    loader.audio(key, `${SFX_ASSET_ROOT}/${file}`);
+  }
+}
+
+/** Combat field textures (prefetch / night start). */
+export function queueDefenseBootAssets(
+  loader: Phaser.Loader.LoaderPlugin,
+  baseUrl: string,
+): void {
+  loader.setBaseURL(baseUrl);
+  loader.image("player_s", `${ASSET_ROOT}/sprites/player_s.png`);
+  loader.image("player_e", `${ASSET_ROOT}/sprites/player_e.png`);
+  loader.image("player_n", `${ASSET_ROOT}/sprites/player_n.png`);
+  loader.image("player_w", `${ASSET_ROOT}/sprites/player_w.png`);
+  for (const { key, file, enemyId } of ENEMY_SPRITE_ASSETS) {
+    loader.image(key, `${ASSET_ROOT}/sprites/enemies/${enemyId}/${file}`);
+  }
+  for (const { key, file } of DEFENSE_OBSTACLE_ASSETS) {
+    loader.image(key, `${ASSET_ROOT}/sprites/obstacles/${file}`);
+  }
+  for (const { key, file } of GROUND_TILE_ASSETS) {
+    loader.image(key, `${ASSET_ROOT}/tilesets/ground/${file}`);
+  }
+  for (const { key, file } of GROUND_DECOR_ASSETS) {
+    loader.image(key, `${ASSET_ROOT}/tilesets/ground/decor/${file}`);
+  }
+  for (const entry of COMBAT_FX_ASSETS) {
+    loader.image(entry.key, `${ASSET_ROOT}/combat/fx/${entry.file}`);
+  }
+  for (const entry of SPELL_FX_ASSETS) {
+    const root = entry.root ?? "assets/spells/fx";
+    loader.image(entry.key, `${root}/${entry.file}`);
+  }
+  for (const entry of HOLY_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${HOLY_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+  for (const entry of ICE_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${ICE_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+  for (const entry of PVFX_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${PVFX_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+  for (const entry of MELEE_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${MELEE_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+  for (const entry of SMOKE_FX_ASSETS) {
+    loader.spritesheet(entry.key, `${SMOKE_FX_ROOT}/${entry.file}`, {
+      frameWidth: entry.frameWidth,
+      frameHeight: entry.frameHeight,
+    });
+  }
+  const assetRev = import.meta.env.VITE_BUILD_ID ?? "";
+  const fontQ = assetRev ? `?v=${encodeURIComponent(String(assetRev))}` : "";
+  queueDamageNumberFont(loader, `${DAMAGE_NUMBER_FONT_PATH}${fontQ}`);
+  queueDigitFont(loader, `${DIGIT_FONT_PATH}${fontQ}`);
+}
+
+function afterDefenseAssetsLoaded(scene: Phaser.Scene): void {
+  registerHolyFxAnimations(scene);
+  registerIceFxAnimations(scene);
+  registerCombatPvfxAnimations(scene);
+  registerMeleeFxAnimations(scene);
+  registerSmokeFxAnimations(scene);
+}
+
+export function runQueuedLoader(
+  scene: Phaser.Scene,
+  queue: (loader: Phaser.Loader.LoaderPlugin) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const loader = scene.load;
+    queue(loader);
+    loader.once(Phaser.Loader.Events.COMPLETE, () => {
+      configurePixelArtTextures(scene);
+      resolve();
+    });
+    loader.once(
+      Phaser.Loader.Events.FILE_LOAD_ERROR,
+      (file: { key: string }) => {
+        reject(new Error(`Failed to load asset: ${file.key}`));
+      },
+    );
+    if (loader.list.size === 0) {
+      configurePixelArtTextures(scene);
+      resolve();
+      return;
+    }
+    loader.start();
+  });
+}
+
+export function ensureTownFluffLoaded(scene: Phaser.Scene): Promise<void> {
+  if (scene.game.registry.get(TOWN_FLUFF_READY_KEY)) {
+    return Promise.resolve();
+  }
+  if (townFluffPromise) return townFluffPromise;
+  const base = import.meta.env.BASE_URL;
+  townFluffPromise = runQueuedLoader(scene, (loader) =>
+    queueTownFluffAssets(loader, base),
+  ).then(() => {
+    scene.game.registry.set(TOWN_FLUFF_READY_KEY, true);
+  });
+  return townFluffPromise;
+}
+
+export function ensureDefenseAssetsLoaded(scene: Phaser.Scene): Promise<void> {
+  if (scene.game.registry.get(DEFENSE_ASSETS_READY_KEY)) {
+    return Promise.resolve();
+  }
+  if (defenseLoadPromise) return defenseLoadPromise;
+  const base = import.meta.env.BASE_URL;
+  defenseLoadPromise = runQueuedLoader(scene, (loader) =>
+    queueDefenseBootAssets(loader, base),
+  ).then(() => {
+    afterDefenseAssetsLoaded(scene);
+    scene.game.registry.set(DEFENSE_ASSETS_READY_KEY, true);
+  });
+  return defenseLoadPromise;
+}
+
+/** Synchronous gate before starting Defense (subset of town-reachable prefetch). */
+export function isNightReady(game: Phaser.Game, store: DataStore): boolean {
+  return (
+    !!game.registry.get(TOWN_FLUFF_READY_KEY) &&
+    !!game.registry.get(DEFENSE_ASSETS_READY_KEY) &&
+    store.defenseDataReady &&
+    game.scene.getScene("Defense") !== null
+  );
+}
+
+/** Everything launchable from Town: fluff, defense assets/data, Defense + DebugMenu chunks. */
+export function isTownReachableReady(
+  game: Phaser.Game,
+  store: DataStore,
+): boolean {
+  return isNightReady(game, store) && game.scene.getScene("DebugMenu") !== null;
+}
+
+/** Background Town prefetch and on-demand gate (deduped with per-asset loaders). */
+export function ensureTownReachableReady(
+  scene: Phaser.Scene,
+  store: DataStore,
+): Promise<void> {
+  if (isTownReachableReady(scene.game, store)) return Promise.resolve();
+  if (townReachablePromise) return townReachablePromise;
+  const base = import.meta.env.BASE_URL;
+  townReachablePromise = Promise.all([
+    ensureTownFluffLoaded(scene),
+    ensureDefenseAssetsLoaded(scene),
+    store.ensureDefenseDataLoaded(base),
+    ensureDefenseScene(scene.game),
+    ensureDebugMenuScene(scene.game),
+  ])
+    .then(() => {
+      scene.game.registry.set(TOWN_REACHABLE_READY_KEY, true);
+    })
+    .catch((err) => {
+      townReachablePromise = null;
+      throw err;
+    });
+  return townReachablePromise;
+}
+
+/** Night, endless, spell sort, or full combat E2E readiness. */
+export function ensureNightReady(
+  scene: Phaser.Scene,
+  store: DataStore,
+): Promise<void> {
+  return ensureTownReachableReady(scene, store);
+}

@@ -1,17 +1,18 @@
+import { defenseObstaclePlacements } from "../../config/defense";
+import { PALETTE } from "../../ui/theme/uiPalette";
+import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
 import {
-  DEFENSE_OBSTACLE_PLACEMENTS,
   DEFENSE_RENDER_DEPTH,
-  PLAYER_TUNING,
   type DefenseObstacleRect,
   defenseHalfHeight,
   defenseHalfWidth,
   defenseObstacleSpriteDisplayPosition,
 } from "../../config";
-import { flashSpriteTint } from "../../combat/HitFlash";
+import { flashSpriteTint } from "../../combat/fx/HitFlash";
 import { Player } from "../../entities/Player";
 import { DamageNumberFx } from "./DamageNumberFx";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import {
   correctPlayerObstacleBlockerOverlap,
   createDefenseObstacleCollider,
@@ -30,7 +31,10 @@ import {
 } from "../../world/defenseWorldAddHook";
 import { configureDefenseObstacleArt } from "../../world/defenseObstacleSprite";
 import { defensePlayerStart } from "../../world/defenseSpawns";
-import { defensePlayAreaLayout, readSafeInsets } from "../../ui/screenLayout";
+import {
+  defensePlayAreaLayout,
+  readSafeInsets,
+} from "../../ui/layout/screenLayout";
 
 export type DefenseWorldBootstrapResult = {
   player: Player;
@@ -100,7 +104,7 @@ export function bootstrapDefenseWorld(
         -halfH + 20,
         halfW * 2,
         worldUnit(40, scene.registry),
-        0x52525b,
+        PALETTE.zinc600,
       )
       .setOrigin(0.5, 0);
     registerWorld(wall);
@@ -108,8 +112,8 @@ export function bootstrapDefenseWorld(
 
   const obstacleGroup = scene.physics.add.staticGroup();
   const obstacleBlockers = defenseObstacleBlockerRects(scene.registry);
-  for (let i = 0; i < DEFENSE_OBSTACLE_PLACEMENTS.length; i++) {
-    const placement = DEFENSE_OBSTACLE_PLACEMENTS[i]!;
+  for (let i = 0; i < defenseObstaclePlacements().length; i++) {
+    const placement = defenseObstaclePlacements()[i]!;
     const blocker = obstacleBlockers[i]!;
     const displayPos = defenseObstacleSpriteDisplayPosition(placement, reg);
     const art = scene.add.image(
@@ -132,7 +136,7 @@ export function bootstrapDefenseWorld(
 
   scene.cameras.main.setBounds(-halfW, -halfH, halfW * 2, halfH * 2);
 
-  const playerInvulnMs = PLAYER_TUNING.nightSpawnInvulnMs;
+  const playerInvulnMs = playerTuning().nightSpawnInvulnMs;
   scene.physics.add.collider(player.sprite, obstacleGroup);
   const enemyGroup = scene.physics.add.group();
   scene.physics.add.collider(player.sprite, enemyGroup);

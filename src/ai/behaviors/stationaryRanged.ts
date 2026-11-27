@@ -1,5 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import { northWallAttackY } from "../../config";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import type { EnemyBehavior } from "./types";
 import { applyChaseVelocity } from "./movement";
 import {
@@ -21,6 +22,7 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
     return frameResult(frame);
   }
 
+  const move = tuning("enemyAi").stationaryRanged;
   const bandSlack = worldUnit(tune.kiteBandSlackWu, reg);
   const preferred = worldUnit(tune.preferredRangeWu, reg);
   const attackMax = worldUnit(tune.attackTriggerRangeWu, reg);
@@ -34,9 +36,9 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
       attackMax,
       threatX: ex,
       threatY: wallY,
-      retreatSpeedMul: 0.65,
-      retreatMinWu: 56,
-      followSpeedMul: 0.9,
+      retreatSpeedMul: move.wallRetreatSpeedMul,
+      retreatMinWu: move.wallRetreatMinWu,
+      followSpeedMul: move.followSpeedMul,
     });
   }
 
@@ -47,8 +49,8 @@ export const stationaryRangedBehavior: EnemyBehavior = (ctx) => {
     attackMax,
     threatX: playerX,
     threatY: playerY,
-    retreatSpeedMul: 0.82,
-    retreatMinWu: 64,
-    followSpeedMul: 0.9,
+    retreatSpeedMul: move.playerRetreatSpeedMul,
+    retreatMinWu: move.playerRetreatMinWu,
+    followSpeedMul: move.followSpeedMul,
   });
 };

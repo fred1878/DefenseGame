@@ -1,6 +1,6 @@
+import { defenseObstaclePlacements } from "../config/defense";
 import type Phaser from "phaser";
 import {
-  DEFENSE_OBSTACLE_PLACEMENTS,
   type DefenseObstacleRect,
   defenseObstacleColliderFromPlacement,
 } from "../config/defense";
@@ -22,7 +22,7 @@ export type DefenseObstacleBlockerAabb = {
 export function defenseObstacleBlockerRects(
   registry: Phaser.Data.DataManager,
 ): DefenseObstacleRect[] {
-  return DEFENSE_OBSTACLE_PLACEMENTS.map((placement) =>
+  return defenseObstaclePlacements().map((placement) =>
     defenseObstacleColliderFromPlacement(placement, registry),
   );
 }

@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
 import { isNativeApp } from "../../appUpdate/isNativeApp";
 import {
   formatUpdateStatus,
@@ -6,10 +7,13 @@ import {
 } from "../../appUpdate/checkForUpdate";
 import { getEmbeddedBuildId, townBuildIdLine } from "../../buildId";
 import { GAME } from "../../config";
-import type { DataStore } from "../../core/DataStore";
-import type { SaveGame } from "../../core/saveTypes";
-import { scaleUiX } from "../../core/displayScale";
-import { toggleFullscreen, fullscreenButtonLabel } from "../../ui/fullscreen";
+import type { DataStore } from "../../core/data/DataStore";
+import type { SaveGame } from "../../core/save/saveTypes";
+import { scaleUiX } from "../../config/uiScale";
+import {
+  toggleFullscreen,
+  fullscreenButtonLabel,
+} from "../../ui/layout/fullscreen";
 import {
   debugButtonPosition,
   townGearButtonPosition,
@@ -20,9 +24,9 @@ import {
   townStatusTextTopY,
   townTalentsButtonPosition,
   townTitleY,
-} from "../../ui/screenLayout";
-import { createTouchButton } from "../../ui/touchButton";
-import { uiTextStyle } from "../../ui/uiTextStyle";
+} from "../../ui/layout/screenLayout";
+import { createTouchButton } from "../../ui/touch/touchButton";
+import { uiTextStyle } from "../../ui/layout/uiTextStyle";
 
 type TouchButton = ReturnType<typeof createTouchButton>;
 
@@ -38,7 +42,7 @@ export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
       "Town — Day",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(28)}px`,
-        color: "#f4f4f5",
+        color: PALETTE_CSS.zinc100,
       }),
     )
     .setOrigin(0.5);
@@ -50,7 +54,7 @@ export function createTownHeader(scene: Phaser.Scene): Phaser.GameObjects.Text {
       "",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(18)}px`,
-        color: "#a1a1aa",
+        color: PALETTE_CSS.zinc400,
         align: "center",
         wordWrap: { width: GAME.width - scaleUiX(48) },
       }),
@@ -68,6 +72,30 @@ export type TownHeaderButtons = {
 };
 
 /** Debug, gear, talents, fullscreen and reset-save buttons (created in that order). */
+type TownHeaderButtonStyle = Partial<
+  Parameters<typeof createTouchButton>[5]
+> & {
+  fillColor: number;
+  strokeColor: number;
+};
+
+/** Header button with the shared size (88×36), depth and font; `style` overrides. */
+function townHeaderButton(
+  scene: Phaser.Scene,
+  pos: { x: number; y: number },
+  label: string,
+  onTap: () => void,
+  style: TownHeaderButtonStyle,
+): TouchButton {
+  return createTouchButton(scene, pos.x, pos.y, label, onTap, {
+    width: scaleUiX(88),
+    height: scaleUiX(36),
+    depth: 200,
+    fontSize: `${scaleUiX(14)}px`,
+    ...style,
+  });
+}
+
 export function createTownHeaderButtons(
   scene: Phaser.Scene,
   handlers: {
@@ -78,103 +106,59 @@ export function createTownHeaderButtons(
   },
 ): TownHeaderButtons {
   const safe = readSafeInsets();
-  const dbgPos = debugButtonPosition(scene, safe);
-  const debugButton = createTouchButton(
+  const debugButton = townHeaderButton(
     scene,
-    dbgPos.x,
-    dbgPos.y,
+    debugButtonPosition(scene, safe),
     "Debug",
-    () => {
-      handlers.onDebug();
-    },
-    {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x3f3f46,
-      strokeColor: 0xa1a1aa,
-    },
+    () => handlers.onDebug(),
+    { fillColor: PALETTE.zinc700, strokeColor: PALETTE.zinc400 },
   );
-
-  const gearPos = townGearButtonPosition(scene, safe);
-  const gearButton = createTouchButton(
+  const gearButton = townHeaderButton(
     scene,
-    gearPos.x,
-    gearPos.y,
+    townGearButtonPosition(scene, safe),
     "Gear",
     () => handlers.onGear(),
-    {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x713f12,
-      strokeColor: 0xfbbf24,
-    },
+    { fillColor: 0x713f12, strokeColor: PALETTE.amber400 },
   );
   gearButton.container.setData("testid", "town-gear");
-
-  const talentsPos = townTalentsButtonPosition(scene, safe);
-  const talentsButton = createTouchButton(
+  const talentsButton = townHeaderButton(
     scene,
-    talentsPos.x,
-    talentsPos.y,
+    townTalentsButtonPosition(scene, safe),
     "Talents",
     () => handlers.onTalents(),
-    {
-      width: scaleUiX(88),
-      height: scaleUiX(36),
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x3a322b,
-      strokeColor: 0xd4a64a,
-    },
+    { fillColor: 0x3a322b, strokeColor: 0xd4a64a },
   );
   talentsButton.container.setData("testid", "town-talents");
 
   const fsWidth = scaleUiX(168);
   const fsHeight = scaleUiX(36);
-  const fsPos = townFullscreenButtonPosition(scene, safe, fsWidth, fsHeight);
-  const fsLabel = fullscreenButtonLabel(scene.scale);
-  const fullscreenButton = createTouchButton(
+  const fullscreenButton = townHeaderButton(
     scene,
-    fsPos.x,
-    fsPos.y,
-    fsLabel,
+    townFullscreenButtonPosition(scene, safe, fsWidth, fsHeight),
+    fullscreenButtonLabel(scene.scale),
     () => toggleFullscreen(scene.scale),
     {
       width: fsWidth,
       height: fsHeight,
-      depth: 200,
       fontSize: `${scaleUiX(13)}px`,
-      fillColor: 0x1e3a5f,
-      strokeColor: 0x60a5fa,
+      fillColor: PALETTE.deepNavy,
+      strokeColor: PALETTE.blue400,
       activateOn: "pointerup",
     },
   );
 
   const resetWidth = scaleUiX(118);
   const resetHeight = scaleUiX(36);
-  const resetPos = townResetSaveButtonPosition(
+  const resetButton = townHeaderButton(
     scene,
-    safe,
-    resetWidth,
-    resetHeight,
-  );
-  const resetButton = createTouchButton(
-    scene,
-    resetPos.x,
-    resetPos.y,
+    townResetSaveButtonPosition(scene, safe, resetWidth, resetHeight),
     "Reset save",
     () => handlers.onReset(),
     {
       width: resetWidth,
       height: resetHeight,
-      depth: 200,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x7f1d1d,
-      strokeColor: 0xf87171,
+      fillColor: PALETTE.red900,
+      strokeColor: PALETTE.red400,
     },
   );
 
@@ -215,7 +199,7 @@ function createTownUpdateButton(
       "",
       uiTextStyle(scene, {
         fontSize: `${scaleUiX(12)}px`,
-        color: "#93c5fd",
+        color: PALETTE_CSS.blue300,
         align: "center",
         wordWrap: { width: width + scaleUiX(16) },
       }),
@@ -252,8 +236,8 @@ function createTownUpdateButton(
       height,
       depth: 200,
       fontSize: `${scaleUiX(12)}px`,
-      fillColor: 0x1e3a5f,
-      strokeColor: 0x60a5fa,
+      fillColor: PALETTE.deepNavy,
+      strokeColor: PALETTE.blue400,
     },
   );
 

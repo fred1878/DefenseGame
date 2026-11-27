@@ -1,18 +1,19 @@
+import { tuning } from "../../tuning/gameTuning";
 import type { EnemyInstance } from "../../entities/Enemy";
-import { WALL_VELOCITY_BLEND_MS, northWallAttackY } from "../../config";
-import { setEnemyChaseVelocity } from "../../combat/enemyKnockback";
+import { northWallAttackY } from "../../config";
+import { setEnemyChaseVelocity } from "../../combat/rules/enemyKnockback";
 import {
   requireMeleeChaseStandoffWu,
   wallMeleeApproachStandoffWu,
 } from "../../core/enemyTuning";
-import { worldUnit } from "../../core/worldPixelScale";
+import { worldUnit } from "../../config/worldScale";
 import { enemyIsAttacking } from "../../entities/EnemyCombat";
 import {
   enemyCollisionBodyRadius,
   isMeleeBodyCollisionBehavior,
   playerBodyRadiusPx,
 } from "../../entities/entityPhysics";
-import type { EnemyNavState, EnemyTargetKind } from "../EnemyBrain";
+import type { EnemyNavState, EnemyTargetKind } from "../brainShared";
 
 /** World units — ignore player nudge smaller than this for pack holds / chord tests. */
 const MELEE_PACK_ANCHOR_HYSTERESIS_WU = 4;
@@ -417,7 +418,7 @@ export function applyChaseVelocity(
   const body = enemy.sprite.body as Phaser.Physics.Arcade.Body | null;
   if (nav && body && nav.wallTransitionMs > 0 && deltaMs > 0) {
     nav.wallTransitionMs = Math.max(0, nav.wallTransitionMs - deltaMs);
-    const blend = Math.min(1, deltaMs / WALL_VELOCITY_BLEND_MS);
+    const blend = Math.min(1, deltaMs / tuning("enemyAi").wallVelocityBlendMs);
     const chaseVx = body.velocity.x - enemy.knockbackVx;
     const chaseVy = body.velocity.y - enemy.knockbackVy;
     const vx = chaseVx * (1 - blend) + desiredVx * blend;

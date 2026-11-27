@@ -1,29 +1,37 @@
 import type Phaser from "phaser";
-import { applyEndlessRunExit, persistSave } from "../../core/GameState";
+import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
+import { PALETTE, PALETTE_CSS } from "../../ui/theme/uiPalette";
+import { persistSave } from "../../core/save/saveRepository";
 import { clearDefenseRunMode } from "../../core/defenseRunMode";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { isE2EEnabled } from "../../e2e/e2eMode";
 import { publishE2E } from "../../e2e/e2eGlobal";
 import type { Player } from "../../entities/Player";
-import { createTouchButton } from "../../ui/touchButton";
-import type { TouchButtonHandle } from "../../ui/touchButton";
-import { nightReturnButtonPosition } from "../../ui/screenLayout";
-import { scaleUiX } from "../../core/displayScale";
-import type { SafeInsets } from "../../ui/screenLayout";
+import { createTouchButton } from "../../ui/touch/touchButton";
+import type { TouchButtonHandle } from "../../ui/touch/touchButton";
+import { nightReturnButtonPosition } from "../../ui/layout/screenLayout";
+import { scaleUiX } from "../../config/uiScale";
+import type { SafeInsets } from "../../ui/layout/screenLayout";
 import { playCoinDeltaSfx } from "../../audio/coinEconomySfx";
-import { evaluateEndlessEnd, evaluateNightEnd } from "../defenseNightLogic";
+import {
+  evaluateEndlessEnd,
+  evaluateNightEnd,
+  resolveCampaignNightEndSave,
+  resolveRunExitSave,
+  survivedPlayerHp,
+} from "../../systems/nightEndRules";
 import { getGearCatalog } from "../../gear/gearCatalog";
 import { rollNightDrops } from "../../gear/loot";
-import { resolveCampaignNightEnd } from "../../gear/nightLootSummary";
 import { createRng, randomSeed } from "../../gear/rng";
-import { NightLootSummaryPanel } from "../../ui/NightLootSummaryPanel";
-import type { CampaignNightLossReason } from "./nightEndMessaging";
+import { NightLootSummaryPanel } from "../../ui/panels/NightLootSummaryPanel";
+import type { CampaignNightLossReason } from "../../systems/nightEndMessaging";
 import {
   simulatedNightEndHeadline,
   simulatedNightEndHudLines,
   trainingEndHeadline,
   trainingEndHudLines,
-} from "./nightEndMessaging";
+} from "../../systems/nightEndMessaging";
+import { setSave } from "../../core/registryKeys";
 
 /** Run after the current pointer/input handler — scene timers do not run while paused. */
 export function scheduleAfterPointerHandler(
@@ -62,7 +70,7 @@ type DefenseNightEndUi = {
   onReturnToTown: () => void;
 };
 
-type DefenseNightEndShared = DefenseNightEndUi & {
+export type DefenseNightEndShared = DefenseNightEndUi & {
   registry: Phaser.Data.DataManager;
   save: SaveGame;
   player: Player;
@@ -72,30 +80,39 @@ type DefenseNightEndShared = DefenseNightEndUi & {
   hideLeaveEndlessBtn: () => void;
 };
 
-/** Simulated / custom wave — wall rules, no gold or night advance. */
-export function runDefenseSimulatedNightEnd(
-  ctx: DefenseNightEndShared,
-  input: { won: boolean; quit?: boolean },
-): void {
+/** Endless / wave-planner exit: wall + HP carry over, no gold or night advance. */
+function persistRunExit(ctx: DefenseNightEndShared): SaveGame {
   ctx.markNightEnded();
   ctx.hideLeaveEndlessBtn();
 
-  const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
-  const finalWallHp = Math.max(0, ctx.wallHp);
-  const next = applyEndlessRunExit(ctx.save, finalWallHp, survivedHp);
+  const next = resolveRunExitSave(
+    ctx.save,
+    ctx.wallHp,
+    ctx.player.damageable.hp,
+  );
   ctx.save.player.hp = next.player.hp;
   persistSave(next);
-  ctx.registry.set("save", next);
+  setSave(ctx.registry, next);
   clearDefenseRunMode(ctx.registry);
+  return next;
+}
 
-  if (isE2EEnabled() && !ctx.registry.get("e2eManualReturn")) {
-    transitionDefenseToTown(ctx.scene);
-    publishE2E({ scene: "Town", ready: true, player: null });
-    return;
-  }
+/** Under e2e (without manual return) go straight back to town; true when handled. */
+function e2eAutoReturnToTown(ctx: DefenseNightEndShared): boolean {
+  if (!isE2EEnabled() || ctx.registry.get("e2eManualReturn")) return false;
+  transitionDefenseToTown(ctx.scene);
+  publishE2E({ scene: "Town", ready: true, player: null });
+  return true;
+}
 
-  const headline = simulatedNightEndHeadline(input.won, input.quit === true);
-  const [scopeLine, economyLine] = simulatedNightEndHudLines();
+/** HUD banner + floating "Return to town" button for non-campaign run ends. */
+function showRunExitBanner(
+  ctx: DefenseNightEndShared,
+  next: SaveGame,
+  headline: string,
+  [scopeLine, economyLine]: readonly [string, string],
+  color: string,
+): void {
   ctx.hudText.setText(
     [
       headline,
@@ -103,7 +120,7 @@ export function runDefenseSimulatedNightEnd(
       `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
     ].join("\n"),
   );
-  ctx.hudText.setColor(input.won ? "#a1a1aa" : "#fca5a5");
+  ctx.hudText.setColor(color);
 
   const btn = nightReturnButtonPosition(ctx.scene, ctx.safe);
   const returnBtn = createTouchButton(
@@ -115,10 +132,10 @@ export function runDefenseSimulatedNightEnd(
     {
       width: btn.width,
       height: btn.height,
-      depth: 260,
+      depth: DEFENSE_UI_DEPTH.nightEnd,
       fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x15803d,
-      strokeColor: 0x4ade80,
+      fillColor: PALETTE.green700,
+      strokeColor: PALETTE.green400,
     },
   );
   returnBtn.container.setData("testid", "defense-return-to-town");
@@ -126,58 +143,36 @@ export function runDefenseSimulatedNightEnd(
   ctx.setReturnToTownBtn(returnBtn);
 }
 
+/** Simulated / custom wave — wall rules, no gold or night advance. */
+export function runDefenseSimulatedNightEnd(
+  ctx: DefenseNightEndShared,
+  input: { won: boolean; quit?: boolean },
+): void {
+  const next = persistRunExit(ctx);
+  if (e2eAutoReturnToTown(ctx)) return;
+  showRunExitBanner(
+    ctx,
+    next,
+    simulatedNightEndHeadline(input.won, input.quit === true),
+    simulatedNightEndHudLines(),
+    input.won ? PALETTE_CSS.zinc400 : PALETTE_CSS.red300,
+  );
+}
+
 export function runDefenseEndlessNightEnd(
   ctx: DefenseNightEndShared,
   reason: "quit" | "player" | "wall",
 ): void {
-  ctx.markNightEnded();
-  ctx.hideLeaveEndlessBtn();
-
-  const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
-  const finalWallHp = Math.max(0, ctx.wallHp);
-  const next = applyEndlessRunExit(ctx.save, finalWallHp, survivedHp);
-  ctx.save.player.hp = next.player.hp;
-  persistSave(next);
-  ctx.registry.set("save", next);
-  clearDefenseRunMode(ctx.registry);
+  const next = persistRunExit(ctx);
   ctx.setEndlessSelectionsNull();
-
-  if (isE2EEnabled() && !ctx.registry.get("e2eManualReturn")) {
-    transitionDefenseToTown(ctx.scene);
-    publishE2E({ scene: "Town", ready: true, player: null });
-    return;
-  }
-
-  const headline = trainingEndHeadline(reason);
-  const [scopeLine, economyLine] = trainingEndHudLines(reason);
-  ctx.hudText.setText(
-    [
-      headline,
-      `${scopeLine} · ${economyLine}`,
-      `Wall ${next.townWallHp} HP · HP ${next.player.hp}/${next.player.hpMax}`,
-    ].join("\n"),
+  if (e2eAutoReturnToTown(ctx)) return;
+  showRunExitBanner(
+    ctx,
+    next,
+    trainingEndHeadline(reason),
+    trainingEndHudLines(reason),
+    reason === "quit" ? PALETTE_CSS.zinc400 : PALETTE_CSS.red300,
   );
-  ctx.hudText.setColor(reason === "quit" ? "#a1a1aa" : "#fca5a5");
-
-  const btn = nightReturnButtonPosition(ctx.scene, ctx.safe);
-  const returnBtn = createTouchButton(
-    ctx.scene,
-    btn.x,
-    btn.y,
-    "Return to town",
-    ctx.onReturnToTown,
-    {
-      width: btn.width,
-      height: btn.height,
-      depth: 260,
-      fontSize: `${scaleUiX(14)}px`,
-      fillColor: 0x15803d,
-      strokeColor: 0x4ade80,
-    },
-  );
-  returnBtn.container.setData("testid", "defense-return-to-town");
-  ctx.registerUiDraw(returnBtn.container);
-  ctx.setReturnToTownBtn(returnBtn);
 }
 
 export type DefenseCampaignNightEndInput = {
@@ -197,7 +192,9 @@ export function runDefenseCampaignNightEnd(
   clearDefenseRunMode(ctx.registry);
 
   const catalog = getGearCatalog();
-  const resolved = resolveCampaignNightEnd({
+  const playerHp = ctx.player.damageable.hp;
+  const resolved = resolveCampaignNightEndSave({
+    playerHp,
     won: input.won,
     ...(input.lossReason !== undefined ? { lossReason: input.lossReason } : {}),
     wallHp: input.wallHp,
@@ -218,17 +215,11 @@ export function runDefenseCampaignNightEnd(
   if (resolved.result.goldEarned > 0 || resolved.soldGold > 0) {
     playCoinDeltaSfx(ctx.scene, goldBefore, next.gold);
   }
-  const survivedHp = Math.max(0, Math.floor(ctx.player.damageable.hp));
-  ctx.save.player.hp = survivedHp;
-  next.player.hp = Math.min(next.player.hpMax, Math.max(1, survivedHp));
+  ctx.save.player.hp = survivedPlayerHp(playerHp);
   persistSave(next);
-  ctx.registry.set("save", next);
+  setSave(ctx.registry, next);
 
-  if (isE2EEnabled() && !ctx.registry.get("e2eManualReturn")) {
-    transitionDefenseToTown(ctx.scene);
-    publishE2E({ scene: "Town", ready: true, player: null });
-    return;
-  }
+  if (e2eAutoReturnToTown(ctx)) return;
 
   // The summary panel replaces the old HUD banner + floating return button.
   ctx.hudText.setVisible(false);

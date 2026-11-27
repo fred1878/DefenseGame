@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import { ConfigLoadError } from "../../core/configValidation";
+import { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
+import { ConfigLoadError } from "../../core/data/configValidation";
 import bundledSpells from "../../../public/data/spells.json";
 import { setSpellCatalog, type SpellDefinition } from "../../content/spells";
 import type { PlayerProjectile } from "../../entities/Projectile";

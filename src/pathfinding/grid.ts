@@ -32,7 +32,7 @@ function cellIndex(grid: NavGrid, col: number, row: number): number {
 
 function inflateObstaclesInto(
   target: Uint8Array,
-  obstacles: DefenseObstacleRect[],
+  obstacles: readonly DefenseObstacleRect[],
   clearancePx: number,
   cols: number,
   rows: number,
@@ -58,7 +58,7 @@ function inflateObstaclesInto(
 }
 
 export function buildNavGrid(
-  obstacles: DefenseObstacleRect[],
+  obstacles: readonly DefenseObstacleRect[],
   cellSize = 40,
   clearancePx = 0,
   registry?: Phaser.Data.DataManager,

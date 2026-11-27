@@ -1,10 +1,11 @@
+import type { EnemyBehaviorId } from "../../core/enemyBehaviorIds";
 import type { NavGrid, NavPeerAgent } from "../../pathfinding/grid";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type {
   EnemyNavState,
   EnemyObjectiveMode,
   EnemyTargetKind,
-} from "../EnemyBrain";
+} from "../brainShared";
 
 export type BehaviorMoveResult = {
   targetX: number;
@@ -14,7 +15,7 @@ export type BehaviorMoveResult = {
 
 export type EnemyPeerAlly = {
   id: string;
-  behavior: string;
+  behavior: EnemyBehaviorId;
   defId: string;
   x: number;
   y: number;

@@ -1,13 +1,14 @@
+import { tuning } from "../../tuning/gameTuning";
+import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
-import type { Damageable } from "../../combat/DamageSystem";
-import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/DamageSystem";
-import { applySpellBlastAt } from "../../combat/SpellEffects";
-import { applySpellOnHitEffects } from "../../combat/spellOnHitEffects";
-import type { EnemySpellStatusMap } from "../../combat/enemySpellStatus";
-import { PLAYER_TUNING } from "../../config";
-import { playerIncomingDamageMult } from "../../config/shadowformRuntime";
+import type { Damageable } from "../../combat/rules/DamageSystem";
+import { applyDamage, MELEE_HIT_FLAVOR } from "../../combat/rules/DamageSystem";
+import { applySpellBlastAt } from "../../combat/rules/SpellEffects";
+import { applySpellOnHitEffects } from "../../combat/rules/spellOnHitEffects";
+import type { EnemySpellStatusMap } from "../../combat/rules/enemySpellStatus";
+import { playerIncomingDamageMult } from "../../combat/rules/shadowformRuntime";
 import { spellById } from "../../content/spells";
-import { spellProjectileDirectKnockback } from "../../combat/spellKnockback";
+import { spellProjectileDirectKnockback } from "../../combat/rules/spellKnockback";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import { playerBodyRadiusPx } from "../../entities/entityPhysics";
 import {
@@ -18,17 +19,17 @@ import {
 } from "../../entities/Projectile";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { clearLobberAirborneTelegraph } from "../../entities/enemyRanged/lobberCombat";
-import { spawnLobberGroundImpactSmokeFx } from "../../combat/LobberImpactSmokeFx";
+import { spawnLobberGroundImpactSmokeFx } from "../../combat/fx/LobberImpactSmokeFx";
 import { ICE_BOLT_SPELL_ID } from "../../content/iceFxSpells";
 import {
   destroyIceBoltProjectileFx,
   finishIceBoltProjectileHit,
   syncIceBoltProjectileFx,
-} from "../../combat/SpellIceBoltProjectileFx";
+} from "../../combat/fx/SpellIceBoltProjectileFx";
 import {
   destroyPvfxProjectileFx,
   syncPvfxProjectileFx,
-} from "../../combat/SpellPvfxProjectileFx";
+} from "../../combat/fx/SpellPvfxProjectileFx";
 import type { Player } from "../../entities/Player";
 
 export type DefenseProjectileEnemyTarget = {
@@ -88,7 +89,7 @@ export function tickDefenseProjectiles(
     enemies: host.enemyTargets(),
     knockbackFor: (p: PlayerProjectile) => {
       // Player ranged auto-attack (no spellId) uses public/data/player.json only.
-      if (!p.spellId) return host.wu(PLAYER_TUNING.rangedKnockbackWu);
+      if (!p.spellId) return host.wu(playerTuning().rangedKnockbackWu);
       const def = spellById(p.spellId);
       return host.wu(spellProjectileDirectKnockback(p.spellId, def));
     },
@@ -163,7 +164,8 @@ export function tickDefenseProjectiles(
         damageable: host.player.damageable,
         sprite: host.player.sprite,
       },
-      host.wu(PLAYER_TUNING.rangedKnockbackWu) * 0.65,
+      host.wu(playerTuning().rangedKnockbackWu) *
+        tuning("gameplay").combat.enemyProjectileKnockbackMul,
       playerIncomingDamageMult(),
     );
     if (!alive && p.sourceEnemyId && p.blastRadiusWu !== undefined) {
@@ -194,7 +196,7 @@ export function tickDefenseProjectiles(
           det.damage * scale * playerIncomingDamageMult(),
           det.flavor ?? MELEE_HIT_FLAVOR,
         );
-        playerInvulnMs = PLAYER_TUNING.playerHitInvulnMs;
+        playerInvulnMs = playerTuning().playerHitInvulnMs;
       }
       const source = p.sourceEnemyId
         ? host.findEnemyInstance?.(p.sourceEnemyId)

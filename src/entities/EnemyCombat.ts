@@ -2,11 +2,11 @@ import Phaser from "phaser";
 import {
   cancelEnemyMeleeFxTimer,
   scheduleEnemyMeleeFx,
-} from "../combat/enemyMeleeFxSchedule";
-import { setEnemyChaseVelocity } from "../combat/enemyKnockback";
-import { arcHitboxHitsTarget } from "../combat/Hitbox";
-import { worldUnit } from "../core/worldPixelScale";
-import type { Damageable } from "../combat/DamageSystem";
+} from "../combat/fx/enemyMeleeFxSchedule";
+import { setEnemyChaseVelocity } from "../combat/rules/enemyKnockback";
+import { arcHitboxHitsTarget } from "../combat/rules/Hitbox";
+import { worldUnit } from "../config/worldScale";
+import type { Damageable } from "../combat/rules/DamageSystem";
 import type { EnemyInstance } from "./Enemy";
 import { RANGED_ONLY_MELEE_ACTIVATION_BEHAVIORS } from "../core/enemyTuning";
 import {

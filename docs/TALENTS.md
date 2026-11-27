@@ -3,8 +3,8 @@
 A talent tree opened from the **Talents** button in town (next to Gear). Data:
 [`public/data/talents.json`](../public/data/talents.json) (fields in
 [DATA_FIELDS.md](./DATA_FIELDS.md#talentsjson)). Code: `src/talents/` (rules, text,
-runtime), `src/ui/TalentPanel.ts` + `src/ui/talentPanel/` (screen), and
-`src/core/normalizeTalents.ts` (loading and checks).
+runtime), `src/ui/panels/TalentPanel.ts` + `src/ui/talentPanel/` (screen), and
+`src/core/data/normalizeTalents.ts` (loading and checks).
 
 ## Rules
 

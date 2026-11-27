@@ -36,10 +36,10 @@ jobs:
               - "playwright.config.ts"
               - "vite.config.ts"
               - "vendor/**"
-              - "scripts/build-phaser-custom.mjs"
-              - "scripts/install-phaser-defense.mjs"
-              - "scripts/assert-phaser-chunk-size.mjs"
-              - "scripts/phaser-webpack.config.cjs"
+              - "scripts/build/build-phaser-custom.mjs"
+              - "scripts/build/install-phaser-defense.mjs"
+              - "scripts/build/assert-phaser-chunk-size.mjs"
+              - "scripts/build/phaser-webpack.config.cjs"
               - "package.json"
               - "package-lock.json"
               - "tsconfig.json"
@@ -107,6 +107,8 @@ jobs:
         run: npm run lint
       - name: Dead code (knip)
         run: npm run knip
+      - name: Architecture (import cycles + layer rules)
+        run: npm run check:arch
       - run: npm run test:coverage
       - name: Upload coverage report
         if: always()

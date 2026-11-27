@@ -1,5 +1,5 @@
 import { SPELL_BAR } from "../config/spellBar";
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import type { SpellTargetMode } from "./spellTargeting";
 import bundledSpells from "../../public/data/spells.json";
 
@@ -54,6 +54,8 @@ export type SpellDefinition = {
   coneArcDeg?: number;
   swingRangeWu?: number;
   swingArcDeg?: number;
+  /** Display size (px, both axes) of the swing slash sprite. */
+  swingFxSizePx?: number;
   chainLightningHops?: number;
   chainLightningHopRangeWu?: number;
   blinkDistanceWu?: number;
@@ -61,8 +63,14 @@ export type SpellDefinition = {
   blinkResolveBinarySearchIterations?: number;
   /** Minimum travel (WU) to treat partial blink as having moved. */
   blinkPartialMoveEpsilonWu?: number;
+  /** Distance (WU) the blink landing point is kept from the field edges. */
+  blinkEdgeInsetWu?: number;
   iceWallDistanceWu?: number;
   iceWallDurationMs?: number;
+  /** Spacing (WU) between the three ice wall blocks. */
+  iceWallBlockGapWu?: number;
+  /** Display and collider size (WU) of each ice wall block. */
+  iceWallBlockSizeWu?: number;
   shadowformDurationMs?: number;
   shadowformMoveSpeedMult?: number;
   shadowformDamageTakenMult?: number;
@@ -80,6 +88,8 @@ export type SpellDefinition = {
   /** Chain lightning hop knockback. */
   chainHopKnockbackWu?: number;
   healAmount?: number;
+  /** Splash damage = primary damage × this, for instant_targeted rows with blastRadiusWu. */
+  burstBlastDamageScale?: number;
   iconFile: string;
   projectileTextureKey?: string;
   projectileFile?: string;
@@ -109,7 +119,27 @@ export function createDefaultSpellBarSlots(): SpellId[] {
   return slots;
 }
 
-export { createDefaultAutoCastSpellIds as createDefaultSpellBarAutoCast } from "./spellBarAutoCast";
+type NumericSpellField = {
+  [K in keyof SpellDefinition]-?: NonNullable<SpellDefinition[K]> extends number
+    ? K
+    : never;
+}[keyof SpellDefinition];
+
+/**
+ * A numeric spell field that boot validation (`normalizeSpellCatalog`) requires
+ * for this row's mechanic. Throws, naming `spells.json`, instead of falling back
+ * to a hidden code default.
+ */
+export function requireSpellNumber(
+  def: SpellDefinition,
+  field: NumericSpellField,
+): number {
+  const v = def[field];
+  if (typeof v !== "number") {
+    throw new Error(`spells.json: spell ${def.id} is missing ${field}`);
+  }
+  return v;
+}
 
 export function spellById(id: SpellId): SpellDefinition | undefined {
   if (!id) return undefined;

@@ -1,5 +1,6 @@
+import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
-import type { SpellDefinition } from "../../content/spells";
+import type { SpellDefinition, SpellMechanicType } from "../../content/spells";
 import {
   applyChanneledHeal,
   applyHealAmount,
@@ -8,22 +9,23 @@ import {
   applySpellBlastAt,
   applySpellCone,
   applySpellSwing,
+  type SpellEnemyTarget,
   spawnSpellProjectile,
-} from "../../combat/SpellEffects";
+} from "../../combat/rules/SpellEffects";
 import {
   channeledHealCompletionRemainder,
   isChanneledHealSpell,
-} from "../../combat/channeledHealChannel";
-import { showFireNovaRingFx } from "../../combat/FireNovaRingFx";
-import { playFlamestrikeFirePillarBurst } from "../../combat/FlamestrikePvfx";
-import { resolveBlinkLanding } from "../../combat/spellMechanics";
-import { showFlashHealPulseFx } from "../../combat/SpellFlashHealFx";
-import { playIceWallSegmentEndFx } from "../../combat/IceWallEndFx";
+} from "../../combat/rules/channeledHealChannel";
+import { showFireNovaRingFx } from "../../combat/fx/FireNovaRingFx";
+import { playFlamestrikeFirePillarBurst } from "../../combat/fx/FlamestrikePvfx";
+import { resolveBlinkLanding } from "../../combat/rules/spellMechanics";
+import { showFlashHealPulseFx } from "../../combat/fx/SpellFlashHealFx";
+import { playIceWallSegmentEndFx } from "../../combat/fx/IceWallEndFx";
 import {
   meteorStrikeFxFlipX,
   playMeteorStrikeFx,
-} from "../../combat/SpellMeteorStrikeFx";
-import { playShadowformCastFx } from "../../combat/ShadowformCastFx";
+} from "../../combat/fx/SpellMeteorStrikeFx";
+import { playShadowformCastFx } from "../../combat/fx/ShadowformCastFx";
 import {
   DEFENSE_RENDER_DEPTH,
   defenseHalfHeight,
@@ -43,6 +45,238 @@ import {
 } from "../../audio/fireWhooshSfx";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
 
+/** Per-cast values every mechanic handler reads. */
+type SpellResolveFrame = {
+  host: DefenseSpellDirectorHost;
+  def: SpellDefinition;
+  mult: number;
+  px: number;
+  py: number;
+  angle: number;
+  targets: SpellEnemyTarget[];
+};
+
+type SpellMechanicHandler = (f: SpellResolveFrame) => void;
+
+function resolveBlast({ host, def, mult, px, py, targets }: SpellResolveFrame) {
+  const remote =
+    spellTargetMode(def) === "ground" && host.spellChannelArea
+      ? host.spellChannelArea
+      : null;
+  const bx = remote?.x ?? px;
+  const by = remote?.y ?? py;
+  applySpellBlastAt(
+    host.scene,
+    bx,
+    by,
+    def,
+    targets,
+    mult,
+    host.enemySpellStatus,
+  );
+  const blastRadiusPx = host.wu(def.blastRadiusWu!);
+  if (def.id === "fire_nova") {
+    showFireNovaRingFx(host.scene, bx, by, blastRadiusPx, host.maskWorldObject);
+  } else if (def.id === "meteor") {
+    playMeteorStrikeFx(
+      host.scene,
+      bx,
+      by,
+      blastRadiusPx,
+      meteorStrikeFxFlipX(px, bx),
+      host.maskWorldObject,
+    );
+  } else if (def.id === "flamestrike") {
+    playFlamestrikeFirePillarBurst(
+      host.scene,
+      bx,
+      by,
+      blastRadiusPx,
+      host.maskWorldObject,
+    );
+  } else {
+    host.flashNova(bx, by, blastRadiusPx, {
+      blastTextureKey: def.blastTextureKey,
+    });
+  }
+}
+
+function resolveProjectile({
+  host,
+  def,
+  mult,
+  px,
+  py,
+  angle,
+}: SpellResolveFrame) {
+  const id = `spell_proj_${host.nextProjectileId()}`;
+  const projSpell = spawnSpellProjectile(
+    host.scene,
+    px,
+    py,
+    angle,
+    def,
+    mult,
+    id,
+  );
+  host.maskWorldObject?.(projSpell.sprite);
+  host.projectiles.push(projSpell);
+}
+
+function resolveTrackingProjectile(f: SpellResolveFrame) {
+  const { host, def, mult, px, py, angle, targets } = f;
+  const focus = host.targeting.focusEnemyId;
+  const id = `spell_proj_${host.nextProjectileId()}`;
+  const trackingProj = spawnSpellProjectile(
+    host.scene,
+    px,
+    py,
+    angle,
+    def,
+    mult,
+    id,
+    {
+      behavior: "tracking",
+      trackEnemyId: focus,
+    },
+  );
+  host.maskWorldObject?.(trackingProj.sprite);
+  host.projectiles.push(trackingProj);
+  if (def.id === "chain_lightning") {
+    applyChainLightning(
+      host.scene,
+      px,
+      py,
+      def,
+      targets,
+      mult,
+      focus,
+      host.enemySpellStatus,
+    );
+  }
+}
+
+function resolveSwing({ host, def, mult, px, py, targets }: SpellResolveFrame) {
+  if (def.mechanicType === "tracking_swing") {
+    const t = host.targeting.facingTarget("melee", true);
+    if (t) host.player.faceToward(t.x, t.y);
+  }
+  applySpellSwing(
+    host.scene,
+    px,
+    py,
+    host.player.getFacingAngle(),
+    def,
+    targets,
+    mult,
+    host.enemySpellStatus,
+  );
+}
+
+function resolveCone({
+  host,
+  def,
+  mult,
+  px,
+  py,
+  angle,
+  targets,
+}: SpellResolveFrame) {
+  applySpellCone(
+    host.scene,
+    px,
+    py,
+    angle,
+    def,
+    targets,
+    mult,
+    host.enemySpellStatus,
+    {
+      registerWorldDraw: host.maskWorldObject,
+    },
+  );
+}
+
+function resolveInstantTargeted(f: SpellResolveFrame) {
+  const { host, def, mult, px, py, angle, targets } = f;
+  const hitId = applyInstantTargeted(
+    host.scene,
+    def,
+    targets,
+    host.targeting.focusEnemyId,
+    px,
+    py,
+    mult,
+    host.enemySpellStatus,
+  );
+  if (!def.projectileTextureKey) return;
+  const t = hitId ? host.targeting.getEnemyById(hitId) : null;
+  const fallback = tuning("spellInput").instantTargetFallbackPx;
+  const tx = t?.sprite.x ?? px + Math.cos(angle) * fallback;
+  const ty = t?.sprite.y ?? py + Math.sin(angle) * fallback;
+  const aim = Math.atan2(ty - py, tx - px);
+  const id = `spell_proj_${host.nextProjectileId()}`;
+  const aimedProj = spawnSpellProjectile(
+    host.scene,
+    px,
+    py,
+    aim,
+    def,
+    mult,
+    id,
+  );
+  host.maskWorldObject?.(aimedProj.sprite);
+  host.projectiles.push(aimedProj);
+}
+
+function resolveHeal({ host, def, px, py }: SpellResolveFrame) {
+  if (isChanneledHealSpell(def)) {
+    const remainder = channeledHealCompletionRemainder(def);
+    if (remainder > 0) {
+      applyHealAmount(host.player.damageable, remainder);
+    }
+  } else {
+    applyChanneledHeal(host.player.damageable, def);
+  }
+  if (def.id === "flash_heal") {
+    showFlashHealPulseFx(host.scene, px, py, host.maskWorldObject);
+  }
+}
+
+function resolveBuff({ host, def, px, py }: SpellResolveFrame) {
+  if (def.shadowformDurationMs == null) return;
+  host.shadowformEndsAt = host.timeNow() + def.shadowformDurationMs;
+  if (def.id === "shadowform") {
+    playShadowformCastFx(host.scene, px, py, host.maskWorldObject);
+  }
+}
+
+/** Channeled mechanics resolve per tick in `DefenseSpellChannel`, not here. */
+const resolveNothing: SpellMechanicHandler = () => {};
+
+/**
+ * One handler per `mechanicType`. Exhaustive: a new mechanic fails to compile
+ * until it has an entry here.
+ */
+const SPELL_MECHANIC_HANDLERS: Record<SpellMechanicType, SpellMechanicHandler> =
+  {
+    blast: resolveBlast,
+    projectile: resolveProjectile,
+    projectile_aoe: resolveProjectile,
+    tracking_projectile: resolveTrackingProjectile,
+    swing: resolveSwing,
+    tracking_swing: resolveSwing,
+    cone: resolveCone,
+    channeled_cone: resolveNothing,
+    channeled: resolveNothing,
+    channeled_area: resolveNothing,
+    instant_targeted: resolveInstantTargeted,
+    heal: resolveHeal,
+    blink: (f) => castDefenseBlink(f.host, f.angle, f.def),
+    buff: resolveBuff,
+    ice_wall: (f) => spawnDefenseIceWall(f.host, f.angle, f.def),
+  };
+
 /** Apply a resolved spell (blast, projectiles, swing, cone, heal, blink, buff, ice wall). */
 export function resolveDefenseSpellEffect(
   host: DefenseSpellDirectorHost,
@@ -52,206 +286,16 @@ export function resolveDefenseSpellEffect(
   if (spellPlaysFireWhooshOnResolve(def)) {
     playFireWhooshSfx(host.scene);
   }
-  const px = host.player.sprite.x;
-  const py = host.player.sprite.y;
   const angle = blinkAimRad(host, def);
-  const targets = host.enemyTargets();
-  switch (def.mechanicType) {
-    case "blast": {
-      const remote =
-        spellTargetMode(def) === "ground" && host.spellChannelArea
-          ? host.spellChannelArea
-          : null;
-      const bx = remote?.x ?? px;
-      const by = remote?.y ?? py;
-      applySpellBlastAt(
-        host.scene,
-        bx,
-        by,
-        def,
-        targets,
-        mult,
-        host.enemySpellStatus,
-      );
-      const blastRadiusPx = host.wu(def.blastRadiusWu!);
-      if (def.id === "fire_nova") {
-        showFireNovaRingFx(
-          host.scene,
-          bx,
-          by,
-          blastRadiusPx,
-          host.maskWorldObject,
-        );
-      } else if (def.id === "meteor") {
-        playMeteorStrikeFx(
-          host.scene,
-          bx,
-          by,
-          blastRadiusPx,
-          meteorStrikeFxFlipX(px, bx),
-          host.maskWorldObject,
-        );
-      } else if (def.id === "flamestrike") {
-        playFlamestrikeFirePillarBurst(
-          host.scene,
-          bx,
-          by,
-          blastRadiusPx,
-          host.maskWorldObject,
-        );
-      } else {
-        host.flashNova(bx, by, blastRadiusPx, {
-          blastTextureKey: def.blastTextureKey,
-        });
-      }
-      break;
-    }
-    case "projectile":
-    case "projectile_aoe": {
-      const id = `spell_proj_${host.nextProjectileId()}`;
-      const projSpell = spawnSpellProjectile(
-        host.scene,
-        px,
-        py,
-        angle,
-        def,
-        mult,
-        id,
-      );
-      host.maskWorldObject?.(projSpell.sprite);
-      host.projectiles.push(projSpell);
-      break;
-    }
-    case "tracking_projectile": {
-      const focus = host.targeting.focusEnemyId;
-      const id = `spell_proj_${host.nextProjectileId()}`;
-      const trackingProj = spawnSpellProjectile(
-        host.scene,
-        px,
-        py,
-        angle,
-        def,
-        mult,
-        id,
-        {
-          behavior: "tracking",
-          trackEnemyId: focus,
-        },
-      );
-      host.maskWorldObject?.(trackingProj.sprite);
-      host.projectiles.push(trackingProj);
-      if (def.id === "chain_lightning") {
-        applyChainLightning(
-          host.scene,
-          px,
-          py,
-          def,
-          targets,
-          mult,
-          focus,
-          host.enemySpellStatus,
-        );
-      }
-      break;
-    }
-    case "swing":
-    case "tracking_swing": {
-      if (def.mechanicType === "tracking_swing") {
-        const t = host.targeting.facingTarget("melee", true);
-        if (t) host.player.faceToward(t.x, t.y);
-      }
-      applySpellSwing(
-        host.scene,
-        px,
-        py,
-        host.player.getFacingAngle(),
-        def,
-        targets,
-        mult,
-        host.enemySpellStatus,
-      );
-      break;
-    }
-    case "cone":
-      applySpellCone(
-        host.scene,
-        px,
-        py,
-        angle,
-        def,
-        targets,
-        mult,
-        host.enemySpellStatus,
-        {
-          registerWorldDraw: host.maskWorldObject,
-        },
-      );
-      break;
-    case "channeled_cone":
-    case "channeled":
-    case "channeled_area":
-      break;
-    case "instant_targeted": {
-      const hitId = applyInstantTargeted(
-        host.scene,
-        def,
-        targets,
-        host.targeting.focusEnemyId,
-        px,
-        py,
-        mult,
-        host.enemySpellStatus,
-      );
-      if (def.projectileTextureKey) {
-        const t = hitId ? host.targeting.getEnemyById(hitId) : null;
-        const tx = t?.sprite.x ?? px + Math.cos(angle) * 40;
-        const ty = t?.sprite.y ?? py + Math.sin(angle) * 40;
-        const aim = Math.atan2(ty - py, tx - px);
-        const id = `spell_proj_${host.nextProjectileId()}`;
-        const aimedProj = spawnSpellProjectile(
-          host.scene,
-          px,
-          py,
-          aim,
-          def,
-          mult,
-          id,
-        );
-        host.maskWorldObject?.(aimedProj.sprite);
-        host.projectiles.push(aimedProj);
-      }
-      break;
-    }
-    case "heal":
-      if (isChanneledHealSpell(def)) {
-        const remainder = channeledHealCompletionRemainder(def);
-        if (remainder > 0) {
-          applyHealAmount(host.player.damageable, remainder);
-        }
-      } else {
-        applyChanneledHeal(host.player.damageable, def);
-      }
-      if (def.id === "flash_heal") {
-        showFlashHealPulseFx(host.scene, px, py, host.maskWorldObject);
-      }
-      break;
-    case "blink":
-      castDefenseBlink(host, angle, def);
-      break;
-    case "buff":
-      if (def.shadowformDurationMs != null) {
-        host.shadowformEndsAt = host.timeNow() + def.shadowformDurationMs;
-        if (def.id === "shadowform") {
-          playShadowformCastFx(host.scene, px, py, host.maskWorldObject);
-        }
-      }
-      break;
-    case "ice_wall":
-      spawnDefenseIceWall(host, angle, def);
-      break;
-    default:
-      break;
-  }
+  SPELL_MECHANIC_HANDLERS[def.mechanicType]?.({
+    host,
+    def,
+    mult,
+    px: host.player.sprite.x,
+    py: host.player.sprite.y,
+    angle,
+    targets: host.enemyTargets(),
+  });
   host.filterDeadEnemies();
 }
 
@@ -288,7 +332,7 @@ export function castDefenseBlink(
   const reg = host.scene.registry;
   const halfW = defenseHalfWidth(reg);
   const halfH = defenseHalfHeight(reg);
-  const inset = host.wu(24);
+  const inset = host.wu(def.blinkEdgeInsetWu ?? 0);
   const px = host.player.sprite.x;
   const py = host.player.sprite.y;
   const playerR = host.wu(playerBodyRadiusPx());
@@ -350,13 +394,13 @@ export function spawnDefenseIceWall(
   const cy = host.player.sprite.y + Math.sin(facingRad) * dist;
   const perpX = -Math.sin(facingRad);
   const perpY = Math.cos(facingRad);
-  const gap = host.wu(28);
+  const gap = host.wu(def.iceWallBlockGapWu ?? 0);
   const key = COMBAT_FX_TEXTURE.spellIceBolt;
   for (let i = -1; i <= 1; i++) {
     const x = cx + perpX * gap * i;
     const y = cy + perpY * gap * i;
     const block = host.scene.physics.add.staticImage(x, y, key);
-    const size = host.wu(20);
+    const size = host.wu(def.iceWallBlockSizeWu ?? 0);
     block.setDisplaySize(size, size);
     block.setDepth(DEFENSE_RENDER_DEPTH.obstacleBlock);
     block.refreshBody();

@@ -1,23 +1,25 @@
+import { defenseObstacles } from "../../config/defense";
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
-import { DEFENSE_MAP, DEFENSE_OBSTACLES } from "../../config";
+import { DEFENSE_MAP } from "../../config";
 import { defenseHalfWidth } from "../../config/defense";
 import { enemyCollisionBodyRadius } from "../../entities/entityPhysics";
 import { buildNavGrid } from "../../pathfinding/grid";
-import { createEnemyNav } from "../EnemyBrain";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
+import { createEnemyNav } from "../brainShared";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
 import {
   applyRetreatPathing,
   applyTangentSlideAwayFromThreat,
   retreatGoalFromThreat,
   snapRetreatGoalToWalkable,
 } from "./retreatPathing";
-import * as EnemyBrain from "../EnemyBrain";
+import * as BrainShared from "../brainShared";
 
 describe("retreatPathing", () => {
   const grid = buildNavGrid(
-    DEFENSE_OBSTACLES,
+    defenseObstacles(),
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
 
   it("places flee goals on the away-from-threat vector", () => {
@@ -26,7 +28,7 @@ describe("retreatPathing", () => {
   });
 
   it("replans with A* when backing from the player", () => {
-    const replanSpy = vi.spyOn(EnemyBrain, "replanEnemyPath");
+    const replanSpy = vi.spyOn(BrainShared, "replanEnemyPath");
     const enemy = mockEnemyInstance({
       defId: "arrow_rain_archer",
       behavior: "arrowRainArcher",
@@ -80,7 +82,7 @@ describe("retreatPathing", () => {
   });
 
   it("holds when flee and tangents are blocked on a boxed-in cell", () => {
-    const rock = DEFENSE_OBSTACLES[0]!;
+    const rock = defenseObstacles()[0]!;
     const enemy = mockEnemyInstance({
       defId: "arrow_rain_archer",
       behavior: "arrowRainArcher",

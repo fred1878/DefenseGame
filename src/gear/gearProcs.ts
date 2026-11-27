@@ -1,6 +1,6 @@
-import type { Damageable } from "../combat/DamageSystem";
-import { applyHealAmount } from "../combat/SpellEffects";
-import type { EnemySpellStatusMap } from "../combat/enemySpellStatus";
+import type { Damageable } from "../combat/rules/DamageSystem";
+import { applyHealAmount } from "../combat/rules/SpellEffects";
+import type { EnemySpellStatusMap } from "../combat/rules/enemySpellStatus";
 import { gearWeaponProcs, takeLifestealHeal } from "./gearRuntime";
 import type { Rng } from "./rng";
 

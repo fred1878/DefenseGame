@@ -1,3 +1,5 @@
+import { tuning } from "../tuning/gameTuning";
+import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import Phaser from "phaser";
 import {
   SPRITE_DISPLAY,
@@ -5,14 +7,14 @@ import {
   type PlayerCardinal,
 } from "../content/assets";
 import { resolveEnemyCardinal } from "./enemyFacing";
-import { worldDisplayPx, worldUnit } from "../core/worldPixelScale";
+import { worldDisplayPx, worldUnit } from "../config/worldScale";
 import { DEFENSE_RENDER_DEPTH } from "../config";
-import type { EnemyDef } from "../core/DataStore";
+import type { EnemyDef } from "../core/data/DataStore";
 import {
   resolveEnemyCombat,
   type ResolvedEnemyCombat,
 } from "../core/enemyTuning";
-import type { Damageable } from "../combat/DamageSystem";
+import type { Damageable } from "../combat/rules/DamageSystem";
 import { createEnemyCombat, type EnemyCombatState } from "./EnemyCombat";
 import {
   createArrowRainCombatState,
@@ -27,21 +29,21 @@ import {
   type StationaryRangedCombatState,
 } from "./EnemyRangedCombat";
 
-import type { EnemyNavState } from "../ai/EnemyBrain";
-import { createEnemyNav } from "../ai/EnemyBrain";
+import type { EnemyNavState } from "../ai/brainShared";
+import { createEnemyNav } from "../ai/brainShared";
 import {
   enemyCollisionBodyRadius,
   tuneArcadeDynamicBody,
 } from "./entityPhysics";
-import { reapplySpriteHitFlashIfActive } from "../combat/HitFlash";
+import { reapplySpriteHitFlashIfActive } from "../combat/fx/HitFlash";
 import {
   createEnemyNameplate,
   prepareEnemyNameplateForRespawn,
   recycleEnemyNameplateAfterDeath,
   updateEnemyNameplate,
   type EnemyNameplate,
-} from "../ui/enemyNameplate";
-import { cancelEnemyMeleeFxTimer } from "../combat/enemyMeleeFxSchedule";
+} from "../ui/hud/enemyNameplate";
+import { cancelEnemyMeleeFxTimer } from "../combat/fx/enemyMeleeFxSchedule";
 
 export type EnemyBehaviorExtra = {
   strafeSign: 1 | -1;
@@ -73,7 +75,7 @@ export type EnemyBehaviorExtra = {
 export type EnemyInstance = {
   id: string;
   defId: string;
-  behavior: string;
+  behavior: EnemyBehaviorId;
   speedWu: number;
   damage: number;
   weight: number;
@@ -127,7 +129,7 @@ function defaultBehaviorExtra(
 
 function bindEnemyBehaviorSubstate(
   enemy: EnemyInstance,
-  behavior: string,
+  behavior: EnemyBehaviorId,
 ): void {
   delete enemy.arrowRain;
   delete enemy.javelineer;
@@ -259,7 +261,11 @@ export function spawnEnemy(
   );
   sprite.setDepth(DEFENSE_RENDER_DEPTH.enemy);
   sprite.setInteractive(
-    new Phaser.Geom.Circle(0, 0, worldUnit(26, scene.registry)),
+    new Phaser.Geom.Circle(
+      0,
+      0,
+      worldUnit(tuning("spellInput").enemyTapRadiusWu, scene.registry),
+    ),
     Phaser.Geom.Circle.Contains,
   );
   bindEnemySpriteTap(sprite, onTap);

@@ -1,4 +1,4 @@
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
 import { getGearCatalog } from "../gear/gearCatalog";
 import { applyGearLoadout } from "../gear/gearRuntime";
 import type { GearCatalog, StatBonus } from "../gear/gearTypes";

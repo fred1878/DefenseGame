@@ -1,4 +1,4 @@
-import { procLabel, spellLabel } from "../gear/gearText";
+import { FLAT_STAT_LABELS, procLabel, spellLabel } from "../gear/gearText";
 import type { OnHitProc, StatModifier } from "../gear/gearTypes";
 import {
   branchPointsSpent,
@@ -13,21 +13,6 @@ const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 export function tierNumeral(tierIndex: number): string {
   return ROMAN[tierIndex] ?? String(tierIndex + 1);
 }
-
-const FLAT_LABELS: Record<string, { label: string; pct: boolean }> = {
-  meleeDamage: { label: "Melee damage", pct: false },
-  rangedDamage: { label: "Ranged damage", pct: false },
-  damagePct: { label: "Weapon damage", pct: true },
-  attackSpeedPct: { label: "Attack speed", pct: true },
-  maxHp: { label: "Max HP", pct: false },
-  armour: { label: "Armour", pct: false },
-  moveSpeedPct: { label: "Move speed", pct: true },
-  spellPowerPct: { label: "Spell power", pct: true },
-  lifestealPct: { label: "Lifesteal", pct: true },
-  meleeArcPct: { label: "Melee arc", pct: true },
-  rangedRangePct: { label: "Ranged range", pct: true },
-  cooldownPct: { label: "Spell cooldowns", pct: true },
-};
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -55,7 +40,7 @@ export function modifierParts(m: StatModifier): {
       negate: true,
     };
   }
-  const meta = FLAT_LABELS[m.stat]!;
+  const meta = FLAT_STAT_LABELS[m.stat];
   return { ...meta, negate: m.stat === "cooldownPct" };
 }
 

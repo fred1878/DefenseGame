@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 import { applyEffectivePlayerTuning, basePlayerTuning } from "../config/player";
 import { getGearCatalog } from "./gearCatalog";
 import type { GearCatalog, OnHitProc, SaveGear, StatBonus } from "./gearTypes";
@@ -25,6 +25,16 @@ let runtime: GearRuntime = {
 };
 /** Fractional lifesteal carried between hits so small heals still add up. */
 let lifestealCarry = 0;
+
+/** Back to "no gear" combat hooks (test setup; runs share module state). */
+export function resetGearRuntime(): void {
+  runtime = {
+    stats: emptyGearStats(),
+    damageTakenMult: 1,
+    cooldownCapPct: 100,
+  };
+  lifestealCarry = 0;
+}
 
 /**
  * Apply equipped gear (plus `bonus`, e.g. learned talents): player tuning

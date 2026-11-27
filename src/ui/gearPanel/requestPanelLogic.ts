@@ -5,7 +5,7 @@ import {
   type BuyRequest,
 } from "../../gear/buyRequests";
 import type { GearCatalog, ItemType } from "../../gear/gearTypes";
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { iconForItemType } from "../icons/uiIcons";
 import { DG_THEME } from "../theme/dgTheme";
 import type { GearPanelContext, GearPanelState } from "./gearPanelLogic";

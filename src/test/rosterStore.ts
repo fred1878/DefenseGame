@@ -1,4 +1,4 @@
-import { DataStore } from "../core/DataStore";
+import { DataStore } from "../core/data/DataStore";
 import { shippedEnemyCombat } from "./shippedEnemyCombat";
 
 /** DataStore with one wave spawning each id once; enemy CR = index + 1. */

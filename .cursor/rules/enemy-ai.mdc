@@ -5,7 +5,7 @@ globs:
 alwaysApply: false
 ---
 
-- `EnemyBrain.ts` picks the target and calls a behavior from `behaviors/index.ts` (id = `behavior` on the `enemies.json` row). New enemy type = JSON row + a behavior module registered there.
+- `EnemyBrain.ts` calls a behavior from `behaviors/index.ts` (id = `behavior` on the `enemies.json` row). New enemy type = JSON row + a behavior module registered there. Target picking, nav state and path replans live in `brainShared.ts`; behaviors import helpers from there, never from `EnemyBrain.ts` (that would recreate the cycle).
 - Ranged kiters (stationaryRanged, arrowRainArcher, rangedHybrid, lobber, javelineer) share `behaviors/rangedKite.ts` (frame setup, path replan/follow, kite band). Extend it instead of copying loops.
 - Behaviors return steering only; attack timing lives in `src/entities/enemyRanged/*` and `EnemyCombat.ts`.
 - Tuning comes from `enemy-ai.json` / the row's `combat` block, never hard-coded numbers.

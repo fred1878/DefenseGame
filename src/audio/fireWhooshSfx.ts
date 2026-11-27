@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { COMBAT_AUDIO } from "../config/audio";
+import { sfxVolumes } from "../config/audio";
 import type { SpellDefinition } from "../content/spells";
 
 export const FIRE_WHOOSH_SFX_KEY = "sfx_fire_whoosh_01";
@@ -42,6 +42,6 @@ export function spellPlaysFireWhooshOnChannelLinger(
 export function playFireWhooshSfx(scene: Phaser.Scene): void {
   if (!scene.cache.audio.exists(FIRE_WHOOSH_SFX_KEY)) return;
   scene.sound.play(FIRE_WHOOSH_SFX_KEY, {
-    volume: COMBAT_AUDIO.fireWhooshVolume,
+    volume: sfxVolumes().fireWhooshVolume,
   });
 }

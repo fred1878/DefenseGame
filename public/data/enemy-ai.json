@@ -2,5 +2,66 @@
   "playerAggroRadiusWu": 320,
   "playerChaseMemoryMs": 2000,
   "wallVelocityBlendMs": 420,
-  "northWallMeleeStandoffWu": 32
+  "northWallMeleeStandoffWu": 32,
+  "pathing": {
+    "waypointRadiusWu": 14,
+    "replanMs": 450,
+    "stallMs": 400,
+    "stallProgressWu": 3
+  },
+  "retreat": {
+    "probeDistPx": 44,
+    "defaultGoalWu": 96,
+    "sidestepSpeedMul": 0.85,
+    "blendReachWu": 72,
+    "blendMinWeight": 0.05
+  },
+  "javelineer": {
+    "strafeProbeDistPx": 44,
+    "rangeApproachBlend": 0.38,
+    "rangeRetreatBlend": 0.48,
+    "closeRetreatBlend": 0.68,
+    "idealRangeNudge": 0.2,
+    "idealBandFrac": 0.4,
+    "closeRetreatSpeedMul": 1.1,
+    "closeRetreatExtraWu": 48,
+    "closeRetreatMinWu": 72,
+    "approachSpeedMul": 1.08,
+    "bandRetreatMinSpeedMul": 1.02,
+    "bandRetreatMinWu": 56,
+    "wallRetreatSpeedMul": 1.05,
+    "wallRetreatExtraWu": 40,
+    "wallRetreatMinWu": 64
+  },
+  "stationaryRanged": {
+    "wallRetreatSpeedMul": 0.65,
+    "wallRetreatMinWu": 56,
+    "playerRetreatSpeedMul": 0.82,
+    "playerRetreatMinWu": 64,
+    "followSpeedMul": 0.9
+  },
+  "arrowRainArcher": {
+    "followSpeedMul": 0.92,
+    "wallRetreatSpeedMul": 0.65,
+    "wallRetreatMinWu": 56,
+    "playerRetreatSpeedMul": 0.85,
+    "playerRetreatMinWu": 64
+  },
+  "rangedHybrid": {
+    "retreatSpeedMul": 1.05,
+    "retreatMinWu": 72,
+    "meleeChaseSpeedMul": 1.08,
+    "closeChaseSpeedMul": 1.05,
+    "kiteRetreatSpeedMul": 0.88,
+    "kiteRetreatMinWu": 64,
+    "kiteFollowSpeedMul": 0.92
+  },
+  "lobber": {
+    "retreatSpeedMul": 0.78,
+    "retreatMinWu": 64,
+    "followSpeedMul": 0.9
+  },
+  "ward": {
+    "chaseSpeedMul": 0.82
+  }
 }

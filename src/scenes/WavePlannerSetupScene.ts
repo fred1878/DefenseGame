@@ -1,100 +1,55 @@
-import Phaser from "phaser";
-import type { DataStore, WaveGroup } from "../core/DataStore";
+import type { DataStore, WaveGroup } from "../core/data/DataStore";
 import {
   ensureTownReachableReady,
   isTownReachableReady,
-} from "../core/GameAssetLoader";
-import { showTouchInput } from "../debug/DebugState";
-import { FpsDebugOverlay } from "../debug/FpsDebugOverlay";
-import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
-import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
-import { configureSceneInput } from "../input/inputTuning";
-import { isE2EEnabled } from "../e2e/e2eMode";
-import { publishE2E } from "../e2e/e2eGlobal";
-import { WavePlannerPanel } from "../ui/WavePlannerPanel";
+} from "./loading/GameAssetLoader";
+import { WavePlannerPanel } from "../ui/panels/WavePlannerPanel";
 import {
   closeTownSetupScene,
   TOWN_WAVE_PLANNER_SETUP_SCENE_KEY,
   type WavePlannerSetupLaunchData,
 } from "./town/townSetupSceneLifecycle";
-import { isPointerOverInteractive } from "./town/TownTouchDebug";
+import { TownRosterSetupScene } from "./town/TownRosterSetupScene";
+import { reportFatal } from "../ui/panels/FatalErrorPanel";
 
-export class WavePlannerSetupScene extends Phaser.Scene {
-  private panel: WavePlannerPanel | null = null;
-  private touchDebug!: TouchInputDebugDraw;
-  private fpsOverlay!: FpsDebugOverlay;
-  private launchData!: WavePlannerSetupLaunchData;
-  private started = false;
-
+export class WavePlannerSetupScene extends TownRosterSetupScene<
+  WavePlannerPanel,
+  WavePlannerSetupLaunchData
+> {
   constructor() {
     super({ key: TOWN_WAVE_PLANNER_SETUP_SCENE_KEY });
   }
 
-  init(data: WavePlannerSetupLaunchData): void {
-    this.launchData = data;
-    this.started = false;
-  }
-
-  create(): void {
-    configureSceneInput(this);
-    this.touchDebug = new TouchInputDebugDraw(this);
-    this.fpsOverlay = new FpsDebugOverlay(this);
-
-    const store = this.registry.get("dataStore") as DataStore;
-    const open = (): void => {
-      if (this.panel) return;
-      this.panel = new WavePlannerPanel(
-        this,
-        store,
-        (groups: WaveGroup[]) => {
-          this.started = true;
-          const launch = this.launchData;
-          this.panel = null;
-          closeTownSetupScene(this, () => launch.onStart(groups));
-        },
-        () => {
-          if (this.started) return;
-          this.panel = null;
-          closeTownSetupScene(this);
-        },
+  protected openSetup(store: DataStore): void {
+    const open = (): void =>
+      this.showPanel(
+        () =>
+          new WavePlannerPanel(
+            this,
+            store,
+            (groups: WaveGroup[]) => {
+              const launch = this.launchData;
+              this.startRun(() => launch.onStart(groups));
+            },
+            () => this.dismissPanel(),
+          ),
       );
-      if (isE2EEnabled()) {
-        publishE2E({ scene: "Town", ready: true });
-      }
-    };
 
     if (isTownReachableReady(this.game, store)) {
       open();
     } else {
-      void ensureTownReachableReady(this, store).then(open);
+      void ensureTownReachableReady(this, store)
+        .then(open)
+        .catch((err) => {
+          reportFatal(this, {
+            title: "Could not load the wave planner",
+            message: "Check your connection and try again.",
+            error: err,
+            onRetry: () => this.openSetup(store),
+            onClose: () => closeTownSetupScene(this),
+          });
+        });
     }
-
-    this.events.on("shutdown", () => {
-      this.panel?.destroy();
-      this.panel = null;
-      this.touchDebug.destroy();
-      this.fpsOverlay.destroy();
-    });
-
-    if (isE2EEnabled()) {
-      publishE2E({ scene: "Town", ready: true });
-    }
-  }
-
-  override update(_time: number, delta: number): void {
-    this.fpsOverlay.tick(this.registry, delta, this.game);
-    if (!showTouchInput(this.registry)) {
-      this.touchDebug.clear();
-      return;
-    }
-    const skip = [
-      this.touchDebug.uiGraphics(),
-      this.touchDebug.worldGraphics(),
-    ];
-    this.touchDebug.draw({
-      pointerUiBlocked: (pointer) => isPointerOverInteractive(this, pointer),
-      uiScreenRects: collectInteractiveScreenRects(this, { skip }),
-    });
   }
 
   e2eGetUiTapTargets(): Record<string, { x: number; y: number }> {
@@ -104,13 +59,5 @@ export class WavePlannerSetupScene extends Phaser.Scene {
 
   e2eIsOpen(): boolean {
     return this.panel !== null;
-  }
-
-  e2eTouchDebugRectCount(): number {
-    const skip = [
-      this.touchDebug.uiGraphics(),
-      this.touchDebug.worldGraphics(),
-    ];
-    return collectInteractiveScreenRects(this, { skip }).length;
   }
 }

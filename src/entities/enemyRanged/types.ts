@@ -1,4 +1,4 @@
-import type { ArrowRainTelegraph } from "../../combat/ArrowRainTelegraph";
+import type { ArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
 import type { EnemyAttackPhase } from "../EnemyCombat";
 
 export type ArrowRainCombatState = {

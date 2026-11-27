@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import { COMBAT_AUDIO } from "../config/audio";
+import { sfxVolumes } from "../config/audio";
 
 export const ENEMY_MELEE_SLASH_SFX_KEYS = [
   "sfx_enemy_melee_slash_01",
@@ -22,5 +22,5 @@ export function pickEnemyMeleeSlashSfxKey(
 export function playEnemyMeleeSlashSfx(scene: Phaser.Scene): void {
   const key = pickEnemyMeleeSlashSfxKey();
   if (!scene.cache.audio.exists(key)) return;
-  scene.sound.play(key, { volume: COMBAT_AUDIO.enemyMeleeSlashVolume });
+  scene.sound.play(key, { volume: sfxVolumes().enemyMeleeSlashVolume });
 }

@@ -14,22 +14,20 @@ import {
 import { configureSceneInput } from "../input/inputTuning";
 import { collectInteractiveScreenRects } from "../debug/collectInteractiveScreenRects";
 import { TouchInputDebugDraw } from "../debug/TouchInputDebugDraw";
-import { readSafeInsets } from "../ui/screenLayout";
-import { uiTextStyle } from "../ui/uiTextStyle";
-import {
-  getWorldPixelScale,
-  setDebugWorldPixelScale,
-} from "../core/worldPixelScale";
-import { fullscreenAvailable, toggleFullscreen } from "../ui/fullscreen";
+import { readSafeInsets } from "../ui/layout/screenLayout";
+import { uiTextStyle } from "../ui/layout/uiTextStyle";
+import { setDebugWorldPixelScale } from "../core/render/worldPixelScale";
+import { getWorldPixelScale } from "../config/worldScale";
+import { fullscreenAvailable, toggleFullscreen } from "../ui/layout/fullscreen";
 import {
   DEBUG_MENU_CLOSE,
   isDefenseDebugHost,
 } from "../debug/debugMenuLifecycle";
 import { type DebugMenuItem, layoutDebugMenu } from "../debug/debugMenuLayout";
 import { DEBUG_TOOLTIPS } from "../debug/debugMenuTooltips";
-import type { WorldTextureFilterMode } from "../core/pixelArtTextures";
+import type { WorldTextureFilterMode } from "../core/render/pixelArtTextures";
 import { uiPartKey } from "../content/uiParts";
-import { addUiFrame, hasUiPart } from "../ui/uiFrame";
+import { addUiFrame, hasUiPart } from "../ui/layout/uiFrame";
 import { transitionDefenseToTown } from "./defense/DefenseNightEnd";
 import {
   applyPixelRenderDebugSettings,
@@ -41,7 +39,7 @@ import {
   setDebugRendererRoundPixels,
   setDebugScaleAutoRound,
   setDebugWorldTextureFilter,
-} from "../core/pixelRenderDebug";
+} from "../core/render/pixelRenderDebug";
 import {
   debugInfiniteGold,
   debugInfiniteTalentPoints,

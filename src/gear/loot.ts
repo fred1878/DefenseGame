@@ -1,6 +1,6 @@
 import bundledLoot from "../../public/data/loot.json";
-import { normalizeLoot } from "../core/normalizeLoot";
-import type { SaveGame } from "../core/saveTypes";
+import { normalizeLoot } from "../core/data/normalizeLoot";
+import type { SaveGame } from "../core/save/saveTypes";
 import { addItem, bagItems } from "./inventory";
 import { rollItem, type ItemDraft, type RarityWeights } from "./itemGen";
 import { resolveItem, sellValue } from "./itemStats";

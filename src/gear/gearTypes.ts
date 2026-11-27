@@ -1,4 +1,4 @@
-import type { DamageFlavor } from "../combat/DamageSystem";
+import type { DamageFlavor } from "../combat/rules/DamageSystem";
 
 /** Player equipment slots (11). Rings and trinkets have two slots each. */
 export const EQUIP_SLOTS = [
@@ -168,6 +168,15 @@ export type GearCatalog = {
   armourMaxReductionPct: number;
   itemLevelPriceStepPct: number;
   statCaps: Partial<Record<FlatStatId | "spellCooldownPct", number>>;
+  /** Random item roll rules (`items.json` `generation`). */
+  generation: {
+    /** Max affixes of each position (prefix / suffix) on one item. */
+    maxAffixesPerPosition: number;
+    /** Bases this many levels under the roll level drop with reduced weight. */
+    outdatedBaseLevels: number;
+    /** Weight multiplier for those outdated bases. */
+    outdatedBaseWeight: number;
+  };
   rarities: Record<RarityId, RarityDef>;
   bases: Record<string, ItemBase>;
   affixes: Record<string, AffixDef>;

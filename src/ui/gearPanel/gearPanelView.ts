@@ -5,12 +5,10 @@
  * placeholders).
  */
 import { basePlayerTuning } from "../../config/player";
-import type { SaveGame } from "../../core/saveTypes";
-import {
-  consumableCount,
-  consumableEffectLine,
-  type ConsumableDef,
-} from "../../gear/consumables";
+import { PALETTE_CSS } from "../theme/uiPalette";
+import type { SaveGame } from "../../core/save/saveTypes";
+import { consumableCount, consumableEffectLine } from "../../gear/consumables";
+import type { ConsumableDef } from "../../gear/consumableTypes";
 import { compareGear, type CompareRow } from "../../gear/gearCompare";
 import { itemTypeLabel, modifierLabel, procLabel } from "../../gear/gearText";
 import {
@@ -45,7 +43,7 @@ import {
 import { DG_THEME } from "../theme/dgTheme";
 
 /** Name colour for potions / bombs (no rarity). */
-export const CONSUMABLE_COLOR = "#FDE68A";
+export const CONSUMABLE_COLOR = PALETTE_CSS.amber200;
 
 const TYPE_SHORT: Record<ItemType, string> = {
   meleeWeapon: "Melee",

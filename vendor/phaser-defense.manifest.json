@@ -2,6 +2,7 @@
   "phaserVersion": "4.2.1",
   "builtAt": "2026-11-25T20:11:53.255Z",
   "bytes": 6495414,
+  "sha256": "3982db338573c58a4cc5a8fbda68871ae9a577e8a69af0b4e84076a4b25206a3",
   "entry": "vendor/phaser-trim/phaser-defense-entry.js",
   "trims": [
     "physics: arcade-only (entry)",

@@ -1,10 +1,6 @@
-import type { SaveGame } from "../core/saveTypes";
-import {
-  consumableKindCount,
-  getConsumablesConfig,
-  type ConsumableKind,
-  type ConsumablesConfig,
-} from "./consumables";
+import type { SaveGame } from "../core/save/saveTypes";
+import { consumableKindCount, getConsumablesConfig } from "./consumables";
+import type { ConsumableKind, ConsumablesConfig } from "./consumableTypes";
 
 export type ConsumableButtonState = {
   visible: boolean;

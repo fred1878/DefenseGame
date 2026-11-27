@@ -1,6 +1,7 @@
+import { tuning } from "../tuning/gameTuning";
 import Phaser from "phaser";
 import { defenseHalfHeight, defenseHalfWidth } from "../config/defense";
-import { worldUnit } from "../core/worldPixelScale";
+import { worldUnit } from "../config/worldScale";
 
 /** South band where night waves enter (north = negative y). */
 export function pickWaveSpawnPoint(
@@ -9,12 +10,14 @@ export function pickWaveSpawnPoint(
 ): { x: number; y: number } {
   const halfW = defenseHalfWidth(registry);
   const halfH = defenseHalfHeight(registry);
-  const marginX = registry ? worldUnit(36, registry) : 36;
-  const southY = halfH - (registry ? worldUnit(96, registry) : 96);
+  const band = tuning("gameplay").spawn;
+  const wu = (v: number) => (registry ? worldUnit(v, registry) : v);
+  const marginX = wu(band.marginXWu);
+  const southY = halfH - wu(band.southInsetWu);
   if (e2e) {
     return { x: 0, y: southY };
   }
-  const jitterY = registry ? worldUnit(24, registry) : 24;
+  const jitterY = wu(band.jitterYWu);
   return {
     x: Phaser.Math.Between(-halfW + marginX, halfW - marginX),
     y: Phaser.Math.Between(southY - jitterY, southY + jitterY),

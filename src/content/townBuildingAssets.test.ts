@@ -2,11 +2,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { TOWN_BUILDING_ASSETS } from "./townBuildingAssets";
-import type { TownBuildingDef, TownLayoutDef } from "../core/townBuildingTypes";
+import type {
+  TownBuildingDef,
+  TownLayoutDef,
+} from "../core/data/townBuildingTypes";
 import {
   townBuildingGridColumnX,
   townBuildingGridFootY,
-} from "../ui/screenLayout";
+} from "../ui/layout/screenLayout";
 
 const repoRoot = join(import.meta.dirname, "../..");
 

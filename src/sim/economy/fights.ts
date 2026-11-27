@@ -1,4 +1,4 @@
-import type { SaveGame } from "../../core/saveTypes";
+import type { SaveGame } from "../../core/save/saveTypes";
 import { talentBonus } from "../../talents/talentLogic";
 import {
   DEFAULT_POWER_MODEL,

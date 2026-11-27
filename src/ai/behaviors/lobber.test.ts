@@ -1,10 +1,11 @@
+import { maxNavObstacleClearancePx } from "../../entities/entityPhysics";
 import { describe, expect, it, vi } from "vitest";
 import { DEFENSE_MAP } from "../../config";
 import { buildNavGrid } from "../../pathfinding/grid";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { resolveEnemyCombat } from "../../core/enemyTuning";
-import { mockEnemyInstance } from "../../entities/testEnemyInstance";
-import { createEnemyNav } from "../EnemyBrain";
+import { mockEnemyInstance } from "../../test/testEnemyInstance";
+import { createEnemyNav } from "../brainShared";
 import { lobberBehavior } from "./lobber";
 
 function mockLobber(
@@ -32,7 +33,7 @@ describe("lobberBehavior", () => {
   const navGrid = buildNavGrid(
     [],
     DEFENSE_MAP.cellSize,
-    DEFENSE_MAP.pathClearancePx,
+    maxNavObstacleClearancePx(),
   );
   const lob = shippedEnemyCombat("lobber").lobber;
   if (!lob) throw new Error("expected lobber combat tuning");

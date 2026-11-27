@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createNewSave } from "../core/GameState";
+import { createNewSave } from "../core/save/GameState";
+import { hasEnoughGold } from "../core/economyPolicy";
 import { talentFixture } from "../test/talentFixture";
 import {
   canLearn,
@@ -7,8 +8,8 @@ import {
   pointsAvailable,
 } from "../talents/talentLogic";
 import {
+  debugEconomyPolicy,
   debugInfiniteGold,
-  hasEnoughGold,
   setDebugInfiniteGold,
   setDebugInfiniteTalentPoints,
 } from "./debugEconomy";
@@ -26,16 +27,18 @@ describe("debugEconomy", () => {
   it("defaults infinite gold and talent debug flags to off", () => {
     const reg = fakeRegistry();
     expect(debugInfiniteGold(reg)).toBe(false);
-    expect(pointsAvailable(createNewSave().talents, reg)).toBeGreaterThan(0);
+    expect(
+      pointsAvailable(createNewSave().talents, debugEconomyPolicy(reg)),
+    ).toBeGreaterThan(0);
   });
 
   it("hasEnoughGold ignores balance when infinite gold is on", () => {
     const reg = fakeRegistry();
     const save = createNewSave();
     save.gold = 0;
-    expect(hasEnoughGold(save, 500, reg)).toBe(false);
+    expect(hasEnoughGold(save, 500, debugEconomyPolicy(reg))).toBe(false);
     setDebugInfiniteGold(reg, true);
-    expect(hasEnoughGold(save, 500, reg)).toBe(true);
+    expect(hasEnoughGold(save, 500, debugEconomyPolicy(reg))).toBe(true);
   });
 
   it("infinite talent points allow learn and reset despite low gold", () => {
@@ -45,9 +48,15 @@ describe("debugEconomy", () => {
     const save = createNewSave();
     save.gold = 0;
     save.talents = { ranks: { a1: 1 }, earned: 1 };
-    expect(pointsAvailable(save.talents, reg)).toBeGreaterThan(1000);
-    expect(canLearn(cat, save.talents, "a1", reg)).toBe(true);
+    expect(
+      pointsAvailable(save.talents, debugEconomyPolicy(reg)),
+    ).toBeGreaterThan(1000);
+    expect(canLearn(cat, save.talents, "a1", debugEconomyPolicy(reg))).toBe(
+      true,
+    );
     setDebugInfiniteGold(reg, true);
-    expect(canResetTalents(cat, save.talents, save.gold, reg)).toBe(true);
+    expect(
+      canResetTalents(cat, save.talents, save.gold, debugEconomyPolicy(reg)),
+    ).toBe(true);
   });
 });

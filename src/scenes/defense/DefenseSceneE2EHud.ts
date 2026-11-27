@@ -1,10 +1,10 @@
 import type Phaser from "phaser";
-import type { defenseMinimapLayout } from "../../ui/defenseMinimap";
+import type { defenseMinimapLayout } from "../../ui/hud/defenseMinimap";
 import {
   combatChromeLayout,
   defensePlayAreaLayout,
-  hudTextPosition,
-} from "../../ui/screenLayout";
+} from "../../ui/layout/screenLayout";
+import { hudTextPosition } from "../../ui/hud/defenseHudLayout";
 import type { DefenseSceneE2eDelegate } from "./DefenseSceneE2ETypes";
 
 /** E2E hooks: HUD layout probe and HUD band pixel sampling. */
@@ -15,9 +15,9 @@ export function defenseSceneE2eHudLayoutProbe(scene: DefenseSceneE2eDelegate): {
   hudText: { x: number; y: number };
   minimap: ReturnType<typeof defenseMinimapLayout>;
 } {
-  const playArea = defensePlayAreaLayout(scene, scene.safe);
-  const chrome = combatChromeLayout(scene, scene.safe);
-  const hud = hudTextPosition(scene.safe);
+  const playArea = defensePlayAreaLayout(scene, scene.run.safe);
+  const chrome = combatChromeLayout(scene, scene.run.safe);
+  const hud = hudTextPosition(scene.run.safe);
   return {
     playArea,
     chrome,

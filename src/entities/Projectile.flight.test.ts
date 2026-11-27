@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Damageable } from "../combat/DamageSystem";
+import type { Damageable } from "../combat/rules/DamageSystem";
 import { COMBAT_FX_TEXTURE, SPRITE_DISPLAY } from "../content/assets";
 import {
   asScene,
@@ -7,7 +7,7 @@ import {
   fakeScene,
   type FakeScene,
 } from "../test/fakeScene";
-import { mockEnemyInstance } from "./testEnemyInstance";
+import { mockEnemyInstance } from "../test/testEnemyInstance";
 import {
   projectileArcadeRadiusPx,
   spawnEnemyLobProjectile,

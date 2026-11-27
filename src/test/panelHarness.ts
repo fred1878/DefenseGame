@@ -1,6 +1,6 @@
 /** Shared harness for the town shop / inventory overlay panel tests. */
 import { vi } from "vitest";
-import type { SaveGame } from "../core/saveTypes";
+import type { SaveGame } from "../core/save/saveTypes";
 import { asScene, fakeScene } from "./fakeScene";
 
 type Panel = {

@@ -1,5 +1,5 @@
+import { playerTuning } from "../../config/player";
 import Phaser from "phaser";
-import { PLAYER_TUNING } from "../../config";
 import type { DefenseObstacleRect } from "../../config/defense";
 import { collectInteractiveScreenRects } from "../../debug/collectInteractiveScreenRects";
 import {
@@ -134,21 +134,21 @@ export function drawDefenseCombatDebug(input: DefenseCombatDebugInput): void {
     rangeDebug.drawMeleeActivationRange(
       px,
       py,
-      wu(PLAYER_TUNING.autoAttackMeleeRange),
+      wu(playerTuning().autoAttackMeleeRange),
     );
-    rangeDebug.drawMeleeMaxRange(px, py, wu(PLAYER_TUNING.meleeStrikeRangeWu));
+    rangeDebug.drawMeleeMaxRange(px, py, wu(playerTuning().meleeStrikeRangeWu));
   }
 
   if (showBoxes) {
     hitboxDebug.clear();
     hitboxDebug.drawCircle(px, py, playerR);
     if (player.strikeMode() === "melee" && player.attackPhaseNow === "active") {
-      const arcHalf = Phaser.Math.DegToRad(PLAYER_TUNING.meleeArcDeg / 2);
+      const arcHalf = Phaser.Math.DegToRad(playerTuning().meleeArcDeg / 2);
       hitboxDebug.drawMeleeArc(
         px,
         py,
         player.meleeHitboxFacingRad(),
-        wu(PLAYER_TUNING.meleeStrikeRangeWu),
+        wu(playerTuning().meleeStrikeRangeWu),
         arcHalf,
       );
     }

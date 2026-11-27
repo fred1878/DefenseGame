@@ -1,5 +1,5 @@
-import { clampGroundTarget } from "../../combat/spellMechanics";
-import type { DefensePlayArea } from "../../ui/screenLayout";
+import { clampGroundTarget } from "../../combat/rules/spellMechanics";
+import type { DefensePlayArea } from "../../ui/layout/screenLayout";
 
 export function pointerInDefensePlayArea(
   screenX: number,

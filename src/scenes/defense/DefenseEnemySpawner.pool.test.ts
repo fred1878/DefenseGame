@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DataStore, EnemyDef } from "../../core/DataStore";
+import type { DataStore, EnemyDef } from "../../core/data/DataStore";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { spawnDefenseEnemyAt } from "./DefenseEnemySpawner";
 

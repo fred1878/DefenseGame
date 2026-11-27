@@ -1,7 +1,8 @@
 import type { SpellDefinition } from "../../content/spells";
-import { SpellBlizzardChannelFx } from "../../combat/SpellBlizzardChannelFx";
-import { SpellHealChannelFx } from "../../combat/SpellHealChannelFx";
-import { SpellIceCastWindupFx } from "../../combat/SpellIceCastWindupFx";
+import { tuning } from "../../tuning/gameTuning";
+import { SpellBlizzardChannelFx } from "../../combat/fx/SpellBlizzardChannelFx";
+import { SpellHealChannelFx } from "../../combat/fx/SpellHealChannelFx";
+import { SpellIceCastWindupFx } from "../../combat/fx/SpellIceCastWindupFx";
 import { spellUsesIceCastWindupFx } from "../../content/iceFxSpells";
 import {
   destroySpellGroundAoeTelegraph,
@@ -10,9 +11,9 @@ import {
   spellNeedsGroundAoeTelegraph,
   spawnSpellGroundAoeTelegraph,
   updateSpellGroundAoeTelegraph,
-} from "../../combat/SpellGroundAoeTelegraph";
+} from "../../combat/fx/SpellGroundAoeTelegraph";
 import { spellCastMs } from "../../content/spellTargeting";
-import { GroundTargetReticle } from "../../ui/GroundTargetReticle";
+import { GroundTargetReticle } from "../../ui/hud/GroundTargetReticle";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
 
 /** Tear down the windup/channel ground telegraph, blizzard FX and heal channel FX. */
@@ -142,7 +143,9 @@ export function pulseDefenseImpactAoeTelegraph(
   );
   registerSpellGroundAoeTelegraphWorld(impact, host.maskWorldObject);
   updateSpellGroundAoeTelegraph(impact, 0, "impact", 1);
-  host.delayedCall(360, () => destroySpellGroundAoeTelegraph(impact));
+  host.delayedCall(tuning("gameplay").feel.impactTelegraphMs, () =>
+    destroySpellGroundAoeTelegraph(impact),
+  );
 }
 
 /** Ice VFX 2 Start on caster during frost spell windup. */

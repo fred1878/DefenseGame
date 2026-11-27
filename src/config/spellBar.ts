@@ -1,4 +1,4 @@
-import { scaleUiX, scaleUiY } from "../core/displayScale";
+import { scaleUiX, scaleUiY } from "./uiScale";
 
 export const SPELL_BAR = {
   slotCount: 8,

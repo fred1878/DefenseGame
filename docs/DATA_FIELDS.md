@@ -9,7 +9,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 - `autoAttackMeleeRange` — px; derived melee engage range at Boot (example bullet), or
 - A table row `| \`fieldName\` | … |` where cells after the field name combine to ≥15 characters of **type, unit, and meaning** (no `TBD` / `TODO`).
 
-**Bidirectional parity:** `src/core/dataFieldsDoc.test.ts` compares exported `*BOOT_KEYS` from `normalize*` (and `dataFieldsDocKeys.ts`) to parsed field names per section. CI fails on **missing** keys (new config not documented) and **extra** keys (renamed/removed config still in the doc). Update normalize key lists and this file in the **same PR**.
+**Bidirectional parity:** `src/core/data/dataFieldsDoc.test.ts` compares exported `*BOOT_KEYS` from `normalize*` (and `dataFieldsDocKeys.ts`) to parsed field names per section. CI fails on **missing** keys (new config not documented) and **extra** keys (renamed/removed config still in the doc). Update normalize key lists and this file in the **same PR**.
 
 ## Units
 
@@ -42,27 +42,31 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 | `town_buildings.json` | yes (no schema validator) |
 | `town_layout.json` | yes (`normalizeTownLayout`) |
 | `waves.json` | yes (no schema validator) |
+| `gameplay.json` | yes (`normalizeGameplay`) |
+| `damage-numbers.json` | yes (`normalizeDamageNumbers`) |
 
 ### TypeScript types
 
 | File | Input (authorable) | Resolved / runtime | Module |
 |------|---------------------|-------------------|--------|
-| `buildings.json` | — | [BuildingDef](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
-| `defense-maps.json` | [DefenseMapsFileInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/normalizeDefenseMaps.ts) | [DefenseMapsRegistry](../src/core/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/normalizeDefenseMaps.ts) | [normalizeDefenseMaps.ts](../src/core/normalizeDefenseMaps.ts) |
-| `enemies.json` | [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts) | [EnemyDef](../src/core/DataStore.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) | [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts) |
-| `enemy-ai.json` | [EnemyAiInput](../src/core/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
-| `entity-physics.json` | [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts) |
-| `hit-flash.json` | [HitFlashInput](../src/core/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
-| `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
-| `consumables.json` | — | [ConsumablesConfig](../src/gear/consumables.ts) | [normalizeConsumables.ts](../src/core/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts) |
-| `shops.json` | — | [ShopsConfig](../src/gear/shops.ts) | [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts) |
-| `loot.json` | — | [LootConfig](../src/gear/loot.ts) | [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts) |
-| `player.json` | [PlayerConfigInput](../src/core/normalizePlayer.ts) | [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
-| `spell_input.json` | [SpellInputConfigInput](../src/core/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
-| `spells.json` | [SpellsFileInput](../src/core/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
-| `town_buildings.json` | — | [TownBuildingDef](../src/core/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
-| `town_layout.json` | [TownLayoutInput](../src/core/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/townBuildingTypes.ts) |
-| `waves.json` | — | [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) | [DataStore.ts](../src/core/DataStore.ts) |
+| `buildings.json` | — | [BuildingDef](../src/core/data/DataStore.ts) | [DataStore.ts](../src/core/data/DataStore.ts) |
+| `defense-maps.json` | [DefenseMapsFileInput](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/data/normalizeDefenseMaps.ts) | [DefenseMapsRegistry](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/data/normalizeDefenseMaps.ts) | [normalizeDefenseMaps.ts](../src/core/data/normalizeDefenseMaps.ts) |
+| `enemies.json` | [EnemyDefInput](../src/core/data/normalizeEnemy.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts) | [EnemyDef](../src/core/data/DataStore.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) | [normalizeEnemy.ts](../src/core/data/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts) |
+| `enemy-ai.json` | [EnemyAiInput](../src/core/data/normalizeEnemyAi.ts) | [EnemyAiTuning](../src/config/enemy.ts) | [normalizeEnemyAi.ts](../src/core/data/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts) |
+| `entity-physics.json` | [EntityPhysicsInput](../src/core/data/normalizeEntityPhysics.ts) | [EntityPhysicsTuning](../src/core/data/normalizeEntityPhysics.ts) | [normalizeEntityPhysics.ts](../src/core/data/normalizeEntityPhysics.ts) |
+| `hit-flash.json` | [HitFlashInput](../src/core/data/normalizeHitFlash.ts) | [HitFlashConfig](../src/core/data/normalizeHitFlash.ts) | [normalizeHitFlash.ts](../src/core/data/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts) |
+| `items.json` | — | [GearCatalog](../src/gear/gearTypes.ts) | [normalizeItems.ts](../src/core/data/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts) |
+| `consumables.json` | — | [ConsumablesConfig](../src/gear/consumables.ts) | [normalizeConsumables.ts](../src/core/data/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts) |
+| `shops.json` | — | [ShopsConfig](../src/gear/shops.ts) | [normalizeShops.ts](../src/core/data/normalizeShops.ts), [shops.ts](../src/gear/shops.ts) |
+| `loot.json` | — | [LootConfig](../src/gear/loot.ts) | [normalizeLoot.ts](../src/core/data/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts) |
+| `player.json` | [PlayerConfigInput](../src/core/data/normalizePlayer.ts) | [PlayerConfig](../src/core/data/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) | [normalizePlayer.ts](../src/core/data/normalizePlayer.ts), [player.ts](../src/config/player.ts) |
+| `spell_input.json` | [SpellInputConfigInput](../src/core/data/normalizeSpellInput.ts) | [SpellInputTuning](../src/config/spellInput.ts) | [normalizeSpellInput.ts](../src/core/data/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts) |
+| `spells.json` | [SpellsFileInput](../src/core/data/normalizeSpells.ts) | [SpellDefinition](../src/content/spells.ts) | [normalizeSpells.ts](../src/core/data/normalizeSpells.ts), [spells.ts](../src/content/spells.ts) |
+| `town_buildings.json` | — | [TownBuildingDef](../src/core/data/townBuildingTypes.ts) | [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
+| `town_layout.json` | [TownLayoutInput](../src/core/data/normalizeTownLayout.ts) | [TownLayoutDef](../src/core/data/townBuildingTypes.ts) | [normalizeTownLayout.ts](../src/core/data/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts) |
+| `waves.json` | — | [WaveDef](../src/core/data/DataStore.ts), [WaveGroup](../src/core/data/DataStore.ts) | [DataStore.ts](../src/core/data/DataStore.ts) |
+| `damage-numbers.json` | — | [DamageNumbersTuning](../src/config/damageNumbers.ts) | [normalizeDamageNumbers.ts](../src/core/data/normalizeDamageNumbers.ts), [damageNumbers.ts](../src/config/damageNumbers.ts) |
+| `gameplay.json` | — | [GameplayTuning](../src/core/data/normalizeGameplay.ts) | [normalizeGameplay.ts](../src/core/data/normalizeGameplay.ts), [gameplay.ts](../src/config/gameplay.ts) |
 
 **Removed (do not re-add):** `enemy-combat-defaults.json`, `spell-mechanics.json` — combat is fully per row in `enemies.json`; Shadowform tuning lives on the `shadowform` spell row.
 
@@ -70,7 +74,7 @@ Each boot-required field must appear in that file's `## *.json` section as eithe
 
 ## enemies.json
 
-**TypeScript:** [EnemyDefInput](../src/core/normalizeEnemy.ts), [EnemyDef](../src/core/DataStore.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) — [normalizeEnemy.ts](../src/core/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts).
+**TypeScript:** [EnemyDefInput](../src/core/data/normalizeEnemy.ts), [EnemyDef](../src/core/data/DataStore.ts), [EnemyCombatPartial](../src/core/enemyTuning.ts), [ResolvedEnemyCombat](../src/core/enemyTuning.ts) — [normalizeEnemy.ts](../src/core/data/normalizeEnemy.ts), [enemyTuning.ts](../src/core/enemyTuning.ts).
 
 Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`enemyId`) and endless mode.
 
@@ -84,7 +88,7 @@ Top-level object: **enemy id** → row. Ids are referenced from `waves.json` (`e
 | `bodyRadiusWu` | number (px) | Arcade circle radius, contact distance, nav clearance |
 | `weight` | number (dimensionless) | Knockback resistance (`100` = full authored knockback) |
 | `challengeRating` | number (≥ 0) | Endless / wave UI threat tier (not combat math) |
-| `behavior` | string | AI module in `src/ai/behaviors/` |
+| `behavior` | string | AI module in `src/ai/behaviors/`; one of `meleeChaser`, `bruiser`, `arrowRainArcher`, `javelineer`, `stationaryRanged`, `wallSiege`, `charger`, `lobber`, `rangedHybrid`, `ward` (unknown values fail at load) |
 | `textureKey` | string | Boot texture key (`enemy_<id>` unless art reuse) |
 | `displayName` | string optional | HUD nameplate; defaults from id if omitted |
 | `combat` | object | Passed to `resolveEnemyCombat` (see below) |
@@ -246,6 +250,11 @@ Telegraphed ground zone ticks.
 | `protectRadiusWu` | px | Px radius allies are protected by ward. |
 | `screenOffsetWu` | WU | WU offset for ward screening position. |
 | `playerAggroRadiusWu` | px | Px radius to prefer chasing player over objective. |
+| `postHoldRadiusWu` | WU | Within this distance of the screen goal the ward counts as "at post" and holds. |
+| `postHoldExitRadiusWu` | WU | Hysteresis: keep holding until this far from the anchored goal. |
+| `postBreakMoveWu` | WU | Player or protectee movement beyond this ends the hold grace window. |
+| `postGraceMs` | ms | How long to stand still at post before allowing a full reposition. |
+| `postFacingSlackDeg` | deg | Ignore aim changes smaller than this while holding (stops jitter). |
 
 #### `combat.hybrid` (`rangedHybrid`)
 
@@ -262,9 +271,9 @@ Telegraphed ground zone ticks.
 
 ## enemy-ai.json
 
-**TypeScript:** [EnemyAiInput](../src/core/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
+**TypeScript:** [EnemyAiInput](../src/core/data/normalizeEnemyAi.ts), [EnemyAiTuning](../src/config/enemy.ts) — [normalizeEnemyAi.ts](../src/core/data/normalizeEnemyAi.ts), [enemy.ts](../src/config/enemy.ts).
 
-Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.).
+Global chase / wall path tuning plus per-behaviour movement (`applyEnemyAi` → `tuning("enemyAi")` in `src/tuning/gameTuning.ts`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|
@@ -273,11 +282,70 @@ Global chase / wall path tuning (`applyEnemyAi` → `PLAYER_AGGRO_RADIUS`, etc.)
 | `wallVelocityBlendMs` | ms | Ms blending velocity from chase back toward wall path. |
 | `northWallMeleeStandoffWu` | px | Global px offset south of north wall for path goals. |
 
+Nested sections below apply to every enemy of that behaviour (per-enemy attack numbers stay in `enemies.json` `combat`). Speed multipliers scale the enemy's `speedWu`; `*Wu` distances scale with `worldUnit()`.
+
+### `pathing` (all enemies)
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `waypointRadiusWu` | WU | How close an enemy must get to a path node before advancing to the next. |
+| `replanMs` | ms | Minimum ms between A* replans per enemy. |
+| `stallMs` | ms | No progress toward the waypoint for this long forces an emergency replan. |
+| `stallProgressWu` | WU | Movement below this distance counts as no progress for stall detection. |
+
+### `retreat` (shared retreat steering)
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `probeDistPx` | px | Look-ahead distance used to test whether a flee or sidestep direction is blocked. |
+| `defaultGoalWu` | WU | Flee goal distance when a behaviour does not pass its own. |
+| `sidestepSpeedMul` | dimensionless | Speed multiplier applied when sidestepping a blocked retreat. |
+| `blendReachWu` | WU | Reach of the strafe vector blended into a retreat path step. |
+| `blendMinWeight` | dimensionless | Radial blend above which a javelineer backs off via retreat pathing instead of a direct strafe. |
+
+### `javelineer`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `strafeProbeDistPx` | px | Look-ahead used to test whether the orbit strafe direction is blocked. |
+| `rangeApproachBlend` | dimensionless | Radial weight for closing in when outside the kite band. |
+| `rangeRetreatBlend` | dimensionless | Radial weight for backing off when inside the band but too close. |
+| `closeRetreatBlend` | dimensionless | Radial weight for retreating when inside `minRangeWu` (melee danger). |
+| `idealRangeNudge` | dimensionless | Light radial weight used to settle on the ideal orbit distance. |
+| `idealBandFrac` | dimensionless | Fraction of `kiteBandSlackWu` beyond which the ideal-range nudge applies. |
+| `closeRetreatSpeedMul` | dimensionless | Speed multiplier when retreating from inside min range. |
+| `closeRetreatExtraWu` | WU | Extra flee distance beyond min range when the player is too close. |
+| `closeRetreatMinWu` | WU | Minimum flee goal distance when the player is too close. |
+| `approachSpeedMul` | dimensionless | Path-follow speed multiplier when beyond max range. |
+| `bandRetreatMinSpeedMul` | dimensionless | Floor on the strafe speed multiplier while backing off inside the band. |
+| `bandRetreatMinWu` | WU | Minimum flee goal distance while backing off inside the band. |
+| `wallRetreatSpeedMul` | dimensionless | Speed multiplier when backing off from the north wall. |
+| `wallRetreatExtraWu` | WU | Extra distance beyond min range when backing off from the wall. |
+| `wallRetreatMinWu` | WU | Minimum flee goal distance when backing off from the wall. |
+
+### `stationaryRanged`, `arrowRainArcher`, `rangedHybrid`, `lobber`, `ward`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `followSpeedMul` | dimensionless | Path-follow speed multiplier while approaching the kite band (stationaryRanged, arrowRainArcher, lobber). |
+| `wallRetreatSpeedMul` | dimensionless | Speed multiplier when too close to the wall (stationaryRanged, arrowRainArcher; javelineer has its own). |
+| `wallRetreatMinWu` | WU | Minimum flee goal distance from the wall (stationaryRanged, arrowRainArcher; javelineer has its own). |
+| `playerRetreatSpeedMul` | dimensionless | Speed multiplier when the player is too close (stationaryRanged, arrowRainArcher). |
+| `playerRetreatMinWu` | WU | Minimum flee goal distance from the player (stationaryRanged, arrowRainArcher). |
+| `retreatSpeedMul` | dimensionless | Speed multiplier in retreat mode (rangedHybrid after melee swings; lobber when too close). |
+| `retreatMinWu` | WU | Minimum flee goal distance in retreat mode (rangedHybrid, lobber). |
+| `meleeChaseSpeedMul` | dimensionless | rangedHybrid chase speed multiplier in melee mode. |
+| `closeChaseSpeedMul` | dimensionless | rangedHybrid chase speed multiplier when the player is inside melee trigger range in ranged mode. |
+| `kiteRetreatSpeedMul` | dimensionless | rangedHybrid retreat speed multiplier while kiting in ranged mode. |
+| `kiteRetreatMinWu` | WU | rangedHybrid minimum flee goal distance while kiting. |
+| `kiteFollowSpeedMul` | dimensionless | rangedHybrid path-follow speed multiplier while kiting. |
+| `chaseSpeedMul` | dimensionless | ward chase speed multiplier toward its post or the player. |
+
 ---
 
 ## entity-physics.json
 
-**TypeScript:** [EntityPhysicsInput](../src/core/normalizeEntityPhysics.ts), [EntityPhysicsTuning](../src/core/normalizeEntityPhysics.ts) — [normalizeEntityPhysics.ts](../src/core/normalizeEntityPhysics.ts).
+**TypeScript:** [EntityPhysicsInput](../src/core/data/normalizeEntityPhysics.ts), [EntityPhysicsTuning](../src/core/data/normalizeEntityPhysics.ts) — [normalizeEntityPhysics.ts](../src/core/data/normalizeEntityPhysics.ts).
 
 Nav inflation and knockback cap (`applyEntityPhysics`).
 
@@ -291,21 +359,26 @@ Nav inflation and knockback cap (`applyEntityPhysics`).
 
 ## spell_input.json
 
-**TypeScript:** [SpellInputConfigInput](../src/core/normalizeSpellInput.ts), [SpellInputTuning](../src/config/spellInput.ts) — [normalizeSpellInput.ts](../src/core/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts).
+**TypeScript:** [SpellInputConfigInput](../src/core/data/normalizeSpellInput.ts), [SpellInputTuning](../src/config/spellInput.ts) — [normalizeSpellInput.ts](../src/core/data/normalizeSpellInput.ts), [spellInput.ts](../src/config/spellInput.ts).
 
-Virtual stick thresholds for spell cast interrupt vs movement detection (`applySpellInputTuning`).
+Virtual stick thresholds for spell cast interrupt vs movement detection, plus aiming defaults (`applySpellInputTuning` → `tuning("spellInput")`).
 
 | Field | Unit | Meaning |
 |-------|------|---------|
 | `castInterruptStickAngleDeg` | deg | Bearing change from cast-start stick aim that cancels windup/channel; release/neutral stick does not interrupt. |
 | `stickMovingMagnitudeEps` | dimensionless | Raw stick magnitude above which the player counts as moving (`isStickMoving`, auto-cast stationary skip). |
+| `defaultGroundTargetMaxRangeWu` | WU | Ground-target max range for ground spells whose row has no `groundTargetMaxRangeWu`. |
+| `groundAimFacingRangeFrac` | dimensionless | With no enemy to aim at, ground spells land this fraction of max range along facing. |
+| `groundAimEnemyRadiusFrac` | dimensionless | Enemy pick radius for ground aim, as a fraction of the enemy sprite display width. |
+| `instantTargetFallbackPx` | px | Instant-target spell VFX travel along facing when nothing is hit. |
+| `enemyTapRadiusWu` | WU | Tap radius on enemy sprites for focus selection. |
 | `groundTapAutoCastSpellIds` | string[] | Documented list of targeted ground AoE spell ids (`spellUsesManualGroundAim`; Boot replaces with catalog-derived ids). Short tap auto-targets; press-drag stays manual. |
 
 ---
 
 ## hit-flash.json
 
-**TypeScript:** [HitFlashInput](../src/core/normalizeHitFlash.ts), [HitFlashConfig](../src/core/normalizeHitFlash.ts), [HitFlashFlavorEntry](../src/core/normalizeHitFlash.ts) — [normalizeHitFlash.ts](../src/core/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts).
+**TypeScript:** [HitFlashInput](../src/core/data/normalizeHitFlash.ts), [HitFlashConfig](../src/core/data/normalizeHitFlash.ts), [HitFlashFlavorEntry](../src/core/data/normalizeHitFlash.ts) — [normalizeHitFlash.ts](../src/core/data/normalizeHitFlash.ts), [hitFlash.ts](../src/config/hitFlash.ts).
 
 Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitFlash` → `applyHitFlashConfig` → `HitFlash.ts`).
 
@@ -323,7 +396,7 @@ Damage-flavor hit flash duration and per-flavor tint application (`normalizeHitF
 
 ## items.json
 
-**TypeScript:** [GearCatalog](../src/gear/gearTypes.ts) — [normalizeItems.ts](../src/core/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts), [gearRuntime.ts](../src/gear/gearRuntime.ts).
+**TypeScript:** [GearCatalog](../src/gear/gearTypes.ts) — [normalizeItems.ts](../src/core/data/normalizeItems.ts), [itemGen.ts](../src/gear/itemGen.ts), [itemStats.ts](../src/gear/itemStats.ts), [gearRuntime.ts](../src/gear/gearRuntime.ts).
 
 Equipment: item bases, random affixes, rarities and authored uniques. Saves store only `baseId`, `rarity`, `itemLevel`, `uniqueId` and rolled affix values, so editing a base or unique here changes items players already own. Items whose base or unique is removed are dropped from saves on load.
 
@@ -336,10 +409,19 @@ Top level:
 | `maxReductionPct` | Hard cap on armour damage reduction, in percent (0–100). |
 | `itemLevelPriceStepPct` | Price grows by this percent per item level above the base's `minItemLevel`. |
 | `statCaps` | Object of per-stat caps applied after summing gear (any flat stat id or `spellCooldownPct`). |
+| `generation` | Object of random item roll rules (below). |
 | `rarities` | Object keyed by `common`, `magic`, `rare`, `epic`, `legendary` (all five required). |
 | `bases` | Object keyed by base id: the item types players can own (weapons, armour, rings, trinkets). |
 | `affixes` | Object keyed by affix id: random prefix / suffix pool rolled onto magic, rare and epic items. |
 | `uniques` | Object keyed by unique id: authored legendary items with fixed stats and procs. |
+
+`generation`:
+
+| Field | Meaning |
+|-------|---------|
+| `maxAffixesPerPosition` | Most affixes of one position (prefix or suffix) a rolled item can get (integer). |
+| `outdatedBaseLevels` | A base this many item levels below the roll level counts as outdated. |
+| `outdatedBaseWeight` | Pick weight for outdated bases (others weigh 1), so old bases still drop but rarely. |
 
 Each rarity:
 
@@ -422,7 +504,7 @@ Modifiers and procs:
 
 ## loot.json
 
-**TypeScript:** [LootConfig](../src/gear/loot.ts) — [normalizeLoot.ts](../src/core/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts).
+**TypeScript:** [LootConfig](../src/gear/loot.ts) — [normalizeLoot.ts](../src/core/data/normalizeLoot.ts), [loot.ts](../src/gear/loot.ts).
 
 Bag size, sell-back rate and gear drop tables. `nightWon` / `nightLost` roll at the end of a campaign night with the night number as the level; add more tables (e.g. per adventure area) and roll them with `rollLoot`.
 
@@ -450,7 +532,7 @@ Each table:
 
 ## consumables.json
 
-**TypeScript:** [ConsumablesConfig](../src/gear/consumables.ts) — [normalizeConsumables.ts](../src/core/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts).
+**TypeScript:** [ConsumablesConfig](../src/gear/consumables.ts) — [normalizeConsumables.ts](../src/core/data/normalizeConsumables.ts), [consumables.ts](../src/gear/consumables.ts).
 
 Potions and bombs usable in combat from the Potion / Bomb HUD buttons (keys Q / E). Each button uses the first owned item of its kind in file order. Saves store charges by id.
 
@@ -474,6 +556,7 @@ Each bomb:
 | `rangeWu` | WU; max throw distance to the target enemy. |
 | `flavor` | Damage flavor (fire, frost, lightning, water, physical) for damage numbers. |
 | `knockbackWu` | WU; knockback away from the blast centre. |
+| `throwMs` | ms; flight time of the thrown bomb before it lands and blasts. |
 | `projectile` | COMBAT_FX_TEXTURE name for the thrown sprite (e.g. spellArcBomb). |
 | `blast` | COMBAT_FX_TEXTURE name for the blast flash (e.g. spellFireNova). |
 | `dotDps` | Optional burn / DoT damage per second applied to enemies hit. |
@@ -486,7 +569,7 @@ Each bomb:
 
 ## shops.json
 
-**TypeScript:** [ShopsConfig](../src/gear/shops.ts) — [normalizeShops.ts](../src/core/normalizeShops.ts), [shops.ts](../src/gear/shops.ts).
+**TypeScript:** [ShopsConfig](../src/gear/shops.ts) — [normalizeShops.ts](../src/core/data/normalizeShops.ts), [shops.ts](../src/gear/shops.ts).
 
 Town shops. The trader (night Market Stall) rolls new random stock and new buy requests after every campaign night; the blacksmith (Moon Brazier) sells a fixed catalogue of plain bases that unlocks with nights. Items sell back for `loot.json` sellBackPct of their item price.
 
@@ -535,7 +618,7 @@ Blacksmith (`consumables` rows here are `{ id, unlockNight }` and always in stoc
 
 ## talents.json
 
-**TypeScript:** [TalentCatalog](../src/talents/talentTypes.ts) — [normalizeTalents.ts](../src/core/normalizeTalents.ts), [talentLogic.ts](../src/talents/talentLogic.ts), [talentRuntime.ts](../src/talents/talentRuntime.ts). Design notes: [TALENTS.md](./TALENTS.md).
+**TypeScript:** [TalentCatalog](../src/talents/talentTypes.ts) — [normalizeTalents.ts](../src/core/data/normalizeTalents.ts), [talentLogic.ts](../src/talents/talentLogic.ts), [talentRuntime.ts](../src/talents/talentRuntime.ts). Design notes: [TALENTS.md](./TALENTS.md).
 
 Talent tree: branches of tiers of nodes. Each learned rank adds the node's `perRank` stat modifiers and procs (same format as items.json Modifiers) into the gear stat sum, so combat, the Gear panel totals and the economy sim all see them. Saves store only `{ ranks: { id: rank }, earned }`; ranks that no longer fit the tree after an edit are refunded on load.
 
@@ -589,7 +672,7 @@ Each node:
 
 ## player.json
 
-**TypeScript:** [PlayerConfigInput](../src/core/normalizePlayer.ts), [PlayerConfig](../src/core/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/normalizePlayer.ts), [player.ts](../src/config/player.ts).
+**TypeScript:** [PlayerConfigInput](../src/core/data/normalizePlayer.ts), [PlayerConfig](../src/core/data/normalizePlayer.ts), [PlayerTuning](../src/config/player.ts) — [normalizePlayer.ts](../src/core/data/normalizePlayer.ts), [player.ts](../src/config/player.ts).
 
 Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
@@ -598,6 +681,8 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 | `moveSpeedWu` | px/s | Player locomotion speed in px/s during Defense. |
 | `maxHp` | number | Player maximum hit points at night start. |
 | `bodyRadiusWu` | px | Arcade physics circle radius in world px. |
+| `gearMinAttackSpeedMul` | dimensionless | Floor on the attack-speed multiplier from gear (`1 + attackSpeedPct/100`). |
+| `gearMinMoveSpeedMul` | dimensionless | Floor on the move-speed multiplier from gear (`1 + moveSpeedPct/100`). |
 | `meleeWindupMs` | ms | Boot-required `meleeWindupMs`; see normalize* and combat code for usage. |
 | `meleeActiveMs` | ms | Boot-required `meleeActiveMs`; see normalize* and combat code for usage. |
 | `meleeFxStartMs` | ms | Required. Delay from player melee **windup start** until swipe VFX. `0` = first windup frame. |
@@ -630,7 +715,7 @@ Player combat tuning (`normalizePlayerConfig` → `applyPlayerTuning`).
 
 ## spells.json
 
-**TypeScript:** [SpellsFileInput](../src/core/normalizeSpells.ts), [SpellDefinition](../src/content/spells.ts) — [normalizeSpells.ts](../src/core/normalizeSpells.ts), [spells.ts](../src/content/spells.ts).
+**TypeScript:** [SpellsFileInput](../src/core/data/normalizeSpells.ts), [SpellDefinition](../src/content/spells.ts) — [normalizeSpells.ts](../src/core/data/normalizeSpells.ts), [spells.ts](../src/content/spells.ts).
 
 Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
@@ -644,13 +729,20 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 | `mechanicType` | Selects cast pipeline and which numeric fields are required. |
 | `swingRangeWu` | WU melee swing reach for swing and tracking_swing types. |
 | `swingArcDeg` | Swing arc width in degrees. |
+| `swingFxSizePx` | Display size in px (width and height) of the swing slash sprite for swing and tracking_swing types. |
+| `baseDamage` | Damage per hit (or total channel budget for channeled) before spell damage mult; required for every damaging mechanic (projectile, projectile_aoe, tracking_projectile, swing, tracking_swing, cone, channeled_cone, blast, channeled, instant_targeted). |
+| `healAmount` | HP restored by heal mechanic rows (channeled heals spread it over the channel). |
+| `burstBlastDamageScale` | Splash damage multiplier on instant_targeted rows that have blastRadiusWu: splash = burstDamage (or baseDamage when no burst) × this. |
 | `coneRangeWu` | WU cone length for cone and channeled_cone types. |
 | `coneArcDeg` | Cone arc width in degrees. |
 | `blinkDistanceWu` | Attempted blink travel distance in WU. |
 | `blinkResolveBinarySearchIterations` | Binary search steps for partial blink path resolution. |
 | `blinkPartialMoveEpsilonWu` | Minimum WU travel to treat blink as having moved. |
+| `blinkEdgeInsetWu` | WU the blink landing point is kept inside the field edges. |
 | `iceWallDistanceWu` | WU offset where ice wall is placed ahead of caster. |
 | `iceWallDurationMs` | Duration in ms before ice wall despawns. |
+| `iceWallBlockGapWu` | WU spacing between the three ice wall blocks. |
+| `iceWallBlockSizeWu` | WU display and collider size of each ice wall block. |
 | `shadowformDurationMs` | Buff duration in ms for shadowform mechanic type. |
 | `shadowformMoveSpeedMult` | Player speed multiplier while shadowform buff is active. |
 | `shadowformDamageTakenMult` | Incoming damage multiplier in [0,1] while buffed. |
@@ -666,7 +758,7 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 
 Runtime/UI fields (name, castMs, icons, assets, onHit effects, etc.) are authored per row but not listed in the boot parity set—see `SpellDefinition` in `src/content/spells.ts`.
 
-For **channeled** and **channeled_area** ground zones, `baseDamage` is the **total damage budget over the channel** (before spell damage mult); tick damage splits that budget evenly across channel ticks (`channelMs` / `channelTickMs`, minimum one tick), with any remainder on the final tick. `burstDamage` remains a separate one-shot. Post-channel **linger** DoT uses `onHit.dotDps`, not `baseDamage`.
+For **channeled** and **channeled_area** ground zones, `baseDamage` is the **total damage budget over the channel** (before spell damage mult); tick damage splits that budget evenly across channel ticks (`channelMs` / `channelTickMs`, minimum one tick), with any remainder on the final tick. `burstDamage` remains a separate one-shot. Post-channel **linger** DoT uses `onHit.dotDps`, not `baseDamage`. **channeled_cone** strikes `channelMs / channelTickMs` times (minimum one).
 
 #### `damageFlavor` (optional string)
 
@@ -680,17 +772,19 @@ Hit-flash timing and per-flavor `colorFade` / `alphaFade` live in [hit-flash.jso
 
 | mechanicType | Extra required numeric fields |
 |----------------|------------------------------|
-| swing, tracking_swing | swingRangeWu, swingArcDeg, knockback |
-| cone, channeled_cone | coneRangeWu, coneArcDeg, knockback |
-| blink | blinkDistanceWu, blinkResolveBinarySearchIterations, blinkPartialMoveEpsilonWu |
-| ice_wall | iceWallDistanceWu, iceWallDurationMs |
+| swing, tracking_swing | baseDamage, swingRangeWu, swingArcDeg, swingFxSizePx, knockback |
+| cone, channeled_cone | baseDamage, coneRangeWu, coneArcDeg, knockback |
+| blink | blinkDistanceWu, blinkResolveBinarySearchIterations, blinkPartialMoveEpsilonWu, blinkEdgeInsetWu |
+| ice_wall | iceWallDistanceWu, iceWallDurationMs, iceWallBlockGapWu, iceWallBlockSizeWu |
 | buff | shadowformDurationMs; shadowform row also needs shadowform*Mult fields |
-| projectile | knockback |
-| projectile_aoe | knockback, blastKnockback |
-| tracking_projectile | knockback; chain_lightning row also needs chain* fields |
-| blast | blastKnockback |
-| instant_targeted | knockback; blastKnockback when blastRadius or burstDamage |
-| heal, channeled, channeled_area | no knockback fields |
+| projectile | baseDamage, knockback |
+| projectile_aoe | baseDamage, knockback, blastKnockback |
+| tracking_projectile | baseDamage, knockback; chain_lightning row also needs chain* fields |
+| blast | baseDamage, blastKnockback |
+| instant_targeted | baseDamage, knockback; blastKnockback when blastRadius or burstDamage; burstBlastDamageScale when blastRadiusWu |
+| heal | healAmount (no knockback fields) |
+| channeled | baseDamage (no knockback fields) |
+| channeled_area | no knockback fields |
 
 Shadowform multipliers are also applied globally via `shadowformMechanicsFromCatalog` (formerly `spell-mechanics.json`).
 
@@ -698,7 +792,7 @@ Shadowform multipliers are also applied globally via `shadowformMechanicsFromCat
 
 ## defense-maps.json
 
-**TypeScript:** [DefenseMapsFileInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/normalizeDefenseMaps.ts), [DefenseMapsRegistry](../src/core/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/normalizeDefenseMaps.ts) — [normalizeDefenseMaps.ts](../src/core/normalizeDefenseMaps.ts).
+**TypeScript:** [DefenseMapsFileInput](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapInput](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapsRegistry](../src/core/data/normalizeDefenseMaps.ts), [DefenseMapDef](../src/core/data/normalizeDefenseMaps.ts) — [normalizeDefenseMaps.ts](../src/core/data/normalizeDefenseMaps.ts).
 
 | Field | Meaning |
 |-------|---------|
@@ -727,7 +821,7 @@ Each obstacle:
 
 ## waves.json
 
-**TypeScript:** [WaveDef](../src/core/DataStore.ts), [WaveGroup](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
+**TypeScript:** [WaveDef](../src/core/data/DataStore.ts), [WaveGroup](../src/core/data/DataStore.ts) — [DataStore.ts](../src/core/data/DataStore.ts).
 
 Top-level keys: **night number** (string) → wave def.
 
@@ -751,9 +845,129 @@ Each group:
 
 ---
 
+## gameplay.json
+
+**TypeScript:** [GameplayTuning](../src/core/data/normalizeGameplay.ts) — [normalizeGameplay.ts](../src/core/data/normalizeGameplay.ts), [gameplay.ts](../src/config/gameplay.ts).
+
+Global rules with no per-row home, loaded with the town data at Boot (`applyGameplay` → `tuning("gameplay")`) and by the economy sim from the bundled copy. Every field is a required number; sections are objects.
+
+### `wall`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `baseHp` | dimensionless | Town wall max HP on a new save and at wall level 0. |
+| `hpPerLevel` | dimensionless | Extra wall max HP per `wall` building level. |
+| `campaignWinWear` | dimensionless | Wall HP lost at the end of a won campaign night. |
+
+### `nightEnd`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `winHealHp` | dimensionless | Player HP restored (up to max) after a won night. |
+
+### `waves`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `eliteHpMul` | dimensionless | Wave group `hpMul` at or above which enemies get the "Elite" name prefix. |
+
+### `spawn`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `marginXWu` | WU | Horizontal inset from the field edges for random wave spawn points. |
+| `southInsetWu` | WU | Distance north of the south field edge where waves spawn. |
+| `jitterYWu` | WU | Random vertical spread (±) around the spawn line. |
+
+### `combat`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `dotTickMs` | ms | Interval between damage-over-time ticks on enemies (`onHit.dotDps` is per second). |
+| `minSlowSpeedMul` | dimensionless | Floor on an enemy's speed multiplier while slowed, however large `slowPct` is. |
+| `enemyKnockbackDecayMs` | ms | Exponential decay constant for an enemy's knockback slide. |
+| `knockbackWeightBaseline` | dimensionless | Enemy `weight` at which knockback is unscaled; impulse is `strength × baseline / weight`. |
+| `enemyProjectileKnockbackMul` | dimensionless | Enemy projectile knockback on the player as a fraction of `player.json` `rangedKnockbackWu`. |
+| `enemyProjectileHitSlackPx` | px | Extra radius added to the player hurtbox for enemy projectile hits. |
+| `playerProjectileHitSlackPx` | px | Extra radius added to enemy hurtboxes for player projectile hits. |
+| `lobOvershootPx` | px | Extra travel past the aim point for lobbed enemy projectiles. |
+| `lobMinTravelPx` | px | Minimum travel distance for lobbed enemy projectiles. |
+
+### `audio`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `playerMeleeSlashVolume` | dimensionless | Volume (0–1) of the player melee swing sound. |
+| `enemyMeleeSlashVolume` | dimensionless | Volume (0–1) of enemy melee swing sounds. |
+| `fireWhooshVolume` | dimensionless | Volume (0–1) of the fire spell whoosh. |
+| `coinSpendVolume` | dimensionless | Volume (0–1) of the coin sound when spending gold. |
+| `coinGainVolume` | dimensionless | Volume (0–1) of the coin sound when earning gold. |
+
+### `feel`
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `novaFlashDurationMs` | ms | Blast flash duration when the caller gives none (bombs, splash hits). |
+| `novaFlashStartAlpha` | dimensionless | Blast flash starting opacity when the caller gives none. |
+| `novaFlashScaleEnd` | dimensionless | Blast flash end scale when the caller gives none. |
+| `impactTelegraphMs` | ms | How long the ground-AoE impact ring stays after it lands. |
+| `chainLightningHoldMs` | ms | Chain lightning bolt hold time; the fade lasts this minus 80 ms (at least 100 ms). |
+| `consumableToastHoldMs` | ms | How long a potion/bomb message (e.g. "No enemy in range") stays before fading. |
+| `consumableToastFadeMs` | ms | Fade-out duration of that message. |
+| `consumableToastRisePx` | px | How far that message rises while fading. |
+| `townStatusMs` | ms | How long a town status message shows before the normal status returns. |
+| `resetConfirmWindowMs` | ms | Time to tap "Confirm reset" before the reset button disarms. |
+
+---
+
+## damage-numbers.json
+
+**TypeScript:** [DamageNumbersTuning](../src/config/damageNumbers.ts) — [normalizeDamageNumbers.ts](../src/core/data/normalizeDamageNumbers.ts), [damageNumbers.ts](../src/config/damageNumbers.ts).
+
+Floating combat numbers in Defense (`applyDamageNumbers` → `damageNumbersConfig()`), loaded with the defense data. The font family stays in code with its asset. UI sizes are design px and scale with the UI.
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `enabled` | boolean | Show floating damage and heal numbers at all. |
+| `maxActive` | dimensionless | Most numbers on screen at once; the oldest is recycled past this. |
+| `aggregateWindowMs` | ms | Hits on the same target and kind within this window merge into one number. |
+| `offsetY` | px | Extra vertical offset (design px) for the number spawn point. |
+| `anchorHeightFrac` | dimensionless | Numbers spawn this fraction of the sprite height above its centre. |
+| `styles` | object | One style per kind: physical, fire, frost, lightning, water, poison, heal (all required). |
+
+Each `styles.<kind>`:
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `fill` | string | CSS text colour, e.g. `#ff8a2a`. |
+| `stroke` | string | CSS outline colour. |
+| `strokeThickness` | px | Outline width in design px. |
+| `fontSize` | px | Font size for normal hits, design px. |
+| `critFontSize` | px | Font size for crits, design px. |
+| `prefix` | string | Optional text before the number (heal uses `+`). |
+| `motion` | object | Animation, below. |
+
+Each `motion`:
+
+| Field | Unit | Meaning |
+|-------|------|---------|
+| `durationMs` | ms | Total lifetime of the number. |
+| `fadeStartT` | dimensionless | Fraction of the lifetime (0–1) where the fade-out starts. |
+| `driftY` | px | Vertical drift over the lifetime (negative is up). |
+| `driftX` | px | Horizontal drift over the lifetime. |
+| `popScale` | dimensionless | Peak scale of the spawn pop on normal hits. |
+| `popMs` | ms | Duration of the spawn pop. |
+| `critPopScale` | dimensionless | Peak pop scale on crits. |
+| `flickerHz` | Hz | Optional alpha flicker rate (fire). |
+| `jitterPx` | px | Optional random position jitter (lightning). |
+| `waveAmp` | px | Optional sideways wave amplitude (water, poison). |
+| `waveHz` | Hz | Optional sideways wave frequency. |
+
+---
+
 ## buildings.json
 
-**TypeScript:** [BuildingDef](../src/core/DataStore.ts) — [DataStore.ts](../src/core/DataStore.ts).
+**TypeScript:** [BuildingDef](../src/core/data/DataStore.ts) — [DataStore.ts](../src/core/data/DataStore.ts).
 
 Town upgrade defs keyed by building id: `wall` (wall HP) and the shop levels `trader` / `blacksmith` (bought in the shop panel; per-level effects are `levels` in `shops.json`).
 
@@ -767,7 +981,7 @@ Town upgrade defs keyed by building id: `wall` (wall HP) and the shop levels `tr
 
 ## town_buildings.json
 
-**TypeScript:** [TownBuildingDef](../src/core/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
+**TypeScript:** [TownBuildingDef](../src/core/data/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts).
 
 Town clickable building art + actions (`TownBuildingDef`).
 
@@ -789,7 +1003,7 @@ Town clickable building art + actions (`TownBuildingDef`).
 
 ## town_layout.json
 
-**TypeScript:** [TownLayoutInput](../src/core/normalizeTownLayout.ts) → [TownLayoutDef](../src/core/townBuildingTypes.ts) — [normalizeTownLayout.ts](../src/core/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/townBuildingTypes.ts).
+**TypeScript:** [TownLayoutInput](../src/core/data/normalizeTownLayout.ts) → [TownLayoutDef](../src/core/data/townBuildingTypes.ts) — [normalizeTownLayout.ts](../src/core/data/normalizeTownLayout.ts), [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts).
 
 | Field | Meaning |
 |-------|---------|
