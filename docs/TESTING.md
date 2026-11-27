@@ -9,7 +9,7 @@
 | `npm run knip` | Unused files / exports / deps (config: `knip.json`) |
 | `npm run check:arch` | Runtime import cycles + folder layer rules in `src/` (`scripts/check-architecture.mjs`). Fails on new debt and on fixed debt still listed in `scripts/data/architecture-baseline.json`; refresh with `node scripts/check-architecture.mjs --update-baseline` after removing debt. The baseline has been **empty** since refactor phase P1 and `--update-baseline` can only remove entries, so any new cycle or layer violation fails the gate. |
 | `npm run format` | Biome formatter; run it when `lint` reports formatting |
-| `npm run test` | Vitest unit + integration (`src/**/*.test.ts`) |
+| `npm run test` | Vitest unit + integration (`src/**/*.test.ts`), plus real-Phaser scene tests (`src/**/*.scene.test.ts`, project `scenes`) |
 | `npm run test:coverage` | Vitest with `@vitest/coverage-v8` (HTML under `coverage/`) |
 | `npm run build:e2e` | Production bundle with `VITE_E2E=true` (test hooks enabled) |
 | `npm run test:e2e` | Playwright browser suites (`e2e/`) |
@@ -173,18 +173,53 @@ npx playwright test --project=chromium
 
 Playwright `webServer` serves `dist/` via `vite preview` on port **4173** (see `playwright.config.ts`).
 
+## Scene tests with real Phaser
+
+`src/**/*.scene.test.ts` run in a third Vitest project, `scenes`, that uses the
+**real vendored Phaser build** (`node_modules/phaser/dist/phaser-defensegame.js`)
+instead of `src/test/phaserStub.ts`, under **jsdom + `@napi-rs/canvas`**
+(prebuilt binaries, no system packages / node-gyp). The stub-based `shared` and
+`isolated` projects are unchanged.
+
+- `src/test/scene/staticServer.ts` serves `public/` over HTTP on a random port;
+  `BASE_URL` is stubbed to it, so `BootScene` / `DataStore` / the loader fetch
+  the shipped JSON, PNGs and fonts exactly like the browser.
+- `src/test/scene/phaserHarness.ts` boots a `Phaser.Game` (`CANVAS` by default,
+  `HEADLESS` optional), stops its rAF loop and owns the clock:
+  `step(frames)` advances fixed 1/60 s frames via `game.headlessStep`;
+  `stepUntil(pred)` also yields to the event loop for real I/O; `tap(x, y)`
+  dispatches DOM mouse events on the canvas (full InputManager hit testing);
+  `renderPng()` runs one frame through the Canvas renderer.
+- `src/test/scene/townBoot.ts` `bootToTown()` runs Boot -> Town (the
+  production scene list) and `seedMathRandom(seed)` makes runs replayable.
+- Loaders cache promises per module (one game per page in the app), so a test
+  that boots a second game uses `vi.resetModules()` + dynamic imports (see the
+  determinism test in `DefenseScene.scene.test.ts`).
+- Audio is off (`noAudio`); `FontFace` is polyfilled in
+  `src/test/scene/sceneTestSetup.ts` by registering the font bytes with
+  `@napi-rs/canvas`. Set `SCENE_SNAPSHOT_DIR` to write rendered PNGs (CI does
+  this and uploads them as the `scene-snapshots` artifact).
+- Rendering uses Phaser's **Canvas** renderer, not WebGL: WebGL-only paths are
+  not exercised and pixels will not match the game exactly.
+- Coverage: `BootScene`, `TownHeader`, `DefenseHudController`,
+  `DefenseWorldBootstrap`, `DefenseSpellWorldTick`, `DamageNumberFx` and
+  `world/defenseCamera` are counted thanks to these tests. `DefenseScene`,
+  `TownScene` and the other scene files stay in the coverage `exclude` list in
+  `vitest.config.ts` until more scene tests lift them above the floors.
+
 ## Coverage notes
 
 `npm run test:coverage` (CI `verify` job) enforces thresholds in `vitest.config.ts`:
 
 | Metric | Floor | Typical actual |
 |--------|------:|---------------:|
-| lines | 95% | ~95.4% (scenes/world modules in scope) |
-| statements | 94% | ~95% |
-| functions | 95% | ~95.5% |
-| branches | 91% | ~92% |
+| lines | 96% | ~96.1% (scenes/world modules + scene-test-covered files in scope) |
+| statements | 95.5% | ~95.7% |
+| functions | 95.5% | ~95.9% |
+| branches | 91.5% | ~92.0% |
 
-**Excluded from coverage:** Phaser scene orchestrators (`BootScene`, `TownScene`, `DefenseScene`, setup scenes), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers. Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+**Excluded from coverage:** Phaser scene orchestrators (`TownScene`, `DefenseScene`, `DebugMenuScene`, setup scenes; `BootScene` is counted via the real-Phaser scene tests), production entries (`bootstrap.ts`, `gameMain.ts`), E2E-only defense adapters (`DefenseSceneE2E*`), a few Phaser-heavy defense/town modules listed in `vitest.config.ts`, and Capacitor update stubs. `TownSceneE2E`, `TownTouchDebug` and `DefenseTargeting` are covered (host-fake tests). Everything under `src/scenes/defense/*` (except E2E adapters) and `src/world/**` **is** included — test with `fakeScene` / pure helpers, or a `*.scene.test.ts` with real Phaser (see above). Playwright still covers full scene integration. Do not lower thresholds without team agreement (old baselines were 75 / 69).
+
 ## Visual checks (screenshot baselines)
 
 `e2e/visual-screens.spec.ts` compares screens against PNG baselines in `e2e/visual-screens.spec.ts-snapshots/` (Chromium project only):

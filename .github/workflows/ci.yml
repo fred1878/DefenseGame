@@ -110,6 +110,16 @@ jobs:
       - name: Architecture (import cycles + layer rules)
         run: npm run check:arch
       - run: npm run test:coverage
+        env:
+          SCENE_SNAPSHOT_DIR: scene-snapshots
+      - name: Upload scene snapshots (real Phaser canvas renders)
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: scene-snapshots
+          path: scene-snapshots/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v5
