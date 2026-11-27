@@ -21,7 +21,7 @@
         "activeMs": 150,
         "recoveryMs": 300,
         "cooldownMs": 350,
-        "fxStartMs": 80,
+        "fxStartMs": 160,
         "fxDurationMs": 450,
         "vfxDisplayW": 112,
         "vfxDisplayH": 112,
