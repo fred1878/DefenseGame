@@ -75,7 +75,7 @@ export type DefenseProjectileTickResult = {
   playerInvulnMs: number;
 };
 
-/** Player spell projectiles + enemy projectiles filter loops (REFACTOR_PLAN PR8). */
+/** Player spell projectiles + enemy projectiles filter loops. */
 export function tickDefenseProjectiles(
   host: DefenseProjectileTickHost,
   delta: number,

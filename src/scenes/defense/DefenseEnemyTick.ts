@@ -62,7 +62,7 @@ export type DefenseEnemyTickResult = {
   enemyProjectiles: EnemyProjectile[];
 };
 
-/** Per-enemy brain, behavior combat, wall damage, player hits (REFACTOR_PLAN PR9). */
+/** Per-enemy brain, behavior combat, wall damage, player hits. */
 export function tickDefenseEnemies(
   host: DefenseEnemyTickHost,
   delta: number,

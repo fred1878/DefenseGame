@@ -26,7 +26,6 @@ import {
   bottomHudStripLayout,
   combatChromeLayout,
   combatDebugButtonPosition,
-  nightReturnButtonPosition,
   readSafeInsets,
   type SafeInsets,
 } from "../../ui/layout/screenLayout";
@@ -49,6 +48,10 @@ import {
 import { frameTouchButton } from "../../ui/layout/uiFrame";
 import { hudBandHeight } from "../../ui/layout/screenLayoutCore";
 import { runDefenseUiFactory } from "../../world/defenseWorldAddHook";
+import {
+  createDefenseHudActionButtons,
+  publishHudDebug,
+} from "./DefenseHudButtons";
 
 export type DefenseHudControllerDeps = {
   scene: Phaser.Scene;
@@ -95,7 +98,7 @@ export type DefenseHudBuild = {
   setHudChromeVisible: (visible: boolean) => void;
 };
 
-/** Combat HUD chrome, toggles, spell bar, stick mask (REFACTOR_PLAN PR6). */
+/** Combat HUD chrome, toggles, spell bar, stick mask; action buttons in `DefenseHudButtons`. */
 export function createDefenseHudController(
   deps: DefenseHudControllerDeps,
 ): DefenseHudBuild {
@@ -119,18 +122,17 @@ function buildDefenseHudController(
 
   const bottomStrip = bottomHudStripLayout(scene, safe);
   const playArea = defensePlayAreaLayout(scene, safe);
-  if (isE2EEnabled() && typeof window !== "undefined") {
-    (
-      window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
-    ).__HUD_DEBUG__ = {
+  publishHudDebug(
+    {
       bottomChromeTextureKey: null,
       stripCenterY: bottomStrip.stripCenterY,
       stripH: bottomStrip.stripH,
       playAreaY: playArea.y,
       playAreaBottom: playArea.y + playArea.height,
       playAreaHeight: playArea.height,
-    };
-  }
+    },
+    true,
+  );
 
   const attackButton = createTouchCircleButton(
     scene,
@@ -213,14 +215,10 @@ function buildDefenseHudController(
     registerUi(c);
   }
 
-  if (isE2EEnabled() && typeof window !== "undefined") {
-    const dbg = (
-      window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
-    ).__HUD_DEBUG__;
-    const spell0 = spellBar.e2eSlotTapCenters()[0];
-    if (dbg) {
-      dbg.spellSlot0CanvasY = spell0?.y ?? null;
-    }
+  if (isE2EEnabled()) {
+    publishHudDebug({
+      spellSlot0CanvasY: spellBar.e2eSlotTapCenters()[0]?.y ?? null,
+    });
   }
 
   const uiBlockers: Phaser.GameObjects.GameObject[] = [
@@ -277,95 +275,26 @@ function buildDefenseHudController(
   uiBlockers.push(debugBtn.container);
   const dbgPos = combatDebugButtonPosition(scene, safe);
 
-  // Potion / bomb: bottom-left above the HUD strip, mirroring Debug (hidden with no charges).
-  const consumableBtn = (
-    x: number,
-    label: string,
-    onTap: () => void,
-    fill: number,
-    stroke: number,
-    testId: string,
-    frameName: "btnRed" | "btnDark",
-  ): TouchButtonHandle => {
-    const bw = scaleUiX(88);
-    const bh = scaleUiX(36);
-    const btn = createTouchButton(scene, x, dbgPos.y, label, onTap, {
-      width: bw,
-      height: bh,
-      depth: DEFENSE_UI_DEPTH.hud,
-      fontSize: "18px",
-      fillColor: fill,
-      strokeColor: stroke,
-      tapPadding: scaleUiX(6),
-    });
-    frameTouchButton(scene, btn.container, frameName, bw, bh);
-    btn.container.setData("testid", testId);
-    btn.container.setVisible(false);
-    registerUi(btn.container);
-    uiBlockers.push(btn.container);
-    return btn;
-  };
-  const potionX = safe.left + scaleUiX(8 + 44);
-  const potionBtn = consumableBtn(
-    potionX,
-    "Potion",
-    deps.onUsePotion,
-    PALETTE.red900,
-    PALETTE.red400,
-    "defense-potion",
-    "btnRed",
-  );
-  const bombBtn = consumableBtn(
-    potionX + scaleUiX(96),
-    "Bomb",
-    deps.onUseBomb,
-    0x78350f,
-    PALETTE.amber400,
-    "defense-bomb",
-    "btnDark",
-  );
-
-  let leaveEndlessBtn: TouchButtonHandle | null = null;
-  if (deps.endless || deps.wavePlanner) {
-    const leaveBtn = nightReturnButtonPosition(scene, safe);
-    leaveEndlessBtn = createTouchButton(
+  const { potionBtn, bombBtn, leaveEndlessBtn } = createDefenseHudActionButtons(
+    {
       scene,
-      leaveBtn.x,
-      leaveBtn.y,
-      "Return to town",
-      deps.onLeaveEndless,
-      {
-        width: leaveBtn.width,
-        height: leaveBtn.height,
-        depth: DEFENSE_UI_DEPTH.hudOverlayButton,
-        fontSize: `${scaleUiX(14)}px`,
-        fillColor: 0x1c1714,
-        strokeColor: 0x1c1714,
-      },
-    );
-    frameTouchButton(
-      scene,
-      leaveEndlessBtn.container,
-      "btnDark",
-      leaveBtn.width,
-      leaveBtn.height,
-    );
-    leaveEndlessBtn.container.setData("testid", "defense-leave-endless");
-    registerUi(leaveEndlessBtn.container);
-    uiBlockers.push(leaveEndlessBtn.container);
-  }
+      safe,
+      rowY: dbgPos.y,
+      showLeave: deps.endless || deps.wavePlanner,
+      onUsePotion: deps.onUsePotion,
+      onUseBomb: deps.onUseBomb,
+      onLeave: deps.onLeaveEndless,
+    },
+    (go) => {
+      registerUi(go);
+      uiBlockers.push(go);
+    },
+  );
 
   const minimap = new DefenseMinimap(scene, registerUi);
   const minimapLayout = defenseMinimapLayout(scene, safe);
   minimap.addFrame(scene, minimapLayout, registerUi);
-  if (isE2EEnabled() && typeof window !== "undefined") {
-    const dbg = (
-      window as typeof window & { __HUD_DEBUG__?: Record<string, unknown> }
-    ).__HUD_DEBUG__;
-    if (dbg) {
-      dbg.minimap = minimapLayout;
-    }
-  }
+  publishHudDebug({ minimap: minimapLayout });
 
   const w = scene.scale.width;
   const h = scene.scale.height;
