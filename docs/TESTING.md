@@ -119,6 +119,7 @@ Locally mirror CI: `npm run test:e2e:ci` (Chromium only, same filter as Actions)
 | `town-spell-panel-tap-toggle.spec.ts` | Town spell pool tap add/remove |
 | `defense-hud-layout.spec.ts` | Core HUD chrome + combat anchor layout (minimap / play-band projection probes are `@manual`) |
 | `defense-camera-scroll.spec.ts` | Camera follows player on tall map |
+| `defense-hud-reentry.spec.ts` | HUD bands still drawn after a Defense → Town → Defense round-trip (compares the second entry with the first and checks each band has HUD content, so it does not depend on HUD colours) |
 | `obstacle-bump-capture.spec.ts` | Player–obstacle separation (stick push cardinals) |
 
 **Parallel by default:** `fullyParallel: true` everywhere (specs that share one booted page use `test.describe.configure({ mode: "serial" })`). Workers: `E2E_WORKERS` when set; otherwise **3** in CI (`CI` set) and **one per core** locally (`os.availableParallelism()`). CI splits the suite into **3 shards** (`e2e (shard n/3)` jobs, 3 workers each); the `e2e` job is the single pass/fail status. For timing-sensitive `@manual` probes such as `fps.spec.ts`, run with `E2E_WORKERS=1`.
@@ -163,7 +164,6 @@ Parallel PR e2e jobs are unchanged (no repo-wide queue); only per-spec file para
 |-------------|-----------|
 | `obstacle-bump-metrics.spec.ts` | Writes metrics JSON for human review |
 | `obstacle-*-capture.spec.ts`, `obstacle-v2-visual-proof.spec.ts` | Visual capture / proof overlays. Copies go to `E2E_ARTIFACT_DIR` (default `/opt/cursor/artifacts`) only when that folder is writable (`e2e/helpers/artifacts.ts`); the assertions run either way. |
-| `defense-hud-band-pixels.spec.ts`, `defense-hud-reentry.spec.ts` | Fragile luminance sampling |
 | `defense-play-area-viewport.spec.ts` | Overlaps HUD layout probes |
 | `spellbar-textures.spec.ts` | Asset audit; boot already checks combat FX in smoke |
 | `town-spell-panel-layout.spec.ts`, `town-spell-panel-drag.spec.ts` | Redundant with tap-toggle behavior |
