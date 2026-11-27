@@ -15,10 +15,6 @@ export function setDebugInfiniteGold(
   registry.set(DEBUG_INFINITE_GOLD_KEY, value);
 }
 
-export function debugInfiniteGoldLabel(on: boolean): string {
-  return on ? "Infinite gold: ON" : "Infinite gold: OFF";
-}
-
 /** Session-only: talent learn / spend checks treat points as unlimited (earned total unchanged). */
 export function debugInfiniteTalentPoints(
   registry: Phaser.Data.DataManager,
@@ -31,10 +27,6 @@ export function setDebugInfiniteTalentPoints(
   value: boolean,
 ): void {
   registry.set(DEBUG_INFINITE_TALENT_POINTS_KEY, value);
-}
-
-export function debugInfiniteTalentPointsLabel(on: boolean): string {
-  return on ? "Infinite talent pts: ON" : "Infinite talent pts: OFF";
 }
 
 /** Economy overrides for gold / talent rules from this session's debug cheats. */

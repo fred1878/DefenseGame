@@ -5,9 +5,11 @@ import { defenseHalfHeight, defenseHalfWidth } from "../../config";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import type { EnemyInstance } from "../../entities/Enemy";
 import type { SafeInsets, ScreenRect } from "../layout/screenLayout";
+import { addUiFrame } from "../layout/uiFrame";
 import { hudTextPosition } from "./defenseHudLayout";
 
-const BORDER_COLOR = PALETTE.white;
+const BORDER_COLOR = 0xb08a4a;
+const BACK_FILL = 0x0c0a09;
 const PLAYER_DOT = PALETTE.white;
 const ENEMY_DOT = PALETTE.red500;
 const MINIMAP_DEPTH = 205;
@@ -76,6 +78,7 @@ export function worldToMinimapPoint(
 export class DefenseMinimap {
   private readonly g: Phaser.GameObjects.Graphics;
   private readonly registry: Phaser.Data.DataManager;
+  private frame: Phaser.GameObjects.NineSlice | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -92,10 +95,35 @@ export class DefenseMinimap {
 
   destroy(): void {
     this.g.destroy();
+    this.frame?.destroy();
   }
 
   setVisible(visible: boolean): void {
     this.g.setVisible(visible);
+    this.frame?.setVisible(visible);
+  }
+
+  /** Dark Ages frame around the minimap (no-op without the texture). */
+  addFrame(
+    scene: Phaser.Scene,
+    layout: DefenseMinimapLayout,
+    registerUiDraw?: (go: Phaser.GameObjects.GameObject) => void,
+  ): void {
+    if (this.frame) return;
+    const pad = 7;
+    const ns = addUiFrame(
+      scene,
+      "dark",
+      layout.x - pad,
+      layout.y - pad,
+      layout.width + pad * 2,
+      layout.height + pad * 2,
+    );
+    if (!ns) return;
+    // Behind the dots: the frame's centre is an opaque dark panel.
+    ns.setScrollFactor(0).setDepth(MINIMAP_DEPTH - 1);
+    registerUiDraw?.(ns);
+    this.frame = ns;
   }
 
   draw(
@@ -105,6 +133,10 @@ export class DefenseMinimap {
     enemies: readonly EnemyInstance[],
   ): void {
     this.g.clear();
+    if (!this.frame) {
+      this.g.fillStyle(BACK_FILL, 0.72);
+      this.g.fillRect(layout.x, layout.y, layout.width, layout.height);
+    }
     this.g.lineStyle(1.5, BORDER_COLOR, 1);
     this.g.strokeRect(layout.x, layout.y, layout.width, layout.height);
 

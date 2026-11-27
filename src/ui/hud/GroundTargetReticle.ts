@@ -56,25 +56,39 @@ export class GroundTargetReticle {
         ? PALETTE.sky400
         : this.style === "default"
           ? 0xcbd5e1
-          : PALETTE.orange500;
+          : 0xe8b04a;
     const fill =
       this.style === "ice"
         ? 0x7dd3fc
         : this.style === "default"
           ? 0x94a3b8
-          : PALETTE.orange500;
+          : 0xf59e0b;
     const cross =
       this.style === "ice"
         ? PALETTE.sky100
         : this.style === "default"
           ? 0xf8fafc
-          : PALETTE.amber400;
+          : 0xfbbf24;
+    // Soft radial glow, dashed ring and a centre pip (mockup aiming state; no banner).
+    for (const [k, alpha] of [
+      [1, 0.08],
+      [0.7, 0.08],
+      [0.4, 0.08],
+    ] as const) {
+      this.gfx.fillStyle(fill, alpha);
+      this.gfx.fillCircle(x, y, r * k);
+    }
+    const dashes = Math.max(12, Math.round(r / 5));
+    const step = (Math.PI * 2) / dashes;
     this.gfx.lineStyle(2, stroke, 0.95);
-    this.gfx.strokeCircle(x, y, r);
-    this.gfx.fillStyle(fill, 0.12);
-    this.gfx.fillCircle(x, y, r);
-    this.gfx.lineStyle(1, cross, 0.8);
-    this.gfx.strokeCircle(x, y, 6);
+    for (let i = 0; i < dashes; i++) {
+      const a0 = i * step;
+      this.gfx.beginPath();
+      this.gfx.arc(x, y, r, a0, a0 + step * 0.55, false);
+      this.gfx.strokePath();
+    }
+    this.gfx.fillStyle(cross, 0.95);
+    this.gfx.fillCircle(x, y, 3);
   }
 
   static styleForSpellId(spellId: string): GroundReticleStyle {

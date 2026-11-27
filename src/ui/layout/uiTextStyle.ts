@@ -3,9 +3,13 @@ import { PALETTE_CSS } from "../theme/uiPalette";
 import { uiTextResolution } from "../../core/render/displayScale";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 
-/** Clean sans stack for HUD / overlay text (avoid monospace / legacy canvas defaults). */
+/**
+ * Pixel UI stack for every HUD / panel / overlay text. "DG Digits" (index.html and
+ * `queueUiFonts`) is Departure Mono limited to 0-9 and %, so numbers render in it and
+ * every other glyph falls through to Pixelify Sans.
+ */
 export const UI_FONT_FAMILY =
-  'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  '"DG Digits", "Pixelify Sans", system-ui, sans-serif';
 
 type RegistryScene = { registry: { get: (key: string) => unknown } };
 
@@ -70,4 +74,33 @@ export function rerenderTextsWhenFontReady(
       if (alive) onReady?.();
     })
     .catch(() => undefined);
+}
+
+type TextFactoryProto = {
+  text: (
+    this: unknown,
+    x: number,
+    y: number,
+    text: string | string[],
+    style?: Phaser.Types.GameObjects.Text.TextStyle,
+  ) => Phaser.GameObjects.Text;
+  __uiFontDefault?: boolean;
+};
+
+/**
+ * Make `scene.add.text` default to the pixel UI stack (Phaser's own default is
+ * Courier), so every text object uses Pixelify Sans / Departure Mono digits even
+ * when its style omits `fontFamily`. Explicit families still win.
+ */
+export function installDefaultUiFont(factoryProto: unknown): void {
+  const proto = factoryProto as TextFactoryProto | undefined;
+  if (!proto?.text || proto.__uiFontDefault) return;
+  proto.__uiFontDefault = true;
+  const text = proto.text;
+  proto.text = function (this: unknown, x, y, value, style) {
+    return text.call(this, x, y, value, {
+      fontFamily: UI_FONT_FAMILY,
+      ...(style ?? {}),
+    });
+  };
 }

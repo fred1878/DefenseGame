@@ -1,5 +1,4 @@
 import type Phaser from "phaser";
-import { PALETTE, PALETTE_CSS } from "../theme/uiPalette";
 import { DEFENSE_RENDER_DEPTH } from "../../config";
 import { scaleUiX, scaleUiY } from "../../config/uiScale";
 import type { Damageable } from "../../combat/rules/DamageSystem";
@@ -20,6 +19,9 @@ function plateOffsetY(spriteDisplaySide: number): number {
   return -spriteDisplaySide * 0.55 - scaleUiY(10);
 }
 
+/** 1px dark outline for small labels over world art (#381 / mockup). */
+const PLATE_STROKE = "#0b0806";
+
 export function createEnemyNameplate(
   scene: Phaser.Scene,
   x: number,
@@ -27,28 +29,33 @@ export function createEnemyNameplate(
   displayName: string,
   spriteDisplaySide: number,
 ): EnemyNameplate {
-  const barW = scaleUiX(52);
-  const barH = Math.max(3, scaleUiY(4));
-  const gap = scaleUiY(3);
+  const barW = scaleUiX(60);
+  const barH = Math.max(12, scaleUiY(10));
+  const gap = scaleUiY(2);
   const nameStyle = uiTextStyle(scene, {
-    fontSize: `${scaleUiX(11)}px`,
-    color: PALETTE_CSS.zinc100,
+    fontSize: `${scaleUiX(10)}px`,
+    color: "#f4ead8",
     align: "center",
+    stroke: PLATE_STROKE,
+    strokeThickness: 3,
     shadow: uiSmallLabelShadow(),
   });
   const hpStyle = uiTextStyle(scene, {
-    fontSize: `${scaleUiX(10)}px`,
-    color: PALETTE_CSS.zinc300,
+    fontSize: "12px",
+    color: "#fdf6e3",
     align: "center",
-    shadow: uiSmallLabelShadow(),
+    stroke: PLATE_STROKE,
+    strokeThickness: 3,
   });
 
   const nameText = scene.add
     .text(0, 0, displayName, nameStyle)
     .setOrigin(0.5, 1);
   const barY = gap;
-  const hpY = barY + barH + gap;
-  const hpText = scene.add.text(0, hpY, "", hpStyle).setOrigin(0.5, 0);
+  // HP digits sit inside the bar, WoW nameplate style.
+  const hpText = scene.add
+    .text(0, barY + barH / 2, "", hpStyle)
+    .setOrigin(0.5, 0.5);
   const barGfx = scene.add.graphics();
 
   const oy = plateOffsetY(spriteDisplaySide);
@@ -68,22 +75,29 @@ export function createEnemyNameplate(
   };
 }
 
+/** Dark Ages-style bar: dark trough, red fill with a lit top row, gold rim and end caps. */
 function drawHpBar(plate: EnemyNameplate, ratio: number): void {
   const { barGfx, barW, barH, barY } = plate;
   barGfx.clear();
-  const x0 = -barW / 2;
+  const x0 = Math.round(-barW / 2);
   const y0 = barY;
-  barGfx.fillStyle(PALETTE.zinc800, 0.92);
+  barGfx.fillStyle(0x1c0d0b, 0.95);
   barGfx.fillRect(x0, y0, barW, barH);
-  const fillW = Math.max(0, Math.min(1, ratio)) * barW;
+  const fillW = Math.round(Math.max(0, Math.min(1, ratio)) * (barW - 4));
   if (fillW > 0) {
-    barGfx.fillStyle(PALETTE.red500, 1);
-    barGfx.fillRect(x0, y0, fillW, barH);
-    barGfx.fillStyle(PALETTE.green400, 1);
-    barGfx.fillRect(x0, y0, fillW * Math.min(1, ratio + 0.05), barH);
+    barGfx.fillStyle(0x9f1d1d, 1);
+    barGfx.fillRect(x0 + 2, y0 + 2, fillW, barH - 4);
+    barGfx.fillStyle(0xe0483e, 1);
+    barGfx.fillRect(x0 + 2, y0 + 2, fillW, 2);
   }
-  barGfx.lineStyle(1, PALETTE.zinc600, 1);
-  barGfx.strokeRect(x0, y0, barW, barH);
+  barGfx.lineStyle(1, 0x0b0806, 1);
+  barGfx.strokeRect(x0 - 1.5, y0 - 1.5, barW + 3, barH + 3);
+  barGfx.lineStyle(1, 0xb08a4a, 1);
+  barGfx.strokeRect(x0 + 0.5, y0 + 0.5, barW - 1, barH - 1);
+  // Gold end caps (diamond-ish studs) like the Dark Ages bar frame.
+  barGfx.lineStyle(2, 0xd8b45c, 1);
+  barGfx.strokeRect(x0 - 3, y0 + barH / 2 - 2, 3, 4);
+  barGfx.strokeRect(x0 + barW, y0 + barH / 2 - 2, 3, 4);
 }
 
 export function updateEnemyNameplate(

@@ -25,6 +25,8 @@ export type DefenseRunModeContext = {
 export type DefenseRunModeStrategy = {
   readonly kind: DefenseRunModeKind;
   hudHeader(ctx: DefenseRunModeContext): string;
+  /** Top-HUD subtitle under the header. */
+  readonly hudSubtitle: string;
   /** Run won/lost by the normal rules (or an E2E force-win). */
   endNight(
     ctx: DefenseRunModeContext,
@@ -57,6 +59,7 @@ function leaveEndless(ctx: DefenseRunModeContext): void {
 
 const CAMPAIGN: DefenseRunModeStrategy = {
   kind: "campaign",
+  hudSubtitle: "Campaign",
   hudHeader: (ctx) => `Night ${ctx.run.save.night}`,
   endNight: campaignEndNight,
   leave: leaveEndless,
@@ -64,6 +67,7 @@ const CAMPAIGN: DefenseRunModeStrategy = {
 
 const ENDLESS: DefenseRunModeStrategy = {
   kind: "endless",
+  hudSubtitle: "Endless run",
   hudHeader: (ctx) => endlessHudHeader(ctx.store, ctx.run.endlessSelections),
   // Endless runs end through `endEndlessRun`; a direct endNight (E2E
   // force-win) keeps the historical campaign path.
@@ -73,6 +77,7 @@ const ENDLESS: DefenseRunModeStrategy = {
 
 const WAVE_PLANNER: DefenseRunModeStrategy = {
   kind: "wavePlanner",
+  hudSubtitle: "Custom waves",
   hudHeader: () => "Wave planner",
   endNight: (ctx, won) => runDefenseSimulatedNightEnd(ctx.nightEnd(), { won }),
   leave: (ctx) =>

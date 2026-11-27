@@ -1,3 +1,4 @@
+import { UI_FONT_FAMILY } from "../../ui/layout/uiTextStyle";
 import type Phaser from "phaser";
 import { tuning } from "../../tuning/gameTuning";
 import { DEFENSE_UI_DEPTH } from "../../config/renderDepth";
@@ -154,7 +155,7 @@ export class DefenseConsumables {
     const { scene, potionBtn } = this.host;
     const t = scene.add
       .text(potionBtn.container.x, potionBtn.container.y - 40, message, {
-        fontFamily: "system-ui, sans-serif",
+        fontFamily: UI_FONT_FAMILY,
         fontSize: "20px",
         color: PALETTE_CSS.amber200,
       })

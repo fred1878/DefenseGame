@@ -6,6 +6,7 @@ import { publishE2E, seedE2EWindowStub } from "./e2e/e2eGlobal";
 import { setE2EStorageIsolation } from "./core/save/storageKeys";
 import { clampRenderResolution } from "./core/render/displayScale";
 import { installHiDpiCanvas } from "./core/render/hiDpiCanvas";
+import { installDefaultUiFont } from "./ui/layout/uiTextStyle";
 import { installPhaser3VertexRounding } from "./core/render/phaser3PixelParity";
 import {
   DEFAULT_WORLD_PIXEL_SCALE,
@@ -75,6 +76,7 @@ async function start(): Promise<void> {
     scene: [BootScene, TownScene],
   };
 
+  installDefaultUiFont(PhaserRuntime.GameObjects.GameObjectFactory.prototype);
   markBoot("defensegame:phaser-game-start");
   const game = new PhaserRuntime.Game(config);
   markBoot("defensegame:phaser-game-end");

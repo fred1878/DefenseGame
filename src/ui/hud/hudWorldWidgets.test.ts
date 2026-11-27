@@ -22,7 +22,7 @@ import {
 } from "../layout/uiRoundedRect";
 
 describe("GroundTargetReticle", () => {
-  it("starts hidden and draws a ring + crosshair at the aim point when shown", () => {
+  it("starts hidden and draws a glow, dashed ring and pip at the aim point when shown", () => {
     const scene = fakeScene();
     const reticle = new GroundTargetReticle(asScene(scene));
     const gfx = reticle.worldGraphics() as unknown as FakeGameObject;
@@ -31,14 +31,17 @@ describe("GroundTargetReticle", () => {
 
     reticle.showAt(100, 200, 50, "ice");
     expect(gfx.visible).toBe(true);
-    expect(gfx.callsTo("strokeCircle")).toEqual([
+    expect(gfx.callsTo("fillCircle")).toEqual([
       [100, 200, 50],
-      [100, 200, 6],
+      [100, 200, 35],
+      [100, 200, 20],
+      [100, 200, 3],
     ]);
+    expect(gfx.callsTo("arc")).toHaveLength(12);
     expect(gfx.callsTo("lineStyle")[0]).toEqual([2, 0x38bdf8, 0.95]);
 
     reticle.updatePosition(110, 210);
-    expect(gfx.last("fillCircle")).toEqual([110, 210, 50]);
+    expect(gfx.last("fillCircle")).toEqual([110, 210, 3]);
   });
 
   it("ignores moves while hidden and colours by style", () => {
@@ -46,14 +49,14 @@ describe("GroundTargetReticle", () => {
     const reticle = new GroundTargetReticle(asScene(scene));
     const gfx = reticle.worldGraphics() as unknown as FakeGameObject;
     reticle.updatePosition(1, 1);
-    expect(gfx.callsTo("strokeCircle")).toHaveLength(0);
+    expect(gfx.callsTo("fillCircle")).toHaveLength(0);
     reticle.showAt(0, 0, 10);
-    expect(gfx.callsTo("lineStyle")[0]![1]).toBe(0xf97316);
+    expect(gfx.callsTo("lineStyle")[0]![1]).toBe(0xe8b04a);
     reticle.showAt(0, 0, 10, "default");
-    expect(gfx.callsTo("lineStyle").at(-2)![1]).toBe(0xcbd5e1);
+    expect(gfx.callsTo("lineStyle").at(-1)![1]).toBe(0xcbd5e1);
     reticle.hide();
     reticle.updatePosition(5, 5);
-    expect(gfx.last("strokeCircle")).toEqual([0, 0, 6]);
+    expect(gfx.last("fillCircle")).toEqual([0, 0, 3]);
     reticle.destroy();
     expect(gfx.destroyed).toBe(true);
   });
@@ -148,15 +151,15 @@ describe("createCombatHudChrome", () => {
     const [top, bottom, border] = chrome.roots as unknown as FakeGameObject[];
     const topH = defenseTopChromeHeight(0);
     const play = defensePlayAreaLayout(asScene(scene), safe);
-    expect(top!.args).toEqual([270, topH / 2, 540, topH, 0xffffff, 0.55]);
+    expect(top!.args).toEqual([270, topH / 2, 540, topH, 0x15110f, 0.96]);
     const bottomH = 1200 - play.bottomBandTop;
     expect(bottom!.args).toEqual([
       270,
       play.bottomBandTop + bottomH / 2,
       540,
       bottomH,
-      0xffffff,
-      0.55,
+      0x15110f,
+      0.96,
     ]);
     expect(border!.last("setDepth")).toEqual([41]);
     expect(border!.callsTo("strokeRect")).toHaveLength(2);

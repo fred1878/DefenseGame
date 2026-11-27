@@ -30,6 +30,7 @@ function chainable(x = 0, y = 0): FakeObj {
     "destroy",
     "add",
     "bringToTop",
+    "setText",
   ]) {
     obj[m] = vi.fn(() => obj);
   }
@@ -73,11 +74,14 @@ const { SpellBar } = await import("./SpellBar");
 function fakeScene(existsIcon = false) {
   const rects: FakeObj[] = [];
   const images: FakeObj[] = [];
+  const texts: FakeObj[] = [];
   const texture = { setFilter: vi.fn() };
   return {
     rects,
     images,
+    texts,
     scene: {
+      registry: { get: () => undefined },
       textures: {
         exists: () => existsIcon,
         get: () => texture,
@@ -92,6 +96,11 @@ function fakeScene(existsIcon = false) {
           const img = chainable();
           images.push(img);
           return img;
+        }),
+        text: vi.fn((x: number, y: number) => {
+          const t = chainable(x, y);
+          texts.push(t);
+          return t;
         }),
       },
     } as unknown as Phaser.Scene,

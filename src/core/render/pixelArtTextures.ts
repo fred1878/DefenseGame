@@ -1,3 +1,4 @@
+import { UI_PART_ASSETS } from "../../content/uiParts";
 import Phaser from "phaser";
 import {
   COMBAT_FX_ASSETS,
@@ -21,12 +22,6 @@ export type WorldTextureFilterMode = "nearest" | "linear" | "hybrid";
 
 export const DEBUG_WORLD_TEXTURE_FILTER_KEY = "debugWorldTextureFilter";
 
-const TEXTURE_FILTER_CYCLE: WorldTextureFilterMode[] = [
-  "nearest",
-  "linear",
-  "hybrid",
-];
-
 export function getDebugWorldTextureFilter(
   registry: Phaser.Data.DataManager,
 ): WorldTextureFilterMode {
@@ -35,16 +30,6 @@ export function getDebugWorldTextureFilter(
     | undefined;
   if (v === "linear" || v === "hybrid") return v;
   return "nearest";
-}
-
-export function cycleDebugWorldTextureFilter(
-  registry: Phaser.Data.DataManager,
-): WorldTextureFilterMode {
-  const cur = getDebugWorldTextureFilter(registry);
-  const i = TEXTURE_FILTER_CYCLE.indexOf(cur);
-  const next = TEXTURE_FILTER_CYCLE[(i + 1) % TEXTURE_FILTER_CYCLE.length]!;
-  registry.set(DEBUG_WORLD_TEXTURE_FILTER_KEY, next);
-  return next;
 }
 
 const GAME_SPRITE_KEYS = [
@@ -77,6 +62,7 @@ export function allPixelArtTextureKeys(): readonly string[] {
     ...GROUND_DECOR_ASSETS.map((a) => a.key),
     ...DEFENSE_OBSTACLE_ASSETS.map((a) => a.key),
     ...UI_ASSETS.map((a) => a.key),
+    ...UI_PART_ASSETS.map((a) => a.key),
     ...TOWN_BUILDING_ASSETS.map((a) => a.key),
     ...HOLY_FX_ASSETS.map((a) => a.key),
     ...ICE_FX_ASSETS.map((a) => a.key),

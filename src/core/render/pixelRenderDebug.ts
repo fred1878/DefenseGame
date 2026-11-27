@@ -1,7 +1,6 @@
 import type Phaser from "phaser";
 import {
   configurePixelArtTextures,
-  cycleDebugWorldTextureFilter,
   DEBUG_WORLD_TEXTURE_FILTER_KEY,
   type WorldTextureFilterMode,
 } from "./pixelArtTextures";
@@ -11,12 +10,6 @@ export { getDebugWorldTextureFilter } from "./pixelArtTextures";
 export const DEBUG_CAMERA_ROUND_PIXELS_KEY = "debugCameraRoundPixels";
 export const DEBUG_RENDERER_ROUND_PIXELS_KEY = "debugRendererRoundPixels";
 export const DEBUG_SCALE_AUTO_ROUND_KEY = "debugScaleAutoRound";
-
-export function worldTextureFilterLabel(mode: WorldTextureFilterMode): string {
-  if (mode === "linear") return "Tex filter: linear";
-  if (mode === "hybrid") return "Tex filter: hybrid";
-  return "Tex filter: nearest";
-}
 
 function readBool(
   registry: Phaser.Data.DataManager,
@@ -64,10 +57,6 @@ export function setDebugScaleAutoRound(
   value: boolean,
 ): void {
   registry.set(DEBUG_SCALE_AUTO_ROUND_KEY, value);
-}
-
-export function onOffLabel(prefix: string, on: boolean): string {
-  return `${prefix}: ${on ? "ON" : "OFF"}`;
 }
 
 /** Phaser copies `config.roundPixels` into each CameraManager at scene init only — toggle cameras live. */
@@ -127,11 +116,4 @@ export function setDebugWorldTextureFilter(
     defense.scene.restart();
   }
   return mode;
-}
-
-export function cycleWorldTextureFilter(
-  game: Phaser.Game,
-): WorldTextureFilterMode {
-  const next = cycleDebugWorldTextureFilter(game.registry);
-  return setDebugWorldTextureFilter(game, next);
 }

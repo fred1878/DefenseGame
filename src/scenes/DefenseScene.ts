@@ -2,6 +2,8 @@ import { playerTuning } from "../config/player";
 import { tuning } from "../tuning/gameTuning";
 import { maxNavObstacleClearancePx } from "../entities/entityPhysics";
 import Phaser from "phaser";
+import { splitHudHeader, type DefenseTopHud } from "../ui/hud/defenseTopHud";
+import { waveSpawnTotal } from "../systems/WaveSpawner";
 import { DEFENSE_MAP, type AttackMode } from "../config";
 import { resetShadowformRuntimeMults } from "../combat/rules/shadowformRuntime";
 import type { EnemyDef } from "../core/data/DataStore";
@@ -77,10 +79,7 @@ import {
 } from "./defense/DefenseNightEnd";
 import type { CampaignNightLossReason } from "../systems/nightEndMessaging";
 import { DefenseTargeting } from "./defense/DefenseTargeting";
-import {
-  createDefenseHudController,
-  formatDefenseHudText,
-} from "./defense/DefenseHudController";
+import { createDefenseHudController } from "./defense/DefenseHudController";
 import {
   bindPlayerObstacleCorrection,
   bootstrapDefenseWorld,
@@ -119,6 +118,9 @@ import { getDataStore, getSave } from "../core/registryKeys";
 
 export class DefenseScene extends Phaser.Scene {
   private hudText!: Phaser.GameObjects.Text;
+  private topHud!: DefenseTopHud;
+  private waveSpawned = 0;
+  private waveSpawnTotal = 0;
   attackButton!: Phaser.GameObjects.Container;
   autoToggle!: ReturnType<typeof createTouchToggleButton>;
   modeToggle!: ReturnType<typeof createTouchToggleButton>;
@@ -373,6 +375,7 @@ export class DefenseScene extends Phaser.Scene {
     this.run.castBar = hud.castBar;
     this.run.spellBar = hud.spellBar;
     this.hudText = hud.hudText;
+    this.topHud = hud.topHud;
     this.debugBtn = hud.debugBtn;
     this.potionBtn = hud.potionBtn;
     this.bombBtn = hud.bombBtn;
@@ -448,12 +451,17 @@ export class DefenseScene extends Phaser.Scene {
       // E2E skips campaign waves (tests spawn their own enemies), but a wave
       // planner run is an explicit player-built plan, so it always runs, and
       // `campaignWaves=1` opts a validation run into the real night.
+      this.waveSpawned = 0;
+      this.waveSpawnTotal = waveSpawnTotal(store, wave);
       scheduleWave(
         this,
         store,
         wave,
         {
-          spawnEnemy: (x, y, def, defId) => this.spawnEnemyAt(x, y, def, defId),
+          spawnEnemy: (x, y, def, defId) => {
+            this.waveSpawned += 1;
+            return this.spawnEnemyAt(x, y, def, defId);
+          },
           markSpawnPlanComplete: () => {
             this.run.spawnPlanComplete = true;
           },
@@ -648,27 +656,24 @@ export class DefenseScene extends Phaser.Scene {
   }
 
   private refreshHudText(living: number): void {
+    if (this.run.nightEnded) return;
     const dataStore = getDataStore(this.registry);
-    const focusId = this.run.targeting.focusEnemyId;
-    this.hudText.setText(
-      formatDefenseHudText({
-        header: this.runMode.hudHeader(this.runModeContext(dataStore)),
-        wallHp: this.run.wallHp,
-        playerHp: this.run.player.damageable.hp,
-        playerHpMax: this.run.player.damageable.maxHp,
-        infiniteHp: this.run.endlessInfiniteHp,
-        invulnerable: this.run.playerInvulnMs > 0,
-        livingEnemies: living,
-        hasFocus: Boolean(
-          focusId && this.run.targeting.getEnemyById(focusId)?.damageable.alive,
-        ),
-        mode: this.run.player.mode,
-        autoAttackEnabled: this.run.autoAttackEnabled,
-        castPhase: this.run.spellCaster.getCastPhase(),
-        castPct: Math.floor(this.run.spellCaster.getChannelProgress() * 100),
-        attackPhase: this.run.player.attackPhaseNow,
-      }),
+    const { title, subtitle } = splitHudHeader(
+      this.runMode.hudHeader(this.runModeContext(dataStore)),
+      this.runMode.hudSubtitle,
     );
+    this.topHud.update({
+      title,
+      subtitle,
+      livingEnemies: living,
+      wallHp: this.run.wallHp,
+      wallHpMax: Math.max(this.run.save.townWallHpMax, this.run.wallHp),
+      playerHp: this.run.player.damageable.hp,
+      playerHpMax: this.run.player.damageable.maxHp,
+      heroTag: this.run.endlessInfiniteHp ? " ∞" : "",
+      spawned: this.waveSpawned,
+      spawnTotal: this.waveSpawnTotal,
+    });
   }
 
   /**
@@ -819,6 +824,7 @@ export class DefenseScene extends Phaser.Scene {
       safe: this.run.safe,
       markNightEnded: () => {
         this.run.nightEnded = true;
+        this.topHud.setVisible(false);
       },
       setEndlessSelectionsNull: () => {
         this.run.endlessSelections = null;
