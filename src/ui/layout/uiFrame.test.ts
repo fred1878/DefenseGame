@@ -89,6 +89,16 @@ describe("uiFrame", () => {
     expect(container.addAt).toHaveBeenCalledWith(ns, 1);
   });
 
+  it("returns null on the Canvas renderer, where NineSlice cannot draw", () => {
+    const { scene } = fakeScene();
+    const canvasScene = { ...scene, game: { renderer: { type: 1 } } };
+    expect(addUiFrame(canvasScene as never, "dark", 0, 0, 100, 60)).toBeNull();
+    const webgl = { ...scene, game: { renderer: { type: 2 } } };
+    expect(addUiFrame(webgl as never, "dark", 0, 0, 100, 60)).toBe(
+      scene.add.nineslice.mock.results[0]?.value,
+    );
+  });
+
   it("returns null without the texture", () => {
     const { scene } = fakeScene(false);
     expect(addUiFrame(scene as never, "dark", 0, 0, 100, 60)).toBeNull();

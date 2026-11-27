@@ -22,7 +22,6 @@ export const BUILDINGS_DOC_KEYS = [
 
 export const TOWN_BUILDINGS_DOC_KEYS = [
   "label",
-  "textureKey",
   "width",
   "height",
   "upgradeId",

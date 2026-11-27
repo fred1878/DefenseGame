@@ -2,14 +2,15 @@
 description: Vitest fixtures and the default verify command
 globs:
   - src/**/*.test.ts
+  - src/**/*.scene.test.ts
   - vitest.config.ts
   - src/test/**
 alwaysApply: false
 ---
 
-- Tests are `src/**/*.test.ts` (node environment, Phaser stubbed via `src/test/phaserStub.ts`).
+- Unit tests are `src/**/*.test.ts` (node environment, Phaser stubbed via `src/test/phaserStub.ts`). Scene tests are `src/**/*.scene.test.ts` and boot the real vendored Phaser build under jsdom + `@napi-rs/canvas` (see `docs/TESTING.md`).
 - Don't assert against shipped `public/data/*.json` values; use inline fixtures.
-- Default check is `npm run verify` (typecheck + Biome lint + knip + Vitest). Don't start Playwright for a unit-test change.
+- Default check is `npm run verify` (typecheck + Biome lint + knip + check:arch + Vitest). Don't start Playwright for a unit-test change.
 - Input fakes: `src/test/fakeInput.ts` (`FakeEmitter`, `fakePointer`). Coverage thresholds in `vitest.config.ts` sit just under the actual numbers, so don't lower them.
 - Most test files share workers (`isolate: false`, project `shared`); files that call `vi.mock` / `vi.doMock` are found by scanning and run in the `isolated` project. `src/test/bootPublicConfig.ts` resets runtime module state (gear runtime, shadowform mults, catalogs, tuning) before every file. A test that changes module state another file reads must restore it, or add the reset there.
 - Colocate tests next to the module (`Foo.ts` + `Foo.test.ts`).

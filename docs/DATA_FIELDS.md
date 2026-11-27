@@ -1,6 +1,6 @@
 # `public/data/` field reference
 
-Boot loads every file here in `DataStore.loadAll`. Missing boot-required fields throw `ConfigLoadError` with a JSON path.
+Boot loads every file here in `DataStore.loadAll` (fetched at runtime). The economy sim and some tests also import the same files; that double path is **intentional**, so gameplay numbers stay easy to edit here. After load, values are frozen in the read-only store [`src/tuning/gameTuning.ts`](../src/tuning/gameTuning.ts) (`tuning(key)` / `setTuning`). Missing boot-required fields throw `ConfigLoadError` with a JSON path.
 
 ## Documentation format (CI)
 
@@ -838,7 +838,7 @@ Each group:
 | `enemyId` | Key referencing a row in enemies.json. |
 | `count` | Number of enemies to spawn in this group. |
 | `intervalMs` | Ms between consecutive spawns within the group. |
-| `hpMul` | Optional HP multiplier for every enemy in the group (default 1). At 2× or more the enemies spawn as "Elite" (nameplate prefix). Used for late-night elites. |
+| `hpMul` | Optional HP multiplier for every enemy in the group (default 1). At `gameplay.json` `waves.eliteHpMul` or more the enemies spawn as "Elite" (nameplate prefix). Used for late-night elites. |
 | `damageMul` | Optional damage multiplier for every enemy in the group (default 1): scales the enemy's hit (`damage`), wall hit and ranged / charge damage (`combat` keys named `damage` or ending in `Damage`). Used for late-night tough groups and elites. |
 
 `DataStore.getWaveForNight` uses the exact night key, else the highest defined night ≤ requested, else night `1`. The campaign has nights 1–20; after night 20 the night-20 wave repeats (there is no end screen yet).
@@ -983,14 +983,13 @@ Town upgrade defs keyed by building id: `wall` (wall HP) and the shop levels `tr
 
 **TypeScript:** [TownBuildingDef](../src/core/data/townBuildingTypes.ts) — [townBuildingTypes.ts](../src/core/data/townBuildingTypes.ts).
 
-Town clickable building art + actions (`TownBuildingDef`).
+Town clickable building actions (`TownBuildingDef`). The isometric art for each building (three tiers) lives in `src/world/townIso/townIsoStageData.ts`; which tier shows is picked in `src/world/townIso/townGrowth.ts` (placeholder thresholds in `src/config/townGrowth.ts`). **Town level and the three growth stages are placeholders, not game numbers:** the level is derived from existing building levels (`wall` + `trader` + `blacksmith`) and nothing is saved for it.
 
 | Field | Meaning |
 |-------|---------|
-| `label` | Display name shown in town building menus. |
-| `textureKey` | Texture key for this town building sprite loaded at Boot. |
-| `width` | Building hitbox / sprite width in town scene px. |
-| `height` | Building hitbox / sprite height in town scene px. |
+| `label` | Name on the building's town name plate (and in town status messages). |
+| `width` | Minimum tap box width in town screen px (the tier sprite usually sets a larger box). |
+| `height` | Minimum tap box height in town screen px. |
 | `upgradeId` | Optional buildings.json id used when this building opens upgrades. |
 | `startsNight` | When true, tapping this building starts a Defense night. |
 | `opensSpellBar` | When true, opens the town spell bar sort panel. |
@@ -1007,7 +1006,7 @@ Town clickable building art + actions (`TownBuildingDef`).
 
 | Field | Meaning |
 |-------|---------|
-| `buildingDisplayScale` | On-screen size multiplier for town building sprites (>= 1); PNG width/height in town_buildings.json stay logical footprint size. |
+| `buildingDisplayScale` | Extra size multiplier for town building sprites on top of the isometric town scale (>= 1; normally 1). |
 | `slots` | Array of town building placements on the town map. |
 
 Each slot:
@@ -1015,5 +1014,5 @@ Each slot:
 | Field | Meaning |
 |-------|---------|
 | `buildingId` | Key referencing town_buildings.json for this slot. |
-| `x` | Horizontal position in town scene px. |
-| `y` | Vertical position in town scene px. |
+| `x` | Horizontal position of the building's foot (the bottom corner of its isometric tile) in town screen px. |
+| `y` | Vertical position of the building's foot in town screen px. Each art tier adds its own offset. |
