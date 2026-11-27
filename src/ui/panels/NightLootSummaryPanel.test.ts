@@ -76,7 +76,7 @@ describe("NightLootSummaryPanel", () => {
     const labels = textsOf(scene);
     expect(labels).toContain("Night 3 defended!");
     expect(labels).toContain("Dawn breaks over the settlement.");
-    expect(labels.some((t) => t.includes("Campaign advances"))).toBe(true);
+    expect(labels.some((t) => t.includes("Campaign"))).toBe(false);
     expect(labels).toContain("+40");
     expect(labels).toContain("90");
     expect(labels).toContain("• Cap");
@@ -259,7 +259,6 @@ describe("layoutNightLootSummary", () => {
       L.flavorY,
       L.dividerY,
       L.stats.y,
-      L.noteY,
       L.spoilsY,
       L.rows.y,
       L.soldY ?? 0,

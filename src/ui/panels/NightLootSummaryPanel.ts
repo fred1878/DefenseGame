@@ -69,7 +69,6 @@ export type NightSummaryLayout = {
   flavorY: number;
   dividerY: number;
   stats: { y: number; h: number; w: number; gap: number };
-  noteY: number;
   spoilsY: number;
   rows: { y: number; h: number; gap: number; count: number };
   emptyY: number | null;
@@ -102,8 +101,7 @@ export function layoutNightLootSummary(
   y += 16;
   const stats = { y, h: 74, w: (innerW - 16) / 3, gap: 8 };
   y += stats.h + 12;
-  const noteY = y;
-  y += summary.progressNote ? 40 : 4;
+  y += 4;
   const spoilsY = y;
   y += 22;
   const rows = { y, h: NIGHT_ROW_H, gap: ROW_GAP, count: rowCount };
@@ -144,7 +142,6 @@ export function layoutNightLootSummary(
     flavorY: off(flavorY),
     dividerY: off(dividerY),
     stats: { ...stats, y: off(stats.y) },
-    noteY: off(noteY),
     spoilsY: off(spoilsY),
     rows: { ...rows, y: off(rows.y) },
     emptyY: emptyY === null ? null : off(emptyY),
@@ -325,18 +322,6 @@ export class NightLootSummaryPanel {
     statPlate(kit, sx(2), L.stats, "WALL");
     wallValue(kit, sx(2), L.stats, summary);
 
-    if (summary.progressNote) {
-      kit
-        .text(L.centerX, L.noteY, summary.progressNote, {
-          size: 12,
-          color: DG_THEME.textSecondary,
-          originX: 0.5,
-          wrap: L.innerW,
-          lineSpacing: 2,
-        })
-        .setAlign("center");
-    }
-
     sectionLabel(kit, L.innerL, L.spoilsY, "SPOILS OF THE NIGHT");
     const count = dropRows ? dropRows.length : fallbackRows.length;
     kit.text(
@@ -467,11 +452,11 @@ export class NightLootSummaryPanel {
     });
     const vx = x + 296;
     const verdict = hasUiPart(this.scene, VERDICT_PART.better)
-      ? this.scene.add.image(vx, y + 24, uiPartKey(VERDICT_PART.better))
+      ? this.scene.add.image(vx, y + 22, uiPartKey(VERDICT_PART.better))
       : null;
     if (verdict) kit.root.add(verdict);
     const verdictLabel = kit
-      .text(vx, y + 50, "", {
+      .text(vx, y + 53, "", {
         size: 10,
         bold: true,
         originX: 0.5,
@@ -762,7 +747,7 @@ function paintDropRow(view: DropRowView, row: NightDropRow): void {
     if (v) {
       const part = VERDICT_PART[v];
       view.verdict.setTexture(uiPartKey(part));
-      view.verdict.setDisplaySize(v === "mixed" ? 45 : 27, 27);
+      view.verdict.setDisplaySize(40, 40);
     }
   }
   view.verdictLabel.setText(v ? VERDICT_LABEL[v].toUpperCase() : "WORN");
