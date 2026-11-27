@@ -5,8 +5,6 @@ export type SpellInputTuning = {
   castInterruptStickAngleDeg: number;
   /** Raw stick magnitude above which the player counts as moving (auto-cast / queue). */
   stickMovingMagnitudeEps: number;
-  /** Ground-target max range (WU) for spells without `groundTargetMaxRangeWu`. */
-  defaultGroundTargetMaxRangeWu: number;
   /** With no enemy to aim at, ground spells land this fraction of max range ahead. */
   groundAimFacingRangeFrac: number;
   /** Enemy hit radius for ground-aim picking, as a fraction of sprite display width. */

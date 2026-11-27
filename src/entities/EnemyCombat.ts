@@ -52,6 +52,11 @@ export type EnemyCombatState = {
    */
   slashFxShown: boolean;
   slashFxTimer?: Phaser.Time.TimerEvent | undefined;
+  /**
+   * Swipe sprites still playing for this enemy. Cleared on `combat.melee.fxRecycleOnDeath`
+   * death cleanup; earlier swings are left to finish on their own.
+   */
+  slashFxSprites: Set<Phaser.GameObjects.Sprite>;
   facing: number;
   attackTargetKind: EnemyAttackTarget["kind"] | null;
   commitAimX: number;
@@ -65,6 +70,7 @@ export function createEnemyCombat(): EnemyCombatState {
     cooldownMs: 0,
     hitThisSwing: false,
     slashFxShown: false,
+    slashFxSprites: new Set(),
     facing: 0,
     attackTargetKind: null,
     commitAimX: 0,

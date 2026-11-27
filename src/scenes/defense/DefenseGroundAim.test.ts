@@ -3,12 +3,23 @@ import { GAME } from "../../config";
 import { scaleUiX } from "../../config/uiScale";
 import { VIRTUAL_STICK_DRAG_THRESHOLD_PX } from "../../input/inputTuning";
 import { defensePlayAreaLayout } from "../../ui/layout/screenLayout";
-import { spellById } from "../../content/spells";
+import {
+  getSpellCatalog,
+  setSpellCatalog,
+  spellById,
+} from "../../content/spells";
 import {
   DefenseGroundAim,
   type DefenseGroundAimHost,
 } from "./DefenseGroundAim";
 import { groundAimFromWorldPoint } from "./defenseGroundAimInput";
+
+/** Meteor substitute owned by this file; ground aiming reads only the range. */
+const GROUND_MAX_RANGE_WU = 240;
+setSpellCatalog([
+  ...getSpellCatalog().filter((spell) => spell.id !== "meteor"),
+  { ...spellById("meteor")!, groundTargetMaxRangeWu: GROUND_MAX_RANGE_WU },
+]);
 
 const safe = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -70,7 +81,7 @@ describe("DefenseGroundAim press-drag placement", () => {
       host.player.sprite.y,
       x,
       y,
-      host.wu(def.groundTargetMaxRangeWu ?? 240),
+      host.wu(def.groundTargetMaxRangeWu ?? GROUND_MAX_RANGE_WU),
     );
   };
 

@@ -2,7 +2,7 @@ import type { EnemyBehaviorId } from "../core/enemyBehaviorIds";
 import { describe, expect, it, vi } from "vitest";
 import type { EnemyDef } from "../core/data/DataStore";
 import { shippedEnemyCombatForBehavior } from "../test/shippedEnemyCombat";
-import { asScene, fakeScene } from "../test/fakeScene";
+import { asScene, fakeGameObject, fakeScene } from "../test/fakeScene";
 import {
   reconfigureEnemyInstance,
   spawnEnemy,
@@ -134,6 +134,43 @@ describe("spawnEnemy", () => {
     expect(enemy.lobber).toBeDefined();
     enemy.damageable.onDeath?.();
     expect(onDeath).toHaveBeenCalledOnce();
+  });
+});
+
+describe("enemy death", () => {
+  it("recycles a playing melee swipe only when fxRecycleOnDeath is on", () => {
+    const scene = sceneWithBody();
+    const keep = spawnEnemy(
+      asScene(scene),
+      "g1",
+      0,
+      0,
+      defFor("meleeChaser", "grunt"),
+      "grunt",
+      vi.fn(),
+    );
+    const survivor = fakeGameObject("sprite");
+    keep.combatTuning.melee!.fxRecycleOnDeath = false;
+    keep.combat.slashFxSprites.add(survivor as never);
+    keep.damageable.onDeath?.();
+    expect(survivor.last("setVisible")).toBeUndefined();
+    expect(keep.combat.slashFxSprites.size).toBe(1);
+
+    const destroyed = spawnEnemy(
+      asScene(sceneWithBody()),
+      "g2",
+      0,
+      0,
+      defFor("meleeChaser", "grunt"),
+      "grunt",
+      vi.fn(),
+    );
+    const fx = fakeGameObject("sprite");
+    destroyed.combatTuning.melee!.fxRecycleOnDeath = true;
+    destroyed.combat.slashFxSprites.add(fx as never);
+    destroyed.damageable.onDeath?.();
+    expect(fx.last("setVisible")).toEqual([false]);
+    expect(destroyed.combat.slashFxSprites.size).toBe(0);
   });
 });
 

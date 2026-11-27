@@ -37,6 +37,13 @@ function requiredAmounts(
   if (m === "instant_targeted" && partial.blastRadiusWu !== undefined) {
     out.burstBlastDamageScale = 0.65;
   }
+  if (["projectile", "projectile_aoe", "tracking_projectile"].includes(m)) {
+    out.projectileSpeedWu = 300;
+    out.projectileMaxTravelWu = 340;
+  }
+  if (partial.targetMode === "ground" || m === "instant_targeted") {
+    out.groundTargetMaxRangeWu = 240;
+  }
   return out;
 }
 
@@ -350,7 +357,7 @@ describe("normalizeSpellCatalog", () => {
 });
 
 describe("normalizeSpellCatalog required amounts", () => {
-  it("rejects damaging, heal, swing and splash rows missing their amounts", () => {
+  it("rejects rows missing their amounts, projectile travel, or cast range", () => {
     const missing = (
       row: SpellDefinition,
       field: keyof SpellDefinition,
@@ -384,6 +391,32 @@ describe("normalizeSpellCatalog required amounts", () => {
           blastKnockbackWu: 1,
         }),
         "burstBlastDamageScale",
+      ],
+      [
+        spellRow({ id: "pt", mechanicType: "projectile", knockbackWu: 1 }),
+        "projectileMaxTravelWu",
+      ],
+      [
+        spellRow({ id: "pv", mechanicType: "projectile", knockbackWu: 1 }),
+        "projectileSpeedWu",
+      ],
+      [
+        spellRow({
+          id: "g",
+          mechanicType: "blast",
+          targetMode: "ground",
+          blastRadiusWu: 10,
+          blastKnockbackWu: 1,
+        }),
+        "groundTargetMaxRangeWu",
+      ],
+      [
+        spellRow({
+          id: "it",
+          mechanicType: "instant_targeted",
+          knockbackWu: 1,
+        }),
+        "groundTargetMaxRangeWu",
       ],
     ];
     for (const [row, field] of cases) {

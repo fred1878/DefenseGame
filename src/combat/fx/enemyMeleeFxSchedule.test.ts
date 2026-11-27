@@ -4,9 +4,11 @@ import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import type { EnemyInstance } from "../../entities/Enemy";
 import { createRangedHybridCombatState } from "../../entities/enemyRanged/types";
 import { mockEnemyInstance } from "../../test/testEnemyInstance";
-import { fakeScene } from "../../test/fakeScene";
+import { fakeScene, type FakeGameObject } from "../../test/fakeScene";
+import { enemyMeleeFxSpec } from "../../content/meleeFxAssets";
 import {
   cancelEnemyMeleeFxTimer,
+  destroyEnemyMeleeFx,
   enemyShouldShowMeleeSwipeFx,
   scheduleEnemyMeleeFx,
 } from "./enemyMeleeFxSchedule";
@@ -91,6 +93,55 @@ describe("scheduleEnemyMeleeFx", () => {
     scheduleEnemyMeleeFx(noClock);
     expect(noClock.combat.slashFxShown).toBe(true);
     expect(noClock.combat.slashFxTimer).toBeUndefined();
+  });
+
+  it("tracks each swipe sprite and leaves it playing when a swing restarts", () => {
+    const spec = enemyMeleeFxSpec("grunt")!;
+    const scene = fakeScene({
+      textures: [spec.textureKey],
+      anims: [spec.animKey],
+      audio: [...ENEMY_MELEE_SLASH_SFX_KEYS],
+    });
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      defId: "grunt",
+    });
+    (enemy.sprite as unknown as { scene: unknown }).scene = scene;
+    enemy.combat.phase = "windup";
+    scheduleEnemyMeleeFx(enemy);
+    scene.delayed[0]!.fn();
+
+    const [sprite] = scene.made("sprite");
+    expect([...enemy.combat.slashFxSprites]).toEqual([sprite]);
+    expect(sprite!.destroyed).toBe(false);
+
+    cancelEnemyMeleeFxTimer(enemy.combat);
+    expect(sprite!.destroyed).toBe(false);
+    expect(enemy.combat.slashFxSprites.has(sprite as never)).toBe(true);
+  });
+
+  it("death cleanup releases live swipe sprites back to the pool", () => {
+    const scene = fakeScene();
+    const spawnSprite = scene.add.sprite as unknown as (
+      x: number,
+      y: number,
+      key: string,
+    ) => FakeGameObject;
+    const combat = mockEnemyInstance({ behavior: "meleeChaser" }).combat;
+    const a = spawnSprite(0, 0, "fx_melee_grunt");
+    const b = spawnSprite(0, 0, "fx_melee_grunt");
+    combat.slashFxSprites.add(a as never);
+    combat.slashFxSprites.add(b as never);
+    const remove = vi.fn();
+    combat.slashFxTimer = { remove } as never;
+
+    destroyEnemyMeleeFx(combat);
+
+    expect(remove).toHaveBeenCalledOnce();
+    expect(a.destroyed).toBe(false);
+    expect(a.last("setVisible")).toEqual([false]);
+    expect(b.last("setVisible")).toEqual([false]);
+    expect(combat.slashFxSprites.size).toBe(0);
   });
 
   it("cancel removes a pending timer once", () => {

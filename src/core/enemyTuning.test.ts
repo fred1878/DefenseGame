@@ -7,6 +7,11 @@ import {
 } from "./data/normalizeEnemy";
 import type { EnemyDef } from "./data/DataStore";
 import { shippedEnemyCombat } from "../test/shippedEnemyCombat";
+import {
+  testJavelineerCombat,
+  testMeleeCombat,
+  testWallCombat,
+} from "../test/fixtures/inlineCombat";
 
 describe("resolveEnemyCombat", () => {
   it("requires a full combat block — no defaults merge", () => {
@@ -62,31 +67,53 @@ describe("resolveEnemyCombat", () => {
     const jav = resolveEnemyCombat(
       "javelineer",
       {
-        ...shippedEnemyCombat("javelineer"),
-        javelineer: {
-          ...shippedEnemyCombat("javelineer").javelineer!,
-          maxRangeWu: 210,
-        },
+        wall: testWallCombat,
+        javelineer: { ...testJavelineerCombat, maxRangeWu: 210 },
       },
-      "javelineer",
+      "inline_javelineer",
     );
     expect(jav.javelineer?.maxRangeWu).toBe(210);
-    expect(jav.javelineer?.minRangeWu).toBe(
-      shippedEnemyCombat("javelineer").javelineer!.minRangeWu,
-    );
+    expect(jav.javelineer?.minRangeWu).toBe(testJavelineerCombat.minRangeWu);
   });
 
   it("requires meleeChaseStandoffWu for melee chaser behaviors only", () => {
-    const gruntCombat = shippedEnemyCombat("grunt");
-    const tuned = resolveEnemyCombat("meleeChaser", gruntCombat, "grunt");
-    expect(tuned.melee!.meleeChaseStandoffWu).toBe(4);
-
-    const lobber = resolveEnemyCombat(
-      "lobber",
-      shippedEnemyCombat("lobber"),
-      "lobber",
+    const tuned = resolveEnemyCombat(
+      "meleeChaser",
+      { wall: testWallCombat, melee: testMeleeCombat },
+      "inline_grunt",
     );
-    expect(lobber.melee).toBeUndefined();
+    expect(tuned.melee!.meleeChaseStandoffWu).toBe(
+      testMeleeCombat.meleeChaseStandoffWu,
+    );
+
+    expect(() =>
+      resolveEnemyCombat(
+        "meleeChaser",
+        {
+          wall: testWallCombat,
+          melee: {
+            triggerRangeWu: 72,
+            rangeWu: 68,
+            arcDeg: 70,
+            windupMs: 160,
+            activeMs: 150,
+            recoveryMs: 300,
+            cooldownMs: 350,
+            fxStartMs: 160,
+            fxRecycleOnDeath: true,
+            vfxDisplayW: 112,
+            vfxDisplayH: 112,
+            vfxOffsetWu: 26,
+            attackMovement: {
+              windupMul: 0,
+              activeMul: 0,
+              recoveryMul: 0,
+            },
+          },
+        },
+        "inline_grunt",
+      ),
+    ).toThrow(ConfigLoadError);
   });
 
   it("resolves authored ranged and charge damage", () => {

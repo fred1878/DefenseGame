@@ -9,7 +9,7 @@ import {
   spellAutoCastUsesRangedEnemyPick,
   spellTargetMode,
 } from "../../content/spellTargeting";
-import type { SpellDefinition } from "../../content/spells";
+import { requireSpellNumber, type SpellDefinition } from "../../content/spells";
 import type { DefenseSpellDirectorHost } from "./DefenseSpellDirector";
 
 /** Auto-cast target picking for the spell director (enemy and ground aim). */
@@ -45,10 +45,7 @@ export function defenseAutoCastGroundTarget(
 ): { x: number; y: number } {
   const px = host.player.sprite.x;
   const py = host.player.sprite.y;
-  const maxR = host.wu(
-    def.groundTargetMaxRangeWu ??
-      tuning("spellInput").defaultGroundTargetMaxRangeWu,
-  );
+  const maxR = host.wu(requireSpellNumber(def, "groundTargetMaxRangeWu"));
   const strike = host.resolveStrikeMode(host.player.mode === "auto");
   return resolveAutoCastGroundAim(
     px,
@@ -74,6 +71,8 @@ export function defenseAutoCastCombatTarget(
     spellTargetMode(def) === "ground"
       ? AUTO_CAST_GROUND_ENEMY_SEARCH_RANGE
       : host.wu(
+          // Enemy-acquisition radius for non-ground casts — not a cast range.
+          // Ground/instant rows author their own; melee/cone use the ranged band.
           def.groundTargetMaxRangeWu ?? playerTuning().autoAttackRangedRange,
         );
   const strike = spellAutoCastUsesRangedEnemyPick(def)

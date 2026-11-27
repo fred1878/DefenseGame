@@ -2,6 +2,7 @@ import type {
   EnemyArrowRainCombat,
   EnemyAttackMovement,
   EnemyChargerCombat,
+  EnemyCombatPartial,
   EnemyJavelineerCombat,
   EnemyStationaryRangedCombat,
   EnemyWallCombat,
@@ -20,6 +21,24 @@ export const testWallCombat: EnemyWallCombat = {
   damage: 6,
   triggerRangeWu: 42,
   hitRangeWu: 34,
+};
+
+export const testMeleeCombat: NonNullable<EnemyCombatPartial["melee"]> = {
+  triggerRangeWu: 72,
+  rangeWu: 68,
+  meleeChaseStandoffWu: 3,
+  arcDeg: 70,
+  windupMs: 160,
+  activeMs: 150,
+  recoveryMs: 300,
+  cooldownMs: 350,
+  fxStartMs: 160,
+  fxDurationMs: 200,
+  fxRecycleOnDeath: false,
+  vfxDisplayW: 112,
+  vfxDisplayH: 112,
+  vfxOffsetWu: 26,
+  attackMovement: stillAttackMovement,
 };
 
 export const testChargerCombat: EnemyChargerCombat = {

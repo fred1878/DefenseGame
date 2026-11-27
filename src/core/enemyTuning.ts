@@ -47,6 +47,8 @@ export type EnemyCombatPartial = {
     fxStartMs?: number;
     /** Target on-screen VFX length in ms; default sheet natural duration. */
     fxDurationMs?: number;
+    /** Required in JSON: stop and recycle a playing swipe when the enemy dies. */
+    fxRecycleOnDeath?: boolean;
     /** Art px display width before world display scaling (melee swipe PVFX). */
     vfxDisplayW?: number;
     /** Art px display height before world display scaling. */
@@ -207,6 +209,11 @@ export type EnemyMeleeCombat = {
   vfxDisplayW: number;
   vfxDisplayH: number;
   vfxOffsetWu: number;
+  /**
+   * Required in JSON. `true` → a playing swing FX is stopped and recycled to the
+   * sprite pool the moment the enemy dies; `false` → it finishes after death.
+   */
+  fxRecycleOnDeath: boolean;
   /** Per-enemy chase stop gap past combined body radii (WU); required for melee player chasers. */
   meleeChaseStandoffWu?: number;
   attackMovement: EnemyAttackMovement;

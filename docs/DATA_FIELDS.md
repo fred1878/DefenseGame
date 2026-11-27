@@ -150,6 +150,7 @@ Player-facing arc swipe (`meleeChaser`, `bruiser`, `wallSiege`, `charger`, `ward
 | `cooldownMs` | ms | Milliseconds before the same attack can be queued again. |
 | `fxStartMs` | ms | Required. Delay from **windup start** (idle→windup) until melee swipe VFX spawns. `0` = first windup frame. |
 | `fxDurationMs` | ms | Optional. Target on-screen swipe length. **Omit** → sheet plays at natural speed (no timeScale). **Shorter** → `timeScale = natural / fxDurationMs` (speed up). **Longer** → timeScale &lt; 1 (slow/stretch). Ends on anim complete, not clipped early. |
+| `fxRecycleOnDeath` | boolean | Required. `true` → a swipe that is still playing is stopped and returned to the sprite pool the instant the enemy dies. `false` → the swing finishes its animation after death. Does not affect swipes cancelled by a new swing or an interrupt. |
 | `vfxDisplayW` | px | Art px melee swipe PVFX width before world display scaling; should read against `rangeWu`. |
 | `vfxDisplayH` | px | Art px melee swipe PVFX height before world display scaling. |
 | `vfxOffsetWu` | WU | Spawn offset along attack facing from attacker center (positions swipe along thrust). |
@@ -367,7 +368,6 @@ Virtual stick thresholds for spell cast interrupt vs movement detection, plus ai
 |-------|------|---------|
 | `castInterruptStickAngleDeg` | deg | Bearing change from cast-start stick aim that cancels windup/channel; release/neutral stick does not interrupt. |
 | `stickMovingMagnitudeEps` | dimensionless | Raw stick magnitude above which the player counts as moving (`isStickMoving`, auto-cast stationary skip). |
-| `defaultGroundTargetMaxRangeWu` | WU | Ground-target max range for ground spells whose row has no `groundTargetMaxRangeWu`. |
 | `groundAimFacingRangeFrac` | dimensionless | With no enemy to aim at, ground spells land this fraction of max range along facing. |
 | `groundAimEnemyRadiusFrac` | dimensionless | Enemy pick radius for ground aim, as a fraction of the enemy sprite display width. |
 | `instantTargetFallbackPx` | px | Instant-target spell VFX travel along facing when nothing is hit. |
@@ -731,6 +731,9 @@ Root object requires a `spells` array (non-empty): `{ "spells": [ ... ] }`.
 | `swingArcDeg` | Swing arc width in degrees. |
 | `swingFxSizePx` | Display size in px (width and height) of the swing slash sprite for swing and tracking_swing types. |
 | `baseDamage` | Damage per hit (or total channel budget for channeled) before spell damage mult; required for every damaging mechanic (projectile, projectile_aoe, tracking_projectile, swing, tracking_swing, cone, channeled_cone, blast, channeled, instant_targeted). |
+| `projectileSpeedWu` | Projectile travel speed in px/s; required for projectile, projectile_aoe and tracking_projectile rows (no hidden speed default). |
+| `projectileMaxTravelWu` | Maximum projectile travel in WU; required for projectile mechanics. Authored per spell — no player-range fallback. |
+| `groundTargetMaxRangeWu` | Cast/aim range in WU; required on every ground-target and instant_targeted row. Authored per spell — no global fallback. |
 | `healAmount` | HP restored by heal mechanic rows (channeled heals spread it over the channel). |
 | `burstBlastDamageScale` | Splash damage multiplier on instant_targeted rows that have blastRadiusWu: splash = burstDamage (or baseDamage when no burst) × this. |
 | `coneRangeWu` | WU cone length for cone and channeled_cone types. |

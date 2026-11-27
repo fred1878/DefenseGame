@@ -1,5 +1,8 @@
-import { playerTuning } from "../../config/player";
 import { describe, expect, it, vi } from "vitest";
+import {
+  applyEffectivePlayerTuning,
+  basePlayerTuning,
+} from "../../config/player";
 import { COMBAT_FX_TEXTURE } from "../../content/assets";
 import {
   PVFX_ANIM,
@@ -50,6 +53,10 @@ function def(partial: Partial<SpellDefinition>): SpellDefinition {
     healAmount: 20,
     swingFxSizePx: 160,
     burstBlastDamageScale: 0.65,
+    // Ranges are authored per spell; keep the fixture's own.
+    projectileSpeedWu: 300,
+    projectileMaxTravelWu: 300,
+    groundTargetMaxRangeWu: 240,
     ...partial,
   } as SpellDefinition;
 }
@@ -516,7 +523,7 @@ describe("spawnSpellProjectile", () => {
       5,
       6,
       Math.PI / 2,
-      bolt({ projectileSpeedWu: 200 }),
+      bolt({ projectileSpeedWu: 200, projectileMaxTravelWu: 275 }),
       1.5,
       "p1",
     );
@@ -529,7 +536,29 @@ describe("spawnSpellProjectile", () => {
     ).velocity;
     expect(v.x).toBeCloseTo(0);
     expect(v.y).toBeCloseTo(200);
-    expect(p.maxTravel).toBe(playerTuning().rangedMaxRangeWu);
+    expect(p.maxTravel).toBe(275);
+  });
+
+  it("scales authored travel by the player ranged-range multiplier", () => {
+    const base = basePlayerTuning();
+    applyEffectivePlayerTuning({
+      ...base,
+      rangedMaxRangeWu: base.rangedMaxRangeWu * 2,
+    });
+    try {
+      const p = spawnSpellProjectile(
+        asScene(fakeScene()),
+        0,
+        0,
+        0,
+        bolt({ projectileMaxTravelWu: 275 }),
+        1,
+        "p2",
+      );
+      expect(p.maxTravel).toBe(550);
+    } finally {
+      applyEffectivePlayerTuning(base);
+    }
   });
 
   it("maps mechanics to projectile behaviours", () => {

@@ -1,7 +1,6 @@
 {
   "castInterruptStickAngleDeg": 35,
   "stickMovingMagnitudeEps": 0.12,
-  "defaultGroundTargetMaxRangeWu": 280,
   "groundAimFacingRangeFrac": 0.55,
   "groundAimEnemyRadiusFrac": 0.25,
   "instantTargetFallbackPx": 40,

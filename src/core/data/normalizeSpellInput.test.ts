@@ -6,7 +6,6 @@ import {
 } from "./normalizeSpellInput";
 
 const aiming = {
-  defaultGroundTargetMaxRangeWu: 240,
   groundAimFacingRangeFrac: 0.55,
   groundAimEnemyRadiusFrac: 0.25,
   instantTargetFallbackPx: 40,

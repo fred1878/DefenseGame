@@ -1,6 +1,7 @@
 import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
 import { destroyArrowRainTelegraph } from "../../combat/fx/ArrowRainTelegraph";
+import { destroyMeleeFxPool } from "../../combat/fx/meleeFxPool";
 import { setShadowformRuntimeMults } from "../../combat/rules/shadowformRuntime";
 import { shadowformActive } from "../../combat/rules/shadowform";
 import type { EnemyInstance } from "../../entities/Enemy";
@@ -71,6 +72,7 @@ export function destroyDefenseSceneObjects(d: DefenseSceneDisposables): void {
   for (const p of d.enemyProjectiles)
     releaseProjectileSprite(d.scene, p.sprite);
   destroyProjectilePool(d.scene);
+  destroyMeleeFxPool(d.scene);
   for (const e of d.enemies) {
     destroyArrowRainTelegraph(e.arrowRain?.telegraph);
     destroyArrowRainTelegraph(e.lobber?.telegraph);

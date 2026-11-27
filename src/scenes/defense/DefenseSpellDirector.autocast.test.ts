@@ -5,6 +5,18 @@ import {
   DefenseSpellDirector,
   type DefenseSpellDirectorHost,
 } from "./DefenseSpellDirector";
+import {
+  getSpellCatalog,
+  setSpellCatalog,
+  spellById,
+} from "../../content/spells";
+
+/** Meteor substitute owned by this file; auto-cast aim reads only the range. */
+const GROUND_MAX_RANGE_WU = 240;
+setSpellCatalog([
+  ...getSpellCatalog().filter((spell) => spell.id !== "meteor"),
+  { ...spellById("meteor")!, groundTargetMaxRangeWu: GROUND_MAX_RANGE_WU },
+]);
 
 function spellDirectorTestHost(
   overrides: Partial<DefenseSpellDirectorHost> & {
@@ -173,7 +185,7 @@ describe("DefenseSpellDirector auto-cast target guard", () => {
     director.tryAutoCastSpells(0, 0);
 
     expect(beginSpy).toHaveBeenCalledWith("meteor", "auto", 0, 0);
-    expect(host.groundAim?.x).toBeCloseTo(240, 5);
+    expect(host.groundAim?.x).toBeCloseTo(GROUND_MAX_RANGE_WU, 5);
     expect(host.groundAim?.y).toBeCloseTo(0, 5);
   });
 

@@ -119,7 +119,7 @@ describe("showEnemyMeleeSwipe", () => {
     ).toThrow(/Missing melee FX animation/);
   });
 
-  it("plays the enemy clip retimed to the attack and destroys on completion", () => {
+  it("plays the enemy clip retimed to the attack and pools it on completion", () => {
     const spec = enemyMeleeFxSpec("grunt")!;
     const scene = fakeScene({
       textures: [spec.textureKey],
@@ -142,6 +142,7 @@ describe("showEnemyMeleeSwipe", () => {
     );
     expect(sprite!.last("play")).toEqual([spec.animKey]);
     sprite!.emit("animationcomplete");
-    expect(sprite!.destroyed).toBe(true);
+    expect(sprite!.destroyed).toBe(false);
+    expect(sprite!.last("setVisible")).toEqual([false]);
   });
 });

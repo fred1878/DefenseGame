@@ -1,6 +1,5 @@
-import { tuning } from "../../tuning/gameTuning";
 import type Phaser from "phaser";
-import { spellById } from "../../content/spells";
+import { requireSpellNumber, spellById } from "../../content/spells";
 import type { Player } from "../../entities/Player";
 import {
   INPUT_MODALITY,
@@ -134,8 +133,7 @@ export class DefenseGroundAim {
     const px = this.host.player.sprite.x;
     const py = this.host.player.sprite.y;
     const maxR = this.host.wu(
-      def.groundTargetMaxRangeWu ??
-        tuning("spellInput").defaultGroundTargetMaxRangeWu,
+      requireSpellNumber(def, "groundTargetMaxRangeWu"),
     );
     const aim = groundAimFromWorldPoint(px, py, world.x, world.y, maxR);
     this.host.groundAim = aim;

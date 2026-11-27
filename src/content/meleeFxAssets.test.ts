@@ -96,8 +96,8 @@ describe("enemyMeleeFxTransform", () => {
   });
 
   it("meleeFxAnimDurationMs matches frameCount/frameRate", () => {
-    expect(meleeFxAnimDurationMs("grunt")).toBeCloseTo(750);
-    expect(meleeFxAnimDurationMs("skirmisher")).toBeCloseTo(600);
+    expect(meleeFxAnimDurationMs("grunt")).toBeCloseTo((5 / 12) * 1000);
+    expect(meleeFxAnimDurationMs("skirmisher")).toBeCloseTo(5 * 60);
   });
 
   it("eastAtZero left vs right flip differs at same |facing|", () => {

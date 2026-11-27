@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { GAME } from "../config/game";
 import {
   DEFENSE_FIELD_PX,
+  applyDefenseMapLayout,
   defenseFieldPx,
   defenseHalfHeight,
 } from "../config/defense";
@@ -38,8 +39,9 @@ describe("defense field tiles", () => {
     );
   });
 
-  it("matches night-field data footprint: one-screen wide, taller than viewport", () => {
+  it("uses its own one-screen map partial, taller than viewport", () => {
     const colsOneScreen = Math.floor(GAME.width / GROUND_TILE_SIZE);
+    applyDefenseMapLayout({ cols: colsOneScreen, rows: 22 }, []);
     expect(defenseFieldTiles()).toEqual({ cols: colsOneScreen, rows: 22 });
     expect(DEFENSE_FIELD_PX.width).toBe(colsOneScreen * GROUND_TILE_SIZE);
     expect(DEFENSE_FIELD_PX.width).toBeLessThanOrEqual(GAME.width);

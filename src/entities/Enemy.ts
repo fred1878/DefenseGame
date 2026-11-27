@@ -43,7 +43,10 @@ import {
   updateEnemyNameplate,
   type EnemyNameplate,
 } from "../ui/hud/enemyNameplate";
-import { cancelEnemyMeleeFxTimer } from "../combat/fx/enemyMeleeFxSchedule";
+import {
+  cancelEnemyMeleeFxTimer,
+  destroyEnemyMeleeFx,
+} from "../combat/fx/enemyMeleeFxSchedule";
 
 export type EnemyBehaviorExtra = {
   strafeSign: 1 | -1;
@@ -209,6 +212,9 @@ export function reconfigureEnemyInstance(
   enemy.damageable.maxHp = def.hp;
   enemy.damageable.alive = true;
   enemy.damageable.onDeath = () => {
+    if (enemy.combatTuning.melee?.fxRecycleOnDeath) {
+      destroyEnemyMeleeFx(enemy.combat);
+    }
     recycleEnemyNameplateAfterDeath(enemy.nameplate, scene, () => {});
     onDeath();
   };
@@ -276,6 +282,9 @@ export function spawnEnemy(
     alive: true,
     team: "enemy",
     onDeath: () => {
+      if (enemy.combatTuning.melee?.fxRecycleOnDeath) {
+        destroyEnemyMeleeFx(enemy.combat);
+      }
       recycleEnemyNameplateAfterDeath(nameplate, scene, () => {});
       onDeath();
     },

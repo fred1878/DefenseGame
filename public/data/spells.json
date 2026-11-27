@@ -20,7 +20,8 @@
         "dotDps": 6,
         "dotMs": 2500
       },
-      "knockbackWu": 70
+      "knockbackWu": 70,
+      "projectileMaxTravelWu": 340
     },
     {
       "id": "ice_bolt",
@@ -42,7 +43,8 @@
         "slowPct": 0.7,
         "slowMs": 5000
       },
-      "knockbackWu": 20
+      "knockbackWu": 20,
+      "projectileMaxTravelWu": 340
     },
     {
       "id": "lightning_bolt",
@@ -60,7 +62,8 @@
       "projectileFile": "lightning-bolt-mrpg-16.png",
       "damageFlavor": "lightning",
       "castMs": 400,
-      "knockbackWu": 140
+      "knockbackWu": 140,
+      "projectileMaxTravelWu": 340
     },
     {
       "id": "fire_nova",
@@ -128,7 +131,8 @@
       "projectileFile": "water-bolt-mrpg-16.png",
       "damageFlavor": "water",
       "castMs": 0,
-      "knockbackWu": 40
+      "knockbackWu": 40,
+      "projectileMaxTravelWu": 340
     },
     {
       "id": "arc_bomb",
@@ -148,7 +152,8 @@
       "damageFlavor": "fire",
       "castMs": 750,
       "knockbackWu": 110,
-      "blastKnockbackWu": 180
+      "blastKnockbackWu": 180,
+      "projectileMaxTravelWu": 340
     },
     {
       "id": "swing",
@@ -296,7 +301,8 @@
         "dotDps": 8,
         "dotMs": 3000
       },
-      "blastKnockbackWu": 400
+      "blastKnockbackWu": 400,
+      "groundTargetMaxRangeWu": 280
     },
     {
       "id": "frost_nova",
@@ -395,7 +401,8 @@
         "dotMs": 4000,
         "stunMs": 2000
       },
-      "knockbackWu": 110
+      "knockbackWu": 110,
+      "groundTargetMaxRangeWu": 300
     },
     {
       "id": "chain_lightning",
@@ -422,7 +429,8 @@
       "chainKnockbackWu": 120,
       "chainHopKnockbackWu": 100,
       "chainLightningHops": 4,
-      "chainLightningHopRangeWu": 110
+      "chainLightningHopRangeWu": 110,
+      "projectileMaxTravelWu": 340
     },
     {
       "id": "blink",
@@ -463,7 +471,8 @@
       },
       "knockbackWu": 110,
       "blastKnockbackWu": 80,
-      "burstBlastDamageScale": 0.65
+      "burstBlastDamageScale": 0.65,
+      "groundTargetMaxRangeWu": 300
     }
   ]
 }

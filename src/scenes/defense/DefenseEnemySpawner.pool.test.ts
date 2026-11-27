@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DataStore, EnemyDef } from "../../core/data/DataStore";
+import { fakeGameObject } from "../../test/fakeScene";
 import { shippedEnemyCombat } from "../../test/shippedEnemyCombat";
 import { spawnDefenseEnemyAt } from "./DefenseEnemySpawner";
 
@@ -111,5 +112,33 @@ describe("spawnDefenseEnemyAt pool", () => {
     expect(host.enemies).toHaveLength(1);
     expect(host.enemies[0]!.sprite).toBe(firstSprite);
     expect(host.enemies[0]!.damageable.alive).toBe(true);
+  });
+
+  it("recycles a playing swing when a reconfigured pooled enemy dies", () => {
+    const host = mockHost();
+    const def: EnemyDef = {
+      ...gruntDef,
+      combat: {
+        ...gruntDef.combat,
+        melee: { ...gruntDef.combat.melee!, fxRecycleOnDeath: true },
+      },
+    };
+
+    spawnDefenseEnemyAt(host, 0, 0, def, "grunt");
+    const shell = host.enemies[0]!;
+    shell.damageable.onDeath?.();
+    host.enemies.length = 0;
+
+    spawnDefenseEnemyAt(host, 10, 10, def, "grunt");
+    const respawned = host.enemies[0]!;
+    expect(respawned).toBe(shell);
+    expect(respawned.combat.slashFxSprites.size).toBe(0);
+
+    const fx = fakeGameObject("sprite");
+    respawned.combat.slashFxSprites.add(fx as never);
+    respawned.damageable.onDeath?.();
+
+    expect(respawned.combat.slashFxSprites.size).toBe(0);
+    expect(fx.last("setVisible")).toEqual([false]);
   });
 });

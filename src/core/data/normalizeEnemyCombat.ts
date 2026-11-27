@@ -49,6 +49,7 @@ export const ENEMY_COMBAT_MELEE_KEYS = [
   "vfxOffsetWu",
 ] as const;
 export const ENEMY_COMBAT_MELEE_OPTIONAL_KEYS = ["fxDurationMs"] as const;
+export const ENEMY_COMBAT_MELEE_BOOL_KEYS = ["fxRecycleOnDeath"] as const;
 export const ENEMY_COMBAT_MELEE_CHASE_STANDOFF_KEY =
   "meleeChaseStandoffWu" as const;
 export const ENEMY_COMBAT_ARROW_RAIN_KEYS = [
@@ -168,6 +169,13 @@ function section<T extends Record<string, number>>(
   return requireNumberFields(block, keys, path) as T;
 }
 
+function requireBoolean(value: unknown, path: string): boolean {
+  if (typeof value !== "boolean") {
+    throw new ConfigLoadError(`Expected boolean at ${path}`);
+  }
+  return value;
+}
+
 /** Boot-required keys for `attackMovement` on phased attack kits. */
 export const ENEMY_ATTACK_MOVEMENT_KEYS = [
   "windupMul",
@@ -239,6 +247,10 @@ export function requireEnemyMeleeCombat(
     cooldownMs: base.cooldownMs!,
     fxStartMs: base.fxStartMs!,
     fxDurationMs,
+    fxRecycleOnDeath: requireBoolean(
+      block.fxRecycleOnDeath,
+      `${path}.fxRecycleOnDeath`,
+    ),
     vfxDisplayW: base.vfxDisplayW!,
     vfxDisplayH: base.vfxDisplayH!,
     vfxOffsetWu: base.vfxOffsetWu!,

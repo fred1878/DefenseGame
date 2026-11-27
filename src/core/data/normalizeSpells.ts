@@ -14,9 +14,13 @@ export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<
   string,
   readonly string[]
 > = {
-  projectile: ["baseDamage"],
-  projectile_aoe: ["baseDamage"],
-  tracking_projectile: ["baseDamage"],
+  projectile: ["baseDamage", "projectileSpeedWu", "projectileMaxTravelWu"],
+  projectile_aoe: ["baseDamage", "projectileSpeedWu", "projectileMaxTravelWu"],
+  tracking_projectile: [
+    "baseDamage",
+    "projectileSpeedWu",
+    "projectileMaxTravelWu",
+  ],
   swing: ["baseDamage", "swingRangeWu", "swingArcDeg", "swingFxSizePx"],
   tracking_swing: [
     "baseDamage",
@@ -47,6 +51,11 @@ export const SPELL_MECHANIC_TYPE_BOOT_FIELDS: Record<
 
 /** Extra boot field for `instant_targeted` rows with a `blastRadiusWu` splash. */
 export const SPELL_SPLASH_BOOT_FIELDS = ["burstBlastDamageScale"] as const;
+
+/** Rows that must author their own cast/aim range — no global fallback. */
+export const SPELL_GROUND_RANGE_BOOT_FIELDS = [
+  "groundTargetMaxRangeWu",
+] as const;
 
 /** Mechanics whose rows must author `baseDamage` (no hidden code default). */
 const DAMAGING_MECHANICS: ReadonlySet<SpellMechanicType> = new Set([
@@ -135,7 +144,22 @@ function validateSpellAmounts(def: SpellDefinition, path: string): void {
 
 function validateSpellMechanicFields(def: SpellDefinition, path: string): void {
   validateSpellAmounts(def, path);
+  if (def.targetMode === "ground" || def.mechanicType === "instant_targeted") {
+    requireFiniteNumber(
+      def.groundTargetMaxRangeWu,
+      `${path}.groundTargetMaxRangeWu`,
+    );
+  }
   switch (def.mechanicType) {
+    case "projectile":
+    case "projectile_aoe":
+    case "tracking_projectile":
+      requireFiniteNumber(def.projectileSpeedWu, `${path}.projectileSpeedWu`);
+      requireFiniteNumber(
+        def.projectileMaxTravelWu,
+        `${path}.projectileMaxTravelWu`,
+      );
+      return;
     case "swing":
     case "tracking_swing":
       requireFiniteNumber(def.swingRangeWu, `${path}.swingRangeWu`);

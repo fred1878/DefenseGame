@@ -46,7 +46,10 @@ export type SpellDefinition = {
   targetMode?: SpellTargetMode;
   requireEnemyTarget?: boolean;
   centerOnCaster?: boolean;
+  /** Cast/aim range (WU) on ground-target and instant_targeted rows — authored per spell. */
   groundTargetMaxRangeWu?: number;
+  /** Max projectile travel (WU) on projectile rows — authored per spell. */
+  projectileMaxTravelWu?: number;
   burstDamage?: number;
   lingerMs?: number;
   lingerTickMs?: number;

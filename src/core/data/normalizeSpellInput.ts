@@ -9,7 +9,6 @@ export type SpellInputConfigInput = Partial<
 export const SPELL_INPUT_BOOT_KEYS = [
   "castInterruptStickAngleDeg",
   "stickMovingMagnitudeEps",
-  "defaultGroundTargetMaxRangeWu",
   "groundAimFacingRangeFrac",
   "groundAimEnemyRadiusFrac",
   "instantTargetFallbackPx",

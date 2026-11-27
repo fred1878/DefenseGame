@@ -1,8 +1,14 @@
 import { tuning } from "../../tuning/gameTuning";
 import { describe, expect, it, vi } from "vitest";
 import { northWallAttackY } from "../../config";
-import { wallMeleeApproachStandoffWu } from "../../core/enemyTuning";
-import { testWallCombat } from "../../test/fixtures/inlineCombat";
+import {
+  resolveEnemyCombat,
+  wallMeleeApproachStandoffWu,
+} from "../../core/enemyTuning";
+import {
+  testMeleeCombat,
+  testWallCombat,
+} from "../../test/fixtures/inlineCombat";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { EnemyDefInput } from "../../core/data/normalizeEnemy";
@@ -19,6 +25,13 @@ const enemyDefs = Object.fromEntries(
     id,
     normalizeEnemyRow(id, row),
   ]),
+);
+
+/** Wall-kit combat owned by this file (not the shipped enemy tuning). */
+const wallCombatOwned = resolveEnemyCombat(
+  "meleeChaser",
+  { wall: testWallCombat, melee: testMeleeCombat },
+  "inline_chaser",
 );
 import { createEnemyNav } from "../brainShared";
 import {
@@ -276,7 +289,10 @@ describe("wall melee hold helpers", () => {
   });
 
   it("keeps closing while idle in the trigger band but outside hit range", () => {
-    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      combatTuning: wallCombatOwned,
+    });
     const wall = testWallCombat;
     enemy.sprite.y =
       northWallAttackY() + (wall.hitRangeWu + wall.triggerRangeWu) / 2;
@@ -290,7 +306,10 @@ describe("wall melee hold helpers", () => {
   });
 
   it("places standoff inside default wall hit range", () => {
-    const enemy = mockEnemyInstance({ behavior: "meleeChaser" });
+    const enemy = mockEnemyInstance({
+      behavior: "meleeChaser",
+      combatTuning: wallCombatOwned,
+    });
     const standoff = wallMeleeApproachStandoffWu(testWallCombat);
     expect(standoff).toBeLessThanOrEqual(testWallCombat.hitRangeWu);
     enemy.sprite.x = 12;
@@ -448,18 +467,35 @@ describe("data-driven attack movement", () => {
     return call[0] as number;
   }
 
-  it("keeps shipped melee defaults: chasers still, bruisers at half speed", () => {
-    const chaser = mockEnemyInstance({ behavior: "meleeChaser", speedWu: 100 });
+  it("applies this file's attackMovement: still chasers and a quarter-speed bruiser", () => {
+    const chaser = mockEnemyInstance({
+      behavior: "meleeChaser",
+      speedWu: 100,
+      combatTuning: wallCombatOwned,
+    });
     chaser.combat.phase = "windup";
     expect(attackMovementScale(chaser)).toBe(0);
     applyChaseVelocity(chaser, 100, 0, 1);
     expect(lastVx(chaser)).toBe(0);
 
-    const bruiser = mockEnemyInstance({ behavior: "bruiser", speedWu: 100 });
+    const quarter = { windupMul: 0.25, activeMul: 0.25, recoveryMul: 0.25 };
+    const bruiserTuning = resolveEnemyCombat(
+      "bruiser",
+      {
+        wall: testWallCombat,
+        melee: { ...testMeleeCombat, attackMovement: quarter },
+      },
+      "inline_bruiser",
+    );
+    const bruiser = mockEnemyInstance({
+      behavior: "bruiser",
+      speedWu: 100,
+      combatTuning: bruiserTuning,
+    });
     bruiser.combat.phase = "recovery";
-    expect(attackMovementScale(bruiser)).toBe(0.5);
+    expect(attackMovementScale(bruiser)).toBe(0.25);
     applyChaseVelocity(bruiser, 100, 0, 1);
-    expect(lastVx(bruiser)).toBeCloseTo(50, 1);
+    expect(lastVx(bruiser)).toBeCloseTo(25, 1);
   });
 
   it("applies per-phase multipliers from the executing melee kit", () => {

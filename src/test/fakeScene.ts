@@ -74,7 +74,7 @@ export function fakeGameObject(
     alpha: 1,
     active: true,
     list: [] as unknown[],
-    anims: { timeScale: 1 },
+    anims: { timeScale: 1, stop: () => undefined },
     scaleX: 1,
     scaleY: 1,
     scrollFactorX: 1,
@@ -155,6 +155,11 @@ export function fakeGameObject(
     setVisible: (v) => {
       calls.push(["setVisible", [v]]);
       target.visible = Boolean(v);
+      return proxy;
+    },
+    setActive: (v) => {
+      calls.push(["setActive", [v]]);
+      target.active = Boolean(v);
       return proxy;
     },
     setAlpha: (a) => {

@@ -8,6 +8,7 @@ import {
   type EnemyMeleeFxSpec,
 } from "../../content/meleeFxAssets";
 import type { EnemyMeleeCombat } from "../../core/enemyTuning";
+import { acquireMeleeFxSprite, releaseMeleeFxSprite } from "./meleeFxPool";
 import { meleeFxPlaybackTimeScale } from "./meleeFxTiming";
 import { worldDisplayPx, worldUnit } from "../../config/worldScale";
 import { emitGameEvent, hasGameEventListeners } from "../../core/gameEvents";
@@ -67,8 +68,9 @@ export function showEnemyMeleeSwipe(
   fxDurationMs: number | undefined,
   fallbackNaturalMs: number,
   vfxSize: EnemyMeleeVfxSizing,
-): void {
+): Phaser.GameObjects.Sprite | undefined {
   const spec = enemyMeleeFxSpec(enemyDefId);
+  let sprite: Phaser.GameObjects.Sprite | undefined;
   if (spec) {
     if (!scene.textures.exists(spec.textureKey)) {
       throw new Error(
@@ -80,7 +82,15 @@ export function showEnemyMeleeSwipe(
         `Missing melee FX animation ${spec.animKey} (${enemyDefId})`,
       );
     }
-    spawnEnemyMeleeAnim(scene, spec, vfxSize, x, y, facingRad, fxDurationMs);
+    sprite = spawnEnemyMeleeAnim(
+      scene,
+      spec,
+      vfxSize,
+      x,
+      y,
+      facingRad,
+      fxDurationMs,
+    );
   } else {
     spawnGruntMeleeFallback(
       scene,
@@ -92,6 +102,7 @@ export function showEnemyMeleeSwipe(
     );
   }
   emitEnemyMeleeFx(enemyDefId, facingRad);
+  return sprite;
 }
 
 function emitEnemyMeleeFx(enemyDefId: string, facingRad: number): void {
@@ -139,11 +150,11 @@ function spawnEnemyMeleeAnim(
   y: number,
   facingRad: number,
   fxDurationMs: number | undefined,
-): void {
+): Phaser.GameObjects.Sprite {
   const offset = worldUnit(vfxSize.vfxOffsetWu, scene.registry);
   const ox = x + Math.cos(facingRad) * offset;
   const oy = y + Math.sin(facingRad) * offset;
-  const sprite = scene.add.sprite(ox, oy, spec.textureKey);
+  const sprite = acquireMeleeFxSprite(scene, ox, oy, spec.textureKey);
   const reg = scene.registry;
   sprite.setDisplaySize(
     worldDisplayPx(vfxSize.vfxDisplayW, reg),
@@ -159,8 +170,9 @@ function spawnEnemyMeleeAnim(
   sprite.anims.timeScale = meleeFxPlaybackTimeScale(naturalMs, fxDurationMs);
   sprite.play(spec.animKey);
   sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-    sprite.destroy();
+    releaseMeleeFxSprite(scene, sprite);
   });
+  return sprite;
 }
 
 function spawnSlashFade(
