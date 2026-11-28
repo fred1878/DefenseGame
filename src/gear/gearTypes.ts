@@ -147,14 +147,18 @@ export type RarityDef = {
   priceMul: number;
   minItemLevel: number;
   weight: number;
-  /** When true, this rarity only rolls authored uniques. */
-  uniquesOnly: boolean;
 };
+
+/** Percent chance that a rolled item of each rarity is an authored unique. */
+export type UniqueChanceByRarity = Record<Exclude<RarityId, "common">, number>;
 
 export type UniqueDef = {
   id: string;
   name: string;
+  /** Rarity of the unique; uniques are never common. */
+  rarity: RarityId;
   baseId: string;
+  /** Lowest roll level at which this unique can appear. */
   itemLevel: number;
   price: number;
   modifiers: StatModifier[];
@@ -168,14 +172,23 @@ export type GearCatalog = {
   armourMaxReductionPct: number;
   itemLevelPriceStepPct: number;
   statCaps: Partial<Record<FlatStatId | "spellCooldownPct", number>>;
+  /**
+   * Percent chance per rarity that a roll is an authored unique of that
+   * rarity instead (`items.json` `uniqueChanceByRarity`). Common never is.
+   * A chance of 100 makes the rarity unique-only: it is skipped when no
+   * unique fits, so it cannot fall back to a plain item of that rarity.
+   */
+  uniqueChanceByRarity: UniqueChanceByRarity;
   /** Random item roll rules (`items.json` `generation`). */
   generation: {
     /** Max affixes of each position (prefix / suffix) on one item. */
     maxAffixesPerPosition: number;
-    /** Bases this many levels under the roll level drop with reduced weight. */
-    outdatedBaseLevels: number;
-    /** Weight multiplier for those outdated bases. */
-    outdatedBaseWeight: number;
+    /** Bases this many levels under the roll level still roll at full weight. */
+    outdatedBaseStartLevels: number;
+    /** Bases this many levels under the roll level never roll (weight 0). */
+    outdatedBaseEndLevels: number;
+    /** Pick weight at `outdatedBaseStartLevels` stale, tapering to 0 at the end. */
+    outdatedBaseStartWeight: number;
   };
   rarities: Record<RarityId, RarityDef>;
   bases: Record<string, ItemBase>;

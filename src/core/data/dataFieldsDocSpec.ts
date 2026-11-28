@@ -56,6 +56,7 @@ import {
   ITEMS_RANGED_BOOT_KEYS,
   ITEMS_RARITY_BOOT_KEYS,
   ITEMS_UNIQUE_BOOT_KEYS,
+  ITEMS_UNIQUE_CHANCE_BOOT_KEYS,
   ITEMS_WEAPON_EXTRA_KEYS,
 } from "./normalizeItems";
 import { PLAYER_BOOT_KEYS } from "./normalizePlayer";
@@ -108,6 +109,7 @@ export const BOOT_DOCUMENTED_KEYS_BY_FILE: Record<string, readonly string[]> = {
   "items.json": uniqueSorted([
     ...ITEMS_FILE_BOOT_KEYS,
     ...ITEMS_GENERATION_BOOT_KEYS,
+    ...ITEMS_UNIQUE_CHANCE_BOOT_KEYS,
     ...ITEMS_RARITY_BOOT_KEYS,
     ...ITEMS_BASE_BOOT_KEYS,
     ...ITEMS_MELEE_BOOT_KEYS,

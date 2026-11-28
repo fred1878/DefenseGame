@@ -107,7 +107,8 @@ export function resolveItem(
   if (!base) return null;
   const unique = item.uniqueId ? catalog.uniques[item.uniqueId] : undefined;
   if (item.uniqueId && !unique) return null;
-  const rarity = catalog.rarities[item.rarity];
+  // A unique's authored rarity wins, so old saves follow the data.
+  const rarity = catalog.rarities[unique?.rarity ?? item.rarity];
   if (!rarity) return null;
   const modifiers = [...base.modifiers, ...(unique?.modifiers ?? [])];
   const procs = [...(unique?.procs ?? [])];

@@ -409,19 +409,30 @@ Top level:
 | `maxReductionPct` | Hard cap on armour damage reduction, in percent (0–100). |
 | `itemLevelPriceStepPct` | Price grows by this percent per item level above the base's `minItemLevel`. |
 | `statCaps` | Object of per-stat caps applied after summing gear (any flat stat id or `spellCooldownPct`). |
+| `uniqueChanceByRarity` | Object of percent chance per rarity that a roll becomes an authored unique (below). |
 | `generation` | Object of random item roll rules (below). |
 | `rarities` | Object keyed by `common`, `magic`, `rare`, `epic`, `legendary` (all five required). |
 | `bases` | Object keyed by base id: the item types players can own (weapons, armour, rings, trinkets). |
 | `affixes` | Object keyed by affix id: random prefix / suffix pool rolled onto magic, rare and epic items. |
-| `uniques` | Object keyed by unique id: authored legendary items with fixed stats and procs. |
+| `uniques` | Object keyed by unique id: authored items at each rarity above common, with fixed stats and procs. |
 
 `generation`:
 
 | Field | Meaning |
 |-------|---------|
 | `maxAffixesPerPosition` | Most affixes of one position (prefix or suffix) a rolled item can get (integer). |
-| `outdatedBaseLevels` | A base this many item levels below the roll level counts as outdated. |
-| `outdatedBaseWeight` | Pick weight for outdated bases (others weigh 1), so old bases still drop but rarely. |
+| `outdatedBaseStartLevels` | Item levels below the roll level at which bases start losing pick weight (4). |
+| `outdatedBaseEndLevels` | Item levels below the roll level at which bases never roll, weight 0 (8). |
+| `outdatedBaseStartWeight` | Pick weight at `outdatedBaseStartLevels` stale, tapering linearly to 0 (0.5). |
+
+`uniqueChanceByRarity` (percent, 0–100 each; common never rolls a unique):
+
+| Field | Meaning |
+|-------|---------|
+| `magic` | Percent chance a magic roll is an authored magic unique instead of a base with affixes. |
+| `rare` | Percent chance a rare roll is an authored rare unique instead of a base with affixes. |
+| `epic` | Percent chance an epic roll is an authored epic unique instead of a base with affixes. |
+| `legendary` | Percent chance a legendary roll is an authored legendary unique; 100 makes the rarity unique-only. |
 
 Each rarity:
 
@@ -434,7 +445,6 @@ Each rarity:
 | `priceMul` | Price multiplier over the base price for generated items of this rarity. |
 | `minItemLevel` | Lowest item level at which this rarity can roll (drops, trader). |
 | `weight` | Default relative roll weight; shops and drops can override per source. |
-| `uniquesOnly` | Optional boolean; when true the rarity rolls an authored unique instead of a base + affixes. |
 
 Each base (`minItemLevel` and `price` are also used here):
 
@@ -480,8 +490,9 @@ Each unique (`name`, `price`, `modifiers` are also used here):
 
 | Field | Meaning |
 |-------|---------|
+| `rarity` | Rarity of the unique: magic, rare, epic or legendary (common is rejected at load). |
 | `baseId` | Base item this unique is built on (sets its type and weapon profile). |
-| `itemLevel` | Item level of the unique; it can drop from this level up. |
+| `itemLevel` | Lowest roll level the unique appears at; the item keeps the rolled level (never below this). |
 | `procs` | Array of on-hit procs (see Modifiers below); empty array for none. |
 | `note` | Short flavour line shown in the item detail. |
 

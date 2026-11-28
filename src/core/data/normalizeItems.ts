@@ -35,6 +35,7 @@ export const ITEMS_FILE_BOOT_KEYS = [
   "maxReductionPct",
   "itemLevelPriceStepPct",
   "statCaps",
+  "uniqueChanceByRarity",
   "generation",
   "rarities",
   "bases",
@@ -44,9 +45,17 @@ export const ITEMS_FILE_BOOT_KEYS = [
 /** Boot-required keys of `items.json` `generation` (random item rolls). */
 export const ITEMS_GENERATION_BOOT_KEYS = [
   "maxAffixesPerPosition",
-  "outdatedBaseLevels",
-  "outdatedBaseWeight",
+  "outdatedBaseStartLevels",
+  "outdatedBaseEndLevels",
+  "outdatedBaseStartWeight",
 ] as const;
+/** Boot-required keys of `items.json` `uniqueChanceByRarity` (percent each). */
+export const ITEMS_UNIQUE_CHANCE_BOOT_KEYS = [
+  "magic",
+  "rare",
+  "epic",
+  "legendary",
+] as const satisfies readonly Exclude<RarityId, "common">[];
 export const ITEMS_RARITY_BOOT_KEYS = [
   "label",
   "color",
@@ -55,7 +64,6 @@ export const ITEMS_RARITY_BOOT_KEYS = [
   "priceMul",
   "minItemLevel",
   "weight",
-  "uniquesOnly",
 ] as const;
 export const ITEMS_BASE_BOOT_KEYS = [
   "name",
@@ -99,6 +107,7 @@ export const ITEMS_AFFIX_BOOT_KEYS = [
   "spells",
 ] as const;
 export const ITEMS_UNIQUE_BOOT_KEYS = [
+  "rarity",
   "baseId",
   "itemLevel",
   "procs",
@@ -230,7 +239,6 @@ function normalizeRarity(id: RarityId, raw: unknown): RarityDef {
     label: requireString(row.label, `${path}.label`),
     color: row.color as string,
     ...nums,
-    uniquesOnly: row.uniquesOnly === true,
   };
 }
 
@@ -373,9 +381,18 @@ function normalizeUnique(
   if (!bases[baseId]) {
     throw new ConfigLoadError(`${path}.baseId: unknown base "${baseId}"`);
   }
+  const rarity = requireOneOf<RarityId>(
+    row.rarity,
+    RARITY_IDS,
+    `${path}.rarity`,
+  );
+  if (rarity === "common") {
+    throw new ConfigLoadError(`${path}.rarity: uniques start at magic`);
+  }
   return {
     id,
     name: requireString(row.name, `${path}.name`),
+    rarity,
     baseId,
     itemLevel: requireFiniteNumber(row.itemLevel, `${path}.itemLevel`),
     price: requireFiniteNumber(row.price, `${path}.price`),
@@ -385,6 +402,22 @@ function normalizeUnique(
     ),
     note: typeof row.note === "string" ? row.note : "",
   };
+}
+
+function normalizeUniqueChance(
+  raw: unknown,
+): GearCatalog["uniqueChanceByRarity"] {
+  const path = "items.uniqueChanceByRarity";
+  const row = requireRecord(raw, path);
+  const out = {} as GearCatalog["uniqueChanceByRarity"];
+  for (const id of ITEMS_UNIQUE_CHANCE_BOOT_KEYS) {
+    const pct = requireFiniteNumber(row[id], `${path}.${id}`);
+    if (pct < 0 || pct > 100) {
+      throw new ConfigLoadError(`${path}.${id} must be between 0 and 100`);
+    }
+    out[id] = pct;
+  }
+  return out;
 }
 
 function mapRecord<T>(
@@ -435,6 +468,7 @@ export function normalizeItems(raw: unknown): GearCatalog {
       "items.itemLevelPriceStepPct",
     ),
     statCaps,
+    uniqueChanceByRarity: normalizeUniqueChance(root.uniqueChanceByRarity),
     generation: requireNumberFields(
       requireRecord(root.generation, "items.generation"),
       ITEMS_GENERATION_BOOT_KEYS,

@@ -28,9 +28,37 @@ allowed, and how strong affix values are. It also raises the price.
    rarity `weight` used (60/28/9/2.5/0.5).
 2. **Minimum item level.** Rarities above the ilvl are removed: rare needs 3,
    epic 6, legendary 8.
-3. **Legendary = unique.** `legendary.uniquesOnly`: the item becomes a unique
-   picked uniformly from uniques whose `itemLevel` ≤ the ilvl. If none fits it
-   falls back to epic.
+3. **Unique chance.** `uniqueChanceByRarity` gives each rarity a percent chance
+   to be an authored unique *of that rarity* instead of a base plus affixes:
+   magic 3, rare 8, epic 18, legendary 100. Common never rolls a unique.
+   A unique fits when its `itemLevel` ≤ the ilvl and its base matches the rolled
+   type; its item level is the rolled one (never below the unique's own level),
+   and it keeps its authored stats and price. When the roll hits but no unique
+   fits, the item stays a normal item of that rarity. A chance of **100**
+   makes the rarity unique-only: it is skipped (weight 0) when no unique fits,
+   so legendary falls back to epic.
+
+| Unique tier | Uniques | From ilvl | Price |
+|---|---|---|---|
+| Magic | 6 (cinder blade, wayfarer boots, ember charm, hunter's sling, quickdraw charm, bramble gloves) | 1–3 | 70–110g |
+| Rare | 6 (warden helm, wolfpack bow, gilded band, thornhide vest, widowmaker, thunderhead hood) | 4–5 | 210–250g |
+| Epic | 6 (obsidian glaive, glacier crossbow, soulforge gauntlets, thunderplate, meteorheart, riftcleaver) | 7–9 | 350–420g |
+| Legendary | 11 (emberbrand, rimewood bow, bloodthirst, …, longsight, kingsguard plate) | 8–17 | 400–620g |
+
+A unique only rolls at its own rarity: a legendary roll can only pick a
+legendary unique, an epic roll an epic one, and so on.
+
+Signature mechanics the authored uniques cover (all resolve through the same
+stat and proc hooks in `itemStats.ts` / `gearProcs.ts`):
+
+- **Slotted on-hit procs.** Procs come from every equipped item, not just
+  weapons: bramble gloves bleed, the thunderhead hood stuns.
+- **Two procs on one item.** Riftcleaver burns and stuns on the same hit.
+- **All-spell cooldown.** `cooldownPct` on quickdraw charm and kingsguard
+  plate shortens every spell, stacking with per-spell rolls under the 60% cap.
+- **Named-spell damage.** Meteorheart's `spellDamagePct` for `meteor` only.
+- **Weapon shape.** Widowmaker widens the swing arc (`meleeArcPct`); Longsight
+  lengthens ranged reach (`rangedRangePct`).
 
 Current drop bands (`loot.json`, won night, common/magic/rare/epic/legendary):
 
@@ -51,9 +79,15 @@ ilvl 1+ 80/20, 4+ 60/32/8, but they drop nothing (`maxRolls` 0).
 
 Uniform among bases with `minItemLevel` ≤ ilvl (bases now go up to
 ilvl 17: e.g. great axe, halberd, titan maul, war bow, arbalest, mithril
-cuirass, war relic). Bases 5 or more levels
-below the ilvl are "outdated" and get weight 0.35, so higher ilvl favours
-newer bases without removing old ones.
+cuirass, war relic). Staleness is `ilvl − base.minItemLevel`, and the pick
+weight tapers:
+
+| Levels stale | 0–3 | 4 | 5 | 6 | 7 | 8+ |
+|---|---|---|---|---|---|---|
+| Weight | 1 | 0.5 | 0.375 | 0.25 | 0.125 | 0 (never rolls) |
+
+The taper is linear between `outdatedBaseStartLevels` (4, weight
+`outdatedBaseStartWeight` 0.5) and `outdatedBaseEndLevels` (8, weight 0).
 
 ## 4. Affixes
 
@@ -63,7 +97,7 @@ newer bases without removing old ones.
 | Magic | 1–2 | 1.5 |
 | Rare | 2–3 | 2.2 |
 | Epic | 3–4 | 3.2 |
-| Legendary (unique) | fixed stats | fixed price |
+| Unique (any of the four tiers) | fixed authored stats | fixed authored price |
 
 - At most 2 prefixes and 2 suffixes, no duplicate affix, chosen by affix
   `weight` among affixes allowed on the slot.
@@ -86,7 +120,7 @@ speed 40%, lifesteal 25%, spell cooldown 60%. Armour gives
 
 ```
 price = round(basePrice × rarity.priceMul × (1 + itemLevelPriceStepPct/100 × (ilvl − base.minItemLevel)))   (min 1)
-uniques: their fixed price (400–620g)
+uniques: their fixed price (70–620g, by tier), whatever their item level
 shop price = round(price × shop.priceMulPct / 100)   (min 1)
 sell value = floor(price × loot.sellBackPct / 100)     (30%)
 ```

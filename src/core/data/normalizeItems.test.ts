@@ -23,8 +23,9 @@ describe("normalizeItems", () => {
     expect(c.armourHalfReductionAt).toBe(50);
     expect(c.armourMaxReductionPct).toBe(60);
     expect(c.statCaps.attackSpeedPct).toBe(50);
-    expect(c.rarities.common.uniquesOnly).toBe(false);
-    expect(c.rarities.legendary.uniquesOnly).toBe(true);
+    expect(c.uniqueChanceByRarity.magic).toBe(0);
+    expect(c.uniqueChanceByRarity.legendary).toBe(100);
+    expect(c.uniques.flamebrand!.rarity).toBe("legendary");
     expect(c.bases.blade!.melee?.arcDeg).toBe(90);
     expect(c.bases.bow!.ranged?.projectile).toBe("fx_fire_bolt");
     expect(c.bases.bow!.ranged?.projectileTint).toBe(0x112233);
@@ -86,6 +87,22 @@ describe("normalizeItems", () => {
     [
       "unknown unique base",
       () => withPatch((r) => (r.uniques.flamebrand.baseId = "ghost")),
+    ],
+    [
+      "common unique",
+      () => withPatch((r) => (r.uniques.flamebrand.rarity = "common")),
+    ],
+    [
+      "missing unique rarity",
+      () => withPatch((r) => delete r.uniques.flamebrand.rarity),
+    ],
+    [
+      "unique chance over 100",
+      () => withPatch((r) => (r.uniqueChanceByRarity.magic = 140)),
+    ],
+    [
+      "missing unique chance",
+      () => withPatch((r) => delete r.uniqueChanceByRarity.rare),
     ],
   ])("throws ConfigLoadError for %s", (_label, make) => {
     expect(() => normalizeItems(make())).toThrow(ConfigLoadError);

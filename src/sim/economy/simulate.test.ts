@@ -317,8 +317,11 @@ describe("simulate", () => {
   });
 
   it("tilts gear picks toward each profile's focus stat", () => {
+    // 30 seeds: one lucky legendary chest inside a short sample can put the
+    // caster ahead on EHP by drop luck alone, so average over enough runs that
+    // the profile tilt decides the comparison instead of one jackpot.
     const end = (strategy: SimOptions["strategy"]) =>
-      simulateMany(data, opts({ strategy }), 1, 6).map(
+      simulateMany(data, opts({ strategy }), 1, 30).map(
         (r) => r.records.at(-1)!.powerAfter,
       );
     const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -330,7 +333,7 @@ describe("simulate", () => {
     expect(avg(caster.map((p) => p.spellPowerPct))).toBeGreaterThan(
       avg(tank.map((p) => p.spellPowerPct)),
     );
-  });
+  }, 30_000);
 
   it("buys no shop levels when buildings.json has none", () => {
     const raw = defaultRawData();

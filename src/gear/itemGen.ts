@@ -38,16 +38,27 @@ export function affixTierFor(
   return best;
 }
 
+/** Uniques of `rarity` whose roll level is reached and whose base fits `types`. */
 function eligibleUniques(
   catalog: GearCatalog,
   itemLevel: number,
+  rarity: RarityId,
   types: readonly ItemType[] | undefined,
 ) {
   return Object.values(catalog.uniques).filter((u) => {
+    if (u.rarity !== rarity) return false;
     if (u.itemLevel > itemLevel) return false;
     const base = catalog.bases[u.baseId];
     return !!base && (!types || types.includes(base.type));
   });
+}
+
+/** Percent chance a roll of `rarity` is an authored unique (0 for common). */
+export function uniqueChanceFor(
+  catalog: GearCatalog,
+  rarity: RarityId,
+): number {
+  return rarity === "common" ? 0 : catalog.uniqueChanceByRarity[rarity];
 }
 
 /** Pick a rarity allowed at this item level (weights override `items.json` defaults). */
@@ -58,11 +69,16 @@ export function rollRarity(
   weights?: RarityWeights,
   types?: readonly ItemType[],
 ): RarityId {
-  const hasUnique = eligibleUniques(catalog, itemLevel, types).length > 0;
   const pick = pickWeighted(rng, RARITY_IDS, (id) => {
     const def = catalog.rarities[id];
     if (def.minItemLevel > itemLevel) return 0;
-    if (def.uniquesOnly && !hasUnique) return 0;
+    // A guaranteed-unique rarity needs a unique that fits, or it cannot roll.
+    if (
+      uniqueChanceFor(catalog, id) >= 100 &&
+      eligibleUniques(catalog, itemLevel, id, types).length === 0
+    ) {
+      return 0;
+    }
     return weights?.[id] ?? def.weight;
   });
   return pick ?? "common";
@@ -84,19 +100,76 @@ export function createBaseItem(
   };
 }
 
+/** Authored unique at `itemLevel` (defaults to, and never below, its own level). */
 export function createUniqueItem(
   catalog: GearCatalog,
   uniqueId: string,
+  itemLevel?: number,
 ): ItemDraft {
   const unique = catalog.uniques[uniqueId];
   if (!unique) throw new Error(`Unknown unique item "${uniqueId}"`);
   return {
     baseId: unique.baseId,
-    rarity: "legendary",
-    itemLevel: unique.itemLevel,
+    rarity: unique.rarity,
+    itemLevel: Math.max(itemLevel ?? unique.itemLevel, unique.itemLevel),
     uniqueId,
     affixes: [],
   };
+}
+
+/**
+ * Pick weight for a base `levelsStale` item levels under the roll level: 1
+ * until `outdatedBaseStartLevels`, `outdatedBaseStartWeight` at that level,
+ * tapering linearly to 0 at `outdatedBaseEndLevels` (and never above).
+ */
+export function basePickWeight(
+  generation: GearCatalog["generation"],
+  levelsStale: number,
+): number {
+  const start = generation.outdatedBaseStartLevels;
+  const end = generation.outdatedBaseEndLevels;
+  if (levelsStale < start) return 1;
+  if (levelsStale >= end) return 0;
+  const span = Math.max(1, end - start);
+  return (
+    generation.outdatedBaseStartWeight * (1 - (levelsStale - start) / span)
+  );
+}
+
+/** Highest rarity below `from` that never rolls a unique and fits `itemLevel`. */
+function normalRarityBelow(
+  catalog: GearCatalog,
+  from: RarityId,
+  itemLevel: number,
+): RarityId {
+  for (let i = RARITY_IDS.indexOf(from) - 1; i > 0; i--) {
+    const id = RARITY_IDS[i]!;
+    const def = catalog.rarities[id];
+    if (uniqueChanceFor(catalog, id) < 100 && def.minItemLevel <= itemLevel) {
+      return id;
+    }
+  }
+  return "common";
+}
+
+/** The unique a roll of `rarity` lands on, or null when it stays a normal item. */
+function rollUniqueFor(
+  catalog: GearCatalog,
+  rng: Rng,
+  rarity: RarityId,
+  itemLevel: number,
+  types: readonly ItemType[] | undefined,
+) {
+  const chance = uniqueChanceFor(catalog, rarity);
+  if (chance <= 0) return null;
+  if (chance < 100 && rng() * 100 >= chance) return null;
+  return (
+    pickWeighted(
+      rng,
+      eligibleUniques(catalog, itemLevel, rarity, types),
+      () => 1,
+    ) ?? null
+  );
 }
 
 function rollAffixes(
@@ -138,6 +211,7 @@ function rollAffixes(
 
 export type RollItemOptions = {
   itemLevel: number;
+  /** Force this rarity; its unique chance still applies. */
   rarity?: RarityId;
   rarityWeights?: RarityWeights;
   /** Limit to these item types (default: any). */
@@ -154,30 +228,25 @@ export function rollItem(
   const rarity =
     opts.rarity ??
     rollRarity(catalog, rng, itemLevel, opts.rarityWeights, opts.types);
-  const rarityDef = catalog.rarities[rarity];
-  if (rarityDef.uniquesOnly) {
-    const unique = pickWeighted(
-      rng,
-      eligibleUniques(catalog, itemLevel, opts.types),
-      () => 1,
-    );
-    if (unique) return createUniqueItem(catalog, unique.id);
-    return rollItem(catalog, rng, { ...opts, rarity: "epic" });
-  }
+  const unique = rollUniqueFor(catalog, rng, rarity, itemLevel, opts.types);
+  if (unique) return createUniqueItem(catalog, unique.id, itemLevel);
+  // A unique-only rarity with nothing to give becomes the best normal rarity below.
+  const rolledRarity =
+    uniqueChanceFor(catalog, rarity) >= 100
+      ? normalRarityBelow(catalog, rarity, itemLevel)
+      : rarity;
+  const rarityDef = catalog.rarities[rolledRarity];
   const base = pickWeighted(rng, Object.values(catalog.bases), (b) => {
     if (b.minItemLevel > itemLevel) return 0;
     if (opts.types && !opts.types.includes(b.type)) return 0;
-    const gen = catalog.generation;
-    return itemLevel - b.minItemLevel >= gen.outdatedBaseLevels
-      ? gen.outdatedBaseWeight
-      : 1;
+    return basePickWeight(catalog.generation, itemLevel - b.minItemLevel);
   });
   if (!base) return null;
   const count = randInt(rng, rarityDef.minAffixes, rarityDef.maxAffixes);
   const affixes = rollAffixes(catalog, rng, base.type, itemLevel, count);
   return {
     baseId: base.id,
-    rarity: affixes.length === 0 && count > 0 ? "common" : rarity,
+    rarity: affixes.length === 0 && count > 0 ? "common" : rolledRarity,
     itemLevel,
     affixes,
   };
