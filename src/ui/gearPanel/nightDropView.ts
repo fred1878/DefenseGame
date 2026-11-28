@@ -171,11 +171,11 @@ export function nightLossTips(input: NightTipsInput): NightTip[] {
   const tips: NightTip[] = [];
   const wallCost = nextLevelCost(buildings, save, "wall");
   if (wallCost !== null) {
-    const afford = save.gold >= wallCost ? "you can afford it" : `${wallCost}g`;
+    const afford = save.gold >= wallCost ? "" : ` · ${wallCost}g`;
     tips.push({
       icon: "shield",
       title: "Raise the wall",
-      body: `${input.wallBuildingName} · next level +${input.wallHpPerLevel} wall HP · ${afford}`,
+      body: `${input.wallBuildingName} · next level +${input.wallHpPerLevel} wall HP${afford}`,
     });
   }
   const better = bagItems(save.gear).filter(
@@ -201,7 +201,7 @@ export function nightLossTips(input: NightTipsInput): NightTip[] {
       tips.push({
         icon: "hammer",
         title: `Upgrade the ${id === "blacksmith" ? "Blacksmith" : "Trader"}`,
-        body: `${name} · next level ${cost}g · you can afford it`,
+        body: `${name} · next level ${cost}g`,
       });
     }
   }
