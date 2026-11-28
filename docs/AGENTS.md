@@ -15,10 +15,10 @@ BootScene (load `public/data/*.json` + assets, restore save) → TownScene (upgr
 ```bash
 npm install
 npm run dev              # Vite, http://127.0.0.1:5173
-npm run verify           # typecheck + lint + knip + check:arch + vitest (default agent check)
+npm run verify           # typecheck + lint + check:arch + vitest (default agent check)
 npm run typecheck        # tsc: src, e2e, configs
 npm run lint             # Biome check: lint + formatting; warnings fail too (CI gate)
-npm run knip             # unused files/exports/deps (CI gate)
+npm run knip             # unused files/exports/deps (CI only — never run this in an agent session)
 npm run check:arch       # import cycles + layer rules vs scripts/data/architecture-baseline.json (CI gate)
 npm run format           # Biome formatter (fix what `lint` reports as unformatted)
 npm run test             # Vitest only
@@ -87,7 +87,7 @@ Save shapes: `src/core/save/saveTypes.ts` (`SaveGame`, `NightResult`, `SAVE_VERS
 - **Input:** one owner at a time via `src/input/inputModality.ts`. Modals use `acquireModalInput` + `bindModalDimBackdrop`; host scenes react to `INPUT_MODALITY_CHANGED`.
 - **Save safety:** extend `SaveGame` only with backward-compatible defaults in `createNewSave()` (`core/save/GameState.ts`).
 - **Debug world scale:** `DebugMenuScene` cycles session-only `registry.worldPixelScale` (1×/2×/3× vs default 2× art). Scales the full defense footprint (`defenseFieldPx`, ground tiles, camera/physics bounds, nav grid extent, obstacles, wall band, spawns); HUD stays unscaled (`worldUnit` / `worldDisplayPx` in `config/worldScale.ts`; the debug setters live in `core/render/worldPixelScale.ts`).
-- **CI:** typecheck, Biome lint, knip, `check:arch`, unit tests (`test:coverage` floors are in `vitest.config.ts` and only ever go up), build and Chromium Playwright must stay green. Scene tests (`src/**/*.scene.test.ts`) boot real Phaser under jsdom + `@napi-rs/canvas`; see [TESTING.md](./TESTING.md). Delete dead code rather than adding knip ignores. Merges to main publish Pages.
+- **CI:** typecheck, Biome lint, knip (CI only — agents don't run it), `check:arch`, unit tests (`test:coverage` floors are in `vitest.config.ts` and only ever go up), build and Chromium Playwright must stay green. Scene tests (`src/**/*.scene.test.ts`) boot real Phaser under jsdom + `@napi-rs/canvas`; see [TESTING.md](./TESTING.md). Delete dead code rather than adding knip ignores. Merges to main publish Pages.
 - **Balance:** prefer `npm run sim:economy` when changing `waves.json`, `loot.json`, shop prices, or affix power — [ECONOMY_SIM.md](./ECONOMY_SIM.md).
 - **Defense pooling:** projectile sprites via `src/entities/projectilePool.ts` (`releaseProjectileSprite` on despawn); enemy shells via `DefenseEnemySpawner` + `reconfigureEnemyInstance`. Scene shutdown calls `destroyProjectilePool` / `destroyDefenseEnemyPool`.
 

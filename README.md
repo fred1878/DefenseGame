@@ -102,12 +102,12 @@ npm install
 npm run dev          # Vite dev server
 npm run build        # tsc + production bundle → dist/
 npm run preview      # serve dist locally
-npm run verify       # typecheck + Biome lint + knip + check:arch + Vitest (default check)
+npm run verify       # typecheck + Biome lint + check:arch + Vitest (default check)
 npm run sim:economy  # headless balance sim → sim-output/ (see docs/ECONOMY_SIM.md)
 npm run typecheck    # src, e2e, configs
 npm run lint         # Biome lint + format check; any warning fails
 npm run format       # apply Biome formatting
-npm run knip         # dead files/exports/deps
+npm run knip         # dead files/exports/deps (CI only; not part of verify)
 npm run test         # Vitest (unit tests + real-Phaser scene tests)
 npm run test:coverage
 npm run build:e2e    # build with VITE_E2E hooks
