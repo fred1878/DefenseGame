@@ -165,11 +165,13 @@ export function describeRequest(
         name: catalog.bases[request.baseId]?.name ?? "Unknown item",
         color: catalog.rarities.common.color,
       };
-    case "unique":
+    case "unique": {
+      const unique = catalog.uniques[request.uniqueId];
       return {
-        name: catalog.uniques[request.uniqueId]?.name ?? "Unknown unique",
-        color: catalog.rarities.legendary.color,
+        name: unique?.name ?? "Unknown unique",
+        color: catalog.rarities[unique?.rarity ?? "legendary"].color,
       };
+    }
     case "type": {
       const rarity = catalog.rarities[request.minRarity];
       const plus = request.minRarity === "legendary" ? "" : "+";

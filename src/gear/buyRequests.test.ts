@@ -143,7 +143,7 @@ describe("buyRequests", () => {
     const uniqueId = Object.keys(catalog.uniques)[0]!;
     expect(describeRequest(catalog, { kind: "unique", uniqueId })).toEqual({
       name: catalog.uniques[uniqueId]!.name,
-      color: catalog.rarities.legendary.color,
+      color: catalog.rarities[catalog.uniques[uniqueId]!.rarity].color,
     });
     expect(
       describeRequest(catalog, { kind: "unique", uniqueId: "nope" }).name,

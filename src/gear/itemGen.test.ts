@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { gearFixture } from "../test/gearFixture";
+import type { GearCatalog, RarityId } from "./gearTypes";
 import {
   affixTierFor,
+  basePickWeight,
   createBaseItem,
   createUniqueItem,
   equipSlotsForType,
@@ -76,6 +78,9 @@ describe("itemGen", () => {
       uniqueId: "flamebrand",
       itemLevel: 6,
     });
+    // The rolled level carries over, never below the unique's own level.
+    expect(createUniqueItem(catalog, "flamebrand", 11).itemLevel).toBe(11);
+    expect(createUniqueItem(catalog, "flamebrand", 2).itemLevel).toBe(6);
     expect(() => createBaseItem(catalog, "ghost", 1)).toThrow();
     expect(() => createUniqueItem(catalog, "ghost")).toThrow();
   });
@@ -117,6 +122,95 @@ describe("itemGen", () => {
     expect(ring.baseId).toBe("band");
   });
 
+  it("only rolls uniques of the requested rarity", () => {
+    const all: GearCatalog = {
+      ...catalog,
+      uniqueChanceByRarity: {
+        magic: 100,
+        rare: 100,
+        epic: 100,
+        legendary: 100,
+      },
+    };
+    const rolled = (rarity: RarityId) =>
+      rollItem(all, createRng(8), { itemLevel: 12, rarity })!;
+    expect(rolled("magic")).toMatchObject({
+      uniqueId: "spark_band",
+      rarity: "magic",
+    });
+    expect(rolled("rare")).toMatchObject({
+      uniqueId: "warden_idol",
+      rarity: "rare",
+    });
+    expect(rolled("epic")).toMatchObject({
+      uniqueId: "prism_cap",
+      rarity: "epic",
+    });
+    expect(rolled("legendary")).toMatchObject({
+      uniqueId: "flamebrand",
+      rarity: "legendary",
+    });
+  });
+
+  it("honours a per-rarity unique chance and keeps the rolled level", () => {
+    const half: GearCatalog = {
+      ...catalog,
+      uniqueChanceByRarity: { ...catalog.uniqueChanceByRarity, magic: 50 },
+    };
+    const rng = createRng(21);
+    let uniques = 0;
+    for (let i = 0; i < 200; i++) {
+      const item = rollItem(half, rng, {
+        itemLevel: 3,
+        rarity: "magic",
+        types: ["ring"],
+      })!;
+      if (item.uniqueId) {
+        uniques += 1;
+        expect(item.uniqueId).toBe("spark_band");
+        expect(item.itemLevel).toBe(3);
+      } else {
+        expect(item.baseId).toBe("band");
+      }
+    }
+    expect(uniques).toBeGreaterThan(60);
+    expect(uniques).toBeLessThan(140);
+  });
+
+  it("drops a unique-only rarity to the best normal rarity below", () => {
+    const rares: GearCatalog = {
+      ...catalog,
+      uniqueChanceByRarity: { ...catalog.uniqueChanceByRarity, rare: 100 },
+    };
+    // A rare unique fits a trinket at this level.
+    expect(
+      rollItem(rares, createRng(6), {
+        itemLevel: 5,
+        rarity: "rare",
+        types: ["trinket"],
+      })?.uniqueId,
+    ).toBe("warden_idol");
+    // None fits a ring, so the roll becomes a plain magic ring.
+    const ring = rollItem(rares, createRng(6), {
+      itemLevel: 5,
+      rarity: "rare",
+      types: ["ring"],
+    })!;
+    expect(ring.uniqueId).toBeUndefined();
+    expect(ring.rarity).toBe("magic");
+    expect(ring.baseId).toBe("band");
+  });
+
+  it("tapers outdated bases from 0.5 at 4 levels stale to 0 at 8", () => {
+    const gen = catalog.generation;
+    expect(basePickWeight(gen, 0)).toBe(1);
+    expect(basePickWeight(gen, 3)).toBe(1);
+    expect(basePickWeight(gen, 4)).toBe(0.5);
+    expect(basePickWeight(gen, 6)).toBeCloseTo(0.25);
+    expect(basePickWeight(gen, 8)).toBe(0);
+    expect(basePickWeight(gen, 20)).toBe(0);
+  });
+
   it("returns null when no base fits and demotes affix-less magic items", () => {
     expect(
       rollItem(catalog, createRng(1), { itemLevel: 1, types: ["boots"] }),
@@ -143,8 +237,21 @@ describe("itemGen", () => {
       expect(item.itemLevel).toBe(8);
       if (item.baseId === "cap") caps += 1;
     }
-    // cap (ilvl 1) is outdated at 8 → weight 0.35 vs idol 1.
+    // cap (ilvl 1) is 7 levels stale → weight 0.125 vs idol's 0.5 at 4 stale.
     expect(caps).toBeLessThan(160);
     expect(caps).toBeGreaterThan(40);
+  });
+
+  it("never rolls bases 8 or more levels stale", () => {
+    const rng = createRng(13);
+    for (let i = 0; i < 200; i++) {
+      const item = rollItem(catalog, rng, {
+        itemLevel: 9,
+        rarity: "common",
+        types: ["helm", "trinket"],
+      })!;
+      // cap (ilvl 1) is 8 stale and gone; idol (ilvl 4) is the only base left.
+      expect(item.baseId).toBe("idol");
+    }
   });
 });

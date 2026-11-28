@@ -9,9 +9,11 @@ export function gearFixtureRaw(): Record<string, unknown> {
     statCaps: { attackSpeedPct: 50, spellCooldownPct: 40, lifestealPct: 20 },
     generation: {
       maxAffixesPerPosition: 2,
-      outdatedBaseLevels: 5,
-      outdatedBaseWeight: 0.35,
+      outdatedBaseStartLevels: 4,
+      outdatedBaseEndLevels: 8,
+      outdatedBaseStartWeight: 0.5,
     },
+    uniqueChanceByRarity: { magic: 0, rare: 0, epic: 0, legendary: 100 },
     rarities: {
       common: {
         label: "Common",
@@ -57,7 +59,6 @@ export function gearFixtureRaw(): Record<string, unknown> {
         priceMul: 1,
         minItemLevel: 6,
         weight: 1,
-        uniquesOnly: true,
       },
     },
     bases: {
@@ -206,8 +207,39 @@ export function gearFixtureRaw(): Record<string, unknown> {
       },
     },
     uniques: {
+      spark_band: {
+        name: "Spark Band",
+        rarity: "magic",
+        baseId: "band",
+        itemLevel: 1,
+        price: 80,
+        modifiers: [{ stat: "spellPowerPct", value: 5 }],
+        procs: [],
+        note: "Faintly warm.",
+      },
+      warden_idol: {
+        name: "Warden Idol",
+        rarity: "rare",
+        baseId: "idol",
+        itemLevel: 4,
+        price: 160,
+        modifiers: [{ stat: "armour", value: 4 }],
+        procs: [],
+        note: "Watchful.",
+      },
+      prism_cap: {
+        name: "Prism Cap",
+        rarity: "epic",
+        baseId: "cap",
+        itemLevel: 5,
+        price: 260,
+        modifiers: [{ stat: "maxHp", value: 12 }],
+        procs: [],
+        note: "Splits the light.",
+      },
       flamebrand: {
         name: "Flamebrand",
+        rarity: "legendary",
         baseId: "blade",
         itemLevel: 6,
         price: 300,
